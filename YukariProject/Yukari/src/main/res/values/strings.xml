@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Yukari</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
+    <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
+    <string name="OAuthTitle">OAuth認証</string>
+
+    <integer name="requestcode_oauth">1</integer>
+
+</resources>

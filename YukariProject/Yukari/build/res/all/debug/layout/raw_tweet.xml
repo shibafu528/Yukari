@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:baselineAligned="false">
+
+    <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:id="@+id/tweet_icon"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/ic_launcher"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="\uFF20null / Name"
+            android:id="@+id/tweet_name"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/tweet_icon"
+            android:layout_marginLeft="8dp"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tweet Text"
+            android:id="@+id/tweet_text"
+            android:layout_below="@+id/tweet_name"
+            android:layout_alignLeft="@+id/tweet_name"/>
+</RelativeLayout><!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/layout/raw_tweet.xml -->
