@@ -1,6 +1,8 @@
 package shibafu.yukari.twitter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import twitter4j.auth.AccessToken;
 
@@ -38,5 +40,11 @@ public class AuthUserRecord implements Serializable{
     @Override
     public int hashCode() {
         return Integer.decode(ScreenName);
+    }
+
+    public List<AuthUserRecord> toSingleList() {
+        List<AuthUserRecord> l = new ArrayList<AuthUserRecord>();
+        l.add(this);
+        return l;
     }
 }

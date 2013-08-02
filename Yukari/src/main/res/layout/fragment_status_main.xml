@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/scrollView"
+            android:fillViewport="false"
+            android:layout_weight="1">
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+            <include
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    layout="@layout/raw_tweet"
+                    android:layout_gravity="center"
+                    android:id="@+id/status_tweet"
+                    />
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="240dp"
+            android:layout_marginBottom="16dp">
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:minHeight="240dp">
+
+            <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="80dp"
+                    android:minHeight="80dp"
+                    android:layout_marginBottom="4dp">
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_reply"
+                        android:src="@drawable/ic_reply"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_retweet"
+                        android:src="@drawable/ic_retweet"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="80dp"
+                    android:minHeight="80dp"
+                    android:layout_marginBottom="4dp">
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_favorite"
+                        android:src="@drawable/ic_favorite"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_quote"
+                        android:src="@drawable/ic_quote"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="80dp"
+                    android:minHeight="80dp">
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_favrt"
+                        android:src="@drawable/ic_favrt"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+
+                <ImageButton
+                        android:layout_width="128dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/ib_state_share"
+                        android:src="@drawable/ic_share"
+                        android:layout_weight="1"
+                        android:scaleType="centerInside"
+                        android:layout_margin="4dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

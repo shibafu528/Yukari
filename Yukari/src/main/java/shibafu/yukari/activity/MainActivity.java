@@ -3,20 +3,14 @@ package shibafu.yukari.activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerTabStrip;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.FrameLayout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,11 +18,9 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.TweetListFragment;
-import shibafu.yukari.service.TweetReceiverService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 import twitter4j.Twitter;
 
 public class MainActivity extends FragmentActivity {
@@ -37,8 +29,12 @@ public class MainActivity extends FragmentActivity {
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
     private int reqAuth;
 
-    private TweetReceiverService service;
+    private TwitterService service;
     private boolean serviceBound = false;
+
+    private boolean isTouchTweet = false;
+    private float tweetGestureYStart = 0;
+    private float tweetGestureY = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +51,35 @@ public class MainActivity extends FragmentActivity {
         else {
             addTab(users.get(0), "home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
         }
+
+        FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
+        area.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        tweetGestureYStart = event.getY();
+                    case MotionEvent.ACTION_MOVE:
+                        tweetGestureY = event.getY();
+                        isTouchTweet = true;
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
+                            Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                            intent.putExtra(TweetActivity.EXTRA_USER, users.get(0));
+                            startActivity(intent);
+                        }
+                        break;
+                }
+                return true;
+            }
+        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        bindService(new Intent(this, TweetReceiverService.class), connection, BIND_AUTO_CREATE);
+        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
@@ -117,7 +136,7 @@ public class MainActivity extends FragmentActivity {
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            TweetReceiverService.TweetReceiverBinder binder = (TweetReceiverService.TweetReceiverBinder) service;
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             MainActivity.this.service = binder.getService();
             serviceBound = true;
         }

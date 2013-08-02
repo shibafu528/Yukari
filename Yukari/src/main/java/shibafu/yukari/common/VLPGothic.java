@@ -20,7 +20,7 @@ public class VLPGothic {
 
     public static VLPGothic getInstance(Context context) {
         if (instance == null) {
-            instance = new VLPGothic(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Regular.ttf"));
+            instance = new VLPGothic(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Symbola.ttf"));
         }
         return instance;
     }
