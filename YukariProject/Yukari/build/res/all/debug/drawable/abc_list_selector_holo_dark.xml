@@ -25,4 +25,4 @@
     <item android:state_focused="false"                               android:state_pressed="true" android:drawable="@drawable/abc_list_selector_background_transition_holo_dark" />
     <item android:state_focused="true"                                                             android:drawable="@drawable/abc_list_focused_holo" />
 </selector>
-<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/drawable/abc_list_selector_holo_dark.xml --><!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/drawable/abc_list_selector_holo_dark.xml -->
+<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/drawable/abc_list_selector_holo_dark.xml --><!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/drawable/abc_list_selector_holo_dark.xml -->

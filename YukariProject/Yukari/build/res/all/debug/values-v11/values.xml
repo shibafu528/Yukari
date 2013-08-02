@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values-v11/styles.xml -->
+    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-v11/styles.xml -->
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light">
         <!-- API 11 theme customizations can go here. -->
     </style>
 
     <style name="AppThemeNoTitle" parent="android:Theme.Holo.Light.NoActionBar" />
-    <!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml -->
+    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml -->
     <style name="Theme.Base" parent="android:Theme.Holo">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>

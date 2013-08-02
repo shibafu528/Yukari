@@ -19,4 +19,4 @@ limitations under the License.
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       style="?attr/actionBarTabStyle"/>
-<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/layout/abc_action_bar_tab.xml --><!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/layout/abc_action_bar_tab.xml -->
+<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/layout/abc_action_bar_tab.xml --><!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/layout/abc_action_bar_tab.xml -->

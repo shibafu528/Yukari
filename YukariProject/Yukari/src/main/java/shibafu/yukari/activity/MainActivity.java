@@ -1,14 +1,18 @@
 package shibafu.yukari.activity;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -20,8 +24,11 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.TweetListFragment;
+import shibafu.yukari.service.TweetReceiverService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter4j.DirectMessage;
+import twitter4j.Status;
 import twitter4j.Twitter;
 
 public class MainActivity extends FragmentActivity {
@@ -30,14 +37,13 @@ public class MainActivity extends FragmentActivity {
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
     private int reqAuth;
 
-    private List<TweetListFragment> tabs = new ArrayList<TweetListFragment>();
-    private ViewPager pager;
-    private PagerAdapter adapter;
+    private TweetReceiverService service;
+    private boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_test);
         reqAuth = getResources().getInteger(R.integer.requestcode_oauth);
 
         //Twitterログインデータを読み込む
@@ -46,25 +52,21 @@ public class MainActivity extends FragmentActivity {
         if (users.size() < 1) {
             startActivityForResult(new Intent(this, OAuthActivity.class), reqAuth);
         }
-
-        //ViewPagerを準備する
-        pager = (ViewPager) findViewById(R.id.pager);
-        adapter = new PagerAdapter(getSupportFragmentManager());
-        PagerTabStrip tabStrip = (PagerTabStrip) findViewById(R.id.pager_tab_strip);
-        tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColor(Color.parseColor("#EE879F"));
-
-        //タブ初期化
-        initTabs();
-        pager.setAdapter(adapter);
-        pager.setCurrentItem(0);
+        else {
+            addTab(users.get(0), "home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
+        }
     }
 
-    private void initTabs() {
-        for (AuthUserRecord aur : users) {
-            Log.d("initTabs", "user:" + aur.ScreenName);
-            addTab(aur, "home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
-        }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, TweetReceiverService.class), connection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(connection);
     }
 
     private void addTab(AuthUserRecord user, String title, int mode) {
@@ -74,7 +76,10 @@ public class MainActivity extends FragmentActivity {
         b.putInt(TweetListFragment.EXTRA_MODE, mode);
         b.putSerializable(TweetListFragment.EXTRA_USER, user);
         fragment.setArguments(b);
-        tabs.add(fragment);
+
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame, fragment).commit();
+        setTitle(title);
     }
 
     @Override
@@ -106,28 +111,20 @@ public class MainActivity extends FragmentActivity {
                 addTab(aur, "home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
             }
         }
-        adapter.notifyDataSetChanged();
+        service.reloadUsers();
     }
 
-    private class PagerAdapter extends FragmentStatePagerAdapter {
-
-        public PagerAdapter(FragmentManager fm) {
-            super(fm);
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            TweetReceiverService.TweetReceiverBinder binder = (TweetReceiverService.TweetReceiverBinder) service;
+            MainActivity.this.service = binder.getService();
+            serviceBound = true;
         }
 
         @Override
-        public Fragment getItem(int i) {
-            return tabs.get(i);
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
         }
-
-        @Override
-        public int getCount() {
-            return tabs.size();
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return tabs.get(position).getTitle();
-        }
-    }
+    };
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w720dp/values.xml -->
+    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w720dp/values.xml -->
     <bool name="abc_action_bar_expanded_action_views_exclusive">false</bool>
 
 </resources>

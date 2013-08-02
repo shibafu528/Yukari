@@ -22,4 +22,4 @@
         app:divider="?attr/actionBarDivider"
         app:dividerPadding="12dip"
         android:gravity="center_vertical"/>
-<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/layout/abc_action_menu_layout.xml --><!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/layout/abc_action_menu_layout.xml -->
+<!-- From: file:/Volumes/Android/int/jb-mr2-ub-dev/frameworks/support/v7/appcompat/res/layout/abc_action_menu_layout.xml --><!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/layout/abc_action_menu_layout.xml -->

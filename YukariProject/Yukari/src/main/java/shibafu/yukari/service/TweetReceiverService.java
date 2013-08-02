@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,14 +15,17 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StreamUser;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
+import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/08/01.
  */
 public class TweetReceiverService extends Service{
+    private static final String LOG_TAG = "TweetReceiverService";
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
     public class TweetReceiverBinder extends Binder {
@@ -69,7 +73,7 @@ public class TweetReceiverService extends Service{
 
         @Override
         public void onStatus(AuthUserRecord from, Status status) {
-            Log.d("TweetReceiverService", "onStatus: @" + status.getUser().getScreenName() + " " + status.getText());
+            Log.d(LOG_TAG, "onStatus(Regitsted Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, status);
             }
@@ -88,15 +92,16 @@ public class TweetReceiverService extends Service{
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d(LOG_TAG, "onCreate");
         twitter = TwitterUtil.getTwitterInstance(this);
         reloadUsers();
-
-        Log.d("TweetReceiverService", "onCreate");
+        Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d(LOG_TAG, "onDestroy");
         for (StreamUser su : streamUsers) {
             su.stop();
         }
@@ -108,7 +113,8 @@ public class TweetReceiverService extends Service{
         twitter = null;
         users = null;
 
-        Log.d("TweetReceiverService", "onDestroy");
+        Log.d(LOG_TAG, "onDestroy completed.");
+        Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
     }
 
     public void reloadUsers() {
@@ -129,6 +135,7 @@ public class TweetReceiverService extends Service{
                     statusListeners.remove(remove);
                 }
                 removeList.add(aur);
+                Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
             }
         }
         users.removeAll(removeList);
@@ -140,8 +147,10 @@ public class TweetReceiverService extends Service{
                 su.setListener(listener);
                 streamUsers.add(su);
                 su.start();
+                Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             }
         }
+        Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + statusListeners.size());
     }
 
     public void addStatusListener(StatusListener l) {

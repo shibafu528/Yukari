@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values-sw720dp-land/dimens.xml -->
+    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-sw720dp-land/dimens.xml -->
     <dimen name="activity_horizontal_margin">128dp</dimen>
 
 </resources>

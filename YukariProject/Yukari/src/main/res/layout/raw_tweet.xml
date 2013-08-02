@@ -3,9 +3,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:baselineAligned="false">
+              android:baselineAligned="false"
+              android:padding="4dp">
 
-    <ImageView
+    <com.loopj.android.image.SmartImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:id="@+id/tweet_icon"
@@ -20,7 +21,8 @@
             android:id="@+id/tweet_name"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/tweet_icon"
-            android:layout_marginLeft="8dp"/>
+            android:layout_marginLeft="8dp"
+            android:textColor="#ff419b38"/>
 
     <TextView
             android:layout_width="wrap_content"
@@ -28,5 +30,20 @@
             android:text="Tweet Text"
             android:id="@+id/tweet_text"
             android:layout_below="@+id/tweet_name"
-            android:layout_alignLeft="@+id/tweet_name"/>
+            android:layout_alignLeft="@+id/tweet_name"
+            android:textColor="#000"
+            android:layout_marginTop="4dp"/>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="2013/01/01 00:00:00 via Yukari for Android"
+            android:id="@+id/tweet_timestamp"
+            android:layout_below="@+id/tweet_text"
+            android:layout_alignLeft="@+id/tweet_text"
+            android:layout_marginTop="4dp"
+            android:textColor="#ff8b8b8b"
+            android:textSize="11sp"/>
+
 </RelativeLayout>

@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter;
 
 import android.content.Context;
+import android.util.Log;
 
 import shibafu.yukari.R;
 import twitter4j.DirectMessage;
@@ -16,6 +17,7 @@ import twitter4j.conf.PropertyConfiguration;
  * Created by Shibafu on 13/08/01.
  */
 public class StreamUser {
+    private static final String LOG_TAG = "StreamUser";
     private TwitterStream stream;
     private AuthUserRecord userRecord;
     private UserStreamAdapter streamAdapter = new UserStreamAdapter() {
@@ -67,10 +69,12 @@ public class StreamUser {
     }
 
     public void start() {
+        Log.d(LOG_TAG, "Start UserStream user: @" + userRecord.ScreenName);
         stream.user();
     }
 
     public void stop() {
+        Log.d(LOG_TAG, "Shutdown UserStream user: @" + userRecord.ScreenName);
         stream.shutdown();
     }
 

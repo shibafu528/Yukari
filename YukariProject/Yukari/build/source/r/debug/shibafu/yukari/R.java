@@ -17,7 +17,7 @@ public final class R {
         public static final int abc_slide_out_top=0x7f040005;
     }
     public static final class attr {
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
          */
@@ -730,13 +730,13 @@ containing a value of this type.
         public static final int windowSplitActionBar=0x7f010052;
     }
     public static final class bool {
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-land/values.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-large/values.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w480dp/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-land/values.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-large/values.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w480dp/values.xml 
          */
         public static final int abc_action_bar_embed_tabs_pre_jb=0x7f050000;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-xlarge/values.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w720dp/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-xlarge/values.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w720dp/values.xml 
          */
         public static final int abc_action_bar_expanded_action_views_exclusive=0x7f050001;
         public static final int abc_config_actionMenuItemAllCaps=0x7f050002;
@@ -751,8 +751,8 @@ containing a value of this type.
         public static final int abc_search_url_text_selected=0x7f060002;
     }
     public static final class dimen {
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w600dp/values.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-sw600dp/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w600dp/values.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-sw600dp/values.xml 
          */
         public static final int abc_action_bar_default_height=0x7f080000;
         public static final int abc_action_bar_icon_vertical_padding=0x7f080001;
@@ -770,8 +770,8 @@ containing a value of this type.
         public static final int abc_panel_menu_list_width=0x7f08000d;
         public static final int abc_search_view_preferred_width=0x7f08000e;
         public static final int abc_search_view_text_min_width=0x7f08000f;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values/dimens.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values-sw720dp-land/dimens.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/dimens.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-sw720dp-land/dimens.xml 
          */
         public static final int activity_horizontal_margin=0x7f080010;
         public static final int activity_vertical_margin=0x7f080011;
@@ -868,7 +868,7 @@ containing a value of this type.
     }
     public static final class id {
         public static final int action_bar=0x7f07001a;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
          */
         public static final int action_bar_activity_content=0x7f070014;
         public static final int action_bar_container=0x7f070019;
@@ -882,7 +882,7 @@ containing a value of this type.
         public static final int action_mode_bar=0x7f07002f;
         public static final int action_mode_bar_stub=0x7f07002e;
         public static final int action_mode_close_button=0x7f070022;
-        public static final int action_settings=0x7f070047;
+        public static final int action_settings=0x7f070049;
         public static final int activity_chooser_view_content=0x7f070023;
         public static final int always=0x7f07000f;
         public static final int beginning=0x7f07000a;
@@ -896,6 +896,7 @@ containing a value of this type.
         public static final int end=0x7f07000c;
         public static final int expand_activities_button=0x7f070024;
         public static final int expanded_menu=0x7f07002a;
+        public static final int frame=0x7f070044;
         public static final int home=0x7f070017;
         public static final int homeAsUp=0x7f070005;
         public static final int icon=0x7f070028;
@@ -935,19 +936,20 @@ containing a value of this type.
         public static final int title=0x7f070029;
         public static final int title_container=0x7f070030;
         public static final int top_action_bar=0x7f07001e;
-        public static final int tweet_icon=0x7f070044;
-        public static final int tweet_name=0x7f070045;
-        public static final int tweet_text=0x7f070046;
+        public static final int tweet_icon=0x7f070045;
+        public static final int tweet_name=0x7f070046;
+        public static final int tweet_text=0x7f070047;
+        public static final int tweet_timestamp=0x7f070048;
         public static final int up=0x7f07001f;
         public static final int useLogo=0x7f070003;
         public static final int withText=0x7f070010;
     }
     public static final class integer {
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w360dp/values.xml 
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w500dp/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w360dp/values.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w500dp/values.xml 
          */
         public static final int abc_max_action_buttons=0x7f090000;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values/strings.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml 
          */
         public static final int requestcode_oauth=0x7f090001;
     }
@@ -978,15 +980,16 @@ containing a value of this type.
         public static final int abc_search_view=0x7f030017;
         public static final int activity_main=0x7f030018;
         public static final int activity_oauth=0x7f030019;
-        public static final int raw_tweet=0x7f03001a;
-        public static final int support_simple_spinner_dropdown_item=0x7f03001b;
+        public static final int activity_test=0x7f03001a;
+        public static final int raw_tweet=0x7f03001b;
+        public static final int support_simple_spinner_dropdown_item=0x7f03001c;
     }
     public static final class menu {
         public static final int main=0x7f0c0000;
     }
     public static final class string {
         public static final int OAuthTitle=0x7f0a0000;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
          */
         public static final int abc_action_bar_home_description=0x7f0a0001;
         public static final int abc_action_bar_up_description=0x7f0a0002;
@@ -1001,7 +1004,7 @@ containing a value of this type.
         public static final int abc_searchview_description_voice=0x7f0a000b;
         public static final int abc_shareactionprovider_share_with=0x7f0a000c;
         public static final int abc_shareactionprovider_share_with_application=0x7f0a000d;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values/strings.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml 
          */
         public static final int action_settings=0x7f0a000e;
         public static final int app_name=0x7f0a000f;
@@ -1010,13 +1013,13 @@ containing a value of this type.
         public static final int twitter_consumer_secret=0x7f0a0012;
     }
     public static final class style {
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values/styles.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/styles.xml 
 
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
             backward-compatibility can go here.
         
- From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/src/main/res/values-v11/styles.xml 
+ From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-v11/styles.xml 
  API 11 theme customizations can go here. 
          */
         public static final int AppBaseTheme=0x7f0b0000;
@@ -1024,11 +1027,11 @@ containing a value of this type.
          */
         public static final int AppTheme=0x7f0b0001;
         public static final int AppThemeNoTitle=0x7f0b0002;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
          */
         public static final int TextAppearance_AppCompat_Base_CompactMenu_Dialog=0x7f0b0003;
         public static final int TextAppearance_AppCompat_Base_SearchResult=0x7f0b0004;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v14/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v14/values.xml 
          */
         public static final int TextAppearance_AppCompat_Base_SearchResult_Subtitle=0x7f0b0005;
         public static final int TextAppearance_AppCompat_Base_SearchResult_Title=0x7f0b0006;
@@ -1076,7 +1079,7 @@ containing a value of this type.
         public static final int Theme_AppCompat_CompactMenu_Dialog=0x7f0b0030;
         public static final int Theme_AppCompat_Light=0x7f0b0031;
         public static final int Theme_AppCompat_Light_DarkActionBar=0x7f0b0032;
-        /**  From: file:/D:/Shibafu/AndroidStudioProjects/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml 
+        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml 
          */
         public static final int Theme_Base=0x7f0b0033;
         public static final int Theme_Base_AppCompat=0x7f0b0034;
