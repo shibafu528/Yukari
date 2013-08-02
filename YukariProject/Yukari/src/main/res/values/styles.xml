@@ -11,6 +11,20 @@
             backward-compatibility can go here.
         -->
     </style>
+
+    <style name="AppDialogTheme" parent="android:Theme.Dialog"></style>
+
+    <style name="VertAnimationTheme" parent="android:Theme.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+    <style name="Animation" parent="android:Animation" />
+    <style name="Animation.Vert" parent="android:Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/activity_tweet_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_tweet_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_tweet_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
+    </style>
+
     <style name="AppThemeNoTitle" parent="android:Theme.Light.NoTitleBar"></style>
 
     <!-- Application theme. -->

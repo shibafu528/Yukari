@@ -2,7 +2,6 @@ package shibafu.yukari.common;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,8 +30,8 @@ public class TweetAdapterWrap {
     private List<AuthUserRecord> userRecords;
     private List<Status> statuses;
     private TweetAdapter adapter;
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
-    private final Pattern viaPattern = Pattern.compile("<a .*>(.+)</a>");
+    private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
+    private final static Pattern viaPattern = Pattern.compile("<a .*>(.+)</a>");
 
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<Status> statuses) {
         this.context = context;
@@ -55,6 +54,68 @@ public class TweetAdapterWrap {
 
     public void notifyDataSetChanged() {
         adapter.notifyDataSetChanged();
+    }
+
+    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords) {
+        TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
+        tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
+        tvName.setTypeface(VLPGothic.getInstance(context).getFont());
+        TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
+        tvText.setTypeface(VLPGothic.getInstance(context).getFont());
+        tvText.setText(st.getText());
+        SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
+        ivIcon.setImageResource(R.drawable.ic_launcher);
+        ivIcon.setImageUrl(st.getUser().getProfileImageURL());
+        TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
+        Matcher matcher = viaPattern.matcher(st.getSource());
+        String via;
+        if (matcher.find()) {
+            via = matcher.group(1);
+        }
+        else {
+            via = st.getSource();
+        }
+        String timestamp = sdf.format(st.getCreatedAt()) + " via " + via;
+
+        boolean isMention = false, isMe = false;
+        if (userRecords != null) {
+            for (UserMentionEntity entity : st.getUserMentionEntities()) {
+                for (AuthUserRecord aur : userRecords) {
+                    if (aur.ScreenName.equals(entity.getScreenName())) {
+                        isMention = true;
+                        break;
+                    }
+                }
+            }
+            for (AuthUserRecord aur : userRecords) {
+                if (aur.ScreenName.equals(st.getInReplyToScreenName())) {
+                    isMention = true;
+                }
+                if (aur.ScreenName.equals(st.getUser().getScreenName())) {
+                    isMe = true;
+                }
+            }
+        }
+
+        int bgColor = Color.WHITE;
+        if (st.isRetweet()) {
+            timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
+            tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
+            tvText.setText(st.getRetweetedStatus().getText());
+            ivIcon.setImageUrl(st.getRetweetedStatus().getUser().getProfileImageURL());
+            bgColor = Color.parseColor("#C2B7FD");
+        }
+        else if (isMention) {
+            bgColor = Color.parseColor("#EDB3DD");
+        }
+        else if (isMe) {
+            bgColor = Color.parseColor("#EFDCFF");
+        }
+        v.setBackgroundColor(bgColor);
+        v.setTag(bgColor);
+        tvTimestamp.setText(timestamp);
+
+        return v;
     }
 
     private class TweetAdapter extends BaseAdapter {
@@ -84,54 +145,7 @@ public class TweetAdapterWrap {
 
             Status st = (Status) getItem(position);
             if (st != null) {
-                TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
-                tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
-                tvName.setTypeface(VLPGothic.getInstance(context).getFont());
-                TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
-                tvText.setTypeface(VLPGothic.getInstance(context).getFont());
-                tvText.setText(st.getText());
-                SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
-                ivIcon.setImageResource(R.drawable.ic_launcher);
-                ivIcon.setImageUrl(st.getUser().getProfileImageURL());
-                TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
-                Matcher matcher = viaPattern.matcher(st.getSource());
-                String via;
-                if (matcher.find()) {
-                    via = matcher.group(1);
-                }
-                else {
-                    via = st.getSource();
-                }
-                String timestamp = sdf.format(st.getCreatedAt()) + " via " + via;
-                boolean isMention = false;
-                for (UserMentionEntity entity : st.getUserMentionEntities()) {
-                    for (AuthUserRecord aur : userRecords) {
-                        if (aur.ScreenName.equals(entity.getScreenName())) {
-                            isMention = true;
-                            break;
-                        }
-                    }
-                }
-                for (AuthUserRecord aur : userRecords) {
-                    if (aur.ScreenName.equals(st.getInReplyToScreenName())) {
-                        isMention = true;
-                        break;
-                    }
-                }
-                int bgColor = Color.WHITE;
-                if (st.isRetweet()) {
-                    timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
-                    tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                    tvText.setText(st.getRetweetedStatus().getText());
-                    ivIcon.setImageUrl(st.getRetweetedStatus().getUser().getProfileImageURL());
-                    bgColor = Color.parseColor("#C2B7FD");
-                }
-                else if (isMention) {
-                    bgColor = Color.parseColor("#EDB3DD");
-                }
-                v.setBackgroundColor(bgColor);
-                v.setTag(bgColor);
-                tvTimestamp.setText(timestamp);
+                v = setStatusToView(context, v, st, userRecords);
             }
 
             return v;

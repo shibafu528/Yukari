@@ -5,29 +5,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import shibafu.yukari.R;
+import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
-import shibafu.yukari.service.TweetReceiverService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
@@ -39,7 +32,7 @@ import twitter4j.TwitterException;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TweetListFragment extends ListFragment implements TweetReceiverService.StatusListener {
+public class TweetListFragment extends ListFragment implements TwitterService.StatusListener {
 
     public static final int MODE_HOME = 1;
 
@@ -55,7 +48,7 @@ public class TweetListFragment extends ListFragment implements TweetReceiverServ
     private String title;
     private int mode;
 
-    private TweetReceiverService service;
+    private TwitterService service;
     private boolean serviceBound = false;
     private Handler handler = new Handler();
 
@@ -78,6 +71,7 @@ public class TweetListFragment extends ListFragment implements TweetReceiverServ
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //アニメーションのスケジュール
                 final View v = view;
                 view.setBackgroundColor(Color.parseColor("#B394E0"));
                 Timer t = new Timer();
@@ -92,10 +86,16 @@ public class TweetListFragment extends ListFragment implements TweetReceiverServ
                         });
                     }
                 }, new Date(System.currentTimeMillis() + 100));
+                //ツイート詳細画面の呼び出し
+                Status s = statuses.get(position);
+                Intent intent = new Intent(getActivity(), StatusActivity.class);
+                intent.putExtra(StatusActivity.EXTRA_STATUS, s);
+                intent.putExtra(StatusActivity.EXTRA_USER, user);
+                startActivity(intent);
             }
         });
 
-        getActivity().bindService(new Intent(getActivity(), TweetReceiverService.class), connection, Context.BIND_AUTO_CREATE);
+        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -112,10 +112,14 @@ public class TweetListFragment extends ListFragment implements TweetReceiverServ
         return title;
     }
 
+    public AuthUserRecord getCurrentUser() {
+        return user;
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            TweetReceiverService.TweetReceiverBinder binder = (TweetReceiverService.TweetReceiverBinder) service;
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             TweetListFragment.this.service = binder.getService();
             serviceBound = true;
 
