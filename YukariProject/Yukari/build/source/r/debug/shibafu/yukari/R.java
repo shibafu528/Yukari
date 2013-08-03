@@ -925,14 +925,14 @@ containing a value of this type.
         public static final int home=0x7f070017;
         public static final int homeAsUp=0x7f070005;
         public static final int horizontalScrollView=0x7f070054;
-        public static final int ibTweetAttachPic=0x7f07004f;
+        public static final int ibTweetAttachPic=0x7f07004e;
         public static final int ibTweetDraft=0x7f070053;
         public static final int ibTweetGrasses=0x7f070056;
         public static final int ibTweetNowPlaying=0x7f070058;
         public static final int ibTweetSanten=0x7f070057;
         public static final int ibTweetSetGeoTag=0x7f070050;
         public static final int ibTweetSetHash=0x7f070051;
-        public static final int ibTweetTakePic=0x7f07004e;
+        public static final int ibTweetTakePic=0x7f07004f;
         public static final int ibTweetTotsusi=0x7f070059;
         public static final int ibTweetVoiceInput=0x7f070052;
         public static final int ib_state_favorite=0x7f070063;

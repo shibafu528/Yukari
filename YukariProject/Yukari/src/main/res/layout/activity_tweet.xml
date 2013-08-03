@@ -67,16 +67,16 @@
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetTakePic"
-                    android:src="@drawable/ic_access_camera"
-                    android:layout_column="0"/>
+                    android:id="@+id/ibTweetAttachPic"
+                    android:layout_column="0"
+                    android:src="@drawable/ic_new_picture"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetAttachPic"
-                    android:layout_column="1"
-                    android:src="@drawable/ic_new_picture"/>
+                    android:id="@+id/ibTweetTakePic"
+                    android:src="@drawable/ic_access_camera"
+                    android:layout_column="1"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
