@@ -12,6 +12,7 @@ import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ListView;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -48,6 +49,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private String title;
     private int mode;
 
+    private ListView listView;
+
     private TwitterService service;
     private boolean serviceBound = false;
     private Handler handler = new Handler();
@@ -68,6 +71,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
         adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), user, statuses);
         setListAdapter(adapterWrap.getAdapter());
+        listView = getListView();
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -162,11 +166,11 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 @Override
                 public void run() {
                     adapterWrap.notifyDataSetChanged();
-                    if (statuses.size() == 1 || getListView().getFirstVisiblePosition() < 2) {
-                        getListView().setSelection(0);
+                    if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                        listView.setSelection(0);
                     }
                     else {
-                        getListView().setSelection(getListView().getFirstVisiblePosition() + 1);
+                        listView.setSelection(listView.getFirstVisiblePosition() + 1);
                     }
                 }
             });

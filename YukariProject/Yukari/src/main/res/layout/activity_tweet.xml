@@ -17,7 +17,8 @@
             android:gravity="left|top"
             android:maxLines="6"
             android:layout_below="@+id/tvTweetCount"
-            android:layout_alignLeft="@+id/tvTweetCount">
+            android:layout_alignLeft="@+id/tvTweetCount"
+            android:layout_alignParentEnd="true">
         <requestFocus/>
     </EditText>
 
@@ -109,7 +110,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/ibTweetDraft"
-                    android:src="@drawable/ic_draft_tweet"
+                    android:src="@drawable/ic_list"
                     android:layout_column="2"/>
 
         </TableRow>
@@ -134,6 +135,12 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/ibTweetGrasses"
                     android:src="@drawable/ic_grass"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetSanten"
+                    android:src="@drawable/ic_santen"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
@@ -169,5 +176,56 @@
             android:src="@android:drawable/divider_horizontal_textfield"
             android:layout_alignParentRight="true"
             android:scaleType="fitXY"/>
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/horizontalScrollView"
+            android:layout_alignLeft="@+id/horizontalScrollView"
+            android:layout_marginTop="4dp"
+            android:id="@+id/llTweetAttachParent"
+            android:visibility="gone">
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Attach"
+                android:id="@+id/textView2"
+                android:layout_below="@+id/horizontalScrollView"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_gravity="left|center_vertical"/>
+
+        <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView2"
+                android:src="@android:drawable/divider_horizontal_textfield"
+                android:scaleType="fitXY"
+                android:layout_alignLeft="@+id/horizontalScrollView"
+                android:layout_below="@+id/textView2"
+                android:layout_alignParentRight="true"
+                android:layout_gravity="left|center_vertical"/>
+
+        <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+
+            <LinearLayout
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:id="@+id/llTweetAttach">
+
+                <ImageView
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:id="@+id/ivTweetImageAttach"
+                        android:scaleType="centerInside"
+                        />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+    </LinearLayout>
 
 </RelativeLayout>
