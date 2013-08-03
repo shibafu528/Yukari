@@ -21,6 +21,9 @@ public class VLPGothic {
     public static VLPGothic getInstance(Context context) {
         if (instance == null) {
             instance = new VLPGothic(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Symbola.ttf"));
+            if (instance.getFont() == null) {
+                new InternalError("フォント読み込みに失敗しました").printStackTrace();
+            }
         }
         return instance;
     }

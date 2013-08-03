@@ -4,6 +4,8 @@ import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,10 +16,12 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +40,8 @@ public class TweetActivity extends Activity {
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_REPLY = "reply";
     public static final String EXTRA_TEXT = "text";
+    private static final int REQUEST_NOWPLAYING = 32;
+    private static final int REQUEST_TOTSUSI = 33;
 
     private EditText etInput;
     private TextView tvCount;
@@ -52,6 +58,7 @@ public class TweetActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
 
         TextView tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
@@ -111,6 +118,7 @@ public class TweetActivity extends Activity {
         if (args.getBooleanExtra(EXTRA_REPLY, false))
             etInput.setSelection(etInput.getText().length());
 
+        //投稿ボタンの設定
         Button btnPost = (Button) findViewById(R.id.btnTweet);
         btnPost.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,6 +178,74 @@ public class TweetActivity extends Activity {
                 progress = pd;
             }
         });
+
+        //各種サービスボタンの設定
+        PackageManager pm = getPackageManager();
+
+        ImageButton ibTake = (ImageButton) findViewById(R.id.ibTweetTakePic);
+        ImageButton ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
+        ImageButton ibGeo = (ImageButton) findViewById(R.id.ibTweetSetGeoTag);
+        ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
+        ibHash.setEnabled(false);
+        ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
+        ibVoice.setEnabled(false);
+        ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
+        ibDraft.setEnabled(false);
+        ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
+        {
+            try {
+                final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
+                ibNowPlay.setVisibility(View.VISIBLE);
+                ibNowPlay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
+                        intent.addCategory("com.adamrocker.android.simeji.REPLACE");
+                        intent.setPackage(ai.packageName);
+                        startActivityForResult(intent, REQUEST_NOWPLAYING);
+                    }
+                });
+            } catch (PackageManager.NameNotFoundException e) {
+            }
+        }
+        ImageButton ibTotsusi = (ImageButton) findViewById(R.id.ibTweetTotsusi);
+        {
+            try {
+                final ApplicationInfo ai = pm.getApplicationInfo("info.izumin.android.suddenlydeathmush", 0);
+                ibTotsusi.setVisibility(View.VISIBLE);
+                ibTotsusi.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
+                        intent.addCategory("com.adamrocker.android.simeji.REPLACE");
+                        intent.putExtra("replace_key", "");
+                        intent.setPackage(ai.packageName);
+                        startActivityForResult(intent, REQUEST_TOTSUSI);
+                    }
+                });
+            } catch (PackageManager.NameNotFoundException e) {
+            }
+        }
+        ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
+        ibGrasses.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                appendTextInto("ｗ");
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_NOWPLAYING:
+                case REQUEST_TOTSUSI:
+                    appendTextInto(data.getStringExtra("replace_key"));
+                    break;
+            }
+        }
     }
 
     @Override
@@ -182,6 +258,12 @@ public class TweetActivity extends Activity {
     protected void onStop() {
         super.onStop();
         unbindService(connection);
+    }
+
+    private void appendTextInto(String text) {
+        int start = etInput.getSelectionStart();
+        int end = etInput.getSelectionEnd();
+        etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
     }
 
     private ServiceConnection connection = new ServiceConnection() {

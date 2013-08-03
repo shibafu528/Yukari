@@ -9,26 +9,28 @@
     tools:context=".TweetActivity">
 
     <EditText
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/etTweetInput"
-            android:layout_below="@+id/tvTweetCount"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentLeft="true"
             android:inputType="textMultiLine"
-            android:minLines="4"
-            android:gravity="left|top">
+            android:minLines="2"
+            android:gravity="left|top"
+            android:maxLines="6"
+            android:layout_below="@+id/tvTweetCount"
+            android:layout_alignLeft="@+id/tvTweetCount">
         <requestFocus/>
     </EditText>
 
     <Button
             android:layout_width="130dp"
-            android:layout_height="wrap_content"
+            android:layout_height="90dp"
             android:text="Tweet"
             android:id="@+id/btnTweet"
             android:layout_below="@+id/etTweetInput"
             android:layout_alignRight="@+id/etTweetInput"
-            android:layout_alignLeft="@+id/etTweetInput"/>
+            android:layout_toRightOf="@+id/tlTweetAction"
+            android:layout_marginLeft="16dp"
+            android:layout_alignBottom="@+id/tlTweetAction"/>
 
     <TextView
             android:layout_width="wrap_content"
@@ -36,8 +38,9 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="140"
             android:id="@+id/tvTweetCount"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"/>
+            android:layout_below="@+id/imageView"
+            android:layout_alignLeft="@+id/textView"
+            android:layout_marginTop="8dp"/>
 
     <TextView
             android:layout_width="wrap_content"
@@ -45,8 +48,126 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="ALL ACCOUNT"
             android:id="@+id/tvTweetBy"
-            android:layout_alignTop="@+id/tvTweetCount"
-            android:layout_alignRight="@+id/etTweetInput"
-            android:textColor="#ffa65eb5"/>
+            android:textColor="#ffa65eb5"
+            android:layout_above="@+id/etTweetInput"
+            android:layout_alignRight="@+id/etTweetInput"/>
+
+    <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/etTweetInput"
+            android:layout_alignLeft="@+id/etTweetInput"
+            android:id="@+id/tlTweetAction">
+
+        <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetTakePic"
+                    android:src="@drawable/ic_access_camera"
+                    android:layout_column="0"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetAttachPic"
+                    android:layout_column="1"
+                    android:src="@drawable/ic_new_picture"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetSetGeoTag"
+                    android:layout_column="2"
+                    android:src="@drawable/ic_access_location"/>
+
+        </TableRow>
+
+        <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetSetHash"
+                    android:layout_column="0"
+                    android:src="@drawable/ic_hashtag"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetVoiceInput"
+                    android:layout_column="1"
+                    android:src="@drawable/ic_voice_input"
+                    />
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetDraft"
+                    android:src="@drawable/ic_draft_tweet"
+                    android:layout_column="2"/>
+
+        </TableRow>
+
+    </TableLayout>
+
+    <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/horizontalScrollView"
+            android:layout_below="@+id/tlTweetAction"
+            android:layout_alignLeft="@+id/tlTweetAction"
+            android:layout_marginTop="8dp">
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/llTweetExtra">
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetGrasses"
+                    android:src="@drawable/ic_grass"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetNowPlaying"
+                    android:src="@drawable/ic_playing_music"
+                    android:visibility="gone"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetTotsusi"
+                    android:src="@drawable/ic_totsuzenno_si"
+                    android:visibility="gone"/>
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tweet"
+            android:id="@+id/textView"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"/>
+
+    <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView"
+            android:layout_below="@+id/textView"
+            android:layout_alignLeft="@+id/etTweetInput"
+            android:src="@android:drawable/divider_horizontal_textfield"
+            android:layout_alignParentRight="true"
+            android:scaleType="fitXY"/>
 
 </RelativeLayout>
