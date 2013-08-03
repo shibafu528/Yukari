@@ -12,6 +12,8 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -37,6 +39,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import shibafu.yukari.R;
@@ -212,14 +215,13 @@ public class TweetActivity extends Activity {
                             }
                             //attachPictureがある場合は添付
                             if (attachPicture != null) {
-                                Cursor c = getContentResolver().query(attachPicture, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-                                c.moveToFirst();
-                                File path = new File(c.getString(0));
-                                if (!path.exists()) {
-                                    return false;
+                                try {
+                                    service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture)});
+                                    return true;
+                                } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
                                 }
-                                service.postTweet(user, update, new File[]{path});
-                                return true;
+                                return false;
                             }
                             service.postTweet(user, update);
                             return true;
@@ -336,9 +338,31 @@ public class TweetActivity extends Activity {
                     attachPicture = data.getData();
                     try {
                         InputStream is = getContentResolver().openInputStream(data.getData());
-                        Bitmap bmp = BitmapFactory.decodeStream(is);
+                        //情報のみのロードを行う
+                        BitmapFactory.Options option = new BitmapFactory.Options();
+                        option.inJustDecodeBounds = true;
+                        BitmapFactory.decodeStream(is, null, option);
+                        is.close();
+                        //表示サイズ256*256としてスケール計算を行う
+                        int scaleW = option.outWidth / 256;
+                        int scaleH = option.outHeight / 256;
+                        option.inSampleSize = Math.max(scaleW, scaleH);
+                        option.inJustDecodeBounds = false;
+                        //再オープンして実際のデコード
+                        is = getContentResolver().openInputStream(data.getData());
+                        Bitmap bmp = BitmapFactory.decodeStream(is, null, option);
+                        is.close();
+                        //サイズを整える
+                        int w = bmp.getWidth();
+                        int h = bmp.getHeight();
+                        float scale = Math.min((float)256/w, (float)256/h);
+                        Matrix matrix = new Matrix();
+                        matrix.postScale(scale, scale);
+                        bmp = Bitmap.createBitmap(bmp, 0, 0, w, h, matrix, true);
                         ivAttach.setImageBitmap(bmp);
                     } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                     llTweetAttachParent.setVisibility(View.VISIBLE);

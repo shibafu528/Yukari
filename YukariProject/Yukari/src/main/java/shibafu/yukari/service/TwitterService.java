@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -244,6 +245,57 @@ public class TwitterService extends Service{
                 for (File m : media) {
                     ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
                     String url = upload.upload(m, status.getStatus());
+                    if (service.getClass() != MediaProvider.TWITTER.getClass()) {
+                        urls.append(" ");
+                        urls.append(url);
+                    }
+                    else {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (skip) continue;
+                postTweet(user, new StatusUpdate(urls.toString()));
+            }
+        }
+    }
+
+    public void postTweet(AuthUserRecord user, StatusUpdate status, InputStream[] media) throws  TwitterException {
+        ConfigurationBuilder builder = getBuilder();
+        if (user != null) {
+            builder.setOAuthAccessToken(user.getAccessToken().getToken());
+            builder.setOAuthAccessTokenSecret(user.getAccessToken().getTokenSecret());
+
+            Configuration conf = builder.build();
+
+            MediaProvider service = MediaProvider.TWITTER;
+            StringBuilder urls = new StringBuilder(status.getStatus());
+            for (InputStream m : media) {
+                ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
+                String url = upload.upload("image", m, status.getStatus());
+                if (service.getClass() != MediaProvider.TWITTER.getClass()) {
+                    urls.append(" ");
+                    urls.append(url);
+                }
+                else {
+                    return;
+                }
+            }
+            postTweet(user, new StatusUpdate(urls.toString()));
+        }
+        else {
+            for (AuthUserRecord aur : users) {
+                builder.setOAuthAccessToken(aur.getAccessToken().getToken());
+                builder.setOAuthAccessTokenSecret(aur.getAccessToken().getTokenSecret());
+
+                Configuration conf = builder.build();
+
+                MediaProvider service = MediaProvider.TWITTER;
+                StringBuilder urls = new StringBuilder(status.getStatus());
+                boolean skip = false;
+                for (InputStream m : media) {
+                    ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
+                    String url = upload.upload("image", m, status.getStatus());
                     if (service.getClass() != MediaProvider.TWITTER.getClass()) {
                         urls.append(" ");
                         urls.append(url);
