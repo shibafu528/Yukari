@@ -123,6 +123,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void reloadUsers() {
+        service.reloadUsers();
         AuthUserRecord[] newestList = TwitterUtil.loadUserRecords(this);
         for (AuthUserRecord aur : newestList) {
             if (!users.contains(aur)) {
@@ -130,7 +131,6 @@ public class MainActivity extends FragmentActivity {
                 addTab(aur, "home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
             }
         }
-        service.reloadUsers();
     }
 
     private ServiceConnection connection = new ServiceConnection() {

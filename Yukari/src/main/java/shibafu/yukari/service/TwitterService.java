@@ -8,10 +8,12 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StreamUser;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -21,6 +23,11 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.conf.Configuration;
+import twitter4j.conf.ConfigurationBuilder;
+import twitter4j.media.ImageUpload;
+import twitter4j.media.ImageUploadFactory;
+import twitter4j.media.MediaProvider;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -180,6 +187,13 @@ public class TwitterService extends Service{
         });
     }
 
+    public ConfigurationBuilder getBuilder() {
+        ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
+        builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
+        return builder;
+    }
+
     //<editor-fold desc="投稿操作系">
     public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
         if (user != null) {
@@ -190,6 +204,57 @@ public class TwitterService extends Service{
             for (AuthUserRecord aur : users) {
                 twitter.setOAuthAccessToken(aur.getAccessToken());
                 twitter.updateStatus(status);
+            }
+        }
+    }
+
+    public void postTweet(AuthUserRecord user, StatusUpdate status, File[] media) throws  TwitterException {
+        ConfigurationBuilder builder = getBuilder();
+        if (user != null) {
+            builder.setOAuthAccessToken(user.getAccessToken().getToken());
+            builder.setOAuthAccessTokenSecret(user.getAccessToken().getTokenSecret());
+
+            Configuration conf = builder.build();
+
+            MediaProvider service = MediaProvider.TWITTER;
+            StringBuilder urls = new StringBuilder(status.getStatus());
+            for (File m : media) {
+                ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
+                String url = upload.upload(m, status.getStatus());
+                if (service.getClass() != MediaProvider.TWITTER.getClass()) {
+                    urls.append(" ");
+                    urls.append(url);
+                }
+                else {
+                    return;
+                }
+            }
+            postTweet(user, new StatusUpdate(urls.toString()));
+        }
+        else {
+            for (AuthUserRecord aur : users) {
+                builder.setOAuthAccessToken(aur.getAccessToken().getToken());
+                builder.setOAuthAccessTokenSecret(aur.getAccessToken().getTokenSecret());
+
+                Configuration conf = builder.build();
+
+                MediaProvider service = MediaProvider.TWITTER;
+                StringBuilder urls = new StringBuilder(status.getStatus());
+                boolean skip = false;
+                for (File m : media) {
+                    ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
+                    String url = upload.upload(m, status.getStatus());
+                    if (service.getClass() != MediaProvider.TWITTER.getClass()) {
+                        urls.append(" ");
+                        urls.append(url);
+                    }
+                    else {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (skip) continue;
+                postTweet(user, new StatusUpdate(urls.toString()));
             }
         }
     }
