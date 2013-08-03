@@ -180,6 +180,7 @@ public class TwitterService extends Service{
         });
     }
 
+    //<editor-fold desc="投稿操作系">
     public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
         if (user != null) {
             twitter.setOAuthAccessToken(user.getAccessToken());
@@ -244,7 +245,9 @@ public class TwitterService extends Service{
             showToast("ふぁぼ成功: " + success + ((failed > 0)? " / ふぁぼ失敗: " + failed: ""));
         }
     }
+    //</editor-fold>
 
+    //<editor-fold desc="URL/Quote生成">
     public static String getTweetURL(Status status) {
         if (status.isRetweet()) {
             status = status.getRetweetedStatus();
@@ -265,10 +268,8 @@ public class TwitterService extends Service{
         sb.append(status.getUser().getScreenName());
         sb.append(":");
         sb.append(status.getText());
-        sb.append(" [http://twitter.com/");
-        sb.append(status.getUser().getScreenName());
-        sb.append("/status/");
-        sb.append(status.getId());
+        sb.append(" [");
+        sb.append(getTweetURL(status));
         sb.append("]");
         return sb.toString();
     }
@@ -306,6 +307,7 @@ public class TwitterService extends Service{
         sb.append("\"");
         return sb.toString();
     }
+    //</editor-fold>
 
     public boolean isMyTweet(Status status) {
         for (AuthUserRecord aur : users) {
