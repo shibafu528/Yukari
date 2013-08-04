@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
@@ -37,12 +38,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.BitmapResizer;
 import shibafu.yukari.common.VLPGothic;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -72,7 +76,8 @@ public class TweetActivity extends Activity {
 
     private AuthUserRecord user;
     private Status status;
-    private Uri attachPicture;
+    //private Uri attachPicture;
+    private AttachPicture attachPicture;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -216,9 +221,22 @@ public class TweetActivity extends Activity {
                             //attachPictureがある場合は添付
                             if (attachPicture != null) {
                                 try {
-                                    service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture)});
+                                    if (Math.max(attachPicture.width, attachPicture.height) > 2048) {
+                                        Log.d("TweetActivity", "添付画像の長辺が2048pxを超えています。圧縮対象とします。");
+                                        Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 1920, 1920, null);
+                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                        resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                        Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                        service.postTweet(user, update, new InputStream[]{bais});
+                                    }
+                                    else {
+                                        service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
+                                    }
                                     return true;
                                 } catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                                 return false;
@@ -335,36 +353,20 @@ public class TweetActivity extends Activity {
             switch (requestCode) {
                 case REQUEST_GALLERY:
                 {
-                    attachPicture = data.getData();
+                    AttachPicture pic = new AttachPicture();
+                    pic.uri = data.getData();
                     try {
-                        InputStream is = getContentResolver().openInputStream(data.getData());
-                        //情報のみのロードを行う
-                        BitmapFactory.Options option = new BitmapFactory.Options();
-                        option.inJustDecodeBounds = true;
-                        BitmapFactory.decodeStream(is, null, option);
-                        is.close();
-                        //表示サイズ256*256としてスケール計算を行う
-                        int scaleW = option.outWidth / 256;
-                        int scaleH = option.outHeight / 256;
-                        option.inSampleSize = Math.max(scaleW, scaleH);
-                        option.inJustDecodeBounds = false;
-                        //再オープンして実際のデコード
-                        is = getContentResolver().openInputStream(data.getData());
-                        Bitmap bmp = BitmapFactory.decodeStream(is, null, option);
-                        is.close();
-                        //サイズを整える
-                        int w = bmp.getWidth();
-                        int h = bmp.getHeight();
-                        float scale = Math.min((float)256/w, (float)256/h);
-                        Matrix matrix = new Matrix();
-                        matrix.postScale(scale, scale);
-                        bmp = Bitmap.createBitmap(bmp, 0, 0, w, h, matrix, true);
+                        int[] size = new int[2];
+                        Bitmap bmp = BitmapResizer.resizeBitmap(this, data.getData(), 256, 256, size);
+                        pic.width = size[0];
+                        pic.height = size[1];
                         ivAttach.setImageBitmap(bmp);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    attachPicture = pic;
                     llTweetAttachParent.setVisibility(View.VISIBLE);
                     break;
                 }
@@ -416,4 +418,10 @@ public class TweetActivity extends Activity {
             serviceBound = false;
         }
     };
+
+    private class AttachPicture {
+        public Uri uri = null;
+        public int width = -1;
+        public int height = -1;
+    }
 }
