@@ -2,7 +2,9 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -18,8 +20,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -44,6 +48,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.BitmapResizer;
@@ -63,6 +70,8 @@ public class TweetActivity extends Activity {
     public static final String EXTRA_TEXT = "text";
 
     private static final int REQUEST_GALLERY = 1;
+    private static final int REQUEST_CAMERA = 2;
+    private static final int REQUEST_VOICE = 3;
     private static final int REQUEST_NOWPLAYING = 32;
     private static final int REQUEST_TOTSUSI = 33;
 
@@ -76,11 +85,12 @@ public class TweetActivity extends Activity {
 
     private AuthUserRecord user;
     private Status status;
-    //private Uri attachPicture;
     private AttachPicture attachPicture;
 
     private TwitterService service;
     private boolean serviceBound = false;
+
+    private Uri cameraTemp;
 
     private ProgressDialog progress;
     private AlertDialog currentDialog;
@@ -275,7 +285,37 @@ public class TweetActivity extends Activity {
         });
 
         //各種サービスボタンの設定
-        ImageButton ibTake = (ImageButton) findViewById(R.id.ibTweetTakePic);
+        ImageButton ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
+        ibCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //SDカード使用可否のチェックを行う
+                boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+                if (!existExternal) {
+                    Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                //保存先パスを作成する
+                String extStorage = Environment.getExternalStorageDirectory().getPath();
+                File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
+                if (!extDestDir.exists()) {
+                    extDestDir.mkdirs();
+                }
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+                String fileName = sdf.format(new Date(System.currentTimeMillis()));
+                File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
+                //コンテントプロバイダに登録
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.TITLE, fileName);
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                values.put(MediaStore.Images.Media.DATA, destFile.getPath());
+                cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                //カメラを呼び出す
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
+                startActivityForResult(intent, REQUEST_CAMERA);
+            }
+        });
         ImageButton ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
         ibAttach.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -286,10 +326,23 @@ public class TweetActivity extends Activity {
             }
         });
         ImageButton ibGeo = (ImageButton) findViewById(R.id.ibTweetSetGeoTag);
+        ibGeo.setEnabled(false);
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
         ibHash.setEnabled(false);
         ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
-        ibVoice.setEnabled(false);
+        ibVoice.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
+                try {
+                    startActivityForResult(intent, REQUEST_VOICE);
+                } catch (ActivityNotFoundException e) {
+                    Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
         ibDraft.setEnabled(false);
 
@@ -352,28 +405,52 @@ public class TweetActivity extends Activity {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_GALLERY:
+                    addAttachPicture(data.getData());
+                    break;
+                case REQUEST_CAMERA:
                 {
-                    AttachPicture pic = new AttachPicture();
-                    pic.uri = data.getData();
-                    try {
-                        int[] size = new int[2];
-                        Bitmap bmp = BitmapResizer.resizeBitmap(this, data.getData(), 256, 256, size);
-                        pic.width = size[0];
-                        pic.height = size[1];
-                        ivAttach.setImageBitmap(bmp);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (cameraTemp == null && data.getData() == null) {
+                        Toast.makeText(TweetActivity.this, "カメラとの連携に失敗しました。\n使用したカメラアプリとの相性かもしれません。", Toast.LENGTH_LONG).show();
+                        return;
                     }
-                    attachPicture = pic;
-                    llTweetAttachParent.setVisibility(View.VISIBLE);
+                    else if (data.getData() != null) {
+                        //getDataでUriが返ってくる端末用
+                        //フィールドは手に入ったUriで上書き
+                        cameraTemp = data.getData();
+                    }
+                    //添付に追加する
+                    addAttachPicture(cameraTemp);
+                    cameraTemp = null;
+                    break;
+                }
+                case REQUEST_VOICE:
+                {
+                    List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    if (results.size() > 0) {
+                        appendTextInto(results.get(0));
+                    }
+                    else {
+                        Toast.makeText(TweetActivity.this, "認識に失敗しました", Toast.LENGTH_SHORT).show();
+                    }
                     break;
                 }
                 case REQUEST_NOWPLAYING:
                 case REQUEST_TOTSUSI:
                     appendTextInto(data.getStringExtra("replace_key"));
                     break;
+            }
+        }
+        else if (resultCode == RESULT_CANCELED) {
+            switch (requestCode) {
+                case REQUEST_CAMERA:
+                {
+                    Cursor c = getContentResolver().query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+                    c.moveToFirst();
+                    getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            MediaStore.Images.Media.DATA + "=?",
+                            new String[]{c.getString(0)});
+                    break;
+                }
             }
         }
     }
@@ -397,6 +474,24 @@ public class TweetActivity extends Activity {
     protected void onStop() {
         super.onStop();
         unbindService(connection);
+    }
+
+    private void addAttachPicture(Uri uri) {
+        AttachPicture pic = new AttachPicture();
+        pic.uri = uri;
+        try {
+            int[] size = new int[2];
+            Bitmap bmp = BitmapResizer.resizeBitmap(this, uri, 256, 256, size);
+            pic.width = size[0];
+            pic.height = size[1];
+            ivAttach.setImageBitmap(bmp);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        attachPicture = pic;
+        llTweetAttachParent.setVisibility(View.VISIBLE);
     }
 
     private void appendTextInto(String text) {
