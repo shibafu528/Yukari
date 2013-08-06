@@ -319,8 +319,6 @@ public class TweetActivity extends Activity {
                 startActivityForResult(intent, REQUEST_GALLERY);
             }
         });
-        ImageButton ibGeo = (ImageButton) findViewById(R.id.ibTweetSetGeoTag);
-        ibGeo.setEnabled(false);
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
         ibHash.setOnClickListener(new View.OnClickListener() {
             @Override
