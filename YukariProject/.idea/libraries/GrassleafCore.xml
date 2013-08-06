@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="GrassleafCore">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Yukari/libs/GrassleafCore.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
