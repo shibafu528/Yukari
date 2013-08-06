@@ -69,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/ibTweetAttachPic"
                     android:layout_column="0"
-                    android:src="@drawable/ic_new_picture"/>
+                    android:src="@drawable/ic_content_picture"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
@@ -81,9 +81,9 @@
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetSetGeoTag"
+                    android:id="@+id/ibTweetSetHash"
                     android:layout_column="2"
-                    android:src="@drawable/ic_access_location"/>
+                    android:src="@drawable/ic_hashtag"/>
 
         </TableRow>
 
@@ -94,17 +94,16 @@
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetSetHash"
-                    android:layout_column="0"
-                    android:src="@drawable/ic_hashtag"/>
+                    android:id="@+id/ibTweetGrasses"
+                    android:src="@drawable/ic_grass"
+                    android:layout_column="0"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetVoiceInput"
-                    android:layout_column="1"
-                    android:src="@drawable/ic_voice_input"
-                    />
+                    android:layout_height="fill_parent"
+                    android:id="@+id/ibTweetSanten"
+                    android:src="@drawable/ic_santen"
+                    android:layout_column="1"/>
 
             <ImageButton
                     android:layout_width="wrap_content"
@@ -133,14 +132,10 @@
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetGrasses"
-                    android:src="@drawable/ic_grass"/>
-
-            <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetSanten"
-                    android:src="@drawable/ic_santen"/>
+                    android:id="@+id/ibTweetVoiceInput"
+                    android:layout_column="1"
+                    android:src="@drawable/ic_voice_input"
+                    />
 
             <ImageButton
                     android:layout_width="wrap_content"
@@ -210,7 +205,7 @@
         <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                >
+                android:layout_marginTop="8dp">
 
             <LinearLayout
                     android:layout_width="fill_parent"
