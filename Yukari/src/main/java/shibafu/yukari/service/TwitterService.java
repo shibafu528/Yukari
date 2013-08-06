@@ -15,10 +15,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.HashCache;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StreamUser;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -42,6 +44,9 @@ public class TwitterService extends Service{
             return TwitterService.this;
         }
     }
+
+    //キャッシュ系
+    private HashCache hashCache;
 
     //Twitter通信系
     private Twitter twitter;
@@ -86,6 +91,11 @@ public class TwitterService extends Service{
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, status);
             }
+
+            HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+            for (HashtagEntity he : hashtagEntities) {
+                hashCache.put("#" + he.getText());
+            }
         }
     };
     public interface StatusListener {
@@ -94,6 +104,7 @@ public class TwitterService extends Service{
     }
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
 
+    //Handler
     private Handler handler;
 
     public IBinder onBind(Intent intent) {
@@ -107,6 +118,7 @@ public class TwitterService extends Service{
         handler = new Handler();
         twitter = TwitterUtil.getTwitterInstance(this);
         reloadUsers();
+        hashCache = new HashCache(this);
         Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 
@@ -124,6 +136,7 @@ public class TwitterService extends Service{
         listener = null;
         twitter = null;
         users = null;
+        hashCache.save(this);
 
         Log.d(LOG_TAG, "onDestroy completed.");
         Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
@@ -193,6 +206,10 @@ public class TwitterService extends Service{
         builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
         builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
         return builder;
+    }
+
+    public String[] getHashCache() {
+        return hashCache.getAll().toArray(new String[0]);
     }
 
     //<editor-fold desc="投稿操作系">

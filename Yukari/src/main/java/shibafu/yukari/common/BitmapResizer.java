@@ -63,6 +63,12 @@ public class BitmapResizer {
         return bmp;
     }
 
+    /**
+     * Exif情報を読み取り、回転状態の値を抽出します
+     * @param context Context
+     * @param uri 画像ファイルUri
+     * @return
+     */
     private static int getExifRotate(Context context, Uri uri) {
         Cursor c = context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
         c.moveToFirst();

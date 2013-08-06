@@ -69,15 +69,43 @@ public class StatusMainFragment extends Fragment{
         ibRetweet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        return null;
-                    }
-                };
-                task.execute();
-                getActivity().finish();
+                AlertDialog ad = new AlertDialog.Builder(getActivity())
+                        .setTitle("確認")
+                        .setMessage("リツイートしますか？")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground(Void... params) {
+                                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        return null;
+                                    }
+                                };
+                                task.execute();
+                                getActivity().finish();
+                            }
+                        })
+                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .create();
+                ad.show();
+                currentDialog = ad;
             }
         });
 
@@ -101,16 +129,44 @@ public class StatusMainFragment extends Fragment{
         ibFavRt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        return null;
-                    }
-                };
-                task.execute();
-                getActivity().finish();
+                AlertDialog ad = new AlertDialog.Builder(getActivity())
+                        .setTitle("確認")
+                        .setMessage("お気に入りに登録してRTしますか？")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground(Void... params) {
+                                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        return null;
+                                    }
+                                };
+                                task.execute();
+                                getActivity().finish();
+                            }
+                        })
+                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .create();
+                ad.show();
+                currentDialog = ad;
             }
         });
 

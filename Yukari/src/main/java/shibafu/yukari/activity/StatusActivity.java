@@ -47,7 +47,7 @@ public class StatusActivity extends FragmentActivity {
         if (status == null) {
             Uri statesUrl = args.getData();
             if (statesUrl == null) {
-                Toast.makeText(this, "なんですかこのツイートは、よく読めないのですけど...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "なんですかこのツイートは、読めないのですけど...", Toast.LENGTH_SHORT).show();
                 finish();
             }
             else {

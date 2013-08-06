@@ -12,10 +12,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -27,15 +24,12 @@ import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -53,8 +47,8 @@ import java.util.Date;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.BitmapResizer;
-import shibafu.yukari.common.VLPGothic;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Status;
@@ -119,7 +113,7 @@ public class TweetActivity extends Activity {
 
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
         etInput = (EditText) findViewById(R.id.etTweetInput);
-        etInput.setTypeface(VLPGothic.getInstance(this).getFont());
+        etInput.setTypeface(FontAsset.getInstance(this).getFont());
         etInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -328,7 +322,40 @@ public class TweetActivity extends Activity {
         ImageButton ibGeo = (ImageButton) findViewById(R.id.ibTweetSetGeoTag);
         ibGeo.setEnabled(false);
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
-        ibHash.setEnabled(false);
+        ibHash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
+                final String[] hashCache = service.getHashCache();
+                builder.setTitle("TLで見かけたハッシュタグ");
+                builder.setItems(hashCache, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        currentDialog = null;
+
+                        appendTextInto(hashCache[which]);
+                    }
+                });
+                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    }
+                });
+                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    }
+                });
+                AlertDialog ad = builder.create();
+                ad.show();
+                currentDialog = ad;
+            }
+        });
         ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
         ibVoice.setOnClickListener(new View.OnClickListener() {
             @Override
