@@ -1,9 +1,15 @@
 package shibafu.yukari.twitter;
 
+import android.content.Context;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.User;
 import twitter4j.auth.AccessToken;
 
 public class AuthUserRecord implements Serializable{
@@ -46,5 +52,11 @@ public class AuthUserRecord implements Serializable{
         List<AuthUserRecord> l = new ArrayList<AuthUserRecord>();
         l.add(this);
         return l;
+    }
+
+    public User getUser(Context context) throws TwitterException {
+        Twitter twitter = TwitterUtil.getTwitterInstance(context);
+        twitter.setOAuthAccessToken(getAccessToken());
+        return twitter.showUser(getAccessToken().getUserId());
     }
 }

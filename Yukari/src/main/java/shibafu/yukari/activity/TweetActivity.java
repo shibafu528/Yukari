@@ -21,6 +21,7 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -43,12 +44,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.BitmapResizer;
+import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Status;
@@ -56,7 +60,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class TweetActivity extends Activity {
+public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener{
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_STATUS = "status";
@@ -369,7 +373,67 @@ public class TweetActivity extends Activity {
             }
         });
         ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
-        ibDraft.setEnabled(false);
+        ibDraft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
+                        .setTitle("下書きメニュー")
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .setItems(new String[] {"下書きを保存", "下書きを開く"}, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                switch (which) {
+                                    case 0:
+                                    {
+                                        if (tweetCount >= 140 && attachPicture == null) {
+                                            Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
+                                        }
+                                        else {
+                                            TweetDraft draft;
+                                            if (attachPicture == null)
+                                                draft = new TweetDraft(user, etInput.getText().toString(), status,
+                                                        (String[]) null);
+                                            else
+                                                draft = new TweetDraft(user, etInput.getText().toString(), status,
+                                                        new String[]{attachPicture.uri.toString()});
+                                            try {
+                                                List<TweetDraft> tweetDrafts = TweetDraft.loadDrafts(TweetActivity.this);
+                                                if (tweetDrafts == null) {
+                                                    tweetDrafts = new ArrayList<TweetDraft>();
+                                                }
+                                                tweetDrafts.add(draft);
+                                                TweetDraft.saveDrafts(TweetActivity.this, tweetDrafts);
+                                                Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                                Toast.makeText(TweetActivity.this, "保存に失敗しました", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                        break;
+                                    }
+                                    case 1:
+                                    {
+                                        DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
+                                        draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
+                                        break;
+                                    }
+                                }
+                            }
+                        })
+                        .create();
+                ad.show();
+                currentDialog = ad;
+            }
+        });
 
         //各種エクストラボタンの設定
         PackageManager pm = getPackageManager();
@@ -538,6 +602,11 @@ public class TweetActivity extends Activity {
             serviceBound = false;
         }
     };
+
+    @Override
+    public void onSelected(TweetDraft selected) {
+
+    }
 
     private class AttachPicture {
         public Uri uri = null;
