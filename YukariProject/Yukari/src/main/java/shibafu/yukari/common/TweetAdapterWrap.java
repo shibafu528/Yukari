@@ -59,9 +59,9 @@ public class TweetAdapterWrap {
     public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords) {
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
-        tvName.setTypeface(VLPGothic.getInstance(context).getFont());
+        tvName.setTypeface(FontAsset.getInstance(context).getFont());
         TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
-        tvText.setTypeface(VLPGothic.getInstance(context).getFont());
+        tvText.setTypeface(FontAsset.getInstance(context).getFont());
         tvText.setText(st.getText());
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
         ivIcon.setImageResource(R.drawable.ic_launcher);

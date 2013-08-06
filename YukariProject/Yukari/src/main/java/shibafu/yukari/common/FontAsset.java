@@ -6,21 +6,21 @@ import android.graphics.Typeface;
 /**
  * Created by Shibafu on 13/08/02.
  */
-public class VLPGothic {
+public class FontAsset {
 
-    private static VLPGothic instance;
+    private static FontAsset instance;
     private Typeface font;
 
-    private VLPGothic() {
+    private FontAsset() {
         instance = null;
     }
-    private VLPGothic(Typeface typeface) {
+    private FontAsset(Typeface typeface) {
         font = typeface;
     }
 
-    public static VLPGothic getInstance(Context context) {
+    public static FontAsset getInstance(Context context) {
         if (instance == null) {
-            instance = new VLPGothic(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Symbola.ttf"));
+            instance = new FontAsset(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Symbola.ttf"));
             if (instance.getFont() == null) {
                 new InternalError("フォント読み込みに失敗しました").printStackTrace();
             }
