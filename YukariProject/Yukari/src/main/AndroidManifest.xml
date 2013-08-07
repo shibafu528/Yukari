@@ -54,6 +54,10 @@
             android:label="@string/title_activity_status"
             android:theme="@style/AppDialogTheme">
         </activity>
+
+        <activity android:name=".activity.AssetExtractActivity"
+                  android:label="@string/title_activity_assetextract"
+                  android:theme="@style/AppTheme"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

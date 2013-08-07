@@ -1070,10 +1070,11 @@ containing a value of this type.
         public static final int action_settings=0x7f0a000e;
         public static final int activity_animation_duration=0x7f0a000f;
         public static final int app_name=0x7f0a0010;
-        public static final int title_activity_status=0x7f0a0011;
-        public static final int title_activity_tweet=0x7f0a0012;
-        public static final int twitter_consumer_key=0x7f0a0013;
-        public static final int twitter_consumer_secret=0x7f0a0014;
+        public static final int title_activity_assetextract=0x7f0a0011;
+        public static final int title_activity_status=0x7f0a0012;
+        public static final int title_activity_tweet=0x7f0a0013;
+        public static final int twitter_consumer_key=0x7f0a0014;
+        public static final int twitter_consumer_secret=0x7f0a0015;
     }
     public static final class style {
         /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/styles.xml 

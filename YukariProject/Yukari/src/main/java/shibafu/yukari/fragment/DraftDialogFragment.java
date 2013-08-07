@@ -3,8 +3,10 @@ package shibafu.yukari.fragment;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,8 +21,11 @@ import com.loopj.android.image.SmartImageView;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
@@ -39,6 +44,7 @@ public class DraftDialogFragment extends DialogFragment {
     private DraftAdapter adapter;
     private List<TweetDraft> drafts = null;
     private AlertDialog currentDialog;
+    private Handler handler = new Handler();
 
     public interface DraftDialogEventListener {
         void onDraftSelected(TweetDraft selected);
@@ -75,6 +81,22 @@ public class DraftDialogFragment extends DialogFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //アニメーションのスケジュール
+                final View v = view;
+                view.setBackgroundColor(Color.parseColor("#B394E0"));
+                Timer t = new Timer();
+                t.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                v.setBackgroundColor((Integer)v.getTag());
+                            }
+                        });
+                    }
+                }, new Date(System.currentTimeMillis() + 100));
+
                 ((DraftDialogEventListener)getActivity()).onDraftSelected(drafts.get(position));
                 dismiss();
             }
@@ -83,6 +105,22 @@ public class DraftDialogFragment extends DialogFragment {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                //アニメーションのスケジュール
+                final View v = view;
+                view.setBackgroundColor(Color.parseColor("#B394E0"));
+                Timer t = new Timer();
+                t.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                v.setBackgroundColor((Integer)v.getTag());
+                            }
+                        });
+                    }
+                }, new Date(System.currentTimeMillis() + 100));
+
                 final int pos = position;
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
@@ -167,6 +205,8 @@ public class DraftDialogFragment extends DialogFragment {
 
             final TweetDraft d = drafts.get(position);
             if (d != null) {
+                v.setBackgroundColor(Color.WHITE);
+                v.setTag(Color.WHITE);
                 TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
                 tvName.setText("@" + d.user.ScreenName);
                 tvName.setTypeface(FontAsset.getInstance(getActivity()).getFont());
