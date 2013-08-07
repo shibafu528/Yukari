@@ -65,6 +65,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_REPLY = "reply";
+    public static final String EXTRA_DM = "dm";
+    public static final String EXTRA_DM_TARGET = "dm_to";
     public static final String EXTRA_TEXT = "text";
     public static final String EXTRA_MEDIA = "media";
 
@@ -77,6 +79,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private EditText etInput;
     private TextView tvCount;
     private int tweetCount = 140;
+    private boolean isDirectMessage = false;
 
     private LinearLayout llTweetAttachParent;
     private LinearLayout llTweetAttach;
@@ -152,7 +155,17 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             }
         });
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
-        String defaultText = args.getStringExtra(EXTRA_TEXT);
+        String defaultText;
+        if (args.getAction() != null && args.getType() != null &&
+                args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("text/")) {
+            defaultText = args.getDataString();
+            if (defaultText == null) {
+                defaultText = args.getStringExtra(Intent.EXTRA_TEXT);
+            }
+        }
+        else {
+            defaultText = args.getStringExtra(EXTRA_TEXT);
+        }
         etInput.setText((defaultText != null)?defaultText : "");
         if (args.getBooleanExtra(EXTRA_REPLY, false))
             etInput.setSelection(etInput.getText().length());
@@ -201,7 +214,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
         //添付データがある場合は設定する
         String[] strMedia = args.getStringArrayExtra(EXTRA_MEDIA);
-        if (strMedia != null) {
+        if (args.getAction() != null && args.getType() != null &&
+                args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
+            addAttachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
+        }
+        else if (strMedia != null) {
             for (String s : strMedia) {
                 Uri uri = Uri.parse(s);
                 addAttachPicture(uri);

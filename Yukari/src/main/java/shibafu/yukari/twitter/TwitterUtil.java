@@ -67,10 +67,8 @@ public class TwitterUtil {
 			oos.close();
 			fos.close();
 		} catch (FileNotFoundException e) {
-			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
 		}
 	}
@@ -94,16 +92,12 @@ public class TwitterUtil {
 
 			} catch (EOFException e) {
 			} catch (FileNotFoundException e) {
-				// TODO 自動生成された catch ブロック
 				e.printStackTrace();
 			} catch (StreamCorruptedException e) {
-				// TODO 自動生成された catch ブロック
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO 自動生成された catch ブロック
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
-				// TODO 自動生成された catch ブロック
 				e.printStackTrace();
 			}
 			return list.toArray(new AuthUserRecord[0]);

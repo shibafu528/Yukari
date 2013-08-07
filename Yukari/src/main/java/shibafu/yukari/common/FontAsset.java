@@ -27,7 +27,7 @@ public class FontAsset {
     public static FontAsset getInstance(Context context) {
         if (instance == null) {
             try {
-                instance = new FontAsset(Typeface.createFromFile(getFontFileExtPath()));
+                instance = new FontAsset(Typeface.createFromFile(getFontFileExtPath(context)));
                 if (instance.getFont() == null) {
                     throw new RuntimeException("フォント読み込みに失敗しました");
                 }
@@ -39,8 +39,8 @@ public class FontAsset {
         return instance;
     }
 
-    public static boolean checkFontFileExt() {
-        File dir = new File(Environment.getExternalStorageDirectory(), "font");
+    public static boolean checkFontFileExt(Context context) {
+        File dir = new File(context.getExternalFilesDir(null), "font");
         if (!dir.exists()) {
             dir.mkdir();
         }
@@ -48,8 +48,8 @@ public class FontAsset {
         return new File(dir, FONT_NAME).exists();
     }
 
-    public static File getFontFileExtPath() {
-        return new File(new File(Environment.getExternalStorageDirectory(), "font"), FONT_NAME);
+    public static File getFontFileExtPath(Context context) {
+        return new File(new File(context.getExternalFilesDir(null), "font"), FONT_NAME);
     }
 
     public Typeface getFont() {
