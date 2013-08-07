@@ -20,7 +20,7 @@ public class FontAsset {
 
     public static FontAsset getInstance(Context context) {
         if (instance == null) {
-            instance = new FontAsset(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Symbola.ttf"));
+            instance = new FontAsset(Typeface.createFromAsset(context.getAssets(), "VL-PGothic-Regular.ttf"));
             if (instance.getFont() == null) {
                 new InternalError("フォント読み込みに失敗しました").printStackTrace();
             }

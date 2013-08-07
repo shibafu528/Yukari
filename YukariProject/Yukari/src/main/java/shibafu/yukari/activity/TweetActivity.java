@@ -66,6 +66,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_REPLY = "reply";
     public static final String EXTRA_TEXT = "text";
+    public static final String EXTRA_MEDIA = "media";
 
     private static final int REQUEST_GALLERY = 1;
     private static final int REQUEST_CAMERA = 2;
@@ -197,6 +198,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 }
             }
         });
+
+        //添付データがある場合は設定する
+        String[] strMedia = args.getStringArrayExtra(EXTRA_MEDIA);
+        if (strMedia != null) {
+            for (String s : strMedia) {
+                Uri uri = Uri.parse(s);
+                addAttachPicture(uri);
+            }
+        }
 
         //投稿ボタンの設定
         Button btnPost = (Button) findViewById(R.id.btnTweet);
@@ -604,8 +614,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     };
 
     @Override
-    public void onSelected(TweetDraft selected) {
-
+    public void onDraftSelected(TweetDraft selected) {
+        Intent intent = new Intent(this, TweetActivity.class);
+        intent.putExtra(EXTRA_TEXT, selected.text);
+        intent.putExtra(EXTRA_USER, selected.user);
+        intent.putExtra(EXTRA_REPLY, selected.from != null);
+        intent.putExtra(EXTRA_STATUS, selected.from);
+        intent.putExtra(EXTRA_MEDIA, selected.attachMedia);
+        startActivity(intent);
+        finish();
     }
 
     private class AttachPicture {

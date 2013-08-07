@@ -41,7 +41,7 @@ public class DraftDialogFragment extends DialogFragment {
     private AlertDialog currentDialog;
 
     public interface DraftDialogEventListener {
-        void onSelected(TweetDraft selected);
+        void onDraftSelected(TweetDraft selected);
     }
 
     @Override
@@ -49,10 +49,6 @@ public class DraftDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         listener = (DraftDialogEventListener) getActivity();
         drafts = TweetDraft.loadDrafts(getActivity());
-        if (drafts == null || drafts.size() < 1) {
-            Toast.makeText(getActivity(), "下書きがありません", Toast.LENGTH_SHORT).show();
-            dismiss();
-        }
     }
 
     @Override
@@ -67,13 +63,20 @@ public class DraftDialogFragment extends DialogFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        if (drafts == null || drafts.size() < 1) {
+            Toast.makeText(getActivity(), "下書きがありません", Toast.LENGTH_SHORT).show();
+            dismiss();
+            return;
+        }
+
         adapter = new DraftAdapter();
         listView.setAdapter(adapter);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+                ((DraftDialogEventListener)getActivity()).onDraftSelected(drafts.get(position));
+                dismiss();
             }
         });
 
@@ -179,6 +182,8 @@ public class DraftDialogFragment extends DialogFragment {
                             try {
                                 return d.user.getUser(getActivity());
                             } catch (TwitterException e) {
+                                e.printStackTrace();
+                            } catch (NullPointerException e) {
                                 e.printStackTrace();
                             }
                             return null;
