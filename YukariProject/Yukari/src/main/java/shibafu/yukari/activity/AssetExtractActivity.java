@@ -25,9 +25,9 @@ public class AssetExtractActivity extends Activity{
         super.onCreate(savedInstanceState);
 
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Extracting font resource...");
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setIndeterminate(true);
+        progressDialog.setTitle("Extracting font resource...");
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setIndeterminate(false);
         progressDialog.setCancelable(false);
 
         AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
@@ -40,13 +40,18 @@ public class AssetExtractActivity extends Activity{
                     ZipEntry ze = zis.getNextEntry();
 
                     if (ze != null) {
-                        String path = FontAsset.getFontFileExtPath().getPath();
+                        progressDialog.setMax((int)ze.getSize());
+                        int loaded = 0;
+
+                        String path = FontAsset.getFontFileExtPath(AssetExtractActivity.this).getPath();
                         FileOutputStream fos = new FileOutputStream(path, false);
                         byte[] buf = new byte[1024];
                         int size = 0;
 
                         while ((size = zis.read(buf, 0, buf.length)) > -1) {
                             fos.write(buf, 0, size);
+                            loaded += size;
+                            progressDialog.setProgress(loaded);
                         }
                         fos.close();
                         zis.closeEntry();

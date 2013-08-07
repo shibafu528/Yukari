@@ -58,7 +58,7 @@ public class MainActivity extends FragmentActivity {
             finish();
             return;
         }
-        else if (!FontAsset.checkFontFileExt()) {
+        else if (!FontAsset.checkFontFileExt(this)) {
             Intent intent = new Intent(this, AssetExtractActivity.class);
             startActivity(intent);
             finish();

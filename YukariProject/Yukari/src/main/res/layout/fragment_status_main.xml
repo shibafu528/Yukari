@@ -20,7 +20,7 @@
             <include
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    layout="@layout/raw_tweet"
+                    layout="@layout/row_tweet"
                     android:layout_gravity="center"
                     android:id="@+id/status_tweet"
                     />

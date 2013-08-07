@@ -906,7 +906,7 @@ containing a value of this type.
         public static final int action_mode_bar=0x7f07002f;
         public static final int action_mode_bar_stub=0x7f07002e;
         public static final int action_mode_close_button=0x7f070022;
-        public static final int action_settings=0x7f07006a;
+        public static final int action_settings=0x7f07006c;
         public static final int activity_chooser_view_content=0x7f070023;
         public static final int always=0x7f07000f;
         public static final int beginning=0x7f07000a;
@@ -982,9 +982,10 @@ containing a value of this type.
         public static final int showTitle=0x7f070006;
         public static final int split_action_bar=0x7f07001c;
         public static final int status_tweet=0x7f07005f;
+        public static final int statuslink_category=0x7f070066;
+        public static final int statuslink_content=0x7f070067;
         public static final int submit_area=0x7f07003f;
         public static final int tabMode=0x7f070002;
-        public static final int textView=0x7f07004c;
         public static final int textView2=0x7f07005a;
         public static final int title=0x7f070029;
         public static final int title_container=0x7f070030;
@@ -992,10 +993,11 @@ containing a value of this type.
         public static final int top_action_bar=0x7f07001e;
         public static final int tvTweetBy=0x7f07004d;
         public static final int tvTweetCount=0x7f070048;
-        public static final int tweet_icon=0x7f070066;
-        public static final int tweet_name=0x7f070067;
-        public static final int tweet_text=0x7f070068;
-        public static final int tweet_timestamp=0x7f070069;
+        public static final int tvTweetTitle=0x7f07004c;
+        public static final int tweet_icon=0x7f070068;
+        public static final int tweet_name=0x7f070069;
+        public static final int tweet_text=0x7f07006a;
+        public static final int tweet_timestamp=0x7f07006b;
         public static final int tweetgesture=0x7f070046;
         public static final int up=0x7f07001f;
         public static final int useLogo=0x7f070003;
@@ -1041,8 +1043,9 @@ containing a value of this type.
         public static final int activity_test=0x7f03001b;
         public static final int activity_tweet=0x7f03001c;
         public static final int fragment_status_main=0x7f03001d;
-        public static final int raw_tweet=0x7f03001e;
-        public static final int support_simple_spinner_dropdown_item=0x7f03001f;
+        public static final int row_statuslink=0x7f03001e;
+        public static final int row_tweet=0x7f03001f;
+        public static final int support_simple_spinner_dropdown_item=0x7f030020;
     }
     public static final class menu {
         public static final int main=0x7f0c0000;

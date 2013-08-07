@@ -200,7 +200,7 @@ public class DraftDialogFragment extends DialogFragment {
             View v = convertView;
             if (v == null) {
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = inflater.inflate(R.layout.raw_tweet, null);
+                v = inflater.inflate(R.layout.row_tweet, null);
             }
 
             final TweetDraft d = drafts.get(position);

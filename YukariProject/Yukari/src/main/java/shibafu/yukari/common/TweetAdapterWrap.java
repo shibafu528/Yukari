@@ -140,7 +140,7 @@ public class TweetAdapterWrap {
 
             if (v == null) {
                 LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = inflater.inflate(R.layout.raw_tweet, null);
+                v = inflater.inflate(R.layout.row_tweet, null);
             }
 
             Status st = (Status) getItem(position);
