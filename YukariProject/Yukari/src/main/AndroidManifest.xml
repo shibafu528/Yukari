@@ -64,15 +64,34 @@
                 <data android:scheme="https" android:host="twitter.com" android:pathPrefix="/intent/tweet"/>
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activity.StatusActivity"
             android:label="@string/title_activity_status"
             android:theme="@style/AppDialogTheme">
         </activity>
 
+        <activity
+            android:name=".activity.StatusIntentActivity"
+            android:label="@string/title_activity_status"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="http" android:host="twitter.com" android:pathPattern="/.*/status/.*"/>
+                <data android:scheme="https" android:host="twitter.com" android:pathPattern="/.*/status/.*"/>
+                <data android:scheme="http" android:host="twitter.com" android:pathPattern="/.*/statuses/.*"/>
+                <data android:scheme="https" android:host="twitter.com" android:pathPattern="/.*/statuses/.*"/>
+            </intent-filter>
+        </activity>
+
         <activity android:name=".activity.AssetExtractActivity"
                   android:label="@string/title_activity_assetextract"
-                  android:theme="@style/AppTheme"/>
+                  android:theme="@style/AppTheme">
+        </activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
