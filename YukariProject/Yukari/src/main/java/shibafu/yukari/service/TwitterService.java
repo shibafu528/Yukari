@@ -212,6 +212,10 @@ public class TwitterService extends Service{
         return hashCache.getAll().toArray(new String[0]);
     }
 
+    public Twitter getTwitter() {
+        return twitter;
+    }
+
     //<editor-fold desc="投稿操作系">
     public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
         if (user != null) {
@@ -326,6 +330,14 @@ public class TwitterService extends Service{
                 postTweet(user, new StatusUpdate(urls.toString()));
             }
         }
+    }
+
+    public void sendDirectMessage(String to, AuthUserRecord from, String message) throws TwitterException {
+        if (from == null) {
+            throw new IllegalArgumentException("送信元アカウントが指定されていません");
+        }
+        twitter.setOAuthAccessToken(from.getAccessToken());
+        twitter.sendDirectMessage(to, message);
     }
 
     public void retweetStatus(AuthUserRecord user, long id){

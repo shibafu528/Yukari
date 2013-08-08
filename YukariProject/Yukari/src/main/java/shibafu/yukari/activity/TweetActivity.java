@@ -79,7 +79,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private EditText etInput;
     private TextView tvCount;
     private int tweetCount = 140;
+    private int reservedCount = 0;
+
     private boolean isDirectMessage = false;
+    private String directMessageDestSN;
 
     private LinearLayout llTweetAttachParent;
     private LinearLayout llTweetAttach;
@@ -103,12 +106,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
 
-        TextView tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
-
         //Extraを取得
         Intent args = getIntent();
+        Uri dataArg = args.getData();
 
         //ユーザー指定がある場合は表示する (EXTRA_USER)
+        TextView tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
         user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
         if (user != null) {
             tvTweetBy.setText("@" + user.ScreenName);
@@ -117,8 +120,16 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         //statusを取得する (EXTRA_STATUS)
         status = (Status) args.getSerializableExtra(EXTRA_STATUS);
 
+        //WebIntent判定
+        boolean isWebIntent = false;
+        if (dataArg != null && dataArg.getHost().equals("twitter.com")) {
+            isWebIntent = true;
+        }
+
+        //IMEの表示設定
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 
+        //テキストエリアの設定
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
@@ -136,7 +147,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             @Override
             public void afterTextChanged(Editable s) {
                 int count = CharacterUtil.count(s.toString());
-                tweetCount = 140 - count;
+                tweetCount = 140 - count - reservedCount;
                 tvCount.setText(String.valueOf(tweetCount));
                 if (count < 0) {
                     tvCount.setTextColor(Color.RED);
@@ -155,8 +166,28 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             }
         });
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
-        String defaultText;
-        if (args.getAction() != null && args.getType() != null &&
+        String defaultText = "";
+        if (isWebIntent) {
+            String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
+            String paramText = dataArg.getQueryParameter("text");
+            String paramUrl = dataArg.getQueryParameter("url");
+            String paramHashtags = dataArg.getQueryParameter("hashtags");
+
+            StringBuilder sb = new StringBuilder(paramText);
+            if (paramUrl != null) {
+                sb.append(" ");
+                sb.append(paramUrl);
+            }
+            if (paramHashtags != null) {
+                String[] tags = paramHashtags.split(",");
+                for (String t : tags) {
+                    sb.append(" ");
+                    sb.append(t);
+                }
+            }
+            defaultText = sb.toString();
+        }
+        else if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("text/")) {
             defaultText = args.getDataString();
             if (defaultText == null) {
@@ -170,6 +201,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         if (args.getBooleanExtra(EXTRA_REPLY, false))
             etInput.setSelection(etInput.getText().length());
 
+        //添付エリアの設定
         llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
         llTweetAttach = (LinearLayout) findViewById(R.id.llTweetAttach);
         ivAttach = (ImageView) findViewById(R.id.ivTweetImageAttach);
@@ -242,41 +274,49 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     Toast.makeText(TweetActivity.this, "サービスが停止しています", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                if (isDirectMessage && user == null) {
+                    Toast.makeText(TweetActivity.this, "相互フォローになっている、送信元アカウント指定が必要です", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
                     @Override
                     protected Boolean doInBackground(Void... params) {
                         try {
-                            StatusUpdate update = new StatusUpdate(etInput.getText().toString());
-                            //statusが引数に付加されている場合はin-reply-toとして設定する
-                            if (status != null) {
-                                update.setInReplyToStatusId(status.getId());
+                            if (isDirectMessage) {
+                                service.sendDirectMessage(directMessageDestSN, user, etInput.getText().toString());
                             }
-                            //attachPictureがある場合は添付
-                            if (attachPicture != null) {
-                                try {
-                                    if (Math.max(attachPicture.width, attachPicture.height) > 2048) {
-                                        Log.d("TweetActivity", "添付画像の長辺が2048pxを超えています。圧縮対象とします。");
-                                        Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 1920, 1920, null);
-                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                        resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                        Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                        service.postTweet(user, update, new InputStream[]{bais});
-                                    }
-                                    else {
-                                        service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
-                                    }
-                                    return true;
-                                } catch (FileNotFoundException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                            else {
+                                StatusUpdate update = new StatusUpdate(etInput.getText().toString());
+                                //statusが引数に付加されている場合はin-reply-toとして設定する
+                                if (status != null) {
+                                    update.setInReplyToStatusId(status.getId());
                                 }
-                                return false;
+                                //attachPictureがある場合は添付
+                                if (attachPicture != null) {
+                                    try {
+                                        if (Math.max(attachPicture.width, attachPicture.height) > 2048) {
+                                            Log.d("TweetActivity", "添付画像の長辺が2048pxを超えています。圧縮対象とします。");
+                                            Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 1920, 1920, null);
+                                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                            resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                            Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                            service.postTweet(user, update, new InputStream[]{bais});
+                                        }
+                                        else {
+                                            service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
+                                        }
+                                        return true;
+                                    } catch (FileNotFoundException e) {
+                                        e.printStackTrace();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return false;
+                                }
+                                service.postTweet(user, update);
                             }
-                            service.postTweet(user, update);
                             return true;
                         } catch (TwitterException e) {
                             e.printStackTrace();
@@ -513,6 +553,20 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 appendTextInto("…");
             }
         });
+
+
+        //DM判定
+        isDirectMessage = args.getBooleanExtra(EXTRA_DM, false);
+        if (isDirectMessage) {
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET);
+            //表題変更
+            ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
+            //ボタン無効化と表示変更
+            ibAttach.setEnabled(false);
+            ibCamera.setEnabled(false);
+            ibDraft.setEnabled(false);
+            btnPost.setText("Send");
+        }
     }
 
     @Override
