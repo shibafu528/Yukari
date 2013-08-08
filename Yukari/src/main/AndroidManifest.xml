@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="1"
-    android:versionName="0.05alpha build130807" >
+    android:versionName="0.06alpha build130808" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -53,6 +53,15 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <data android:mimeType="text/*"/>
                 <data android:mimeType="image/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
+                <data android:scheme="http" android:host="twitter.com" android:pathPrefix="/intent/tweet"/>
+                <data android:scheme="https" android:host="twitter.com" android:pathPrefix="/intent/tweet"/>
             </intent-filter>
         </activity>
         <activity
