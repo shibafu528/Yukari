@@ -1,7 +1,9 @@
 package shibafu.yukari.activity;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.AssetManager;
@@ -12,9 +14,12 @@ import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -34,6 +39,8 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
 
 public class MainActivity extends FragmentActivity {
 
@@ -131,6 +138,68 @@ public class MainActivity extends FragmentActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_find_profile:
+            {
+                final EditText tvInput = new EditText(this);
+                tvInput.setHint("@screen_name (@省略可)");
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("プロフィールを直接開く");
+                builder.setView(tvInput);
+                builder.setPositiveButton("開く", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+
+                        String sn = tvInput.getText().toString();
+                        if (sn.startsWith("@")) {
+                            sn = sn.substring(1);
+                        }
+
+                        AsyncTask<String, Void, User> task = new AsyncTask<String, Void, User>() {
+                            @Override
+                            protected User doInBackground(String... params) {
+                                try {
+                                    User user = service.getTwitter().showUser(params[0]);
+                                    return user;
+                                } catch (TwitterException e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected void onPostExecute(User user) {
+                                if (user != null) {
+                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                                    intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
+                                    startActivity(intent);
+                                }
+                                else {
+                                    Toast.makeText(MainActivity.this, "ユーザー検索エラー", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        };
+                        task.execute(sn);
+                    }
+                });
+                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                AlertDialog ad = builder.create();
+                ad.show();
+                break;
+            }
+        }
+        return false;
     }
 
     @Override
