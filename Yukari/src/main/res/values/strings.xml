@@ -13,5 +13,6 @@
     <string name="activity_animation_duration">300</string>
     <string name="title_activity_status">ツイート詳細</string>
     <string name="title_activity_assetextract">起動準備中…</string>
+    <string name="title_activity_profile">Profile</string>
 
 </resources>

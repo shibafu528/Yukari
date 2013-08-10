@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="false">
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:id="@+id/ivProfileHeader"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:background="#000"/>
+
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:id="@+id/ibProfileMenu"
+                android:src="@drawable/ic_more_menu"
+                android:layout_gravity="center"
+                android:layout_alignTop="@+id/ibProfileSearch"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="8dp"
+                />
+
+        <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:id="@+id/ibProfileSearch"
+                android:src="@drawable/ic_search"
+                android:layout_gravity="center"
+                android:layout_below="@+id/ivProfileHeader"
+                android:layout_toRightOf="@+id/ibProfileMenu"
+                android:layout_marginTop="4dp"/>
+
+        <Button
+                android:layout_width="160dp"
+                android:layout_height="48dp"
+                android:text="フォローする"
+                android:id="@+id/btnProfileFollow"
+                android:layout_alignTop="@+id/ibProfileSearch"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="8dp"/>
+
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/imageView2"
+                android:layout_below="@+id/ibProfileMenu"
+                android:layout_alignLeft="@+id/ibProfileMenu"
+                android:src="@android:drawable/divider_horizontal_textfield"
+                android:layout_alignRight="@+id/btnProfileFollow"
+                android:scaleType="fitXY"
+                android:layout_marginTop="4dp"/>
+
+        <FrameLayout
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginTop="28dp"
+                android:background="#99ffffff"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:id="@+id/frameLayout">
+
+            <ImageView
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:id="@+id/ivProfileIcon"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_launcher"/>
+        </FrameLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/frameLayout"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="15dp"
+                android:id="@+id/linearLayout">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="User Name"
+                    android:id="@+id/tvProfileName"
+                    android:layout_gravity="center"
+                    android:textColor="#fff"
+                    android:background="#9fff"
+                    android:padding="4dp"
+                    android:phoneNumber="false"
+                    android:shadowColor="#555"
+                    android:shadowRadius="5"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="\uff20screen_name"
+                    android:id="@+id/tvProfileScreenName"
+                    android:textColor="#fff"
+                    android:background="#9fff"
+                    android:padding="4dp"
+                    android:phoneNumber="false"
+                    android:shadowColor="#555"
+                    android:shadowRadius="5"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="14dp"
+                    android:textSize="14dp"/>
+        </LinearLayout>
+
+        <GridView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/gvProfileCommands"
+                android:layout_below="@+id/imageView2"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/llProfileBio"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/gvProfileCommands"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="BIO"
+                    android:id="@+id/textView3"
+                    android:textColor="#505050"/>
+
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageView4"
+                    android:layout_below="@+id/ibProfileMenu"
+                    android:layout_alignLeft="@+id/ibProfileMenu"
+                    android:src="@android:drawable/divider_horizontal_textfield"
+                    android:layout_alignRight="@+id/btnProfileFollow"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ここに自己紹介！きっと自己紹介！でも自己紹介してない人も多いよな"
+                    android:id="@+id/tvProfileBio"
+                    android:autoLink="web|email|map"/>
+        </LinearLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/llProfileLocation"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/llProfileBio"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LOCATION"
+                    android:id="@+id/textView3"
+                    android:textColor="#505050"/>
+
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageView4"
+                    android:layout_below="@+id/ibProfileMenu"
+                    android:layout_alignLeft="@+id/ibProfileMenu"
+                    android:src="@android:drawable/divider_horizontal_textfield"
+                    android:layout_alignRight="@+id/btnProfileFollow"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="グンマー帝國"
+                    android:id="@+id/tvProfileLocation"
+                    android:autoLink="web|email|map"/>
+        </LinearLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/llProfileWeb"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/llProfileLocation"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="WEB"
+                    android:id="@+id/textView3"
+                    android:textColor="#505050"/>
+
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageView4"
+                    android:layout_below="@+id/ibProfileMenu"
+                    android:layout_alignLeft="@+id/ibProfileMenu"
+                    android:src="@android:drawable/divider_horizontal_textfield"
+                    android:layout_alignRight="@+id/btnProfileFollow"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="http://twitter.com/shibafu528"
+                    android:id="@+id/tvProfileWeb"
+                    android:autoLink="web|email|map"/>
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+</ScrollView>

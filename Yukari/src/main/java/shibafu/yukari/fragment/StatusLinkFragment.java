@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -140,7 +141,9 @@ public class StatusLinkFragment extends ListFragment{
                         }
                         case TYPE_USER_PROFILE:
                         {
-                            // TODO: プロフィールを開くやつ
+                            // TODO: プロフィールを開くやつの引数
+                            Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                            startActivity(intent);
                             break;
                         }
                     }
