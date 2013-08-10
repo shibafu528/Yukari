@@ -39,7 +39,7 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="140"
             android:id="@+id/tvTweetCount"
-            android:layout_below="@+id/imageView"
+            android:layout_below="@+id/ivProfileHeader"
             android:layout_alignLeft="@+id/tvTweetTitle"
             android:layout_marginTop="8dp"/>
 
@@ -165,7 +165,7 @@
     <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/imageView"
+            android:id="@+id/ivProfileHeader"
             android:layout_below="@+id/tvTweetTitle"
             android:layout_alignLeft="@+id/etTweetInput"
             android:src="@android:drawable/divider_horizontal_textfield"
@@ -186,7 +186,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attach"
-                android:id="@+id/textView2"
+                android:id="@+id/tvProfileScreenName"
                 android:layout_below="@+id/horizontalScrollView"
                 android:layout_alignLeft="@+id/imageView2"
                 android:layout_gravity="left|center_vertical"/>
@@ -198,7 +198,7 @@
                 android:src="@android:drawable/divider_horizontal_textfield"
                 android:scaleType="fitXY"
                 android:layout_alignLeft="@+id/horizontalScrollView"
-                android:layout_below="@+id/textView2"
+                android:layout_below="@+id/tvProfileScreenName"
                 android:layout_alignParentRight="true"
                 android:layout_gravity="left|center_vertical"/>
 

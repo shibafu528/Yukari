@@ -92,6 +92,11 @@
                   android:label="@string/title_activity_assetextract"
                   android:theme="@style/AppTheme">
         </activity>
+
+        <activity
+            android:name=".activity.ProfileActivity"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/AppThemeNoTitle"></activity>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

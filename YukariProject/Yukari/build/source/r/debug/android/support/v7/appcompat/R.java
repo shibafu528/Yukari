@@ -80,8 +80,8 @@ public final class R {
 		public static final int listPreferredItemPaddingRight = 0x7f010028;
 		public static final int logo = 0x7f010045;
 		public static final int navigationMode = 0x7f01003f;
-		public static final int paddingEnd = 0x7f010069;
-		public static final int paddingStart = 0x7f010068;
+		public static final int paddingEnd = 0x7f01006c;
+		public static final int paddingStart = 0x7f01006b;
 		public static final int panelMenuListTheme = 0x7f010066;
 		public static final int panelMenuListWidth = 0x7f010065;
 		public static final int popupMenuStyle = 0x7f010064;
@@ -340,7 +340,7 @@ public final class R {
 		public static final int abc_screen = 0x7f030015;
 		public static final int abc_search_dropdown_item_icons_2line = 0x7f030016;
 		public static final int abc_search_view = 0x7f030017;
-		public static final int support_simple_spinner_dropdown_item = 0x7f030020;
+		public static final int support_simple_spinner_dropdown_item = 0x7f030022;
 	}
 	public static final class string {
 		public static final int abc_action_bar_home_description = 0x7f0a0001;
@@ -589,7 +589,7 @@ public final class R {
 		public static final int Theme_panelMenuListTheme = 4;
 		public static final int Theme_panelMenuListWidth = 3;
 		public static final int Theme_popupMenuStyle = 2;
-		public static final int[] View = { 0x010100da, 0x7f010068, 0x7f010069 };
+		public static final int[] View = { 0x010100da, 0x7f01006b, 0x7f01006c };
 		public static final int View_android_focusable = 0;
 		public static final int View_paddingEnd = 2;
 		public static final int View_paddingStart = 1;
