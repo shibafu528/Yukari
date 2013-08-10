@@ -445,13 +445,6 @@
         <!-- Drawable used as a background for selected list items. -->
         <attr name="listChoiceBackgroundIndicator" format="reference" />
     </declare-styleable>
-    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/attrs.xml -->
-    <declare-styleable name="TwoLineButton">
-        <attr name="textTop" format="string" />
-        <attr name="textBottom" format="string" />
-        <attr name="image" format="reference" />
-    </declare-styleable>
-    <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
     <declare-styleable name="View">
 
         <!-- Sets the padding, in pixels, of the start edge; see {@link android.R.attr#padding}. -->

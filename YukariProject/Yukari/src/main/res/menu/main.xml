@@ -3,4 +3,7 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         android:showAsAction="never" />
+    <item android:id="@+id/action_find_profile"
+          android:title="Find Profile"
+          android:showAsAction="never" />
 </menu>

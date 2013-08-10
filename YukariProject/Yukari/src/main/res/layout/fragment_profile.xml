@@ -10,13 +10,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <ImageView
+        <com.loopj.android.image.SmartImageView
                 android:layout_width="match_parent"
-                android:layout_height="240dp"
+                android:layout_height="180dp"
                 android:id="@+id/ivProfileHeader"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentLeft="true"
-                android:background="#000"/>
+                android:background="#000"
+                android:scaleType="fitCenter"
+                />
 
         <ImageButton
                 android:layout_width="wrap_content"
@@ -62,13 +64,13 @@
         <FrameLayout
                 android:layout_width="80dp"
                 android:layout_height="80dp"
-                android:layout_marginTop="28dp"
-                android:background="#99ffffff"
+                android:layout_marginTop="8dp"
+                android:background="#9eee"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
                 android:id="@+id/frameLayout">
 
-            <ImageView
+            <com.loopj.android.image.SmartImageView
                     android:layout_width="72dp"
                     android:layout_height="72dp"
                     android:id="@+id/ivProfileIcon"
@@ -93,10 +95,10 @@
                     android:id="@+id/tvProfileName"
                     android:layout_gravity="center"
                     android:textColor="#fff"
-                    android:background="#9fff"
+                    android:background="#9eee"
                     android:padding="4dp"
                     android:phoneNumber="false"
-                    android:shadowColor="#555"
+                    android:shadowColor="#333"
                     android:shadowRadius="5"/>
 
             <TextView
@@ -106,10 +108,10 @@
                     android:text="\uff20screen_name"
                     android:id="@+id/tvProfileScreenName"
                     android:textColor="#fff"
-                    android:background="#9fff"
-                    android:padding="4dp"
+                    android:background="#9eee"
+                    android:padding="2dp"
                     android:phoneNumber="false"
-                    android:shadowColor="#555"
+                    android:shadowColor="#333"
                     android:shadowRadius="5"
                     android:layout_gravity="center"
                     android:layout_marginTop="14dp"
@@ -118,12 +120,13 @@
 
         <GridView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="130dp"
                 android:id="@+id/gvProfileCommands"
                 android:layout_below="@+id/imageView2"
                 android:layout_alignRight="@+id/imageView2"
                 android:layout_alignLeft="@+id/imageView2"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="8dp"
+                android:numColumns="2"/>
 
         <LinearLayout
                 android:orientation="vertical"
@@ -133,23 +136,18 @@
                 android:layout_below="@+id/gvProfileCommands"
                 android:layout_alignRight="@+id/imageView2"
                 android:layout_alignLeft="@+id/imageView2"
-                android:layout_marginTop="16dp">
+                android:layout_marginTop="8dp">
 
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="BIO"
-                    android:id="@+id/textView3"
                     android:textColor="#505050"/>
 
             <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/imageView4"
-                    android:layout_below="@+id/ibProfileMenu"
-                    android:layout_alignLeft="@+id/ibProfileMenu"
                     android:src="@android:drawable/divider_horizontal_textfield"
-                    android:layout_alignRight="@+id/btnProfileFollow"
                     android:scaleType="fitXY"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="4dp"/>
@@ -157,7 +155,7 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ここに自己紹介！きっと自己紹介！でも自己紹介してない人も多いよな"
+                    android:text=""
                     android:id="@+id/tvProfileBio"
                     android:autoLink="web|email|map"/>
         </LinearLayout>
@@ -176,17 +174,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="LOCATION"
-                    android:id="@+id/textView3"
                     android:textColor="#505050"/>
 
             <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/imageView4"
-                    android:layout_below="@+id/ibProfileMenu"
-                    android:layout_alignLeft="@+id/ibProfileMenu"
                     android:src="@android:drawable/divider_horizontal_textfield"
-                    android:layout_alignRight="@+id/btnProfileFollow"
                     android:scaleType="fitXY"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="4dp"/>
@@ -194,7 +187,7 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="グンマー帝國"
+                    android:text=""
                     android:id="@+id/tvProfileLocation"
                     android:autoLink="web|email|map"/>
         </LinearLayout>
@@ -213,17 +206,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="WEB"
-                    android:id="@+id/textView3"
                     android:textColor="#505050"/>
 
             <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/imageView4"
-                    android:layout_below="@+id/ibProfileMenu"
-                    android:layout_alignLeft="@+id/ibProfileMenu"
                     android:src="@android:drawable/divider_horizontal_textfield"
-                    android:layout_alignRight="@+id/btnProfileFollow"
                     android:scaleType="fitXY"
                     android:layout_marginTop="2dp"
                     android:layout_marginBottom="4dp"/>
@@ -231,9 +219,72 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="http://twitter.com/shibafu528"
+                    android:text=""
                     android:id="@+id/tvProfileWeb"
                     android:autoLink="web|email|map"/>
+        </LinearLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/llProfileSince"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/llProfileWeb"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SINCE"
+                    android:textColor="#505050"/>
+
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/divider_horizontal_textfield"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/tvProfileSince"/>
+        </LinearLayout>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:id="@+id/llProfileUserId"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/llProfileSince"
+                android:layout_alignRight="@+id/imageView2"
+                android:layout_alignLeft="@+id/imageView2"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp">
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="USER ID"
+                    android:textColor="#505050"/>
+
+            <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@android:drawable/divider_horizontal_textfield"
+                    android:scaleType="fitXY"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="4dp"/>
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="#"
+                    android:id="@+id/tvProfileUserId"/>
         </LinearLayout>
 
 

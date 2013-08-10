@@ -325,10 +325,6 @@ theme attribute (in the form
 containing a value of this type.
          */
         public static final int iconifiedByDefault=0x7f01005c;
-        /** <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
-or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
-         */
-        public static final int image=0x7f01006a;
         /**  Specifies a style resource to use for an indeterminate progress spinner. 
          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
@@ -452,7 +448,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int paddingEnd=0x7f01006c;
+        public static final int paddingEnd=0x7f010069;
         /**  Sets the padding, in pixels, of the start edge; see {@link android.R.attr#padding}. 
          <p>Must be a dimension value, which is a floating point number appended with a unit such as "<code>14.5sp</code>".
 Available units are: px (pixels), dp (density-independent pixels), sp (scaled pixels based on preferred font size),
@@ -463,7 +459,7 @@ theme attribute (in the form
 "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
 containing a value of this type.
          */
-        public static final int paddingStart=0x7f01006b;
+        public static final int paddingStart=0x7f010068;
         /**  Default Panel Menu style. 
          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
@@ -693,28 +689,12 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
          */
         public static final int textAppearanceSmallPopupMenu=0x7f01003c;
-        /** <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int textBottom=0x7f010069;
         /** <p>May be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
 or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
 <p>May be a color value, in the form of "<code>#<i>rgb</i></code>", "<code>#<i>argb</i></code>",
 "<code>#<i>rrggbb</i></code>", or "<code>#<i>aarrggbb</i></code>".
          */
         public static final int textColorSearchUrl=0x7f01003d;
-        /** <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-         */
-        public static final int textTop=0x7f010068;
         /** <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
 <p>This may also be a reference to a resource (in the form
 "<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
@@ -888,29 +868,32 @@ containing a value of this type.
         public static final int abc_textfield_searchview_holo_light=0x7f020054;
         public static final int abc_textfield_searchview_right_holo_dark=0x7f020055;
         public static final int abc_textfield_searchview_right_holo_light=0x7f020056;
-        public static final int color_2linebutton=0x7f020057;
-        public static final int ic_access_camera=0x7f020058;
-        public static final int ic_access_location=0x7f020059;
-        public static final int ic_content_picture=0x7f02005a;
-        public static final int ic_draft_tweet=0x7f02005b;
-        public static final int ic_favorite=0x7f02005c;
-        public static final int ic_favrt=0x7f02005d;
-        public static final int ic_grass=0x7f02005e;
-        public static final int ic_hashtag=0x7f02005f;
-        public static final int ic_launcher=0x7f020060;
-        public static final int ic_list=0x7f020061;
-        public static final int ic_more_menu=0x7f020062;
-        public static final int ic_new_picture=0x7f020063;
-        public static final int ic_playing_music=0x7f020064;
-        public static final int ic_quote=0x7f020065;
-        public static final int ic_reply=0x7f020066;
-        public static final int ic_retweet=0x7f020067;
-        public static final int ic_santen=0x7f020068;
-        public static final int ic_save_tweet=0x7f020069;
-        public static final int ic_search=0x7f02006a;
-        public static final int ic_share=0x7f02006b;
-        public static final int ic_totsuzenno_si=0x7f02006c;
-        public static final int ic_voice_input=0x7f02006d;
+        public static final int ic_access_camera=0x7f020057;
+        public static final int ic_access_location=0x7f020058;
+        public static final int ic_content_picture=0x7f020059;
+        public static final int ic_draft_tweet=0x7f02005a;
+        public static final int ic_favorite=0x7f02005b;
+        public static final int ic_favrt=0x7f02005c;
+        public static final int ic_grass=0x7f02005d;
+        public static final int ic_hashtag=0x7f02005e;
+        public static final int ic_launcher=0x7f02005f;
+        public static final int ic_list=0x7f020060;
+        public static final int ic_more_menu=0x7f020061;
+        public static final int ic_new_picture=0x7f020062;
+        public static final int ic_playing_music=0x7f020063;
+        public static final int ic_prof_favorite=0x7f020064;
+        public static final int ic_prof_follow=0x7f020065;
+        public static final int ic_prof_follower=0x7f020066;
+        public static final int ic_prof_tweets=0x7f020067;
+        public static final int ic_quote=0x7f020068;
+        public static final int ic_reply=0x7f020069;
+        public static final int ic_retweet=0x7f02006a;
+        public static final int ic_santen=0x7f02006b;
+        public static final int ic_save_tweet=0x7f02006c;
+        public static final int ic_search=0x7f02006d;
+        public static final int ic_share=0x7f02006e;
+        public static final int ic_totsuzenno_si=0x7f02006f;
+        public static final int ic_voice_input=0x7f020070;
     }
     public static final class id {
         public static final int action_bar=0x7f07001a;
@@ -923,17 +906,18 @@ containing a value of this type.
         public static final int action_bar_subtitle=0x7f070021;
         public static final int action_bar_title=0x7f070020;
         public static final int action_context_bar=0x7f07001b;
+        public static final int action_find_profile=0x7f070082;
         public static final int action_menu_divider=0x7f070015;
         public static final int action_menu_presenter=0x7f070016;
         public static final int action_mode_bar=0x7f07002f;
         public static final int action_mode_bar_stub=0x7f07002e;
         public static final int action_mode_close_button=0x7f070022;
-        public static final int action_settings=0x7f070076;
+        public static final int action_settings=0x7f070081;
         public static final int activity_chooser_view_content=0x7f070023;
         public static final int always=0x7f07000f;
         public static final int beginning=0x7f07000a;
+        public static final int btnProfileFollow=0x7f070060;
         public static final int btnTweet=0x7f070049;
-        public static final int btnProfileFollow =0x7f070060;
         public static final int checkbox=0x7f07002b;
         public static final int collapseActionView=0x7f070011;
         public static final int default_activity_button=0x7f070026;
@@ -947,9 +931,12 @@ containing a value of this type.
         public static final int expanded_menu=0x7f07002a;
         public static final int frame=0x7f070044;
         public static final int frameLayout=0x7f070061;
+        public static final int gvProfileCommands=0x7f070065;
         public static final int home=0x7f070017;
         public static final int homeAsUp=0x7f070005;
         public static final int horizontalScrollView=0x7f070054;
+        public static final int ibProfileMenu=0x7f07005e;
+        public static final int ibProfileSearch=0x7f07005f;
         public static final int ibTweetAttachPic=0x7f07004e;
         public static final int ibTweetDraft=0x7f070053;
         public static final int ibTweetGrasses=0x7f070051;
@@ -959,27 +946,31 @@ containing a value of this type.
         public static final int ibTweetTakePic=0x7f07004f;
         public static final int ibTweetTotsusi=0x7f070058;
         public static final int ibTweetVoiceInput=0x7f070056;
-        public static final int ib_state_favorite=0x7f070069;
-        public static final int ib_state_favrt=0x7f07006b;
-        public static final int ib_state_quote=0x7f07006a;
-        public static final int ib_state_reply=0x7f070067;
-        public static final int ib_state_retweet=0x7f070068;
-        public static final int ib_state_share=0x7f07006c;
+        public static final int ib_state_favorite=0x7f070074;
+        public static final int ib_state_favrt=0x7f070076;
+        public static final int ib_state_quote=0x7f070075;
+        public static final int ib_state_reply=0x7f070072;
+        public static final int ib_state_retweet=0x7f070073;
+        public static final int ib_state_share=0x7f070077;
         public static final int icon=0x7f070028;
         public static final int ifRoom=0x7f07000e;
         public static final int image=0x7f070025;
-        public static final int ibProfileMenu =0x7f07005e;
-        public static final int ibProfileSearch =0x7f07005f;
-        public static final int ivProfileHeader =0x7f07004b;
         public static final int imageView2=0x7f07005b;
-        public static final int ivProfileIcon =0x7f070062;
+        public static final int ivProfileHeader=0x7f07004b;
+        public static final int ivProfileIcon=0x7f070062;
         public static final int ivTweetImageAttach=0x7f07005d;
         public static final int left_icon=0x7f070031;
-        public static final int lineButtonCount=0x7f070075;
-        public static final int lineButtonImage=0x7f070073;
-        public static final int lineButtonText=0x7f070074;
+        public static final int lineButtonCount=0x7f070080;
+        public static final int lineButtonImage=0x7f07007e;
+        public static final int lineButtonText=0x7f07007f;
+        public static final int linearLayout=0x7f070063;
         public static final int listMode=0x7f070001;
         public static final int list_item=0x7f070027;
+        public static final int llProfileBio=0x7f070066;
+        public static final int llProfileLocation=0x7f070068;
+        public static final int llProfileSince=0x7f07006c;
+        public static final int llProfileUserId=0x7f07006e;
+        public static final int llProfileWeb=0x7f07006a;
         public static final int llTweetAttach=0x7f07005c;
         public static final int llTweetAttachParent=0x7f070059;
         public static final int llTweetExtra=0x7f070055;
@@ -995,7 +986,7 @@ containing a value of this type.
         public static final int radio=0x7f07002d;
         public static final int right_container=0x7f070032;
         public static final int right_icon=0x7f070033;
-        public static final int scrollView=0x7f070065;
+        public static final int scrollView=0x7f070070;
         public static final int search_badge=0x7f070038;
         public static final int search_bar=0x7f070037;
         public static final int search_button=0x7f070039;
@@ -1011,28 +1002,32 @@ containing a value of this type.
         public static final int showHome=0x7f070004;
         public static final int showTitle=0x7f070006;
         public static final int split_action_bar=0x7f07001c;
-        public static final int status_tweet=0x7f070066;
-        public static final int statuslink_category=0x7f07006d;
-        public static final int statuslink_content=0x7f07006e;
+        public static final int status_tweet=0x7f070071;
+        public static final int statuslink_category=0x7f070078;
+        public static final int statuslink_content=0x7f070079;
         public static final int submit_area=0x7f07003f;
         public static final int tabMode=0x7f070002;
-        public static final int tvProfileName =0x7f070063;
-        public static final int tvProfileScreenName =0x7f07005a;
         public static final int title=0x7f070029;
         public static final int title_container=0x7f070030;
         public static final int tlTweetAction=0x7f07004a;
         public static final int top_action_bar=0x7f07001e;
+        public static final int tvProfileBio=0x7f070067;
+        public static final int tvProfileLocation=0x7f070069;
+        public static final int tvProfileName=0x7f070064;
+        public static final int tvProfileScreenName=0x7f07005a;
+        public static final int tvProfileSince=0x7f07006d;
+        public static final int tvProfileUserId=0x7f07006f;
+        public static final int tvProfileWeb=0x7f07006b;
         public static final int tvTweetBy=0x7f07004d;
         public static final int tvTweetCount=0x7f070048;
         public static final int tvTweetTitle=0x7f07004c;
-        public static final int tweet_icon=0x7f07006f;
-        public static final int tweet_name=0x7f070070;
-        public static final int tweet_text=0x7f070071;
-        public static final int tweet_timestamp=0x7f070072;
+        public static final int tweet_icon=0x7f07007a;
+        public static final int tweet_name=0x7f07007b;
+        public static final int tweet_text=0x7f07007c;
+        public static final int tweet_timestamp=0x7f07007d;
         public static final int tweetgesture=0x7f070046;
         public static final int up=0x7f07001f;
         public static final int useLogo=0x7f070003;
-        public static final int view=0x7f070064;
         public static final int withText=0x7f070010;
     }
     public static final class integer {
@@ -1084,7 +1079,6 @@ containing a value of this type.
     }
     public static final class menu {
         public static final int main=0x7f0c0000;
-        public static final int status=0x7f0c0001;
     }
     public static final class string {
         public static final int OAuthTitle=0x7f0a0000;
@@ -2798,62 +2792,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
           @attr name shibafu.yukari:popupMenuStyle
         */
         public static final int Theme_popupMenuStyle = 2;
-        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/attrs.xml 
-           <p>Includes the following attributes:</p>
-           <table>
-           <colgroup align="left" />
-           <colgroup align="left" />
-           <tr><th>Attribute</th><th>Description</th></tr>
-           <tr><td><code>{@link #TwoLineButton_image shibafu.yukari:image}</code></td><td></td></tr>
-           <tr><td><code>{@link #TwoLineButton_textBottom shibafu.yukari:textBottom}</code></td><td></td></tr>
-           <tr><td><code>{@link #TwoLineButton_textTop shibafu.yukari:textTop}</code></td><td></td></tr>
-           </table>
-           @see #TwoLineButton_image
-           @see #TwoLineButton_textBottom
-           @see #TwoLineButton_textTop
-         */
-        public static final int[] TwoLineButton = {
-            0x7f010068, 0x7f010069, 0x7f01006a
-        };
-        /**
-          <p>This symbol is the offset where the {@link shibafu.yukari.R.attr#image}
-          attribute's value can be found in the {@link #TwoLineButton} array.
-
-
-          <p>Must be a reference to another resource, in the form "<code>@[+][<i>package</i>:]<i>type</i>:<i>name</i></code>"
-or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>".
-          @attr name shibafu.yukari:image
-        */
-        public static final int TwoLineButton_image = 2;
-        /**
-          <p>This symbol is the offset where the {@link shibafu.yukari.R.attr#textBottom}
-          attribute's value can be found in the {@link #TwoLineButton} array.
-
-
-          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name shibafu.yukari:textBottom
-        */
-        public static final int TwoLineButton_textBottom = 1;
-        /**
-          <p>This symbol is the offset where the {@link shibafu.yukari.R.attr#textTop}
-          attribute's value can be found in the {@link #TwoLineButton} array.
-
-
-          <p>Must be a string value, using '\\;' to escape characters such as '\\n' or '\\uxxxx' for a unicode character.
-<p>This may also be a reference to a resource (in the form
-"<code>@[<i>package</i>:]<i>type</i>:<i>name</i></code>") or
-theme attribute (in the form
-"<code>?[<i>package</i>:][<i>type</i>:]<i>name</i></code>")
-containing a value of this type.
-          @attr name shibafu.yukari:textTop
-        */
-        public static final int TwoLineButton_textTop = 0;
-        /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
+        /** Attributes that can be used with a View.
            <p>Includes the following attributes:</p>
            <table>
            <colgroup align="left" />
@@ -2869,7 +2808,7 @@ containing a value of this type.
            @see #View_paddingStart
          */
         public static final int[] View = {
-            0x010100da, 0x7f01006b, 0x7f01006c
+            0x010100da, 0x7f010068, 0x7f010069
         };
         /**
           <p>

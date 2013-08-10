@@ -45,14 +45,8 @@ public class StatusActivity extends FragmentActivity {
         user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
 
         if (status == null) {
-            Uri statesUrl = args.getData();
-            if (statesUrl == null) {
-                Toast.makeText(this, "なんですかこのツイートは、読めないのですけど...", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-            else {
-                // TODO: ツイートのダウンロードをここに書き込む
-            }
+            Toast.makeText(this, "なんですかこのツイートは、読めないのですけど...", Toast.LENGTH_SHORT).show();
+            finish();
         }
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());

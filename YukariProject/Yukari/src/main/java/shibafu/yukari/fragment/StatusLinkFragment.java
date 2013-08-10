@@ -141,8 +141,9 @@ public class StatusLinkFragment extends ListFragment{
                         }
                         case TYPE_USER_PROFILE:
                         {
-                            // TODO: プロフィールを開くやつの引数
                             Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                            intent.putExtra(ProfileActivity.EXTRA_USER, user);
+                            intent.putExtra(ProfileActivity.EXTRA_TARGET, lr.targetUser);
                             startActivity(intent);
                             break;
                         }
