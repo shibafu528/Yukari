@@ -28,6 +28,7 @@ public class ProfileActivity extends FragmentActivity{
         Bundle b = new Bundle();
         b.putSerializable(ProfileFragment.EXTRA_USER, intent.getSerializableExtra(EXTRA_USER));
         b.putLong(ProfileFragment.EXTRA_TARGET, intent.getLongExtra(EXTRA_TARGET, -1));
+        b.putParcelable("data", intent.getData());
         fragment.setArguments(b);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

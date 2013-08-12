@@ -6,10 +6,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.text.Html;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,11 +28,14 @@ import com.loopj.android.image.SmartImageView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.TwitterException;
+import twitter4j.URLEntity;
 import twitter4j.User;
 
 /**
@@ -44,6 +50,9 @@ public class ProfileFragment extends Fragment{
 
     private AuthUserRecord user;
     private long targetId;
+
+    private boolean selfLoadId = false;
+    private String selfLoadName;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -63,6 +72,11 @@ public class ProfileFragment extends Fragment{
         Bundle args = getArguments();
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         targetId = args.getLong(EXTRA_TARGET, -1);
+
+        if (targetId < 0) {
+            selfLoadId = true;
+            selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
+        }
 
         ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
         ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
@@ -111,7 +125,17 @@ public class ProfileFragment extends Fragment{
                 }
 
                 try {
-                    User user = service.getTwitter().showUser(targetId);
+                    User user;
+                    if (selfLoadId) {
+                        String name = selfLoadName;
+                        if (name.startsWith("@")) {
+                            name = name.substring(1);
+                        }
+                        user = service.getTwitter().showUser(name);
+                    }
+                    else {
+                        user = service.getTwitter().showUser(targetId);
+                    }
                     return user;
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -131,7 +155,43 @@ public class ProfileFragment extends Fragment{
                     Log.d("ProfileFragment", "header url: " + user.getProfileBannerMobileURL());
                     tvName.setText(user.getName());
                     tvScreenName.setText("@" + user.getScreenName());
-                    tvBio.setText(user.getDescription());
+
+                    //Bioはエスケープや短縮の展開を行う
+                    {
+                        String bio = user.getDescription();
+
+                        //URLを展開しAタグにする
+                        URLEntity[] urlEntities = user.getDescriptionURLEntities();
+                        for (URLEntity entity : urlEntities) {
+                            StringBuilder replace = new StringBuilder("<a href=\"");
+                            replace.append(entity.getExpandedURL());
+                            replace.append("\">");
+                            replace.append(entity.getExpandedURL());
+                            replace.append("</a>");
+                            bio = bio.replace(entity.getURL(), replace.toString());
+                        }
+
+                        //エスケープしてテキストを表示
+                        tvBio.setText(Html.fromHtml(bio).toString());
+                        Log.d("ProfileFragment", "Profile: " + tvBio.getText());
+
+                        //ScreenNameに対するリンク張り
+                        Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
+                        String jumpUrl = "content://shibafu.yukari.link/user/";
+                        Linkify.addLinks(tvBio, pattern, jumpUrl);
+                        //Hashtagに対するリンク張り
+                        pattern = Pattern.compile(
+                                "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
+                        final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
+                        Linkify.TransformFilter filter = new Linkify.TransformFilter() {
+                            @Override
+                            public String transformUrl(Matcher match, String url) {
+                                return jumpUrlHash + match.group(match.groupCount());
+                            }
+                        };
+                        Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
+                    }
+
                     tvLocation.setText(user.getLocation());
                     tvWeb.setText(user.getURLEntity().getExpandedURL());
                     tvSince.setText(sdf.format(user.getCreatedAt()));
