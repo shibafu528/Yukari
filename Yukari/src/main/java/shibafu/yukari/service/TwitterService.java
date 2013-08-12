@@ -1,10 +1,14 @@
 package shibafu.yukari.service;
 
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,6 +30,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.media.ImageUpload;
@@ -48,14 +53,28 @@ public class TwitterService extends Service{
     //キャッシュ系
     private HashCache hashCache;
 
+    //システムサービス系
+    private NotificationManager notificationManager;
+    private static final int NOTIF_FAVED = 1;
+    private static final int NOTIF_REPLY = 2;
+    private static final int NOTIF_RETWEET = 3;
+
     //Twitter通信系
     private Twitter twitter;
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
     private List<StreamUser> streamUsers = new ArrayList<StreamUser>();
     private StreamUser.StreamListener listener = new StreamUser.StreamListener() {
+
         @Override
         public void onFavorite(AuthUserRecord from, User user, User user2, Status status) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            builder.setSmallIcon(R.drawable.ic_stat_favorite);
+            builder.setContentTitle("Faved by @" + user.getScreenName());
+            builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
+            builder.setTicker("ふぁぼられ : @" + user.getScreenName());
+            builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), AudioManager.STREAM_NOTIFICATION);
 
+            notificationManager.notify(NOTIF_FAVED, builder.build());
         }
 
         @Override
@@ -87,9 +106,36 @@ public class TwitterService extends Service{
 
         @Override
         public void onStatus(AuthUserRecord from, Status status) {
-            Log.d(LOG_TAG, "onStatus(Regitsted Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
+            Log.d(LOG_TAG, "onStatus(Registed Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, status);
+            }
+
+            //TODO: 自分自身のアカウントからは除外
+            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == from.NumericId) {
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                builder.setSmallIcon(R.drawable.ic_stat_retweet);
+                builder.setContentTitle("Retweeted by @" + status.getUser().getScreenName());
+                builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
+                builder.setTicker("RTされました : @" + status.getUser().getScreenName());
+                builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), AudioManager.STREAM_NOTIFICATION);
+
+                notificationManager.notify(NOTIF_RETWEET, builder.build());
+            }
+            else {
+                UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+                for (UserMentionEntity ume : userMentionEntities) {
+                    if (ume.getId() == from.NumericId) {
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                        builder.setSmallIcon(R.drawable.ic_stat_reply);
+                        builder.setContentTitle("Reply from @" + status.getUser().getScreenName());
+                        builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
+                        builder.setTicker("リプライ : @" + status.getUser().getScreenName());
+                        builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), AudioManager.STREAM_NOTIFICATION);
+
+                        notificationManager.notify(NOTIF_REPLY, builder.build());
+                    }
+                }
             }
 
             HashtagEntity[] hashtagEntities = status.getHashtagEntities();
@@ -119,6 +165,7 @@ public class TwitterService extends Service{
         twitter = TwitterUtil.getTwitterInstance(this);
         reloadUsers();
         hashCache = new HashCache(this);
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 

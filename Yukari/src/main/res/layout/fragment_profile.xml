@@ -156,8 +156,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:id="@+id/tvProfileBio"
-                    android:autoLink="web|email|map"/>
+                    android:id="@+id/tvProfileBio"/>
+                    <!--android:autoLink="web|email|map"-->
         </LinearLayout>
 
         <LinearLayout
@@ -188,8 +188,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:id="@+id/tvProfileLocation"
-                    android:autoLink="web|email|map"/>
+                    android:autoLink="web|email"
+                    android:id="@+id/tvProfileLocation"/>
         </LinearLayout>
 
         <LinearLayout
