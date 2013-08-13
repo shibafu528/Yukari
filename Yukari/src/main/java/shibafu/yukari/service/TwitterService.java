@@ -67,12 +67,16 @@ public class TwitterService extends Service{
 
         @Override
         public void onFavorite(AuthUserRecord from, User user, User user2, Status status) {
+            if (from.NumericId == user.getId())
+                return;
+
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
             builder.setSmallIcon(R.drawable.ic_stat_favorite);
             builder.setContentTitle("Faved by @" + user.getScreenName());
             builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
             builder.setTicker("ふぁぼられ : @" + user.getScreenName());
             builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), AudioManager.STREAM_NOTIFICATION);
+            builder.setAutoCancel(true);
 
             notificationManager.notify(NOTIF_FAVED, builder.build());
         }
@@ -119,6 +123,7 @@ public class TwitterService extends Service{
                 builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
                 builder.setTicker("RTされました : @" + status.getUser().getScreenName());
                 builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), AudioManager.STREAM_NOTIFICATION);
+                builder.setAutoCancel(true);
 
                 notificationManager.notify(NOTIF_RETWEET, builder.build());
             }
@@ -132,6 +137,7 @@ public class TwitterService extends Service{
                         builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
                         builder.setTicker("リプライ : @" + status.getUser().getScreenName());
                         builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), AudioManager.STREAM_NOTIFICATION);
+                        builder.setAutoCancel(true);
 
                         notificationManager.notify(NOTIF_REPLY, builder.build());
                     }
