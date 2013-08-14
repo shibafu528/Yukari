@@ -171,6 +171,10 @@ public class ProfileFragment extends Fragment{
                             bio = bio.replace(entity.getURL(), replace.toString());
                         }
 
+                        //改行コードをBRタグにする
+                        bio.replaceAll("\n", "<br>");
+                        bio.replaceAll("\r\n", "<br>");
+
                         //エスケープしてテキストを表示
                         tvBio.setText(Html.fromHtml(bio).toString());
                         Log.d("ProfileFragment", "Profile: " + tvBio.getText());

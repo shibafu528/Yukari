@@ -16,7 +16,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Environment;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -50,7 +49,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.BitmapResizer;
+import shibafu.yukari.util.BitmapResizer;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.service.TwitterService;
@@ -520,6 +519,16 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 });
             } catch (PackageManager.NameNotFoundException e) {
             }
+        }
+        ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
+        {
+            ibMorse.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
+                    startActivityForResult(intent, REQUEST_NOWPLAYING);
+                }
+            });
         }
         ImageButton ibTotsusi = (ImageButton) findViewById(R.id.ibTweetTotsusi);
         {

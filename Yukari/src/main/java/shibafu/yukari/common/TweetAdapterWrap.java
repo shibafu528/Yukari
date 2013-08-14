@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import shibafu.util.MorseCodec;
 import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Status;
@@ -31,7 +32,8 @@ public class TweetAdapterWrap {
     private List<Status> statuses;
     private TweetAdapter adapter;
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
-    private final static Pattern viaPattern = Pattern.compile("<a .*>(.+)</a>");
+    private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
+    private final static Pattern SIGNAL_PATTERN = Pattern.compile("(((−|・|－)+) ?)+");
 
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<Status> statuses) {
         this.context = context;
@@ -60,14 +62,19 @@ public class TweetAdapterWrap {
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         tvName.setTypeface(FontAsset.getInstance(context).getFont());
+
         TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
         tvText.setTypeface(FontAsset.getInstance(context).getFont());
-        tvText.setText(st.getText());
+        String text = st.getText();
+        text = MorseCodec.decode(text);
+        tvText.setText(text);
+
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
         ivIcon.setImageResource(R.drawable.ic_launcher);
         ivIcon.setImageUrl(st.getUser().getProfileImageURL());
+
         TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
-        Matcher matcher = viaPattern.matcher(st.getSource());
+        Matcher matcher = VIA_PATTERN.matcher(st.getSource());
         String via;
         if (matcher.find()) {
             via = matcher.group(1);

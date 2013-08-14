@@ -1,4 +1,4 @@
-package shibafu.yukari.common;
+package shibafu.yukari.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
