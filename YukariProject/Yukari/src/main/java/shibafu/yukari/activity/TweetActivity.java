@@ -424,6 +424,13 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 currentDialog = ad;
             }
         });
+        ibHash.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                appendTextInto("#");
+                return true;
+            }
+        });
         ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
         ibVoice.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -552,7 +559,26 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         ibGrasses.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appendTextInto("ｗ");
+                int start = etInput.getSelectionStart();
+                int end = etInput.getSelectionEnd();
+                if (start < 0 || end < 0 || start == end) {
+                    appendTextInto("ｗ");
+                }
+                else {
+                    String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
+                    char[] chr = text.toCharArray();
+                    int grass = text.length() - 1;
+                    StringBuilder sb = new StringBuilder();
+                    for (char c : chr) {
+                        sb.append(c);
+                        if (grass > 0) {
+                            sb.append("ｗ");
+                            --grass;
+                        }
+                    }
+                    text = sb.toString();
+                    etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
+                }
             }
         });
         ImageButton ibSanten = (ImageButton) findViewById(R.id.ibTweetSanten);
