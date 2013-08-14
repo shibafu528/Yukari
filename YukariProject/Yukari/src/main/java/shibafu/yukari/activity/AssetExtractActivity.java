@@ -25,7 +25,8 @@ public class AssetExtractActivity extends Activity{
         super.onCreate(savedInstanceState);
 
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Extracting font resource...");
+        progressDialog.setTitle("フォントファイルの展開中");
+        progressDialog.setMessage("起動の準備が完了するまで、しばらくお待ちください");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setIndeterminate(false);
         progressDialog.setCancelable(false);

@@ -515,6 +515,7 @@
     <string name="title_activity_profile">Profile</string>
     <string name="title_activity_status">ツイート詳細</string>
     <string name="title_activity_tweet">ツイート</string>
+    <string name="title_morse_input">モールス入力</string>
     <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
     <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/styles.xml -->
@@ -542,6 +543,11 @@
     </style>
 
     <style name="AppThemeNoTitle" parent="android:Theme.Light.NoTitleBar" />
+
+    <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
     <style name="TextAppearance.AppCompat.Base.CompactMenu.Dialog" parent="android:TextAppearance.Medium">
         <item name="android:textColor">@android:color/primary_text_light</item>

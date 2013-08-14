@@ -1,4 +1,4 @@
-package shibafu.yukari.common;
+package shibafu.yukari.util;
 
 import android.content.Context;
 import android.database.Cursor;
