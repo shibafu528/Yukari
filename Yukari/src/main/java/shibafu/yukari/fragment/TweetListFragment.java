@@ -35,7 +35,12 @@ import twitter4j.TwitterException;
  */
 public class TweetListFragment extends ListFragment implements TwitterService.StatusListener {
 
+    public static final int MODE_EMPTY = 0;
     public static final int MODE_HOME = 1;
+    public static final int MODE_MENTION = 2;
+    public static final int MODE_DM = 3;
+    public static final int MODE_USER = 4;
+    public static final int MODE_TRACE = 5;
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -60,7 +65,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         title = args.getString(EXTRA_TITLE);
-        mode = args.getInt(EXTRA_MODE);
+        mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         twitter = TwitterUtil.getTwitterInstance(getActivity());
     }

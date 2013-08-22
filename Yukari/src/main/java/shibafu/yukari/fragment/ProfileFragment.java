@@ -177,6 +177,7 @@ public class ProfileFragment extends Fragment{
 
                         //エスケープしてテキストを表示
                         tvBio.setText(Html.fromHtml(bio).toString());
+                        Linkify.addLinks(tvBio, Linkify.WEB_URLS);
                         Log.d("ProfileFragment", "Profile: " + tvBio.getText());
 
                         //ScreenNameに対するリンク張り

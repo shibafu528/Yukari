@@ -132,6 +132,13 @@
             <ImageButton
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:id="@+id/ibTweetSNPicker"
+                    android:src="@drawable/ic_reply_b"
+                    android:visibility="gone"/>
+
+            <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:id="@+id/ibTweetVoiceInput"
                     android:src="@drawable/ic_voice_input"
                     />

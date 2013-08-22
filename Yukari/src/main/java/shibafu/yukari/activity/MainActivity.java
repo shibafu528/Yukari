@@ -1,12 +1,10 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,18 +17,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
@@ -46,7 +37,9 @@ public class MainActivity extends FragmentActivity {
 
     private Twitter twitter;
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
-    private int reqAuth;
+
+    private static final int REQUEST_OAUTH = 1;
+    private static final int REQUEST_FRIEND_CACHE = 2;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -72,13 +65,11 @@ public class MainActivity extends FragmentActivity {
             return;
         }
 
-        reqAuth = getResources().getInteger(R.integer.requestcode_oauth);
-
         //Twitterログインデータを読み込む
         twitter = TwitterUtil.getTwitterInstance(this);
         users = Arrays.asList(TwitterUtil.loadUserRecords(this));
         if (users.size() < 1) {
-            startActivityForResult(new Intent(this, OAuthActivity.class), reqAuth);
+            startActivityForResult(new Intent(this, OAuthActivity.class), REQUEST_OAUTH);
         }
         else {
             addTab(users.get(0), "home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
@@ -198,13 +189,16 @@ public class MainActivity extends FragmentActivity {
                 ad.show();
                 break;
             }
+            case R.id.action_friend_cache:
+                startActivityForResult(new Intent(this, SNPickerActivity.class), REQUEST_FRIEND_CACHE);
+                break;
         }
         return false;
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == reqAuth) {
+        if (requestCode == REQUEST_OAUTH) {
             switch (resultCode) {
                 case RESULT_OK:
                     //認証情報をロードし差分を追加する
@@ -212,6 +206,17 @@ public class MainActivity extends FragmentActivity {
                     break;
                 default:
                     break;
+            }
+        } else if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_FRIEND_CACHE:
+                {
+                    long id = data.getLongExtra(SNPickerActivity.EXTRA_USER_ID, -1);
+                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                    intent.putExtra(ProfileActivity.EXTRA_TARGET, id);
+                    startActivity(intent);
+                    break;
+                }
             }
         }
     }
