@@ -15,6 +15,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -113,15 +116,67 @@ public class StatusMainFragment extends Fragment{
         ibFavorite.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         return null;
                     }
                 };
-                task.execute();
-                getActivity().finish();
+                String source = status.getSource();
+                if (source.contains("ShootingStar") || source.contains("TheWorld") || source.contains("Biyon≡(　ε:)"))
+                {
+                    Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
+                    Matcher matcher = VIA_PATTERN.matcher(source);
+                    String via;
+                    if (matcher.find()) {
+                        via = matcher.group(1);
+                    }
+                    else {
+                        via = source;
+                    }
+                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                            .setTitle("だいじな確認")
+                            .setMessage("このツイートのviaは特定クライアント(" + via + ")のものです。お気に入り登録してもよろしいですか？")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton("ふぁぼる", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                    task.execute();
+                                    getActivity().finish();
+                                }
+                            })
+                            .setNeutralButton("本文で検索", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                }
+                            })
+                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                }
+                            })
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                }
+                            })
+                            .create();
+                    ad.show();
+                    currentDialog = ad;
+                }
+                else {
+                    task.execute();
+                    getActivity().finish();
+                }
             }
         });
 
