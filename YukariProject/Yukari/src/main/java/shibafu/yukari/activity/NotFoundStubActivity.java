@@ -14,7 +14,6 @@ public class NotFoundStubActivity extends Activity{
         super.onCreate(savedInstanceState);
 
         setTitle("Yukari : 未実装の操作");
-        setTheme(R.style.Theme_Dialog);
 
         TextView tv = new TextView(this);
         tv.setText("未実装です★\ngetDataString() = " + getIntent().getDataString());

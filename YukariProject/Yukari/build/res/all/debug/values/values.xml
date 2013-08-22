@@ -490,8 +490,6 @@
 
     <integer name="abc_max_action_buttons">2</integer>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml -->
-    <integer name="requestcode_oauth">1</integer>
-
     <string name="OAuthTitle">OAuth認証</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
     <string name="abc_action_bar_home_description">Navigate home</string>
@@ -508,11 +506,11 @@
     <string name="abc_shareactionprovider_share_with">Share with</string>
     <string name="abc_shareactionprovider_share_with_application">Share with %s</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml -->
-    <string name="action_settings">Settings</string>
     <string name="activity_animation_duration">300</string>
     <string name="app_name">Yukari</string>
     <string name="title_activity_assetextract">起動準備中…</string>
     <string name="title_activity_profile">Profile</string>
+    <string name="title_activity_snpicker">ScreenName Picker</string>
     <string name="title_activity_status">ツイート詳細</string>
     <string name="title_activity_tweet">ツイート</string>
     <string name="title_morse_input">モールス入力</string>

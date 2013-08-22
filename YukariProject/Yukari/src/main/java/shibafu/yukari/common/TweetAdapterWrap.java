@@ -20,7 +20,9 @@ import java.util.regex.Pattern;
 import shibafu.util.MorseCodec;
 import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.MediaEntity;
 import twitter4j.Status;
+import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -58,6 +60,17 @@ public class TweetAdapterWrap {
         adapter.notifyDataSetChanged();
     }
 
+    private static String replaceAllEntities(Status status) {
+        String text = status.getText();
+        for (URLEntity e : status.getURLEntities()) {
+            text = text.replace(e.getURL(), e.getExpandedURL());
+        }
+        for (MediaEntity e : status.getMediaEntities()) {
+            text = text.replace(e.getURL(), e.getExpandedURL());
+        }
+        return text;
+    }
+
     public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords) {
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
@@ -67,6 +80,7 @@ public class TweetAdapterWrap {
         tvText.setTypeface(FontAsset.getInstance(context).getFont());
         String text = st.getText();
         text = MorseCodec.decode(text);
+        text = replaceAllEntities(st);
         tvText.setText(text);
 
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);

@@ -74,6 +74,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private static final int REQUEST_VOICE = 3;
     private static final int REQUEST_NOWPLAYING = 32;
     private static final int REQUEST_TOTSUSI = 33;
+    private static final int REQUEST_SNPICKER = 34;
 
     private EditText etInput;
     private TextView tvCount;
@@ -98,6 +99,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     private ProgressDialog progress;
     private AlertDialog currentDialog;
+    private ImageButton ibSNPicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -152,6 +154,16 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     tvCount.setTextColor(Color.RED);
                 } else {
                     tvCount.setTextColor(Color.BLACK);
+                }
+
+                if (ibSNPicker != null) {
+                    if (count > 0 && etInput.getSelectionStart() > 0 &&
+                            s.toString().charAt(etInput.getSelectionStart() - 1) == '@') {
+                        ibSNPicker.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        ibSNPicker.setVisibility(View.GONE);
+                    }
                 }
             }
         });
@@ -588,6 +600,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 appendTextInto("…");
             }
         });
+        ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
+        ibSNPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
+                startActivityForResult(intent, REQUEST_SNPICKER);
+            }
+        });
 
 
         //DM判定
@@ -642,6 +662,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 case REQUEST_NOWPLAYING:
                 case REQUEST_TOTSUSI:
                     appendTextInto(data.getStringExtra("replace_key"));
+                    break;
+                case REQUEST_SNPICKER:
+                    appendTextInto(data.getStringExtra(SNPickerActivity.EXTRA_SCREEN_NAME) + " ");
                     break;
             }
         }

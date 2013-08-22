@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.system.id="GRADLE" type="JAVA_MODULE" version="4">
+<module external.linked.project.path="$MODULE_DIR$" external.system.id="GRADLE" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="android" name="Android">
       <configuration>
@@ -76,6 +76,7 @@
     <orderEntry type="library" exported="" name="twitter4j-stream-3.0.3" level="project" />
     <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
+    <orderEntry type="library" exported="" name="android-support-v4" level="project" />
   </component>
 </module>
 
