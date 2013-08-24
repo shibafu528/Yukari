@@ -32,7 +32,7 @@
             android:layout_below="@+id/tweet_name"
             android:layout_alignLeft="@+id/tweet_name"
             android:textColor="#000"
-            android:layout_marginTop="4dp"/>
+            android:layout_marginTop="2dp"/>
 
     <TextView
             android:layout_width="wrap_content"
@@ -42,7 +42,7 @@
             android:id="@+id/tweet_timestamp"
             android:layout_below="@+id/tweet_text"
             android:layout_alignLeft="@+id/tweet_text"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:textColor="#ff8b8b8b"
             android:textSize="11sp"/>
 

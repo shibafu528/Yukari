@@ -287,6 +287,17 @@
                     android:id="@+id/tvProfileUserId"/>
         </LinearLayout>
 
+        <com.loopj.android.image.SmartImageView
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/ivProfileCurrent"
+                android:layout_toLeftOf="@+id/btnProfileFollow"
+                android:layout_alignTop="@+id/btnProfileFollow"
+                android:layout_alignBottom="@+id/btnProfileFollow"
+                android:scaleType="centerCrop"
+                android:background="#eee"
+                android:padding="4dp"/>
+
 
     </RelativeLayout>
 

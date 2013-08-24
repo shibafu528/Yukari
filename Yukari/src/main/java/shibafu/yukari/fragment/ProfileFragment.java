@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -18,7 +19,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +37,7 @@ import java.util.regex.Pattern;
 import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.Relationship;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -57,13 +61,18 @@ public class ProfileFragment extends Fragment{
     private TwitterService service;
     private boolean serviceBound = false;
 
-    private SmartImageView ivProfileIcon, ivHeader;
+    private SmartImageView ivProfileIcon, ivHeader, ivProfileCurrent;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
+    private Button btnFollow;
+    private ImageButton ibMenu, ibSearch;
+
+    private Relationship relation;
 
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
 
     private ProgressDialog currentProgress;
+    private AlertDialog currentDialog;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -80,6 +89,26 @@ public class ProfileFragment extends Fragment{
 
         ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
         ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
+        ivProfileCurrent = (SmartImageView) v.findViewById(R.id.ivProfileCurrent);
+        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                try {
+                    return user.getUser(getActivity()).getProfileImageURL();
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String s) {
+                if (s != null) {
+                    ivProfileCurrent.setImageUrl(s);
+                }
+            }
+        };
+        task.execute();
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
         tvScreenName = (TextView) v.findViewById(R.id.tvProfileScreenName);
@@ -89,6 +118,39 @@ public class ProfileFragment extends Fragment{
         tvSince = (TextView) v.findViewById(R.id.tvProfileSince);
         tvUserId = (TextView) v.findViewById(R.id.tvProfileUserId);
         tvUserId.setText("#" + targetId);
+
+        btnFollow = (Button) v.findViewById(R.id.btnProfileFollow);
+
+        ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
+        ibMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<String> menuList = new ArrayList<String>();
+                menuList.add("ツイートを送る");
+                menuList.add("DMを送る");
+                menuList.add("リストに追加");
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setItems(menuList.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    }
+                });
+                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    }
+                });
+                AlertDialog ad = builder.create();
+                ad.show();
+                currentDialog = ad;
+            }
+        });
+        ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
 
         gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
 
@@ -110,9 +172,9 @@ public class ProfileFragment extends Fragment{
         commandAdapter = new CommandAdapter(getActivity(), commands);
         gridCommands.setAdapter(commandAdapter);
 
-        final AsyncTask<Void, Void, User> task = new AsyncTask<Void, Void, User>() {
+        final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
             @Override
-            protected User doInBackground(Void... params) {
+            protected LoadHolder doInBackground(Void... params) {
                 if (!serviceBound) {
                     try {
                         Thread.sleep(3000);
@@ -136,7 +198,8 @@ public class ProfileFragment extends Fragment{
                     else {
                         user = service.getTwitter().showUser(targetId);
                     }
-                    return user;
+                    Relationship relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
+                    return new LoadHolder(user, relationship);
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
@@ -144,11 +207,14 @@ public class ProfileFragment extends Fragment{
             }
 
             @Override
-            protected void onPostExecute(User user) {
+            protected void onPostExecute(LoadHolder holder) {
                 if (currentProgress != null) {
                     currentProgress.dismiss();
                     currentProgress = null;
                 }
+                User user = holder.user;
+                Relationship relationship = holder.relationship;
+                relation = relationship;
                 if (user != null) {
                     ivProfileIcon.setImageUrl(user.getBiggerProfileImageURL());
                     ivHeader.setImageUrl(user.getProfileBannerMobileURL());
@@ -201,6 +267,13 @@ public class ProfileFragment extends Fragment{
                     tvWeb.setText(user.getURLEntity().getExpandedURL());
                     tvSince.setText(sdf.format(user.getCreatedAt()));
 
+                    if (relationship.isSourceFollowingTarget()) {
+                        btnFollow.setText("フォロー解除");
+                    }
+                    else if (relationship.isSourceBlockingTarget()) {
+                        btnFollow.setText("ブロック中");
+                    }
+
                     commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
                     commandAdapter.getItem(1).strBottom = String.valueOf(user.getFavouritesCount());
                     commandAdapter.getItem(2).strBottom = String.valueOf(user.getFriendsCount());
@@ -235,6 +308,9 @@ public class ProfileFragment extends Fragment{
 
         if (currentProgress != null) {
             currentProgress.show();
+        }
+        if (currentDialog != null) {
+            currentDialog.show();
         }
     }
 
@@ -302,4 +378,14 @@ public class ProfileFragment extends Fragment{
             serviceBound = false;
         }
     };
+
+    private class LoadHolder {
+        User user;
+        Relationship relationship;
+
+        private LoadHolder(User user, Relationship relationship) {
+            this.user = user;
+            this.relationship = relationship;
+        }
+    }
 }
