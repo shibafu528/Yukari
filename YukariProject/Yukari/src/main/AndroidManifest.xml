@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="1"
-    android:versionName="0.13alpha build130822" >
+    android:versionName="0.14alpha build130825" >
 
     <uses-sdk
         android:minSdkVersion="8"
