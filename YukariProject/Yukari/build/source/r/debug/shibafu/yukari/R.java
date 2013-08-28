@@ -995,7 +995,7 @@ containing a value of this type.
         public static final int pager=0x7f080042;
         public static final int pager_tab_strip=0x7f080043;
         public static final int pager_title_strip=0x7f080049;
-        public static final int progressBar=0x7f08007f;
+        public static final int pbLoading=0x7f08007f;
         public static final int progress_circular=0x7f080034;
         public static final int progress_horizontal=0x7f080035;
         public static final int radio=0x7f08002d;
@@ -1022,11 +1022,11 @@ containing a value of this type.
         public static final int statuslink_content=0x7f080082;
         public static final int submit_area=0x7f08003f;
         public static final int tabMode=0x7f080002;
-        public static final int textView=0x7f080080;
         public static final int title=0x7f080029;
         public static final int title_container=0x7f080030;
         public static final int tlTweetAction=0x7f08004e;
         public static final int top_action_bar=0x7f08001e;
+        public static final int tvLoading=0x7f080080;
         public static final int tvMorsePreview=0x7f08008d;
         public static final int tvProfileBio=0x7f08006d;
         public static final int tvProfileLocation=0x7f08006f;

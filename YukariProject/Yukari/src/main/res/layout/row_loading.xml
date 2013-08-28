@@ -5,19 +5,21 @@
     android:layout_height="match_parent">
 
     <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:id="@+id/pbLoading"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="...loading..."
-        android:id="@+id/textView"
+        android:text="more"
+        android:id="@+id/tvLoading"
         android:textColor="#777"
-        android:layout_alignBottom="@+id/progressBar"
+        android:layout_alignBottom="@+id/pbLoading"
         android:layout_centerHorizontal="true" />
+
 </RelativeLayout>

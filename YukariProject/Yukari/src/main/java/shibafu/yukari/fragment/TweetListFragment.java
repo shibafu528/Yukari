@@ -13,6 +13,8 @@ import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -26,10 +28,12 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
+import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -47,6 +51,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TRACE_START = "trace_start";
+    public static final String EXTRA_SHOW_USER = "show_user";
 
     private LinkedList<Status> statuses = new LinkedList<Status>();
 
@@ -57,9 +62,14 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private int mode;
 
     private Status traceStart = null;
+    private User targetUser = null;
 
     private ListView listView;
     private View footerView;
+    private ProgressBar footerProgress;
+    private TextView footerText;
+
+    private long lastStatusId = -1;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -75,6 +85,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
             statuses.add(traceStart);
         }
+        else if (mode == MODE_USER) {
+            targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
+        }
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         twitter = TwitterUtil.getTwitterInstance(getActivity());
     }
@@ -85,37 +98,40 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
         listView = getListView();
 
-        if (mode == MODE_TRACE) {
-            footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
-            getListView().addFooterView(footerView, null, false);
-        }
+        footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
+        footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
+        footerText = (TextView) footerView.findViewById(R.id.tvLoading);
+        getListView().addFooterView(footerView);
+        changeFooterProgress(true);
 
         adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), user, statuses);
         setListAdapter(adapterWrap.getAdapter());
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //アニメーションのスケジュール
-                final View v = view;
-                view.setBackgroundColor(Color.parseColor("#B394E0"));
-                Timer t = new Timer();
-                t.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                v.setBackgroundColor((Integer)v.getTag());
-                            }
-                        });
-                    }
-                }, new Date(System.currentTimeMillis() + 100));
-                //ツイート詳細画面の呼び出し
-                Status s = statuses.get(position);
-                Intent intent = new Intent(getActivity(), StatusActivity.class);
-                intent.putExtra(StatusActivity.EXTRA_STATUS, s);
-                intent.putExtra(StatusActivity.EXTRA_USER, user);
-                startActivity(intent);
+                if (position < statuses.size()) {
+                    //アニメーションのスケジュール
+                    final View v = view;
+                    view.setBackgroundColor(Color.parseColor("#B394E0"));
+                    Timer t = new Timer();
+                    t.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    v.setBackgroundColor((Integer)v.getTag());
+                                }
+                            });
+                        }
+                    }, new Date(System.currentTimeMillis() + 100));
+                    //ツイート詳細画面の呼び出し
+                    Status s = statuses.get(position);
+                    Intent intent = new Intent(getActivity(), StatusActivity.class);
+                    intent.putExtra(StatusActivity.EXTRA_STATUS, s);
+                    intent.putExtra(StatusActivity.EXTRA_USER, user);
+                    startActivity(intent);
+                }
             }
         });
 
@@ -138,6 +154,15 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
     public AuthUserRecord getCurrentUser() {
         return user;
+    }
+
+    private void changeFooterProgress(boolean isLoading) {
+        if (isLoading) {
+            footerText.setText("...loading...");
+        }
+        else {
+            footerText.setText("more");
+        }
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -177,6 +202,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     }
                 };
                 task.execute(traceStart);
+                changeFooterProgress(true);
             }
             else {
                 AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
@@ -184,8 +210,17 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
                         twitter.setOAuthAccessToken(user.getAccessToken());
                         try {
-                            ResponseList<twitter4j.Status> homeTimeline = twitter.getHomeTimeline();
-                            return homeTimeline;
+                            ResponseList<twitter4j.Status> responseList = null;
+                            switch (mode) {
+                                case MODE_HOME:
+                                    responseList = twitter.getHomeTimeline();
+                                    break;
+                                case MODE_USER:
+                                    responseList = twitter.getUserTimeline(targetUser.getId());
+                                    break;
+                            }
+                            lastStatusId = responseList.get(responseList.size() - 1).getId();
+                            return responseList;
                         } catch (TwitterException e) {
                             e.printStackTrace();
                         }
@@ -198,7 +233,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                             TweetListFragment.this.statuses.addAll(statuses);
                             adapterWrap.notifyDataSetChanged();
                         }
-                        TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
+                        if (mode == MODE_HOME) {
+                            TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
+                        }
+                        changeFooterProgress(false);
                     }
                 };
                 task.execute();
