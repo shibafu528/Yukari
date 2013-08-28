@@ -12,12 +12,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.text.Html;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
@@ -53,6 +55,7 @@ public class ProfileFragment extends Fragment{
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     private AuthUserRecord user;
+    private User targetUser;
     private long targetId;
 
     private boolean selfLoadId = false;
@@ -153,6 +156,29 @@ public class ProfileFragment extends Fragment{
         ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
 
         gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
+        gridCommands.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 0:
+                    {
+                        TweetListFragment fragment = new TweetListFragment();
+                        Bundle args = new Bundle();
+                        args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_USER);
+                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + targetUser.getScreenName());
+                        fragment.setArguments(args);
+
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame, fragment);
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        break;
+                    }
+                }
+            }
+        });
 
         return v;
     }
@@ -198,6 +224,7 @@ public class ProfileFragment extends Fragment{
                     else {
                         user = service.getTwitter().showUser(targetId);
                     }
+                    targetUser = user;
                     Relationship relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
                     return new LoadHolder(user, relationship);
                 } catch (TwitterException e) {
