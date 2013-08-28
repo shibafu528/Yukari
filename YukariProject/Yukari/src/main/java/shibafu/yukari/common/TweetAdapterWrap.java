@@ -66,7 +66,7 @@ public class TweetAdapterWrap {
             text = text.replace(e.getURL(), e.getExpandedURL());
         }
         for (MediaEntity e : status.getMediaEntities()) {
-            text = text.replace(e.getURL(), e.getExpandedURL());
+            text = text.replace(e.getURL(), e.getMediaURL());
         }
         return text;
     }
@@ -88,6 +88,7 @@ public class TweetAdapterWrap {
         ivIcon.setImageUrl(st.getUser().getProfileImageURL());
 
         TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
+        tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
         Matcher matcher = VIA_PATTERN.matcher(st.getSource());
         String via;
         if (matcher.find()) {
