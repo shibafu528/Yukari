@@ -158,9 +158,11 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
     private void changeFooterProgress(boolean isLoading) {
         if (isLoading) {
-            footerText.setText("...loading...");
+            footerProgress.setVisibility(View.VISIBLE);
+            footerText.setText("loading");
         }
         else {
+            footerProgress.setVisibility(View.INVISIBLE);
             footerText.setText("more");
         }
     }
