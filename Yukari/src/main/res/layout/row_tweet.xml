@@ -21,8 +21,9 @@
             android:id="@+id/tweet_name"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/tweet_icon"
-            android:layout_marginLeft="4dp"
-            android:textColor="#ff419b38"/>
+            android:layout_marginLeft="8dp"
+            android:textColor="#ff419b38"
+        android:layout_marginTop="-2dp" />
 
     <TextView
             android:layout_width="wrap_content"

@@ -166,6 +166,11 @@
         <service android:name=".service.FriendsDBUpdateService"/>
 
         <receiver android:name=".receiver.StubReceiver"/>
+
+        <activity
+            android:name=".activity.TraceActivity"
+            android:theme="@style/AppThemeNoTitle"
+            android:label="Trace" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
