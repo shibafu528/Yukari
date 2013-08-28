@@ -19,7 +19,7 @@
         android:text="more"
         android:id="@+id/tvLoading"
         android:textColor="#777"
-        android:layout_alignBottom="@+id/pbLoading"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>
