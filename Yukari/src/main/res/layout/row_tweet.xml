@@ -21,7 +21,7 @@
             android:id="@+id/tweet_name"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/tweet_icon"
-            android:layout_marginLeft="8dp"
+            android:layout_marginLeft="4dp"
             android:textColor="#ff419b38"/>
 
     <TextView
@@ -42,8 +42,8 @@
             android:id="@+id/tweet_timestamp"
             android:layout_below="@+id/tweet_text"
             android:layout_alignLeft="@+id/tweet_text"
-            android:layout_marginTop="2dp"
-            android:textColor="#ff8b8b8b"
-            android:textSize="11sp"/>
+        android:textColor="#ff8b8b8b"
+            android:textSize="11sp"
+        android:layout_marginTop="1dp" />
 
 </RelativeLayout>

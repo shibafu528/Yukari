@@ -414,7 +414,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         dialog.dismiss();
                         currentDialog = null;
 
-                        appendTextInto(hashCache[which]);
+                        etInput.getText().append(" " + hashCache[which]);
                     }
                 });
                 builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -439,7 +439,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         ibHash.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                appendTextInto("#");
+                appendTextInto(" #");
                 return true;
             }
         });

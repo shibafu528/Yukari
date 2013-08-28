@@ -17,10 +17,11 @@
 
     <FrameLayout
             android:layout_width="fill_parent"
-            android:layout_height="30dp"
+            android:layout_height="36dp"
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:id="@+id/tweetgesture">
+
     </FrameLayout>
 </RelativeLayout>
