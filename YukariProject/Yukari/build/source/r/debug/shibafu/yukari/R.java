@@ -912,14 +912,14 @@ containing a value of this type.
         public static final int action_bar_subtitle=0x7f080021;
         public static final int action_bar_title=0x7f080020;
         public static final int action_context_bar=0x7f08001b;
-        public static final int action_find_profile=0x7f08008e;
-        public static final int action_friend_cache=0x7f08008f;
+        public static final int action_find_profile=0x7f080090;
+        public static final int action_friend_cache=0x7f080091;
         public static final int action_menu_divider=0x7f080015;
         public static final int action_menu_presenter=0x7f080016;
         public static final int action_mode_bar=0x7f08002f;
         public static final int action_mode_bar_stub=0x7f08002e;
         public static final int action_mode_close_button=0x7f080022;
-        public static final int action_settings=0x7f08008d;
+        public static final int action_settings=0x7f08008f;
         public static final int activity_chooser_view_content=0x7f080023;
         public static final int always=0x7f08000f;
         public static final int beginning=0x7f08000a;
@@ -934,7 +934,7 @@ containing a value of this type.
         public static final int dropdown=0x7f080013;
         public static final int edit_query=0x7f080036;
         public static final int end=0x7f08000c;
-        public static final int etMorseInput=0x7f08008c;
+        public static final int etMorseInput=0x7f08008e;
         public static final int etSNPickName=0x7f080047;
         public static final int etTweetInput=0x7f08004b;
         public static final int expand_activities_button=0x7f080024;
@@ -973,9 +973,9 @@ containing a value of this type.
         public static final int ivProfileIcon=0x7f080068;
         public static final int ivTweetImageAttach=0x7f080063;
         public static final int left_icon=0x7f080031;
-        public static final int lineButtonCount=0x7f08008a;
-        public static final int lineButtonImage=0x7f080088;
-        public static final int lineButtonText=0x7f080089;
+        public static final int lineButtonCount=0x7f08008c;
+        public static final int lineButtonImage=0x7f08008a;
+        public static final int lineButtonText=0x7f08008b;
         public static final int linearLayout=0x7f080069;
         public static final int listMode=0x7f080001;
         public static final int list_item=0x7f080027;
@@ -995,6 +995,7 @@ containing a value of this type.
         public static final int pager=0x7f080042;
         public static final int pager_tab_strip=0x7f080043;
         public static final int pager_title_strip=0x7f080049;
+        public static final int progressBar=0x7f08007f;
         public static final int progress_circular=0x7f080034;
         public static final int progress_horizontal=0x7f080035;
         public static final int radio=0x7f08002d;
@@ -1017,15 +1018,16 @@ containing a value of this type.
         public static final int showTitle=0x7f080006;
         public static final int split_action_bar=0x7f08001c;
         public static final int status_tweet=0x7f080078;
-        public static final int statuslink_category=0x7f08007f;
-        public static final int statuslink_content=0x7f080080;
+        public static final int statuslink_category=0x7f080081;
+        public static final int statuslink_content=0x7f080082;
         public static final int submit_area=0x7f08003f;
         public static final int tabMode=0x7f080002;
+        public static final int textView=0x7f080080;
         public static final int title=0x7f080029;
         public static final int title_container=0x7f080030;
         public static final int tlTweetAction=0x7f08004e;
         public static final int top_action_bar=0x7f08001e;
-        public static final int tvMorsePreview=0x7f08008b;
+        public static final int tvMorsePreview=0x7f08008d;
         public static final int tvProfileBio=0x7f08006d;
         public static final int tvProfileLocation=0x7f08006f;
         public static final int tvProfileName=0x7f08006a;
@@ -1037,16 +1039,16 @@ containing a value of this type.
         public static final int tvTweetBy=0x7f080051;
         public static final int tvTweetCount=0x7f08004c;
         public static final int tvTweetTitle=0x7f080050;
-        public static final int tweet_icon=0x7f080081;
-        public static final int tweet_name=0x7f080082;
-        public static final int tweet_text=0x7f080083;
-        public static final int tweet_timestamp=0x7f080084;
+        public static final int tweet_icon=0x7f080083;
+        public static final int tweet_name=0x7f080084;
+        public static final int tweet_text=0x7f080085;
+        public static final int tweet_timestamp=0x7f080086;
         public static final int tweetgesture=0x7f08004a;
         public static final int up=0x7f08001f;
         public static final int useLogo=0x7f080003;
-        public static final int user_icon=0x7f080085;
-        public static final int user_name=0x7f080086;
-        public static final int user_sn=0x7f080087;
+        public static final int user_icon=0x7f080087;
+        public static final int user_name=0x7f080088;
+        public static final int user_sn=0x7f080089;
         public static final int withText=0x7f080010;
     }
     public static final class integer {
@@ -1089,12 +1091,13 @@ containing a value of this type.
         public static final int activity_tweet=0x7f03001e;
         public static final int fragment_profile=0x7f03001f;
         public static final int fragment_status_main=0x7f030020;
-        public static final int row_statuslink=0x7f030021;
-        public static final int row_tweet=0x7f030022;
-        public static final int row_user=0x7f030023;
-        public static final int support_simple_spinner_dropdown_item=0x7f030024;
-        public static final int view_2linebutton=0x7f030025;
-        public static final int view_morse=0x7f030026;
+        public static final int row_loading=0x7f030021;
+        public static final int row_statuslink=0x7f030022;
+        public static final int row_tweet=0x7f030023;
+        public static final int row_user=0x7f030024;
+        public static final int support_simple_spinner_dropdown_item=0x7f030025;
+        public static final int view_2linebutton=0x7f030026;
+        public static final int view_morse=0x7f030027;
     }
     public static final class menu {
         public static final int main=0x7f0d0000;

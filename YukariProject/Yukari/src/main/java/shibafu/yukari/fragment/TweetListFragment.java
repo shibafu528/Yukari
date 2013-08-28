@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
@@ -45,6 +46,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
+    public static final String EXTRA_TRACE_START = "trace_start";
 
     private LinkedList<Status> statuses = new LinkedList<Status>();
 
@@ -54,7 +56,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private String title;
     private int mode;
 
+    private Status traceStart = null;
+
     private ListView listView;
+    private View footerView;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -66,6 +71,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         Bundle args = getArguments();
         title = args.getString(EXTRA_TITLE);
         mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
+        if (mode == MODE_TRACE) {
+            traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
+            statuses.add(traceStart);
+        }
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         twitter = TwitterUtil.getTwitterInstance(getActivity());
     }
@@ -74,9 +83,15 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        listView = getListView();
+
+        if (mode == MODE_TRACE) {
+            footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
+            getListView().addFooterView(footerView, null, false);
+        }
+
         adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), user, statuses);
         setListAdapter(adapterWrap.getAdapter());
-        listView = getListView();
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -132,29 +147,62 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             TweetListFragment.this.service = binder.getService();
             serviceBound = true;
 
-            AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
-                @Override
-                protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
-                    twitter.setOAuthAccessToken(user.getAccessToken());
-                    try {
-                        ResponseList<twitter4j.Status> homeTimeline = twitter.getHomeTimeline();
-                        return homeTimeline;
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
+            if (mode == MODE_TRACE) {
+                AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(twitter4j.Status... params) {
+                        twitter.setOAuthAccessToken(user.getAccessToken());
+                        twitter4j.Status status = params[0];
+                        while (status.getInReplyToStatusId() > -1) {
+                            try {
+                                final twitter4j.Status reply = status = twitter.showStatus(status.getInReplyToStatusId());
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        statuses.add(reply);
+                                        adapterWrap.notifyDataSetChanged();
+                                    }
+                                });
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                break;
+                            }
+                        }
+                        return null;
                     }
-                    return null;
-                }
 
-                @Override
-                protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
-                    if (statuses != null) {
-                        TweetListFragment.this.statuses.addAll(statuses);
-                        adapterWrap.notifyDataSetChanged();
+                    @Override
+                    protected void onPostExecute(Void result) {
+                        listView.removeFooterView(footerView);
                     }
-                    TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
-                }
-            };
-            task.execute();
+                };
+                task.execute(traceStart);
+            }
+            else {
+                AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
+                    @Override
+                    protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
+                        twitter.setOAuthAccessToken(user.getAccessToken());
+                        try {
+                            ResponseList<twitter4j.Status> homeTimeline = twitter.getHomeTimeline();
+                            return homeTimeline;
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
+                        if (statuses != null) {
+                            TweetListFragment.this.statuses.addAll(statuses);
+                            adapterWrap.notifyDataSetChanged();
+                        }
+                        TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
+                    }
+                };
+                task.execute();
+            }
         }
 
         @Override
