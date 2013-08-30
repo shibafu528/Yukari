@@ -55,8 +55,9 @@ public class ProfileFragment extends Fragment{
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     private AuthUserRecord user;
-    private User targetUser;
     private long targetId;
+    private User targetUser = null;
+    private Relationship relation = null;
 
     private boolean selfLoadId = false;
     private String selfLoadName;
@@ -68,8 +69,6 @@ public class ProfileFragment extends Fragment{
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollow;
     private ImageButton ibMenu, ibSearch;
-
-    private Relationship relation;
 
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
@@ -171,7 +170,7 @@ public class ProfileFragment extends Fragment{
                         fragment.setArguments(args);
 
                         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment);
+                        transaction.replace(R.id.frame, fragment, "contain");
                         transaction.addToBackStack(null);
                         transaction.commit();
                         break;
@@ -198,135 +197,156 @@ public class ProfileFragment extends Fragment{
         commandAdapter = new CommandAdapter(getActivity(), commands);
         gridCommands.setAdapter(commandAdapter);
 
-        final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
-            @Override
-            protected LoadHolder doInBackground(Void... params) {
-                if (!serviceBound) {
+        if (savedInstanceState != null) {
+            targetUser = (User) savedInstanceState.getSerializable(EXTRA_TARGET);
+            relation = (Relationship) savedInstanceState.getSerializable("relation");
+            showProfile(new LoadHolder(targetUser, relation));
+        }
+        else if (targetUser != null && relation != null) {
+            showProfile(new LoadHolder(targetUser, relation));
+        }
+        else {
+            final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
+                @Override
+                protected LoadHolder doInBackground(Void... params) {
+                    if (!serviceBound) {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        if (!serviceBound) {
+                            return null;
+                        }
+                    }
+
                     try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
+                        User user;
+                        if (selfLoadId) {
+                            String name = selfLoadName;
+                            if (name.startsWith("@")) {
+                                name = name.substring(1);
+                            }
+                            user = service.getTwitter().showUser(name);
+                        }
+                        else {
+                            user = service.getTwitter().showUser(targetId);
+                        }
+                        targetUser = user;
+                        Relationship relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
+                        return new LoadHolder(user, relationship);
+                    } catch (TwitterException e) {
                         e.printStackTrace();
                     }
-                    if (!serviceBound) {
-                        return null;
-                    }
+                    return null;
                 }
 
-                try {
-                    User user;
-                    if (selfLoadId) {
-                        String name = selfLoadName;
-                        if (name.startsWith("@")) {
-                            name = name.substring(1);
-                        }
-                        user = service.getTwitter().showUser(name);
+                @Override
+                protected void onPostExecute(LoadHolder holder) {
+                    if (currentProgress != null) {
+                        currentProgress.dismiss();
+                        currentProgress = null;
                     }
-                    else {
-                        user = service.getTwitter().showUser(targetId);
-                    }
-                    targetUser = user;
-                    Relationship relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
-                    return new LoadHolder(user, relationship);
-                } catch (TwitterException e) {
-                    e.printStackTrace();
+                    showProfile(holder);
                 }
-                return null;
-            }
+            };
 
-            @Override
-            protected void onPostExecute(LoadHolder holder) {
-                if (currentProgress != null) {
-                    currentProgress.dismiss();
-                    currentProgress = null;
-                }
-                User user = holder.user;
-                Relationship relationship = holder.relationship;
-                relation = relationship;
-                if (user != null) {
-                    ivProfileIcon.setImageUrl(user.getBiggerProfileImageURL());
-                    ivHeader.setImageUrl(user.getProfileBannerMobileURL());
-                    Log.d("ProfileFragment", "header url: " + user.getProfileBannerMobileURL());
-                    tvName.setText(user.getName());
-                    tvScreenName.setText("@" + user.getScreenName());
-
-                    //Bioはエスケープや短縮の展開を行う
-                    {
-                        String bio = user.getDescription();
-
-                        //URLを展開しAタグにする
-                        URLEntity[] urlEntities = user.getDescriptionURLEntities();
-                        for (URLEntity entity : urlEntities) {
-                            StringBuilder replace = new StringBuilder("<a href=\"");
-                            replace.append(entity.getExpandedURL());
-                            replace.append("\">");
-                            replace.append(entity.getExpandedURL());
-                            replace.append("</a>");
-                            bio = bio.replace(entity.getURL(), replace.toString());
-                        }
-
-                        //改行コードをBRタグにする
-                        bio.replaceAll("\n", "<br>");
-                        bio.replaceAll("\r\n", "<br>");
-
-                        //エスケープしてテキストを表示
-                        tvBio.setText(Html.fromHtml(bio).toString());
-                        Linkify.addLinks(tvBio, Linkify.WEB_URLS);
-                        Log.d("ProfileFragment", "Profile: " + tvBio.getText());
-
-                        //ScreenNameに対するリンク張り
-                        Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
-                        String jumpUrl = "content://shibafu.yukari.link/user/";
-                        Linkify.addLinks(tvBio, pattern, jumpUrl);
-                        //Hashtagに対するリンク張り
-                        pattern = Pattern.compile(
-                                "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
-                        final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
-                        Linkify.TransformFilter filter = new Linkify.TransformFilter() {
-                            @Override
-                            public String transformUrl(Matcher match, String url) {
-                                return jumpUrlHash + match.group(match.groupCount());
-                            }
-                        };
-                        Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
-                    }
-
-                    tvLocation.setText(user.getLocation());
-                    tvWeb.setText(user.getURLEntity().getExpandedURL());
-                    tvSince.setText(sdf.format(user.getCreatedAt()));
-
-                    if (relationship.isSourceFollowingTarget()) {
-                        btnFollow.setText("フォロー解除");
-                    }
-                    else if (relationship.isSourceBlockingTarget()) {
-                        btnFollow.setText("ブロック中");
-                    }
-
-                    commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
-                    commandAdapter.getItem(1).strBottom = String.valueOf(user.getFavouritesCount());
-                    commandAdapter.getItem(2).strBottom = String.valueOf(user.getFriendsCount());
-                    commandAdapter.getItem(3).strBottom = String.valueOf(user.getFollowersCount());
-                    commandAdapter.notifyDataSetChanged();
-                }
-                else {
-                    Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show();
+            currentProgress = new ProgressDialog(getActivity());
+            currentProgress.setMessage("読み込み中...");
+            currentProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            currentProgress.setIndeterminate(true);
+            currentProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    task.cancel(true);
                     getActivity().finish();
                 }
-            }
-        };
+            });
+            currentProgress.show();
+            task.execute();
+        }
+    }
 
-        currentProgress = new ProgressDialog(getActivity());
-        currentProgress.setMessage("読み込み中...");
-        currentProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        currentProgress.setIndeterminate(true);
-        currentProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                task.cancel(true);
-                getActivity().finish();
+    private void showProfile(LoadHolder holder) {
+        User user = holder.user;
+        Relationship relationship = holder.relationship;
+        relation = relationship;
+        if (user != null) {
+            ivProfileIcon.setImageUrl(user.getBiggerProfileImageURL());
+            ivHeader.setImageUrl(user.getProfileBannerMobileURL());
+            Log.d("ProfileFragment", "header url: " + user.getProfileBannerMobileURL());
+            tvName.setText(user.getName());
+            tvScreenName.setText("@" + user.getScreenName());
+
+            //Bioはエスケープや短縮の展開を行う
+            {
+                String bio = user.getDescription();
+
+                //URLを展開しAタグにする
+                URLEntity[] urlEntities = user.getDescriptionURLEntities();
+                for (URLEntity entity : urlEntities) {
+                    StringBuilder replace = new StringBuilder("<a href=\"");
+                    replace.append(entity.getExpandedURL());
+                    replace.append("\">");
+                    replace.append(entity.getExpandedURL());
+                    replace.append("</a>");
+                    bio = bio.replace(entity.getURL(), replace.toString());
+                }
+
+                //改行コードをBRタグにする
+                bio.replaceAll("\n", "<br>");
+                bio.replaceAll("\r\n", "<br>");
+
+                //エスケープしてテキストを表示
+                tvBio.setText(Html.fromHtml(bio).toString());
+                Linkify.addLinks(tvBio, Linkify.WEB_URLS);
+                Log.d("ProfileFragment", "Profile: " + tvBio.getText());
+
+                //ScreenNameに対するリンク張り
+                Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
+                String jumpUrl = "content://shibafu.yukari.link/user/";
+                Linkify.addLinks(tvBio, pattern, jumpUrl);
+                //Hashtagに対するリンク張り
+                pattern = Pattern.compile(
+                        "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
+                final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
+                Linkify.TransformFilter filter = new Linkify.TransformFilter() {
+                    @Override
+                    public String transformUrl(Matcher match, String url) {
+                        return jumpUrlHash + match.group(match.groupCount());
+                    }
+                };
+                Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
             }
-        });
-        currentProgress.show();
-        task.execute();
+
+            tvLocation.setText(user.getLocation());
+            tvWeb.setText(user.getURLEntity().getExpandedURL());
+            tvSince.setText(sdf.format(user.getCreatedAt()));
+
+            if (relationship.isSourceFollowingTarget()) {
+                btnFollow.setText("フォロー解除");
+            }
+            else if (relationship.isSourceBlockingTarget()) {
+                btnFollow.setText("ブロック中");
+            }
+
+            commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
+            commandAdapter.getItem(1).strBottom = String.valueOf(user.getFavouritesCount());
+            commandAdapter.getItem(2).strBottom = String.valueOf(user.getFriendsCount());
+            commandAdapter.getItem(3).strBottom = String.valueOf(user.getFollowersCount());
+            commandAdapter.notifyDataSetChanged();
+        }
+        else {
+            Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(EXTRA_TARGET, targetUser);
+        outState.putSerializable("relation", relation);
     }
 
     @Override
