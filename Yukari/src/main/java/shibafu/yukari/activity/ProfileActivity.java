@@ -2,11 +2,17 @@ package shibafu.yukari.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
+import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
@@ -31,7 +37,25 @@ public class ProfileActivity extends FragmentActivity{
         b.putParcelable("data", intent.getData());
         fragment.setArguments(b);
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.frame, fragment).commit();
+        final LinearLayout llTitle = (LinearLayout) findViewById(R.id.llFrameTitle);
+        final TextView tvTitle = (TextView) findViewById(R.id.tvFrameTitle);
+
+        final FragmentManager manager = getSupportFragmentManager();
+        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                Fragment f = manager.findFragmentByTag("contain");
+                if (manager.getBackStackEntryCount() > 0 && f instanceof TweetListFragment) {
+                    llTitle.setVisibility(View.VISIBLE);
+                    tvTitle.setText(((TweetListFragment) f).getTitle());
+                }
+                else {
+                    llTitle.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        FragmentTransaction ft = manager.beginTransaction();
+        ft.replace(R.id.frame, fragment, "contain").commit();
     }
 }
