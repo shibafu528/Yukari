@@ -158,23 +158,35 @@ public class ProfileFragment extends Fragment{
         gridCommands.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (position < 0 || position > 3) return;
+                Fragment fragment = null;
+                Bundle args = new Bundle();
                 switch (position) {
                     case 0:
                     {
-                        TweetListFragment fragment = new TweetListFragment();
-                        Bundle args = new Bundle();
+                        fragment = new TweetListFragment();
                         args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
                         args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + targetUser.getScreenName());
-                        fragment.setArguments(args);
-
-                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment, "contain");
-                        transaction.addToBackStack(null);
-                        transaction.commit();
                         break;
                     }
+                    case 1:
+                    {
+                        fragment = new TweetListFragment();
+                        args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_FAVORITE);
+                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + targetUser.getScreenName());
+                        break;
+                    }
+                }
+                if (fragment != null) {
+                    fragment.setArguments(args);
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.addToBackStack(null);
+                    transaction.commit();
                 }
             }
         });

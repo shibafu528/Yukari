@@ -46,6 +46,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public static final int MODE_DM = 3;
     public static final int MODE_USER = 4;
     public static final int MODE_TRACE = 5;
+    public static final int MODE_FAVORITE = 6;
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -85,7 +86,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
             statuses.add(traceStart);
         }
-        else if (mode == MODE_USER) {
+        else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         }
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
@@ -219,6 +220,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                     break;
                                 case MODE_USER:
                                     responseList = twitter.getUserTimeline(targetUser.getId());
+                                    break;
+                                case MODE_FAVORITE:
+                                    responseList = twitter.getFavorites(targetUser.getId());
                                     break;
                             }
                             lastStatusId = responseList.get(responseList.size() - 1).getId();
