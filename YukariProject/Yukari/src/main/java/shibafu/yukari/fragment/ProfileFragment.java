@@ -1,6 +1,7 @@
 package shibafu.yukari.fragment;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.text.Html;
@@ -73,7 +75,9 @@ public class ProfileFragment extends Fragment{
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
 
-    private ProgressDialog currentProgress;
+    private AsyncTask<Void, Void, LoadHolder> profileLoadTask = null;
+
+    private LoadDialogFragment currentProgress;
     private AlertDialog currentDialog;
 
     @Override
@@ -96,6 +100,7 @@ public class ProfileFragment extends Fragment{
             @Override
             protected String doInBackground(Void... params) {
                 try {
+                    if (user == null) return null;
                     return user.getUser(getActivity()).getProfileImageURL();
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -180,6 +185,24 @@ public class ProfileFragment extends Fragment{
                         args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + targetUser.getScreenName());
                         break;
                     }
+                    case 2:
+                    {
+                        fragment = new FriendListFragment();
+                        args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
+                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + targetUser.getScreenName());
+                        break;
+                    }
+                    case 3:
+                    {
+                        fragment = new FriendListFragment();
+                        args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
+                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + targetUser.getScreenName());
+                        break;
+                    }
                 }
                 if (fragment != null) {
                     fragment.setArguments(args);
@@ -245,7 +268,12 @@ public class ProfileFragment extends Fragment{
                             user = service.getTwitter().showUser(targetId);
                         }
                         targetUser = user;
-                        Relationship relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
+
+                        if (ProfileFragment.this.user == null) {
+                            ProfileFragment.this.user = service.getPrimaryUser();
+                        }
+                        Relationship relationship = null;
+                        relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
                         return new LoadHolder(user, relationship);
                     } catch (TwitterException e) {
                         e.printStackTrace();
@@ -260,21 +288,14 @@ public class ProfileFragment extends Fragment{
                         currentProgress = null;
                     }
                     showProfile(holder);
+                    profileLoadTask = null;
                 }
             };
 
-            currentProgress = new ProgressDialog(getActivity());
-            currentProgress.setMessage("読み込み中...");
-            currentProgress.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            currentProgress.setIndeterminate(true);
-            currentProgress.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                    task.cancel(true);
-                    getActivity().finish();
-                }
-            });
-            currentProgress.show();
+            currentProgress = new LoadDialogFragment();
+            currentProgress.show(getFragmentManager(), "Loading");
+
+            profileLoadTask = task;
             task.execute();
         }
     }
@@ -335,11 +356,16 @@ public class ProfileFragment extends Fragment{
             tvWeb.setText(user.getURLEntity().getExpandedURL());
             tvSince.setText(sdf.format(user.getCreatedAt()));
 
-            if (relationship.isSourceFollowingTarget()) {
-                btnFollow.setText("フォロー解除");
+            if (relationship != null) {
+                if (relationship.isSourceFollowingTarget()) {
+                    btnFollow.setText("フォロー解除");
+                }
+                else if (relationship.isSourceBlockingTarget()) {
+                    btnFollow.setText("ブロック中");
+                }
             }
-            else if (relationship.isSourceBlockingTarget()) {
-                btnFollow.setText("ブロック中");
+            else {
+                btnFollow.setText("フォロー管理");
             }
 
             commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
@@ -365,17 +391,14 @@ public class ProfileFragment extends Fragment{
     public void onResume() {
         super.onResume();
 
-        if (currentProgress != null) {
-            currentProgress.show();
-        }
         if (currentDialog != null) {
             currentDialog.show();
         }
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStop() {
+        super.onStop();
         if (serviceBound) {
             getActivity().unbindService(connection);
             serviceBound = false;
@@ -445,6 +468,24 @@ public class ProfileFragment extends Fragment{
         private LoadHolder(User user, Relationship relationship) {
             this.user = user;
             this.relationship = relationship;
+        }
+    }
+
+    private class LoadDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ProgressDialog pd = new ProgressDialog(getActivity());
+            pd.setMessage("読み込み中...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setIndeterminate(true);
+            return pd;
+        }
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            super.onCancel(dialog);
+            profileLoadTask.cancel(true);
+            getActivity().finish();
         }
     }
 }

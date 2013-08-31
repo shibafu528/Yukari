@@ -199,7 +199,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Attach"
-                android:id="@+id/tvProfileScreenName"
                 android:layout_below="@+id/horizontalScrollView"
                 android:layout_alignLeft="@+id/imageView2"
                 android:layout_gravity="left|center_vertical"/>
@@ -233,6 +232,47 @@
                         />
             </LinearLayout>
         </HorizontalScrollView>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/llTweetAttachParent"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="4dp"
+        android:id="@+id/llTweetQuoteParent"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quote"
+            android:layout_below="@+id/horizontalScrollView"
+            android:layout_alignLeft="@+id/imageView2"
+            android:layout_gravity="left|center_vertical"
+            android:id="@+id/textView" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/imageView"
+            android:src="@android:drawable/divider_horizontal_textfield"
+            android:scaleType="fitXY"
+            android:layout_alignLeft="@+id/horizontalScrollView"
+            android:layout_below="@+id/tvProfileScreenName"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="left|center_vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RT \uff20screen_name Quoted Tweet"
+            android:id="@+id/tvTweetQuote"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="4dp" />
 
     </LinearLayout>
 

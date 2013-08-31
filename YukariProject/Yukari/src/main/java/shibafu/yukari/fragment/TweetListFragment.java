@@ -23,6 +23,7 @@ import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -38,7 +39,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TweetListFragment extends ListFragment implements TwitterService.StatusListener {
+public class TweetListFragment extends ListFragment implements TwitterService.StatusListener, AttachableList {
 
     public static final int MODE_EMPTY = 0;
     public static final int MODE_HOME = 1;
@@ -175,6 +176,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             TweetListFragment.this.service = binder.getService();
             serviceBound = true;
 
+            if (user == null) {
+                user = TweetListFragment.this.service.getPrimaryUser();
+            }
+
             if (mode == MODE_TRACE) {
                 AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
                     @Override
@@ -225,7 +230,12 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                     responseList = twitter.getFavorites(targetUser.getId());
                                     break;
                             }
-                            lastStatusId = responseList.get(responseList.size() - 1).getId();
+                            if (responseList == null) {
+                                lastStatusId = -1;
+                            }
+                            else if (responseList.size() > 0) {
+                                lastStatusId = responseList.get(responseList.size() - 1).getId();
+                            }
                             return responseList;
                         } catch (TwitterException e) {
                             e.printStackTrace();
