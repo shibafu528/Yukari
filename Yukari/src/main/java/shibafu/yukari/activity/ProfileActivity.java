@@ -11,6 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.AttachableList;
+import shibafu.yukari.fragment.FriendListFragment;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -45,9 +47,9 @@ public class ProfileActivity extends FragmentActivity{
             @Override
             public void onBackStackChanged() {
                 Fragment f = manager.findFragmentByTag("contain");
-                if (manager.getBackStackEntryCount() > 0 && f instanceof TweetListFragment) {
+                if (manager.getBackStackEntryCount() > 0 && f instanceof AttachableList) {
                     llTitle.setVisibility(View.VISIBLE);
-                    tvTitle.setText(((TweetListFragment) f).getTitle());
+                    tvTitle.setText(((AttachableList) f).getTitle());
                 }
                 else {
                     llTitle.setVisibility(View.GONE);

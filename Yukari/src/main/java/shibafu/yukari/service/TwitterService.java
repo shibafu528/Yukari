@@ -245,6 +245,11 @@ public class TwitterService extends Service{
         return users;
     }
 
+    public AuthUserRecord getPrimaryUser() {
+        //TODO: もっと丁寧に。
+        return users.get(0);
+    }
+
     private void showToast(final String text) {
         handler.post(new Runnable() {
             @Override
