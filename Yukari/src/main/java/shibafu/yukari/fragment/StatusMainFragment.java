@@ -41,6 +41,7 @@ public class StatusMainFragment extends Fragment{
     private ImageButton ibFavorite;
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
+    private View tweetView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,10 +49,7 @@ public class StatusMainFragment extends Fragment{
         Bundle b = getArguments();
         status = (Status) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
-        if (status != null) {
-            View child = v.findViewById(R.id.status_tweet);
-            TweetAdapterWrap.setStatusToView(getActivity(), child, status, (user != null)?user.toSingleList() : null);
-        }
+        tweetView = v.findViewById(R.id.status_tweet);
 
         ImageButton ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
@@ -308,6 +306,15 @@ public class StatusMainFragment extends Fragment{
 
         if (currentDialog != null) {
             currentDialog.show();
+        }
+
+        if (status != null) {
+            getView().post(new Runnable() {
+                @Override
+                public void run() {
+                    TweetAdapterWrap.setStatusToView(getActivity(), tweetView, status, (user != null)?user.toSingleList() : null);
+                }
+            });
         }
     }
 

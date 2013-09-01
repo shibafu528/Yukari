@@ -6,6 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.loopj.android.image.SmartImageView;
@@ -18,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.util.MorseCodec;
+import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.MediaEntity;
@@ -78,9 +82,8 @@ public class TweetAdapterWrap {
 
         TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
         tvText.setTypeface(FontAsset.getInstance(context).getFont());
-        String text = st.getText();
+        String text = replaceAllEntities(st);
         text = MorseCodec.decode(text);
-        text = replaceAllEntities(st);
         tvText.setText(text);
 
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
@@ -98,6 +101,30 @@ public class TweetAdapterWrap {
             via = st.getSource();
         }
         String timestamp = sdf.format(st.getCreatedAt()) + " via " + via;
+
+        LinearLayout llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
+        llAttach.removeAllViews();
+
+        ArrayList<String> mediaList = new ArrayList<String>();
+        for (URLEntity urlEntity : st.getURLEntities()) {
+            String expanded = TweetImageUrl.getFullImageUrl(urlEntity.getExpandedURL());
+            if (expanded != null) {
+                mediaList.add(expanded);
+            }
+        }
+        for (MediaEntity mediaEntity : st.getMediaEntities()) {
+            mediaList.add(mediaEntity.getMediaURL());
+        }
+        int frameWidth = llAttach.getWidth();
+        if (mediaList.size() > 0) {
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
+            for (String mediaURL : mediaList) {
+                SmartImageView siv = new SmartImageView(context);
+                siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                siv.setImageUrl(mediaURL);
+                llAttach.addView(siv, lp);
+            }
+        }
 
         boolean isMention = false, isMe = false;
         if (userRecords != null) {

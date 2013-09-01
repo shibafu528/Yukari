@@ -192,6 +192,56 @@ public class MainActivity extends FragmentActivity {
             case R.id.action_friend_cache:
                 startActivityForResult(new Intent(this, SNPickerActivity.class), REQUEST_FRIEND_CACHE);
                 break;
+            case R.id.action_my_profile:
+            {
+                List<String> namesList = new ArrayList<String>();
+                for (AuthUserRecord aur : users) {
+                    namesList.add(aur.ScreenName);
+                }
+                final String[] names = namesList.toArray(new String[namesList.size()]);
+                AlertDialog dialog = new AlertDialog.Builder(this)
+                        .setTitle("アカウントを選択")
+                        .setItems(names, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                AsyncTask<String, Void, User> task = new AsyncTask<String, Void, User>() {
+                                    @Override
+                                    protected User doInBackground(String... params) {
+                                        try {
+                                            User user = service.getTwitter().showUser(params[0]);
+                                            return user;
+                                        } catch (TwitterException e) {
+                                            e.printStackTrace();
+                                        }
+                                        return null;
+                                    }
+
+                                    @Override
+                                    protected void onPostExecute(User user) {
+                                        if (user != null) {
+                                            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                                            intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
+                                            startActivity(intent);
+                                        }
+                                        else {
+                                            Toast.makeText(MainActivity.this, "ユーザー検索エラー", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                };
+                                task.execute(names[which]);
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .create();
+                dialog.show();
+                break;
+            }
         }
         return false;
     }
