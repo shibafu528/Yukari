@@ -135,7 +135,7 @@ public class ProfileFragment extends Fragment{
                 List<String> menuList = new ArrayList<String>();
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
-                menuList.add("リストに追加");
+                menuList.add("リストへ追加/削除");
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setItems(menuList.toArray(new String[0]), new DialogInterface.OnClickListener() {
@@ -315,20 +315,16 @@ public class ProfileFragment extends Fragment{
             {
                 String bio = user.getDescription();
 
-                //URLを展開しAタグにする
+                //TODO: リンクがうまくはれてないことがしばしばあるよ
+
+                //URLを展開する
                 URLEntity[] urlEntities = user.getDescriptionURLEntities();
                 for (URLEntity entity : urlEntities) {
-                    StringBuilder replace = new StringBuilder("<a href=\"");
-                    replace.append(entity.getExpandedURL());
-                    replace.append("\">");
-                    replace.append(entity.getExpandedURL());
-                    replace.append("</a>");
-                    bio = bio.replace(entity.getURL(), replace.toString());
+                    bio = bio.replace(entity.getURL(), entity.getExpandedURL());
                 }
 
                 //改行コードをBRタグにする
-                bio.replaceAll("\n", "<br>");
-                bio.replaceAll("\r\n", "<br>");
+                bio = bio.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
 
                 //エスケープしてテキストを表示
                 tvBio.setText(Html.fromHtml(bio).toString());

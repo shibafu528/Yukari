@@ -912,14 +912,15 @@ containing a value of this type.
         public static final int action_bar_subtitle=0x7f080021;
         public static final int action_bar_title=0x7f080020;
         public static final int action_context_bar=0x7f08001b;
-        public static final int action_find_profile=0x7f080096;
-        public static final int action_friend_cache=0x7f080097;
+        public static final int action_find_profile=0x7f080097;
+        public static final int action_friend_cache=0x7f080098;
         public static final int action_menu_divider=0x7f080015;
         public static final int action_menu_presenter=0x7f080016;
         public static final int action_mode_bar=0x7f08002f;
         public static final int action_mode_bar_stub=0x7f08002e;
         public static final int action_mode_close_button=0x7f080022;
-        public static final int action_settings=0x7f080095;
+        public static final int action_my_profile=0x7f080096;
+        public static final int action_settings=0x7f080099;
         public static final int activity_chooser_view_content=0x7f080023;
         public static final int always=0x7f08000f;
         public static final int beginning=0x7f08000a;
@@ -934,7 +935,7 @@ containing a value of this type.
         public static final int dropdown=0x7f080013;
         public static final int edit_query=0x7f080036;
         public static final int end=0x7f08000c;
-        public static final int etMorseInput=0x7f080094;
+        public static final int etMorseInput=0x7f080095;
         public static final int etSNPickName=0x7f080049;
         public static final int etTweetInput=0x7f08004d;
         public static final int expand_activities_button=0x7f080024;
@@ -974,9 +975,9 @@ containing a value of this type.
         public static final int ivProfileIcon=0x7f08006e;
         public static final int ivTweetImageAttach=0x7f080065;
         public static final int left_icon=0x7f080031;
-        public static final int lineButtonCount=0x7f080092;
-        public static final int lineButtonImage=0x7f080090;
-        public static final int lineButtonText=0x7f080091;
+        public static final int lineButtonCount=0x7f080093;
+        public static final int lineButtonImage=0x7f080091;
+        public static final int lineButtonText=0x7f080092;
         public static final int linearLayout=0x7f08006f;
         public static final int listMode=0x7f080001;
         public static final int list_item=0x7f080027;
@@ -1032,7 +1033,7 @@ containing a value of this type.
         public static final int top_action_bar=0x7f08001e;
         public static final int tvFrameTitle=0x7f080045;
         public static final int tvLoading=0x7f080086;
-        public static final int tvMorsePreview=0x7f080093;
+        public static final int tvMorsePreview=0x7f080094;
         public static final int tvProfileBio=0x7f080073;
         public static final int tvProfileLocation=0x7f080075;
         public static final int tvProfileName=0x7f080070;
@@ -1045,6 +1046,7 @@ containing a value of this type.
         public static final int tvTweetCount=0x7f08004e;
         public static final int tvTweetQuote=0x7f080069;
         public static final int tvTweetTitle=0x7f080052;
+        public static final int tweet_attach=0x7f08008d;
         public static final int tweet_icon=0x7f080089;
         public static final int tweet_name=0x7f08008a;
         public static final int tweet_text=0x7f08008b;
@@ -1052,9 +1054,9 @@ containing a value of this type.
         public static final int tweetgesture=0x7f08004c;
         public static final int up=0x7f08001f;
         public static final int useLogo=0x7f080003;
-        public static final int user_icon=0x7f08008d;
-        public static final int user_name=0x7f08008e;
-        public static final int user_sn=0x7f08008f;
+        public static final int user_icon=0x7f08008e;
+        public static final int user_name=0x7f08008f;
+        public static final int user_sn=0x7f080090;
         public static final int withText=0x7f080010;
     }
     public static final class integer {
