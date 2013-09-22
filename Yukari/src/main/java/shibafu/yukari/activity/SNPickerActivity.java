@@ -197,7 +197,7 @@ public class SNPickerActivity extends Activity {
             if (d != null) {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
-                vh.ivIcon.setImageResource(R.drawable.ic_launcher);
+                vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 vh.ivIcon.setImageUrl(d.imageURL);
             }
 

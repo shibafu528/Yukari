@@ -236,7 +236,7 @@ public class FriendListFragment extends ListFragment implements AttachableList {
             if (u != null) {
                 vh.tvName.setText(u.getName());
                 vh.tvScreenName.setText("@" + u.getScreenName());
-                vh.ivIcon.setImageResource(R.drawable.ic_launcher);
+                vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 vh.ivIcon.setImageUrl(u.getProfileImageURL());
             }
 

@@ -18,7 +18,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
@@ -73,7 +75,11 @@ public class StatusLinkFragment extends ListFragment{
             list.add(new LinkRow(u.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
-            list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
+            String imgUrl = TweetImageUrl.getFullImageUrl(u.getExpandedURL());
+            if (imgUrl != null)
+                list.add(new LinkRow(u.getExpandedURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+            else
+                list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
         }
         for (HashtagEntity h : status.getHashtagEntities()) {
             list.add(new LinkRow("#" + h.getText(), TYPE_HASH, 0, null, false));
@@ -153,9 +159,15 @@ public class StatusLinkFragment extends ListFragment{
                 else {
                     switch (lr.type) {
                         case TYPE_URL:
-                        case (TYPE_URL | TYPE_URL_MEDIA):
                             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text)));
                             break;
+                        case (TYPE_URL | TYPE_URL_MEDIA):
+                        {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
+                            intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
+                            startActivity(intent);
+                            break;
+                        }
                         case TYPE_HASH:
                         {
                             AlertDialog ad = new AlertDialog.Builder(getActivity())

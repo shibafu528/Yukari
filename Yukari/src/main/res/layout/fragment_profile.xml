@@ -75,7 +75,7 @@
                     android:layout_height="72dp"
                     android:id="@+id/ivProfileIcon"
                     android:layout_gravity="center"
-                    android:src="@drawable/ic_launcher"/>
+                    android:src="@drawable/yukatterload"/>
         </FrameLayout>
 
         <LinearLayout
