@@ -41,6 +41,10 @@ public class TweetAdapterWrap {
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
     private final static Pattern SIGNAL_PATTERN = Pattern.compile("(((−|・|－)+) ?)+");
 
+    public final static int CONFIG_SHOW_THUMBNAIL    = 0x01;
+    public final static int CONFIG_DISABLE_BGCOLOR   = 0x02;
+    public final static int CONFIG_DISABLE_FONTCOLOR = 0x04;
+
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<Status> statuses) {
         this.context = context;
         this.userRecords = new ArrayList<AuthUserRecord>();
@@ -75,7 +79,7 @@ public class TweetAdapterWrap {
         return text;
     }
 
-    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords) {
+    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords, int config) {
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         tvName.setTypeface(FontAsset.getInstance(context).getFont());
@@ -87,7 +91,7 @@ public class TweetAdapterWrap {
         tvText.setText(text);
 
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
-        ivIcon.setImageResource(R.drawable.ic_launcher);
+        ivIcon.setImageResource(R.drawable.yukatterload);
         ivIcon.setImageUrl(st.getUser().getProfileImageURL());
 
         TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
@@ -105,24 +109,27 @@ public class TweetAdapterWrap {
         LinearLayout llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
         llAttach.removeAllViews();
 
-        ArrayList<String> mediaList = new ArrayList<String>();
-        for (URLEntity urlEntity : st.getURLEntities()) {
-            String expanded = TweetImageUrl.getFullImageUrl(urlEntity.getExpandedURL());
-            if (expanded != null) {
-                mediaList.add(expanded);
+        if ((config & CONFIG_SHOW_THUMBNAIL) == CONFIG_SHOW_THUMBNAIL) {
+            ArrayList<String> mediaList = new ArrayList<String>();
+            for (URLEntity urlEntity : st.getURLEntities()) {
+                String expanded = TweetImageUrl.getFullImageUrl(urlEntity.getExpandedURL());
+                if (expanded != null) {
+                    mediaList.add(expanded);
+                }
             }
-        }
-        for (MediaEntity mediaEntity : st.getMediaEntities()) {
-            mediaList.add(mediaEntity.getMediaURL());
-        }
-        int frameWidth = llAttach.getWidth();
-        if (mediaList.size() > 0) {
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
-            for (String mediaURL : mediaList) {
-                SmartImageView siv = new SmartImageView(context);
-                siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                siv.setImageUrl(mediaURL);
-                llAttach.addView(siv, lp);
+            for (MediaEntity mediaEntity : st.getMediaEntities()) {
+                mediaList.add(mediaEntity.getMediaURL());
+            }
+            int frameWidth = llAttach.getWidth();
+            if (mediaList.size() > 0) {
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
+                for (String mediaURL : mediaList) {
+                    SmartImageView siv = new SmartImageView(context);
+                    siv.setImageResource(R.drawable.yukatterload);
+                    siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    siv.setImageUrl(mediaURL);
+                    llAttach.addView(siv, lp);
+                }
             }
         }
 
@@ -146,23 +153,30 @@ public class TweetAdapterWrap {
             }
         }
 
-        int bgColor = Color.WHITE;
-        if (st.isRetweet()) {
-            timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
-            tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-            tvText.setText(st.getRetweetedStatus().getText());
-            ivIcon.setImageUrl(st.getRetweetedStatus().getUser().getProfileImageURL());
-            bgColor = Color.parseColor("#C2B7FD");
+        if ((config & CONFIG_DISABLE_BGCOLOR) != CONFIG_DISABLE_BGCOLOR) {
+            int bgColor = Color.WHITE;
+            if (st.isRetweet()) {
+                timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
+                tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
+                tvText.setText(st.getRetweetedStatus().getText());
+                ivIcon.setImageUrl(st.getRetweetedStatus().getUser().getProfileImageURL());
+                bgColor = Color.parseColor("#C2B7FD");
+            }
+            else if (isMention) {
+                bgColor = Color.parseColor("#EDB3DD");
+            }
+            else if (isMe) {
+                bgColor = Color.parseColor("#EFDCFF");
+            }
+            v.setBackgroundColor(bgColor);
+            v.setTag(bgColor);
         }
-        else if (isMention) {
-            bgColor = Color.parseColor("#EDB3DD");
-        }
-        else if (isMe) {
-            bgColor = Color.parseColor("#EFDCFF");
-        }
-        v.setBackgroundColor(bgColor);
-        v.setTag(bgColor);
         tvTimestamp.setText(timestamp);
+
+        if ((config & CONFIG_DISABLE_FONTCOLOR) == CONFIG_DISABLE_FONTCOLOR) {
+            tvName.setTextColor(Color.BLACK);
+            tvTimestamp.setTextColor(Color.BLACK);
+        }
 
         return v;
     }
@@ -194,7 +208,7 @@ public class TweetAdapterWrap {
 
             Status st = (Status) getItem(position);
             if (st != null) {
-                v = setStatusToView(context, v, st, userRecords);
+                v = setStatusToView(context, v, st, userRecords, CONFIG_SHOW_THUMBNAIL);
             }
 
             return v;

@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="1"
-    android:versionName="0.19alpha build130901" >
+    android:versionName="0.20alpha build130922" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -171,6 +171,10 @@
             android:name=".activity.TraceActivity"
             android:theme="@style/AppThemeNoTitle"
             android:label="Trace" />
+
+        <activity
+            android:name=".activity.PreviewActivity"
+            android:theme="@style/AppThemeTranslucentBg"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

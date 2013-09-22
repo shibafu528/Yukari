@@ -306,9 +306,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                 //attachPictureがある場合は添付
                                 if (attachPicture != null) {
                                     try {
-                                        if (Math.max(attachPicture.width, attachPicture.height) > 2048) {
-                                            Log.d("TweetActivity", "添付画像の長辺が2048pxを超えています。圧縮対象とします。");
-                                            Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 1920, 1920, null);
+                                        if (Math.max(attachPicture.width, attachPicture.height) > 1280) {
+                                            Log.d("TweetActivity", "添付画像の長辺が1280pxを超えています。圧縮対象とします。");
+                                            Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 1280, 1280, null);
                                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                             resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                                             Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());

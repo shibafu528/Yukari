@@ -312,7 +312,11 @@ public class StatusMainFragment extends Fragment{
             getView().post(new Runnable() {
                 @Override
                 public void run() {
-                    TweetAdapterWrap.setStatusToView(getActivity(), tweetView, status, (user != null)?user.toSingleList() : null);
+                    TweetAdapterWrap.setStatusToView(getActivity(),
+                            tweetView,
+                            status,
+                            (user != null)?user.toSingleList() : null,
+                            TweetAdapterWrap.CONFIG_SHOW_THUMBNAIL);
                 }
             });
         }

@@ -20,6 +20,7 @@ import twitter4j.Status;
 /**
  * Created by Shibafu on 13/08/02.
  */
+@SuppressWarnings("deprecation")
 public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",

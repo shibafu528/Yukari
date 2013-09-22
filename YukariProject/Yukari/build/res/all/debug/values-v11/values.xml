@@ -23,6 +23,11 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
+
+    <style name="AppThemeTranslucentBg" parent="android:Theme.Holo.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+    </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml -->
     <style name="Theme.Base" parent="android:Theme.Holo">
         <item name="android:windowNoTitle">true</item>

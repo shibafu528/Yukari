@@ -12,7 +12,7 @@
             android:id="@+id/user_icon"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
-            android:src="@drawable/ic_launcher"/>
+            android:src="@drawable/yukatterload"/>
 
     <TextView
             android:layout_width="match_parent"
