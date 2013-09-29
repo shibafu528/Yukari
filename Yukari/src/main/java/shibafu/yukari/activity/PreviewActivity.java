@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.loopj.android.image.SmartImageView;
@@ -30,6 +33,9 @@ public class PreviewActivity extends Activity {
     private View tweetView;
     private Status status;
 
+    private Animation animFadeIn, animFadeOut;
+    private boolean isShowPanel = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +48,25 @@ public class PreviewActivity extends Activity {
             return;
         }
 
+        animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
+        animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
+
+        final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
         SmartImageView imageView = (SmartImageView) findViewById(R.id.ivPreviewImage);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isShowPanel) {
+                    llControlPanel.startAnimation(animFadeOut);
+                    llControlPanel.setVisibility(View.INVISIBLE);
+                }
+                else {
+                    llControlPanel.startAnimation(animFadeIn);
+                    llControlPanel.setVisibility(View.VISIBLE);
+                }
+                isShowPanel ^= true;
+            }
+        });
 
         //存在チェックの処理用
         AsyncTask<String, Void, Boolean> checkTask = new AsyncTask<String, Void, Boolean>() {
