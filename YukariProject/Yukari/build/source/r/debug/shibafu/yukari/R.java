@@ -19,6 +19,8 @@ public final class R {
         public static final int activity_tweet_close_exit=0x7f040007;
         public static final int activity_tweet_open_enter=0x7f040008;
         public static final int activity_tweet_open_exit=0x7f040009;
+        public static final int anim_fadein=0x7f04000a;
+        public static final int anim_fadeout=0x7f04000b;
     }
     public static final class attr {
         /**  From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml 
