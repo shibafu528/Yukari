@@ -157,13 +157,6 @@
                     android:src="@drawable/ic_playing_music"
                     android:visibility="gone"/>
 
-            <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetTotsusi"
-                    android:src="@drawable/ic_totsuzenno_si"
-                    android:visibility="gone"/>
-
         </LinearLayout>
     </HorizontalScrollView>
 

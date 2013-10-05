@@ -10,9 +10,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -24,12 +26,14 @@ import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -44,8 +48,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
@@ -75,6 +82,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private static final int REQUEST_NOWPLAYING = 32;
     private static final int REQUEST_TOTSUSI = 33;
     private static final int REQUEST_SNPICKER = 34;
+    private static final int REQUEST_TWICCA_PLUGIN = 63;
+
+    private static final int PLUGIN_ICON_DIP = 28;
+
+    private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
+    private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
 
     private EditText etInput;
     private TextView tvCount;
@@ -521,7 +534,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         });
 
         //各種エクストラボタンの設定
-        PackageManager pm = getPackageManager();
+        final PackageManager pm = getPackageManager();
         ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
         {
             try {
@@ -548,24 +561,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     startActivityForResult(intent, REQUEST_NOWPLAYING);
                 }
             });
-        }
-        ImageButton ibTotsusi = (ImageButton) findViewById(R.id.ibTweetTotsusi);
-        {
-            try {
-                final ApplicationInfo ai = pm.getApplicationInfo("info.izumin.android.suddenlydeathmush", 0);
-                ibTotsusi.setVisibility(View.VISIBLE);
-                ibTotsusi.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
-                        intent.addCategory("com.adamrocker.android.simeji.REPLACE");
-                        intent.putExtra("replace_key", "");
-                        intent.setPackage(ai.packageName);
-                        startActivityForResult(intent, REQUEST_TOTSUSI);
-                    }
-                });
-            } catch (PackageManager.NameNotFoundException e) {
-            }
         }
         ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
         ibGrasses.setOnClickListener(new View.OnClickListener() {
@@ -622,6 +617,80 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             ibDraft.setEnabled(false);
             btnPost.setText("Send");
         }
+
+
+        //プラグインロード
+        Intent query = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
+        query.addCategory(Intent.CATEGORY_DEFAULT);
+        List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
+        Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
+        LinearLayout llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
+        final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
+        for (ResolveInfo ri : plugins) {
+            ImageButton imageButton = new ImageButton(this);
+            Bitmap sourceIcon = ((BitmapDrawable)ri.activityInfo.loadIcon(pm)).getBitmap();
+            imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
+            imageButton.setTag(ri);
+            imageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ResolveInfo ri = (ResolveInfo) v.getTag();
+
+                    Intent intent = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    intent.setPackage(ri.activityInfo.packageName);
+                    intent.setClassName(ri.activityInfo.packageName, ri.activityInfo.name);
+
+                    String text = etInput.getText().toString();
+                    intent.putExtra(Intent.EXTRA_TEXT, text);
+
+                    Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
+                    String prefix = "";
+                    if (prefixMatcher.find()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (int i = 0; i < prefixMatcher.groupCount(); i++) {
+                            sb.append(prefixMatcher.group(i+1));
+                        }
+                        prefix = sb.toString();
+                    }
+                    intent.putExtra("prefix", prefix);
+
+                    Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
+                    String suffix = "";
+                    if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
+                        suffix = suffixMatcher.group(1);
+                    }
+                    intent.putExtra("suffix", suffix);
+
+                    Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
+                    Matcher userInputMatcher = userInputPattern.matcher(text);
+                    if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
+                        intent.putExtra("user_input", userInputMatcher.group(1));
+                    }
+                    else {
+                        intent.putExtra("user_input", "");
+                    }
+
+                    if (status != null) {
+                        intent.putExtra("in_reply_to_status_id", status.getId());
+                    }
+                    intent.putExtra("cursor", etInput.getSelectionStart());
+
+                    startActivityForResult(intent, REQUEST_TWICCA_PLUGIN);
+                }
+            });
+            imageButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    ResolveInfo info = (ResolveInfo) v.getTag();
+                    Toast toast = Toast.makeText(TweetActivity.this, info.activityInfo.loadLabel(pm), Toast.LENGTH_LONG);
+                    toast.setGravity(Gravity.CENTER, 0, -128);
+                    toast.show();
+                    return true;
+                }
+            });
+            llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        }
     }
 
     @Override
@@ -665,6 +734,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     break;
                 case REQUEST_SNPICKER:
                     appendTextInto(data.getStringExtra(SNPickerActivity.EXTRA_SCREEN_NAME) + " ");
+                    break;
+                case REQUEST_TWICCA_PLUGIN:
+                    etInput.setText(data.getStringExtra(Intent.EXTRA_TEXT));
+                    etInput.setSelection(data.getIntExtra("cursor", etInput.getSelectionStart()));
                     break;
             }
         }
