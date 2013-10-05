@@ -72,6 +72,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private TextView footerText;
 
     private long lastStatusId = -1;
+    private boolean isLoading = false;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -134,6 +135,60 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     intent.putExtra(StatusActivity.EXTRA_USER, user);
                     startActivity(intent);
                 }
+                else if (position == statuses.size() && !isLoading) {
+                    //フッタークリック
+                    switch (mode) {
+                        case MODE_HOME:
+                        case MODE_MENTION:
+                        case MODE_DM:
+                        case MODE_USER:
+                        case MODE_FAVORITE:
+                            AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
+                                @Override
+                                protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
+                                    twitter.setOAuthAccessToken(user.getAccessToken());
+                                    try {
+                                        ResponseList<twitter4j.Status> responseList = null;
+                                        Paging paging = new Paging();
+                                        paging.setMaxId(lastStatusId - 1);
+                                        switch (mode) {
+                                            case MODE_HOME:
+                                                responseList = twitter.getHomeTimeline(paging);
+                                                break;
+                                            case MODE_USER:
+                                                responseList = twitter.getUserTimeline(targetUser.getId(), paging);
+                                                break;
+                                            case MODE_FAVORITE:
+                                                responseList = twitter.getFavorites(targetUser.getId(), paging);
+                                                break;
+                                        }
+                                        if (responseList == null) {
+                                            lastStatusId = -1;
+                                        }
+                                        else if (responseList.size() > 0) {
+                                            lastStatusId = responseList.get(responseList.size() - 1).getId();
+                                        }
+                                        return responseList;
+                                    } catch (TwitterException e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                }
+
+                                @Override
+                                protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
+                                    if (statuses != null) {
+                                        TweetListFragment.this.statuses.addAll(statuses);
+                                        adapterWrap.notifyDataSetChanged();
+                                    }
+                                    changeFooterProgress(false);
+                                }
+                            };
+                            task.execute();
+                            changeFooterProgress(true);
+                            break;
+                    }
+                }
             }
         });
 
@@ -159,6 +214,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     }
 
     private void changeFooterProgress(boolean isLoading) {
+        this.isLoading = isLoading;
         if (isLoading) {
             footerProgress.setVisibility(View.VISIBLE);
             footerText.setText("loading");

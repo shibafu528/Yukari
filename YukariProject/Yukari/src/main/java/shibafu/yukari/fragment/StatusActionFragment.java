@@ -54,7 +54,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
             case 0:
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(TwitterService.getTweetURL(status))));
+                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, Uri.parse(TwitterService.getTweetURL(status))), null));
                 break;
             case 1:
             {

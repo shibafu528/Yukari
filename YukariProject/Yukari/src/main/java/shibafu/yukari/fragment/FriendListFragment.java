@@ -73,6 +73,7 @@ public class FriendListFragment extends ListFragment implements AttachableList {
     private TextView footerText;
 
     private long loadCursor = -1;
+    private boolean isLoading = false;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -113,6 +114,10 @@ public class FriendListFragment extends ListFragment implements AttachableList {
                     intent.putExtra(ProfileActivity.EXTRA_TARGET, u.getId());
                     startActivity(intent);
                 }
+                else if (position == users.size() && !isLoading) {
+                    new FriendsLoadTask().execute();
+                    changeFooterProgress(true);
+                }
             }
         });
 
@@ -137,6 +142,7 @@ public class FriendListFragment extends ListFragment implements AttachableList {
     }
 
     private void changeFooterProgress(boolean isLoading) {
+        this.isLoading = isLoading;
         if (isLoading) {
             footerProgress.setVisibility(View.VISIBLE);
             footerText.setText("loading");
@@ -159,41 +165,7 @@ public class FriendListFragment extends ListFragment implements AttachableList {
             if (user == null) {
                 user = FriendListFragment.this.service.getPrimaryUser();
             }
-
-            AsyncTask<Void, Void, PagableResponseList<User>> task = new AsyncTask<Void, Void, PagableResponseList<User>>() {
-                @Override
-                protected PagableResponseList<twitter4j.User> doInBackground(Void... params) {
-                    twitter.setOAuthAccessToken(user.getAccessToken());
-                    try {
-                        PagableResponseList<twitter4j.User> responseList = null;
-                        switch (mode) {
-                            case MODE_FRIEND:
-                                responseList = twitter.getFriendsList(targetUser.getId(), loadCursor);
-                                break;
-                            case MODE_FOLLOWER:
-                                responseList = twitter.getFollowersList(targetUser.getId(), loadCursor);
-                                break;
-                        }
-                        if (responseList != null && !responseList.isEmpty()) {
-                            loadCursor = responseList.getNextCursor();
-                        }
-                        return responseList;
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(PagableResponseList<twitter4j.User> users) {
-                    if (users != null) {
-                        FriendListFragment.this.users.addAll(users);
-                        adapter.notifyDataSetChanged();
-                    }
-                    changeFooterProgress(false);
-                }
-            };
-            task.execute();
+            new FriendsLoadTask().execute();
         }
 
         @Override
@@ -201,6 +173,41 @@ public class FriendListFragment extends ListFragment implements AttachableList {
             serviceBound = false;
         }
     };
+
+    private class FriendsLoadTask extends AsyncTask<Void, Void, PagableResponseList<User>> {
+
+        @Override
+        protected PagableResponseList<twitter4j.User> doInBackground(Void... params) {
+            twitter.setOAuthAccessToken(user.getAccessToken());
+            try {
+                PagableResponseList<twitter4j.User> responseList = null;
+                switch (mode) {
+                    case MODE_FRIEND:
+                        responseList = twitter.getFriendsList(targetUser.getId(), loadCursor);
+                        break;
+                    case MODE_FOLLOWER:
+                        responseList = twitter.getFollowersList(targetUser.getId(), loadCursor);
+                        break;
+                }
+                if (responseList != null && !responseList.isEmpty()) {
+                    loadCursor = responseList.getNextCursor();
+                }
+                return responseList;
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(PagableResponseList<twitter4j.User> users) {
+            if (users != null) {
+                FriendListFragment.this.users.addAll(users);
+                adapter.notifyDataSetChanged();
+            }
+            changeFooterProgress(false);
+        }
+    }
 
     private class UserAdapter extends ArrayAdapter<User> {
 

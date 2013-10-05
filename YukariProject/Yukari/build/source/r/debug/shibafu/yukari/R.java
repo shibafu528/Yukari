@@ -957,6 +957,10 @@ containing a value of this type.
         public static final int home=0x7f080017;
         public static final int homeAsUp=0x7f080005;
         public static final int horizontalScrollView=0x7f080062;
+        public static final int ibPreviewBrowser=0x7f080047;
+        public static final int ibPreviewRotateLeft=0x7f080046;
+        public static final int ibPreviewRotateRight=0x7f080049;
+        public static final int ibPreviewSave=0x7f080048;
         public static final int ibProfileMenu=0x7f080072;
         public static final int ibProfileSearch=0x7f080073;
         public static final int ibTweetAttachPic=0x7f08005c;
@@ -982,11 +986,7 @@ containing a value of this type.
         public static final int imageView=0x7f080070;
         public static final int imageView2=0x7f08006a;
         public static final int inclPreviewStatus=0x7f080045;
-        public static final int ivPreviewBrowser=0x7f080047;
         public static final int ivPreviewImage=0x7f080043;
-        public static final int ivPreviewRotateLeft=0x7f080046;
-        public static final int ivPreviewRotateRight=0x7f080049;
-        public static final int ivPreviewSave=0x7f080048;
         public static final int ivProfileCurrent=0x7f080084;
         public static final int ivProfileHeader=0x7f080059;
         public static final int ivProfileIcon=0x7f080076;

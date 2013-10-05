@@ -46,28 +46,28 @@
             <ImageButton
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/ivPreviewRotateLeft"
+                android:id="@+id/ibPreviewRotateLeft"
                 android:src="@drawable/ic_images_rotate_left"
                 android:layout_weight="1" />
 
             <ImageButton
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
-                android:id="@+id/ivPreviewBrowser"
+                android:id="@+id/ibPreviewBrowser"
                 android:src="@drawable/ic_web_site"
                 android:layout_weight="1" />
 
             <ImageButton
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/ivPreviewSave"
+                android:id="@+id/ibPreviewSave"
                 android:src="@drawable/ic_download"
                 android:layout_weight="1" />
 
             <ImageButton
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:id="@+id/ivPreviewRotateRight"
+                android:id="@+id/ibPreviewRotateRight"
                 android:src="@drawable/ic_images_rotate_right"
                 android:layout_weight="1" />
         </LinearLayout>
