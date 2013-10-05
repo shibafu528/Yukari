@@ -1,13 +1,16 @@
 package shibafu.yukari.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -30,6 +33,7 @@ import twitter4j.Status;
 public class PreviewActivity extends Activity {
 
     public static final String EXTRA_STATUS = "status";
+    private SmartImageView imageView;
     private View tweetView;
     private Status status;
 
@@ -41,7 +45,7 @@ public class PreviewActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_imagepreview);
 
-        Uri data = getIntent().getData();
+        final Uri data = getIntent().getData();
         if (data == null) {
             Toast.makeText(this, "null uri", Toast.LENGTH_SHORT).show();
             finish();
@@ -52,7 +56,7 @@ public class PreviewActivity extends Activity {
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
-        SmartImageView imageView = (SmartImageView) findViewById(R.id.ivPreviewImage);
+        imageView = (SmartImageView) findViewById(R.id.ivPreviewImage);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,6 +112,29 @@ public class PreviewActivity extends Activity {
 
         status = (Status) getIntent().getSerializableExtra(EXTRA_STATUS);
         tweetView = findViewById(R.id.inclPreviewStatus);
+
+        ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
+        ibRotateLeft.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotate(-90);
+            }
+        });
+        ImageButton ibRotateRight = (ImageButton) findViewById(R.id.ibPreviewRotateRight);
+        ibRotateRight.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rotate(90);
+            }
+        });
+
+        ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
+        ibBrowser.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null));
+            }
+        });
     }
 
     @Override
@@ -123,5 +150,8 @@ public class PreviewActivity extends Activity {
                 }
             });
         }
+    }
+
+    private void rotate(int degree) {
     }
 }
