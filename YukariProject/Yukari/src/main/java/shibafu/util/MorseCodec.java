@@ -72,7 +72,7 @@ public class MorseCodec {
     }
 
     /**
-     * 文字列をモールス信号に変換するよ。<br/>
+     * モールス信号を文字列に変換するよ。<br/>
      * 変換された部分は《》で囲まれるよ。
      * @param signals モールス信号の文字列
      * @return カタカナに変換したもの
@@ -83,7 +83,7 @@ public class MorseCodec {
         ArrayList<String> results = new ArrayList<String>();
         while(matcher.find()) {
             String match = matcher.group();
-            match.replaceAll("－", "−");
+            match = match.replaceAll("－", "−");
             String[] signal = match.split(" ");
             if (signal.length > 1) {
                 String decode = "";
