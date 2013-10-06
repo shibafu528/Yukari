@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -28,6 +30,8 @@ public class MorseInputActivity extends Activity {
 
     private TextView tvPreview;
     private EditText etInput;
+    private CheckBox cbOutput;
+    private boolean useFF0D = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +58,7 @@ public class MorseInputActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                tvPreview.setText(MorseCodec.encode(s.toString()));
+                tvPreview.setText(encode(s.toString()));
             }
         });
         etInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -66,6 +70,14 @@ public class MorseInputActivity extends Activity {
                 }
             }
         });
+        cbOutput = (CheckBox) v.findViewById(R.id.cbMorseOutput);
+        cbOutput.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                useFF0D = isChecked;
+                tvPreview.setText(encode(etInput.getText().toString()));
+            }
+        });
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("モールス変換");
@@ -73,7 +85,7 @@ public class MorseInputActivity extends Activity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String out = MorseCodec.encode(etInput.getText().toString());
+                String out = encode(etInput.getText().toString());
                 Intent intent = new Intent();
                 intent.putExtra("replace_key", out);
                 setResult(RESULT_OK, intent);
@@ -115,5 +127,13 @@ public class MorseInputActivity extends Activity {
             setResult(RESULT_CANCELED);
             finish();
         }
+    }
+
+    private String encode(String str) {
+        String encoded = MorseCodec.encode(str);
+        if (useFF0D) {
+            encoded = encoded.replace((char)0x2212, (char)0xff0d);
+        }
+        return encoded;
     }
 }
