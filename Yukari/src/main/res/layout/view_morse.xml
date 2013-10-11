@@ -23,7 +23,7 @@
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="U+FF0Dで出力(ツイやつαと互換)"
+        android:text="幅の小さい符号を使用"
         android:id="@+id/cbMorseOutput"
         android:layout_gravity="right|center_vertical"
         android:layout_marginRight="8dp"
