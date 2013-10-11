@@ -31,7 +31,7 @@ public class MorseInputActivity extends Activity {
     private TextView tvPreview;
     private EditText etInput;
     private CheckBox cbOutput;
-    private boolean useFF0D = false;
+    private boolean use2212 = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +74,7 @@ public class MorseInputActivity extends Activity {
         cbOutput.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                useFF0D = isChecked;
+                use2212 = isChecked;
                 tvPreview.setText(encode(etInput.getText().toString()));
             }
         });
@@ -131,7 +131,7 @@ public class MorseInputActivity extends Activity {
 
     private String encode(String str) {
         String encoded = MorseCodec.encode(str);
-        if (useFF0D) {
+        if (!use2212) {
             encoded = encoded.replace((char)0x2212, (char)0xff0d);
         }
         return encoded;
