@@ -27,6 +27,7 @@ import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -322,7 +323,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     };
 
     @Override
-    public void onStatus(AuthUserRecord from, Status status) {
+    public void onStatus(AuthUserRecord from, PreformedStatus status) {
         if (user == null || user.equals(from)) {
             statuses.addFirst(status);
             handler.post(new Runnable() {
