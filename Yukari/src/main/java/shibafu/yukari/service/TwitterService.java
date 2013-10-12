@@ -21,6 +21,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.StreamUser;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
@@ -112,7 +113,7 @@ public class TwitterService extends Service{
         public void onStatus(AuthUserRecord from, Status status) {
             Log.d(LOG_TAG, "onStatus(Registed Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             for (StatusListener sl : statusListeners) {
-                sl.onStatus(from, status);
+                sl.onStatus(from, new PreformedStatus(status, from));
             }
 
             //TODO: 自分自身のアカウントからは除外
@@ -151,7 +152,7 @@ public class TwitterService extends Service{
         }
     };
     public interface StatusListener {
-        public void onStatus(AuthUserRecord from, Status status);
+        public void onStatus(AuthUserRecord from, PreformedStatus status);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
     }
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
