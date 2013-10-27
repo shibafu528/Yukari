@@ -56,7 +56,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public static final String EXTRA_TRACE_START = "trace_start";
     public static final String EXTRA_SHOW_USER = "show_user";
 
-    private LinkedList<Status> statuses = new LinkedList<Status>();
+    private LinkedList<PreformedStatus> statuses = new LinkedList<PreformedStatus>();
 
     private Twitter twitter;
     private TweetAdapterWrap adapterWrap;
@@ -84,15 +84,15 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         title = args.getString(EXTRA_TITLE);
+        user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
         if (mode == MODE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            statuses.add(traceStart);
+            statuses.add(new PreformedStatus(traceStart, user));
         }
         else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         }
-        user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
         twitter = TwitterUtil.getTwitterInstance(getActivity());
     }
 
@@ -179,7 +179,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                 @Override
                                 protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
                                     if (statuses != null) {
-                                        TweetListFragment.this.statuses.addAll(statuses);
+                                        for (twitter4j.Status status : statuses) {
+                                            TweetListFragment.this.statuses.add(new PreformedStatus(status, user));
+                                        }
                                         adapterWrap.notifyDataSetChanged();
                                     }
                                     changeFooterProgress(false);
@@ -249,7 +251,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        statuses.add(reply);
+                                        statuses.add(new PreformedStatus(reply, user));
                                         adapterWrap.notifyDataSetChanged();
                                     }
                                 });
@@ -303,7 +305,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     @Override
                     protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
                         if (statuses != null) {
-                            TweetListFragment.this.statuses.addAll(statuses);
+                            for (twitter4j.Status status : statuses) {
+                                TweetListFragment.this.statuses.add(new PreformedStatus(status, user));
+                            }
                             adapterWrap.notifyDataSetChanged();
                         }
                         if (mode == MODE_HOME) {

@@ -2,6 +2,8 @@
 <resources>
 
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-w600dp/values.xml -->
+    <eat-comment />
+
     <dimen name="abc_action_bar_default_height">56dip</dimen>
     <dimen name="abc_action_bar_icon_vertical_padding">4dip</dimen>
     <dimen name="abc_action_bar_subtitle_bottom_margin">9dip</dimen>

@@ -14,6 +14,7 @@ import twitter4j.MediaEntity;
 import twitter4j.Place;
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
+import twitter4j.SymbolEntity;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -133,6 +134,16 @@ public class PreformedStatus implements Status{
     }
 
     @Override
+    public boolean isRetweeted() {
+        return false;
+    }
+
+    @Override
+    public int getFavoriteCount() {
+        return 0;
+    }
+
+    @Override
     public User getUser() {
         return status.getUser();
     }
@@ -157,7 +168,7 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public long getRetweetCount() {
+    public int getRetweetCount() {
         return status.getRetweetCount();
     }
 
@@ -174,6 +185,11 @@ public class PreformedStatus implements Status{
     @Override
     public boolean isPossiblySensitive() {
         return status.isPossiblySensitive();
+    }
+
+    @Override
+    public String getIsoLanguageCode() {
+        return null;
     }
 
     @Override
@@ -199,6 +215,11 @@ public class PreformedStatus implements Status{
     @Override
     public MediaEntity[] getMediaEntities() {
         return status.getMediaEntities();
+    }
+
+    @Override
+    public SymbolEntity[] getSymbolEntities() {
+        return new SymbolEntity[0];
     }
 
     public List<String> getMediaLinkList() {

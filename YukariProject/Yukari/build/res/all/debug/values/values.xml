@@ -2,6 +2,8 @@
 <resources>
 
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
+    <eat-comment />
+
     <attr name="actionBarDivider" format="reference" />
     <attr name="actionBarItemBackground" format="reference" />
     <attr name="actionBarSize" format="dimension" />
@@ -480,11 +482,17 @@
     <dimen name="abc_search_view_preferred_width">320dip</dimen>
     <dimen name="abc_search_view_text_min_width">160dip</dimen>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/dimens.xml -->
+    <eat-comment />
+
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/colors.xml -->
+    <eat-comment />
+
     <drawable name="preview_bg">#99000000</drawable>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
+    <eat-comment />
+
     <item name="action_bar_activity_content" type="id"/>
     <item name="action_menu_divider" type="id"/>
     <item name="action_menu_presenter" type="id"/>
@@ -492,8 +500,12 @@
 
     <integer name="abc_max_action_buttons">2</integer>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml -->
+    <eat-comment />
+
     <string name="OAuthTitle">OAuth認証</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
+    <eat-comment />
+
     <string name="abc_action_bar_home_description">Navigate home</string>
     <string name="abc_action_bar_up_description">Navigate up</string>
     <string name="abc_action_menu_overflow_description">More options</string>
@@ -508,6 +520,8 @@
     <string name="abc_shareactionprovider_share_with">Share with</string>
     <string name="abc_shareactionprovider_share_with_application">Share with %s</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/strings.xml -->
+    <eat-comment />
+
     <string name="activity_animation_duration">300</string>
     <string name="app_name">Yukari</string>
     <string name="title_activity_assetextract">起動準備中…</string>
@@ -519,6 +533,8 @@
     <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
     <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/styles.xml -->
+    <eat-comment />
+
     <style name="Animation" parent="android:Animation" />
 
     <style name="Animation.Vert" parent="android:Animation.Activity">
@@ -554,6 +570,8 @@
         <item name="android:windowBackground">@drawable/preview_bg</item>
     </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
+    <eat-comment />
+
     <style name="TextAppearance.AppCompat.Base.CompactMenu.Dialog" parent="android:TextAppearance.Medium">
         <item name="android:textColor">@android:color/primary_text_light</item>
     </style>
@@ -921,10 +939,14 @@
 
     <style name="Theme.Base.Light" parent="android:Theme.Light" />
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values/styles.xml -->
+    <eat-comment />
+
     <style name="VertAnimationTheme" parent="android:Theme.Dialog">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values/values.xml -->
+    <eat-comment />
+
     <style name="Widget.AppCompat.ActionBar" parent="Widget.AppCompat.Base.ActionBar" />
 
     <style name="Widget.AppCompat.ActionBar.Solid" parent="Widget.AppCompat.Base.ActionBar.Solid" />

@@ -16,6 +16,7 @@ import android.content.Context;
 import shibafu.yukari.R;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
+import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterUtil {
 
@@ -25,7 +26,10 @@ public class TwitterUtil {
 		String consumer_key = context.getString(R.string.twitter_consumer_key);
 		String consumer_secret = context.getString(R.string.twitter_consumer_secret);
 
-		TwitterFactory factory = new TwitterFactory();
+        ConfigurationBuilder configuration = new ConfigurationBuilder();
+        configuration.setUseSSL(true);
+
+		TwitterFactory factory = new TwitterFactory(configuration.build());
 		Twitter twitter = factory.getInstance();
 		twitter.setOAuthConsumer(consumer_key, consumer_secret);
 

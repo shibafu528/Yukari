@@ -69,14 +69,14 @@
     </content>
     <orderEntry type="jdk" jdkName="Android 4.3 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="twitter4j-media-support-3.0.3" level="project" />
     <orderEntry type="library" exported="" name="support-v4-18.0.0" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-stream-3.0.3" level="project" />
     <orderEntry type="library" exported="" name="ComAndroidSupportAppcompatV71800.aar" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-stream-3.0.5" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-async-3.0.5" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
     <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-async-3.0.3" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-core-3.0.3" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-core-3.0.5" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-media-support-3.0.5" level="project" />
   </component>
 </module>
 

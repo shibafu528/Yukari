@@ -2,6 +2,8 @@
 <resources>
 
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-v11/styles.xml -->
+    <eat-comment />
+
     <style name="Animation" parent="android:Animation" />
 
     <style name="Animation.Vert" parent="android:Animation.Activity">
@@ -29,6 +31,8 @@
         <item name="android:windowBackground">@drawable/preview_bg</item>
     </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml -->
+    <eat-comment />
+
     <style name="Theme.Base" parent="android:Theme.Holo">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
@@ -49,10 +53,14 @@
         <item name="selectableItemBackground">?android:attr/selectableItemBackground</item>
     </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/src/main/res/values-v11/styles.xml -->
+    <eat-comment />
+
     <style name="VertAnimationTheme" parent="android:Theme.Holo.Light.Dialog">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <!-- From: file:/D:/Shibafu/git/Yukari/YukariProject/Yukari/build/exploded-bundles/ComAndroidSupportAppcompatV71800.aar/res/values-v11/values.xml -->
+    <eat-comment />
+
     <style name="Widget.AppCompat.Base.AutoCompleteTextView" parent="android:Widget.Holo.AutoCompleteTextView" />
 
     <style name="Widget.AppCompat.Base.ProgressBar" parent="android:Widget.Holo.ProgressBar" />
