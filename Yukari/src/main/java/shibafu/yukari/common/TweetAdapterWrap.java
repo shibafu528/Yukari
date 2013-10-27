@@ -2,6 +2,7 @@ package shibafu.yukari.common;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import shibafu.util.MorseCodec;
 import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
@@ -35,17 +37,15 @@ import twitter4j.UserMentionEntity;
 public class TweetAdapterWrap {
     private Context context;
     private List<AuthUserRecord> userRecords;
-    private List<Status> statuses;
+    private List<PreformedStatus> statuses;
     private TweetAdapter adapter;
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
-    private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
-    private final static Pattern SIGNAL_PATTERN = Pattern.compile("(((−|・|－)+) ?)+");
 
     public final static int CONFIG_SHOW_THUMBNAIL    = 0x01;
     public final static int CONFIG_DISABLE_BGCOLOR   = 0x02;
     public final static int CONFIG_DISABLE_FONTCOLOR = 0x04;
 
-    public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<Status> statuses) {
+    public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<PreformedStatus> statuses) {
         this.context = context;
         this.userRecords = new ArrayList<AuthUserRecord>();
         userRecords.add(userRecord);
@@ -53,7 +53,7 @@ public class TweetAdapterWrap {
         adapter = new TweetAdapter();
     }
 
-    public TweetAdapterWrap(Context context, List<AuthUserRecord> userRecords, List<Status> statuses) {
+    public TweetAdapterWrap(Context context, List<AuthUserRecord> userRecords, List<PreformedStatus> statuses) {
         this.context = context;
         this.userRecords = userRecords;
         this.statuses = statuses;
@@ -68,58 +68,39 @@ public class TweetAdapterWrap {
         adapter.notifyDataSetChanged();
     }
 
-    private static String replaceAllEntities(Status status) {
-        String text = status.getText();
-        for (URLEntity e : status.getURLEntities()) {
-            text = text.replace(e.getURL(), e.getExpandedURL());
-        }
-        for (MediaEntity e : status.getMediaEntities()) {
-            text = text.replace(e.getURL(), e.getMediaURL());
-        }
-        return text;
+    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords, int config) {
+        return setStatusToView(context, v, new PreformedStatus(st, null), userRecords, config);
     }
 
-    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords, int config) {
+    public static View setStatusToView(Context context, View v, PreformedStatus st, List<AuthUserRecord> userRecords, int config) {
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         tvName.setTypeface(FontAsset.getInstance(context).getFont());
 
         TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
         tvText.setTypeface(FontAsset.getInstance(context).getFont());
-        String text = replaceAllEntities(st);
-        text = MorseCodec.decode(text);
-        tvText.setText(text);
+        tvText.setText(st.getText());
 
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
         ivIcon.setImageResource(R.drawable.yukatterload);
-        ivIcon.setImageUrl(st.getUser().getProfileImageURL());
+        String imageUrl = st.getUser().getBiggerProfileImageURL();
+        if (st.isRetweet()) {
+            imageUrl = st.getRetweetedStatus().getUser().getBiggerProfileImageURL();
+        }
+        ivIcon.setTag(imageUrl);
+        IconLoaderTask loaderTask = new IconLoaderTask(context, ivIcon);
+        loaderTask.executeIf(imageUrl);
 
         TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
         tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
-        Matcher matcher = VIA_PATTERN.matcher(st.getSource());
-        String via;
-        if (matcher.find()) {
-            via = matcher.group(1);
-        }
-        else {
-            via = st.getSource();
-        }
+        String via = st.getSource();
         String timestamp = sdf.format(st.getCreatedAt()) + " via " + via;
 
         LinearLayout llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
         llAttach.removeAllViews();
 
         if ((config & CONFIG_SHOW_THUMBNAIL) == CONFIG_SHOW_THUMBNAIL) {
-            ArrayList<String> mediaList = new ArrayList<String>();
-            for (URLEntity urlEntity : st.getURLEntities()) {
-                String expanded = TweetImageUrl.getFullImageUrl(urlEntity.getExpandedURL());
-                if (expanded != null) {
-                    mediaList.add(expanded);
-                }
-            }
-            for (MediaEntity mediaEntity : st.getMediaEntities()) {
-                mediaList.add(mediaEntity.getMediaURL());
-            }
+            List<String> mediaList = st.getMediaLinkList();
             int frameWidth = llAttach.getWidth();
             if (mediaList.size() > 0) {
                 FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
@@ -159,7 +140,6 @@ public class TweetAdapterWrap {
                 timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
                 tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
                 tvText.setText(st.getRetweetedStatus().getText());
-                ivIcon.setImageUrl(st.getRetweetedStatus().getUser().getProfileImageURL());
                 bgColor = Color.parseColor("#C2B7FD");
             }
             else if (isMention) {
@@ -206,7 +186,7 @@ public class TweetAdapterWrap {
                 v = inflater.inflate(R.layout.row_tweet, null);
             }
 
-            Status st = (Status) getItem(position);
+            PreformedStatus st = (PreformedStatus) getItem(position);
             if (st != null) {
                 v = setStatusToView(context, v, st, userRecords, CONFIG_SHOW_THUMBNAIL);
             }

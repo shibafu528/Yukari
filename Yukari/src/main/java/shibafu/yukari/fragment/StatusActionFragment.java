@@ -1,12 +1,18 @@
 package shibafu.yukari.fragment;
 
 import android.R;
+import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.text.ClipboardManager;
 import android.view.View;
@@ -36,7 +42,8 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             "クリップボードにコピー",
             "ブックマークする",
             "マルチアカウントRT/Fav",
-            "アプリごとミュート"
+            "アプリごとミュート",
+            "ツイート削除"
     };
 
     private List<ResolveInfo> plugins;
@@ -44,6 +51,11 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
     private Status status = null;
     private AuthUserRecord user = null;
+
+    private TwitterService service;
+    private boolean serviceBound = false;
+
+    private AlertDialog currentDialog = null;
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -72,8 +84,14 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         menu.addAll(Arrays.asList(ITEMS));
         menu.addAll(pluginNames);
 
+        if (user == null || status.getUser().getId() != user.NumericId) {
+            menu.remove(5);
+        }
+
         setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
+
+        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -94,9 +112,56 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             case 4: break;
             default:
             {
-                Intent intent = createPluginIntent(position - 5);
-                if (intent != null) {
-                    startActivity(intent);
+                if (position == 5 && user != null && status.getUser().getId() == user.NumericId) {
+                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                            .setTitle("確認")
+                            .setMessage("ツイートを削除しますか？")
+                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+
+                                    AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                                        @Override
+                                        protected Void doInBackground(Void... params) {
+                                            service.destroyStatus(user, status.getId());
+                                            return null;
+                                        }
+                                    };
+                                    task.execute();
+                                    getActivity().finish();
+                                }
+                            })
+                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                }
+                            })
+                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                @Override
+                                public void onCancel(DialogInterface dialog) {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                }
+                            })
+                            .create();
+                    ad.show();
+                    currentDialog = ad;
+                }
+                else {
+                    Intent intent;
+                    if (user != null && status.getUser().getId() == user.NumericId) {
+                        intent = createPluginIntent(position - 6);
+                    }
+                    else {
+                        intent = createPluginIntent(position - 5);
+                    }
+                    if (intent != null) {
+                        startActivity(intent);
+                    }
                 }
                 break;
             }
@@ -140,4 +205,35 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         }
         return null;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (currentDialog != null) {
+            currentDialog.show();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (serviceBound) {
+            getActivity().unbindService(connection);
+            serviceBound = false;
+        }
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
+            StatusActionFragment.this.service = binder.getService();
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 }

@@ -450,6 +450,20 @@ public class TwitterService extends Service{
             showToast("ふぁぼ成功: " + success + ((failed > 0)? " / ふぁぼ失敗: " + failed: ""));
         }
     }
+
+    public void destroyStatus(AuthUserRecord user, long id) {
+        if (user != null) {
+            twitter.setOAuthAccessToken(user.getAccessToken());
+            try {
+                twitter.destroyStatus(id);
+                showToast("ツイートを削除しました");
+                return;
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            }
+        }
+        showToast("ツイート削除に失敗しました");
+    }
     //</editor-fold>
 
     //<editor-fold desc="URL/Quote生成">
