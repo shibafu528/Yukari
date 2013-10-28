@@ -130,10 +130,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                         }
                     }, new Date(System.currentTimeMillis() + 100));
                     //ツイート詳細画面の呼び出し
-                    Status s = statuses.get(position);
+                    PreformedStatus s = statuses.get(position);
                     Intent intent = new Intent(getActivity(), StatusActivity.class);
                     intent.putExtra(StatusActivity.EXTRA_STATUS, s);
-                    intent.putExtra(StatusActivity.EXTRA_USER, user);
+                    intent.putExtra(StatusActivity.EXTRA_USER, s.getReceiveUser());
                     startActivity(intent);
                 }
                 else if (position == statuses.size() && !isLoading) {

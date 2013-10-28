@@ -30,7 +30,7 @@ public class ProfileIconCache {
         key = encodeKey(key);
         //メモリ上のキャッシュから取得を試みる
         Bitmap image = lruCache.get(key);
-        if (image == null) {
+        if (image == null && context != null) {
             //無かったらファイルから取得を試みる
             File cacheDir;
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -56,27 +56,29 @@ public class ProfileIconCache {
         key = encodeKey(key);
         //メモリ上のキャッシュと、ファイルに書き込む
         lruCache.put(key, image);
-        File cacheDir;
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            cacheDir = context.getExternalCacheDir();
-        }
-        else {
-            cacheDir = context.getCacheDir();
-        }
-        cacheDir = new File(cacheDir, "icon");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs();
-        }
-        File cacheFile = new File(cacheDir, key);
-        synchronized (context) {
-            if (!cacheFile.exists()) {
-                //存在していなかったらファイルを書き込む
-                try {
-                    FileOutputStream fos = new FileOutputStream(cacheFile);
-                    image.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+        if (context != null) {
+            File cacheDir;
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                cacheDir = context.getExternalCacheDir();
+            }
+            else {
+                cacheDir = context.getCacheDir();
+            }
+            cacheDir = new File(cacheDir, "icon");
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            File cacheFile = new File(cacheDir, key);
+            synchronized (context) {
+                if (!cacheFile.exists()) {
+                    //存在していなかったらファイルを書き込む
+                    try {
+                        FileOutputStream fos = new FileOutputStream(cacheFile);
+                        image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        fos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
