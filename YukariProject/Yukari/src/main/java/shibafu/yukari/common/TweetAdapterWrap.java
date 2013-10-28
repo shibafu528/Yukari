@@ -137,7 +137,7 @@ public class TweetAdapterWrap {
         if ((config & CONFIG_DISABLE_BGCOLOR) != CONFIG_DISABLE_BGCOLOR) {
             int bgColor = Color.WHITE;
             if (st.isRetweet()) {
-                timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + timestamp;
+                timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + via;
                 tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
                 tvText.setText(st.getRetweetedStatus().getText());
                 bgColor = Color.parseColor("#C2B7FD");
