@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
@@ -111,7 +112,9 @@ public class ProfileFragment extends Fragment{
             @Override
             protected void onPostExecute(String s) {
                 if (s != null) {
-                    ivProfileCurrent.setImageUrl(s);
+                    ivProfileCurrent.setTag(s);
+                    IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileCurrent);
+                    loaderTask.executeIf(s);
                 }
             }
         };
@@ -305,7 +308,10 @@ public class ProfileFragment extends Fragment{
         Relationship relationship = holder.relationship;
         relation = relationship;
         if (user != null) {
-            ivProfileIcon.setImageUrl(user.getBiggerProfileImageURL());
+            ivProfileIcon.setTag(user.getBiggerProfileImageURL());
+            IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
+            loaderTask.executeIf(user.getBiggerProfileImageURL());
+
             ivHeader.setImageUrl(user.getProfileBannerMobileURL());
             Log.d("ProfileFragment", "header url: " + user.getProfileBannerMobileURL());
             tvName.setText(user.getName());

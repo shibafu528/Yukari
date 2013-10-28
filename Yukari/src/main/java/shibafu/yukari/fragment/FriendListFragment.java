@@ -32,6 +32,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -244,7 +245,9 @@ public class FriendListFragment extends ListFragment implements AttachableList {
                 vh.tvName.setText(u.getName());
                 vh.tvScreenName.setText("@" + u.getScreenName());
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
-                vh.ivIcon.setImageUrl(u.getProfileImageURL());
+                vh.ivIcon.setTag(u.getBiggerProfileImageURL());
+                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), vh.ivIcon);
+                loaderTask.executeIf(u.getBiggerProfileImageURL());
             }
 
             return v;
