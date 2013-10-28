@@ -296,6 +296,9 @@ public class StatusMainFragment extends Fragment{
         });
 
         TextView tvCounter = (TextView) v.findViewById(R.id.tv_state_counter);
+        if (status.isRetweet()) {
+            status = status.getRetweetedStatus();
+        }
         int retweeted = status.getRetweetCount();
         int faved = status.getFavoriteCount();
         String countRT = retweeted + "RT";
