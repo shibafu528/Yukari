@@ -276,7 +276,8 @@ public class ProfileFragment extends Fragment{
                             ProfileFragment.this.user = service.getPrimaryUser();
                         }
                         Relationship relationship = null;
-                        relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
+                        if (user != null)
+                            relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
                         return new LoadHolder(user, relationship);
                     } catch (TwitterException e) {
                         e.printStackTrace();
