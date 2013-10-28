@@ -135,12 +135,12 @@ public class PreformedStatus implements Status{
 
     @Override
     public boolean isRetweeted() {
-        return false;
+        return status.isRetweeted();
     }
 
     @Override
     public int getFavoriteCount() {
-        return 0;
+        return status.getFavoriteCount();
     }
 
     @Override
@@ -189,7 +189,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public String getIsoLanguageCode() {
-        return null;
+        return status.getIsoLanguageCode();
     }
 
     @Override
@@ -219,7 +219,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public SymbolEntity[] getSymbolEntities() {
-        return new SymbolEntity[0];
+        return status.getSymbolEntities();
     }
 
     public List<String> getMediaLinkList() {
