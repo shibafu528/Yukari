@@ -24,6 +24,17 @@
                     android:layout_gravity="center"
                     android:id="@+id/status_tweet"
                     />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="0RT 0Fav"
+                android:id="@+id/tv_state_counter"
+                android:layout_gravity="right"
+                android:layout_marginRight="6dp"
+                android:textColor="#ff8b8b8b"
+                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 

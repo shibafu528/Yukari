@@ -10,10 +10,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +44,7 @@ public class StatusMainFragment extends Fragment{
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
     private View tweetView;
+    private TextView tvCounter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -291,6 +294,25 @@ public class StatusMainFragment extends Fragment{
                 startActivity(intent);
             }
         });
+
+        TextView tvCounter = (TextView) v.findViewById(R.id.tv_state_counter);
+        int retweeted = status.getRetweetCount();
+        int faved = status.getFavoriteCount();
+        String countRT = retweeted + "RT";
+        String countFav = faved + "Fav";
+        if (retweeted > 0 && faved > 0) {
+            tvCounter.setText(countRT + " " + countFav);
+            tvCounter.setVisibility(View.VISIBLE);
+        }
+        else if (retweeted > 0) {
+            tvCounter.setText(countRT);
+            tvCounter.setVisibility(View.VISIBLE);
+        }
+        else if (faved > 0) {
+            tvCounter.setText(countFav);
+            tvCounter.setVisibility(View.VISIBLE);
+        }
+
         return v;
     }
 
