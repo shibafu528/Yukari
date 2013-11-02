@@ -556,7 +556,7 @@ public final class R {
 		public static final int MenuItem_android_titleCondensed = 8;
 		public static final int MenuItem_android_visible = 4;
 		public static final int MenuItem_showAsAction = 13;
-		public static final int[] MenuView = { 0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e, 0x0101012f, 0x01010130, 0x01010131, 0x0101041a };
+		public static final int[] MenuView = { 0x010100ae, 0x0101012c, 0x0101012d, 0x0101012e, 0x0101012f, 0x01010130, 0x01010131, 0x01010435 };
 		public static final int MenuView_android_headerBackground = 4;
 		public static final int MenuView_android_horizontalDivider = 2;
 		public static final int MenuView_android_itemBackground = 5;

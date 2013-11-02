@@ -1,5 +1,6 @@
 package shibafu.yukari.util;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -70,6 +71,15 @@ public class BitmapResizer {
      * @return
      */
     private static int getExifRotate(Context context, Uri uri) {
+        //Storage Access Framework経由のUriの場合は対処する
+        if (uri.toString().startsWith("content://com.android.providers.media.documents/document/")) {
+            Cursor c = context.getContentResolver().query(uri, null, null, null, null);
+            c.moveToFirst();
+            long id = Long.valueOf(c.getString(0).split(":")[1]);
+            uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            c.close();
+        }
+
         Cursor c = context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
         c.moveToFirst();
 
