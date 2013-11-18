@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +30,7 @@ import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.TweetDraft;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -213,8 +215,8 @@ public class DraftDialogFragment extends DialogFragment {
                 TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
                 tvText.setTypeface(FontAsset.getInstance(getActivity()).getFont());
                 tvText.setText(d.text);
-                final SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
-                ivIcon.setImageResource(R.drawable.ic_launcher);
+                final ImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
+                ivIcon.setImageResource(R.drawable.yukatterload);
                 {
                     AsyncTask<Void, Void, User> task = new AsyncTask<Void, Void, User>() {
                         @Override
@@ -232,7 +234,9 @@ public class DraftDialogFragment extends DialogFragment {
                         @Override
                         protected void onPostExecute(User user) {
                             if (user != null) {
-                                ivIcon.setImageUrl(user.getProfileImageURL());
+                                ivIcon.setTag(user.getBiggerProfileImageURL());
+                                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
+                                loaderTask.executeIf(user.getBiggerProfileImageURL());
                             }
                         }
                     };
