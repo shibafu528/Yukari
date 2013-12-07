@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.Status;
 
 /**
@@ -49,7 +50,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     private List<ResolveInfo> plugins;
     private List<String> pluginNames = new ArrayList<String>();
 
-    private Status status = null;
+    private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
     private TwitterService service;
@@ -62,7 +63,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         super.onViewCreated(view, savedInstanceState);
 
         Bundle b = getArguments();
-        status = (Status) b.getSerializable(StatusActivity.EXTRA_STATUS);
+        status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
         PackageManager pm = getActivity().getPackageManager();

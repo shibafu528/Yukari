@@ -486,7 +486,7 @@ public class TwitterService extends Service{
         StringBuilder sb = new StringBuilder();
         sb.append(status.getUser().getScreenName());
         sb.append(":");
-        sb.append(status.getText());
+        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
         sb.append(" [");
         sb.append(getTweetURL(status));
         sb.append("]");
@@ -500,7 +500,7 @@ public class TwitterService extends Service{
         StringBuilder sb = new StringBuilder(" RT @");
         sb.append(status.getUser().getScreenName());
         sb.append(": ");
-        sb.append(status.getText());
+        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
         return sb.toString();
     }
 
@@ -511,7 +511,7 @@ public class TwitterService extends Service{
         StringBuilder sb = new StringBuilder(" QT @");
         sb.append(status.getUser().getScreenName());
         sb.append(": ");
-        sb.append(status.getText());
+        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
         return sb.toString();
     }
 
@@ -522,7 +522,7 @@ public class TwitterService extends Service{
         StringBuilder sb = new StringBuilder(" \"@");
         sb.append(status.getUser().getScreenName());
         sb.append(": ");
-        sb.append(status.getText());
+        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
         sb.append("\"");
         return sb.toString();
     }

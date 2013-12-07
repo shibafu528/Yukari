@@ -21,6 +21,7 @@ import shibafu.yukari.fragment.StatusActionFragment;
 import shibafu.yukari.fragment.StatusLinkFragment;
 import shibafu.yukari.fragment.StatusMainFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.Status;
 
 public class StatusActivity extends FragmentActivity {
@@ -32,7 +33,7 @@ public class StatusActivity extends FragmentActivity {
     private ViewPager mViewPager;
 
     private AuthUserRecord user = null;
-    private Status status = null;
+    private PreformedStatus status = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +42,7 @@ public class StatusActivity extends FragmentActivity {
         setContentView(R.layout.activity_status);
 
         Intent args = getIntent();
-        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
+        status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
         user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
 
         if (status == null) {
