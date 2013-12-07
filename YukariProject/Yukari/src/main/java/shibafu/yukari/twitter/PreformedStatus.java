@@ -158,8 +158,8 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public Status getRetweetedStatus() {
-        return status.getRetweetedStatus();
+    public PreformedStatus getRetweetedStatus() {
+        return new PreformedStatus(status.getRetweetedStatus(), receiveUser);
     }
 
     @Override

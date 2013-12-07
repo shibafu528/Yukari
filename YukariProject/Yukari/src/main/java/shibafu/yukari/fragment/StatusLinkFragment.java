@@ -27,6 +27,7 @@ import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Status;
@@ -50,7 +51,7 @@ public class StatusLinkFragment extends ListFragment{
     private static final int TYPE_USER_DM      = TYPE_USER | 0x02;
     private static final int TYPE_USER_PROFILE = TYPE_USER | 0x04;
 
-    private Status status = null;
+    private PreformedStatus status = null;
     private AuthUserRecord user = null;
     private List<LinkRow> list;
 
@@ -59,7 +60,7 @@ public class StatusLinkFragment extends ListFragment{
         super.onActivityCreated(savedInstanceState);
 
         Bundle b = getArguments();
-        status = (Status) b.getSerializable(StatusActivity.EXTRA_STATUS);
+        status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         Status rt_status = null;
         boolean rt = false;
         if (status.isRetweet()) {

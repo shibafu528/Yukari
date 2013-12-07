@@ -26,6 +26,7 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.Status;
 
 /**
@@ -33,7 +34,7 @@ import twitter4j.Status;
  */
 public class StatusMainFragment extends Fragment{
 
-    private Status status = null;
+    private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
     private TwitterService service;
@@ -50,7 +51,7 @@ public class StatusMainFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_status_main, container, false);
         Bundle b = getArguments();
-        status = (Status) b.getSerializable(StatusActivity.EXTRA_STATUS);
+        status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
         tweetView = v.findViewById(R.id.status_tweet);
 
@@ -127,18 +128,9 @@ public class StatusMainFragment extends Fragment{
                 String source = status.getSource();
                 if (source.contains("ShootingStar") || source.contains("TheWorld") || source.contains("Biyon≡(　ε:)"))
                 {
-                    Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
-                    Matcher matcher = VIA_PATTERN.matcher(source);
-                    String via;
-                    if (matcher.find()) {
-                        via = matcher.group(1);
-                    }
-                    else {
-                        via = source;
-                    }
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("だいじな確認")
-                            .setMessage("このツイートのviaは特定クライアント(" + via + ")のものです。お気に入り登録してもよろしいですか？")
+                            .setMessage("このツイートのviaは特定クライアント(" + source + ")のものです。お気に入り登録してもよろしいですか？")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setPositiveButton("ふぁぼる", new DialogInterface.OnClickListener() {
                                 @Override
