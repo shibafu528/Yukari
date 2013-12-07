@@ -21,7 +21,49 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:id="@+id/tweetgesture">
+            android:id="@+id/tweetgesture"
+            android:background="@drawable/bar_gradation">
 
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1">
+
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@null" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"></FrameLayout>
+
+                <ImageButton
+                    android:layout_width="64dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/imageButton"
+                    android:src="@drawable/ic_search"
+                    android:background="@null"
+                    android:layout_weight="1"
+                    android:focusable="false"/>
+            </LinearLayout>
+        </LinearLayout>
     </FrameLayout>
 </RelativeLayout>
