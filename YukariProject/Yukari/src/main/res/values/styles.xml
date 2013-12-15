@@ -25,7 +25,7 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="android:Theme.Light.NoTitleBar"></style>
+    <style name="AppThemeNoTitle" parent="Theme.AppCompat.Light"></style>
 
     <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
         <item name="android:windowIsTranslucent">true</item>

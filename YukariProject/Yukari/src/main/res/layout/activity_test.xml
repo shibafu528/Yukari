@@ -22,7 +22,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:id="@+id/tweetgesture"
-            android:background="@drawable/bar_gradation">
+            android:background="@drawable/status_bar_color">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -35,13 +35,27 @@
                 android:layout_height="fill_parent"
                 android:layout_weight="1">
 
-                <Spinner
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="▶"
+                    android:id="@+id/tvStreamStates"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="4dp" />
+
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/spinner"
-                    android:layout_weight="1"
-                    android:focusable="false"
-                    android:background="@null" />
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:id="@+id/tvMainTab"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="6dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/selector_key_background" />
             </LinearLayout>
 
             <LinearLayout
@@ -58,11 +72,11 @@
                 <ImageButton
                     android:layout_width="64dp"
                     android:layout_height="match_parent"
-                    android:id="@+id/imageButton"
+                    android:id="@+id/ibSearch"
                     android:src="@drawable/ic_search"
-                    android:background="@null"
                     android:layout_weight="1"
-                    android:focusable="false"/>
+                    android:focusable="false"
+                    android:background="@drawable/selector_key_background"/>
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>

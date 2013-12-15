@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <drawable name="preview_bg">#99000000</drawable>
+
+    <drawable name="key_color">#ff7849ba</drawable>
+    <drawable name="status_bar_color">#cc7849ba</drawable>
+
+    <drawable name="focus_key_color">@drawable/key_color</drawable>
+    <drawable name="press_key_color">#ff613fa3</drawable>
+
+    <drawable name="focus_gray_color">#caaa</drawable>
+    <drawable name="press_gray_color">#c777</drawable>
 </resources>

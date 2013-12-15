@@ -11,13 +11,17 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.PopupMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -25,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
@@ -49,9 +54,13 @@ public class MainActivity extends FragmentActivity {
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
+    private List<AttachableList> pageList = new ArrayList<AttachableList>();
+    private TextView tvTabText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_test);
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -66,6 +75,19 @@ public class MainActivity extends FragmentActivity {
             return;
         }
 
+        tvTabText = (TextView) findViewById(R.id.tvMainTab);
+        tvTabText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+                Menu menu = popupMenu.getMenu();
+                for (AttachableList page : pageList) {
+                    menu.add(page.getTitle());
+                }
+                popupMenu.show();
+            }
+        });
+
         //Twitterログインデータを読み込む
         twitter = TwitterUtil.getTwitterInstance(this);
         users = Arrays.asList(TwitterUtil.loadUserRecords(this));
@@ -73,7 +95,7 @@ public class MainActivity extends FragmentActivity {
             startActivityForResult(new Intent(this, OAuthActivity.class), REQUEST_OAUTH);
         }
         else {
-            addTab(users.get(0), "home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
+            addTab(users.get(0), "Home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
         }
 
         FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
@@ -120,9 +142,12 @@ public class MainActivity extends FragmentActivity {
         b.putSerializable(TweetListFragment.EXTRA_USER, user);
         fragment.setArguments(b);
 
+        pageList.add(fragment);
+
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame, fragment).commit();
         setTitle(title);
+        tvTabText.setText(title);
     }
 
     @Override
@@ -302,7 +327,7 @@ public class MainActivity extends FragmentActivity {
         for (AuthUserRecord aur : newestList) {
             if (!users.contains(aur)) {
                 users.add(aur);
-                addTab(aur, "home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
+                addTab(aur, "Home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
             }
         }
     }
