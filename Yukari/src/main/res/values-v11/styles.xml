@@ -4,13 +4,11 @@
         Base application theme for API 11+. This theme completely replaces
         AppBaseTheme from res/values/styles.xml on API 11+ devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Holo.Light">
+    <style name="AppBaseTheme" parent="YukariTheme">
         <!-- API 11 theme customizations can go here. -->
     </style>
 
-    <style name="AppDialogTheme" parent="android:Theme.Holo.Light.Dialog"></style>
-
-    <style name="VertAnimationTheme" parent="android:Theme.Holo.Light.Dialog">
+    <style name="VertAnimationTheme" parent="YukariDialogTheme">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <style name="Animation" parent="android:Animation" />
@@ -21,7 +19,7 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="Theme.AppCompat.Light"></style>
+    <style name="AppThemeNoTitle" parent="YukariTheme"></style>
 
     <style name="AppThemeTranslucent" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>

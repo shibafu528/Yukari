@@ -18,7 +18,7 @@
         <activity
             android:name="shibafu.yukari.activity.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppThemeNoTitle" >
+            android:theme="@style/YukariTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -75,7 +75,7 @@
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
             android:label="@string/title_activity_status"
-            android:theme="@style/AppDialogTheme" >
+            android:theme="@style/YukariDialogTheme" >
         </activity>
         <activity
             android:name="shibafu.yukari.activity.StatusIntentActivity"
@@ -161,7 +161,7 @@
         <activity
             android:name=".activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
-            android:theme="@style/AppDialogTheme">
+            android:theme="@style/YukariDialogTheme">
         </activity>
         <service android:name=".service.FriendsDBUpdateService"/>
 

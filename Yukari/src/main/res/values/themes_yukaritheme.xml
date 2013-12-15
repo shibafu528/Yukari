@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="YukariTheme" parent="Theme.AppCompat.Light">
+
+    <item name="android:editTextStyle">@style/EditTextYukariTheme</item>
+
+    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariTheme</item>
+
+    <item name="android:checkboxStyle">@style/CheckBoxYukariTheme</item>
+
+    <item name="android:radioButtonStyle">@style/RadioButtonYukariTheme</item>
+
+    <item name="android:buttonStyle">@style/ButtonYukariTheme</item>
+
+    <item name="android:imageButtonStyle">@style/ImageButtonYukariTheme</item>
+
+    <item name="android:spinnerStyle">@style/SpinnerYukariTheme</item>
+
+    <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemYukariTheme</item>
+
+    <item name="android:progressBarStyleHorizontal">@style/ProgressBarYukariTheme</item>
+
+    <item name="android:seekBarStyle">@style/SeekBarYukariTheme</item>
+
+    <item name="android:buttonStyleToggle">@style/ToggleYukariTheme</item>
+
+    <item name="android:listViewStyle">@style/ListViewYukariTheme</item>
+
+    <item name="android:listViewWhiteStyle">@style/ListViewYukariTheme.White</item>
+
+    <item name="android:spinnerItemStyle">@style/SpinnerItemYukariTheme</item>
+
+  </style>
+
+  <style name="YukariDialogTheme" parent="android:Theme.Dialog">
+
+        <item name="android:editTextStyle">@style/EditTextYukariTheme</item>
+
+        <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariTheme</item>
+
+        <item name="android:checkboxStyle">@style/CheckBoxYukariTheme</item>
+
+        <item name="android:radioButtonStyle">@style/RadioButtonYukariTheme</item>
+
+        <item name="android:buttonStyle">@style/ButtonYukariTheme</item>
+
+        <item name="android:imageButtonStyle">@style/ImageButtonYukariTheme</item>
+
+        <item name="android:spinnerStyle">@style/SpinnerYukariTheme</item>
+
+        <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemYukariTheme</item>
+
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarYukariTheme</item>
+
+        <item name="android:seekBarStyle">@style/SeekBarYukariTheme</item>
+
+        <item name="android:buttonStyleToggle">@style/ToggleYukariTheme</item>
+
+        <item name="android:listViewStyle">@style/ListViewYukariTheme</item>
+
+        <item name="android:listViewWhiteStyle">@style/ListViewYukariTheme.White</item>
+
+        <item name="android:spinnerItemStyle">@style/SpinnerItemYukariTheme</item>
+
+    </style>
+
+</resources>

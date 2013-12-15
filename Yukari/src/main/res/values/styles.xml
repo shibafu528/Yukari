@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="android:Theme.Light">
+    <style name="AppBaseTheme" parent="YukariTheme">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -12,9 +12,7 @@
         -->
     </style>
 
-    <style name="AppDialogTheme" parent="android:Theme.Dialog"></style>
-
-    <style name="VertAnimationTheme" parent="android:Theme.Dialog">
+    <style name="VertAnimationTheme" parent="YukariDialogTheme">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <style name="Animation" parent="android:Animation" />
@@ -25,7 +23,7 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="Theme.AppCompat.Light"></style>
+    <style name="AppThemeNoTitle" parent="YukariTheme"></style>
 
     <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
         <item name="android:windowIsTranslucent">true</item>
