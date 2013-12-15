@@ -10,15 +10,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
@@ -27,7 +23,7 @@ import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import twitter4j.Status;
+import shibafu.yukari.twitter.TwitterUtil;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -254,16 +250,16 @@ public class StatusMainFragment extends Fragment{
                         intent.putExtra(TweetActivity.EXTRA_USER, user);
                         switch (which) {
                             case 0:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterService.createQuotedRT(status));
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
                                 break;
                             case 1:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterService.createQT(status));
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
                                 break;
                             case 2:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterService.createQuote(status));
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
                                 break;
                             case 3:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterService.getTweetURL(status));
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
                                 break;
                         }
                         startActivity(intent);
@@ -279,7 +275,7 @@ public class StatusMainFragment extends Fragment{
         ibShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String stot = TwitterService.createSTOT(status);
+                String stot = TwitterUtil.createSTOT(status);
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
                 intent.putExtra(Intent.EXTRA_TEXT, stot);

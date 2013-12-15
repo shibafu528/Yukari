@@ -31,7 +31,7 @@ import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import twitter4j.Status;
+import shibafu.yukari.twitter.TwitterUtil;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -99,12 +99,12 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         switch (position) {
             case 0:
-                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, Uri.parse(TwitterService.getTweetURL(status))), null));
+                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, Uri.parse(TwitterUtil.getTweetURL(status))), null));
                 break;
             case 1:
             {
                 ClipboardManager cb = (ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                cb.setText(TwitterService.createSTOT(status));
+                cb.setText(TwitterUtil.createSTOT(status));
                 Toast.makeText(getActivity(), "クリップボードにコピーしました", Toast.LENGTH_LONG).show();
                 break;
             }
