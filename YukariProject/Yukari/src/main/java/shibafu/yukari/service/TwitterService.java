@@ -466,68 +466,6 @@ public class TwitterService extends Service{
     }
     //</editor-fold>
 
-    //<editor-fold desc="URL/Quote生成">
-    public static String getTweetURL(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("http://twitter.com/");
-        sb.append(status.getUser().getScreenName());
-        sb.append("/status/");
-        sb.append(status.getId());
-        return sb.toString();
-    }
-
-    public static String createSTOT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(status.getUser().getScreenName());
-        sb.append(":");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        sb.append(" [");
-        sb.append(getTweetURL(status));
-        sb.append("]");
-        return sb.toString();
-    }
-
-    public static String createQuotedRT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" RT @");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        return sb.toString();
-    }
-
-    public static String createQT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" QT @");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        return sb.toString();
-    }
-
-    public static String createQuote(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" \"@");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        sb.append("\"");
-        return sb.toString();
-    }
-    //</editor-fold>
-
     public boolean isMyTweet(Status status) {
         for (AuthUserRecord aur : users) {
             if (status.getUser().getId() == aur.NumericId) {
