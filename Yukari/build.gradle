@@ -26,6 +26,11 @@ android {
         minSdkVersion 8
         targetSdkVersion 15
     }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_6
+        targetCompatibility JavaVersion.VERSION_1_6
+    }
 }
 
 tasks.withType(Compile) {
