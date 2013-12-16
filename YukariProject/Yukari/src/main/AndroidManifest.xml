@@ -175,6 +175,11 @@
         <activity
             android:name=".activity.PreviewActivity"
             android:theme="@style/AppThemeTranslucentBg"/>
+
+        <activity
+            android:name=".activity.AccountChooserActivity"
+            android:theme="@style/YukariDialogTheme"
+            android:label="@string/title_activity_accountchooser"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />
