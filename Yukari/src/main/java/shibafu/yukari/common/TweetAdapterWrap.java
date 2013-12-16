@@ -73,6 +73,14 @@ public class TweetAdapterWrap {
     }
 
     public static View setStatusToView(Context context, View v, PreformedStatus st, List<AuthUserRecord> userRecords, int config) {
+        //ViewHolderを取得もしくは新規作成
+        TweetViewHolder viewHolder = (TweetViewHolder) v.getTag(R.string.key_viewholder);
+        if (viewHolder == null) {
+            viewHolder = new TweetViewHolder();
+            //TODO: ここでfindViewByIdしよう
+            v.setTag(R.string.key_viewholder, viewHolder);
+        }
+
         TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
         tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         tvName.setTypeface(FontAsset.getInstance(context).getFont());
@@ -82,14 +90,16 @@ public class TweetAdapterWrap {
         tvText.setText(st.getText());
 
         SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
-        ivIcon.setImageResource(R.drawable.yukatterload);
         String imageUrl = st.getUser().getBiggerProfileImageURL();
         if (st.isRetweet()) {
             imageUrl = st.getRetweetedStatus().getUser().getBiggerProfileImageURL();
         }
-        ivIcon.setTag(imageUrl);
-        IconLoaderTask loaderTask = new IconLoaderTask(context, ivIcon);
-        loaderTask.executeIf(imageUrl);
+        if (ivIcon.getTag() == null || !ivIcon.getTag().equals(imageUrl)) {
+            ivIcon.setImageResource(R.drawable.yukatterload);
+            ivIcon.setTag(imageUrl);
+            IconLoaderTask loaderTask = new IconLoaderTask(context, ivIcon);
+            loaderTask.executeIf(imageUrl);
+        }
 
         TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
         tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
@@ -193,5 +203,9 @@ public class TweetAdapterWrap {
 
             return v;
         }
+    }
+
+    private static class TweetViewHolder {
+
     }
 }

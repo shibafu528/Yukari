@@ -8,6 +8,9 @@
     <drawable name="focus_key_color">@drawable/key_color</drawable>
     <drawable name="press_key_color">#ff613fa3</drawable>
 
+    <drawable name="focus_key_light_color">#ca8c54d6</drawable>
+    <drawable name="press_key_light_color">#ca8147cb</drawable>
+
     <drawable name="focus_gray_color">#caaa</drawable>
     <drawable name="press_gray_color">#c777</drawable>
 </resources>

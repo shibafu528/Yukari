@@ -31,6 +31,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -169,6 +170,11 @@ public class MainActivity extends FragmentActivity {
                 }
             });
             builder.show();
+            return true;
+        }
+        else if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
+            MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
+            menuDialogFragment.show(getSupportFragmentManager(), "menu");
             return true;
         }
         return super.dispatchKeyEvent(event);
