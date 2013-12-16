@@ -109,6 +109,27 @@ public class TwitterUtil {
 		}
 	}
 
+    public static String getFavstarURL(String screenName) {
+        if (screenName.startsWith("@")) {
+            screenName = screenName.substring(1);
+        }
+        return "http://favstar.fm/users/" + screenName + "/recent";
+    }
+
+    public static String getAclogURL(String screenName) {
+        if (screenName.startsWith("@")) {
+            screenName = screenName.substring(1);
+        }
+        return "http://aclog.koba789.com/" + screenName + "/timeline";
+    }
+
+    public static String getTwilogURL(String screenName) {
+        if (screenName.startsWith("@")) {
+            screenName = screenName.substring(1);
+        }
+        return "http://twilog.org/" + screenName;
+    }
+
     //<editor-fold desc="URL/Quote生成">
     public static String getTweetURL(Status status) {
         if (status.isRetweet()) {

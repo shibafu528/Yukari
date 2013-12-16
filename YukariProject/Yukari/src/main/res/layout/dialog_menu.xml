@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:paddingTop="6dp"
+        android:padding="6dp"
+        android:focusable="true"
+        android:clickable="true"
+        android:background="@drawable/selector_key_light_background">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Active Accounts:" />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/llMenuAccounts" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:id="@+id/imageView"
+        android:layout_marginBottom="2dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/key_color" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_profile"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="プロフィール"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_twilog"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="twilog"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_favorite_m"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="Favstar"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_aclog"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="aclog"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="3dp"
+        android:layout_marginRight="3dp">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_always_light_off"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="スリープ防止"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="8dp"
+                android:src="@drawable/ic_bookmark"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="ブックマーク"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_settings"
+                android:layout_gravity="center_horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="設定"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:background="@drawable/selector_key_light_background"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_quit"
+                android:layout_gravity="center_horizontal"
+                android:paddingBottom="14dp"
+                android:paddingLeft="8dp"
+                android:paddingTop="10dp"
+                android:paddingRight="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:paddingBottom="4dp"
+                android:text="終了"
+                android:textSize="@dimen/menudialog_textsize"
+                android:layout_gravity="center_horizontal" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>
