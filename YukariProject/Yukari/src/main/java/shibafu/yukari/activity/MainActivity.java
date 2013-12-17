@@ -18,6 +18,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
@@ -50,6 +51,8 @@ public class MainActivity extends FragmentActivity {
 
     private TwitterService service;
     private boolean serviceBound = false;
+
+    private boolean isKeepScreenOn = false;
 
     private boolean isTouchTweet = false;
     private float tweetGestureYStart = 0;
@@ -154,22 +157,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("終了しますか？");
-            builder.setPositiveButton("はい", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    finish();
-                }
-            });
-            builder.setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            builder.show();
+            showExitDialog();
             return true;
         }
         else if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
@@ -178,6 +166,39 @@ public class MainActivity extends FragmentActivity {
             return true;
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    public boolean isKeepScreenOn() {
+        return isKeepScreenOn;
+    }
+
+    public void setKeepScreenOn(boolean isKeepScreenOn) {
+        this.isKeepScreenOn = isKeepScreenOn;
+        if (isKeepScreenOn) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    public void showExitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("終了しますか？");
+        builder.setPositiveButton("はい", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
+            }
+        });
+        builder.setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
     }
 
     @Override
@@ -304,6 +325,7 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_OAUTH) {
             switch (resultCode) {
                 case RESULT_OK:
