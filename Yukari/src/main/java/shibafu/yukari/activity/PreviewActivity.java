@@ -1,12 +1,15 @@
 package shibafu.yukari.activity;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 
 import com.loopj.android.image.SmartImageView;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -99,7 +103,7 @@ public class PreviewActivity extends Activity {
             }
         };
 
-        String expandedUrl = TweetImageUrl.getFullImageUrl(data.toString());
+        final String expandedUrl = TweetImageUrl.getFullImageUrl(data.toString());
         if (expandedUrl != null) {
             imageView.setImageUrl(expandedUrl);
             checkTask.execute(expandedUrl);
@@ -133,6 +137,45 @@ public class PreviewActivity extends Activity {
             @Override
             public void onClick(View v) {
                 startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null));
+            }
+        });
+
+        ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
+            ibSave.setVisibility(View.GONE);
+        }
+        ibSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
+                    Toast.makeText(PreviewActivity.this, "Android2.3未満ではこのボタンは使えません\n今のところそういう仕様です", Toast.LENGTH_LONG).show();
+                }
+                else {
+                    Uri uri;
+                    if (expandedUrl != null) {
+                        uri = Uri.parse(expandedUrl);
+                    }
+                    else {
+                        uri = Uri.parse(data.toString());
+                    }
+                    DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    DownloadManager.Request request = new DownloadManager.Request(uri);
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                    String[] split = uri.getLastPathSegment().split("\\.");
+                    if (split != null && split.length > 1) {
+                        request.setMimeType("image/" + split[split.length-1]);
+                    }
+                    else {
+                        //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
+                        uri = Uri.parse(uri.toString() + ".png");
+                        request.setMimeType("image/png");
+                    }
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment());
+                    File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    pathExternalPublicDir.mkdirs();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    dlm.enqueue(request);
+                }
             }
         });
     }
