@@ -70,7 +70,7 @@
                     android:layout_weight="1"></FrameLayout>
 
                 <ImageButton
-                    android:layout_width="64dp"
+                    android:layout_width="84dp"
                     android:layout_height="match_parent"
                     android:id="@+id/ibSearch"
                     android:src="@drawable/ic_search"
