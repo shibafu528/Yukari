@@ -21,7 +21,8 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterUtil {
 
-	public static final String USER_RECORD = "user_records";
+    @Deprecated
+    public static final String USER_RECORD = "user_records";
 
 	public static Twitter getTwitterInstance(Context context) {
 		String consumer_key = context.getString(R.string.twitter_consumer_key);
@@ -42,6 +43,8 @@ public class TwitterUtil {
 		return twitter;
 	}
 
+    //<editor-fold desc="Deprecated DataStore">
+    @Deprecated
 	public static void storeUserRecord(Context context, AuthUserRecord record) {
 		AuthUserRecord[] stored = loadUserRecords(context);
 		List<AuthUserRecord> modify = new ArrayList<AuthUserRecord>();
@@ -78,6 +81,7 @@ public class TwitterUtil {
 		}
 	}
 
+    @Deprecated
 	public static AuthUserRecord[] loadUserRecords(Context context) {
 		File f = context.getFileStreamPath(USER_RECORD);
 		if (!f.exists())
@@ -108,6 +112,7 @@ public class TwitterUtil {
 			return list.toArray(new AuthUserRecord[0]);
 		}
 	}
+    //</editor-fold>
 
     public static String getFavstarURL(String screenName) {
         if (screenName.startsWith("@")) {

@@ -1,8 +1,12 @@
 package shibafu.yukari.database;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/12/18.
@@ -21,14 +25,15 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_IS_PRIMARY = "IsPrimary"; //各種操作のメインアカウント、最初に認証した垢がデフォルト
     public static final String COL_ACCOUNTS_IS_ACTIVE  = "IsActive"; //タイムラインのアクティブアカウント
     public static final String COL_ACCOUNTS_IS_WRITER  = "IsWriter"; //ツイートのカレントアカウント、オープン毎にIsPrimaryで初期化する
+    public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
 
     //Userテーブル
-    // -- Entity類は全て展開してから格納する
     public static final String TABLE_USER = "User";
     public static final String COL_USER_ID = "_id";
     public static final String COL_USER_SCREEN_NAME = "ScreenName";
     public static final String COL_USER_NAME = "Name";
     public static final String COL_USER_DESCRIPTION = "Description";
+    public static final String COL_USER_DESCRIPTION_URLENTITIES = "DescriptionURLEntities";
     public static final String COL_USER_LOCATION = "Location";
     public static final String COL_USER_URL = "Url";
     public static final String COL_USER_PROFILE_IMAGE_URL = "ProfileImageUrl";
@@ -48,17 +53,40 @@ public class CentralDatabase {
 
     //Draftsテーブル
     public static final String TABLE_DRAFTS = "Drafts";
-    public static final String COL_DRAFTS_DRAFTS_ID = "_id";
+    public static final String COL_DRAFTS_ID = "_id";
     public static final String COL_DRAFTS_WRITER_IDS = "WriterIds";
     public static final String COL_DRAFTS_TEXT = "Text";
-    public static final String COL_DRAFTS_IN_REPLY_TO = "InReplyTo";
+    public static final String COL_DRAFTS_IN_REPLY_TO = "InReplyTo";//IsDirectMessage時は送信先ユーザIDを格納するカラムとする
     public static final String COL_DRAFTS_IS_QUOTED = "IsQuoted";
     public static final String COL_DRAFTS_ATTACHED_PICTURE = "AttachedPicture";
     public static final String COL_DRAFTS_GEO_LATITUDE = "GeoLatitude";
     public static final String COL_DRAFTS_GEO_LONGITUDE = "GeoLongitude";
     public static final String COL_DRAFTS_IS_POSSIBLY_SENSITIVE = "IsPossiblySensitive";
+    public static final String COL_DRAFTS_IS_DIRECT_MESSAGE = "IsDirectMessage";
+    public static final String COL_DRAFTS_IS_FAILED_DELIVERY= "IsFailedDelivery";//送信失敗が原因で保存されたツイート
 
     //Bookmarksテーブル
+    //一旦あきらめた!! ✌(('ω'✌ ))三✌(('ω'))✌三(( ✌'ω'))✌
+
+    //Tabsテーブル
+    public static final String TABLE_TABS = "Tabs";
+    public static final String COL_TABS_ID = "_id";
+    public static final String COL_TABS_TYPE = "Type";
+    public static final String COL_TABS_ORDER = "Order";
+    public static final String COL_TABS_BIND_ACCOUNT_ID = "BindAccountId";
+    public static final String COL_TABS_BIND_LIST_ID = "BindListId";
+    public static final String COL_TABS_SEARCH_KEYWORD = "SearchKeyword";
+    public static final String COL_TABS_FILTER_QUERY = "FilterQuery";
+
+    //Tabs.Type
+    public static final int TABTYPE_HOME = 0;
+    public static final int TABTYPE_MENTION = 1;
+    public static final int TABTYPE_DM = 2;
+    public static final int TABTYPE_HISTORY = 3;
+    public static final int TABTYPE_LIST = 4;
+    public static final int TABTYPE_SEARCH = 5;
+    public static final int TABTYPE_SEARCH_STREAM = 6;
+    public static final int TABTYPE_FILTER = 7;
 
     //インスタンス
     private Context context;
@@ -80,7 +108,56 @@ public class CentralDatabase {
                     COL_ACCOUNTS_ACCESS_TOKEN_SECRET + " TEXT, " +
                     COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
                     COL_ACCOUNTS_IS_ACTIVE + " INTEGER, " +
-                    COL_ACCOUNTS_IS_WRITER + " INTEGER)"
+                    COL_ACCOUNTS_IS_WRITER + " INTEGER, " +
+                    COL_ACCOUNTS_FALLBACK_TO + " INTEGER)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_USER + " (" +
+                    COL_USER_ID + " INTEGER PRIMARY KEY, " +
+                    COL_USER_SCREEN_NAME + " TEXT, " +
+                    COL_USER_NAME + " TEXT, " +
+                    COL_USER_DESCRIPTION + " TEXT, " +
+                    COL_USER_DESCRIPTION_URLENTITIES + " BLOB," +
+                    COL_USER_LOCATION + " TEXT, " +
+                    COL_USER_URL + " TEXT, " +
+                    COL_USER_PROFILE_IMAGE_URL + " TEXT, " +
+                    COL_USER_PROFILE_BANNER_URL + " TEXT, " +
+                    COL_USER_IS_PROTECTED + " INTEGER, " +
+                    COL_USER_IS_VERIFIED + " INTEGER, " +
+                    COL_USER_IS_TRANSLATOR + " INTEGER, " +
+                    COL_USER_IS_CONTRIBUTORS_ENABLED + " INTEGER, " +
+                    COL_USER_IS_GEO_ENABLED + " INTEGER, " +
+                    COL_USER_STATUSES_COUNT + " INTEGER, " +
+                    COL_USER_FOLLOWINGS_COUNT + " INTEGER, " +
+                    COL_USER_FOLLOWERS_COUNT + " INTEGER, " +
+                    COL_USER_FAVORITES_COUNT + " INTEGER, " +
+                    COL_USER_LISTED_COUNT + " INTEGER, " +
+                    COL_USER_LANGUAGE + " TEXT, " +
+                    COL_USER_CREATED_AT + " INTEGER)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_DRAFTS + " (" +
+                    COL_DRAFTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_DRAFTS_WRITER_IDS + " TEXT, " +
+                    COL_DRAFTS_TEXT + " TEXT, " +
+                    COL_DRAFTS_IN_REPLY_TO + " INTEGER, " +
+                    COL_DRAFTS_IS_QUOTED + " INTEGER, " +
+                    COL_DRAFTS_ATTACHED_PICTURE + " TEXT, " +
+                    COL_DRAFTS_GEO_LATITUDE + " REAL, " +
+                    COL_DRAFTS_GEO_LONGITUDE + " REAL, " +
+                    COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
+                    COL_DRAFTS_IS_DIRECT_MESSAGE + " INTEGER, " +
+                    COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_TABS + " (" +
+                    COL_TABS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_TABS_TYPE + " INTEGER, " +
+                    COL_TABS_ORDER + " INTEGER, " +
+                    COL_TABS_BIND_ACCOUNT_ID + " INTEGER, " +
+                    COL_TABS_BIND_LIST_ID + " INTEGER, " +
+                    COL_TABS_SEARCH_KEYWORD + " TEXT, " +
+                    COL_TABS_FILTER_QUERY + " TEXT)"
             );
         }
 
@@ -123,5 +200,50 @@ public class CentralDatabase {
 
     public void endTransaction() {
         db.endTransaction();
+    }
+
+    public Cursor getAccounts() {
+        Cursor cursor = db.query(
+                TABLE_ACCOUNTS + "," + TABLE_USER,
+                new String[]{
+                        COL_ACCOUNTS_ID,
+                        COL_ACCOUNTS_ACCESS_TOKEN,
+                        COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
+                        COL_ACCOUNTS_IS_PRIMARY,
+                        COL_ACCOUNTS_IS_ACTIVE,
+                        COL_ACCOUNTS_IS_WRITER,
+                        COL_USER_SCREEN_NAME,
+                        COL_USER_NAME,
+                        COL_USER_PROFILE_IMAGE_URL},
+                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
+                null, null, null, null);
+        return cursor;
+    }
+
+    public AuthUserRecord getPrimaryAccount() {
+        Cursor cursor = db.query(
+                TABLE_ACCOUNTS + "," + TABLE_USER,
+                new String[]{
+                        COL_ACCOUNTS_ID,
+                        COL_ACCOUNTS_ACCESS_TOKEN,
+                        COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
+                        COL_ACCOUNTS_IS_PRIMARY,
+                        COL_ACCOUNTS_IS_ACTIVE,
+                        COL_ACCOUNTS_IS_WRITER,
+                        COL_USER_SCREEN_NAME,
+                        COL_USER_NAME,
+                        COL_USER_PROFILE_IMAGE_URL},
+                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
+                        " AND " + COL_ACCOUNTS_IS_PRIMARY + " = 1",
+                null, null, null, null);
+        AuthUserRecord primaryUser = null;
+        if (cursor.getCount() > 0) {
+            primaryUser = AuthUserRecord.getAccountsList(cursor).get(0);
+        }
+        return primaryUser;
+    }
+
+    public void updateUser(DBUser user) {
+        db.replace(TABLE_USER, null, user.getContentValues());
     }
 }
