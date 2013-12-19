@@ -228,7 +228,7 @@ public class CentralDatabase {
         if (count == 0) {
             contentValues.put(COL_ACCOUNTS_IS_PRIMARY, 1);
         }
-        db.insertOrThrow(TABLE_ACCOUNTS, null, contentValues);
+        db.replaceOrThrow(TABLE_ACCOUNTS, null, contentValues);
     }
 
     public AuthUserRecord getPrimaryAccount() {
