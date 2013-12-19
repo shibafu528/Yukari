@@ -2,13 +2,18 @@ package shibafu.yukari.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
+import shibafu.yukari.fragment.TweetListFragment;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
@@ -25,6 +30,8 @@ public class OAuthActivity extends Activity{
     private Twitter twitter;
     private RequestToken requestToken;
 
+    private TwitterService service;
+    private boolean serviceBound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +40,18 @@ public class OAuthActivity extends Activity{
 
         twitter = TwitterUtil.getTwitterInstance(this);
         startOAuth();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(connection);
     }
 
     private void startOAuth() {
@@ -94,7 +113,14 @@ public class OAuthActivity extends Activity{
                 dialog.dismiss();
                 if (accessToken != null) {
                     Toast.makeText(OAuthActivity.this, "認証成功", Toast.LENGTH_LONG).show();
-                    TwitterUtil.storeUserRecord(OAuthActivity.this, new AuthUserRecord(accessToken));
+                    while (!serviceBound) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    service.getDatabase().addAccount(new AuthUserRecord(accessToken));
                     setResult(RESULT_OK);
                     finish();
                 }
@@ -108,4 +134,18 @@ public class OAuthActivity extends Activity{
         task.execute(verifier);
         dialog.show();
     }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
+            OAuthActivity.this.service = binder.getService();
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 }

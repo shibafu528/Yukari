@@ -1,5 +1,6 @@
 package shibafu.yukari.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -218,6 +219,17 @@ public class CentralDatabase {
                 TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
                 null, null, null, null);
         return cursor;
+    }
+
+    public void addAccount(AuthUserRecord aur) {
+        ContentValues contentValues = aur.getContentValues();
+        Cursor c = db.query(TABLE_ACCOUNTS, null, null, null, null, null, null);
+        int count = c.getCount();
+        c.close();
+        if (count == 0) {
+            contentValues.put(COL_ACCOUNTS_IS_PRIMARY, 1);
+        }
+        db.insertOrThrow(TABLE_ACCOUNTS, null, contentValues);
     }
 
     public AuthUserRecord getPrimaryAccount() {

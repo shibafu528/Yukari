@@ -34,6 +34,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         Token = token;
         NumericId = token.getUserId();
         ScreenName = token.getScreenName();
+        isActive = true;
     }
 
     public AuthUserRecord(Cursor cursor) {
