@@ -6,17 +6,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewConfigurationCompat;
 import android.support.v7.widget.PopupMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -192,6 +195,23 @@ public class MainActivity extends FragmentActivity {
                 return true;
             }
         });
+
+        ImageButton ibMenu = (ImageButton) findViewById(R.id.ibMenu);
+        ibMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
+                menuDialogFragment.show(getSupportFragmentManager(), "menu");
+            }
+        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
+                ibMenu.setVisibility(View.GONE);
+            }
+        }
+        else {
+            ibMenu.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -296,7 +316,6 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void reloadUsers() {
-        service.reloadUsers();
         List<AuthUserRecord> newestList = service.getUsers();
         for (AuthUserRecord aur : newestList) {
             if (!users.contains(aur)) {

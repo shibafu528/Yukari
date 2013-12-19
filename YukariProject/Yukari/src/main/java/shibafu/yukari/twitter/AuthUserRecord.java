@@ -104,6 +104,6 @@ public class AuthUserRecord implements Serializable, DBRecord{
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
-        return null;
+        return values;
     }
 }
