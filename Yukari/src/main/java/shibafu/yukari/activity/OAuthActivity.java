@@ -12,12 +12,14 @@ import android.os.IBinder;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
+import shibafu.yukari.database.DBUser;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
@@ -101,7 +103,21 @@ public class OAuthActivity extends Activity{
             @Override
             protected AccessToken doInBackground(String... params) {
                 try {
-                    return twitter.getOAuthAccessToken(requestToken, params[0]);
+                    AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, params[0]);
+                    while (!serviceBound) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    service.getDatabase().addAccount(new AuthUserRecord(accessToken));
+                    User user = twitter.showUser(accessToken.getUserId());
+                    service.getDatabase().updateUser(new DBUser(user));
+
+                    service.reloadUsers();
+
+                    return accessToken;
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
@@ -113,14 +129,6 @@ public class OAuthActivity extends Activity{
                 dialog.dismiss();
                 if (accessToken != null) {
                     Toast.makeText(OAuthActivity.this, "認証成功", Toast.LENGTH_LONG).show();
-                    while (!serviceBound) {
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    service.getDatabase().addAccount(new AuthUserRecord(accessToken));
                     setResult(RESULT_OK);
                     finish();
                 }

@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/12/18.
@@ -73,7 +72,7 @@ public class CentralDatabase {
     public static final String TABLE_TABS = "Tabs";
     public static final String COL_TABS_ID = "_id";
     public static final String COL_TABS_TYPE = "Type";
-    public static final String COL_TABS_ORDER = "Order";
+    public static final String COL_TABS_TAB_ORDER = "TabOrder";
     public static final String COL_TABS_BIND_ACCOUNT_ID = "BindAccountId";
     public static final String COL_TABS_BIND_LIST_ID = "BindListId";
     public static final String COL_TABS_SEARCH_KEYWORD = "SearchKeyword";
@@ -154,7 +153,7 @@ public class CentralDatabase {
                     "CREATE TABLE " + TABLE_TABS + " (" +
                     COL_TABS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COL_TABS_TYPE + " INTEGER, " +
-                    COL_TABS_ORDER + " INTEGER, " +
+                    COL_TABS_TAB_ORDER + " INTEGER, " +
                     COL_TABS_BIND_ACCOUNT_ID + " INTEGER, " +
                     COL_TABS_BIND_LIST_ID + " INTEGER, " +
                     COL_TABS_SEARCH_KEYWORD + " TEXT, " +
@@ -207,7 +206,7 @@ public class CentralDatabase {
         Cursor cursor = db.query(
                 TABLE_ACCOUNTS + "," + TABLE_USER,
                 new String[]{
-                        COL_ACCOUNTS_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
                         COL_ACCOUNTS_ACCESS_TOKEN,
                         COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         COL_ACCOUNTS_IS_PRIMARY,
@@ -236,7 +235,7 @@ public class CentralDatabase {
         Cursor cursor = db.query(
                 TABLE_ACCOUNTS + "," + TABLE_USER,
                 new String[]{
-                        COL_ACCOUNTS_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
                         COL_ACCOUNTS_ACCESS_TOKEN,
                         COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         COL_ACCOUNTS_IS_PRIMARY,

@@ -67,13 +67,22 @@
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="fill_parent"
-                    android:layout_weight="1"></FrameLayout>
+                    android:layout_weight="1"/>
 
                 <ImageButton
-                    android:layout_width="84dp"
+                    android:layout_width="120dp"
                     android:layout_height="match_parent"
                     android:id="@+id/ibSearch"
                     android:src="@drawable/ic_search"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@drawable/selector_key_background"/>
+
+                <ImageButton
+                    android:layout_width="120dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/ibMenu"
+                    android:src="@drawable/ic_action_overflow"
                     android:layout_weight="1"
                     android:focusable="false"
                     android:background="@drawable/selector_key_background"/>
