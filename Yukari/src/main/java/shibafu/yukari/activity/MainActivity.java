@@ -170,16 +170,6 @@ public class MainActivity extends FragmentActivity {
             }
         });
 
-        //Twitterログインデータを読み込む
-        twitter = TwitterUtil.getTwitterInstance(this);
-        users = Arrays.asList(TwitterUtil.loadUserRecords(this));
-        if (users.size() < 1) {
-            startActivityForResult(new Intent(this, OAuthActivity.class), REQUEST_OAUTH);
-        }
-        else {
-            addTab(users.get(0), "Home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
-        }
-
         FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
         area.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -307,10 +297,11 @@ public class MainActivity extends FragmentActivity {
 
     private void reloadUsers() {
         service.reloadUsers();
-        AuthUserRecord[] newestList = TwitterUtil.loadUserRecords(this);
+        List<AuthUserRecord> newestList = service.getUsers();
         for (AuthUserRecord aur : newestList) {
             if (!users.contains(aur)) {
                 users.add(aur);
+                //TODO: Tabsデータを使うように変更する
                 addTab(aur, "Home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
             }
         }
@@ -322,6 +313,16 @@ public class MainActivity extends FragmentActivity {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             MainActivity.this.service = binder.getService();
             serviceBound = true;
+
+            twitter = MainActivity.this.service.getTwitter();
+            users = MainActivity.this.service.getUsers();
+            if (users.size() < 1) {
+                startActivityForResult(new Intent(MainActivity.this, OAuthActivity.class), REQUEST_OAUTH);
+            }
+            else if (pageList.size() < 1) {
+                //TODO: Tabsデータを使うように変更する
+                addTab(users.get(0), "Home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
+            }
         }
 
         @Override

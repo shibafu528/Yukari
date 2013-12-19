@@ -3,6 +3,7 @@ package shibafu.yukari.service;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
@@ -20,6 +21,8 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
+import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.database.DBUser;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.StreamUser;
@@ -43,6 +46,7 @@ import twitter4j.media.MediaProvider;
  */
 public class TwitterService extends Service{
     private static final String LOG_TAG = "TwitterService";
+
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
     public class TweetReceiverBinder extends Binder {
@@ -50,6 +54,9 @@ public class TwitterService extends Service{
             return TwitterService.this;
         }
     }
+
+    //メインデータベース
+    private CentralDatabase database;
 
     //キャッシュ系
     private HashCache hashCache;
@@ -68,6 +75,9 @@ public class TwitterService extends Service{
 
         @Override
         public void onFavorite(AuthUserRecord from, User user, User user2, Status status) {
+            database.updateUser(new DBUser(status.getUser()));
+            database.updateUser(new DBUser(user));
+            database.updateUser(new DBUser(user2));
             if (from.NumericId == user.getId())
                 return;
 
@@ -94,6 +104,7 @@ public class TwitterService extends Service{
 
         @Override
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
+            database.updateUser(new DBUser(directMessage.getSender()));
             for (StatusListener sl : statusListeners) {
                 sl.onDirectMessage(from, directMessage);
             }
@@ -112,6 +123,7 @@ public class TwitterService extends Service{
         @Override
         public void onStatus(AuthUserRecord from, Status status) {
             Log.d(LOG_TAG, "onStatus(Registed Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
+            database.updateUser(new DBUser(status.getUser()));
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, new PreformedStatus(status, from));
             }
@@ -168,11 +180,24 @@ public class TwitterService extends Service{
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
+
         handler = new Handler();
+
+        //データベースのオープン
+        database = new CentralDatabase(this).open();
+
+        //Twitterインスタンスの生成
         twitter = TwitterUtil.getTwitterInstance(this);
+
+        //ユーザデータのロード
         reloadUsers();
+
+        //ハッシュタグキャッシュのロード
         hashCache = new HashCache(this);
+
+        //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
         Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 
@@ -192,12 +217,17 @@ public class TwitterService extends Service{
         users = null;
         hashCache.save(this);
 
+        database.close();
+        database = null;
+
         Log.d(LOG_TAG, "onDestroy completed.");
         Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
     }
 
     public void reloadUsers() {
-        List<AuthUserRecord> newestList = Arrays.asList(TwitterUtil.loadUserRecords(this));
+        Cursor cursor = database.getAccounts();
+        List<AuthUserRecord> newestList = AuthUserRecord.getAccountsList(cursor);
+        cursor.close();
         //消えたレコードの削除処理
         List<AuthUserRecord> removeList = new ArrayList<AuthUserRecord>();
         for (AuthUserRecord aur : users) {
@@ -247,8 +277,7 @@ public class TwitterService extends Service{
     }
 
     public AuthUserRecord getPrimaryUser() {
-        //TODO: もっと丁寧に。
-        return users.get(0);
+        return database.getPrimaryAccount();
     }
 
     private void showToast(final String text) {
@@ -273,6 +302,10 @@ public class TwitterService extends Service{
 
     public Twitter getTwitter() {
         return twitter;
+    }
+
+    public CentralDatabase getDatabase() {
+        return database;
     }
 
     //<editor-fold desc="投稿操作系">
