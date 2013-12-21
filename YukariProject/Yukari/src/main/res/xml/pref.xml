@@ -36,11 +36,11 @@
             android:key="pref_prev_time"
             android:title="時間を指定して非表示"
             android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
-        <CheckBoxPreference
+        <!--<CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="めしてろモザイク"
             android:summary="夜間(PM10:00～AM6:00)にあからさまなツイートのサムネイルにモザイクをかけます"
-            android:defaultValue="false"/>
+            android:defaultValue="false"/>-->
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">

@@ -62,7 +62,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
             return false;
         if (o.getClass() != this.getClass())
             return false;
-        if (((AuthUserRecord)o).ScreenName.equals(ScreenName))
+        if (((AuthUserRecord)o).NumericId == NumericId)
             return true;
         else
             return false;
@@ -105,5 +105,16 @@ public class AuthUserRecord implements Serializable, DBRecord{
         values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
         return values;
+    }
+
+    public void update(AuthUserRecord aur) {
+        NumericId = aur.NumericId;
+        ScreenName = aur.ScreenName;
+        Name = aur.Name;
+        ProfileImageUrl = aur.ProfileImageUrl;
+        isPrimary = aur.isPrimary;
+        isActive = aur.isActive;
+        isWriter = aur.isWriter;
+        Token = aur.Token;
     }
 }

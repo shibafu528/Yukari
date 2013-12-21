@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import shibafu.yukari.R;
@@ -47,9 +48,11 @@ import twitter4j.media.MediaProvider;
  */
 public class TwitterService extends Service{
     private static final String LOG_TAG = "TwitterService";
+    public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
+
     public class TweetReceiverBinder extends Binder {
         public TwitterService getService() {
             return TwitterService.this;
@@ -216,7 +219,10 @@ public class TwitterService extends Service{
         statusListeners = null;
         listener = null;
         twitter = null;
+
+        storeUsers();
         users = null;
+
         hashCache.save(this);
 
         database.close();
@@ -226,6 +232,17 @@ public class TwitterService extends Service{
         Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
     }
 
+    public void addStatusListener(StatusListener l) {
+        if (!statusListeners.contains(l))
+            statusListeners.add(l);
+    }
+
+    public void removeStatusListener(StatusListener l) {
+        if (statusListeners.contains(l))
+            statusListeners.remove(l);
+    }
+
+    //<editor-fold desc="ユーザ情報管理">
     public void reloadUsers() {
         Cursor cursor = database.getAccounts();
         List<AuthUserRecord> newestList = AuthUserRecord.getAccountsList(cursor);
@@ -244,6 +261,7 @@ public class TwitterService extends Service{
                 }
                 if (remove != null) {
                     statusListeners.remove(remove);
+                    streamUsers.remove(remove);
                 }
                 removeList.add(aur);
                 Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
@@ -262,19 +280,17 @@ public class TwitterService extends Service{
                 }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             }
+            else {
+                AuthUserRecord existRecord = users.get(users.indexOf(aur));
+                existRecord.update(aur);
+                Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
+            }
         }
+        sendBroadcast(new Intent(RELOADED_USERS));
         Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + streamUsers.size());
     }
 
-    public void addStatusListener(StatusListener l) {
-        if (!statusListeners.contains(l))
-            statusListeners.add(l);
-    }
 
-    public void removeStatusListener(StatusListener l) {
-        if (statusListeners.contains(l))
-            statusListeners.remove(l);
-    }
 
     public List<AuthUserRecord> getUsers() {
         return users;
@@ -289,6 +305,19 @@ public class TwitterService extends Service{
         return null;
     }
 
+    public void setPrimaryUser(long id) {
+        for (AuthUserRecord userRecord : users) {
+            if (userRecord.NumericId == id) {
+                userRecord.isPrimary = true;
+            }
+            else {
+                userRecord.isPrimary = false;
+            }
+        }
+        storeUsers();
+        reloadUsers();
+    }
+
     public List<AuthUserRecord> getActiveUsers() {
         ArrayList<AuthUserRecord> activeUsers = new ArrayList<AuthUserRecord>();
         for (StreamUser su : streamUsers) {
@@ -296,6 +325,38 @@ public class TwitterService extends Service{
         }
         return activeUsers;
     }
+
+    public void storeUsers() {
+        database.beginTransaction();
+        try {
+            for (AuthUserRecord aur : users) {
+                database.updateAccount(aur);
+            }
+            database.setTransactionSuccessful();
+        } finally {
+            database.endTransaction();
+        }
+    }
+
+    public void deleteUser(long id) {
+        //Primaryの委譲が必要か確認する
+        boolean delegatePrimary = false;
+        for (AuthUserRecord aur : users) {
+            if (aur.NumericId == id) {
+                delegatePrimary = aur.isPrimary;
+            }
+        }
+        if (users.size() > 0 && delegatePrimary) {
+            users.get(0).isPrimary = true;
+        }
+        //削除以外のこれまでの変更を保存しておく
+        storeUsers();
+        //実際の削除を行う
+        database.deleteAccount(id);
+        //データベースからアカウントをリロードする
+        reloadUsers();
+    }
+    //</editor-fold>
 
     private void showToast(final String text) {
         handler.post(new Runnable() {

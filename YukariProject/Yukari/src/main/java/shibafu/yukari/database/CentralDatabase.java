@@ -93,6 +93,7 @@ public class CentralDatabase {
     private CentralDBHelper helper;
     private SQLiteDatabase db;
 
+
     private static class CentralDBHelper extends SQLiteOpenHelper {
 
         public CentralDBHelper(Context context) {
@@ -256,5 +257,13 @@ public class CentralDatabase {
 
     public void updateUser(DBUser user) {
         db.replace(TABLE_USER, null, user.getContentValues());
+    }
+
+    public void updateAccount(AuthUserRecord aur) {
+        db.replace(TABLE_ACCOUNTS, null, aur.getContentValues());
+    }
+
+    public void deleteAccount(long id) {
+        db.delete(TABLE_ACCOUNTS, COL_ACCOUNTS_ID + "=" + id, null);
     }
 }
