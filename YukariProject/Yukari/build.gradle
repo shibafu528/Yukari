@@ -31,6 +31,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_6
         targetCompatibility JavaVersion.VERSION_1_6
     }
+
+    // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
+    // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+    }
 }
 
 tasks.withType(Compile) {
