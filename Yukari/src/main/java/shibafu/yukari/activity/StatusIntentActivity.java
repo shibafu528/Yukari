@@ -40,8 +40,6 @@ public class StatusIntentActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        twitter = TwitterUtil.getTwitterInstance(this);
-
         Uri argData = getIntent().getData();
         List<String> segments = argData.getPathSegments();
 
@@ -68,6 +66,7 @@ public class StatusIntentActivity extends Activity{
             StatusIntentActivity.this.service = binder.getService();
             serviceBound = true;
 
+            twitter = StatusIntentActivity.this.service.getTwitter();
             primaryUser = StatusIntentActivity.this.service.getPrimaryUser();
 
             final TweetLoaderTask task = new TweetLoaderTask();

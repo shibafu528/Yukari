@@ -24,6 +24,11 @@ public class TwitterUtil {
     @Deprecated
     public static final String USER_RECORD = "user_records";
 
+    @Deprecated
+    /**
+     * <b>TwitterService上での初期化以外で呼び出さないこと。</b>
+     * それ以外の場所ではTwitterServiceをバインドし取得すること。
+     */
 	public static Twitter getTwitterInstance(Context context) {
 		String consumer_key = context.getString(R.string.twitter_consumer_key);
 		String consumer_secret = context.getString(R.string.twitter_consumer_secret);

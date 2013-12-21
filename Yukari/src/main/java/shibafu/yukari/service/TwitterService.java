@@ -35,6 +35,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
+import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.media.ImageUpload;
@@ -177,6 +178,7 @@ public class TwitterService extends Service{
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
@@ -186,11 +188,11 @@ public class TwitterService extends Service{
         //データベースのオープン
         database = new CentralDatabase(this).open();
 
-        //Twitterインスタンスの生成
-        twitter = TwitterUtil.getTwitterInstance(this);
-
         //ユーザデータのロード
         reloadUsers();
+
+        //Twitterインスタンスの生成
+        twitter = TwitterUtil.getTwitterInstance(this);
 
         //ハッシュタグキャッシュのロード
         hashCache = new HashCache(this);
@@ -301,6 +303,10 @@ public class TwitterService extends Service{
     }
 
     public Twitter getTwitter() {
+        AuthUserRecord primaryUser = getPrimaryUser();
+        if (primaryUser != null) {
+            twitter.setOAuthAccessToken(primaryUser.getAccessToken());
+        }
         return twitter;
     }
 

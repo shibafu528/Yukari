@@ -3,6 +3,7 @@ package shibafu.yukari.common;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,42 +77,36 @@ public class TweetAdapterWrap {
         //ViewHolderを取得もしくは新規作成
         TweetViewHolder viewHolder = (TweetViewHolder) v.getTag(R.string.key_viewholder);
         if (viewHolder == null) {
-            viewHolder = new TweetViewHolder();
-            //TODO: ここでfindViewByIdしよう
+            viewHolder = new TweetViewHolder(v);
             v.setTag(R.string.key_viewholder, viewHolder);
         }
 
-        TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
-        tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
-        tvName.setTypeface(FontAsset.getInstance(context).getFont());
+        viewHolder.tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
+        viewHolder.tvName.setTypeface(FontAsset.getInstance(context).getFont());
 
-        TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
-        tvText.setTypeface(FontAsset.getInstance(context).getFont());
-        tvText.setText(st.getText());
+        viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
+        viewHolder.tvText.setText(st.getText());
 
-        SmartImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
         String imageUrl = st.getUser().getBiggerProfileImageURL();
         if (st.isRetweet()) {
             imageUrl = st.getRetweetedStatus().getUser().getBiggerProfileImageURL();
         }
-        if (ivIcon.getTag() == null || !ivIcon.getTag().equals(imageUrl)) {
-            ivIcon.setImageResource(R.drawable.yukatterload);
-            ivIcon.setTag(imageUrl);
-            IconLoaderTask loaderTask = new IconLoaderTask(context, ivIcon);
+        if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
+            Log.d("TweetAdapterWrap", "Loading Icon: " + imageUrl + " (before: " + viewHolder.ivIcon.getTag() + ")");
+            viewHolder.ivIcon.setImageResource(R.drawable.yukatterload);
+            viewHolder.ivIcon.setTag(imageUrl);
+            IconLoaderTask loaderTask = new IconLoaderTask(context, viewHolder.ivIcon);
             loaderTask.executeIf(imageUrl);
         }
 
-        TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
-        tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
-        String via = st.getSource();
-        String timestamp = sdf.format(st.getCreatedAt()) + " via " + via;
+        viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
+        String timestamp = sdf.format(st.getCreatedAt()) + " via " + st.getSource();
 
-        LinearLayout llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
-        llAttach.removeAllViews();
+        viewHolder.llAttach.removeAllViews();
 
         if ((config & CONFIG_SHOW_THUMBNAIL) == CONFIG_SHOW_THUMBNAIL) {
             List<String> mediaList = st.getMediaLinkList();
-            int frameWidth = llAttach.getWidth();
+            int frameWidth = viewHolder.llAttach.getWidth();
             if (mediaList.size() > 0) {
                 FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
                 for (String mediaURL : mediaList) {
@@ -119,7 +114,7 @@ public class TweetAdapterWrap {
                     siv.setImageResource(R.drawable.yukatterload);
                     siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     siv.setImageUrl(mediaURL);
-                    llAttach.addView(siv, lp);
+                    viewHolder.llAttach.addView(siv, lp);
                 }
             }
         }
@@ -147,9 +142,10 @@ public class TweetAdapterWrap {
         if ((config & CONFIG_DISABLE_BGCOLOR) != CONFIG_DISABLE_BGCOLOR) {
             int bgColor = Color.WHITE;
             if (st.isRetweet()) {
-                timestamp = "RT by @" + st.getUser().getScreenName() + "\n" + sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + via;
-                tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                tvText.setText(st.getRetweetedStatus().getText());
+                timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +
+                        sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
+                viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
+                viewHolder.tvText.setText(st.getRetweetedStatus().getText());
                 bgColor = Color.parseColor("#C2B7FD");
             }
             else if (isMention) {
@@ -161,11 +157,11 @@ public class TweetAdapterWrap {
             v.setBackgroundColor(bgColor);
             v.setTag(bgColor);
         }
-        tvTimestamp.setText(timestamp);
+        viewHolder.tvTimestamp.setText(timestamp);
 
         if ((config & CONFIG_DISABLE_FONTCOLOR) == CONFIG_DISABLE_FONTCOLOR) {
-            tvName.setTextColor(Color.BLACK);
-            tvTimestamp.setTextColor(Color.BLACK);
+            viewHolder.tvName.setTextColor(Color.BLACK);
+            viewHolder.tvTimestamp.setTextColor(Color.BLACK);
         }
 
         return v;
@@ -206,6 +202,19 @@ public class TweetAdapterWrap {
     }
 
     private static class TweetViewHolder {
+        TextView tvName;
+        TextView tvText;
+        ImageView ivIcon;
+        TextView tvTimestamp;
+        LinearLayout llAttach;
+
+        public TweetViewHolder(View v) {
+            tvName = (TextView) v.findViewById(R.id.tweet_name);
+            tvText = (TextView) v.findViewById(R.id.tweet_text);
+            ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
+            tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
+            llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
+        }
 
     }
 }

@@ -93,7 +93,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         }
-        twitter = TwitterUtil.getTwitterInstance(getActivity());
     }
 
     @Override
@@ -233,6 +232,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         public void onServiceConnected(ComponentName name, IBinder service) {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             TweetListFragment.this.service = binder.getService();
+            twitter = TweetListFragment.this.service.getTwitter();
             serviceBound = true;
 
             if (user == null) {
