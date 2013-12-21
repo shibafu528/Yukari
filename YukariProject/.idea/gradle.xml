@@ -4,8 +4,7 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="D:\Shibafu\git\Yukari\YukariProject" />
-        <option name="useAutoImport" value="true" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
       </GradleProjectSettings>
     </option>
   </component>
