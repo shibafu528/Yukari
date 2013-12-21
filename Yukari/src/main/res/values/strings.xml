@@ -18,6 +18,7 @@
     <string name="title_activity_snpicker">ScreenName Picker</string>
     <string name="title_activity_accountchooser">アカウントを選択</string>
     <string name="title_activity_accountmanage">アカウント管理</string>
+    <string name="title_activity_config">設定</string>
 
     <string name="key_viewholder">viewholder</string>
 </resources>

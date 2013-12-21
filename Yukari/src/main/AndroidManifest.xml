@@ -17,8 +17,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name="shibafu.yukari.activity.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/YukariTheme" >
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,8 +27,7 @@
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
             android:label="@string/OAuthTitle"
-            android:launchMode="singleTask"
-            android:theme="@style/AppBaseTheme" >
+            android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -107,8 +105,7 @@
         </activity>
         <activity
             android:name="shibafu.yukari.activity.AssetExtractActivity"
-            android:label="@string/title_activity_assetextract"
-            android:theme="@style/AppTheme" >
+            android:label="@string/title_activity_assetextract">
         </activity>
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
@@ -183,8 +180,11 @@
 
         <activity
             android:name=".activity.AccountManageActivity"
-            android:theme="@style/YukariTheme"
             android:label="@string/title_activity_accountmanage"/>
+
+        <activity
+            android:name=".activity.ConfigActivity"
+            android:label="@string/title_activity_config"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

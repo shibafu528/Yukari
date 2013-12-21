@@ -167,7 +167,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                                     break;
                                             }
                                             if (responseList == null) {
-                                                lastStatusId = -1;
+                                                //lastStatusId = -1;
                                             }
                                             else if (responseList.size() > 0) {
                                                 lastStatusId = responseList.get(responseList.size() - 1).getId();

@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.AccountManageActivity;
+import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -128,7 +129,7 @@ public class MenuDialogFragment extends DialogFragment {
             @Override
             public void onClick(View v) {
                 dismiss();
-                startActivity(new Intent(getActivity(), AccountManageActivity.class));
+                startActivity(new Intent(getActivity(), ConfigActivity.class));
             }
         });
 
