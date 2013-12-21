@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.RejectedExecutionException;
 
 import shibafu.yukari.R;
 
@@ -63,11 +64,16 @@ public class IconLoaderTask extends AsyncTask<String, Void, Bitmap> {
     }
 
     public void executeIf(String... params) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
-        }
-        else {
-            this.execute(params);
+        if (getStatus() == Status.RUNNING && !isCancelled()) return;
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
+            }
+            else {
+                this.execute(params);
+            }
+        } catch (RejectedExecutionException e) {
+            executeIf(params);
         }
     }
 }

@@ -54,8 +54,7 @@ public class AccountChooserActivity extends ListActivity {
     private List<Long> defaultSelectedUserIds = new ArrayList<Long>();
 
     private Adapter adapter;
-    private List<Data> dataList;
-    private AsyncTask<Void,Void,List<Data>> userLoadTask;
+    private List<Data> dataList = new ArrayList<Data>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,9 +84,6 @@ public class AccountChooserActivity extends ListActivity {
     protected void onPause() {
         super.onPause();
         unbindService(connection);
-        if (userLoadTask != null) {
-            userLoadTask.cancel(true);
-        }
     }
 
     @Override
@@ -102,44 +98,16 @@ public class AccountChooserActivity extends ListActivity {
     }
 
     private void createList() {
-        //TODO: 正直ダウンロード処理とかやるだけ無駄だと思うのでDB化の際にはこの辺の情報あらかじめ保存してくれ
-        userLoadTask = new AsyncTask<Void, Void, List<Data>>() {
-            @Override
-            protected List<Data> doInBackground(Void... params) {
-                List<AuthUserRecord> users = service.getUsers();
-                List<Data> data = new ArrayList<Data>();
-                boolean isSelected;
-                for (AuthUserRecord userRecord : users) {
-                    if (isCancelled()) break;
-                    isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
-                    try {
-                        User user = userRecord.getUser(AccountChooserActivity.this);
-                        data.add(new Data(user.getId(), user.getName(), user.getScreenName(), user.getProfileImageURLHttps(), isSelected));
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                        data.add(new Data(userRecord.NumericId, "", userRecord.ScreenName, null, isSelected));
-                    }
-                }
-                return data;
-            }
-
-            @Override
-            protected void onPostExecute(List<Data> datas) {
-                if (datas == null) {
-                    Toast.makeText(AccountChooserActivity.this, "アカウント一覧の取得に失敗しました", Toast.LENGTH_SHORT).show();
-                    setResult(RESULT_CANCELED);
-                    finish();
-                    return;
-                }
-                dataList = datas;
-                adapter = new Adapter(AccountChooserActivity.this, dataList);
-                setListAdapter(adapter);
-                setTitle("アカウントを選択");
-
-                userLoadTask = null;
-            }
-        };
-        userLoadTask.execute();
+        List<AuthUserRecord> users = service.getUsers();
+        dataList.clear();
+        boolean isSelected;
+        for (AuthUserRecord userRecord : users) {
+            isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
+            dataList.add(new Data(userRecord.NumericId, userRecord.Name, userRecord.ScreenName, userRecord.ProfileImageUrl, isSelected));
+        }
+        adapter = new Adapter(AccountChooserActivity.this, dataList);
+        setListAdapter(adapter);
+        setTitle("アカウントを選択");
     }
 
     @Override

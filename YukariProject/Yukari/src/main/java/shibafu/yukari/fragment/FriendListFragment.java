@@ -88,7 +88,6 @@ public class FriendListFragment extends ListFragment implements AttachableList {
         mode = args.getInt(EXTRA_MODE);
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
-        twitter = TwitterUtil.getTwitterInstance(getActivity());
     }
 
     @Override
@@ -159,6 +158,7 @@ public class FriendListFragment extends ListFragment implements AttachableList {
         public void onServiceConnected(ComponentName name, IBinder service) {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             FriendListFragment.this.service = binder.getService();
+            twitter = FriendListFragment.this.service.getTwitter();
             serviceBound = true;
 
             if (users.size() > 0) return;
