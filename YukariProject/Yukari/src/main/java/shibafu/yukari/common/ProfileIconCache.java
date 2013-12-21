@@ -17,7 +17,7 @@ import java.net.URLEncoder;
  */
 public class ProfileIconCache {
 
-    private static int maxCacheSize = 8 * 1024 * 1024;
+    private static int maxCacheSize = 10 * 1024 * 1024;
 
     private static LruCache<String, Bitmap> lruCache = new LruCache<String, Bitmap>(maxCacheSize) {
         @Override

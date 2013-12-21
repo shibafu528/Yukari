@@ -92,7 +92,6 @@ public class TweetAdapterWrap {
             imageUrl = st.getRetweetedStatus().getUser().getBiggerProfileImageURL();
         }
         if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
-            Log.d("TweetAdapterWrap", "Loading Icon: " + imageUrl + " (before: " + viewHolder.ivIcon.getTag() + ")");
             viewHolder.ivIcon.setImageResource(R.drawable.yukatterload);
             viewHolder.ivIcon.setTag(imageUrl);
             IconLoaderTask loaderTask = new IconLoaderTask(context, viewHolder.ivIcon);
