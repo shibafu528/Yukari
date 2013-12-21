@@ -1,8 +1,10 @@
 package shibafu.yukari.activity;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
@@ -83,8 +85,41 @@ public class AccountManageActivity extends ListActivity {
     }
 
     @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
+    protected void onListItemClick(ListView l, View v, final int position, long id) {
         super.onListItemClick(l, v, position, id);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("メニュー")
+                .setItems(new String[]{"プライマリに設定", "認証情報を削除"}, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            service.setPrimaryUser(dataList.get(position).id);
+                            createList();
+                        }
+                        else {
+                            AlertDialog alertDialog = new AlertDialog.Builder(AccountManageActivity.this)
+                                    .setTitle("確認")
+                                    .setIcon(android.R.drawable.ic_dialog_alert)
+                                    .setMessage("認証情報を削除してもよろしいですか?")
+                                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            service.deleteUser(dataList.get(position).id);
+                                            createList();
+                                        }
+                                    })
+                                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .create();
+                            alertDialog.show();
+                        }
+                    }
+                });
+        builder.create().show();
     }
 
     private ServiceConnection connection = new ServiceConnection() {
