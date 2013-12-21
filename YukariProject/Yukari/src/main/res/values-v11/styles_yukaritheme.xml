@@ -3,6 +3,15 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <style name="ActionBarYukariTheme" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@drawable/key_color</item>
+        <item name="android:titleTextStyle">@style/ActionBarYukariTheme.TitleText</item>
+    </style>
+
+    <style name="ActionBarYukariTheme.TitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
   <style name="AutoCompleteTextViewYukariTheme" parent="android:Widget.Holo.Light.AutoCompleteTextView">
       <item name="android:dropDownSelector">@drawable/yukaritheme_list_selector_holo_light</item>
 	    <item name="android:background">@drawable/yukaritheme_edit_text_holo_light</item>

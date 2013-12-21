@@ -16,8 +16,11 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -60,6 +63,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private Twitter twitter;
     private TweetAdapterWrap adapterWrap;
     private AuthUserRecord user;
+    private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
     private String title;
     private int mode;
 
@@ -87,7 +91,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
         if (mode == MODE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            statuses.add(new PreformedStatus(traceStart, user));
+            appendStatus(new PreformedStatus(traceStart, user));
         }
         else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
@@ -106,7 +110,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         getListView().addFooterView(footerView);
         changeFooterProgress(true);
 
-        adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), user, statuses);
+        adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), users, statuses);
         setListAdapter(adapterWrap.getAdapter());
         getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -142,52 +146,54 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                         case MODE_DM:
                         case MODE_USER:
                         case MODE_FAVORITE:
-                            AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
-                                @Override
-                                protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
-                                    twitter.setOAuthAccessToken(user.getAccessToken());
-                                    try {
-                                        ResponseList<twitter4j.Status> responseList = null;
-                                        Paging paging = new Paging();
-                                        paging.setMaxId(lastStatusId - 1);
-                                        switch (mode) {
-                                            case MODE_HOME:
-                                                responseList = twitter.getHomeTimeline(paging);
-                                                break;
-                                            case MODE_USER:
-                                                responseList = twitter.getUserTimeline(targetUser.getId(), paging);
-                                                break;
-                                            case MODE_FAVORITE:
-                                                responseList = twitter.getFavorites(targetUser.getId(), paging);
-                                                break;
+                            for (final AuthUserRecord user : users) {
+                                AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
+                                    @Override
+                                    protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
+                                        twitter.setOAuthAccessToken(user.getAccessToken());
+                                        try {
+                                            ResponseList<twitter4j.Status> responseList = null;
+                                            Paging paging = new Paging();
+                                            paging.setMaxId(lastStatusId - 1);
+                                            switch (mode) {
+                                                case MODE_HOME:
+                                                    responseList = twitter.getHomeTimeline(paging);
+                                                    break;
+                                                case MODE_USER:
+                                                    responseList = twitter.getUserTimeline(targetUser.getId(), paging);
+                                                    break;
+                                                case MODE_FAVORITE:
+                                                    responseList = twitter.getFavorites(targetUser.getId(), paging);
+                                                    break;
+                                            }
+                                            if (responseList == null) {
+                                                lastStatusId = -1;
+                                            }
+                                            else if (responseList.size() > 0) {
+                                                lastStatusId = responseList.get(responseList.size() - 1).getId();
+                                            }
+                                            return responseList;
+                                        } catch (TwitterException e) {
+                                            e.printStackTrace();
                                         }
-                                        if (responseList == null) {
-                                            lastStatusId = -1;
-                                        }
-                                        else if (responseList.size() > 0) {
-                                            lastStatusId = responseList.get(responseList.size() - 1).getId();
-                                        }
-                                        return responseList;
-                                    } catch (TwitterException e) {
-                                        e.printStackTrace();
+                                        return null;
                                     }
-                                    return null;
-                                }
 
-                                @Override
-                                protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
-                                    if (statuses != null) {
-                                        for (twitter4j.Status status : statuses) {
-                                            TweetListFragment.this.statuses.add(new PreformedStatus(status, user));
+                                    @Override
+                                    protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
+                                        if (statuses != null) {
+                                            for (twitter4j.Status status : statuses) {
+                                                appendStatus(new PreformedStatus(status, user));
+                                            }
+                                            adapterWrap.notifyDataSetChanged();
                                         }
-                                        adapterWrap.notifyDataSetChanged();
+                                        changeFooterProgress(false);
                                     }
-                                    changeFooterProgress(false);
-                                }
-                            };
-                            task.execute();
-                            changeFooterProgress(true);
-                            break;
+                                };
+                                task.execute();
+                                changeFooterProgress(true);
+                                break;
+                            }
                     }
                 }
             }
@@ -214,6 +220,16 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         return user;
     }
 
+    @Override
+    public void scrollToTop() {
+        listView.setSelection(0);
+    }
+
+    @Override
+    public void scrollToBottom() {
+        listView.setSelection(statuses.size() - 1);
+    }
+
     private void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
@@ -226,6 +242,19 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         }
     }
 
+    private void appendStatus(PreformedStatus status) {
+        for (int i = 0; i < statuses.size(); ++i) {
+            if (status.getId() == statuses.get(i).getId()) {
+                return;
+            }
+            else if (status.getId() > statuses.get(i).getId()) {
+                statuses.add(i, status);
+                return;
+            }
+        }
+        statuses.add(status);
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -235,10 +264,16 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             serviceBound = true;
 
             if (user == null) {
-                user = TweetListFragment.this.service.getPrimaryUser();
+                users.addAll(TweetListFragment.this.service.getUsers());
+            }
+            else {
+                users.add(TweetListFragment.this.service.getPrimaryUser());
             }
 
             if (mode == MODE_TRACE) {
+                if (user == null) {
+                    user = TweetListFragment.this.service.getPrimaryUser();
+                }
                 AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
                     @Override
                     protected Void doInBackground(twitter4j.Status... params) {
@@ -250,7 +285,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        statuses.add(new PreformedStatus(reply, user));
+                                        appendStatus(new PreformedStatus(reply, user));
                                         adapterWrap.notifyDataSetChanged();
                                     }
                                 });
@@ -270,7 +305,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 task.execute(traceStart);
                 changeFooterProgress(true);
             }
-            else {
+            else for (final AuthUserRecord user : users) {
                 AsyncTask<Void, Void, ResponseList<Status>> task = new AsyncTask<Void, Void, ResponseList<Status>>() {
                     @Override
                     protected ResponseList<twitter4j.Status> doInBackground(Void... params) {
@@ -305,7 +340,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
                         if (statuses != null) {
                             for (twitter4j.Status status : statuses) {
-                                TweetListFragment.this.statuses.add(new PreformedStatus(status, user));
+                                appendStatus(new PreformedStatus(status, user));
                             }
                             adapterWrap.notifyDataSetChanged();
                         }
@@ -327,8 +362,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
     @Override
     public void onStatus(AuthUserRecord from, PreformedStatus status) {
-        if (user == null || user.equals(from)) {
-            statuses.addFirst(status);
+        if ((user == null || user.equals(from)) && !statuses.contains(status)) {
+            appendStatus(status);
             handler.post(new Runnable() {
                 @Override
                 public void run() {

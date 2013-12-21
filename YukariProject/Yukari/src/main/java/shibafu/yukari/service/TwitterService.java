@@ -254,14 +254,16 @@ public class TwitterService extends Service{
         for (AuthUserRecord aur : newestList) {
             if (!users.contains(aur)) {
                 users.add(aur);
-                StreamUser su = new StreamUser(this, aur);
-                su.setListener(listener);
-                streamUsers.add(su);
-                su.start();
+                if (aur.isActive) {
+                    StreamUser su = new StreamUser(this, aur);
+                    su.setListener(listener);
+                    streamUsers.add(su);
+                    su.start();
+                }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             }
         }
-        Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + statusListeners.size());
+        Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + streamUsers.size());
     }
 
     public void addStatusListener(StatusListener l) {
@@ -279,7 +281,20 @@ public class TwitterService extends Service{
     }
 
     public AuthUserRecord getPrimaryUser() {
-        return database.getPrimaryAccount();
+        for (AuthUserRecord userRecord : users) {
+            if (userRecord.isPrimary) {
+                return userRecord;
+            }
+        }
+        return null;
+    }
+
+    public List<AuthUserRecord> getActiveUsers() {
+        ArrayList<AuthUserRecord> activeUsers = new ArrayList<AuthUserRecord>();
+        for (StreamUser su : streamUsers) {
+            activeUsers.add(su.getUserRecord());
+        }
+        return activeUsers;
     }
 
     private void showToast(final String text) {

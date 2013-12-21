@@ -111,7 +111,9 @@ public class OAuthActivity extends Activity{
                             e.printStackTrace();
                         }
                     }
-                    service.getDatabase().addAccount(new AuthUserRecord(accessToken));
+                    AuthUserRecord userRecord = new AuthUserRecord(accessToken);
+                    userRecord.isActive = true;
+                    service.getDatabase().addAccount(userRecord);
                     User user = twitter.showUser(accessToken.getUserId());
                     service.getDatabase().updateUser(new DBUser(user));
 

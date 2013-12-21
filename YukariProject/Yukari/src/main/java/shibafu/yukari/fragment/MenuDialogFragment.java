@@ -15,6 +15,7 @@ import android.widget.ImageView;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
+import shibafu.yukari.activity.AccountManageActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -122,6 +123,15 @@ public class MenuDialogFragment extends DialogFragment {
             }
         });
 
+        View configMenu = v.findViewById(R.id.llMenuConfig);
+        configMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dismiss();
+                startActivity(new Intent(getActivity(), AccountManageActivity.class));
+            }
+        });
+
         return v;
     }
 
@@ -133,6 +143,7 @@ public class MenuDialogFragment extends DialogFragment {
                 dismiss();
                 Intent intent = new Intent(getActivity(), ProfileActivity.class);
                 intent.putExtra(ProfileActivity.EXTRA_TARGET, data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
+                intent.putExtra(ProfileActivity.EXTRA_USER, data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
                 startActivity(intent);
                 break;
             }

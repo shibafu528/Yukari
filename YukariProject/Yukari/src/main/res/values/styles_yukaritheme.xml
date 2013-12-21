@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!-- Generated with http://android-holo-colors.com -->
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="ActionBarYukariTheme" parent="Widget.AppCompat.ActionBar">
+      <item name="android:background">@drawable/key_color</item>
+      <item name="android:titleTextStyle" tools:ignore="NewApi">@style/ActionBarYukariTheme.TitleText</item>
+      <item name="titleTextStyle" tools:ignore="NewApi">@style/ActionBarYukariTheme.TitleText</item>
+  </style>
+    
+  <style name="ActionBarYukariTheme.TitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+      <item name="android:textColor">#FFFFFF</item>
+  </style>
 
   <style name="EditTextYukariTheme" parent="android:Widget.EditText">
 	  <item name="android:background">@drawable/yukaritheme_edit_text_holo_light</item>
