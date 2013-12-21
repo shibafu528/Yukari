@@ -62,6 +62,7 @@ public class MainActivity extends FragmentActivity {
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
+    private TweetListFragment currentPage;
     private List<AttachableList> pageList = new ArrayList<AttachableList>();
     private TextView tvTabText;
 
@@ -93,6 +94,31 @@ public class MainActivity extends FragmentActivity {
                     menu.add(page.getTitle());
                 }
                 popupMenu.show();
+            }
+        });
+        tvTabText.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+                Menu menu = popupMenu.getMenu();
+                menu.add(Menu.NONE, 0, Menu.NONE, "⇧ TLの一番上へ");
+                menu.add(Menu.NONE, 1, Menu.NONE, "⇩ TLの一番下へ");
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        switch (menuItem.getItemId()) {
+                            case 0:
+                                currentPage.scrollToTop();
+                                return true;
+                            case 1:
+                                currentPage.scrollToBottom();
+                                return true;
+                        }
+                        return false;
+                    }
+                });
+                popupMenu.show();
+                return true;
             }
         });
 
@@ -141,6 +167,7 @@ public class MainActivity extends FragmentActivity {
                                                 if (user != null) {
                                                     Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
                                                     intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
+                                                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
                                                     startActivity(intent);
                                                 }
                                                 else {
@@ -187,7 +214,7 @@ public class MainActivity extends FragmentActivity {
                     case MotionEvent.ACTION_UP:
                         if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
                             Intent intent = new Intent(MainActivity.this, TweetActivity.class);
-                            intent.putExtra(TweetActivity.EXTRA_USER, users.get(0));
+                            intent.putExtra(TweetActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
                             startActivity(intent);
                         }
                         break;
@@ -239,6 +266,7 @@ public class MainActivity extends FragmentActivity {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame, fragment).commit();
         setTitle(title);
+        currentPage = fragment;
         tvTabText.setText(title);
     }
 
@@ -308,6 +336,7 @@ public class MainActivity extends FragmentActivity {
                     long id = data.getLongExtra(SNPickerActivity.EXTRA_USER_ID, -1);
                     Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
                     intent.putExtra(ProfileActivity.EXTRA_TARGET, id);
+                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
                     startActivity(intent);
                     break;
                 }
@@ -340,7 +369,7 @@ public class MainActivity extends FragmentActivity {
             }
             else if (pageList.size() < 1) {
                 //TODO: Tabsデータを使うように変更する
-                addTab(users.get(0), "Home:" + users.get(0).ScreenName, TweetListFragment.MODE_HOME);
+                addTab(null, "Home", TweetListFragment.MODE_HOME);
             }
         }
 

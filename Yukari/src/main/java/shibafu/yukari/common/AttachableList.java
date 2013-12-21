@@ -8,4 +8,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 public interface AttachableList {
     String getTitle();
     AuthUserRecord getCurrentUser();
+    void scrollToTop();
+    void scrollToBottom();
 }

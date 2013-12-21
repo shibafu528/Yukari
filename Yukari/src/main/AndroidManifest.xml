@@ -180,6 +180,11 @@
             android:name=".activity.AccountChooserActivity"
             android:theme="@style/YukariDialogTheme"
             android:label="@string/title_activity_accountchooser"/>
+
+        <activity
+            android:name=".activity.AccountManageActivity"
+            android:theme="@style/YukariTheme"
+            android:label="@string/title_activity_accountmanage"/>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

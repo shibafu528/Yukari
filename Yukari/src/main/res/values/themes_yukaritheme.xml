@@ -5,6 +5,8 @@
 
   <style name="YukariTheme" parent="Theme.AppCompat.Light">
 
+    <item name="actionBarStyle">@style/ActionBarYukariTheme</item>
+
     <item name="android:editTextStyle">@style/EditTextYukariTheme</item>
 
     <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariTheme</item>

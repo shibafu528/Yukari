@@ -141,6 +141,16 @@ public class FriendListFragment extends ListFragment implements AttachableList {
         return user;
     }
 
+    @Override
+    public void scrollToTop() {
+        listView.setSelection(0);
+    }
+
+    @Override
+    public void scrollToBottom() {
+        listView.setSelection(users.size() - 1);
+    }
+
     private void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
