@@ -33,6 +33,7 @@ public class FontAsset {
                 }
             } catch (RuntimeException e) {
                 Log.e("FontAsset", "Font Error!!");
+                instance = new FontAsset(Typeface.DEFAULT);
             }
             Log.d("FontAsset", "Font Loaded!");
         }

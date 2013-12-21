@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="アカウント">
+        <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="起動処理の設定">
+        <CheckBoxPreference
+            android:key="pref_boot_screenon"
+            android:title="デフォルトでスリープ防止"
+            android:summary="アプリ起動時にスリープ防止をオンにします"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="表示設定">
+        <EditTextPreference
+            android:key="pref_font_timeline"
+            android:title="文字サイズの設定"
+            android:summary="タイムライン上の文字サイズを設定します"
+            android:inputType="number"
+            android:defaultValue="14"
+            android:maxLength="2"/>
+        <ListPreference
+            android:key="pref_mode_multiline"
+            android:title="複数行ツイートの表示方法"
+            android:summary="改行を含むツイートを省略する設定をします"
+            android:entries="@array/pref_mode_multiline_entries"
+            android:entryValues="@array/pref_mode_multiline_values"
+            android:defaultValue="-1"/>
+        <CheckBoxPreference
+            android:key="pref_prev_enable"
+            android:title="サムネイルを表示"
+            android:summary="ツイートに含まれるメディアのサムネイルを表示します"
+            android:defaultValue="true"/>
+        <Preference
+            android:key="pref_prev_time"
+            android:title="時間を指定して非表示"
+            android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
+        <CheckBoxPreference
+            android:key="pref_prev_mosaic"
+            android:title="めしてろモザイク"
+            android:summary="夜間(PM10:00～AM6:00)にあからさまなツイートのサムネイルにモザイクをかけます"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="アプリについて">
+        <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
+        <Preference android:title="Developed by @shibafu528"/>
+        <Preference android:title="ライブラリライセンス"/>
+        <Preference android:title="フォントライセンス"/>
+    </PreferenceCategory>
+</PreferenceScreen>

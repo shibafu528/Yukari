@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pref_mode_multiline_entries">
+        <item>省略しない</item>
+        <item>4行目以降を省略する</item>
+        <item>8行目以降を省略する</item>
+        <item>単行表示にする</item>
+    </string-array>
+    <string-array name="pref_mode_multiline_values">
+        <item>-1</item>
+        <item>4</item>
+        <item>8</item>
+        <item>-2</item>
+    </string-array>
+
+    <string-array name="pref_prev_time_entries">
+        <item>0:00-0:59</item>
+        <item>1:00-1:59</item>
+        <item>2:00-2:59</item>
+        <item>3:00-3:59</item>
+        <item>4:00-4:59</item>
+        <item>5:00-5:59</item>
+        <item>6:00-6:59</item>
+        <item>7:00-7:59</item>
+        <item>8:00-8:59</item>
+        <item>9:00-9:59</item>
+        <item>10:00-10:59</item>
+        <item>11:00-11:59</item>
+        <item>12:00-12:59</item>
+        <item>13:00-13:59</item>
+        <item>14:00-14:59</item>
+        <item>15:00-15:59</item>
+        <item>16:00-16:59</item>
+        <item>17:00-17:59</item>
+        <item>18:00-18:59</item>
+        <item>19:00-19:59</item>
+        <item>20:00-20:59</item>
+        <item>21:00-21:59</item>
+        <item>22:00-22:59</item>
+        <item>23:00-23:59</item>
+    </string-array>
+    <string-array name="pref_prev_time_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+        <item>23</item>
+    </string-array>
+</resources>

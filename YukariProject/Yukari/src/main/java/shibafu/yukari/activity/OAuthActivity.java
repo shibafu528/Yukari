@@ -34,6 +34,7 @@ public class OAuthActivity extends Activity{
 
     private TwitterService service;
     private boolean serviceBound;
+    private boolean begunOAuth = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,16 @@ public class OAuthActivity extends Activity{
     protected void onStart() {
         super.onStart();
         bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (begunOAuth) {
+            Toast.makeText(OAuthActivity.this, "認証が中断されました", Toast.LENGTH_LONG).show();
+            setResult(RESULT_CANCELED);
+            finish();
+        }
     }
 
     @Override
@@ -72,6 +83,7 @@ public class OAuthActivity extends Activity{
             @Override
             protected void onPostExecute(String s) {
                 if (s != null) {
+                    begunOAuth = true;
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(s));
                     startActivity(intent);
                 }
@@ -87,6 +99,7 @@ public class OAuthActivity extends Activity{
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        begunOAuth = false;
 
         //コールバック以外のintentが流れ込んで来たらエラー
         if (intent == null || intent.getData() == null || !intent.getData().toString().startsWith(CALLBACK_URL))
@@ -102,6 +115,7 @@ public class OAuthActivity extends Activity{
         AsyncTask<String, Void, AccessToken> task = new AsyncTask<String, Void, AccessToken>() {
             @Override
             protected AccessToken doInBackground(String... params) {
+                if (params[0] == null) return null;
                 try {
                     AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, params[0]);
                     while (!serviceBound) {
