@@ -28,7 +28,6 @@ import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -336,8 +335,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     adapterWrap.notifyDataSetChanged();
                     if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
                         listView.setSelection(0);
-                    }
-                    else {
+                    } else {
                         listView.setSelection(listView.getFirstVisiblePosition() + 1);
                     }
                 }
