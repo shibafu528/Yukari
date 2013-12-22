@@ -45,8 +45,5 @@
 
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
-        <Preference android:title="Developed by @shibafu528"/>
-        <Preference android:title="ライブラリライセンス"/>
-        <Preference android:title="フォントライセンス"/>
     </PreferenceCategory>
 </PreferenceScreen>

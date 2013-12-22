@@ -908,6 +908,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         Intent intent = new Intent(this, TweetActivity.class);
         intent.putExtra(EXTRA_TEXT, selected.getText());
         intent.putExtra(EXTRA_MEDIA, selected.getAttachedPicture());
+        intent.putExtra(EXTRA_WRITERS, selected.getWriters());
         if (selected.isDirectMessage()) {
             intent.putExtra(EXTRA_MODE, MODE_DM);
             intent.putExtra(EXTRA_IN_REPLY_TO, selected.getInReplyTo());
