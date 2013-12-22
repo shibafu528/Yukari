@@ -12,7 +12,7 @@
             android:summary="アプリ起動時にスリープ防止をオンにします"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="表示設定">
+    <PreferenceCategory android:title="表示設定(未完成)" android:enabled="false">
         <EditTextPreference
             android:key="pref_font_timeline"
             android:title="文字サイズの設定"

@@ -390,22 +390,28 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                                 service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
                                             }
                                             ++successCount;
-                                            continue;
                                         } catch (FileNotFoundException e) {
                                             e.printStackTrace();
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
-                                        continue;
                                     }
-                                    service.postTweet(user, update);
-                                    ++successCount;
+                                    else {
+                                        service.postTweet(user, update);
+                                        ++successCount;
+                                    }
                                 }
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                             }
+                            publishProgress();
                         }
                         return successCount;
+                    }
+
+                    @Override
+                    protected void onProgressUpdate(Void... values) {
+                        progress.incrementProgressBy(1);
                     }
 
                     @Override
