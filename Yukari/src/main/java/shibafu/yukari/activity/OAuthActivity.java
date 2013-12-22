@@ -120,14 +120,17 @@ public class OAuthActivity extends Activity {
         super.onResume();
         if (begunOAuth) {
             Bundle extras = getIntent().getExtras();
-            AccessToken accessToken = (AccessToken) extras.getSerializable("atk");
-            if (accessToken == null) {
+            try {
+                if (extras == null) throw new IllegalArgumentException();
+                AccessToken accessToken = (AccessToken) extras.getSerializable("atk");
+                if (accessToken != null) {
+                    saveAccessToken(accessToken);
+                }
+                else throw new IllegalArgumentException();
+            } catch (IllegalArgumentException e) {
                 Toast.makeText(OAuthActivity.this, "認証が中断されました", Toast.LENGTH_LONG).show();
                 setResult(RESULT_CANCELED);
                 finish();
-            }
-            else {
-                saveAccessToken(accessToken);
             }
         }
     }
