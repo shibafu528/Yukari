@@ -857,6 +857,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     @Override
     protected void onStop() {
         super.onStop();
+
+        if (useStoredWriters) {
+            service.setWriterUsers(writers);
+        }
         unbindService(connection);
     }
 

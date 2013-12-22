@@ -49,6 +49,11 @@ import twitter4j.media.MediaProvider;
 public class TwitterService extends Service{
     private static final String LOG_TAG = "TwitterService";
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
+    public static final String EXTRA_RELOAD_REMOVED = "removed";
+    public static final String EXTRA_RELOAD_ADDED = "added";
+    public static final String CHANGED_ACTIVE_STATE = "shibafu.yukari.CHANGED_ACTIVE_STATE";
+    public static final String EXTRA_CHANGED_INACTIVE = "inactive";
+    public static final String EXTRA_CHANGED_ACTIVE = "active";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
@@ -246,12 +251,12 @@ public class TwitterService extends Service{
     //<editor-fold desc="ユーザ情報管理">
     public void reloadUsers() {
         Cursor cursor = database.getAccounts();
-        List<AuthUserRecord> newestList = AuthUserRecord.getAccountsList(cursor);
+        List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
         cursor.close();
         //消えたレコードの削除処理
-        List<AuthUserRecord> removeList = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> removeList = new ArrayList<AuthUserRecord>();
         for (AuthUserRecord aur : users) {
-            if (!newestList.contains(aur)) {
+            if (!dbList.contains(aur)) {
                 StreamUser remove = null;
                 for (StreamUser su : streamUsers) {
                     if (su.getUserRecord().equals(aur)) {
@@ -270,8 +275,10 @@ public class TwitterService extends Service{
         }
         users.removeAll(removeList);
         //新しいレコードの登録
-        for (AuthUserRecord aur : newestList) {
+        ArrayList<AuthUserRecord> addedList = new ArrayList<AuthUserRecord>();
+        for (AuthUserRecord aur : dbList) {
             if (!users.contains(aur)) {
+                addedList.add(aur);
                 users.add(aur);
                 if (aur.isActive) {
                     StreamUser su = new StreamUser(this, aur);
@@ -287,7 +294,10 @@ public class TwitterService extends Service{
                 Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
             }
         }
-        sendBroadcast(new Intent(RELOADED_USERS));
+        Intent broadcastIntent = new Intent(RELOADED_USERS);
+        broadcastIntent.putExtra(EXTRA_RELOAD_REMOVED, removeList);
+        broadcastIntent.putExtra(EXTRA_RELOAD_ADDED, addedList);
+        sendBroadcast(broadcastIntent);
         Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + streamUsers.size());
     }
 
@@ -319,12 +329,54 @@ public class TwitterService extends Service{
         reloadUsers();
     }
 
-    public List<AuthUserRecord> getActiveUsers() {
+    public ArrayList<AuthUserRecord> getActiveUsers() {
         ArrayList<AuthUserRecord> activeUsers = new ArrayList<AuthUserRecord>();
         for (StreamUser su : streamUsers) {
             activeUsers.add(su.getUserRecord());
         }
         return activeUsers;
+    }
+
+    public void setActiveUsers(ArrayList<AuthUserRecord> activeUsers) {
+        ArrayList<AuthUserRecord> oldActiveList = getActiveUsers();
+        ArrayList<AuthUserRecord> inactiveList = new ArrayList<AuthUserRecord>();
+        for (AuthUserRecord userRecord : users) {
+            if (activeUsers.contains(userRecord)) {
+                userRecord.isActive = true;
+            }
+            else {
+                inactiveList.add(userRecord);
+                userRecord.isActive = false;
+            }
+
+            if (userRecord.isActive && !oldActiveList.contains(userRecord)) {
+                //ストリーム開始
+                StreamUser su = new StreamUser(this, userRecord);
+                su.setListener(listener);
+                streamUsers.add(su);
+                su.start();
+            }
+            if (!userRecord.isActive && oldActiveList.contains(userRecord)) {
+                //ストリーム停止
+                StreamUser remove = null;
+                for (StreamUser su : streamUsers) {
+                    if (su.getUserRecord().equals(userRecord)) {
+                        su.stop();
+                        remove = su;
+                        break;
+                    }
+                }
+                if (remove != null) {
+                    statusListeners.remove(remove);
+                    streamUsers.remove(remove);
+                }
+            }
+        }
+        Intent broadcastIntent = new Intent(CHANGED_ACTIVE_STATE);
+        broadcastIntent.putExtra(EXTRA_CHANGED_ACTIVE, activeUsers);
+        broadcastIntent.putExtra(EXTRA_CHANGED_INACTIVE, inactiveList);
+        storeUsers();
+        reloadUsers();
     }
 
     public ArrayList<AuthUserRecord> getWriterUsers() {

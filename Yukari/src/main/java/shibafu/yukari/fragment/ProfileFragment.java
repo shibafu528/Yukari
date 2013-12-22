@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -138,13 +139,33 @@ public class ProfileFragment extends Fragment{
                 List<String> menuList = new ArrayList<String>();
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
-                menuList.add("リストへ追加/削除");
+                //menuList.add("リストへ追加/削除");
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setItems(menuList.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
+                        switch (which) {
+                            case 0:
+                            {
+                                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + targetUser.getScreenName() + " ");
+                                startActivity(intent);
+                                break;
+                            }
+                            case 1:
+                            {
+                                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, targetUser.getId());
+                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, targetUser.getScreenName());
+                                startActivity(intent);
+                                break;
+                            }
+                        }
                         currentDialog = null;
                     }
                 });
@@ -358,18 +379,6 @@ public class ProfileFragment extends Fragment{
             tvLocation.setText(user.getLocation());
             tvWeb.setText(user.getURLEntity().getExpandedURL());
             tvSince.setText(sdf.format(user.getCreatedAt()));
-
-            if (relationship != null) {
-                if (relationship.isSourceFollowingTarget()) {
-                    btnFollow.setText("フォロー解除");
-                }
-                else if (relationship.isSourceBlockingTarget()) {
-                    btnFollow.setText("ブロック中");
-                }
-            }
-            else {
-                btnFollow.setText("フォロー管理");
-            }
 
             commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
             commandAdapter.getItem(1).strBottom = String.valueOf(user.getFavouritesCount());

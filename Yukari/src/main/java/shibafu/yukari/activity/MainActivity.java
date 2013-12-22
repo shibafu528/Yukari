@@ -42,13 +42,14 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements TwitterServiceDelegate {
 
     private Twitter twitter;
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
@@ -217,7 +218,6 @@ public class MainActivity extends FragmentActivity {
                     case MotionEvent.ACTION_UP:
                         if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
                             Intent intent = new Intent(MainActivity.this, TweetActivity.class);
-                            intent.putExtra(TweetActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
                             startActivity(intent);
                         }
                         break;
@@ -388,4 +388,9 @@ public class MainActivity extends FragmentActivity {
             serviceBound = false;
         }
     };
+
+    @Override
+    public TwitterService getTwitterService() {
+        return service;
+    }
 }
