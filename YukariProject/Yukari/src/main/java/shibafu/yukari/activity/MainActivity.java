@@ -5,11 +5,13 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewConfigurationCompat;
@@ -240,6 +242,10 @@ public class MainActivity extends FragmentActivity {
         else {
             ibMenu.setVisibility(View.GONE);
         }
+
+        //スリープ防止設定
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
     }
 
     @Override

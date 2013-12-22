@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="1"
-    android:versionName="0.35alpha build131222" >
+    android:versionName="0.35alpha (prototype 131222)" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -185,6 +185,10 @@
         <activity
             android:name=".activity.ConfigActivity"
             android:label="@string/title_activity_config"/>
+
+        <activity
+            android:name=".activity.LicenseActivity"
+            android:label="@string/title_activity_about" />
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

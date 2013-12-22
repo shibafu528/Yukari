@@ -329,7 +329,7 @@ public class CentralDatabase {
             TweetDraft draft;
             if (cursor.moveToFirst()) do {
                 draft = new TweetDraft(cursor);
-                if (lastDateTime == draft.getDateTime() && last != null) {
+                if (last != null && last.getDateTime() == draft.getDateTime()) {
                     last.addWriter(new AuthUserRecord(cursor));
                 }
                 else {

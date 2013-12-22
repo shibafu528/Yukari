@@ -35,14 +35,24 @@ public class ConfigActivity extends PreferenceActivity {
 
         Preference aboutVersionPref = findPreference("pref_about_version");
         {
+            String summaryText = "";
             PackageManager pm = getPackageManager();
             try{
                 PackageInfo packageInfo = pm.getPackageInfo(getPackageName(), 0);
-                aboutVersionPref.setSummary("Version " + packageInfo.versionName);
+                summaryText += "Version " + packageInfo.versionName;
             }catch(PackageManager.NameNotFoundException e){
                 e.printStackTrace();
             }
+            summaryText += "\nDeveloped by @shibafu528\n\n>> License Information";
+            aboutVersionPref.setSummary(summaryText);
         }
+        aboutVersionPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(ConfigActivity.this, LicenseActivity.class));
+                return true;
+            }
+        });
 
         Preference prevTimePref = findPreference("pref_prev_time");
         prevTimePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
