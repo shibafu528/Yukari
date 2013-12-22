@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -244,12 +245,14 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d("MainActivity", "call onStart");
         bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d("MainActivity", "call onStop");
         unbindService(connection);
     }
 
@@ -320,13 +323,12 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("MainActivity", "call onActivityResult | request=" + requestCode + ", result=" + resultCode);
         if (requestCode == REQUEST_OAUTH) {
             switch (resultCode) {
                 case RESULT_OK:
                     //認証情報をロードし差分を追加する
                     reloadUsers();
-                    break;
-                default:
                     break;
             }
         } else if (resultCode == RESULT_OK) {
@@ -361,11 +363,13 @@ public class MainActivity extends FragmentActivity {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             MainActivity.this.service = binder.getService();
             serviceBound = true;
-
             twitter = MainActivity.this.service.getTwitter();
             users = MainActivity.this.service.getUsers();
             if (users.size() < 1) {
-                startActivityForResult(new Intent(MainActivity.this, OAuthActivity.class), REQUEST_OAUTH);
+                Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
+                intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
+                startActivityForResult(intent, REQUEST_OAUTH);
+                finish();
             }
             else if (pageList.size() < 1) {
                 //TODO: Tabsデータを使うように変更する

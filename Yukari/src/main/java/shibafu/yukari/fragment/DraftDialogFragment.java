@@ -1,8 +1,10 @@
 package shibafu.yukari.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -32,6 +34,9 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -41,6 +46,7 @@ import twitter4j.User;
 public class DraftDialogFragment extends DialogFragment {
 
     private DraftDialogEventListener listener;
+    private TwitterService service;
 
     private ListView listView;
     private DraftAdapter adapter;
@@ -56,7 +62,13 @@ public class DraftDialogFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         listener = (DraftDialogEventListener) getActivity();
-        drafts = TweetDraft.loadDrafts(getActivity());
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        service = ((TwitterServiceDelegate)activity).getTwitterService();
+        drafts = service.getDatabase().getDrafts();
     }
 
     @Override
@@ -99,7 +111,7 @@ public class DraftDialogFragment extends DialogFragment {
                     }
                 }, new Date(System.currentTimeMillis() + 100));
 
-                ((DraftDialogEventListener)getActivity()).onDraftSelected(drafts.get(position));
+                listener.onDraftSelected(drafts.get(position));
                 dismiss();
             }
         });
@@ -126,20 +138,16 @@ public class DraftDialogFragment extends DialogFragment {
                 final int pos = position;
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
-                        .setMessage("\"" + drafts.get(position).text + "\"を削除しますか？")
+                        .setMessage("\"" + drafts.get(position).getText() + "\"を削除しますか？")
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
                                 currentDialog = null;
 
-                                drafts.remove(pos);
+                                service.getDatabase().deleteDraft(drafts.get(pos));
+                                drafts = service.getDatabase().getDrafts();
                                 adapter.notifyDataSetChanged();
-                                try {
-                                    TweetDraft.saveDrafts(getActivity(), drafts);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
 
                                 if (drafts.size() < 1) {
                                     Toast.makeText(getActivity(), "下書きがありません", Toast.LENGTH_SHORT).show();
@@ -210,44 +218,32 @@ public class DraftDialogFragment extends DialogFragment {
                 v.setBackgroundColor(Color.WHITE);
                 v.setTag(Color.WHITE);
                 TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
-                tvName.setText("@" + d.user.ScreenName);
+                tvName.setText("@" + d.getWriterIds());
                 tvName.setTypeface(FontAsset.getInstance(getActivity()).getFont());
                 TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
                 tvText.setTypeface(FontAsset.getInstance(getActivity()).getFont());
-                tvText.setText(d.text);
+                tvText.setText(d.getText());
                 final ImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
                 ivIcon.setImageResource(R.drawable.yukatterload);
-                {
-                    AsyncTask<Void, Void, User> task = new AsyncTask<Void, Void, User>() {
-                        @Override
-                        protected User doInBackground(Void... params) {
-                            try {
-                                return d.user.getUser(getActivity());
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                            } catch (NullPointerException e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        }
-
-                        @Override
-                        protected void onPostExecute(User user) {
-                            if (user != null) {
-                                ivIcon.setTag(user.getBiggerProfileImageURL());
-                                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
-                                loaderTask.executeIf(user.getBiggerProfileImageURL());
-                            }
-                        }
-                    };
-                    task.execute();
-                }
+                AuthUserRecord user = d.getWriters().get(0);
+                ivIcon.setTag(user.ProfileImageUrl);
+                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
+                loaderTask.executeIf(user.ProfileImageUrl);
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
-                if (d.attachMedia != null && d.attachMedia.length > 0) {
-                    info = "添付: " + d.attachMedia.length + "\n";
+                if (d.isDirectMessage()) {
+                    info += "DM";
                 }
-                info = info + "保存日時: " + sdf.format(d.time);
+                if (d.isFailedDelivery()) {
+                    info += "送信に失敗したツイート";
+                }
+                if (d.getAttachedPicture() != null) {
+                    info += "添付画像あり\n";
+                }
+                if (d.isUseGeoLocation()) {
+                    info += "座標情報あり(" + d.getGeoLatitude() + ", " + d.getGeoLongitude() + ")";
+                }
+                info += "保存日時: " + sdf.format(d.getDateTime());
                 tvTimestamp.setText(info);
             }
 

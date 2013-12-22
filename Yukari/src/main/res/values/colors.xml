@@ -2,6 +2,7 @@
 <resources>
     <drawable name="preview_bg">#99000000</drawable>
 
+    <color name="key_color">#ff7849ba</color>
     <drawable name="key_color">#ff7849ba</drawable>
     <drawable name="status_bar_color">#cc7849ba</drawable>
 
