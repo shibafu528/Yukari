@@ -136,11 +136,11 @@ public class StatusLinkFragment extends ListFragment{
                             intent.putExtra(TweetActivity.EXTRA_USER, user);
                             if (lr.type == TYPE_USER_REPLY) {
                                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + lr.targetUserSN + " ");
-                                intent.putExtra(TweetActivity.EXTRA_REPLY, true);
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                             }
                             else {
-                                intent.putExtra(TweetActivity.EXTRA_DM, true);
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET, lr.targetUser);
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, lr.targetUser);
                                 intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lr.targetUserSN);
                             }
                             startActivity(intent);

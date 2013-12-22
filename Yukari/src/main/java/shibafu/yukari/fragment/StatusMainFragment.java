@@ -58,7 +58,7 @@ public class StatusMainFragment extends Fragment{
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
-                intent.putExtra(TweetActivity.EXTRA_REPLY, true);
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
                         ((status.isRetweet())?status.getRetweetedStatus().getUser().getScreenName()
                                 : status.getUser().getScreenName()) + " ");
