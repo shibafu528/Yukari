@@ -380,7 +380,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
     @Override
     public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
-
+        //TODO: DM受信時の処理
     }
 
 }

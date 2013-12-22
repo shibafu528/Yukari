@@ -126,10 +126,11 @@ public class TwitterService extends Service{
 
         @Override
         public void onStatus(AuthUserRecord from, Status status) {
-            Log.d(LOG_TAG, "onStatus(Registed Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
+            Log.d(LOG_TAG, "onStatus(Registered Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             database.updateUser(new DBUser(status.getUser()));
+            PreformedStatus preformedStatus = new PreformedStatus(status, from);
             for (StatusListener sl : statusListeners) {
-                sl.onStatus(from, new PreformedStatus(status, from));
+                sl.onStatus(from, preformedStatus);
             }
 
             //TODO: 自分自身のアカウントからは除外
@@ -173,7 +174,6 @@ public class TwitterService extends Service{
     }
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
 
-    //Handler
     private Handler handler;
 
     public IBinder onBind(Intent intent) {
@@ -203,7 +203,8 @@ public class TwitterService extends Service{
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
+        Log.d(LOG_TAG, "onCreate completed.");
+        //Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -229,16 +230,16 @@ public class TwitterService extends Service{
         database = null;
 
         Log.d(LOG_TAG, "onDestroy completed.");
-        Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
     }
 
     public void addStatusListener(StatusListener l) {
-        if (!statusListeners.contains(l))
+        if (statusListeners != null && !statusListeners.contains(l))
             statusListeners.add(l);
     }
 
     public void removeStatusListener(StatusListener l) {
-        if (statusListeners.contains(l))
+        if (statusListeners != null && statusListeners.contains(l))
             statusListeners.remove(l);
     }
 
@@ -346,7 +347,6 @@ public class TwitterService extends Service{
             }
         }
         storeUsers();
-        reloadUsers();
     }
 
     public void storeUsers() {
