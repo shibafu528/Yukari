@@ -12,6 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -19,6 +23,9 @@ import shibafu.yukari.activity.AccountManageActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 
 /**
@@ -30,6 +37,12 @@ public class MenuDialogFragment extends DialogFragment {
     private static final int REQUEST_TWILOG = 2;
     private static final int REQUEST_FAVSTAR = 3;
     private static final int REQUEST_ACLOG = 4;
+    private static final int REQUEST_ACCOUNT = 5;
+
+    private static final int ACCOUNT_ICON_DIP = 32;
+
+    private LinearLayout llActiveAccounts;
+    private ArrayList<AuthUserRecord> activeAccounts;
 
     private ImageView keepScreenOnImage;
 
@@ -37,16 +50,7 @@ public class MenuDialogFragment extends DialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(inflateView(getActivity().getLayoutInflater()));
-
         AlertDialog dialog = builder.create();
-
-        //サイズ調整のつもりなんだけど有効かどうか分からない
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
-        int dialogWidth = (int) (0.95f * metrics.widthPixels);
-        WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
-        lp.width = dialogWidth;
-        dialog.getWindow().setAttributes(lp);
-
         return dialog;
     }
 
@@ -56,10 +60,38 @@ public class MenuDialogFragment extends DialogFragment {
         if (((MainActivity)getActivity()).isKeepScreenOn()) {
             keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
         }
+        activeAccounts = ((TwitterServiceDelegate)getActivity()).getTwitterService().getActiveUsers();
+        createAccountIconView();
+    }
+
+    private void createAccountIconView() {
+        llActiveAccounts.removeAllViewsInLayout();
+        final int iconSize = (int) (getResources().getDisplayMetrics().density * ACCOUNT_ICON_DIP);
+        for (AuthUserRecord user : activeAccounts) {
+            ImageView iv = new ImageView(getActivity());
+            iv.setFocusable(false);
+            iv.setClickable(false);
+            iv.setImageResource(R.drawable.yukatterload);
+            iv.setTag(user.ProfileImageUrl);
+            IconLoaderTask task = new IconLoaderTask(getActivity(), iv);
+            task.executeIf(user.ProfileImageUrl);
+            llActiveAccounts.addView(iv, iconSize, iconSize);
+        }
     }
 
     private View inflateView(LayoutInflater inflater) {
         View v = inflater.inflate(R.layout.dialog_menu, null);
+
+        llActiveAccounts = (LinearLayout) v.findViewById(R.id.llMenuAccounts);
+        v.findViewById(R.id.llMenuAccountParent).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+                intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, activeAccounts);
+                startActivityForResult(intent, REQUEST_ACCOUNT);
+            }
+        });
 
         View profileMenu = v.findViewById(R.id.llMenuProfile);
         profileMenu.setOnClickListener(new View.OnClickListener() {
@@ -167,6 +199,14 @@ public class MenuDialogFragment extends DialogFragment {
                 dismiss();
                 startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse(TwitterUtil.getAclogURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
+                break;
+            }
+            case REQUEST_ACCOUNT:
+            {
+                activeAccounts =
+                        (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
+                createAccountIconView();
+                ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts);
                 break;
             }
         }

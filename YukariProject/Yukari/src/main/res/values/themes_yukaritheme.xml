@@ -39,6 +39,10 @@
 
   <style name="YukariDialogTheme" parent="android:Theme.Dialog">
 
+        <item name="android:windowTitleStyle">@style/CompatTextAppearance_DialogWindowTitle</item>
+
+        <item name="android:windowBackground">@drawable/dialog_full_holo_light</item>
+
         <item name="android:editTextStyle">@style/EditTextYukariTheme</item>
 
         <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariTheme</item>
@@ -67,6 +71,17 @@
 
         <item name="android:spinnerItemStyle">@style/SpinnerItemYukariTheme</item>
 
+    </style>
+
+    <style name="CompatDialogWindowTitle">
+        <item name="android:maxLines">1</item>
+        <item name="android:scrollHorizontally">true</item>
+        <item name="android:textAppearance">@style/CompatTextAppearance_DialogWindowTitle</item>
+    </style>
+
+    <style name="CompatTextAppearance_DialogWindowTitle">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/key_color</item>
     </style>
 
 </resources>

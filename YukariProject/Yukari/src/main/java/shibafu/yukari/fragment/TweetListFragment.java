@@ -1,8 +1,10 @@
 package shibafu.yukari.fragment;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -255,6 +257,25 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         statuses.add(status);
     }
 
+    private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    };
+
+    private BroadcastReceiver onActiveChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<AuthUserRecord> inactiveList = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(TwitterService.EXTRA_CHANGED_INACTIVE);
+            for (AuthUserRecord inactive : inactiveList) {
+                if (users.contains(inactive)) {
+                    users.remove(inactive);
+                }
+            }
+        }
+    };
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -264,7 +285,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             serviceBound = true;
 
             if (user == null) {
-                users.addAll(TweetListFragment.this.service.getUsers());
+                users.addAll(TweetListFragment.this.service.getActiveUsers());
             }
             else {
                 users.add(TweetListFragment.this.service.getPrimaryUser());
@@ -346,6 +367,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                         }
                         if (mode == MODE_HOME) {
                             TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
+                            getActivity().registerReceiver(TweetListFragment.this.onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
+                            getActivity().registerReceiver(TweetListFragment.this.onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
                         }
                         changeFooterProgress(false);
                     }
@@ -357,12 +380,16 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         @Override
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
+            if (mode == MODE_HOME) {
+                getActivity().unregisterReceiver(TweetListFragment.this.onReloadReceiver);
+                getActivity().unregisterReceiver(TweetListFragment.this.onActiveChangedReceiver);
+            }
         }
     };
 
     @Override
     public void onStatus(AuthUserRecord from, PreformedStatus status) {
-        if ((user == null || user.equals(from)) && !statuses.contains(status)) {
+        if (users.contains(from) && !statuses.contains(status)) {
             appendStatus(status);
             handler.post(new Runnable() {
                 @Override

@@ -39,16 +39,18 @@
                 android:layout_gravity="center"
                 android:layout_below="@+id/ivProfileHeader"
                 android:layout_toRightOf="@+id/ibProfileMenu"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="4dp"
+            android:visibility="invisible" />
 
         <Button
                 android:layout_width="160dp"
                 android:layout_height="48dp"
-                android:text="フォローする"
+                android:text="フォロー管理"
                 android:id="@+id/btnProfileFollow"
                 android:layout_alignTop="@+id/ibProfileSearch"
                 android:layout_alignParentRight="true"
-                android:layout_marginRight="8dp"/>
+                android:layout_marginRight="8dp"
+                android:enabled="false"/>
 
         <ImageView
                 android:layout_width="wrap_content"
