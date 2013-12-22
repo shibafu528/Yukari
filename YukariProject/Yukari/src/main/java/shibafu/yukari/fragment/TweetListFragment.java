@@ -205,6 +205,24 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (mode == MODE_HOME) {
+            getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
+            getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mode == MODE_HOME) {
+            getActivity().unregisterReceiver(onReloadReceiver);
+            getActivity().unregisterReceiver(onActiveChangedReceiver);
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         if (serviceBound) {
@@ -367,8 +385,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                         }
                         if (mode == MODE_HOME) {
                             TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
-                            getActivity().registerReceiver(TweetListFragment.this.onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
-                            getActivity().registerReceiver(TweetListFragment.this.onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
                         }
                         changeFooterProgress(false);
                     }
@@ -380,10 +396,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         @Override
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
-            if (mode == MODE_HOME) {
-                getActivity().unregisterReceiver(TweetListFragment.this.onReloadReceiver);
-                getActivity().unregisterReceiver(TweetListFragment.this.onActiveChangedReceiver);
-            }
         }
     };
 
