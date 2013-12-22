@@ -47,11 +47,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="ALL ACCOUNT"
-            android:id="@+id/tvTweetBy"
-            android:textColor="#ffa65eb5"
+        android:id="@+id/tvTweetBy"
+            android:textColor="@color/selector_key_light_textcolor"
             android:layout_above="@+id/etTweetInput"
-            android:layout_alignRight="@+id/etTweetInput"/>
+            android:layout_alignRight="@+id/etTweetInput"
+        android:text=">> SELECT ACCOUNT(S)"
+        android:background="@drawable/selector_key_light_background"
+        android:focusable="true"
+        android:clickable="true" />
 
     <TableLayout
             android:layout_width="wrap_content"
@@ -186,7 +189,8 @@
             android:layout_alignLeft="@+id/horizontalScrollView"
             android:layout_marginTop="4dp"
             android:id="@+id/llTweetAttachParent"
-            android:visibility="gone">
+            android:visibility="gone"
+        android:layout_alignRight="@+id/tvTweetBy">
 
         <TextView
                 android:layout_width="wrap_content"
@@ -199,32 +203,19 @@
         <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/imageView2"
-                android:src="@android:drawable/divider_horizontal_textfield"
+            android:src="@android:drawable/divider_horizontal_textfield"
                 android:scaleType="fitXY"
                 android:layout_alignLeft="@+id/horizontalScrollView"
                 android:layout_below="@+id/tvProfileScreenName"
                 android:layout_alignParentRight="true"
                 android:layout_gravity="left|center_vertical"/>
 
-        <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-
-            <LinearLayout
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:id="@+id/llTweetAttach">
-
-                <ImageView
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
-                        android:id="@+id/ivTweetImageAttach"
-                        android:scaleType="centerInside"
-                        />
-            </LinearLayout>
-        </HorizontalScrollView>
+        <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:id="@+id/ivTweetImageAttach"
+                android:scaleType="centerInside"
+                />
 
     </LinearLayout>
 
@@ -251,7 +242,6 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/imageView"
             android:src="@android:drawable/divider_horizontal_textfield"
             android:scaleType="fitXY"
             android:layout_alignLeft="@+id/horizontalScrollView"

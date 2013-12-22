@@ -326,6 +326,29 @@ public class TwitterService extends Service{
         return activeUsers;
     }
 
+    public ArrayList<AuthUserRecord> getWriterUsers() {
+        ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+        for (AuthUserRecord userRecord : users) {
+            if (userRecord.isWriter) {
+                writers.add(userRecord);
+            }
+        }
+        return writers;
+    }
+
+    public void setWriterUsers(List<AuthUserRecord> writers) {
+        for (AuthUserRecord userRecord : users) {
+            if (writers.contains(userRecord)) {
+                userRecord.isWriter = true;
+            }
+            else {
+                userRecord.isWriter = false;
+            }
+        }
+        storeUsers();
+        reloadUsers();
+    }
+
     public void storeUsers() {
         database.beginTransaction();
         try {

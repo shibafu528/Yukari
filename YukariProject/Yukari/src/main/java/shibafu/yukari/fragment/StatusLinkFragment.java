@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
@@ -25,7 +24,6 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.HashtagEntity;
@@ -142,7 +140,8 @@ public class StatusLinkFragment extends ListFragment{
                             }
                             else {
                                 intent.putExtra(TweetActivity.EXTRA_DM, true);
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET, lr.targetUserSN);
+                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET, lr.targetUser);
+                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lr.targetUserSN);
                             }
                             startActivity(intent);
                             break;

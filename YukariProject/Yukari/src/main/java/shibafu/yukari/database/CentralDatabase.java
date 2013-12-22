@@ -6,6 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
@@ -54,11 +58,13 @@ public class CentralDatabase {
     //Draftsテーブル
     public static final String TABLE_DRAFTS = "Drafts";
     public static final String COL_DRAFTS_ID = "_id";
-    public static final String COL_DRAFTS_WRITER_IDS = "WriterIds";
+    public static final String COL_DRAFTS_WRITER_ID = "WriterId";
     public static final String COL_DRAFTS_TEXT = "Text";
+    public static final String COL_DRAFTS_DATETIME = "DateTime";
     public static final String COL_DRAFTS_IN_REPLY_TO = "InReplyTo";//IsDirectMessage時は送信先ユーザIDを格納するカラムとする
     public static final String COL_DRAFTS_IS_QUOTED = "IsQuoted";
     public static final String COL_DRAFTS_ATTACHED_PICTURE = "AttachedPicture";
+    public static final String COL_DRAFTS_USE_GEO_LOCATION = "UseGeoLocation";
     public static final String COL_DRAFTS_GEO_LATITUDE = "GeoLatitude";
     public static final String COL_DRAFTS_GEO_LONGITUDE = "GeoLongitude";
     public static final String COL_DRAFTS_IS_POSSIBLY_SENSITIVE = "IsPossiblySensitive";
@@ -139,11 +145,13 @@ public class CentralDatabase {
             db.execSQL(
                     "CREATE TABLE " + TABLE_DRAFTS + " (" +
                     COL_DRAFTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COL_DRAFTS_WRITER_IDS + " TEXT, " +
+                    COL_DRAFTS_WRITER_ID + " INTEGER, " +
                     COL_DRAFTS_TEXT + " TEXT, " +
+                    COL_DRAFTS_DATETIME + " TEXT, " +
                     COL_DRAFTS_IN_REPLY_TO + " INTEGER, " +
                     COL_DRAFTS_IS_QUOTED + " INTEGER, " +
                     COL_DRAFTS_ATTACHED_PICTURE + " TEXT, " +
+                    COL_DRAFTS_USE_GEO_LOCATION + " INTEGER, " +
                     COL_DRAFTS_GEO_LATITUDE + " REAL, " +
                     COL_DRAFTS_GEO_LONGITUDE + " REAL, " +
                     COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
@@ -203,6 +211,11 @@ public class CentralDatabase {
         db.endTransaction();
     }
 
+    public void updateUser(DBUser user) {
+        db.replace(TABLE_USER, null, user.getContentValues());
+    }
+
+    //<editor-fold desc="Accounts">
     public Cursor getAccounts() {
         Cursor cursor = db.query(
                 TABLE_ACCOUNTS + "," + TABLE_USER,
@@ -255,15 +268,62 @@ public class CentralDatabase {
         return primaryUser;
     }
 
-    public void updateUser(DBUser user) {
-        db.replace(TABLE_USER, null, user.getContentValues());
-    }
-
     public void updateAccount(AuthUserRecord aur) {
         db.replace(TABLE_ACCOUNTS, null, aur.getContentValues());
     }
 
     public void deleteAccount(long id) {
         db.delete(TABLE_ACCOUNTS, COL_ACCOUNTS_ID + "=" + id, null);
+    }
+    //</editor-fold>
+
+    public void updateDraft(TweetDraft draft) {
+        beginTransaction();
+        try {
+            for (ContentValues values : draft.getContentValuesArray()) {
+                db.replace(TABLE_DRAFTS, null, values);
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
+    }
+
+    public void deleteDraft(TweetDraft draft) {
+        deleteDraft(draft.getDateTime());
+    }
+
+    public void deleteDraft(long savedTime) {
+        db.delete(TABLE_DRAFTS, COL_DRAFTS_DATETIME + "=" + savedTime, null);
+    }
+
+    public List<TweetDraft> getDrafts() {
+        List<TweetDraft> draftList = new ArrayList<TweetDraft>();
+        Cursor cursor = db.query(
+                TABLE_DRAFTS + "," + TABLE_ACCOUNTS,
+                null, 
+                COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                null, null, null, COL_DRAFTS_DATETIME);
+        try {
+            long lastDateTime = -1;
+            TweetDraft last = null;
+            TweetDraft draft;
+            if (cursor.moveToFirst()) do {
+                draft = new TweetDraft(cursor);
+                if (lastDateTime == draft.getDateTime() && last != null) {
+                    last.addWriterId(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_WRITER_ID));
+                    last.addWriter(new AuthUserRecord(cursor));
+                }
+                else {
+                    draft.addWriterId(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_WRITER_ID));
+                    draft.addWriter(new AuthUserRecord(cursor));
+                    draftList.add(draft);
+                    last = draft;
+                }
+            } while (cursor.moveToNext());
+        } finally {
+            cursor.close();
+        }
+        return draftList;
     }
 }

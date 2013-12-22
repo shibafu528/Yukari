@@ -56,6 +56,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.BitmapResizer;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
@@ -66,13 +67,14 @@ import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener{
+public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener, TwitterServiceDelegate{
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_REPLY = "reply";
     public static final String EXTRA_DM = "dm";
     public static final String EXTRA_DM_TARGET = "dm_to";
+    public static final String EXTRA_DM_TARGET_SN = "dm_to_sn";
     public static final String EXTRA_TEXT = "text";
     public static final String EXTRA_MEDIA = "media";
 
@@ -89,30 +91,44 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
 
+    //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
     private int tweetCount = 140;
     private int reservedCount = 0;
 
+    //DMフラグ
     private boolean isDirectMessage = false;
+    private long directMessageDestId;
     private String directMessageDestSN;
 
+    //添付プレビュー
     private LinearLayout llTweetAttachParent;
-    private LinearLayout llTweetAttach;
     private ImageView ivAttach;
 
-    private AuthUserRecord user;
+    //Writer指定
+    private ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+    //アカウントのWriter指定を使用する(Writerアカウント指定呼び出しの場合は折る)
+    private boolean useStoredWriters = true;
+
     private Status status;
     private AttachPicture attachPicture;
 
+    //サービスバインド
     private TwitterService service;
     private boolean serviceBound = false;
 
+    //撮影用の一時変数
     private Uri cameraTemp;
 
     private ProgressDialog progress;
     private AlertDialog currentDialog;
+
+    //ScreenNameピッカーの呼び出しボタン
     private ImageButton ibSNPicker;
+
+    //Writer一覧ビュー
+    private TextView tvTweetBy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,10 +141,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         Uri dataArg = args.getData();
 
         //ユーザー指定がある場合は表示する (EXTRA_USER)
-        TextView tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
-        user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
+        tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
+        AuthUserRecord user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
         if (user != null) {
-            tvTweetBy.setText("@" + user.ScreenName);
+            useStoredWriters = false;
+            writers.add(user);
+            updateWritersView();
         }
 
         //statusを取得する (EXTRA_STATUS)
@@ -190,7 +208,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             }
         });
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
-        String defaultText = "";
+        String defaultText;
         if (isWebIntent) {
             String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
             String paramText = dataArg.getQueryParameter("text");
@@ -227,7 +245,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
         //添付エリアの設定
         llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
-        llTweetAttach = (LinearLayout) findViewById(R.id.llTweetAttach);
         ivAttach = (ImageView) findViewById(R.id.ivTweetImageAttach);
         ivAttach.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -272,12 +289,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         String[] strMedia = args.getStringArrayExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            addAttachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
+            attachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
         }
         else if (strMedia != null) {
             for (String s : strMedia) {
                 Uri uri = Uri.parse(s);
-                addAttachPicture(uri);
+                attachPicture(uri);
             }
         }
 
@@ -298,76 +315,82 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     Toast.makeText(TweetActivity.this, "サービスが停止しています", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (isDirectMessage && user == null) {
-                    Toast.makeText(TweetActivity.this, "相互フォローになっている、送信元アカウント指定が必要です", Toast.LENGTH_SHORT).show();
+                if (writers.size() < 1) {
+                    Toast.makeText(TweetActivity.this, "アカウントを指定してください", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
+                AsyncTask<Void, Void, Integer> task = new AsyncTask<Void, Void, Integer>() {
                     @Override
-                    protected Boolean doInBackground(Void... params) {
-                        try {
-                            if (isDirectMessage) {
-                                service.sendDirectMessage(directMessageDestSN, user, etInput.getText().toString());
-                            }
-                            else {
-                                StatusUpdate update = new StatusUpdate(etInput.getText().toString());
-                                //statusが引数に付加されている場合はin-reply-toとして設定する
-                                if (status != null) {
-                                    update.setInReplyToStatusId(status.getId());
+                    protected Integer doInBackground(Void... params) {
+                        int successCount = 0;
+                        for (AuthUserRecord user : writers) {
+                            try {
+                                if (isDirectMessage) {
+                                    service.sendDirectMessage(directMessageDestSN, user, etInput.getText().toString());
                                 }
-                                //attachPictureがある場合は添付
-                                if (attachPicture != null) {
-                                    try {
-                                        if (Math.max(attachPicture.width, attachPicture.height) > 960) {
-                                            Log.d("TweetActivity", "添付画像の長辺が960pxを超えています。圧縮対象とします。");
-                                            Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 960, 960, null);
-                                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                            resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                            Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                            service.postTweet(user, update, new InputStream[]{bais});
-                                        }
-                                        else {
-                                            service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
-                                        }
-                                        return true;
-                                    } catch (FileNotFoundException e) {
-                                        e.printStackTrace();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
+                                else {
+                                    StatusUpdate update = new StatusUpdate(etInput.getText().toString());
+                                    //statusが引数に付加されている場合はin-reply-toとして設定する
+                                    if (status != null) {
+                                        update.setInReplyToStatusId(status.getId());
                                     }
-                                    return false;
+                                    //attachPictureがある場合は添付
+                                    if (attachPicture != null) {
+                                        try {
+                                            if (Math.max(attachPicture.width, attachPicture.height) > 960) {
+                                                Log.d("TweetActivity", "添付画像の長辺が960pxを超えています。圧縮対象とします。");
+                                                Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 960, 960, null);
+                                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                                resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                                Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                                service.postTweet(user, update, new InputStream[]{bais});
+                                            }
+                                            else {
+                                                service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
+                                            }
+                                            ++successCount;
+                                            continue;
+                                        } catch (FileNotFoundException e) {
+                                            e.printStackTrace();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                        continue;
+                                    }
+                                    service.postTweet(user, update);
+                                    ++successCount;
                                 }
-                                service.postTweet(user, update);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
                             }
-                            return true;
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
                         }
-                        return false;
+                        return successCount;
                     }
 
                     @Override
-                    protected void onPostExecute(Boolean aBoolean) {
+                    protected void onPostExecute(Integer result) {
                         if (progress != null) {
                             progress.dismiss();
                             progress = null;
                         }
-                        if (aBoolean) {
-                            Toast.makeText(TweetActivity.this, "投稿しました", Toast.LENGTH_SHORT).show();
+                        if (result == writers.size()) {
+                            Toast.makeText(TweetActivity.this, "投稿に成功しました", Toast.LENGTH_SHORT).show();
                             finish();
                         }
                         else {
-                            Toast.makeText(TweetActivity.this, "通信中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(TweetActivity.this, String.format("成功: %d\n失敗: %d", result, writers.size() - result), Toast.LENGTH_SHORT).show();
                         }
                     }
                 };
                 task.execute();
                 ProgressDialog pd = new ProgressDialog(TweetActivity.this);
-                pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                pd.setIndeterminate(false);
                 pd.setCancelable(false);
                 pd.setMessage("送信中...");
+                pd.setMax(writers.size());
                 pd.show();
                 progress = pd;
             }
@@ -496,25 +519,25 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
                                         else {
-                                            TweetDraft draft;
-                                            if (attachPicture == null)
-                                                draft = new TweetDraft(user, etInput.getText().toString(), status,
-                                                        (String[]) null);
-                                            else
-                                                draft = new TweetDraft(user, etInput.getText().toString(), status,
-                                                        new String[]{attachPicture.uri.toString()});
-                                            try {
-                                                List<TweetDraft> tweetDrafts = TweetDraft.loadDrafts(TweetActivity.this);
-                                                if (tweetDrafts == null) {
-                                                    tweetDrafts = new ArrayList<TweetDraft>();
-                                                }
-                                                tweetDrafts.add(draft);
-                                                TweetDraft.saveDrafts(TweetActivity.this, tweetDrafts);
-                                                Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                                Toast.makeText(TweetActivity.this, "保存に失敗しました", Toast.LENGTH_SHORT).show();
+                                            long[] writerIds = new long[writers.size()];
+                                            for (int i = 0; i < writerIds.length; ++i) {
+                                                writerIds[i] = writers.get(i).NumericId;
                                             }
+                                            TweetDraft draft = new TweetDraft(
+                                                    writerIds,
+                                                    etInput.getText().toString(),
+                                                    System.currentTimeMillis(),
+                                                    isDirectMessage? directMessageDestId : ( (status==null)? -1 : status.getId() ),
+                                                    false,
+                                                    (attachPicture==null)? null : attachPicture.uri,
+                                                    false,
+                                                    0,
+                                                    0,
+                                                    false,
+                                                    isDirectMessage,
+                                                    false);
+                                            service.getDatabase().updateDraft(draft);
+                                            Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
                                         }
                                         break;
                                     }
@@ -608,7 +631,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         //DM判定
         isDirectMessage = args.getBooleanExtra(EXTRA_DM, false);
         if (isDirectMessage) {
-            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET);
+            directMessageDestId = args.getIntExtra(EXTRA_DM_TARGET, -1);
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
             //表題変更
             ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
             //ボタン無効化と表示変更
@@ -693,13 +717,26 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         }
     }
 
+    private void updateWritersView() {
+        StringBuilder sb = new StringBuilder();
+        if (writers.size() < 1) {
+            sb.append(">> SELECT ACCOUNT(S)");
+        }
+        else for (int i = 0; i < writers.size(); ++i) {
+            if (i > 0) sb.append(",");
+            sb.append("@");
+            sb.append(writers.get(i).ScreenName);
+        }
+        tvTweetBy.setText(sb.toString());
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_GALLERY:
-                    addAttachPicture(data.getData());
+                    attachPicture(data.getData());
                     break;
                 case REQUEST_CAMERA:
                 {
@@ -713,7 +750,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         cameraTemp = data.getData();
                     }
                     //添付に追加する
-                    addAttachPicture(cameraTemp);
+                    attachPicture(cameraTemp);
                     cameraTemp = null;
                     break;
                 }
@@ -777,7 +814,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         unbindService(connection);
     }
 
-    private void addAttachPicture(Uri uri) {
+    private void attachPicture(Uri uri) {
         AttachPicture pic = new AttachPicture();
         pic.uri = uri;
         try {
@@ -807,6 +844,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             TweetActivity.this.service = binder.getService();
             serviceBound = true;
+
+            if (useStoredWriters) {
+                writers = TweetActivity.this.service.getWriterUsers();
+                updateWritersView();
+            }
         }
 
         @Override
@@ -817,14 +859,19 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     @Override
     public void onDraftSelected(TweetDraft selected) {
-        Intent intent = new Intent(this, TweetActivity.class);
-        intent.putExtra(EXTRA_TEXT, selected.text);
-        intent.putExtra(EXTRA_USER, selected.user);
-        intent.putExtra(EXTRA_REPLY, selected.from != null);
-        intent.putExtra(EXTRA_STATUS, selected.from);
-        intent.putExtra(EXTRA_MEDIA, selected.attachMedia);
-        startActivity(intent);
-        finish();
+//        Intent intent = new Intent(this, TweetActivity.class);
+//        intent.putExtra(EXTRA_TEXT, selected.text);
+//        intent.putExtra(EXTRA_USER, selected.user);
+//        intent.putExtra(EXTRA_REPLY, selected.from != null);
+//        intent.putExtra(EXTRA_STATUS, selected.from);
+//        intent.putExtra(EXTRA_MEDIA, selected.attachMedia);
+//        startActivity(intent);
+//        finish();
+    }
+
+    @Override
+    public TwitterService getTwitterService() {
+        return service;
     }
 
     private class AttachPicture {
