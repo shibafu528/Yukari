@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -218,7 +220,13 @@ public class DraftDialogFragment extends DialogFragment {
                 v.setBackgroundColor(Color.WHITE);
                 v.setTag(Color.WHITE);
                 TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
-                tvName.setText("@" + d.getWriterIds());
+                StringBuilder sbNames = new StringBuilder();
+                for (int i = 0; i < d.getWriters().size(); ++i) {
+                    if (i > 0) sbNames.append("\n");
+                    sbNames.append("@");
+                    sbNames.append(d.getWriters().get(i).ScreenName);
+                }
+                tvName.setText(sbNames.toString());
                 tvName.setTypeface(FontAsset.getInstance(getActivity()).getFont());
                 TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
                 tvText.setTypeface(FontAsset.getInstance(getActivity()).getFont());
@@ -232,16 +240,17 @@ public class DraftDialogFragment extends DialogFragment {
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
                 if (d.isDirectMessage()) {
-                    info += "DM";
+                    DBUser dbUser = service.getDatabase().getUser(d.getInReplyTo());
+                    info += "DM to " + (dbUser!=null? "@" + dbUser.getScreenName() : "(Unknown User)") + "\n";
                 }
                 if (d.isFailedDelivery()) {
-                    info += "送信に失敗したツイート";
+                    info += "送信に失敗したツイート\n";
                 }
                 if (d.getAttachedPicture() != null) {
                     info += "添付画像あり\n";
                 }
                 if (d.isUseGeoLocation()) {
-                    info += "座標情報あり(" + d.getGeoLatitude() + ", " + d.getGeoLongitude() + ")";
+                    info += "座標情報あり(" + d.getGeoLatitude() + ", " + d.getGeoLongitude() + ")\n";
                 }
                 info += "保存日時: " + sdf.format(d.getDateTime());
                 tvTimestamp.setText(info);

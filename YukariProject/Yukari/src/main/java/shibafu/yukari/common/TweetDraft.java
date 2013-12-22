@@ -23,9 +23,7 @@ import twitter4j.Status;
  */
 public class TweetDraft implements Serializable{
 
-    private int id;
-    @Deprecated
-    private long[] writerIds;
+    private int id = -1;
     private ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
     private String text;
     private long dateTime;
@@ -39,12 +37,12 @@ public class TweetDraft implements Serializable{
     private boolean isDirectMessage;
     private boolean isFailedDelivery;
 
-    public TweetDraft(long[] writerIds, String text, long dateTime, long inReplyTo,
+    public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime, long inReplyTo,
                       boolean isQuoted, Uri attachedPicture,
                       boolean useGeoLocation,
                       double geoLatitude, double geoLongitude,
                       boolean isPossiblySensitive, boolean isDirectMessage, boolean isFailedDelivery) {
-        this.writerIds = writerIds;
+        this.writers = writers;
         this.text = text;
         this.dateTime = dateTime;
         this.inReplyTo = inReplyTo;
@@ -64,7 +62,8 @@ public class TweetDraft implements Serializable{
         dateTime = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_DATETIME));
         inReplyTo = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IN_REPLY_TO));
         isQuoted = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_QUOTED)) == 1;
-        attachedPicture = Uri.parse(cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE)));
+        String attachedPictureString = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE));
+        attachedPicture = (attachedPictureString==null || attachedPictureString.equals(""))? null : Uri.parse(attachedPictureString);
         useGeoLocation = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_USE_GEO_LOCATION)) == 1;
         geoLatitude = cursor.getDouble(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_GEO_LATITUDE));
         geoLongitude = cursor.getDouble(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_GEO_LONGITUDE));
@@ -74,16 +73,16 @@ public class TweetDraft implements Serializable{
     }
 
     public ContentValues[] getContentValuesArray() {
-        ContentValues[] valuesArray = new ContentValues[writerIds.length];
-        for (int i = 0; i < writerIds.length; ++i) {
+        ContentValues[] valuesArray = new ContentValues[writers.size()];
+        for (int i = 0; i < writers.size(); ++i) {
             ContentValues values = new ContentValues();
             if (id > -1) values.put(CentralDatabase.COL_DRAFTS_ID, id);
-            values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writerIds[i]);
+            values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writers.get(i).NumericId);
             values.put(CentralDatabase.COL_DRAFTS_DATETIME, dateTime);
             values.put(CentralDatabase.COL_DRAFTS_TEXT, text);
             values.put(CentralDatabase.COL_DRAFTS_IN_REPLY_TO, inReplyTo);
             values.put(CentralDatabase.COL_DRAFTS_IS_QUOTED, isQuoted);
-            values.put(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE, attachedPicture.toString());
+            if (attachedPicture != null) values.put(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE, attachedPicture.toString());
             values.put(CentralDatabase.COL_DRAFTS_USE_GEO_LOCATION, useGeoLocation);
             values.put(CentralDatabase.COL_DRAFTS_GEO_LATITUDE, geoLatitude);
             values.put(CentralDatabase.COL_DRAFTS_GEO_LONGITUDE, geoLongitude);
@@ -97,26 +96,6 @@ public class TweetDraft implements Serializable{
 
     public int getId() {
         return id;
-    }
-
-    @Deprecated
-    public long[] getWriterIds() {
-        return writerIds;
-    }
-
-    @Deprecated
-    public void setWriterIds(long[] writerIds) {
-        this.writerIds = writerIds;
-    }
-
-    @Deprecated
-    public void addWriterId(long writerId) {
-        long[] clone = writerIds.clone();
-        writerIds = new long[clone.length + 1];
-        for (int i = 0; i < clone.length; ++i) {
-            writerIds[i] = clone[i];
-        }
-        writerIds[clone.length] = writerId;
     }
 
     public String getText() {

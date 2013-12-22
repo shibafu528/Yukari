@@ -16,9 +16,9 @@
             android:minLines="2"
             android:gravity="left|top"
             android:maxLines="6"
-            android:layout_below="@+id/tvTweetCount"
-            android:layout_alignLeft="@+id/tvTweetCount"
-            android:layout_alignParentEnd="true">
+        android:layout_alignLeft="@+id/tvTweetCount"
+            android:layout_alignParentEnd="true"
+        android:layout_below="@+id/tvTweetBy">
         <requestFocus/>
     </EditText>
 
@@ -49,12 +49,15 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/tvTweetBy"
             android:textColor="@color/selector_key_light_textcolor"
-            android:layout_above="@+id/etTweetInput"
-            android:layout_alignRight="@+id/etTweetInput"
         android:text=">> SELECT ACCOUNT(S)"
         android:background="@drawable/selector_key_light_background"
         android:focusable="true"
-        android:clickable="true" />
+        android:clickable="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/ivProfileHeader"
+        android:layout_marginTop="8dp"
+        android:gravity="right"
+        android:paddingLeft="4dp" />
 
     <TableLayout
             android:layout_width="wrap_content"

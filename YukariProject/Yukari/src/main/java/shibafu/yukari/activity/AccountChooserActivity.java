@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.annotation.TargetApi;
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,12 +10,14 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +51,7 @@ public class AccountChooserActivity extends ListActivity {
     public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
 
     public static final String EXTRA_SELECTED_RECORD = "selected_record";
+    public static final String EXTRA_SELECTED_RECORDS = "selected_records";
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -58,27 +62,39 @@ public class AccountChooserActivity extends ListActivity {
     private Adapter adapter;
     private List<Data> dataList = new ArrayList<Data>();
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle("アカウント一覧を読込中...");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(true);
-        }
-
         Intent args = getIntent();
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            setFinishOnTouchOutside(!isMultipleChoose);
+        }
+
         long[] defaultSelected = args.getLongArrayExtra(EXTRA_SELECTED_USERS);
+        ArrayList<AuthUserRecord> selectedUsers = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_SELECTED_RECORDS);
         if (defaultSelected == null) {
-            long defaultSelectedId = args.getLongExtra(EXTRA_SELECTED_USERID, -1);
-            if (defaultSelectedId > -1) {
-                defaultSelectedUserIds.add(defaultSelectedId);
+            if (selectedUsers != null) for (AuthUserRecord userRecord : selectedUsers) {
+                defaultSelectedUserIds.add(userRecord.NumericId);
+            }
+            else {
+                long defaultSelectedId = args.getLongExtra(EXTRA_SELECTED_USERID, -1);
+                if (defaultSelectedId > -1) {
+                    defaultSelectedUserIds.add(defaultSelectedId);
+                }
             }
         }
         else for (long id : defaultSelected) {
             defaultSelectedUserIds.add(id);
         }
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
         bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
@@ -91,7 +107,16 @@ public class AccountChooserActivity extends ListActivity {
     @Override
     public void onBackPressed() {
         if (isMultipleChoose) {
-            //TODO: 複数選択の結果を格納するかんじで
+            Intent result = new Intent();
+            ArrayList<AuthUserRecord> userRecords = new ArrayList<AuthUserRecord>();
+            for (Data d : dataList) {
+                if (d.checked) {
+                    userRecords.add(d.record);
+                }
+            }
+            Log.d("AccountChooserActivity", "Return " + userRecords.size() + " account(s)");
+            result.putExtra(EXTRA_SELECTED_RECORDS, userRecords);
+            setResult(RESULT_OK, result);
         }
         else {
             setResult(RESULT_CANCELED);
@@ -117,7 +142,8 @@ public class AccountChooserActivity extends ListActivity {
         super.onListItemClick(l, v, position, id);
 
         if (isMultipleChoose) {
-
+            CheckBox cb = ((Adapter.ViewHolder)v.getTag()).checkBox;
+            cb.setChecked(!cb.isChecked());
         }
         else {
             Data user = dataList.get(position);
@@ -201,13 +227,21 @@ public class AccountChooserActivity extends ListActivity {
                 vh.ivIcon.setTag(d.imageURL);
                 IconLoaderTask task = new IconLoaderTask(AccountChooserActivity.this, vh.ivIcon);
                 task.executeIf(d.imageURL);
+                vh.checkBox.setTag(position);
+                vh.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        int position = (Integer)buttonView.getTag();
+                        getItem(position).checked = isChecked;
+                    }
+                });
                 vh.checkBox.setChecked(d.checked);
             }
 
             return v;
         }
 
-        private class ViewHolder {
+        public class ViewHolder {
             SmartImageView ivIcon;
             TextView tvScreenName;
             TextView tvName;

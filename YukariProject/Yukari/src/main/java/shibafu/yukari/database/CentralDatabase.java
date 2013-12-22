@@ -215,6 +215,19 @@ public class CentralDatabase {
         db.replace(TABLE_USER, null, user.getContentValues());
     }
 
+    public DBUser getUser(long id) {
+        Cursor c = db.query(TABLE_USER, null, COL_USER_ID + "=" + id, null, null, null, null);
+        DBUser user = null;
+        try {
+            if (c.moveToFirst()) {
+                user = new DBUser(c);
+            }
+        } finally {
+            c.close();
+        }
+        return user;
+    }
+
     //<editor-fold desc="Accounts">
     public Cursor getAccounts() {
         Cursor cursor = db.query(
@@ -281,7 +294,12 @@ public class CentralDatabase {
         beginTransaction();
         try {
             for (ContentValues values : draft.getContentValuesArray()) {
-                db.replace(TABLE_DRAFTS, null, values);
+                if (values.containsKey(COL_DRAFTS_ID)) {
+                    db.replace(TABLE_DRAFTS, null, values);
+                }
+                else {
+                    db.insert(TABLE_DRAFTS, null, values);
+                }
             }
             setTransactionSuccessful();
         } finally {
@@ -300,9 +318,10 @@ public class CentralDatabase {
     public List<TweetDraft> getDrafts() {
         List<TweetDraft> draftList = new ArrayList<TweetDraft>();
         Cursor cursor = db.query(
-                TABLE_DRAFTS + "," + TABLE_ACCOUNTS,
-                null, 
-                COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                TABLE_DRAFTS + "," + TABLE_ACCOUNTS + "," + TABLE_USER,
+                null,
+                COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " AND " +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
                 null, null, null, COL_DRAFTS_DATETIME);
         try {
             long lastDateTime = -1;
@@ -311,11 +330,9 @@ public class CentralDatabase {
             if (cursor.moveToFirst()) do {
                 draft = new TweetDraft(cursor);
                 if (lastDateTime == draft.getDateTime() && last != null) {
-                    last.addWriterId(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_WRITER_ID));
                     last.addWriter(new AuthUserRecord(cursor));
                 }
                 else {
-                    draft.addWriterId(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_WRITER_ID));
                     draft.addWriter(new AuthUserRecord(cursor));
                     draftList.add(draft);
                     last = draft;

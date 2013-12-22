@@ -56,12 +56,15 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.SimpleAsyncTask;
+import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.BitmapResizer;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.GeoLocation;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
@@ -69,22 +72,28 @@ import twitter4j.util.CharacterUtil;
 
 public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener, TwitterServiceDelegate{
 
+    public static final int MODE_TWEET = 0;
+    public static final int MODE_REPLY = 1;
+    public static final int MODE_DM    = 2;
+
+    public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
+    public static final String EXTRA_WRITERS = "writers";
     public static final String EXTRA_STATUS = "status";
-    public static final String EXTRA_REPLY = "reply";
-    public static final String EXTRA_DM = "dm";
-    public static final String EXTRA_DM_TARGET = "dm_to";
-    public static final String EXTRA_DM_TARGET_SN = "dm_to_sn";
+    public static final String EXTRA_IN_REPLY_TO = "in_reply_to";
+    public static final String EXTRA_DM_TARGET_SN = "target_sn";
     public static final String EXTRA_TEXT = "text";
     public static final String EXTRA_MEDIA = "media";
+    public static final String EXTRA_GEO_LOCATION = "geo";
 
-    private static final int REQUEST_GALLERY = 1;
-    private static final int REQUEST_CAMERA = 2;
-    private static final int REQUEST_VOICE = 3;
-    private static final int REQUEST_NOWPLAYING = 32;
-    private static final int REQUEST_TOTSUSI = 33;
-    private static final int REQUEST_SNPICKER = 34;
-    private static final int REQUEST_TWICCA_PLUGIN = 63;
+    private static final int REQUEST_GALLERY = 0x01;
+    private static final int REQUEST_CAMERA = 0x02;
+    private static final int REQUEST_VOICE = 0x03;
+    private static final int REQUEST_NOWPLAYING = 0x21;
+    private static final int REQUEST_TOTSUSI = 0x22;
+    private static final int REQUEST_SNPICKER = 0x23;
+    private static final int REQUEST_TWICCA_PLUGIN = 0x41;
+    private static final int REQUEST_ACCOUTS = 0x81;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -137,13 +146,30 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         setContentView(R.layout.activity_tweet);
 
         //Extraを取得
-        Intent args = getIntent();
+        final Intent args = getIntent();
         Uri dataArg = args.getData();
 
-        //ユーザー指定がある場合は表示する (EXTRA_USER)
+        //アカウント表示の設定
         tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
+        tvTweetBy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+                intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
+                startActivityForResult(intent, REQUEST_ACCOUTS);
+            }
+        });
+
+        //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
         AuthUserRecord user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
-        if (user != null) {
+        ArrayList<AuthUserRecord> argWriters = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_WRITERS);
+        if (argWriters != null) {
+            useStoredWriters = false;
+            writers = argWriters;
+            updateWritersView();
+        }
+        else if (user != null) {
             useStoredWriters = false;
             writers.add(user);
             updateWritersView();
@@ -240,8 +266,23 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
         etInput.setText((defaultText != null)?defaultText : "");
-        if (args.getBooleanExtra(EXTRA_REPLY, false))
+        if (args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_REPLY) {
             etInput.setSelection(etInput.getText().length());
+            final long inReplyTo = args.getIntExtra(EXTRA_IN_REPLY_TO, -1);
+            if (status == null && inReplyTo > -1) {
+                new SimpleAsyncTask() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        try {
+                            status = service.getTwitter().showStatus(inReplyTo);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                }.execute();
+            }
+        }
 
         //添付エリアの設定
         llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
@@ -286,16 +327,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         });
 
         //添付データがある場合は設定する
-        String[] strMedia = args.getStringArrayExtra(EXTRA_MEDIA);
+        String strMedia = args.getStringExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
             attachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
         }
         else if (strMedia != null) {
-            for (String s : strMedia) {
-                Uri uri = Uri.parse(s);
-                attachPicture(uri);
-            }
+            Uri uri = Uri.parse(strMedia);
+            attachPicture(uri);
         }
 
         //投稿ボタンの設定
@@ -519,12 +558,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
                                         else {
-                                            long[] writerIds = new long[writers.size()];
-                                            for (int i = 0; i < writerIds.length; ++i) {
-                                                writerIds[i] = writers.get(i).NumericId;
-                                            }
                                             TweetDraft draft = new TweetDraft(
-                                                    writerIds,
+                                                    writers,
                                                     etInput.getText().toString(),
                                                     System.currentTimeMillis(),
                                                     isDirectMessage? directMessageDestId : ( (status==null)? -1 : status.getId() ),
@@ -629,16 +664,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
 
         //DM判定
-        isDirectMessage = args.getBooleanExtra(EXTRA_DM, false);
+        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
         if (isDirectMessage) {
-            directMessageDestId = args.getIntExtra(EXTRA_DM_TARGET, -1);
+            directMessageDestId = args.getIntExtra(EXTRA_IN_REPLY_TO, -1);
             directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
             //表題変更
             ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
             //ボタン無効化と表示変更
             ibAttach.setEnabled(false);
             ibCamera.setEnabled(false);
-            ibDraft.setEnabled(false);
             btnPost.setText("Send");
         }
 
@@ -723,7 +757,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             sb.append(">> SELECT ACCOUNT(S)");
         }
         else for (int i = 0; i < writers.size(); ++i) {
-            if (i > 0) sb.append(",");
+            if (i > 0) sb.append("\n");
             sb.append("@");
             sb.append(writers.get(i).ScreenName);
         }
@@ -776,6 +810,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     etInput.setText(data.getStringExtra(Intent.EXTRA_TEXT));
                     etInput.setSelection(data.getIntExtra("cursor", etInput.getSelectionStart()));
                     break;
+                case REQUEST_ACCOUTS:
+                {
+                    writers = (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
+                    updateWritersView();
+                    break;
+                }
             }
         }
         else if (resultCode == RESULT_CANCELED) {
@@ -845,7 +885,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             TweetActivity.this.service = binder.getService();
             serviceBound = true;
 
-            if (useStoredWriters) {
+            if (useStoredWriters && writers.size() == 0) {
                 writers = TweetActivity.this.service.getWriterUsers();
                 updateWritersView();
             }
@@ -859,14 +899,28 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     @Override
     public void onDraftSelected(TweetDraft selected) {
-//        Intent intent = new Intent(this, TweetActivity.class);
-//        intent.putExtra(EXTRA_TEXT, selected.text);
-//        intent.putExtra(EXTRA_USER, selected.user);
-//        intent.putExtra(EXTRA_REPLY, selected.from != null);
-//        intent.putExtra(EXTRA_STATUS, selected.from);
-//        intent.putExtra(EXTRA_MEDIA, selected.attachMedia);
-//        startActivity(intent);
-//        finish();
+        Intent intent = new Intent(this, TweetActivity.class);
+        intent.putExtra(EXTRA_TEXT, selected.getText());
+        intent.putExtra(EXTRA_MEDIA, selected.getAttachedPicture());
+        if (selected.isDirectMessage()) {
+            intent.putExtra(EXTRA_MODE, MODE_DM);
+            intent.putExtra(EXTRA_IN_REPLY_TO, selected.getInReplyTo());
+            DBUser dbUser = service.getDatabase().getUser(selected.getInReplyTo());
+            intent.putExtra(EXTRA_DM_TARGET_SN, dbUser!=null? dbUser.getScreenName() : null);
+        }
+        else if (selected.getInReplyTo() > -1) {
+            intent.putExtra(EXTRA_MODE, MODE_REPLY);
+            intent.putExtra(EXTRA_IN_REPLY_TO, selected.getInReplyTo());
+        }
+        else {
+            intent.putExtra(EXTRA_MODE, MODE_TWEET);
+        }
+        if (selected.isUseGeoLocation()) {
+            intent.putExtra(EXTRA_GEO_LOCATION, new GeoLocation(selected.getGeoLatitude(), selected.getGeoLongitude()));
+        }
+
+        startActivity(intent);
+        finish();
     }
 
     @Override
