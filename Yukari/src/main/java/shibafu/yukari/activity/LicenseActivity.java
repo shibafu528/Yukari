@@ -2,6 +2,7 @@ package shibafu.yukari.activity;
 
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.webkit.WebView;
@@ -15,7 +16,9 @@ public class LicenseActivity extends Activity {
 		wv.loadUrl("file:///android_asset/about.html");
 		setContentView(wv);
 
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 	}
 
     @Override
