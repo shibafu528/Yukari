@@ -351,7 +351,7 @@ public class StatusMainFragment extends Fragment{
             StatusMainFragment.this.service = binder.getService();
             serviceBound = true;
 
-            if (StatusMainFragment.this.service.isMyTweet(status)) {
+            if (StatusMainFragment.this.service.isMyTweet(status) != null) {
                 ibFavorite.setEnabled(false);
                 ibFavRt.setEnabled(false);
             }
