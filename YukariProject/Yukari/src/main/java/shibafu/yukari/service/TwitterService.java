@@ -2,9 +2,14 @@ package shibafu.yukari.service;
 
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
@@ -72,9 +77,13 @@ public class TwitterService extends Service{
 
     //システムサービス系
     private NotificationManager notificationManager;
+    private ConnectivityManager connectivityManager;
     private static final int NOTIF_FAVED = 1;
     private static final int NOTIF_REPLY = 2;
     private static final int NOTIF_RETWEET = 3;
+
+    //ネットワーク管理
+    private boolean disconnectedStream = false;
 
     //Twitter通信系
     private Twitter twitter;
@@ -179,6 +188,38 @@ public class TwitterService extends Service{
     }
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
 
+    private BroadcastReceiver connectivityChangeListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            boolean isConnected;
+            {
+                NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+                if (info == null) {
+                    isConnected = false;
+                }
+                else {
+                    isConnected = info.isConnected();
+                }
+            }
+            if (isConnected && disconnectedStream) {
+                //Stream再接続を行う
+                Log.d("TwitterService", "Network connected.");
+                showToast("UserStreamを再接続します");
+                for (StreamUser streamUser : streamUsers) {
+                    streamUser.start();
+                }
+                disconnectedStream = false;
+            }
+            if (!isConnected && !disconnectedStream) {
+                Log.d("TwitterService", "Network disconnected.");
+                for (StreamUser streamUser : streamUsers) {
+                    streamUser.stop();
+                }
+                disconnectedStream = true;
+            }
+        }
+    };
+
     private Handler handler;
 
     public IBinder onBind(Intent intent) {
@@ -207,6 +248,10 @@ public class TwitterService extends Service{
 
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+
+        //ネットワーク状態の監視
+        registerReceiver(connectivityChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         Log.d(LOG_TAG, "onCreate completed.");
         //Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
@@ -216,6 +261,8 @@ public class TwitterService extends Service{
     public void onDestroy() {
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
+
+        unregisterReceiver(connectivityChangeListener);
         for (StreamUser su : streamUsers) {
             su.stop();
         }
