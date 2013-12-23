@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
@@ -292,6 +293,7 @@ public class ProfileFragment extends Fragment{
                             user = service.getTwitter().showUser(targetId);
                         }
                         targetUser = user;
+                        service.getDatabase().updateUser(new DBUser(user));
 
                         if (ProfileFragment.this.user == null) {
                             ProfileFragment.this.user = service.getPrimaryUser();
