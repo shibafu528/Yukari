@@ -140,6 +140,7 @@ public class ProfileFragment extends Fragment{
                 List<String> menuList = new ArrayList<String>();
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
+                menuList.add("ブラウザで開く");
                 //menuList.add("リストへ追加/削除");
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -165,6 +166,11 @@ public class ProfileFragment extends Fragment{
                                 intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, targetUser.getScreenName());
                                 startActivity(intent);
                                 break;
+                            }
+                            case 2:
+                            {
+                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://twitter.com/" + targetUser.getScreenName()));
+                                startActivity(intent);
                             }
                         }
                         currentDialog = null;
