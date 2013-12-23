@@ -326,6 +326,11 @@ public class ProfileFragment extends Fragment{
     }
 
     private void showProfile(LoadHolder holder) {
+        if (holder == null) {
+            Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
+            return;
+        }
         User user = holder.user;
         Relationship relationship = holder.relationship;
         relation = relationship;
