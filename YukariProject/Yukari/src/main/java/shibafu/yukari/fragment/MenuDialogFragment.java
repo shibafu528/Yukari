@@ -5,11 +5,13 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -48,9 +50,20 @@ public class MenuDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setView(inflateView(getActivity().getLayoutInflater()));
-        AlertDialog dialog = builder.create();
+        Dialog dialog = new Dialog(getActivity());
+
+        dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+        dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+
+        dialog.setContentView(inflateView(getActivity().getLayoutInflater()));
+
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        int dialogWidth = (int) (0.95f * metrics.widthPixels);
+        WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+        lp.width = dialogWidth;
+        dialog.getWindow().setAttributes(lp);
+
         return dialog;
     }
 
