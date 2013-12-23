@@ -1,13 +1,13 @@
 package shibafu.yukari.activity;
 
-import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,8 +16,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.database.FriendsDBHelper;
-import shibafu.yukari.service.FriendsDBUpdateService;
-import twitter4j.User;
+import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.service.TwitterService;
 
 public class SNPickerActivity extends Activity {
 
@@ -37,37 +37,21 @@ public class SNPickerActivity extends Activity {
     public static final String EXTRA_SCREEN_NAME = "screen_name";
     public static final String EXTRA_NAME = "name";
 
-    private ProgressDialog currentProgress;
     private ListView listView;
     private TextView tvHead;
     private EditText editText;
 
-    private BroadcastReceiver updatedListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (currentProgress != null) {
-                currentProgress.dismiss();
-                currentProgress = null;
-                updateList();
-            }
-        }
-    };
     private Adapter adapter;
     private ArrayList<Data> dataList;
+
+    private TwitterService service;
+    private boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_snpicker);
-
-        Button btnReload = (Button) findViewById(R.id.btnSNPickReload);
-        btnReload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startService(new Intent(SNPickerActivity.this, FriendsDBUpdateService.class));
-            }
-        });
 
         tvHead = (TextView) findViewById(R.id.tvSNPickHead);
         listView = (ListView) findViewById(R.id.lvSNPick);
@@ -103,41 +87,38 @@ public class SNPickerActivity extends Activity {
                 updateList();
             }
         });
-
-        updateList();
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver(updatedListener, new IntentFilter(FriendsDBUpdateService.NOTICE_UPDATED));
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(updatedListener);
+    protected void onStop() {
+        super.onStop();
+        unbindService(connection);
     }
 
     private void updateList() {
-        FriendsDBHelper db = new FriendsDBHelper(this);
-        db.open();
+        CentralDatabase db = service.getDatabase();
 
         String et = editText.getText().toString();
         Cursor c;
         if (et.equals("")) {
-            c = db.getAllFriends();
+            c = db.getUsersCursor();
         }
         else {
             et = "%" + et + "%";
-            c = db.getFriends(FriendsDBHelper.COL_NAME + " LIKE ? OR " + FriendsDBHelper.COL_SCREEN_NAME + " LIKE ?",
-                    new String[] {et, et});
+            c = db.getUsersCursor(CentralDatabase.COL_USER_NAME + " LIKE ? OR " + CentralDatabase.COL_USER_SCREEN_NAME + " LIKE ?",
+                    new String[]{et, et});
         }
 
-        final int rowId = c.getColumnIndex(FriendsDBHelper.COL_USER_ID);
-        final int rowName = c.getColumnIndex(FriendsDBHelper.COL_NAME);
-        final int rowSN = c.getColumnIndex(FriendsDBHelper.COL_SCREEN_NAME);
-        final int rowURL = c.getColumnIndex(FriendsDBHelper.COL_PICTURE_URL);
+        final int rowId = c.getColumnIndex(CentralDatabase.COL_USER_ID);
+        final int rowName = c.getColumnIndex(CentralDatabase.COL_USER_NAME);
+        final int rowSN = c.getColumnIndex(CentralDatabase.COL_USER_SCREEN_NAME);
+        final int rowURL = c.getColumnIndex(CentralDatabase.COL_USER_PROFILE_IMAGE_URL);
 
         dataList.clear();
 
@@ -150,8 +131,22 @@ public class SNPickerActivity extends Activity {
         tvHead.setText("Suggest (" + dataList.size() + ")");
         adapter.notifyDataSetChanged();
         c.close();
-        db.close();
     }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
+            SNPickerActivity.this.service = binder.getService();
+            serviceBound = true;
+            updateList();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 
     private class Data {
         long id;
@@ -184,7 +179,7 @@ public class SNPickerActivity extends Activity {
             if (v == null) {
                 v = inflater.inflate(R.layout.row_user, parent, false);
                 vh = new ViewHolder();
-                vh.ivIcon = (SmartImageView) v.findViewById(R.id.user_icon);
+                vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
                 vh.tvName = (TextView) v.findViewById(R.id.user_name);
                 vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
                 v.setTag(vh);
@@ -198,14 +193,16 @@ public class SNPickerActivity extends Activity {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
-                vh.ivIcon.setImageUrl(d.imageURL);
+                vh.ivIcon.setTag(d.imageURL);
+                IconLoaderTask task = new IconLoaderTask(SNPickerActivity.this, vh.ivIcon);
+                task.executeIf(d.imageURL);
             }
 
             return v;
         }
 
         private class ViewHolder {
-            SmartImageView ivIcon;
+            ImageView ivIcon;
             TextView tvScreenName;
             TextView tvName;
         }
