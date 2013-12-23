@@ -142,6 +142,14 @@ public class TwitterService extends Service{
         public void onStatus(AuthUserRecord from, Status status) {
             Log.d(LOG_TAG, "onStatus(Registered Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             database.updateUser(new DBUser(status.getUser()));
+
+            //自分のツイートかどうかマッチングを行う
+            AuthUserRecord checkOwn = isMyTweet(status);
+            if (checkOwn != null) {
+                //自分のツイートであれば受信元は発信元アカウントということにする
+                from = checkOwn;
+            }
+
             PreformedStatus preformedStatus = new PreformedStatus(status, from);
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, preformedStatus);
@@ -703,12 +711,13 @@ public class TwitterService extends Service{
     }
     //</editor-fold>
 
-    public boolean isMyTweet(Status status) {
+    public AuthUserRecord isMyTweet(Status status) {
         for (AuthUserRecord aur : users) {
             if (status.getUser().getId() == aur.NumericId) {
-                return true;
+                return aur;
             }
         }
-        return false;
+        return null;
     }
+
 }
