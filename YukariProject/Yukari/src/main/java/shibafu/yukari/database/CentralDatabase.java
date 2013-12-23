@@ -228,6 +228,14 @@ public class CentralDatabase {
         return user;
     }
 
+    public Cursor getUsersCursor(String where, String[] whereClause) {
+        return db.query(TABLE_USER, null, where, whereClause, null, null, COL_USER_SCREEN_NAME + " ASC");
+    }
+
+    public Cursor getUsersCursor() {
+        return db.query(TABLE_USER, null, null, null, null, null, COL_USER_SCREEN_NAME + " ASC");
+    }
+
     //<editor-fold desc="Accounts">
     public Cursor getAccounts() {
         Cursor cursor = db.query(
@@ -290,6 +298,7 @@ public class CentralDatabase {
     }
     //</editor-fold>
 
+    //<editor-fold desc="Drafts">
     public void updateDraft(TweetDraft draft) {
         beginTransaction();
         try {
@@ -324,7 +333,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
                 null, null, null, COL_DRAFTS_DATETIME);
         try {
-            long lastDateTime = -1;
             TweetDraft last = null;
             TweetDraft draft;
             if (cursor.moveToFirst()) do {
@@ -343,4 +351,5 @@ public class CentralDatabase {
         }
         return draftList;
     }
+    //</editor-fold>
 }

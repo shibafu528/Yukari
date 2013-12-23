@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="1"
-    android:versionName="0.35alpha (prototype 131222)" >
+    android:versionCode="2"
+    android:versionName="0.36alpha (prototype 131223)" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -165,7 +165,6 @@
             android:label="@string/title_activity_snpicker"
             android:theme="@style/YukariDialogTheme">
         </activity>
-        <service android:name=".service.FriendsDBUpdateService"/>
 
         <receiver android:name=".receiver.StubReceiver"/>
 
