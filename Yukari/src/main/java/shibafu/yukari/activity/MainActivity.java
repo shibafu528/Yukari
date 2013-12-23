@@ -353,14 +353,6 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     }
 
     private void reloadUsers() {
-        List<AuthUserRecord> newestList = service.getUsers();
-        for (AuthUserRecord aur : newestList) {
-            if (!users.contains(aur)) {
-                users.add(aur);
-                //TODO: Tabsデータを使うように変更する
-                addTab(aur, "Home:" + aur.ScreenName, TweetListFragment.MODE_HOME);
-            }
-        }
     }
 
     private ServiceConnection connection = new ServiceConnection() {
