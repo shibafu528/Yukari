@@ -42,7 +42,6 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             "ブラウザで開く",
             "クリップボードにコピー",
             "ブックマークする",
-            "マルチアカウントRT/Fav",
             "アプリごとミュート",
             "ツイート削除"
     };
@@ -86,7 +85,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         menu.addAll(pluginNames);
 
         if (user == null || status.getUser().getId() != user.NumericId) {
-            menu.remove(5);
+            menu.remove(ITEMS.length - 1);
         }
 
         setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
@@ -110,10 +109,9 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             }
             case 2: break;
             case 3: break;
-            case 4: break;
             default:
             {
-                if (position == 5 && user != null && status.getUser().getId() == user.NumericId) {
+                if (position == 4 && user != null && status.getUser().getId() == user.NumericId) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
