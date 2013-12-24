@@ -93,7 +93,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
         if (mode == MODE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            prepareInsertStatus(new PreformedStatus(traceStart, user));
+            statuses.add(new PreformedStatus(traceStart, user));
         }
         else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
