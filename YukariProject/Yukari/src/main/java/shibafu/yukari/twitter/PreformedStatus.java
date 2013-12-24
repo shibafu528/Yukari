@@ -152,6 +152,10 @@ public class PreformedStatus implements Status{
         return receiveUser;
     }
 
+    public void setReceiveUser(AuthUserRecord receiveUser) {
+        this.receiveUser = receiveUser;
+    }
+
     @Override
     public boolean isRetweet() {
         return status.isRetweet();

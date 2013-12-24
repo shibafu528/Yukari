@@ -712,6 +712,7 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     public AuthUserRecord isMyTweet(Status status) {
+        if (users == null) return null;
         for (AuthUserRecord aur : users) {
             if (status.getUser().getId() == aur.NumericId) {
                 return aur;
