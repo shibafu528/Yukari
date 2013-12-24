@@ -156,7 +156,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                         intent = createPluginIntent(position - ITEMS.length);
                     }
                     else {
-                        intent = createPluginIntent(position - ITEMS.length - 1);
+                        intent = createPluginIntent(position - ITEMS.length + 1);
                     }
                     if (intent != null) {
                         startActivity(intent);
