@@ -446,7 +446,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        if (!statuses.contains(status)) {
+                        if (!statuses.contains(status) && statuses.get(position).getId() != status.getId()) {
                             statuses.add(position, status);
                             adapterWrap.notifyDataSetChanged();
                             if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
