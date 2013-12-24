@@ -649,10 +649,10 @@ public class TwitterService extends Service{
             twitter.setOAuthAccessToken(user.getAccessToken());
             try {
                 twitter.retweetStatus(id);
-                showToast("RTしました");
+                showToast("RTしました (@" + user.ScreenName + ")");
             } catch (TwitterException e) {
                 e.printStackTrace();
-                showToast("RTに失敗しました");
+                showToast("RTに失敗しました (@" + user.ScreenName + ")");
             }
         }
         else {
@@ -674,10 +674,10 @@ public class TwitterService extends Service{
             twitter.setOAuthAccessToken(user.getAccessToken());
             try {
                 twitter.createFavorite(id);
-                showToast("ふぁぼりました");
+                showToast("ふぁぼりました (@" + user.ScreenName + ")");
             } catch (TwitterException e) {
                 e.printStackTrace();
-                showToast("ふぁぼれませんでした");
+                showToast("ふぁぼれませんでした (@" + user.ScreenName + ")");
             }
         }
         else {

@@ -153,10 +153,10 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 else {
                     Intent intent;
                     if (user != null && status.getUser().getId() == user.NumericId) {
-                        intent = createPluginIntent(position - 6);
+                        intent = createPluginIntent(position - ITEMS.length);
                     }
                     else {
-                        intent = createPluginIntent(position - 5);
+                        intent = createPluginIntent(position - ITEMS.length - 1);
                     }
                     if (intent != null) {
                         startActivity(intent);

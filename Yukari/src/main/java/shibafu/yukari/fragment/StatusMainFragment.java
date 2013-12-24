@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,10 +16,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.SimpleAsyncTask;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -29,6 +35,10 @@ import shibafu.yukari.twitter.TwitterUtil;
  * Created by Shibafu on 13/08/02.
  */
 public class StatusMainFragment extends Fragment{
+
+    private static final int REQUEST_RETWEET  = 0x01;
+    private static final int REQUEST_FAVORITE = 0x02;
+    private static final int REQUEST_FAV_RT   = 0x03;
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -41,7 +51,6 @@ public class StatusMainFragment extends Fragment{
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
     private View tweetView;
-    private TextView tvCounter;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -109,6 +118,19 @@ public class StatusMainFragment extends Fragment{
                 currentDialog = ad;
             }
         });
+        ibRetweet.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントRT");
+                startActivityForResult(intent, REQUEST_RETWEET);
+                Toast.makeText(getActivity(),
+                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
@@ -171,6 +193,19 @@ public class StatusMainFragment extends Fragment{
                 }
             }
         });
+        ibFavorite.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav");
+                startActivityForResult(intent, REQUEST_FAVORITE);
+                Toast.makeText(getActivity(),
+                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+        });
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
         ibFavRt.setOnClickListener(new View.OnClickListener() {
@@ -214,6 +249,19 @@ public class StatusMainFragment extends Fragment{
                         .create();
                 ad.show();
                 currentDialog = ad;
+            }
+        });
+        ibFavRt.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav&RT");
+                startActivityForResult(intent, REQUEST_FAV_RT);
+                Toast.makeText(getActivity(),
+                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                        Toast.LENGTH_LONG).show();
+                return true;
             }
         });
 
@@ -341,6 +389,38 @@ public class StatusMainFragment extends Fragment{
         if (serviceBound) {
             getActivity().unbindService(connection);
             serviceBound = false;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == Activity.RESULT_OK) {
+            final ArrayList<AuthUserRecord> actionUsers =
+                    (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
+            if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {
+                new SimpleAsyncTask() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        for (AuthUserRecord user : actionUsers) {
+                            service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        }
+                        return null;
+                    }
+                }.execute();
+            }
+            if ((requestCode & REQUEST_FAVORITE) == REQUEST_FAVORITE) {
+                new SimpleAsyncTask() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        for (AuthUserRecord user : actionUsers) {
+                            service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        }
+                        return null;
+                    }
+                }.execute();
+            }
         }
     }
 
