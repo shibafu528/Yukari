@@ -66,8 +66,13 @@ public class AccountChooserActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setTitle("アカウント一覧を読込中...");
         Intent args = getIntent();
+
+        String title = args.getStringExtra(Intent.EXTRA_TITLE);
+        if (title != null) {
+            setTitle(title);
+        }
+
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -89,6 +94,19 @@ public class AccountChooserActivity extends ListActivity {
         }
         else for (long id : defaultSelected) {
             defaultSelectedUserIds.add(id);
+        }
+
+        if (isMultipleChoose) {
+            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    for (int i = 0; i < dataList.size(); ++i) {
+                        dataList.get(i).checked = (i == position);
+                    }
+                    adapter.notifyDataSetChanged();
+                    return true;
+                }
+            });
         }
     }
 
@@ -134,7 +152,6 @@ public class AccountChooserActivity extends ListActivity {
         }
         adapter = new Adapter(AccountChooserActivity.this, dataList);
         setListAdapter(adapter);
-        setTitle("アカウントを選択");
     }
 
     @Override

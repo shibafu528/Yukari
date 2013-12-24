@@ -446,12 +446,14 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        statuses.add(position, status);
-                        adapterWrap.notifyDataSetChanged();
-                        if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
-                            listView.setSelection(0);
-                        } else {
-                            listView.setSelection(listView.getFirstVisiblePosition() + 1);
+                        if (!statuses.contains(status)) {
+                            statuses.add(position, status);
+                            adapterWrap.notifyDataSetChanged();
+                            if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                                listView.setSelection(0);
+                            } else {
+                                listView.setSelection(listView.getFirstVisiblePosition() + 1);
+                            }
                         }
                     }
                 });
