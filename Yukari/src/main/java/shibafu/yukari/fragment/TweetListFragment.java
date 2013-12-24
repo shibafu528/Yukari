@@ -20,7 +20,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -40,6 +39,7 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -93,7 +93,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         mode = args.getInt(EXTRA_MODE, MODE_EMPTY);
         if (mode == MODE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            appendStatus(new PreformedStatus(traceStart, user));
+            prepareInsertStatus(new PreformedStatus(traceStart, user));
         }
         else if (mode == MODE_USER || mode == MODE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
@@ -184,8 +184,14 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                                     @Override
                                     protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
                                         if (statuses != null) {
+                                            PreformedStatus ps;
+                                            int position;
                                             for (twitter4j.Status status : statuses) {
-                                                appendStatus(new PreformedStatus(status, user));
+                                                ps = new PreformedStatus(status, user);
+                                                position = prepareInsertStatus(ps);
+                                                if (position > -1) {
+                                                    TweetListFragment.this.statuses.add(position, ps);
+                                                }
                                             }
                                             adapterWrap.notifyDataSetChanged();
                                         }
@@ -262,17 +268,40 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         }
     }
 
-    private void appendStatus(PreformedStatus status) {
-        for (int i = 0; i < statuses.size(); ++i) {
-            if (status.getId() == statuses.get(i).getId()) {
-                return;
+    private int prepareInsertStatus(PreformedStatus status) {
+        //自己ツイートチェック
+        boolean isMyTweet = service.isMyTweet(status) != null;
+        //優先ユーザチェック
+        if (!isMyTweet) {
+            ArrayList<Long> mentions = new ArrayList<Long>();
+            for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                mentions.add(entity.getId());
             }
-            else if (status.getId() > statuses.get(i).getId()) {
-                statuses.add(i, status);
-                return;
+            for (AuthUserRecord user : users) {
+                //指名されている場合はそちらを優先する
+                if (mentions.contains(user.NumericId)) {
+                    status.setReceiveUser(user);
+                    break;
+                }
             }
         }
-        statuses.add(status);
+        //挿入位置の探索と追加
+        PreformedStatus storedStatus;
+        for (int i = 0; i < statuses.size(); ++i) {
+            storedStatus = statuses.get(i);
+            if (status.getId() == storedStatus.getId()) {
+                //既に他のアカウントで受信されていた場合でも、今回の受信がプライマリアカウントによるものであれば
+                //受信アカウントのフィールドを上書きする
+                if (!isMyTweet && status.getReceiveUser().isPrimary && !storedStatus.getReceiveUser().isPrimary) {
+                    storedStatus.setReceiveUser(status.getReceiveUser());
+                }
+                return -1;
+            }
+            else if (status.getId() > storedStatus.getId()) {
+                return i;
+            }
+        }
+        return statuses.size();
     }
 
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
@@ -321,13 +350,17 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                         while (status.getInReplyToStatusId() > -1) {
                             try {
                                 final twitter4j.Status reply = status = twitter.showStatus(status.getInReplyToStatusId());
-                                handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        appendStatus(new PreformedStatus(reply, user));
-                                        adapterWrap.notifyDataSetChanged();
-                                    }
-                                });
+                                final PreformedStatus ps = new PreformedStatus(reply, user);
+                                final int location = prepareInsertStatus(ps);
+                                if (location > -1) {
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            statuses.add(location, ps);
+                                            adapterWrap.notifyDataSetChanged();
+                                        }
+                                    });
+                                }
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 break;
@@ -378,8 +411,14 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                     @Override
                     protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
                         if (statuses != null) {
+                            PreformedStatus ps;
+                            int position;
                             for (twitter4j.Status status : statuses) {
-                                appendStatus(new PreformedStatus(status, user));
+                                ps = new PreformedStatus(status, user);
+                                position = prepareInsertStatus(ps);
+                                if (position > -1) {
+                                    TweetListFragment.this.statuses.add(position, ps);
+                                }
                             }
                             adapterWrap.notifyDataSetChanged();
                         }
@@ -400,20 +439,23 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     };
 
     @Override
-    public void onStatus(AuthUserRecord from, PreformedStatus status) {
+    public void onStatus(AuthUserRecord from, final PreformedStatus status) {
         if (users.contains(from) && !statuses.contains(status)) {
-            appendStatus(status);
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    adapterWrap.notifyDataSetChanged();
-                    if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
-                        listView.setSelection(0);
-                    } else {
-                        listView.setSelection(listView.getFirstVisiblePosition() + 1);
+            final int position = prepareInsertStatus(status);
+            if (position > -1) {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        statuses.add(position, status);
+                        adapterWrap.notifyDataSetChanged();
+                        if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                            listView.setSelection(0);
+                        } else {
+                            listView.setSelection(listView.getFirstVisiblePosition() + 1);
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 
