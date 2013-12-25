@@ -12,21 +12,22 @@
             android:summary="アプリ起動時にスリープ防止をオンにします"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="表示設定(未完成)" android:enabled="false">
+    <PreferenceCategory android:title="表示設定(未完成)">
         <EditTextPreference
             android:key="pref_font_timeline"
             android:title="文字サイズの設定"
             android:summary="タイムライン上の文字サイズを設定します"
             android:inputType="number"
             android:defaultValue="14"
-            android:maxLength="2"/>
+            android:maxLength="2"
+            android:enabled="false"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
             android:summary="改行を含むツイートを省略する設定をします"
             android:entries="@array/pref_mode_multiline_entries"
             android:entryValues="@array/pref_mode_multiline_values"
-            android:defaultValue="-1"/>
+            android:defaultValue="0"/>
         <CheckBoxPreference
             android:key="pref_prev_enable"
             android:title="サムネイルを表示"
@@ -35,7 +36,8 @@
         <Preference
             android:key="pref_prev_time"
             android:title="時間を指定して非表示"
-            android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
+            android:summary="特定の時間帯だけサムネイルを隠す設定をします"
+            android:enabled="false"/>
         <!--<CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="めしてろモザイク"
