@@ -1,8 +1,10 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,20 +39,25 @@ import twitter4j.UserMentionEntity;
  */
 public class TweetAdapterWrap {
     private Context context;
+    private SharedPreferences preferences;
     private List<AuthUserRecord> userRecords;
     private List<PreformedStatus> statuses;
     private TweetAdapter adapter;
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
-    public final static int CONFIG_SHOW_THUMBNAIL    = 0x01;
-    public final static int CONFIG_DISABLE_BGCOLOR   = 0x02;
-    public final static int CONFIG_DISABLE_FONTCOLOR = 0x04;
+    public final static int CONFIG_SHOW_THUMBNAIL    = 0x001; //サムネイルを表示
+    public final static int CONFIG_DISABLE_BGCOLOR   = 0x002; //ツイートに応じたBGカラーを適用しない
+    public final static int CONFIG_DISABLE_FONTCOLOR = 0x004; //フォントカラーを適用しない
+    public static final int CONFIG_OMISSION_AFTER_4  = 0x010; //4行目以降を省略
+    public static final int CONFIG_OMISSION_AFTER_8  = 0x020; //8行目以降を省略
+    public static final int CONFIG_OMISSION_RETURNS  = 0x040; //単行表示
 
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<PreformedStatus> statuses) {
         this.context = context;
         this.userRecords = new ArrayList<AuthUserRecord>();
         userRecords.add(userRecord);
         this.statuses = statuses;
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
         adapter = new TweetAdapter();
     }
 
@@ -58,6 +65,7 @@ public class TweetAdapterWrap {
         this.context = context;
         this.userRecords = userRecords;
         this.statuses = statuses;
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
         adapter = new TweetAdapter();
     }
 
@@ -85,7 +93,24 @@ public class TweetAdapterWrap {
         viewHolder.tvName.setTypeface(FontAsset.getInstance(context).getFont());
 
         viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
-        viewHolder.tvText.setText(st.getText());
+        String text = st.isRetweet()? st.getRetweetedStatus().getText() : st.getText();
+        if ((config & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
+            text = text.replace('\n', ' ');
+        }
+        if ((config & 0x30) > 0) {
+            String[] lines = text.split("\n");
+            text = "";
+            int limit = (config & CONFIG_OMISSION_AFTER_4) == CONFIG_OMISSION_AFTER_4? 3 : 7;
+            int i;
+            for (i = 0; i < lines.length && i < limit; ++i) {
+                if (i > 0) text += "\n";
+                text += lines[i];
+            }
+            if (i >= limit && i <= lines.length) {
+                text += " ...";
+            }
+        }
+        viewHolder.tvText.setText(text);
 
         String imageUrl = st.getUser().getBiggerProfileImageURL();
         if (st.isRetweet()) {
@@ -144,14 +169,13 @@ public class TweetAdapterWrap {
                 timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +
                         sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                 viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                viewHolder.tvText.setText(st.getRetweetedStatus().getText());
-                bgColor = Color.parseColor("#C2B7FD");
+                bgColor = context.getResources().getColor(R.color.bg_retweet);
             }
             else if (isMention) {
-                bgColor = Color.parseColor("#EDB3DD");
+                bgColor = context.getResources().getColor(R.color.bg_mention);
             }
             else if (isMe) {
-                bgColor = Color.parseColor("#EFDCFF");
+                bgColor = context.getResources().getColor(R.color.bg_own);
             }
             v.setBackgroundColor(bgColor);
             v.setTag(bgColor);
@@ -193,7 +217,8 @@ public class TweetAdapterWrap {
 
             PreformedStatus st = (PreformedStatus) getItem(position);
             if (st != null) {
-                v = setStatusToView(context, v, st, userRecords, CONFIG_SHOW_THUMBNAIL);
+                v = setStatusToView(context, v, st, userRecords,
+                        Integer.valueOf(preferences.getString("pref_mode_multiline", "0")) | (preferences.getBoolean("pref_prev_enable", true)?1:0));
             }
 
             return v;
