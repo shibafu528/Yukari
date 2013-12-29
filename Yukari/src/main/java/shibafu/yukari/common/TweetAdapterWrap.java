@@ -164,21 +164,21 @@ public class TweetAdapterWrap {
         }
 
         if ((config & CONFIG_DISABLE_BGCOLOR) != CONFIG_DISABLE_BGCOLOR) {
-            int bgColor = Color.WHITE;
             if (st.isRetweet()) {
                 timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +
                         sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                 viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                bgColor = context.getResources().getColor(R.color.bg_retweet);
+                v.setBackgroundResource(R.drawable.selector_tweet_retweet_background);
             }
             else if (isMention) {
-                bgColor = context.getResources().getColor(R.color.bg_mention);
+                v.setBackgroundResource(R.drawable.selector_tweet_mention_background);
             }
             else if (isMe) {
-                bgColor = context.getResources().getColor(R.color.bg_own);
+                v.setBackgroundResource(R.drawable.selector_tweet_own_background);
             }
-            v.setBackgroundColor(bgColor);
-            v.setTag(bgColor);
+            else {
+                v.setBackgroundResource(R.drawable.selector_tweet_normal_background);
+            }
         }
         viewHolder.tvTimestamp.setText(timestamp);
 
