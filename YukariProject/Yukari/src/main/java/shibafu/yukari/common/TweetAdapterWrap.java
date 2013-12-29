@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import shibafu.util.MorseCodec;
 import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
+import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.MediaEntity;
@@ -129,15 +130,15 @@ public class TweetAdapterWrap {
         viewHolder.llAttach.removeAllViews();
 
         if ((config & CONFIG_SHOW_THUMBNAIL) == CONFIG_SHOW_THUMBNAIL) {
-            List<String> mediaList = st.getMediaLinkList();
+            List<LinkMedia> mediaList = st.getMediaLinkList();
             int frameWidth = viewHolder.llAttach.getWidth();
             if (mediaList.size() > 0) {
                 FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
-                for (String mediaURL : mediaList) {
+                for (LinkMedia media : mediaList) {
                     SmartImageView siv = new SmartImageView(context);
                     siv.setImageResource(R.drawable.yukatterload);
                     siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    siv.setImageUrl(mediaURL);
+                    siv.setImageUrl(media.getThumbURL());
                     viewHolder.llAttach.addView(siv, lp);
                 }
             }
