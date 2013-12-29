@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 
 import shibafu.util.MorseCodec;
 import shibafu.util.TweetImageUrl;
+import shibafu.yukari.media.LinkMedia;
+import shibafu.yukari.media.LinkMediaFactory;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -28,7 +30,7 @@ public class PreformedStatus implements Status{
     private Status status;
     private String text;
     private String plainSource;
-    private List<String> mediaLinkList;
+    private List<LinkMedia> mediaLinkList;
 
     private AuthUserRecord receiveUser;
 
@@ -47,15 +49,15 @@ public class PreformedStatus implements Status{
             plainSource = status.getSource();
         }
         //メディアリンクリストを作成
-        mediaLinkList = new ArrayList<String>();
+        mediaLinkList = new ArrayList<LinkMedia>();
         for (URLEntity urlEntity : status.getURLEntities()) {
-            String expanded = TweetImageUrl.getFullImageUrl(urlEntity.getExpandedURL());
-            if (expanded != null) {
-                mediaLinkList.add(expanded);
+            LinkMedia media = LinkMediaFactory.createLinkMedia(urlEntity.getExpandedURL());
+            if (media != null) {
+                mediaLinkList.add(media);
             }
         }
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
-            mediaLinkList.add(mediaEntity.getMediaURL());
+            mediaLinkList.add(LinkMediaFactory.createLinkMedia(mediaEntity.getMediaURL()));
         }
     }
 
@@ -226,7 +228,7 @@ public class PreformedStatus implements Status{
         return status.getSymbolEntities();
     }
 
-    public List<String> getMediaLinkList() {
+    public List<LinkMedia> getMediaLinkList() {
         return mediaLinkList;
     }
 
