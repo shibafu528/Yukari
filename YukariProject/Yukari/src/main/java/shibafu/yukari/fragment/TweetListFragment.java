@@ -118,21 +118,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (position < statuses.size()) {
-                    //アニメーションのスケジュール
-                    final View v = view;
-                    view.setBackgroundColor(Color.parseColor("#B394E0"));
-                    Timer t = new Timer();
-                    t.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    v.setBackgroundColor((Integer)v.getTag());
-                                }
-                            });
-                        }
-                    }, new Date(System.currentTimeMillis() + 100));
                     //ツイート詳細画面の呼び出し
                     PreformedStatus s = statuses.get(position);
                     Intent intent = new Intent(getActivity(), StatusActivity.class);

@@ -7,8 +7,12 @@
     <drawable name="status_bar_color">#cc7849ba</drawable>
 
     <color name="bg_retweet">#ffd7dffd</color>
+    <drawable name="bg_retweet">#ffd7dffd</drawable>
     <color name="bg_mention">#EDB3DD</color>
+    <drawable name="bg_mention">#EDB3DD</drawable>
     <color name="bg_own">#EFDCFF</color>
+    <drawable name="bg_own">#EFDCFF</drawable>
+    <drawable name="bg_press">#B394E0</drawable>
 
     <drawable name="focus_key_color">@drawable/key_color</drawable>
     <drawable name="press_key_color">#ff613fa3</drawable>
