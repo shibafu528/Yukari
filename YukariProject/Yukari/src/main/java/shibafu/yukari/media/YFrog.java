@@ -5,14 +5,13 @@ package shibafu.yukari.media;
  */
 public class YFrog extends LinkMedia {
 
-    private ImageMatch matcher = new ImageMatch("http://yfrog\\.com/([a-zA-Z0-9]+)", "http://yfrog.com/%1:medium");
-
     public YFrog(String mediaURL) {
         super(mediaURL);
     }
 
     @Override
     protected String extractThumbURL(String mediaURL) {
+        ImageMatch matcher = new ImageMatch("http://yfrog\\.com/([a-zA-Z0-9]+)", "http://yfrog.com/%1:medium");
         return matcher.getFullPageUrl(mediaURL);
     }
 }
