@@ -5,14 +5,13 @@ package shibafu.yukari.media;
  */
 public class Twitpic extends LinkMedia {
 
-    private ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "http://twitpic.com/show/full/%1");
-
     public Twitpic(String mediaURL) {
         super(mediaURL);
     }
 
     @Override
     protected String extractThumbURL(String mediaURL) {
+        ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "http://twitpic.com/show/full/%1");
         return matcher.getFullPageUrl(mediaURL);
     }
 }
