@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.twitter.AuthUserRecord;
 
@@ -19,7 +20,7 @@ public class CentralDatabase {
 
     //DB基本情報
     private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 1;
+    private static final int DB_VER = 2;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -83,16 +84,6 @@ public class CentralDatabase {
     public static final String COL_TABS_BIND_LIST_ID = "BindListId";
     public static final String COL_TABS_SEARCH_KEYWORD = "SearchKeyword";
     public static final String COL_TABS_FILTER_QUERY = "FilterQuery";
-
-    //Tabs.Type
-    public static final int TABTYPE_HOME = 0;
-    public static final int TABTYPE_MENTION = 1;
-    public static final int TABTYPE_DM = 2;
-    public static final int TABTYPE_HISTORY = 3;
-    public static final int TABTYPE_LIST = 4;
-    public static final int TABTYPE_SEARCH = 5;
-    public static final int TABTYPE_SEARCH_STREAM = 6;
-    public static final int TABTYPE_FILTER = 7;
 
     //インスタンス
     private Context context;
@@ -168,11 +159,27 @@ public class CentralDatabase {
                     COL_TABS_SEARCH_KEYWORD + " TEXT, " +
                     COL_TABS_FILTER_QUERY + " TEXT)"
             );
+            {
+                TabInfo homeTab = new TabInfo(TabInfo.TABTYPE_HOME, 0, null);
+                db.insert(TABLE_TABS, null, homeTab.getContentValues());
+                TabInfo mentionTab = new TabInfo(TabInfo.TABTYPE_MENTION, 1, null);
+                db.insert(TABLE_TABS, null, mentionTab.getContentValues());
+                TabInfo dmTab = new TabInfo(TabInfo.TABTYPE_DM, 2, null);
+                db.insert(TABLE_TABS, null, dmTab.getContentValues());
+            }
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+            if (oldVersion == 1) {
+                TabInfo homeTab = new TabInfo(TabInfo.TABTYPE_HOME, 0, null);
+                db.insert(TABLE_TABS, null, homeTab.getContentValues());
+                TabInfo mentionTab = new TabInfo(TabInfo.TABTYPE_MENTION, 1, null);
+                db.insert(TABLE_TABS, null, mentionTab.getContentValues());
+                TabInfo dmTab = new TabInfo(TabInfo.TABTYPE_DM, 2, null);
+                db.insert(TABLE_TABS, null, dmTab.getContentValues());
+                ++oldVersion;
+            }
         }
     }
 
@@ -211,6 +218,7 @@ public class CentralDatabase {
         db.endTransaction();
     }
 
+    //<editor-fold desc="Users">
     public void updateUser(DBUser user) {
         db.replace(TABLE_USER, null, user.getContentValues());
     }
@@ -235,10 +243,11 @@ public class CentralDatabase {
     public Cursor getUsersCursor() {
         return db.query(TABLE_USER, null, null, null, null, null, COL_USER_SCREEN_NAME + " ASC");
     }
+    //</editor-fold>
 
     //<editor-fold desc="Accounts">
     public Cursor getAccounts() {
-        Cursor cursor = db.query(
+        return db.query(
                 TABLE_ACCOUNTS + "," + TABLE_USER,
                 new String[]{
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
@@ -252,7 +261,6 @@ public class CentralDatabase {
                         COL_USER_PROFILE_IMAGE_URL},
                 TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
                 null, null, null, null);
-        return cursor;
     }
 
     public void addAccount(AuthUserRecord aur) {
@@ -352,4 +360,27 @@ public class CentralDatabase {
         return draftList;
     }
     //</editor-fold>
+
+    public void updateTab(TabInfo tabInfo) {
+        ContentValues values = tabInfo.getContentValues();
+        if (values.containsKey(COL_TABS_ID)) {
+            db.replace(TABLE_TABS, null, values);
+        }
+        else {
+            db.insert(TABLE_TABS, null, values);
+        }
+    }
+
+    public void deleteTab(int id) {
+        db.delete(TABLE_TABS, COL_TABS_ID + "=" + id, null);
+    }
+
+    public Cursor getTabs() {
+        return db.rawQuery("SELECT * FROM " +
+                TABLE_TABS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
+                TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                "," + TABLE_USER + " WHERE " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
+                " ORDER BY " + COL_TABS_TAB_ORDER, null
+        );
+    }
 }
