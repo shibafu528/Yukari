@@ -86,7 +86,7 @@ public class TabInfo implements DBRecord {
         if (id > -1) values.put(CentralDatabase.COL_TABS_ID, id);
         values.put(CentralDatabase.COL_TABS_TYPE, type);
         values.put(CentralDatabase.COL_TABS_TAB_ORDER, order);
-        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount.NumericId);
+        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.NumericId:null);
         values.put(CentralDatabase.COL_TABS_BIND_LIST_ID, (type == TABTYPE_LIST)?bindListId:-1);
         values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD, (type == TABTYPE_SEARCH || type == TABTYPE_TRACK)? searchKeyword:"");
         values.put(CentralDatabase.COL_TABS_FILTER_QUERY, (type == TABTYPE_FILTER)?filterQuery:"");
