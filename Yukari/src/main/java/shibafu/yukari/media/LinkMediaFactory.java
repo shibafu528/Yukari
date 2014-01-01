@@ -23,6 +23,9 @@ public class LinkMediaFactory {
         else if (mediaURL.contains("xvideos.com")) {
             linkMedia = new XVideos(mediaURL);
         }
+        else if (mediaURL.contains("instagr.am")) {
+            linkMedia = new Instagram(mediaURL);
+        }
 
         return linkMedia;
     }
