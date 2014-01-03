@@ -309,8 +309,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             else for (AuthUserRecord user : users) {
                 RESTLoader loader = new RESTLoader() {
                     @Override
-                    protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
-                        super.onPostExecute(statuses);
+                    protected void onPostExecute(ResponseList<twitter4j.Status> result) {
+                        super.onPostExecute(result);
                         if (mode == TabType.TABTYPE_HOME) {
                             TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
                         }
@@ -423,15 +423,15 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         }
 
         @Override
-        protected void onPostExecute(ResponseList<twitter4j.Status> statuses) {
-            if (statuses != null) {
+        protected void onPostExecute(ResponseList<twitter4j.Status> result) {
+            if (result != null) {
                 PreformedStatus ps;
                 int position;
-                for (twitter4j.Status status : statuses) {
+                for (twitter4j.Status status : result) {
                     ps = new PreformedStatus(status, user);
                     position = prepareInsertStatus(ps);
                     if (position > -1) {
-                        TweetListFragment.this.statuses.add(position, ps);
+                        statuses.add(position, ps);
                     }
                 }
                 adapterWrap.notifyDataSetChanged();
