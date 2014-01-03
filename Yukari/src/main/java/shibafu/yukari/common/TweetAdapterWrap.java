@@ -3,9 +3,7 @@ package shibafu.yukari.common;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,18 +19,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import shibafu.util.MorseCodec;
-import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import twitter4j.MediaEntity;
 import twitter4j.Status;
-import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
 
 /**

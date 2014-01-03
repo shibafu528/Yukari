@@ -17,13 +17,13 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.HashtagEntity;
@@ -74,7 +74,7 @@ public class StatusLinkFragment extends ListFragment{
             list.add(new LinkRow(u.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
-            String imgUrl = TweetImageUrl.getFullImageUrl(u.getExpandedURL());
+            String imgUrl = LinkMediaFactory.createLinkMedia(u.getExpandedURL()).getMediaURL();
             if (imgUrl != null)
                 list.add(new LinkRow(u.getExpandedURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
             else
