@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.common.TabInfo;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.twitter.AuthUserRecord;
 
@@ -160,11 +161,11 @@ public class CentralDatabase {
                     COL_TABS_FILTER_QUERY + " TEXT)"
             );
             {
-                TabInfo homeTab = new TabInfo(TabInfo.TABTYPE_HOME, 0, null);
+                TabInfo homeTab = new TabInfo(TabType.TABTYPE_HOME, 0, null);
                 db.insert(TABLE_TABS, null, homeTab.getContentValues());
-                TabInfo mentionTab = new TabInfo(TabInfo.TABTYPE_MENTION, 1, null);
+                TabInfo mentionTab = new TabInfo(TabType.TABTYPE_MENTION, 1, null);
                 db.insert(TABLE_TABS, null, mentionTab.getContentValues());
-                TabInfo dmTab = new TabInfo(TabInfo.TABTYPE_DM, 2, null);
+                TabInfo dmTab = new TabInfo(TabType.TABTYPE_DM, 2, null);
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
             }
         }
@@ -172,11 +173,11 @@ public class CentralDatabase {
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (oldVersion == 1) {
-                TabInfo homeTab = new TabInfo(TabInfo.TABTYPE_HOME, 0, null);
+                TabInfo homeTab = new TabInfo(TabType.TABTYPE_HOME, 0, null);
                 db.insert(TABLE_TABS, null, homeTab.getContentValues());
-                TabInfo mentionTab = new TabInfo(TabInfo.TABTYPE_MENTION, 1, null);
+                TabInfo mentionTab = new TabInfo(TabType.TABTYPE_MENTION, 1, null);
                 db.insert(TABLE_TABS, null, mentionTab.getContentValues());
-                TabInfo dmTab = new TabInfo(TabInfo.TABTYPE_DM, 2, null);
+                TabInfo dmTab = new TabInfo(TabType.TABTYPE_DM, 2, null);
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
                 ++oldVersion;
             }
@@ -375,12 +376,24 @@ public class CentralDatabase {
         db.delete(TABLE_TABS, COL_TABS_ID + "=" + id, null);
     }
 
-    public Cursor getTabs() {
-        return db.rawQuery("SELECT * FROM " +
+    public ArrayList<TabInfo> getTabs() {
+        Cursor cursor = db.rawQuery("SELECT * FROM " +
                 TABLE_TABS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
                 TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                "," + TABLE_USER + " WHERE " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
+                " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
                 " ORDER BY " + COL_TABS_TAB_ORDER, null
         );
+        ArrayList<TabInfo> tabs = new ArrayList<TabInfo>();
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    TabInfo info = new TabInfo(cursor);
+                    tabs.add(info);
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            cursor.close();
+        }
+        return tabs;
     }
 }
