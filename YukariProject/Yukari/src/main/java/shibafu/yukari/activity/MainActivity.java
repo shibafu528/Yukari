@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewConfigurationCompat;
@@ -39,6 +40,8 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.TabInfo;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
@@ -94,9 +97,18 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             public void onClick(View v) {
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 Menu menu = popupMenu.getMenu();
-                for (AttachableList page : pageList) {
-                    menu.add(page.getTitle());
+                AttachableList page;
+                for (int i = 0; i < pageList.size(); ++i) {
+                    page = pageList.get(i);
+                    menu.add(Menu.NONE, i, Menu.NONE, page.getTitle());
                 }
+                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem menuItem) {
+                        showTabFragment((TweetListFragment) pageList.get(menuItem.getItemId()));
+                        return true;
+                    }
+                });
                 popupMenu.show();
             }
         });
@@ -262,23 +274,6 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         unbindService(connection);
     }
 
-    private void addTab(AuthUserRecord user, String title, int mode) {
-        TweetListFragment fragment = new TweetListFragment();
-        Bundle b = new Bundle();
-        b.putString(TweetListFragment.EXTRA_TITLE, title);
-        b.putInt(TweetListFragment.EXTRA_MODE, mode);
-        b.putSerializable(TweetListFragment.EXTRA_USER, user);
-        fragment.setArguments(b);
-
-        pageList.add(fragment);
-
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame, fragment).commit();
-        setTitle(title);
-        currentPage = fragment;
-        tvTabText.setText(title);
-    }
-
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
@@ -330,14 +325,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("MainActivity", "call onActivityResult | request=" + requestCode + ", result=" + resultCode);
-        if (requestCode == REQUEST_OAUTH) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    //認証情報をロードし差分を追加する
-                    reloadUsers();
-                    break;
-            }
-        } else if (resultCode == RESULT_OK) {
+        if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_FRIEND_CACHE:
                 {
@@ -352,7 +340,59 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         }
     }
 
-    private void reloadUsers() {
+    private void addTab(AuthUserRecord user, String title, int mode) {
+        TweetListFragment fragment = new TweetListFragment();
+        Bundle b = new Bundle();
+        b.putString(TweetListFragment.EXTRA_TITLE, title);
+        b.putInt(TweetListFragment.EXTRA_MODE, mode);
+        b.putSerializable(TweetListFragment.EXTRA_USER, user);
+        fragment.setArguments(b);
+
+        pageList.add(fragment);
+    }
+
+    private void addTab(TabInfo tabInfo) {
+        TweetListFragment fragment = new TweetListFragment();
+        Bundle b = new Bundle();
+        String title;
+        switch (tabInfo.getType()) {
+            case TabType.TABTYPE_HOME:
+                title = "Home";
+                break;
+            case TabType.TABTYPE_MENTION:
+                title = "Mentions";
+                break;
+            case TabType.TABTYPE_DM:
+                title = "DM";
+                break;
+            default:
+                title = "?Unknown Tab";
+                break;
+        }
+        b.putString(TweetListFragment.EXTRA_TITLE, title);
+        b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
+        b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
+        fragment.setArguments(b);
+
+        pageList.add(fragment);
+    }
+
+    private void showTabFragment(TweetListFragment listFragment) {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame, listFragment).commit();
+        currentPage = listFragment;
+        tvTabText.setText(listFragment.getTitle());
+    }
+
+    private void reloadTabs() {
+        pageList.clear();
+
+        ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
+        for (TabInfo info : tabs) {
+            addTab(info);
+        }
+
+        showTabFragment((TweetListFragment) pageList.get(0));
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -370,8 +410,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                 finish();
             }
             else if (pageList.size() < 1) {
-                //TODO: Tabsデータを使うように変更する
-                addTab(null, "Home", TweetListFragment.MODE_HOME);
+                reloadTabs();
             }
         }
 

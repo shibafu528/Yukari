@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.Window;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.TweetListFragment;
 
 /**
@@ -21,7 +22,7 @@ public class TraceActivity extends FragmentActivity {
 
         TweetListFragment fragment = new TweetListFragment();
         Bundle args = new Bundle(getIntent().getExtras());
-        args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_TRACE);
+        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
         fragment.setArguments(args);
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();

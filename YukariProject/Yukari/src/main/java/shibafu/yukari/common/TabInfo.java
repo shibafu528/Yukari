@@ -11,16 +11,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
  * Created by Shibafu on 13/12/30.
  */
 public class TabInfo implements DBRecord {
-    //Tabs.Type
-    public static final int TABTYPE_HOME = 0;
-    public static final int TABTYPE_MENTION = 1;
-    public static final int TABTYPE_DM = 2;
-    public static final int TABTYPE_HISTORY = 3;
-    public static final int TABTYPE_LIST = 4;
-    public static final int TABTYPE_SEARCH = 5;
-    public static final int TABTYPE_TRACK = 6;
-    public static final int TABTYPE_FILTER = 7;
-
     private int id = -1;
     private int type;
     private int order;
@@ -49,11 +39,11 @@ public class TabInfo implements DBRecord {
         this.order = order;
         this.bindAccount = bindAccount;
         switch (type) {
-            case TABTYPE_SEARCH:
-            case TABTYPE_TRACK:
+            case TabType.TABTYPE_SEARCH:
+            case TabType.TABTYPE_TRACK:
                 this.searchKeyword = word;
                 break;
-            case TABTYPE_FILTER:
+            case TabType.TABTYPE_FILTER:
                 this.filterQuery = word;
                 break;
         }
@@ -68,13 +58,13 @@ public class TabInfo implements DBRecord {
             bindAccount = new AuthUserRecord(cursor);
         }
         switch (this.type) {
-            case TABTYPE_LIST:
+            case TabType.TABTYPE_LIST:
                 this.bindListId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_BIND_LIST_ID));
-            case TABTYPE_SEARCH:
-            case TABTYPE_TRACK:
+            case TabType.TABTYPE_SEARCH:
+            case TabType.TABTYPE_TRACK:
                 this.searchKeyword = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_TABS_SEARCH_KEYWORD));
                 break;
-            case TABTYPE_FILTER:
+            case TabType.TABTYPE_FILTER:
                 this.filterQuery = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_TABS_FILTER_QUERY));
                 break;
         }
@@ -86,10 +76,10 @@ public class TabInfo implements DBRecord {
         if (id > -1) values.put(CentralDatabase.COL_TABS_ID, id);
         values.put(CentralDatabase.COL_TABS_TYPE, type);
         values.put(CentralDatabase.COL_TABS_TAB_ORDER, order);
-        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.NumericId:null);
-        values.put(CentralDatabase.COL_TABS_BIND_LIST_ID, (type == TABTYPE_LIST)?bindListId:-1);
-        values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD, (type == TABTYPE_SEARCH || type == TABTYPE_TRACK)? searchKeyword:"");
-        values.put(CentralDatabase.COL_TABS_FILTER_QUERY, (type == TABTYPE_FILTER)?filterQuery:"");
+        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.NumericId:-1);
+        values.put(CentralDatabase.COL_TABS_BIND_LIST_ID, (type == TabType.TABTYPE_LIST)?bindListId:-1);
+        values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD, (type == TabType.TABTYPE_SEARCH || type == TabType.TABTYPE_TRACK)? searchKeyword:"");
+        values.put(CentralDatabase.COL_TABS_FILTER_QUERY, (type == TabType.TABTYPE_FILTER)?filterQuery:"");
         return values;
     }
 

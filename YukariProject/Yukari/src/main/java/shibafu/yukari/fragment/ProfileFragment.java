@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -201,7 +202,7 @@ public class ProfileFragment extends Fragment{
                     case 0:
                     {
                         fragment = new TweetListFragment();
-                        args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_USER);
+                        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
                         args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + targetUser.getScreenName());
@@ -210,7 +211,7 @@ public class ProfileFragment extends Fragment{
                     case 1:
                     {
                         fragment = new TweetListFragment();
-                        args.putInt(TweetListFragment.EXTRA_MODE, TweetListFragment.MODE_FAVORITE);
+                        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
                         args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + targetUser.getScreenName());
