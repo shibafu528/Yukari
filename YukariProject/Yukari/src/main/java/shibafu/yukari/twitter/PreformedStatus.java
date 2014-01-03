@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import shibafu.util.MorseCodec;
-import shibafu.util.TweetImageUrl;
+import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import twitter4j.GeoLocation;

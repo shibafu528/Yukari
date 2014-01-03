@@ -1,4 +1,4 @@
-package shibafu.util;
+package shibafu.yukari.util;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;

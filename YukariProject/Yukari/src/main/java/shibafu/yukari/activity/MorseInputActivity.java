@@ -18,7 +18,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import shibafu.util.MorseCodec;
+import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.R;
 
 /**

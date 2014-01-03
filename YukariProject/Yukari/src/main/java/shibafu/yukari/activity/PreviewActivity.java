@@ -3,8 +3,6 @@ package shibafu.yukari.activity;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -24,11 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.logging.Handler;
 
-import shibafu.util.TweetImageUrl;
 import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.media.LinkMediaFactory;
 import twitter4j.Status;
 
 /**
@@ -103,7 +100,7 @@ public class PreviewActivity extends Activity {
             }
         };
 
-        final String expandedUrl = TweetImageUrl.getFullImageUrl(data.toString());
+        final String expandedUrl = LinkMediaFactory.createLinkMedia(data.toString()).getMediaURL();
         if (expandedUrl != null) {
             imageView.setImageUrl(expandedUrl);
             checkTask.execute(expandedUrl);
