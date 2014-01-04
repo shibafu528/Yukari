@@ -14,8 +14,9 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewConfigurationCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -29,12 +30,10 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import shibafu.yukari.R;
@@ -47,7 +46,6 @@ import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -72,12 +70,13 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     private TweetListFragment currentPage;
     private List<AttachableList> pageList = new ArrayList<AttachableList>();
     private TextView tvTabText;
+    private ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_test);
+        setContentView(R.layout.activity_main);
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(this, "[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です", Toast.LENGTH_LONG).show();
@@ -105,7 +104,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
-                        showTabFragment((TweetListFragment) pageList.get(menuItem.getItemId()));
+                        viewPager.setCurrentItem(menuItem.getItemId(), true);
                         return true;
                     }
                 });
@@ -255,6 +254,25 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             ibMenu.setVisibility(View.GONE);
         }
 
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int i, float v, int i2) {
+
+            }
+
+            @Override
+            public void onPageSelected(int i) {
+                tvTabText.setText(pageList.get(i).getTitle());
+                currentPage = (TweetListFragment) pageList.get(i);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int i) {
+
+            }
+        });
+
         //スリープ防止設定
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
@@ -340,17 +358,6 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         }
     }
 
-    private void addTab(AuthUserRecord user, String title, int mode) {
-        TweetListFragment fragment = new TweetListFragment();
-        Bundle b = new Bundle();
-        b.putString(TweetListFragment.EXTRA_TITLE, title);
-        b.putInt(TweetListFragment.EXTRA_MODE, mode);
-        b.putSerializable(TweetListFragment.EXTRA_USER, user);
-        fragment.setArguments(b);
-
-        pageList.add(fragment);
-    }
-
     private void addTab(TabInfo tabInfo) {
         TweetListFragment fragment = new TweetListFragment();
         Bundle b = new Bundle();
@@ -377,13 +384,6 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         pageList.add(fragment);
     }
 
-    private void showTabFragment(TweetListFragment listFragment) {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame, listFragment).commit();
-        currentPage = listFragment;
-        tvTabText.setText(listFragment.getTitle());
-    }
-
     private void reloadTabs() {
         pageList.clear();
 
@@ -392,7 +392,11 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             addTab(info);
         }
 
-        showTabFragment((TweetListFragment) pageList.get(0));
+        TabPagerAdapter adapter = new TabPagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(adapter);
+
+        currentPage = (TweetListFragment) pageList.get(0);
+        tvTabText.setText(pageList.get(0).getTitle());
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -423,5 +427,27 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     @Override
     public TwitterService getTwitterService() {
         return service;
+    }
+
+    class TabPagerAdapter extends FragmentStatePagerAdapter {
+
+        public TabPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+            return (Fragment) pageList.get(i);
+        }
+
+        @Override
+        public int getCount() {
+            return pageList.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return pageList.get(position).getTitle();
+        }
     }
 }
