@@ -1,16 +1,92 @@
-<android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/pager"
-    tools:context=".MainActivity">
-    <android.support.v4.view.PagerTabStrip
-        android:id="@+id/pager_tab_strip"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:background="#8C588D"
-        android:textColor="#FFFFFF"
-        android:paddingTop="10dp"
-        android:paddingBottom="10dp"/>
-</android.support.v4.view.ViewPager>
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <android.support.v4.view.ViewPager
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/pager">
+    </android.support.v4.view.ViewPager>
+
+    <FrameLayout
+            android:layout_width="fill_parent"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:id="@+id/tweetgesture"
+            android:background="@drawable/status_bar_color">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="▶"
+                    android:id="@+id/tvStreamStates"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:id="@+id/tvMainTab"
+                    android:layout_gravity="center_vertical"
+                    android:paddingLeft="6dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:background="@drawable/selector_key_background" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"/>
+
+                <ImageButton
+                    android:layout_width="90dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/ibSearch"
+                    android:src="@drawable/ic_search"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@drawable/selector_key_background"/>
+
+                <ImageButton
+                    android:layout_width="90dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/ibMenu"
+                    android:src="@drawable/ic_action_overflow"
+                    android:layout_weight="1"
+                    android:focusable="false"
+                    android:background="@drawable/selector_key_background"/>
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+</RelativeLayout>
