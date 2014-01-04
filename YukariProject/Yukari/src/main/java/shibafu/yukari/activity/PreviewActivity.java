@@ -25,6 +25,7 @@ import java.net.URL;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import twitter4j.Status;
 
@@ -100,10 +101,10 @@ public class PreviewActivity extends Activity {
             }
         };
 
-        final String expandedUrl = LinkMediaFactory.createLinkMedia(data.toString()).getMediaURL();
-        if (expandedUrl != null) {
-            imageView.setImageUrl(expandedUrl);
-            checkTask.execute(expandedUrl);
+        final LinkMedia linkMedia = LinkMediaFactory.createLinkMedia(data.toString());
+        if (linkMedia != null) {
+            imageView.setImageUrl(linkMedia.getMediaURL());
+            checkTask.execute(linkMedia.getMediaURL());
         }
         else {
             String s = data.toString();
@@ -149,8 +150,8 @@ public class PreviewActivity extends Activity {
                 }
                 else {
                     Uri uri;
-                    if (expandedUrl != null) {
-                        uri = Uri.parse(expandedUrl);
+                    if (linkMedia != null) {
+                        uri = Uri.parse(linkMedia.getMediaURL());
                     }
                     else {
                         uri = Uri.parse(data.toString());
