@@ -104,7 +104,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
         footerText = (TextView) footerView.findViewById(R.id.tvLoading);
         getListView().addFooterView(footerView);
-        changeFooterProgress(true);
 
         adapterWrap = new TweetAdapterWrap(getActivity().getApplicationContext(), users, statuses);
         setListAdapter(adapterWrap.getAdapter());
@@ -161,6 +160,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public void onDestroy() {
         super.onDestroy();
         if (serviceBound) {
+            //TODO: 今のままだとタブから離れた時に受信したツイートをこぼす
             service.removeStatusListener(this);
             getActivity().unbindService(connection);
             serviceBound = false;
@@ -194,6 +194,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         else {
             footerProgress.setVisibility(View.INVISIBLE);
             footerText.setText("more");
+        }
+
+        if (mode == TabType.TABTYPE_DM) {
+            footerText.setText("DM機能は未実装です");
         }
     }
 
@@ -260,11 +264,13 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             twitter = TweetListFragment.this.service.getTwitter();
             serviceBound = true;
 
-            if (user == null) {
-                users.addAll(TweetListFragment.this.service.getActiveUsers());
-            }
-            else {
-                users.add(TweetListFragment.this.service.getPrimaryUser());
+            if (users.isEmpty()) {
+                if (user == null) {
+                    users.addAll(TweetListFragment.this.service.getActiveUsers());
+                }
+                else {
+                    users.add(TweetListFragment.this.service.getPrimaryUser());
+                }
             }
 
             if (mode == TabType.TABTYPE_TRACE) {
@@ -306,17 +312,15 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 task.execute(traceStart);
                 changeFooterProgress(true);
             }
-            else for (AuthUserRecord user : users) {
-                RESTLoader loader = new RESTLoader() {
-                    @Override
-                    protected void onPostExecute(ResponseList<twitter4j.Status> result) {
-                        super.onPostExecute(result);
-                        if (mode == TabType.TABTYPE_HOME) {
-                            TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
-                        }
-                    }
-                };
-                loader.execute(loader.new Params(user));
+            else if (statuses.isEmpty()) {
+                for (AuthUserRecord user : users) {
+                    RESTLoader loader = new RESTLoader();
+                    loader.execute(loader.new Params(user));
+                }
+            }
+
+            if (mode == TabType.TABTYPE_HOME) {
+                TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
             }
         }
 
@@ -384,8 +388,11 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             }
         }
 
+        private Params params;
+
         @Override
         protected ResponseList<twitter4j.Status> doInBackground(Params... params) {
+            this.params = params[0];
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
                 ResponseList<twitter4j.Status> responseList = null;
@@ -428,7 +435,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 PreformedStatus ps;
                 int position;
                 for (twitter4j.Status status : result) {
-                    ps = new PreformedStatus(status, user);
+                    ps = new PreformedStatus(status, params.getUserRecord());
                     position = prepareInsertStatus(ps);
                     if (position > -1) {
                         statuses.add(position, ps);
