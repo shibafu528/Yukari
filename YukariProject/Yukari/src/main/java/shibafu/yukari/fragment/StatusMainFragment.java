@@ -150,8 +150,8 @@ public class StatusMainFragment extends Fragment{
                 if (source.contains("ShootingStar") || source.contains("TheWorld") || source.contains("Biyon≡(　ε:)"))
                 {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
-                            .setTitle("だいじな確認")
-                            .setMessage("このツイートのviaは特定クライアント(" + source + ")のものです。お気に入り登録してもよろしいですか？")
+                            .setTitle("確認")
+                            .setMessage("このツイートは" + source + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
                             .setIcon(android.R.drawable.ic_dialog_alert)
                             .setPositiveButton("ふぁぼる", new DialogInterface.OnClickListener() {
                                 @Override
