@@ -23,6 +23,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
@@ -74,9 +75,9 @@ public class StatusLinkFragment extends ListFragment{
             list.add(new LinkRow(u.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
-            String imgUrl = LinkMediaFactory.createLinkMedia(u.getExpandedURL()).getMediaURL();
+            LinkMedia imgUrl = LinkMediaFactory.createLinkMedia(u.getExpandedURL());
             if (imgUrl != null)
-                list.add(new LinkRow(u.getExpandedURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+                list.add(new LinkRow(imgUrl.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
             else
                 list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
         }
