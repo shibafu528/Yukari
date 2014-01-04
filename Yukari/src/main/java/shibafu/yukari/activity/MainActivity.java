@@ -45,15 +45,10 @@ import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
 public class MainActivity extends FragmentActivity implements TwitterServiceDelegate {
-
-    private Twitter twitter;
-    private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_FRIEND_CACHE = 2;
@@ -405,9 +400,8 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             MainActivity.this.service = binder.getService();
             serviceBound = true;
-            twitter = MainActivity.this.service.getTwitter();
-            users = MainActivity.this.service.getUsers();
-            if (users.size() < 1) {
+
+            if (MainActivity.this.service.getUsers().isEmpty()) {
                 Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
                 intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
                 startActivityForResult(intent, REQUEST_OAUTH);
