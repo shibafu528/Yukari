@@ -10,7 +10,12 @@ public class SimplePicture extends LinkMedia{
     }
 
     @Override
-    protected String extractThumbURL(String mediaURL) {
-        return mediaURL;
+    protected String expandMediaURL(String browseURL) {
+        return browseURL;
+    }
+
+    @Override
+    protected String expandThumbURL(String browseURL) {
+        return browseURL;
     }
 }

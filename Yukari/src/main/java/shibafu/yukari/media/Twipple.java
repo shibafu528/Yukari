@@ -10,8 +10,14 @@ public class Twipple extends LinkMedia {
     }
 
     @Override
-    protected String extractThumbURL(String mediaURL) {
+    protected String expandMediaURL(String browseURL) {
         ImageMatch matcher = new ImageMatch("http://p\\.twipple\\.jp/([a-zA-Z0-9]+)", "http://p.twpl.jp/show/orig/%1");
-        return matcher.getFullPageUrl(mediaURL);
+        return matcher.getFullPageUrl(browseURL);
+    }
+
+    @Override
+    protected String expandThumbURL(String browseURL) {
+        ImageMatch matcher = new ImageMatch("http://p\\.twipple\\.jp/([a-zA-Z0-9]+)", "http://p.twpl.jp/show/orig/%1");
+        return matcher.getFullPageUrl(browseURL);
     }
 }

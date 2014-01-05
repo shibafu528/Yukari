@@ -18,13 +18,18 @@ public class XVideos extends LinkMedia {
     }
 
     @Override
-    protected String extractThumbURL(final String mediaURL) {
+    protected String expandMediaURL(String browseURL) {
+        return browseURL;
+    }
+
+    @Override
+    protected String expandThumbURL(final String browseURL) {
         final String[] thumbURL = new String[1];
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    HttpURLConnection conn = (HttpURLConnection) new URL(mediaURL).openConnection();
+                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL).openConnection();
                     conn.setReadTimeout(10000);
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     try {

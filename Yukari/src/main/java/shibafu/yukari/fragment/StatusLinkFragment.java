@@ -77,7 +77,7 @@ public class StatusLinkFragment extends ListFragment{
         for (URLEntity u : status.getURLEntities()) {
             LinkMedia imgUrl = LinkMediaFactory.createLinkMedia(u.getExpandedURL());
             if (imgUrl != null)
-                list.add(new LinkRow(imgUrl.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+                list.add(new LinkRow(imgUrl.getBrowseURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
             else
                 list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
         }
