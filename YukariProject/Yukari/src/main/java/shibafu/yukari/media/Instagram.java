@@ -10,8 +10,14 @@ public class Instagram extends LinkMedia {
     }
 
     @Override
-    protected String extractThumbURL(String mediaURL) {
+    protected String expandMediaURL(String browseURL) {
         ImageMatch matcher = new ImageMatch("http://instagr.am/p/([a-zA-Z0-9]+)", "http://instagr.am/p/%1/media/?size=l");
-        return matcher.getFullPageUrl(mediaURL);
+        return matcher.getFullPageUrl(browseURL);
+    }
+
+    @Override
+    protected String expandThumbURL(String browseURL) {
+        ImageMatch matcher = new ImageMatch("http://instagr.am/p/([a-zA-Z0-9]+)", "http://instagr.am/p/%1/media/?size=l");
+        return matcher.getFullPageUrl(browseURL);
     }
 }
