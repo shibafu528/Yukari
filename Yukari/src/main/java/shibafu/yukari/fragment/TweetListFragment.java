@@ -160,7 +160,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public void onDestroy() {
         super.onDestroy();
         if (serviceBound) {
-            //TODO: 今のままだとタブから離れた時に受信したツイートをこぼす
             service.removeStatusListener(this);
             getActivity().unbindService(connection);
             serviceBound = false;
@@ -319,7 +318,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 }
             }
 
-            if (mode == TabType.TABTYPE_HOME) {
+            if (mode == TabType.TABTYPE_HOME || mode == TabType.TABTYPE_MENTION) {
                 TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
             }
         }
@@ -333,6 +332,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status) {
         if (users.contains(from) && !statuses.contains(status)) {
+            if (mode == TabType.TABTYPE_MENTION && !status.isMentionedToMe()) return;
+
             final int position = prepareInsertStatus(status);
             if (position > -1) {
                 handler.post(new Runnable() {
