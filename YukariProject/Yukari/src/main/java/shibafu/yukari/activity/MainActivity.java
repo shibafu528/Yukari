@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     private float tweetGestureY = 0;
 
     private TweetListFragment currentPage;
-    private List<AttachableList> pageList = new ArrayList<AttachableList>();
+    private List<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
 
@@ -91,10 +91,10 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             public void onClick(View v) {
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 Menu menu = popupMenu.getMenu();
-                AttachableList page;
+                TabInfo info;
                 for (int i = 0; i < pageList.size(); ++i) {
-                    page = pageList.get(i);
-                    menu.add(Menu.NONE, i, Menu.NONE, page.getTitle());
+                    info = pageList.get(i);
+                    menu.add(Menu.NONE, i, Menu.NONE, info.getTitle());
                 }
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -259,7 +259,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
             @Override
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
-                currentPage = (TweetListFragment) pageList.get(i);
+                currentPage = (TweetListFragment) pageList.get(i).getAttachableList();
             }
 
             @Override
@@ -375,8 +375,9 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
         b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
         fragment.setArguments(b);
+        tabInfo.setAttachableList(fragment);
 
-        pageList.add(fragment);
+        pageList.add(tabInfo);
     }
 
     private void reloadTabs() {
@@ -390,7 +391,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         TabPagerAdapter adapter = new TabPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
 
-        currentPage = (TweetListFragment) pageList.get(0);
+        currentPage = (TweetListFragment) pageList.get(0).getAttachableList();
         tvTabText.setText(pageList.get(0).getTitle());
     }
 
@@ -431,7 +432,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
 
         @Override
         public Fragment getItem(int i) {
-            return (Fragment) pageList.get(i);
+            return (Fragment) pageList.get(i).getAttachableList();
         }
 
         @Override
