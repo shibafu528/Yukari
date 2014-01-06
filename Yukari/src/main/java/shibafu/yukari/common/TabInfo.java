@@ -142,4 +142,17 @@ public class TabInfo implements DBRecord {
     public void setAttachableList(AttachableList attachableList) {
         this.attachableList = attachableList;
     }
+
+    public String getTitle() {
+        switch (getType()) {
+            case TabType.TABTYPE_HOME:
+                return "Home";
+            case TabType.TABTYPE_MENTION:
+                return "Mentions";
+            case TabType.TABTYPE_DM:
+                return "DM";
+            default:
+                return "?Unknown Tab";
+        }
+    }
 }
