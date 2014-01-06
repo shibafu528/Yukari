@@ -103,13 +103,8 @@ public class ProfileFragment extends Fragment{
         AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
-                try {
-                    if (user == null) return null;
-                    return user.getUser(getActivity()).getProfileImageURL();
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }
-                return null;
+                if (user == null) return null;
+                else return user.ProfileImageUrl;
             }
 
             @Override
