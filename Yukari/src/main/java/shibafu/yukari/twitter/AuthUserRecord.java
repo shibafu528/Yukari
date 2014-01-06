@@ -79,12 +79,6 @@ public class AuthUserRecord implements Serializable, DBRecord{
         return l;
     }
 
-    public User getUser(Context context) throws TwitterException {
-        Twitter twitter = TwitterUtil.getTwitterInstance(context);
-        twitter.setOAuthAccessToken(getAccessToken());
-        return twitter.showUser(getAccessToken().getUserId());
-    }
-
     public static List<AuthUserRecord> getAccountsList(Cursor cursor) {
         List<AuthUserRecord> records = new ArrayList<AuthUserRecord>();
         if (cursor.moveToFirst()) {
