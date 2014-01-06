@@ -215,6 +215,23 @@ public class StatusLinkFragment extends ListFragment{
                 }
             }
         });
+        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final LinkRow lr = list.get(position);
+                if ((lr.type & TYPE_USER) != TYPE_USER) {
+                    switch (lr.type) {
+                        case (TYPE_URL | TYPE_URL_MEDIA):
+                        {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
+                            startActivity(intent);
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private class LinkRow {
