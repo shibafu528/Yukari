@@ -30,6 +30,7 @@ public class PreformedStatus implements Status{
     private String text;
     private String plainSource;
     private List<LinkMedia> mediaLinkList;
+    private boolean isMentionedToMe;
 
     private AuthUserRecord receiveUser;
 
@@ -57,6 +58,13 @@ public class PreformedStatus implements Status{
         }
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
             mediaLinkList.add(LinkMediaFactory.createLinkMedia(mediaEntity.getMediaURL()));
+        }
+        //メンション判定
+        for (UserMentionEntity entity : status.getUserMentionEntities()) {
+            if (entity.getId() == receiveUser.NumericId) {
+                isMentionedToMe = true;
+                break;
+            }
         }
     }
 
@@ -239,5 +247,9 @@ public class PreformedStatus implements Status{
     @Override
     public int getAccessLevel() {
         return status.getAccessLevel();
+    }
+
+    public boolean isMentionedToMe() {
+        return isMentionedToMe;
     }
 }

@@ -16,14 +16,19 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
@@ -126,6 +131,9 @@ public class TwitterService extends Service{
             for (StatusListener sl : statusListeners) {
                 sl.onDirectMessage(from, directMessage);
             }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from, directMessage));
+            }
         }
 
         @Override
@@ -153,6 +161,9 @@ public class TwitterService extends Service{
             PreformedStatus preformedStatus = new PreformedStatus(status, from);
             for (StatusListener sl : statusListeners) {
                 sl.onStatus(from, preformedStatus);
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from, preformedStatus));
             }
 
             //TODO: 自分自身のアカウントからは除外
@@ -194,7 +205,40 @@ public class TwitterService extends Service{
         public void onStatus(AuthUserRecord from, PreformedStatus status);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
     }
+    private class EventBuffer {
+        public static final int E_STATUS = 0;
+        public static final int E_DM     = 1;
+
+        private int eventType;
+        private AuthUserRecord from;
+        private PreformedStatus status;
+        private DirectMessage directMessage;
+
+        public EventBuffer(AuthUserRecord from, PreformedStatus status) {
+            this.eventType = E_STATUS;
+            this.from = from;
+            this.status = status;
+        }
+
+        public EventBuffer(AuthUserRecord from, DirectMessage directMessage) {
+            this.eventType = E_DM;
+            this.from = from;
+            this.directMessage = directMessage;
+        }
+
+        public void sendBufferedEvent(StatusListener listener) {
+            switch (eventType) {
+                case E_STATUS:
+                    listener.onStatus(from, status);
+                    break;
+                case E_DM:
+                    listener.onDirectMessage(from, directMessage);
+                    break;
+            }
+        }
+    }
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
+    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<StatusListener, Queue<EventBuffer>>();
 
     private BroadcastReceiver connectivityChangeListener = new BroadcastReceiver() {
         @Override
@@ -294,13 +338,26 @@ public class TwitterService extends Service{
     }
 
     public void addStatusListener(StatusListener l) {
-        if (statusListeners != null && !statusListeners.contains(l))
+        if (statusListeners != null && !statusListeners.contains(l)) {
             statusListeners.add(l);
+            Log.d("TwitterService", "Added StatusListener");
+            if (statusBuffer.containsKey(l)) {
+                Queue<EventBuffer> eventBuffers = statusBuffer.get(l);
+                Log.d("TwitterService", "バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
+                while (!eventBuffers.isEmpty()) {
+                    eventBuffers.poll().sendBufferedEvent(l);
+                }
+                statusBuffer.remove(l);
+            }
+        }
     }
 
     public void removeStatusListener(StatusListener l) {
-        if (statusListeners != null && statusListeners.contains(l))
+        if (statusListeners != null && statusListeners.contains(l)) {
             statusListeners.remove(l);
+            Log.d("TwitterService", "Removed StatusListener");
+            statusBuffer.put(l, new LinkedList<EventBuffer>());
+        }
     }
 
     //<editor-fold desc="ユーザ情報管理">
