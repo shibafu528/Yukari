@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="3"
-    android:versionName="0.44alpha (prototype 140106)" >
+    android:versionCode="4"
+    android:versionName="0.45alpha (prototype 140109)" >
 
     <uses-sdk
         android:minSdkVersion="8"

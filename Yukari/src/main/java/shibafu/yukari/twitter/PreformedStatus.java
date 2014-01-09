@@ -60,10 +60,12 @@ public class PreformedStatus implements Status{
             mediaLinkList.add(LinkMediaFactory.createLinkMedia(mediaEntity.getMediaURL()));
         }
         //メンション判定
-        for (UserMentionEntity entity : status.getUserMentionEntities()) {
-            if (entity.getId() == receiveUser.NumericId) {
-                isMentionedToMe = true;
-                break;
+        if (receiveUser != null) {
+            for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                if (entity.getId() == receiveUser.NumericId) {
+                    isMentionedToMe = true;
+                    break;
+                }
             }
         }
     }
