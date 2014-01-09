@@ -27,6 +27,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.Status;
 
 /**
@@ -37,7 +38,7 @@ public class PreviewActivity extends Activity {
     public static final String EXTRA_STATUS = "status";
     private SmartImageView imageView;
     private View tweetView;
-    private Status status;
+    private PreformedStatus status;
 
     private Animation animFadeIn, animFadeOut;
     private boolean isShowPanel = true;
@@ -112,7 +113,7 @@ public class PreviewActivity extends Activity {
             checkTask.execute(s);
         }
 
-        status = (Status) getIntent().getSerializableExtra(EXTRA_STATUS);
+        status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         tweetView = findViewById(R.id.inclPreviewStatus);
 
         ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
