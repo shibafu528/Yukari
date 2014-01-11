@@ -1,10 +1,8 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,7 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
-import android.util.AttributeSet;
+import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,7 +23,6 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -45,7 +42,6 @@ import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.Status;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -55,10 +51,8 @@ public class PreviewActivity extends FragmentActivity {
     public static final String EXTRA_STATUS = "status";
 
     private Bitmap image;
-    private int translateX, translateY;
+    private Matrix matrix;
     private float minScale = 1.0f;
-    private float scale = 1.0f;
-    private float rotate = 0.0f;
 
     private AsyncTask<String, Void, Bitmap> loaderTask = null;
 
@@ -68,6 +62,8 @@ public class PreviewActivity extends FragmentActivity {
 
     private Animation animFadeIn, animFadeOut;
     private boolean isShowPanel = true;
+    private int displayWidth;
+    private int displayHeight;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,44 +89,91 @@ public class PreviewActivity extends FragmentActivity {
             private int touchMode = TOUCH_NONE;
 
             private static final int DRAG_THRESHOLD = 30;
-            private float dragStartX, dragStartY;
-            private int translateStartX, translateStartY;
-            private boolean freeDrag = false;
+            private float dragStartX, dragStartY, dragPrevX, dragPrevY;
+            private boolean begunDrag = false;
+
+            private float pinchPrevDistance;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                //ピンチの処理
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_POINTER_DOWN:
+                        if (event.getPointerCount() >= 2) {
+                            pinchPrevDistance = getDistance(event);
+                            if (pinchPrevDistance > 50f) {
+                                touchMode = TOUCH_ZOOM;
+                            }
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (touchMode == TOUCH_ZOOM) {
+                            if (isShowPanel) {
+                                llControlPanel.startAnimation(animFadeOut);
+                                llControlPanel.setVisibility(View.INVISIBLE);
+                                isShowPanel = false;
+                            }
+
+                            float distance = getDistance(event);
+                            float scale = (distance - pinchPrevDistance) /
+                                    FloatMath.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
+                            pinchPrevDistance = distance;
+                            scale += 1;
+                            scale = scale * scale;
+
+                            float[] matrixValues = new float[9];
+                            matrix.getValues(matrixValues);
+                            float nowScale = matrixValues[Matrix.MSCALE_X];
+                            if (nowScale * scale > minScale) {
+                                matrix.postScale(scale, scale);
+                                matrix.postTranslate(-(displayWidth * scale - displayWidth) / 2,
+                                        -(displayHeight * scale - displayHeight) / 2);
+                                matrix.postTranslate(-(displayWidth/2 - displayWidth/2) * scale, 0);
+                                matrix.postTranslate(0, -(displayHeight/2 - displayHeight/2) * scale);
+                                updateMatrix();
+                            }
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_POINTER_UP:
+                        if (touchMode == TOUCH_ZOOM) {
+                            touchMode = TOUCH_NONE;
+                        }
+                        break;
+                }
+
+                //ドラッグの処理
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_DOWN:
                         if (touchMode == TOUCH_NONE && event.getPointerCount() == 1) {
                             touchMode = TOUCH_DRAG;
-                            dragStartX = event.getX();
-                            dragStartY = event.getY();
-                            translateStartX = translateX;
-                            translateStartY = translateY;
-                            freeDrag = false;
+                            dragPrevX = dragStartX = event.getX();
+                            dragPrevY = dragStartY = event.getY();
+                            begunDrag = false;
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
                         if (touchMode == TOUCH_DRAG) {
                             int moveX = (int) (event.getX() - dragStartX);
                             int moveY = (int) (event.getY() - dragStartY);
-                            if (freeDrag || Math.max(Math.abs(moveX), Math.abs(moveY)) > DRAG_THRESHOLD) {
+                            if (begunDrag || Math.max(Math.abs(moveX), Math.abs(moveY)) > DRAG_THRESHOLD) {
                                 if (isShowPanel) {
                                     llControlPanel.startAnimation(animFadeOut);
                                     llControlPanel.setVisibility(View.INVISIBLE);
                                     isShowPanel = false;
                                 }
-                                translateX = translateStartX + moveX;
-                                translateY = translateStartY + moveY;
+                                matrix.postTranslate(-(dragPrevX - event.getX()), -(dragPrevY - event.getY()));
                                 updateMatrix();
-                                freeDrag = true;
+                                begunDrag = true;
                             }
+                            dragPrevX = event.getX();
+                            dragPrevY = event.getY();
                         }
                         break;
                     case MotionEvent.ACTION_UP:
                         if (touchMode == TOUCH_DRAG) {
                             touchMode = TOUCH_NONE;
-                            if (translateX == translateStartX && translateY == translateStartY) {
+                            if (!begunDrag) {
                                 if (isShowPanel) {
                                     llControlPanel.startAnimation(animFadeOut);
                                     llControlPanel.setVisibility(View.INVISIBLE);
@@ -145,6 +188,12 @@ public class PreviewActivity extends FragmentActivity {
                         break;
                 }
                 return true;
+            }
+
+            private float getDistance(MotionEvent event) {
+                float x = event.getX(0) - event.getX(1);
+                float y = event.getY(0) - event.getY(1);
+                return FloatMath.sqrt(x * x + y * y);
             }
         });
 
@@ -259,8 +308,9 @@ public class PreviewActivity extends FragmentActivity {
                 //画面解像度を取得して初期サイズ設定
                 WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
                 Display display = wm.getDefaultDisplay();
-                int displayWidth = display.getWidth();
-                int displayHeight = display.getHeight();
+                displayWidth = display.getWidth();
+                displayHeight = display.getHeight();
+                float scale = 1.0f;
                 if (bitmap.getWidth() > bitmap.getHeight() && displayWidth < bitmap.getWidth()) {
                     scale = (float) displayWidth / bitmap.getWidth();
                 }
@@ -268,8 +318,11 @@ public class PreviewActivity extends FragmentActivity {
                     scale = (float) displayHeight / bitmap.getHeight();
                 }
                 minScale = scale;
-                translateX = displayWidth / 2;
-                translateY = displayHeight / 2;
+
+                matrix = new Matrix();
+                matrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                matrix.postScale(scale, scale);
+                matrix.postTranslate(displayWidth / 2, displayHeight / 2);
                 updateMatrix();
             }
         };
@@ -282,7 +335,11 @@ public class PreviewActivity extends FragmentActivity {
         ibRotateLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rotate -= 90f;
+                Matrix rotateMatrix = new Matrix();
+                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                rotateMatrix.postRotate(-90f);
+                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                matrix.preConcat(rotateMatrix);
                 updateMatrix();
             }
         });
@@ -290,7 +347,11 @@ public class PreviewActivity extends FragmentActivity {
         ibRotateRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rotate += 90;
+                Matrix rotateMatrix = new Matrix();
+                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                rotateMatrix.postRotate(90f);
+                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                matrix.preConcat(rotateMatrix);
                 updateMatrix();
             }
         });
@@ -353,11 +414,6 @@ public class PreviewActivity extends FragmentActivity {
     }
 
     private void updateMatrix() {
-        Matrix matrix = new Matrix();
-        matrix.setTranslate(-(image.getWidth() * scale / 2), -(image.getHeight() * scale / 2));
-        matrix.postRotate(rotate);
-        matrix.postScale(scale, scale);
-        matrix.postTranslate(translateX, translateY);
         imageView.setImageMatrix(matrix);
         imageView.invalidate();
     }
