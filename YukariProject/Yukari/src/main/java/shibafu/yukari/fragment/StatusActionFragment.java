@@ -42,7 +42,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             "ブラウザで開く",
             "クリップボードにコピー",
             "ブックマークする",
-            "アプリごとミュート",
+            "ミュート",
             "ツイート削除"
     };
 
