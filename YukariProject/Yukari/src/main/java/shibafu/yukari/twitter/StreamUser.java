@@ -6,6 +6,7 @@ import android.util.Log;
 import shibafu.yukari.R;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
@@ -56,6 +57,11 @@ public class StreamUser {
         public void onStatus(Status status) {
             if (listener != null) listener.onStatus(userRecord, status);
         }
+
+        @Override
+        public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
+            if (listener != null) listener.onDelete(userRecord, statusDeletionNotice);
+        }
     };
     private StreamListener listener = null;
 
@@ -98,5 +104,6 @@ public class StreamUser {
         public void onBlock(AuthUserRecord from, User user, User user2);
         public void onUnblock(AuthUserRecord from, User user, User user2);
         public void onStatus(AuthUserRecord from, Status status);
+        public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
     }
 }
