@@ -35,7 +35,7 @@
             android:defaultValue="true"/>
         <Preference
             android:key="pref_prev_time"
-            android:title="時間を指定して非表示"
+            android:title="時間を指定してサムネ非表示"
             android:summary="特定の時間帯だけサムネイルを隠す設定をします"
             android:enabled="false"/>
         <!--<CheckBoxPreference
