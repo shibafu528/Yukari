@@ -4,13 +4,6 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/pbPreview"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
-
     <com.loopj.android.image.SmartImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -19,7 +12,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:scaleType="centerInside" />
+        android:scaleType="matrix" />
 
     <LinearLayout
         android:id="@+id/llPreviewPanel"

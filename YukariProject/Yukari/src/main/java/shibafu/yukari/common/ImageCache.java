@@ -15,10 +15,10 @@ import java.net.URLEncoder;
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ProfileIconCache {
+public class ImageCache {
 
-    private static final String DIR = "icon";
-    private static int maxCacheSize = 8 * 1024 * 1024;
+    private static final String DIR = "picture";
+    private static int maxCacheSize = 12 * 1024 * 1024;
 
     private static LruCache<String, Bitmap> lruCache = new LruCache<String, Bitmap>(maxCacheSize) {
         @Override
