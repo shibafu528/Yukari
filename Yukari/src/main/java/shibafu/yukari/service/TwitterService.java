@@ -41,6 +41,7 @@ import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -200,19 +201,32 @@ public class TwitterService extends Service{
                 hashCache.put("#" + he.getText());
             }
         }
+
+        @Override
+        public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice) {
+            for (StatusListener sl : statusListeners) {
+                sl.onDelete(from, statusDeletionNotice);
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from, statusDeletionNotice));
+            }
+        }
     };
     public interface StatusListener {
         public void onStatus(AuthUserRecord from, PreformedStatus status);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
+        public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
     }
     private class EventBuffer {
         public static final int E_STATUS = 0;
         public static final int E_DM     = 1;
+        public static final int E_DELETE = 2;
 
         private int eventType;
         private AuthUserRecord from;
         private PreformedStatus status;
         private DirectMessage directMessage;
+        private StatusDeletionNotice statusDeletionNotice;
 
         public EventBuffer(AuthUserRecord from, PreformedStatus status) {
             this.eventType = E_STATUS;
@@ -226,6 +240,12 @@ public class TwitterService extends Service{
             this.directMessage = directMessage;
         }
 
+        public EventBuffer(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice) {
+            this.eventType = E_DELETE;
+            this.from = from;
+            this.statusDeletionNotice = statusDeletionNotice;
+        }
+
         public void sendBufferedEvent(StatusListener listener) {
             switch (eventType) {
                 case E_STATUS:
@@ -233,6 +253,9 @@ public class TwitterService extends Service{
                     break;
                 case E_DM:
                     listener.onDirectMessage(from, directMessage);
+                    break;
+                case E_DELETE:
+                    listener.onDelete(from, statusDeletionNotice);
                     break;
             }
         }

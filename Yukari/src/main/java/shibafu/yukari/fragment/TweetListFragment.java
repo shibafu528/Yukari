@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -38,6 +39,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -360,6 +362,23 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     @Override
     public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
         //TODO: DM受信時の処理
+    }
+
+    @Override
+    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Iterator<PreformedStatus> iterator = statuses.iterator();
+                while (iterator.hasNext()) {
+                    if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
+                        iterator.remove();
+                        adapterWrap.notifyDataSetChanged();
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     private class RESTLoader extends AsyncTask<RESTLoader.Params, Void, ResponseList<Status>> {
