@@ -56,6 +56,7 @@ public class PreviewActivity extends FragmentActivity {
 
     private Bitmap image;
     private int translateX, translateY;
+    private float minScale = 1.0f;
     private float scale = 1.0f;
     private float rotate = 0.0f;
 
@@ -85,18 +86,65 @@ public class PreviewActivity extends FragmentActivity {
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
         imageView = (SmartImageView) findViewById(R.id.ivPreviewImage);
-        imageView.setOnClickListener(new View.OnClickListener() {
+        imageView.setOnTouchListener(new View.OnTouchListener() {
+            private static final int TOUCH_NONE = 0;
+            private static final int TOUCH_DRAG = 1;
+            private static final int TOUCH_ZOOM = 2;
+            private int touchMode = TOUCH_NONE;
+
+            private static final int DRAG_THRESHOLD = 30;
+            private float dragStartX, dragStartY;
+            private int translateStartX, translateStartY;
+            private boolean freeDrag = false;
+
             @Override
-            public void onClick(View v) {
-                if (isShowPanel) {
-                    llControlPanel.startAnimation(animFadeOut);
-                    llControlPanel.setVisibility(View.INVISIBLE);
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (touchMode == TOUCH_NONE && event.getPointerCount() == 1) {
+                            touchMode = TOUCH_DRAG;
+                            dragStartX = event.getX();
+                            dragStartY = event.getY();
+                            translateStartX = translateX;
+                            translateStartY = translateY;
+                            freeDrag = false;
+                        }
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        if (touchMode == TOUCH_DRAG) {
+                            int moveX = (int) (event.getX() - dragStartX);
+                            int moveY = (int) (event.getY() - dragStartY);
+                            if (freeDrag || Math.max(Math.abs(moveX), Math.abs(moveY)) > DRAG_THRESHOLD) {
+                                if (isShowPanel) {
+                                    llControlPanel.startAnimation(animFadeOut);
+                                    llControlPanel.setVisibility(View.INVISIBLE);
+                                    isShowPanel = false;
+                                }
+                                translateX = translateStartX + moveX;
+                                translateY = translateStartY + moveY;
+                                updateMatrix();
+                                freeDrag = true;
+                            }
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (touchMode == TOUCH_DRAG) {
+                            touchMode = TOUCH_NONE;
+                            if (translateX == translateStartX && translateY == translateStartY) {
+                                if (isShowPanel) {
+                                    llControlPanel.startAnimation(animFadeOut);
+                                    llControlPanel.setVisibility(View.INVISIBLE);
+                                }
+                                else {
+                                    llControlPanel.startAnimation(animFadeIn);
+                                    llControlPanel.setVisibility(View.VISIBLE);
+                                }
+                                isShowPanel ^= true;
+                            }
+                        }
+                        break;
                 }
-                else {
-                    llControlPanel.startAnimation(animFadeIn);
-                    llControlPanel.setVisibility(View.VISIBLE);
-                }
-                isShowPanel ^= true;
+                return true;
             }
         });
 
@@ -110,7 +158,6 @@ public class PreviewActivity extends FragmentActivity {
         }
 
         loaderTask = new AsyncTask<String, Void, Bitmap>() {
-
             LoadingDialogFragment dialogFragment;
 
             @Override
@@ -220,6 +267,7 @@ public class PreviewActivity extends FragmentActivity {
                 else if (displayHeight < bitmap.getHeight()) {
                     scale = (float) displayHeight / bitmap.getHeight();
                 }
+                minScale = scale;
                 translateX = displayWidth / 2;
                 translateY = displayHeight / 2;
                 updateMatrix();
@@ -330,6 +378,7 @@ public class PreviewActivity extends FragmentActivity {
             if (loaderTask != null) {
                 loaderTask.cancel(true);
             }
+            finish();
         }
     }
 }
