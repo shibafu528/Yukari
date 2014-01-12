@@ -334,7 +334,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status) {
         if (users.contains(from) && !statuses.contains(status)) {
-            if (mode == TabType.TABTYPE_MENTION && !status.isMentionedToMe()) return;
+            if (mode == TabType.TABTYPE_MENTION &&
+                    ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
             final int position = prepareInsertStatus(status);
             if (position > -1) {
