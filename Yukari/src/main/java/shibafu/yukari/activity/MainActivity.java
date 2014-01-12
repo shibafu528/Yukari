@@ -27,6 +27,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -66,6 +68,29 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     private List<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
+
+    private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    tweetGestureYStart = event.getY();
+                case MotionEvent.ACTION_MOVE:
+                    tweetGestureY = event.getY();
+                    isTouchTweet = true;
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
+                        Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                        startActivity(intent);
+                        return true;
+                    }
+                    break;
+            }
+            if (v.getId() == R.id.tweetgesture) return true;
+            return false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,8 +156,10 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                 return true;
             }
         });
+        tvTabText.setOnTouchListener(tweetGestureListener);
 
         ImageButton ibSearch = (ImageButton) findViewById(R.id.ibSearch);
+        ibSearch.setOnTouchListener(tweetGestureListener);
         ibSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -211,28 +238,10 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         });
 
         FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
-        area.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        tweetGestureYStart = event.getY();
-                    case MotionEvent.ACTION_MOVE:
-                        tweetGestureY = event.getY();
-                        isTouchTweet = true;
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
-                            Intent intent = new Intent(MainActivity.this, TweetActivity.class);
-                            startActivity(intent);
-                        }
-                        break;
-                }
-                return true;
-            }
-        });
+        area.setOnTouchListener(tweetGestureListener);
 
         ImageButton ibMenu = (ImageButton) findViewById(R.id.ibMenu);
+        ibMenu.setOnTouchListener(tweetGestureListener);
         ibMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -269,8 +278,35 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
         });
 
         //スリープ防止設定
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
+
+        //初回起動時の操作ガイド
+        if (!sp.getBoolean("first_guide", false)) {
+            final View guideView = getLayoutInflater().inflate(R.layout.overlay_guide, null);
+            guideView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return true;
+                }
+            });
+            addContentView(guideView,
+                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT));
+            guideView.findViewById(R.id.bGuideClose).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.anim_fadeout);
+                    guideView.startAnimation(animation);
+                    guideView.setVisibility(View.GONE);
+                    guideView.setClickable(false);
+                    v.setFocusable(false);
+                    v.setClickable(false);
+
+                    sp.edit().putBoolean("first_guide", true).commit();
+                }
+            });
+        }
     }
 
     @Override
