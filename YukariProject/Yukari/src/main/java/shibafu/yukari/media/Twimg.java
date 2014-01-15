@@ -18,4 +18,9 @@ public class Twimg extends LinkMedia{
     protected String expandThumbURL(String browseURL) {
         return browseURL + ":thumb";
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }

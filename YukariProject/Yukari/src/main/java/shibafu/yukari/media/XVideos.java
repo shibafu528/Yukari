@@ -63,4 +63,9 @@ public class XVideos extends LinkMedia {
 
         return thumbURL[0];
     }
+
+    @Override
+    public boolean canPreview() {
+        return false;
+    }
 }

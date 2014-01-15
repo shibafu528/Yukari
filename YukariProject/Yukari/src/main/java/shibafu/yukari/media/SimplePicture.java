@@ -18,4 +18,9 @@ public class SimplePicture extends LinkMedia{
     protected String expandThumbURL(String browseURL) {
         return browseURL;
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }
