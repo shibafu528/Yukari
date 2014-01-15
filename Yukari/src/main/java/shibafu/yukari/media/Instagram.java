@@ -20,4 +20,9 @@ public class Instagram extends LinkMedia {
         ImageMatch matcher = new ImageMatch("http://instagr(.am|am.com)/p/([a-zA-Z0-9]+)", "http://instagr.am/p/%2/media/?size=t");
         return matcher.getFullPageUrl(browseURL);
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }

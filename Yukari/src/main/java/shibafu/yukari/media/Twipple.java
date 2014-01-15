@@ -20,4 +20,9 @@ public class Twipple extends LinkMedia {
         ImageMatch matcher = new ImageMatch("http://p\\.twipple\\.jp/([a-zA-Z0-9]+)", "http://p.twpl.jp/show/thumb/%1");
         return matcher.getFullPageUrl(browseURL);
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }

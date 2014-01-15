@@ -20,6 +20,8 @@ public abstract class LinkMedia implements Serializable{
 
     protected abstract String expandThumbURL(String browseURL);
 
+    public abstract boolean canPreview();
+
     @Override
     public String toString() {
         return browseURL;

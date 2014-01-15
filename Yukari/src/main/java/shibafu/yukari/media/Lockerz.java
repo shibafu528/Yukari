@@ -22,4 +22,9 @@ public class Lockerz extends LinkMedia {
                 "http://api.plixi.com/api/tpapi.svc/imagefromurl?url=http://plixi.com/p/%1&size=thumbnail");
         return matcher.getFullPageUrl(browseURL);
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }

@@ -20,4 +20,9 @@ public class Photozou extends LinkMedia {
         ImageMatch matcher = new ImageMatch("http://photozou\\.jp/photo/show/([a-zA-Z0-9]+)/([a-zA-Z0-9]+)", "http://photozou.jp/p/thumb/%2");
         return matcher.getFullPageUrl(browseURL);
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }

@@ -20,4 +20,9 @@ public class Twitpic extends LinkMedia {
         ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "http://twitpic.com/show/thumb/%1");
         return matcher.getFullPageUrl(browseURL);
     }
+
+    @Override
+    public boolean canPreview() {
+        return true;
+    }
 }
