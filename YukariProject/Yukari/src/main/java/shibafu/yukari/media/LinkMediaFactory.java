@@ -8,8 +8,8 @@ public class LinkMediaFactory {
     public static LinkMedia createLinkMedia(String mediaURL) {
         LinkMedia linkMedia = null;
 
-        if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
-            linkMedia = new SimplePicture(mediaURL);
+        if (mediaURL.contains("twimg.con")) {
+            linkMedia = new Twimg(mediaURL);
         }
         else if (mediaURL.contains("twitpic.com")) {
             linkMedia = new Twitpic(mediaURL);
@@ -23,8 +23,17 @@ public class LinkMediaFactory {
         else if (mediaURL.contains("xvideos.com")) {
             linkMedia = new XVideos(mediaURL);
         }
-        else if (mediaURL.contains("instagr.am")) {
+        else if (mediaURL.contains("instagr.am") || mediaURL.contains("instagram.com")) {
             linkMedia = new Instagram(mediaURL);
+        }
+        else if (mediaURL.contains("lockerz.com")) {
+            linkMedia = new Lockerz(mediaURL);
+        }
+        else if (mediaURL.contains("photozou.jp")) {
+            linkMedia = new Photozou(mediaURL);
+        }
+        else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
+            linkMedia = new SimplePicture(mediaURL);
         }
 
         return linkMedia;

@@ -17,7 +17,7 @@ public class YFrog extends LinkMedia {
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://yfrog\\.com/([a-zA-Z0-9]+)", "http://yfrog.com/%1:medium");
+        ImageMatch matcher = new ImageMatch("http://yfrog\\.com/([a-zA-Z0-9]+)", "http://yfrog.com/%1:small");
         return matcher.getFullPageUrl(browseURL);
     }
 }
