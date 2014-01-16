@@ -73,7 +73,7 @@ public class StatusLinkFragment extends ListFragment{
         list = new ArrayList<LinkRow>();
         for (LinkMedia lm : status.getMediaLinkList()) {
             if (lm.canPreview()) {
-                list.add(new LinkRow(lm.getBrowseURL(), lm.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+                list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
             }
         }
         for (URLEntity u : status.getURLEntities()) {
@@ -162,7 +162,7 @@ public class StatusLinkFragment extends ListFragment{
                             break;
                         case (TYPE_URL | TYPE_URL_MEDIA):
                         {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.link), getActivity(), PreviewActivity.class);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
                             intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
                             startActivity(intent);
                             break;
@@ -234,7 +234,6 @@ public class StatusLinkFragment extends ListFragment{
 
     private class LinkRow {
         public String text;
-        public String link;
         public int type;
         public long targetUser;
         public String targetUserSN;
@@ -242,16 +241,6 @@ public class StatusLinkFragment extends ListFragment{
 
         private LinkRow(String text, int type, long targetUser, String targetUserSN, boolean showTargetUser) {
             this.text = text;
-            this.link = text;
-            this.type = type;
-            this.targetUser = targetUser;
-            this.targetUserSN = targetUserSN;
-            this.showTargetUser = showTargetUser;
-        }
-
-        private LinkRow(String text, String link, int type, long targetUser, String targetUserSN, boolean showTargetUser) {
-            this.text = text;
-            this.link = link;
             this.type = type;
             this.targetUser = targetUser;
             this.targetUserSN = targetUserSN;
