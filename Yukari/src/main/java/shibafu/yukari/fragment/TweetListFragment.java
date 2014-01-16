@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,21 +18,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.common.AttachableList;
-import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.PRListFactory;
+import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -382,7 +379,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         });
     }
 
-    private class RESTLoader extends AsyncTask<RESTLoader.Params, Void, ResponseList<Status>> {
+    private class RESTLoader extends AsyncTask<RESTLoader.Params, Void, PreformedResponseList<PreformedStatus>> {
         class Params {
             private Paging paging;
             private AuthUserRecord userRecord;
@@ -409,11 +406,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             }
         }
 
-        private Params params;
-
         @Override
-        protected ResponseList<twitter4j.Status> doInBackground(Params... params) {
-            this.params = params[0];
+        protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
                 ResponseList<twitter4j.Status> responseList = null;
@@ -438,7 +432,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 else if (responseList.size() > 0) {
                     lastStatusId = responseList.get(responseList.size() - 1).getId();
                 }
-                return responseList;
+                return PRListFactory.create(responseList, params[0].getUserRecord());
             } catch (TwitterException e) {
                 e.printStackTrace();
             }
@@ -451,15 +445,13 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         }
 
         @Override
-        protected void onPostExecute(ResponseList<twitter4j.Status> result) {
+        protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             if (result != null) {
-                PreformedStatus ps;
                 int position;
-                for (twitter4j.Status status : result) {
-                    ps = new PreformedStatus(status, params.getUserRecord());
-                    position = prepareInsertStatus(ps);
+                for (PreformedStatus status : result) {
+                    position = prepareInsertStatus(status);
                     if (position > -1) {
-                        statuses.add(position, ps);
+                        statuses.add(position, status);
                     }
                 }
                 adapterWrap.notifyDataSetChanged();

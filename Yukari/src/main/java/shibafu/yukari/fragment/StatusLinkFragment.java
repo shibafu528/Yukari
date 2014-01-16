@@ -71,19 +71,13 @@ public class StatusLinkFragment extends ListFragment{
 
         //リスト要素を作成する
         list = new ArrayList<LinkRow>();
-        for (MediaEntity u : status.getMediaEntities()) {
-            list.add(new LinkRow(u.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+        for (LinkMedia lm : status.getMediaLinkList()) {
+            if (lm.canPreview()) {
+                list.add(new LinkRow(lm.getBrowseURL(), lm.getMediaURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
+            }
         }
         for (URLEntity u : status.getURLEntities()) {
-            LinkMedia imgUrl = LinkMediaFactory.createLinkMedia(u.getExpandedURL());
-            if (imgUrl != null) {
-                if (imgUrl.canPreview())
-                    list.add(new LinkRow(imgUrl.getBrowseURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
-                else
-                    list.add(new LinkRow(imgUrl.getBrowseURL(), TYPE_URL, 0, null, false));
-            }
-            else
-                list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
+            list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
         }
         for (HashtagEntity h : status.getHashtagEntities()) {
             list.add(new LinkRow("#" + h.getText(), TYPE_HASH, 0, null, false));
@@ -168,7 +162,7 @@ public class StatusLinkFragment extends ListFragment{
                             break;
                         case (TYPE_URL | TYPE_URL_MEDIA):
                         {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.link), getActivity(), PreviewActivity.class);
                             intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
                             startActivity(intent);
                             break;
@@ -240,6 +234,7 @@ public class StatusLinkFragment extends ListFragment{
 
     private class LinkRow {
         public String text;
+        public String link;
         public int type;
         public long targetUser;
         public String targetUserSN;
@@ -247,6 +242,16 @@ public class StatusLinkFragment extends ListFragment{
 
         private LinkRow(String text, int type, long targetUser, String targetUserSN, boolean showTargetUser) {
             this.text = text;
+            this.link = text;
+            this.type = type;
+            this.targetUser = targetUser;
+            this.targetUserSN = targetUserSN;
+            this.showTargetUser = showTargetUser;
+        }
+
+        private LinkRow(String text, String link, int type, long targetUser, String targetUserSN, boolean showTargetUser) {
+            this.text = text;
+            this.link = link;
             this.type = type;
             this.targetUser = targetUser;
             this.targetUserSN = targetUserSN;

@@ -27,9 +27,11 @@ public class PreformedStatus implements Status{
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
 
     private Status status;
+    private PreformedStatus retweetedStatus;
     private String text;
     private String plainSource;
     private List<LinkMedia> mediaLinkList;
+    private URLEntity[] urlEntities;
     private boolean isMentionedToMe;
 
     private AuthUserRecord receiveUser;
@@ -49,13 +51,18 @@ public class PreformedStatus implements Status{
             plainSource = status.getSource();
         }
         //メディアリンクリストを作成
+        ArrayList<URLEntity> urlEntities = new ArrayList<URLEntity>();
         mediaLinkList = new ArrayList<LinkMedia>();
         for (URLEntity urlEntity : status.getURLEntities()) {
             LinkMedia media = LinkMediaFactory.createLinkMedia(urlEntity.getExpandedURL());
             if (media != null) {
                 mediaLinkList.add(media);
             }
+            else {
+                urlEntities.add(urlEntity);
+            }
         }
+        this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
             mediaLinkList.add(LinkMediaFactory.createLinkMedia(mediaEntity.getMediaURL()));
         }
@@ -67,6 +74,10 @@ public class PreformedStatus implements Status{
                     break;
                 }
             }
+        }
+        //RTステータスならそちらも生成
+        if (isRetweet()) {
+            retweetedStatus = new PreformedStatus(status.getRetweetedStatus(), receiveUser);
         }
     }
 
@@ -174,7 +185,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public PreformedStatus getRetweetedStatus() {
-        return new PreformedStatus(status.getRetweetedStatus(), receiveUser);
+        return retweetedStatus;
     }
 
     @Override
@@ -219,7 +230,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public URLEntity[] getURLEntities() {
-        return status.getURLEntities();
+        return urlEntities;
     }
 
     @Override
