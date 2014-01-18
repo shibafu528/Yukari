@@ -82,7 +82,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         title = args.getString(EXTRA_TITLE);
-        user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
+        AuthUserRecord manager = (AuthUserRecord) args.getSerializable(EXTRA_USER);
+        if (manager != null) {
+            users.add(manager);
+        }
         mode = args.getInt(EXTRA_MODE, -1);
         if (mode == TabType.TABTYPE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
