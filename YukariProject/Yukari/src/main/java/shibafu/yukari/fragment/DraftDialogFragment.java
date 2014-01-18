@@ -54,7 +54,6 @@ public class DraftDialogFragment extends DialogFragment {
     private DraftAdapter adapter;
     private List<TweetDraft> drafts = null;
     private AlertDialog currentDialog;
-    private Handler handler = new Handler();
 
     public interface DraftDialogEventListener {
         void onDraftSelected(TweetDraft selected);
@@ -97,22 +96,6 @@ public class DraftDialogFragment extends DialogFragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //アニメーションのスケジュール
-                final View v = view;
-                view.setBackgroundColor(Color.parseColor("#B394E0"));
-                Timer t = new Timer();
-                t.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                v.setBackgroundColor((Integer)v.getTag());
-                            }
-                        });
-                    }
-                }, new Date(System.currentTimeMillis() + 100));
-
                 listener.onDraftSelected(drafts.get(position));
                 dismiss();
             }
@@ -121,22 +104,6 @@ public class DraftDialogFragment extends DialogFragment {
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                //アニメーションのスケジュール
-                final View v = view;
-                view.setBackgroundColor(Color.parseColor("#B394E0"));
-                Timer t = new Timer();
-                t.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                v.setBackgroundColor((Integer)v.getTag());
-                            }
-                        });
-                    }
-                }, new Date(System.currentTimeMillis() + 100));
-
                 final int pos = position;
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
@@ -217,8 +184,6 @@ public class DraftDialogFragment extends DialogFragment {
 
             final TweetDraft d = drafts.get(position);
             if (d != null) {
-                v.setBackgroundColor(Color.WHITE);
-                v.setTag(Color.WHITE);
                 TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
                 StringBuilder sbNames = new StringBuilder();
                 for (int i = 0; i < d.getWriters().size(); ++i) {
@@ -228,15 +193,18 @@ public class DraftDialogFragment extends DialogFragment {
                 }
                 tvName.setText(sbNames.toString());
                 tvName.setTypeface(FontAsset.getInstance(getActivity()).getFont());
+
                 TextView tvText = (TextView) v.findViewById(R.id.tweet_text);
                 tvText.setTypeface(FontAsset.getInstance(getActivity()).getFont());
                 tvText.setText(d.getText());
+
                 final ImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
                 ivIcon.setImageResource(R.drawable.yukatterload);
                 AuthUserRecord user = d.getWriters().get(0);
                 ivIcon.setTag(user.ProfileImageUrl);
                 IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
                 loaderTask.executeIf(user.ProfileImageUrl);
+
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
                 if (d.isDirectMessage()) {
