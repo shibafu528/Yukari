@@ -167,8 +167,8 @@ public class TwitterService extends Service{
                 e.getValue().offer(new EventBuffer(from, preformedStatus));
             }
 
-            //TODO: 自分自身のアカウントからは除外
-            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == from.NumericId) {
+            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == from.NumericId &&
+                    checkOwn == null) {
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                 builder.setSmallIcon(R.drawable.ic_stat_retweet);
                 builder.setContentTitle("Retweeted by @" + status.getUser().getScreenName());
@@ -179,7 +179,7 @@ public class TwitterService extends Service{
 
                 notificationManager.notify(NOTIF_RETWEET, builder.build());
             }
-            else {
+            else if (!status.isRetweet()) {
                 UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                 for (UserMentionEntity ume : userMentionEntities) {
                     if (ume.getId() == from.NumericId) {

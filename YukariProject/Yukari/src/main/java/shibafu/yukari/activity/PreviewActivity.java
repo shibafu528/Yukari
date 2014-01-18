@@ -302,6 +302,7 @@ public class PreviewActivity extends FragmentActivity {
                 }
                 else if (bitmap == null) {
                     Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
+                    finish();
                     return;
                 }
                 image = bitmap;
