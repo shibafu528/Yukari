@@ -96,6 +96,7 @@ public class PreviewActivity extends FragmentActivity {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                //TODO: 画像のロードが済んでいない時にもしこの辺のコードが呼ばれるとクラッシュする
                 //ピンチの処理
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_POINTER_DOWN:
