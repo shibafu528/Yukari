@@ -1,11 +1,9 @@
 package shibafu.yukari.fragment;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
@@ -17,11 +15,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
-import shibafu.yukari.activity.AccountManageActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
@@ -219,7 +215,13 @@ public class MenuDialogFragment extends DialogFragment {
                 activeAccounts =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                 createAccountIconView();
-                ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts);
+                //アクティブアカウントの再設定は別スレッドで行う
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts);
+                    }
+                }.run();
                 break;
             }
         }
