@@ -422,6 +422,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         }
                         if (result == writers.size()) {
                             Toast.makeText(TweetActivity.this, "投稿に成功しました", Toast.LENGTH_SHORT).show();
+                            setResult(RESULT_OK);
                             finish();
                         }
                         else {

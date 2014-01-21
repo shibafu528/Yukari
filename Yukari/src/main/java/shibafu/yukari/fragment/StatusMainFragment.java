@@ -36,9 +36,10 @@ import shibafu.yukari.twitter.TwitterUtil;
  */
 public class StatusMainFragment extends Fragment{
 
-    private static final int REQUEST_RETWEET  = 0x01;
-    private static final int REQUEST_FAVORITE = 0x02;
-    private static final int REQUEST_FAV_RT   = 0x03;
+    private static final int REQUEST_REPLY    = 0x01;
+    private static final int REQUEST_RETWEET  = 0x02;
+    private static final int REQUEST_FAVORITE = 0x03;
+    private static final int REQUEST_FAV_RT   = 0x04;
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -71,7 +72,7 @@ public class StatusMainFragment extends Fragment{
                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
                         ((status.isRetweet())?status.getRetweetedStatus().getUser().getScreenName()
                                 : status.getUser().getScreenName()) + " ");
-                startActivity(intent);
+                startActivityForResult(intent, REQUEST_REPLY);
             }
         });
 
@@ -397,29 +398,34 @@ public class StatusMainFragment extends Fragment{
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
-            final ArrayList<AuthUserRecord> actionUsers =
-                    (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
-            if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        for (AuthUserRecord user : actionUsers) {
-                            service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        }
-                        return null;
-                    }
-                }.execute();
+            if (requestCode == REQUEST_REPLY) {
+                getActivity().finish();
             }
-            if ((requestCode & REQUEST_FAVORITE) == REQUEST_FAVORITE) {
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        for (AuthUserRecord user : actionUsers) {
-                            service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+            else {
+                final ArrayList<AuthUserRecord> actionUsers =
+                        (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
+                if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {
+                    new SimpleAsyncTask() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            for (AuthUserRecord user : actionUsers) {
+                                service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                            }
+                            return null;
                         }
-                        return null;
-                    }
-                }.execute();
+                    }.execute();
+                }
+                if ((requestCode & REQUEST_FAVORITE) == REQUEST_FAVORITE) {
+                    new SimpleAsyncTask() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            for (AuthUserRecord user : actionUsers) {
+                                service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                            }
+                            return null;
+                        }
+                    }.execute();
+                }
             }
         }
     }
