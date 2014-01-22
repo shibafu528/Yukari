@@ -20,13 +20,4 @@
             android:hint="ひらがな か カタカナ で頼んだ"
             android:layout_marginTop="16dp"/>
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="幅の小さい符号を使用"
-        android:id="@+id/cbMorseOutput"
-        android:layout_gravity="right|center_vertical"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp" />
 </LinearLayout>
