@@ -54,6 +54,8 @@ public class ProfileIconCache {
     }
 
     public static void putImage(String key, Bitmap image, Context context) {
+        if (key == null || image == null) return;
+
         key = encodeKey(key);
         //メモリ上のキャッシュと、ファイルに書き込む
         lruCache.put(key, image);
