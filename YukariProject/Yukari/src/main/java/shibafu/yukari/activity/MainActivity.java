@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.AttachableList;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
@@ -173,6 +172,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                             {
                                 final EditText tvInput = new EditText(MainActivity.this);
                                 tvInput.setHint("@screen_name (@省略可)");
+                                tvInput.setMaxLines(1);
 
                                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                                 builder.setTitle("プロフィールを直接開く");
@@ -191,8 +191,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                                             @Override
                                             protected User doInBackground(String... params) {
                                                 try {
-                                                    User user = service.getTwitter().showUser(params[0]);
-                                                    return user;
+                                                    return service.getTwitter().showUser(params[0]);
                                                 } catch (TwitterException e) {
                                                     e.printStackTrace();
                                                 }
