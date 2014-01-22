@@ -30,8 +30,6 @@ public class MorseInputActivity extends Activity {
 
     private TextView tvPreview;
     private EditText etInput;
-    private CheckBox cbOutput;
-    private boolean use2212 = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,14 +66,6 @@ public class MorseInputActivity extends Activity {
                     InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                     imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
                 }
-            }
-        });
-        cbOutput = (CheckBox) v.findViewById(R.id.cbMorseOutput);
-        cbOutput.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                use2212 = isChecked;
-                tvPreview.setText(encode(etInput.getText().toString()));
             }
         });
 
@@ -131,9 +121,7 @@ public class MorseInputActivity extends Activity {
 
     private String encode(String str) {
         String encoded = MorseCodec.encode(str);
-        if (!use2212) {
-            encoded = encoded.replace((char)0x2212, (char)0xff0d);
-        }
+        encoded = encoded.replace((char)0x2212, (char)0xff0d);
         return encoded;
     }
 }
