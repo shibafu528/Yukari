@@ -73,7 +73,7 @@ public class ProfileFragment extends Fragment{
 
     private SmartImageView ivProfileIcon, ivHeader, ivProfileCurrent;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
-    private Button btnFollow;
+    private Button btnFollowManage;
     private ImageButton ibMenu, ibSearch;
 
     private GridView gridCommands;
@@ -127,7 +127,17 @@ public class ProfileFragment extends Fragment{
         tvUserId = (TextView) v.findViewById(R.id.tvProfileUserId);
         tvUserId.setText("#" + targetId);
 
-        btnFollow = (Button) v.findViewById(R.id.btnProfileFollow);
+        btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
+        btnFollowManage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FollowDialogFragment fragment = new FollowDialogFragment();
+                Bundle args = new Bundle();
+                args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, targetUser);
+                fragment.setArguments(args);
+                fragment.show(getFragmentManager(), "follow");
+            }
+        });
 
         ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
         ibMenu.setOnClickListener(new View.OnClickListener() {
