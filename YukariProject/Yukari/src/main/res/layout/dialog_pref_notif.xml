@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp">
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="通知を有効にする"
+        android:id="@+id/cbEnableNotif" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="SOUND &amp; VIBRATION"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:src="#aaa"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="通知サウンドを使用する"
+        android:id="@+id/cbEnableNotifSound" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="バイブレーション"
+        android:id="@+id/cbEnableNotifVibration" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="MODE"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:src="#aaa"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp" />
+
+    <RadioGroup
+        android:id="@+id/rgNotifMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ステータス通知"
+            android:id="@+id/rbNotifStatus" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ポップアップ通知"
+            android:id="@+id/rbNotifToast" />
+    </RadioGroup>
+
+</LinearLayout>

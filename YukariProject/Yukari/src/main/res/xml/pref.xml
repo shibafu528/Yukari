@@ -45,6 +45,24 @@
             android:defaultValue="false"/>-->
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="通知設定">
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_mention"
+            android:title="メンション通知"
+            android:summary="返信(@ツイート)を受信した際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_rt"
+            android:title="リツイート通知"
+            android:summary="リツイートされた際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_fav"
+            android:title="お気に入り通知"
+            android:summary="ツイートがお気に入りに追加された際に通知します"
+            android:defaultValue="5"/>
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
     </PreferenceCategory>
