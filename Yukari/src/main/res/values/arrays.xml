@@ -65,4 +65,27 @@
         <item>22</item>
         <item>23</item>
     </string-array>
+
+    <string-array name="pref_notif_entries">
+        <item>通知しない</item>
+        <item>ステータス通知</item>
+        <item>ステータス通知+音</item>
+        <item>ステータス通知+振動</item>
+        <item>ステータス通知+音+振動</item>
+        <item>ポップアップ通知</item>
+        <item>ポップアップ通知+音</item>
+        <item>ポップアップ通知+振動</item>
+        <item>ポップアップ通知+音+振動</item>
+    </string-array>
+    <string-array name="pref_notif_values">
+        <item>0</item>
+        <item>1</item>
+        <item>5</item>
+        <item>9</item>
+        <item>13</item>
+        <item>3</item>
+        <item>7</item>
+        <item>11</item>
+        <item>15</item>
+    </string-array>
 </resources>
