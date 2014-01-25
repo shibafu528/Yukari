@@ -16,7 +16,7 @@ public class NotFoundStubActivity extends Activity{
         setTitle("Yukari : 未実装の操作");
 
         TextView tv = new TextView(this);
-        tv.setText("未実装です★\ngetDataString() = " + getIntent().getDataString());
+        tv.setText("この機能はまだ実装されていません。時が来るまではこの機能を忘れて気長にお待ちください。\n\nDebug Info:\ngetDataString() = " + getIntent().getDataString());
 
         setContentView(tv);
     }
