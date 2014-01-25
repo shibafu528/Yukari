@@ -415,6 +415,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             try {
                 ResponseList<twitter4j.Status> responseList = null;
                 Paging paging = params[0].getPaging();
+                paging.setCount(60);
                 switch (mode) {
                     case TabType.TABTYPE_HOME:
                         responseList = twitter.getHomeTimeline(paging);
