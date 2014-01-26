@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="5"
+    android:versionCode="6"
     android:versionName="0.53alpha (prototype 140125)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
