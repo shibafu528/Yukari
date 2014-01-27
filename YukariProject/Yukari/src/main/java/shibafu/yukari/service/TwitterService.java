@@ -6,14 +6,18 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.util.Pair;
@@ -29,9 +33,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.prefs.Preferences;
+import java.util.prefs.PreferencesFactory;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
+import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -78,15 +85,24 @@ public class TwitterService extends Service{
     //メインデータベース
     private CentralDatabase database;
 
+    //Preference
+    private SharedPreferences sharedPreferences;
+
     //キャッシュ系
     private HashCache hashCache;
 
     //システムサービス系
     private NotificationManager notificationManager;
     private ConnectivityManager connectivityManager;
+    private Vibrator vibrator;
     private static final int NOTIF_FAVED = 1;
     private static final int NOTIF_REPLY = 2;
     private static final int NOTIF_RETWEET = 3;
+
+    //バイブレーションパターン
+    private long[] vibReply = {450, 130, 140, 150};
+    private long[] vibRetweet = {150, 130, 300, 150};
+    private long[] vibFaved = {140, 100};
 
     //ネットワーク管理
     private boolean disconnectedStream = false;
@@ -105,15 +121,7 @@ public class TwitterService extends Service{
             if (from.NumericId == user.getId())
                 return;
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-            builder.setSmallIcon(R.drawable.ic_stat_favorite);
-            builder.setContentTitle("Faved by @" + user.getScreenName());
-            builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
-            builder.setTicker("ふぁぼられ : @" + user.getScreenName());
-            builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), AudioManager.STREAM_NOTIFICATION);
-            builder.setAutoCancel(true);
-
-            notificationManager.notify(NOTIF_FAVED, builder.build());
+            showNotification(NOTIF_FAVED, status, user);
         }
 
         @Override
@@ -169,29 +177,13 @@ public class TwitterService extends Service{
 
             if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == from.NumericId &&
                     checkOwn == null) {
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                builder.setSmallIcon(R.drawable.ic_stat_retweet);
-                builder.setContentTitle("Retweeted by @" + status.getUser().getScreenName());
-                builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
-                builder.setTicker("RTされました : @" + status.getUser().getScreenName());
-                builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), AudioManager.STREAM_NOTIFICATION);
-                builder.setAutoCancel(true);
-
-                notificationManager.notify(NOTIF_RETWEET, builder.build());
+                showNotification(NOTIF_RETWEET, preformedStatus, status.getUser());
             }
             else if (!status.isRetweet()) {
                 UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                 for (UserMentionEntity ume : userMentionEntities) {
                     if (ume.getId() == from.NumericId) {
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                        builder.setSmallIcon(R.drawable.ic_stat_reply);
-                        builder.setContentTitle("Reply from @" + status.getUser().getScreenName());
-                        builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
-                        builder.setTicker("リプライ : @" + status.getUser().getScreenName());
-                        builder.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), AudioManager.STREAM_NOTIFICATION);
-                        builder.setAutoCancel(true);
-
-                        notificationManager.notify(NOTIF_REPLY, builder.build());
+                        showNotification(NOTIF_REPLY, preformedStatus, status.getUser());
                     }
                 }
             }
@@ -209,6 +201,87 @@ public class TwitterService extends Service{
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 e.getValue().offer(new EventBuffer(from, statusDeletionNotice));
+            }
+        }
+
+        private void showNotification(int category, Status status, User actionBy) {
+            int prefValue = 5;
+            switch (category) {
+                case NOTIF_REPLY:
+                    prefValue = sharedPreferences.getInt("pref_notif_mention", 5);
+                    break;
+                case NOTIF_RETWEET:
+                    prefValue = sharedPreferences.getInt("pref_notif_rt", 5);
+                    break;
+                case NOTIF_FAVED:
+                    prefValue = sharedPreferences.getInt("pref_notif_fav", 5);
+                    break;
+            }
+            NotificationType notificationType = new NotificationType(prefValue);
+
+            if (notificationType.isEnabled()) {
+                int icon = 0;
+                Uri sound = null;
+                String titleHeader = "", tickerHeader = "";
+                long[] pattern = null;
+                switch (category) {
+                    case NOTIF_REPLY:
+                        icon = R.drawable.ic_stat_reply;
+                        titleHeader = "Reply from @";
+                        tickerHeader = "リプライ : @";
+                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+                        pattern = vibReply;
+                        break;
+                    case NOTIF_RETWEET:
+                        icon = R.drawable.ic_stat_retweet;
+                        titleHeader = "Retweeted by @";
+                        tickerHeader = "RTされました : @";
+                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
+                        pattern = vibRetweet;
+                        break;
+                    case NOTIF_FAVED:
+                        icon = R.drawable.ic_stat_favorite;
+                        titleHeader = "Faved by @";
+                        tickerHeader = "ふぁぼられ : @";
+                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
+                        pattern = vibFaved;
+                        break;
+                }
+                if (notificationType.getNotificationType() == NotificationType.TYPE_NOTIF) {
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                    builder.setSmallIcon(icon);
+                    builder.setContentTitle(titleHeader + actionBy.getScreenName());
+                    builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
+                    builder.setTicker(tickerHeader + actionBy.getScreenName());
+                    if (notificationType.isUseSound()) {
+                        builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
+                    }
+                    if (notificationType.isUseVibration()) {
+                        vibrator.vibrate(pattern, -1);
+                    }
+                    builder.setAutoCancel(true);
+                    notificationManager.notify(category, builder.build());
+                }
+                else {
+                    if (notificationType.isUseSound()) {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(TwitterService.this, sound);
+                        mediaPlayer.start();
+                    }
+                    if (notificationType.isUseVibration()) {
+                        vibrator.vibrate(pattern, -1);
+                    }
+                    final String text = tickerHeader + actionBy.getScreenName() + "\n" +
+                            status.getUser().getScreenName() + ": " + status.getText();
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),
+                                    text,
+                                    Toast.LENGTH_LONG)
+                                    .show();
+                        }
+                    });
+                }
             }
         }
     };
@@ -312,6 +385,9 @@ public class TwitterService extends Service{
         //データベースのオープン
         database = new CentralDatabase(this).open();
 
+        //SharedPreferenceの取得
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
         //ユーザデータのロード
         reloadUsers();
 
@@ -324,6 +400,7 @@ public class TwitterService extends Service{
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
         //ネットワーク状態の監視
         registerReceiver(connectivityChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
