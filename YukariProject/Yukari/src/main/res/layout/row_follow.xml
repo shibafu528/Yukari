@@ -29,6 +29,17 @@
         android:layout_gravity="center_vertical"
         android:id="@+id/ivFoTarget" />
 
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="12dp"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:id="@+id/tvFoYou"
+        android:text="それはあなたです!"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
     <Button
         android:layout_width="0dp"
         android:layout_height="wrap_content"

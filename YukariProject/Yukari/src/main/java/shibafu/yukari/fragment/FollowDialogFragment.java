@@ -21,8 +21,12 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import shibafu.yukari.R;
@@ -41,6 +45,7 @@ import twitter4j.User;
 public class FollowDialogFragment extends DialogFragment {
 
     public static final String ARGUMENT_TARGET = "target";
+    public static final String ARGUMENT_KNOWN_RELATIONS = "known_relations";
 
     public static final int RELATION_NONE = 0;
     public static final int RELATION_FOLLOW = 1;
@@ -53,9 +58,6 @@ public class FollowDialogFragment extends DialogFragment {
     private User targetUser;
     private ListView listView;
 
-    private TwitterService service;
-    private boolean serviceBound = false;
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
@@ -64,8 +66,18 @@ public class FollowDialogFragment extends DialogFragment {
         listView = new ListView(getActivity());
         listView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
 
+        LinkedHashMap<AuthUserRecord, Relationship> relationships =
+                (LinkedHashMap<AuthUserRecord, Relationship>) ((Object[]) args.getSerializable(ARGUMENT_KNOWN_RELATIONS))[0];
+        for (AuthUserRecord userRecord : relationships.keySet()) {
+            Relationship relationship = relationships.get(userRecord);
+            entryList.add(new ListEntry(userRecord, relationship));
+        }
+
+        Adapter adapter = new Adapter(getActivity(), entryList);
+        listView.setAdapter(adapter);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("フォロー状態を確認中...");
+        builder.setTitle("フォロー状態 @" + targetUser.getScreenName());
         builder.setView(listView);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
@@ -81,21 +93,6 @@ public class FollowDialogFragment extends DialogFragment {
 
         dialog = builder.create();
         return dialog;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (serviceBound) {
-            getActivity().unbindService(connection);
-            serviceBound = false;
-        }
     }
 
     private class ListEntry {
@@ -198,6 +195,18 @@ public class FollowDialogFragment extends DialogFragment {
                         popupMenu.show();
                     }
                 });
+
+                TextView tvFoYou = (TextView) v.findViewById(R.id.tvFoYou);
+                if (e.getRelationship().getSourceUserId() == e.getRelationship().getTargetUserId()) {
+                    btnFollow.setVisibility(View.GONE);
+                    ibMenu.setVisibility(View.GONE);
+                    tvFoYou.setVisibility(View.VISIBLE);
+                }
+                else {
+                    btnFollow.setVisibility(View.VISIBLE);
+                    ibMenu.setVisibility(View.VISIBLE);
+                    tvFoYou.setVisibility(View.GONE);
+                }
             }
 
             return v;
@@ -226,45 +235,4 @@ public class FollowDialogFragment extends DialogFragment {
             }
         }
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            FollowDialogFragment.this.service = binder.getService();
-            serviceBound = true;
-
-            if (entryList.isEmpty()) {
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... voids) {
-                        Twitter twitter = FollowDialogFragment.this.service.getTwitter();
-                        for (AuthUserRecord userRecord : FollowDialogFragment.this.service.getUsers()) {
-                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
-                            Relationship relationship = null;
-                            try {
-                                relationship = twitter.showFriendship(userRecord.NumericId, targetUser.getId());
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                            }
-                            entryList.add(new ListEntry(userRecord, relationship));
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        Adapter adapter = new Adapter(getActivity(), entryList);
-                        listView.setAdapter(adapter);
-                        dialog.setTitle("フォロー状態 @" + targetUser.getScreenName());
-                    }
-                }.execute();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
 }
