@@ -32,8 +32,11 @@ import android.widget.Toast;
 
 import com.loopj.android.image.SmartImageView;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,8 +65,7 @@ public class ProfileFragment extends Fragment{
 
     private AuthUserRecord user;
     private long targetId;
-    private User targetUser = null;
-    private Relationship relation = null;
+    private LoadHolder loadHolder = null;
 
     private boolean selfLoadId = false;
     private String selfLoadName;
@@ -71,7 +73,7 @@ public class ProfileFragment extends Fragment{
     private TwitterService service;
     private boolean serviceBound = false;
 
-    private SmartImageView ivProfileIcon, ivHeader, ivProfileCurrent;
+    private SmartImageView ivProfileIcon, ivHeader;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage;
     private ImageButton ibMenu, ibSearch;
@@ -99,24 +101,6 @@ public class ProfileFragment extends Fragment{
 
         ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
         ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
-        ivProfileCurrent = (SmartImageView) v.findViewById(R.id.ivProfileCurrent);
-        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                if (user == null) return null;
-                else return user.ProfileImageUrl;
-            }
-
-            @Override
-            protected void onPostExecute(String s) {
-                if (s != null) {
-                    ivProfileCurrent.setTag(s);
-                    IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileCurrent);
-                    loaderTask.executeIf(s);
-                }
-            }
-        };
-        task.execute();
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
         tvScreenName = (TextView) v.findViewById(R.id.tvProfileScreenName);
@@ -133,7 +117,8 @@ public class ProfileFragment extends Fragment{
             public void onClick(View view) {
                 FollowDialogFragment fragment = new FollowDialogFragment();
                 Bundle args = new Bundle();
-                args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, targetUser);
+                args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
+                args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
                 fragment.setArguments(args);
                 fragment.show(getFragmentManager(), "follow");
             }
@@ -160,7 +145,7 @@ public class ProfileFragment extends Fragment{
                                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + targetUser.getScreenName() + " ");
+                                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + loadHolder.targetUser.getScreenName() + " ");
                                 startActivity(intent);
                                 break;
                             }
@@ -168,14 +153,15 @@ public class ProfileFragment extends Fragment{
                             {
                                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, targetUser.getId());
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, targetUser.getScreenName());
+                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
+                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
                                 startActivity(intent);
                                 break;
                             }
                             case 2:
                             {
-                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://twitter.com/" + targetUser.getScreenName()));
+                                Intent intent = new Intent(Intent.ACTION_VIEW,
+                                        Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
                                 startActivity(intent);
                             }
                         }
@@ -209,8 +195,8 @@ public class ProfileFragment extends Fragment{
                         fragment = new TweetListFragment();
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + targetUser.getScreenName());
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
                         break;
                     }
                     case 1:
@@ -218,8 +204,8 @@ public class ProfileFragment extends Fragment{
                         fragment = new TweetListFragment();
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + targetUser.getScreenName());
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
                         break;
                     }
                     case 2:
@@ -227,8 +213,8 @@ public class ProfileFragment extends Fragment{
                         fragment = new FriendListFragment();
                         args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + targetUser.getScreenName());
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
                         break;
                     }
                     case 3:
@@ -236,8 +222,8 @@ public class ProfileFragment extends Fragment{
                         fragment = new FriendListFragment();
                         args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + targetUser.getScreenName());
+                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
                         break;
                     }
                 }
@@ -270,72 +256,74 @@ public class ProfileFragment extends Fragment{
         gridCommands.setAdapter(commandAdapter);
 
         if (savedInstanceState != null) {
-            targetUser = (User) savedInstanceState.getSerializable(EXTRA_TARGET);
-            relation = (Relationship) savedInstanceState.getSerializable("relation");
-            showProfile(new LoadHolder(targetUser, relation));
-        }
-        else if (targetUser != null && relation != null) {
-            showProfile(new LoadHolder(targetUser, relation));
+            showProfile((LoadHolder) savedInstanceState.getSerializable("loadHolder"));
         }
         else {
-            final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
-                @Override
-                protected LoadHolder doInBackground(Void... params) {
-                    if (!serviceBound) {
+            if (loadHolder != null) {
+                showProfile(loadHolder);
+            } else {
+                final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
+                    @Override
+                    protected LoadHolder doInBackground(Void... params) {
+                        if (!serviceBound) {
+                            try {
+                                Thread.sleep(3000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            if (!serviceBound) {
+                                return null;
+                            }
+                        }
+
                         try {
-                            Thread.sleep(3000);
-                        } catch (InterruptedException e) {
+                            User user;
+                            if (selfLoadId) {
+                                String name = selfLoadName;
+                                if (name.startsWith("@")) {
+                                    name = name.substring(1);
+                                }
+                                user = service.getTwitter().showUser(name);
+                            } else {
+                                user = service.getTwitter().showUser(targetId);
+                            }
+                            service.getDatabase().updateUser(new DBUser(user));
+
+                            if (ProfileFragment.this.user == null) {
+                                ProfileFragment.this.user = service.getPrimaryUser();
+                            }
+                            if (user != null) {
+                                LinkedHashMap<AuthUserRecord, Relationship> relationships =
+                                        new LinkedHashMap<AuthUserRecord, Relationship>();
+                                for (AuthUserRecord userRecord : service.getUsers()) {
+                                    relationships.put(userRecord,
+                                            service.getTwitter().showFriendship(userRecord.NumericId, user.getId()));
+                                }
+                                return new LoadHolder(user, relationships);
+                            } else return null;
+                        } catch (TwitterException e) {
                             e.printStackTrace();
                         }
-                        if (!serviceBound) {
-                            return null;
-                        }
+                        return null;
                     }
 
-                    try {
-                        User user;
-                        if (selfLoadId) {
-                            String name = selfLoadName;
-                            if (name.startsWith("@")) {
-                                name = name.substring(1);
-                            }
-                            user = service.getTwitter().showUser(name);
+                    @Override
+                    protected void onPostExecute(LoadHolder holder) {
+                        if (currentProgress != null) {
+                            currentProgress.dismiss();
+                            currentProgress = null;
                         }
-                        else {
-                            user = service.getTwitter().showUser(targetId);
-                        }
-                        targetUser = user;
-                        service.getDatabase().updateUser(new DBUser(user));
-
-                        if (ProfileFragment.this.user == null) {
-                            ProfileFragment.this.user = service.getPrimaryUser();
-                        }
-                        Relationship relationship = null;
-                        if (user != null)
-                            relationship = service.getTwitter().showFriendship(ProfileFragment.this.user.NumericId, user.getId());
-                        return new LoadHolder(user, relationship);
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
+                        showProfile(holder);
+                        profileLoadTask = null;
                     }
-                    return null;
-                }
+                };
 
-                @Override
-                protected void onPostExecute(LoadHolder holder) {
-                    if (currentProgress != null) {
-                        currentProgress.dismiss();
-                        currentProgress = null;
-                    }
-                    showProfile(holder);
-                    profileLoadTask = null;
-                }
-            };
+                currentProgress = new LoadDialogFragment();
+                currentProgress.show(getFragmentManager(), "Loading");
 
-            currentProgress = new LoadDialogFragment();
-            currentProgress.show(getFragmentManager(), "Loading");
-
-            profileLoadTask = task;
-            task.execute();
+                profileLoadTask = task;
+                task.execute();
+            }
         }
     }
 
@@ -345,77 +333,69 @@ public class ProfileFragment extends Fragment{
             getActivity().finish();
             return;
         }
-        User user = holder.user;
-        Relationship relationship = holder.relationship;
-        relation = relationship;
-        if (user != null) {
-            ivProfileIcon.setTag(user.getBiggerProfileImageURL());
-            IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
-            loaderTask.executeIf(user.getBiggerProfileImageURL());
+        this.loadHolder = holder;
 
-            ivHeader.setImageUrl(user.getProfileBannerMobileURL());
-            Log.d("ProfileFragment", "header url: " + user.getProfileBannerMobileURL());
-            tvName.setText(user.getName());
-            tvScreenName.setText("@" + user.getScreenName());
+        ivProfileIcon.setTag(holder.targetUser.getBiggerProfileImageURL());
+        IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
+        loaderTask.executeIf(holder.targetUser.getBiggerProfileImageURL());
 
-            //Bioはエスケープや短縮の展開を行う
-            {
-                String bio = user.getDescription();
+        ivHeader.setImageUrl(holder.targetUser.getProfileBannerMobileURL());
+        Log.d("ProfileFragment", "header url: " + holder.targetUser.getProfileBannerMobileURL());
+        tvName.setText(holder.targetUser.getName());
+        tvScreenName.setText("@" + holder.targetUser.getScreenName());
 
-                //TODO: リンクがうまくはれてないことがしばしばあるよ
+        //Bioはエスケープや短縮の展開を行う
+        {
+            String bio = holder.targetUser.getDescription();
 
-                //URLを展開する
-                URLEntity[] urlEntities = user.getDescriptionURLEntities();
-                for (URLEntity entity : urlEntities) {
-                    bio = bio.replace(entity.getURL(), entity.getExpandedURL());
-                }
+            //TODO: リンクがうまくはれてないことがしばしばあるよ
 
-                //改行コードをBRタグにする
-                bio = bio.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
-
-                //エスケープしてテキストを表示
-                tvBio.setText(Html.fromHtml(bio).toString());
-                Linkify.addLinks(tvBio, Linkify.WEB_URLS);
-                Log.d("ProfileFragment", "Profile: " + tvBio.getText());
-
-                //ScreenNameに対するリンク張り
-                Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
-                String jumpUrl = "content://shibafu.yukari.link/user/";
-                Linkify.addLinks(tvBio, pattern, jumpUrl);
-                //Hashtagに対するリンク張り
-                pattern = Pattern.compile(
-                        "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
-                final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
-                Linkify.TransformFilter filter = new Linkify.TransformFilter() {
-                    @Override
-                    public String transformUrl(Matcher match, String url) {
-                        return jumpUrlHash + match.group(match.groupCount());
-                    }
-                };
-                Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
+            //URLを展開する
+            URLEntity[] urlEntities = holder.targetUser.getDescriptionURLEntities();
+            for (URLEntity entity : urlEntities) {
+                bio = bio.replace(entity.getURL(), entity.getExpandedURL());
             }
 
-            tvLocation.setText(user.getLocation());
-            tvWeb.setText(user.getURLEntity().getExpandedURL());
-            tvSince.setText(sdf.format(user.getCreatedAt()));
+            //改行コードをBRタグにする
+            bio = bio.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
 
-            commandAdapter.getItem(0).strBottom = String.valueOf(user.getStatusesCount());
-            commandAdapter.getItem(1).strBottom = String.valueOf(user.getFavouritesCount());
-            commandAdapter.getItem(2).strBottom = String.valueOf(user.getFriendsCount());
-            commandAdapter.getItem(3).strBottom = String.valueOf(user.getFollowersCount());
-            commandAdapter.notifyDataSetChanged();
+            //エスケープしてテキストを表示
+            tvBio.setText(Html.fromHtml(bio).toString());
+            Linkify.addLinks(tvBio, Linkify.WEB_URLS);
+            Log.d("ProfileFragment", "Profile: " + tvBio.getText());
+
+            //ScreenNameに対するリンク張り
+            Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
+            String jumpUrl = "content://shibafu.yukari.link/user/";
+            Linkify.addLinks(tvBio, pattern, jumpUrl);
+            //Hashtagに対するリンク張り
+            pattern = Pattern.compile(
+                    "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
+            final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
+            Linkify.TransformFilter filter = new Linkify.TransformFilter() {
+                @Override
+                public String transformUrl(Matcher match, String url) {
+                    return jumpUrlHash + match.group(match.groupCount());
+                }
+            };
+            Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
         }
-        else {
-            Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show();
-            getActivity().finish();
-        }
+
+        tvLocation.setText(holder.targetUser.getLocation());
+        tvWeb.setText(holder.targetUser.getURLEntity().getExpandedURL());
+        tvSince.setText(sdf.format(holder.targetUser.getCreatedAt()));
+
+        commandAdapter.getItem(0).strBottom = String.valueOf(holder.targetUser.getStatusesCount());
+        commandAdapter.getItem(1).strBottom = String.valueOf(holder.targetUser.getFavouritesCount());
+        commandAdapter.getItem(2).strBottom = String.valueOf(holder.targetUser.getFriendsCount());
+        commandAdapter.getItem(3).strBottom = String.valueOf(holder.targetUser.getFollowersCount());
+        commandAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(EXTRA_TARGET, targetUser);
-        outState.putSerializable("relation", relation);
+        outState.putSerializable("loadHolder", loadHolder);
     }
 
     @Override
@@ -492,13 +472,13 @@ public class ProfileFragment extends Fragment{
         }
     };
 
-    private class LoadHolder {
-        User user;
-        Relationship relationship;
+    private class LoadHolder implements Serializable{
+        User targetUser;
+        LinkedHashMap<AuthUserRecord, Relationship> relationships;
 
-        private LoadHolder(User user, Relationship relationship) {
-            this.user = user;
-            this.relationship = relationship;
+        private LoadHolder(User targetUser, LinkedHashMap<AuthUserRecord, Relationship> relationships) {
+            this.targetUser = targetUser;
+            this.relationships = relationships;
         }
     }
 

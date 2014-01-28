@@ -70,7 +70,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
 
     @Override
     public int hashCode() {
-        return Integer.decode(ScreenName);
+        return ScreenName.hashCode();
     }
 
     public List<AuthUserRecord> toSingleList() {
