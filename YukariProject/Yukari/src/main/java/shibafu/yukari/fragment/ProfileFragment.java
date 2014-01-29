@@ -12,6 +12,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -35,7 +37,6 @@ import com.loopj.android.image.SmartImageView;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -256,7 +257,7 @@ public class ProfileFragment extends Fragment{
         gridCommands.setAdapter(commandAdapter);
 
         if (savedInstanceState != null) {
-            showProfile((LoadHolder) savedInstanceState.getSerializable("loadHolder"));
+            showProfile((LoadHolder) savedInstanceState.getParcelable("loadHolder"));
         }
         else {
             if (loadHolder != null) {
@@ -395,7 +396,7 @@ public class ProfileFragment extends Fragment{
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("loadHolder", loadHolder);
+        outState.putParcelable("loadHolder", loadHolder);
     }
 
     @Override
@@ -472,7 +473,7 @@ public class ProfileFragment extends Fragment{
         }
     };
 
-    private class LoadHolder implements Serializable{
+    private static class LoadHolder implements Parcelable{
         User targetUser;
         LinkedHashMap<AuthUserRecord, Relationship> relationships;
 
@@ -480,6 +481,52 @@ public class ProfileFragment extends Fragment{
             this.targetUser = targetUser;
             this.relationships = relationships;
         }
+
+        private LoadHolder(Parcel in) {
+            //targetUserの入力
+            targetUser = (User) in.readSerializable();
+            //マップ要素数の入力
+            int mapSize = in.readInt();
+            //マップ要素の復元
+            relationships = new LinkedHashMap<AuthUserRecord, Relationship>(mapSize);
+            AuthUserRecord userRecord;
+            Relationship relationship;
+            for (int i = 0; i < mapSize; ++i) {
+                userRecord = (AuthUserRecord) in.readSerializable();
+                relationship = (Relationship) in.readSerializable();
+                relationships.put(userRecord, relationship);
+            }
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int i) {
+            //targetUserの出力
+            out.writeSerializable(targetUser);
+            //マップ内要素数を出力
+            out.writeInt(relationships.size());
+            //K,V,K,...の順番でマップ内要素を出力
+            for (AuthUserRecord userRecord : relationships.keySet()) {
+                out.writeSerializable(userRecord);
+                out.writeSerializable(relationships.get(userRecord));
+            }
+        }
+
+        public static final Creator<LoadHolder> CREATOR = new Creator<LoadHolder>() {
+            @Override
+            public LoadHolder createFromParcel(Parcel parcel) {
+                return new LoadHolder(parcel);
+            }
+
+            @Override
+            public LoadHolder[] newArray(int i) {
+                return new LoadHolder[i];
+            }
+        };
     }
 
     private class LoadDialogFragment extends DialogFragment {
