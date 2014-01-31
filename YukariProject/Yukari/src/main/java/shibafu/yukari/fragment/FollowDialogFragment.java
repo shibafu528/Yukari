@@ -51,12 +51,45 @@ public class FollowDialogFragment extends DialogFragment {
     public static final int RELATION_FOLLOW = 1;
     public static final int RELATION_BLOCK = 2;
     public static final int RELATION_PRE_R4S = 3;
+    private final FollowDialogCallback callback;
 
     private AlertDialog dialog;
 
     private List<ListEntry> entryList = new ArrayList<ListEntry>();
     private User targetUser;
     private ListView listView;
+
+    public interface FollowDialogCallback {
+        void onChangedRelationships(List<RelationClaim> claims);
+    }
+
+    public class RelationClaim {
+        private AuthUserRecord sourceAccount;
+        private long targetUser;
+        private int newRelation;
+
+        public RelationClaim(AuthUserRecord sourceAccount, long targetUser, int newRelation) {
+            this.sourceAccount = sourceAccount;
+            this.targetUser = targetUser;
+            this.newRelation = newRelation;
+        }
+
+        public AuthUserRecord getSourceAccount() {
+            return sourceAccount;
+        }
+
+        public long getTargetUser() {
+            return targetUser;
+        }
+
+        public int getNewRelation() {
+            return newRelation;
+        }
+    }
+
+    public FollowDialogFragment(FollowDialogCallback callback) {
+        this.callback = callback;
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -82,7 +115,15 @@ public class FollowDialogFragment extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-
+                if (callback != null) {
+                    List<RelationClaim> claims = new ArrayList<RelationClaim>();
+                    for (ListEntry entry : entryList) {
+                        if (entry.beforeRelation != entry.afterRelation) {
+                            claims.add(new RelationClaim(entry.getUserRecord(), targetUser.getId(), entry.afterRelation));
+                        }
+                    }
+                    callback.onChangedRelationships(claims);
+                }
             }
         });
         builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -167,8 +208,28 @@ public class FollowDialogFragment extends DialogFragment {
                 ivTarget.setTag(targetUser.getProfileImageURLHttps());
                 new ImageLoaderTask(getContext(), ivTarget).executeIf(targetUser.getProfileImageURLHttps());
 
-                ImageView ivRelation = (ImageView) v.findViewById(R.id.ivFollowStatus);
-                Button btnFollow = (Button) v.findViewById(R.id.btnFollow);
+                final ImageView ivRelation = (ImageView) v.findViewById(R.id.ivFollowStatus);
+                final Button btnFollow = (Button) v.findViewById(R.id.btnFollow);
+                btnFollow.setTag(e);
+                btnFollow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        final ListEntry e = (ListEntry) view.getTag();
+
+                        switch (e.afterRelation) {
+                            case RELATION_NONE:
+                                e.afterRelation = RELATION_FOLLOW;
+                                break;
+                            case RELATION_FOLLOW:
+                            case RELATION_BLOCK:
+                            case RELATION_PRE_R4S:
+                                e.afterRelation = RELATION_NONE;
+                                break;
+                        }
+
+                        setStatus(e, btnFollow, ivRelation);
+                    }
+                });
                 setStatus(e, btnFollow, ivRelation);
 
                 ImageButton ibMenu = (ImageButton) v.findViewById(R.id.ibMenu);
@@ -185,8 +246,12 @@ public class FollowDialogFragment extends DialogFragment {
                             public boolean onMenuItemClick(MenuItem menuItem) {
                                 switch (menuItem.getItemId()) {
                                     case R.id.action_block:
+                                        e.afterRelation = RELATION_BLOCK;
+                                        setStatus(e, btnFollow, ivRelation);
                                         return true;
                                     case R.id.action_report:
+                                        e.afterRelation = RELATION_PRE_R4S;
+                                        setStatus(e, btnFollow, ivRelation);
                                         return true;
                                 }
                                 return true;
@@ -213,8 +278,13 @@ public class FollowDialogFragment extends DialogFragment {
         }
 
         private void setStatus(ListEntry e, Button btnFollow, ImageView ivRelation) {
-            if (e.afterRelation == RELATION_BLOCK) {
+            if (e.getAfterRelation() == RELATION_BLOCK) {
                 btnFollow.setText("ブロック中");
+                ivRelation.setImageResource(R.drawable.ic_f_not);
+            }
+            else if (e.getAfterRelation() == RELATION_PRE_R4S) {
+                btnFollow.setText("報告取りやめ");
+                ivRelation.setImageResource(R.drawable.ic_f_not);
             }
             else if (e.getAfterRelation() == RELATION_FOLLOW) {
                 btnFollow.setText("フォロー解除");
