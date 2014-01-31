@@ -34,7 +34,6 @@ import android.widget.Toast;
 
 import com.loopj.android.image.SmartImageView;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,7 +56,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileFragment extends Fragment{
+public class ProfileFragment extends Fragment implements FollowDialogFragment.FollowDialogCallback{
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
@@ -116,7 +115,7 @@ public class ProfileFragment extends Fragment{
         btnFollowManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FollowDialogFragment fragment = new FollowDialogFragment();
+                FollowDialogFragment fragment = new FollowDialogFragment(ProfileFragment.this);
                 Bundle args = new Bundle();
                 args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
                 args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
@@ -415,6 +414,33 @@ public class ProfileFragment extends Fragment{
             getActivity().unbindService(connection);
             serviceBound = false;
         }
+    }
+
+    @Override
+    public void onChangedRelationships(List<FollowDialogFragment.RelationClaim> claims) {
+        StringBuilder sb = new StringBuilder("シミュレーション:");
+        for (FollowDialogFragment.RelationClaim claim : claims) {
+            sb.append("\n@");
+            sb.append(claim.getSourceAccount().ScreenName);
+            sb.append("->@");
+            sb.append(loadHolder.targetUser.getScreenName());
+            sb.append(" ");
+            switch (claim.getNewRelation()) {
+                case FollowDialogFragment.RELATION_NONE:
+                    sb.append("解除");
+                    break;
+                case FollowDialogFragment.RELATION_FOLLOW:
+                    sb.append("フォロー");
+                    break;
+                case FollowDialogFragment.RELATION_PRE_R4S:
+                    sb.append("スパム報告");
+                    break;
+                case FollowDialogFragment.RELATION_BLOCK:
+                    sb.append("ブロック");
+                    break;
+            }
+        }
+        Toast.makeText(getActivity(), sb.toString(), Toast.LENGTH_LONG).show();
     }
 
     private class Command {
