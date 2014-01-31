@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -481,6 +482,20 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
                 startActivityForResult(intent, REQUEST_GALLERY);
+            }
+        });
+        ibAttach.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (attachPicture == null) {
+                    Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                    if (c.moveToLast()) {
+                        long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
+                        attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
+                    }
+                    c.close();
+                }
+                return true;
             }
         });
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
