@@ -32,15 +32,6 @@ public class ProfileActivity extends FragmentActivity{
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);
 
-        Intent intent = getIntent();
-
-        ProfileFragment fragment = new ProfileFragment();
-        Bundle b = new Bundle();
-        b.putSerializable(ProfileFragment.EXTRA_USER, intent.getSerializableExtra(EXTRA_USER));
-        b.putLong(ProfileFragment.EXTRA_TARGET, intent.getLongExtra(EXTRA_TARGET, -1));
-        b.putParcelable("data", intent.getData());
-        fragment.setArguments(b);
-
         final LinearLayout llTitle = (LinearLayout) findViewById(R.id.llFrameTitle);
         final TextView tvTitle = (TextView) findViewById(R.id.tvFrameTitle);
 
@@ -59,7 +50,18 @@ public class ProfileActivity extends FragmentActivity{
             }
         });
 
-        FragmentTransaction ft = manager.beginTransaction();
-        ft.replace(R.id.frame, fragment, "contain").commit();
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+
+            ProfileFragment fragment = new ProfileFragment();
+            Bundle b = new Bundle();
+            b.putSerializable(ProfileFragment.EXTRA_USER, intent.getSerializableExtra(EXTRA_USER));
+            b.putLong(ProfileFragment.EXTRA_TARGET, intent.getLongExtra(EXTRA_TARGET, -1));
+            b.putParcelable("data", intent.getData());
+            fragment.setArguments(b);
+
+            FragmentTransaction ft = manager.beginTransaction();
+            ft.replace(R.id.frame, fragment, "contain").commit();
+        }
     }
 }

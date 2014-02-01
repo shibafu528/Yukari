@@ -10,6 +10,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
@@ -77,6 +79,10 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     private boolean serviceBound = false;
     private Handler handler = new Handler();
 
+    public TweetListFragment() {
+        setRetainInstance(true);
+    }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -89,7 +95,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         mode = args.getInt(EXTRA_MODE, -1);
         if (mode == TabType.TABTYPE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            statuses.add(new PreformedStatus(traceStart, user));
+            if (statuses.isEmpty()) {
+                statuses.add(new PreformedStatus(traceStart, user));
+            }
         }
         else if (mode == TabType.TABTYPE_USER || mode == TabType.TABTYPE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
