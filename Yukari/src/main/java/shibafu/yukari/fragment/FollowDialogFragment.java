@@ -2,13 +2,9 @@ package shibafu.yukari.fragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
@@ -24,19 +20,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.ImageLoaderTask;
-import shibafu.yukari.common.SimpleAsyncTask;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
 import twitter4j.User;
 
 /**
@@ -51,6 +41,7 @@ public class FollowDialogFragment extends DialogFragment {
     public static final int RELATION_FOLLOW = 1;
     public static final int RELATION_BLOCK = 2;
     public static final int RELATION_PRE_R4S = 3;
+    public static final int RELATION_UNBLOCK = 4;
     private final FollowDialogCallback callback;
 
     private AlertDialog dialog;
@@ -218,12 +209,20 @@ public class FollowDialogFragment extends DialogFragment {
 
                         switch (e.afterRelation) {
                             case RELATION_NONE:
+                            case RELATION_UNBLOCK:
                                 e.afterRelation = RELATION_FOLLOW;
                                 break;
-                            case RELATION_FOLLOW:
                             case RELATION_BLOCK:
+                                e.afterRelation = RELATION_UNBLOCK;
+                                break;
+                            case RELATION_FOLLOW:
                             case RELATION_PRE_R4S:
-                                e.afterRelation = RELATION_NONE;
+                                if (e.beforeRelation == RELATION_BLOCK) {
+                                    e.afterRelation = RELATION_UNBLOCK;
+                                }
+                                else {
+                                    e.afterRelation = RELATION_NONE;
+                                }
                                 break;
                         }
 

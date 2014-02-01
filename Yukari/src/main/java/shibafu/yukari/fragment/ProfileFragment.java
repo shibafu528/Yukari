@@ -49,6 +49,7 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.URLEntity;
 import twitter4j.User;
@@ -417,30 +418,107 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     }
 
     @Override
-    public void onChangedRelationships(List<FollowDialogFragment.RelationClaim> claims) {
-        StringBuilder sb = new StringBuilder("シミュレーション:");
-        for (FollowDialogFragment.RelationClaim claim : claims) {
-            sb.append("\n@");
-            sb.append(claim.getSourceAccount().ScreenName);
-            sb.append("->@");
-            sb.append(loadHolder.targetUser.getScreenName());
-            sb.append(" ");
-            switch (claim.getNewRelation()) {
-                case FollowDialogFragment.RELATION_NONE:
-                    sb.append("解除");
-                    break;
-                case FollowDialogFragment.RELATION_FOLLOW:
-                    sb.append("フォロー");
-                    break;
-                case FollowDialogFragment.RELATION_PRE_R4S:
-                    sb.append("スパム報告");
-                    break;
-                case FollowDialogFragment.RELATION_BLOCK:
-                    sb.append("ブロック");
-                    break;
+    public void onChangedRelationships(final List<FollowDialogFragment.RelationClaim> claims) {
+        new AsyncTask<Void, Void, String>() {
+
+            private UpdateDialogFragment updateDialogFragment;
+
+            @Override
+            protected void onPreExecute() {
+                updateDialogFragment = new UpdateDialogFragment();
+                updateDialogFragment.setCancelable(false);
+                updateDialogFragment.show(getFragmentManager(), "follow");
             }
-        }
-        Toast.makeText(getActivity(), sb.toString(), Toast.LENGTH_LONG).show();
+
+            @Override
+            protected String doInBackground(Void... voids) {
+                StringBuilder sb = new StringBuilder();
+                for (FollowDialogFragment.RelationClaim claim : claims) {
+                    if (sb.length() > 0) {
+                        sb.append("\n");
+                    }
+                    sb.append("@");
+                    sb.append(claim.getSourceAccount().ScreenName);
+                    sb.append(": ");
+
+                    //サービスがバインドされていない場合は待機する
+                    while (!serviceBound) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Twitter twitter = service.getTwitter();
+                    twitter.setOAuthAccessToken(claim.getSourceAccount().getAccessToken());
+
+                    switch (claim.getNewRelation()) {
+                        case FollowDialogFragment.RELATION_NONE:
+                            try {
+                                twitter.destroyFriendship(claim.getTargetUser());
+                                sb.append("リムーブしました");
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("リムーブ失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                        case FollowDialogFragment.RELATION_FOLLOW:
+                            try {
+                                twitter.createFriendship(claim.getTargetUser());
+                                sb.append("フォローしました");
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("フォロー失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                        case FollowDialogFragment.RELATION_PRE_R4S:
+                            try {
+                                twitter.reportSpam(claim.getTargetUser());
+                                sb.append("スパム報告しました");
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("スパム報告失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                        case FollowDialogFragment.RELATION_BLOCK:
+                            try {
+                                twitter.createBlock(claim.getTargetUser());
+                                sb.append("ブロックしました");
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("ブロック失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                        case FollowDialogFragment.RELATION_UNBLOCK:
+                            try {
+                                twitter.destroyBlock(claim.getTargetUser());
+                                sb.append("ブロック解除しました");
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("ブロック解除失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                    }
+
+                    //フォロー情報をリロードする
+                    try {
+                        loadHolder.relationships.put(claim.getSourceAccount(), twitter.showFriendship(claim.getSourceAccount().NumericId, claim.getTargetUser()));
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return sb.toString();
+            }
+
+            @Override
+            protected void onPostExecute(String string) {
+                updateDialogFragment.close();
+                if (string != null && !string.equals("")) {
+                    Toast.makeText(getActivity(), string, Toast.LENGTH_LONG).show();
+                }
+            }
+        }.execute();
     }
 
     private class Command {
@@ -570,6 +648,37 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             super.onCancel(dialog);
             profileLoadTask.cancel(true);
             getActivity().finish();
+        }
+    }
+
+    private class UpdateDialogFragment extends DialogFragment {
+        private boolean dismissRequest;
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ProgressDialog pd = new ProgressDialog(getActivity());
+            pd.setMessage("フォロー状態を更新中...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setIndeterminate(true);
+            pd.setCanceledOnTouchOutside(false);
+            return pd;
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            if (dismissRequest) {
+                dismiss();
+            }
+        }
+
+        public void close() {
+            if (isResumed()) {
+                dismiss();
+            }
+            else {
+                dismissRequest = true;
+            }
         }
     }
 }
