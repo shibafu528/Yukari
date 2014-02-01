@@ -3,6 +3,8 @@ package shibafu.yukari.fragment;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -21,6 +23,7 @@ import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -162,6 +165,28 @@ public class MenuDialogFragment extends DialogFragment {
                     activity.setKeepScreenOn(true);
                     keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
                 }
+            }
+        });
+
+        View bookmarkMenu = v.findViewById(R.id.llMenuBookmark);
+        bookmarkMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dismiss();
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                String text = " #yukari4a @yukari4a";
+                PackageManager pm = getActivity().getPackageManager();
+                try {
+                    PackageInfo packageInfo = pm.getPackageInfo(getActivity().getPackageName(), 0);
+                    String[] versionText = packageInfo.versionName.split(" ");
+                    if (versionText != null && versionText.length > 1) {
+                        text += " //ver." + versionText[0];
+                    }
+                } catch (PackageManager.NameNotFoundException e){
+                    e.printStackTrace();
+                }
+                intent.putExtra(TweetActivity.EXTRA_TEXT, text);
+                startActivity(intent);
             }
         });
 
