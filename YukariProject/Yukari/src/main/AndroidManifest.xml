@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="6"
-    android:versionName="0.57alpha (prototype 140131)" >
+    android:versionName="0.58alpha (prototype 140201)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -72,6 +72,17 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.TweetShortcutActivity"
+            android:label="@string/title_activity_tweet"
+            android:icon="@drawable/ic_launcher_tweet"
+            android:theme="@style/AppThemeTranslucent">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
+
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
             android:label="@string/title_activity_status"
