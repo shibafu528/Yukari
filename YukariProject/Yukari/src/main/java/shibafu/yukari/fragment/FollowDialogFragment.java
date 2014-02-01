@@ -42,7 +42,6 @@ public class FollowDialogFragment extends DialogFragment {
     public static final int RELATION_BLOCK = 2;
     public static final int RELATION_PRE_R4S = 3;
     public static final int RELATION_UNBLOCK = 4;
-    private final FollowDialogCallback callback;
 
     private AlertDialog dialog;
 
@@ -78,10 +77,6 @@ public class FollowDialogFragment extends DialogFragment {
         }
     }
 
-    public FollowDialogFragment(FollowDialogCallback callback) {
-        this.callback = callback;
-    }
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
@@ -106,6 +101,7 @@ public class FollowDialogFragment extends DialogFragment {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
                 if (callback != null) {
                     List<RelationClaim> claims = new ArrayList<RelationClaim>();
                     for (ListEntry entry : entryList) {

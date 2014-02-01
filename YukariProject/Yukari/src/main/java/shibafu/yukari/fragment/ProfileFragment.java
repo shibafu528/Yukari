@@ -59,6 +59,8 @@ import twitter4j.User;
  */
 public class ProfileFragment extends Fragment implements FollowDialogFragment.FollowDialogCallback{
 
+    // TODO:画面回転とかが加わるとたまに「ユーザー情報の取得に失敗」メッセージを出力して復帰に失敗するみたい
+
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
 
@@ -116,11 +118,12 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         btnFollowManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FollowDialogFragment fragment = new FollowDialogFragment(ProfileFragment.this);
+                FollowDialogFragment fragment = new FollowDialogFragment();
                 Bundle args = new Bundle();
                 args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
                 args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
                 fragment.setArguments(args);
+                fragment.setTargetFragment(ProfileFragment.this, 0);
                 fragment.show(getFragmentManager(), "follow");
             }
         });
@@ -257,12 +260,14 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         gridCommands.setAdapter(commandAdapter);
 
         if (savedInstanceState != null) {
-            showProfile((LoadHolder) savedInstanceState.getParcelable("loadHolder"));
+            LoadHolder holder = savedInstanceState.getParcelable("loadHolder");
+            showProfile(holder);
         }
         else {
             if (loadHolder != null) {
                 showProfile(loadHolder);
-            } else {
+            }
+            else {
                 final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
                     @Override
                     protected LoadHolder doInBackground(Void... params) {
@@ -320,6 +325,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 };
 
                 currentProgress = new LoadDialogFragment();
+                currentProgress.setTargetFragment(ProfileFragment.this, 0);
                 currentProgress.show(getFragmentManager(), "Loading");
 
                 profileLoadTask = task;
@@ -415,6 +421,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             getActivity().unbindService(connection);
             serviceBound = false;
         }
+    }
+
+    public void onCancelledLoading() {
+        if (profileLoadTask != null) {
+            profileLoadTask.cancel(true);
+        }
+        getActivity().finish();
     }
 
     @Override
@@ -633,7 +646,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         };
     }
 
-    private class LoadDialogFragment extends DialogFragment {
+    public static class LoadDialogFragment extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             ProgressDialog pd = new ProgressDialog(getActivity());
@@ -646,12 +659,11 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         @Override
         public void onCancel(DialogInterface dialog) {
             super.onCancel(dialog);
-            profileLoadTask.cancel(true);
-            getActivity().finish();
+            ((ProfileFragment)getTargetFragment()).onCancelledLoading();
         }
     }
 
-    private class UpdateDialogFragment extends DialogFragment {
+    public static class UpdateDialogFragment extends DialogFragment {
         private boolean dismissRequest;
 
         @Override

@@ -80,6 +80,10 @@ public class FriendListFragment extends ListFragment implements AttachableList {
     private boolean serviceBound = false;
     private Handler handler = new Handler();
 
+    public FriendListFragment() {
+        setRetainInstance(true);
+    }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
