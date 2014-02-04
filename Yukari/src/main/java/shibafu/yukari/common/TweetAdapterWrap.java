@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,11 +86,18 @@ public class TweetAdapterWrap {
         }
 
         int multilineMode = Integer.valueOf(preferences.getString("pref_mode_multiline", "0"));
+        String fontSizeStr = preferences.getString("pref_font_timeline", "14");
+        if (fontSizeStr.equals("")) {
+            fontSizeStr = "14";
+        }
+        int fontSize = Integer.valueOf(fontSizeStr);
 
         viewHolder.tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         viewHolder.tvName.setTypeface(FontAsset.getInstance(context).getFont());
+        viewHolder.tvName.setTextSize(fontSize);
 
         viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
+        viewHolder.tvText.setTextSize(fontSize);
         String text = st.isRetweet()? st.getRetweetedStatus().getText() : st.getText();
         if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
             text = text.replace('\n', ' ');
@@ -121,6 +129,7 @@ public class TweetAdapterWrap {
         }
 
         viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
+        viewHolder.tvTimestamp.setTextSize(fontSize * 0.8f);
         String timestamp = sdf.format(st.getCreatedAt()) + " via " + st.getSource();
 
         viewHolder.llAttach.removeAllViews();
