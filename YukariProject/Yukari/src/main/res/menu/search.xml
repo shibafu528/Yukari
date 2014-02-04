@@ -2,11 +2,13 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/action_search_tweets"
+        android:visible="false"
         android:title="ツイート検索"/>
     <item android:id="@+id/action_search_users"
+        android:visible="false"
         android:title="ユーザー検索"/>
     <item android:id="@+id/action_show_user"
         android:title="ユーザーを直接表示"/>
     <item android:id="@+id/action_find_name"
-        android:title="ユーザーキャッシュ"/>
+        android:title="目録を開く"/>
 </menu>
