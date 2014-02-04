@@ -12,7 +12,7 @@
             android:summary="アプリ起動時にスリープ防止をオンにします"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="表示設定(未完成)">
+    <PreferenceCategory android:title="表示設定">
         <EditTextPreference
             android:key="pref_font_timeline"
             android:title="文字サイズの設定"
@@ -36,8 +36,7 @@
         <Preference
             android:key="pref_prev_time"
             android:title="時間を指定してサムネ非表示"
-            android:summary="特定の時間帯だけサムネイルを隠す設定をします"
-            android:enabled="false"/>
+            android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
         <!--<CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="めしてろモザイク"
