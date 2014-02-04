@@ -45,6 +45,10 @@ public class TweetAdapterWrap {
     public static final int CONFIG_OMISSION_AFTER_8  = 0x020; //8行目以降を省略
     public static final int CONFIG_OMISSION_RETURNS  = 0x040; //単行表示
 
+    public static final int MODE_DEFAULT = 0;
+    public static final int MODE_DETAIL  = 1; //サムネイル表示強制
+    public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
+
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<PreformedStatus> statuses) {
         this.context = context;
         this.userRecords = new ArrayList<AuthUserRecord>();
@@ -70,11 +74,9 @@ public class TweetAdapterWrap {
         adapter.notifyDataSetChanged();
     }
 
-    public static View setStatusToView(Context context, View v, Status st, List<AuthUserRecord> userRecords, int config) {
-        return setStatusToView(context, v, new PreformedStatus(st, null), userRecords, config);
-    }
-
-    public static View setStatusToView(Context context, View v, PreformedStatus st, List<AuthUserRecord> userRecords, int config) {
+    public static View setStatusToView(Context context, View v,
+                                       PreformedStatus st, List<AuthUserRecord> userRecords,
+                                       SharedPreferences preferences, int mode) {
         //ViewHolderを取得もしくは新規作成
         TweetViewHolder viewHolder = (TweetViewHolder) v.getTag(R.string.key_viewholder);
         if (viewHolder == null) {
@@ -82,18 +84,20 @@ public class TweetAdapterWrap {
             v.setTag(R.string.key_viewholder, viewHolder);
         }
 
+        int multilineMode = Integer.valueOf(preferences.getString("pref_mode_multiline", "0"));
+
         viewHolder.tvName.setText("@" + st.getUser().getScreenName() + " / " + st.getUser().getName());
         viewHolder.tvName.setTypeface(FontAsset.getInstance(context).getFont());
 
         viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
         String text = st.isRetweet()? st.getRetweetedStatus().getText() : st.getText();
-        if ((config & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
+        if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
             text = text.replace('\n', ' ');
         }
-        if ((config & 0x30) > 0) {
+        if ((multilineMode & 0x30) > 0) {
             String[] lines = text.split("\n");
             text = "";
-            int limit = (config & CONFIG_OMISSION_AFTER_4) == CONFIG_OMISSION_AFTER_4? 3 : 7;
+            int limit = (multilineMode & CONFIG_OMISSION_AFTER_4) == CONFIG_OMISSION_AFTER_4? 3 : 7;
             int i;
             for (i = 0; i < lines.length && i < limit; ++i) {
                 if (i > 0) text += "\n";
@@ -121,7 +125,7 @@ public class TweetAdapterWrap {
 
         viewHolder.llAttach.removeAllViews();
 
-        if ((config & CONFIG_SHOW_THUMBNAIL) == CONFIG_SHOW_THUMBNAIL) {
+        if ((preferences.getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
             List<LinkMedia> mediaList = st.getMediaLinkList();
             int frameWidth = viewHolder.llAttach.getWidth();
             if (mediaList.size() > 0) {
@@ -156,7 +160,7 @@ public class TweetAdapterWrap {
             }
         }
 
-        if ((config & CONFIG_DISABLE_BGCOLOR) != CONFIG_DISABLE_BGCOLOR) {
+        if (mode != MODE_PREVIEW) {
             if (st.isRetweet()) {
                 timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +
                         sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
@@ -175,7 +179,7 @@ public class TweetAdapterWrap {
         }
         viewHolder.tvTimestamp.setText(timestamp);
 
-        if ((config & CONFIG_DISABLE_FONTCOLOR) == CONFIG_DISABLE_FONTCOLOR) {
+        if (mode == MODE_PREVIEW) {
             viewHolder.tvName.setTextColor(Color.BLACK);
             viewHolder.tvTimestamp.setTextColor(Color.BLACK);
         }
@@ -210,8 +214,7 @@ public class TweetAdapterWrap {
 
             PreformedStatus st = (PreformedStatus) getItem(position);
             if (st != null) {
-                v = setStatusToView(context, v, st, userRecords,
-                        Integer.valueOf(preferences.getString("pref_mode_multiline", "0")) | (preferences.getBoolean("pref_prev_enable", true)?1:0));
+                v = setStatusToView(context, v, st, userRecords, preferences, MODE_DEFAULT);
             }
 
             return v;

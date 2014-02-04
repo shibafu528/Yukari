@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -378,7 +379,8 @@ public class StatusMainFragment extends Fragment{
                             tweetView,
                             status,
                             (user != null)?user.toSingleList() : null,
-                            TweetAdapterWrap.CONFIG_SHOW_THUMBNAIL);
+                            PreferenceManager.getDefaultSharedPreferences(getActivity()),
+                            TweetAdapterWrap.MODE_DETAIL);
                 }
             });
         }
