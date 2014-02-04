@@ -18,6 +18,7 @@ import com.loopj.android.image.SmartImageView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -135,16 +136,30 @@ public class TweetAdapterWrap {
         viewHolder.llAttach.removeAllViews();
 
         if ((preferences.getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
-            List<LinkMedia> mediaList = st.getMediaLinkList();
-            int frameWidth = viewHolder.llAttach.getWidth();
-            if (mediaList.size() > 0) {
-                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
-                for (LinkMedia media : mediaList) {
-                    SmartImageView siv = new SmartImageView(context);
-                    siv.setImageResource(R.drawable.yukatterload);
-                    siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    siv.setImageUrl(media.getThumbURL());
-                    viewHolder.llAttach.addView(siv, lp);
+            boolean hidden = false;
+
+            int selectedFlags = preferences.getInt("pref_prev_time", 0);
+            if (selectedFlags != 0) {
+                boolean[] selectedStates = new boolean[24];
+                for (int i = 0; i < 24; ++i) {
+                    selectedStates[i] = (selectedFlags & 0x01) == 1;
+                    selectedFlags >>>= 1;
+                }
+                Calendar calendar = Calendar.getInstance();
+                hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)];
+            }
+            if (!hidden) {
+                List<LinkMedia> mediaList = st.getMediaLinkList();
+                int frameWidth = viewHolder.llAttach.getWidth();
+                if (mediaList.size() > 0) {
+                    FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
+                    for (LinkMedia media : mediaList) {
+                        SmartImageView siv = new SmartImageView(context);
+                        siv.setImageResource(R.drawable.yukatterload);
+                        siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                        siv.setImageUrl(media.getThumbURL());
+                        viewHolder.llAttach.addView(siv, lp);
+                    }
                 }
             }
         }
