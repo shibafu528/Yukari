@@ -36,10 +36,10 @@ import shibafu.yukari.twitter.TwitterUtil;
  */
 public class StatusMainFragment extends Fragment{
 
-    private static final int REQUEST_REPLY    = 0x01;
-    private static final int REQUEST_RETWEET  = 0x02;
-    private static final int REQUEST_FAVORITE = 0x03;
-    private static final int REQUEST_FAV_RT   = 0x04;
+    private static final int REQUEST_REPLY    = 0x00;
+    private static final int REQUEST_RETWEET  = 0x01;
+    private static final int REQUEST_FAVORITE = 0x02;
+    private static final int REQUEST_FAV_RT   = 0x03;
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
