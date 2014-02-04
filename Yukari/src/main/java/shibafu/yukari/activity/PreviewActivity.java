@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.FloatMath;
@@ -409,8 +410,10 @@ public class PreviewActivity extends FragmentActivity {
             new android.os.Handler().post(new Runnable() {
                 @Override
                 public void run() {
-                    TweetAdapterWrap.setStatusToView(PreviewActivity.this, tweetView, status, null,
-                            TweetAdapterWrap.CONFIG_DISABLE_BGCOLOR | TweetAdapterWrap.CONFIG_DISABLE_FONTCOLOR);
+                    TweetAdapterWrap.setStatusToView(
+                            PreviewActivity.this, tweetView, status, null,
+                            PreferenceManager.getDefaultSharedPreferences(PreviewActivity.this),
+                            TweetAdapterWrap.MODE_PREVIEW);
                 }
             });
         }
