@@ -41,8 +41,8 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     private static final String[] ITEMS = {
             "ブラウザで開く",
             "クリップボードにコピー",
-            "ブックマークする",
-            "ミュート",
+            "[×] ブックマークする",
+            "[×] ミュート",
             "ツイート削除"
     };
 
