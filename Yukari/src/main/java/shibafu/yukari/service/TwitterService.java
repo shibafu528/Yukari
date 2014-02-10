@@ -415,8 +415,18 @@ public class TwitterService extends Service{
         Log.d(LOG_TAG, "onDestroy");
 
         unregisterReceiver(connectivityChangeListener);
-        for (StreamUser su : streamUsers) {
-            su.stop();
+        for (final StreamUser su : streamUsers) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    su.stop();
+                }
+            });
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         streamUsers.clear();
         streamUsers = null;
