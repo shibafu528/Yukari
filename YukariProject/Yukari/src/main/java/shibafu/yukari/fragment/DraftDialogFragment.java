@@ -141,7 +141,7 @@ public class DraftDialogFragment extends DialogFragment {
                         .create();
                 ad.show();
                 currentDialog = ad;
-                return false;
+                return true;
             }
         });
     }
