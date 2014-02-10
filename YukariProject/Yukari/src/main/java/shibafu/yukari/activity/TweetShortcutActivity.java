@@ -15,6 +15,7 @@ public class TweetShortcutActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Intent shortcutIntent = new Intent(this, TweetActivity.class);
+        shortcutIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 
         Intent intent = new Intent();
         intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
