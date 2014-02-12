@@ -32,6 +32,9 @@ public class LinkMediaFactory {
         else if (mediaURL.contains("photozou.jp")) {
             linkMedia = new Photozou(mediaURL);
         }
+        else if (mediaURL.contains("nico.ms/im") || mediaURL.contains("seiga.nicovideo.jp/seiga/im")) {
+            linkMedia = new NicoSeiga(mediaURL);
+        }
         else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
             linkMedia = new SimplePicture(mediaURL);
         }
