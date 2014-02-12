@@ -8,13 +8,13 @@ public class LinkMediaFactory {
     public static LinkMedia createLinkMedia(String mediaURL) {
         LinkMedia linkMedia = null;
 
-        if (mediaURL.contains("twimg.con")) {
+        if (mediaURL.contains("twimg.com")) {
             linkMedia = new Twimg(mediaURL);
         }
         else if (mediaURL.contains("twitpic.com")) {
             linkMedia = new Twitpic(mediaURL);
         }
-        else if (mediaURL.contains("yfrog.com")) {
+        else if (mediaURL.contains("/yfrog.com")) {
             linkMedia = new YFrog(mediaURL);
         }
         else if (mediaURL.contains("p.twipple.jp")) {
