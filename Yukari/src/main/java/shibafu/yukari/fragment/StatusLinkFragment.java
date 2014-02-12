@@ -158,8 +158,10 @@ public class StatusLinkFragment extends ListFragment{
                 else {
                     switch (lr.type) {
                         case TYPE_URL:
+                        {
                             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text)));
                             break;
+                        }
                         case (TYPE_URL | TYPE_URL_MEDIA):
                         {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
