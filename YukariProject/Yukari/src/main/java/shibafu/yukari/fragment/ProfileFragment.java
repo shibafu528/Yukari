@@ -80,6 +80,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     private boolean serviceBound = false;
 
     private SmartImageView ivProfileIcon, ivHeader;
+    private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage;
     private ImageButton ibMenu, ibSearch;
@@ -110,6 +111,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
         ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
+        ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
         tvScreenName = (TextView) v.findViewById(R.id.tvProfileScreenName);
@@ -354,6 +356,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         ivProfileIcon.setTag(holder.targetUser.getBiggerProfileImageURL());
         IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
         loaderTask.executeIf(holder.targetUser.getBiggerProfileImageURL());
+
+        if (holder.targetUser.isProtected()) {
+            ivProtected.setVisibility(View.VISIBLE);
+        }
+        else {
+            ivProtected.setVisibility(View.GONE);
+        }
 
         ivHeader.setImageUrl(holder.targetUser.getProfileBannerMobileURL());
         Log.d("ProfileFragment", "header url: " + holder.targetUser.getProfileBannerMobileURL());
