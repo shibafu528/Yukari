@@ -205,7 +205,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 switch (position) {
                     case 0:
                     {
-                        fragment = new TweetListFragment();
+                        fragment = TweetListFragmentFactory.create(TabType.TABTYPE_USER);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
@@ -214,7 +214,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     }
                     case 1:
                     {
-                        fragment = new TweetListFragment();
+                        fragment = TweetListFragmentFactory.create(TabType.TABTYPE_FAVORITE);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);

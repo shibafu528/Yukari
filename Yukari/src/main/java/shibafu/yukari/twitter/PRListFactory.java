@@ -2,6 +2,7 @@ package shibafu.yukari.twitter;
 
 import java.util.ArrayList;
 
+import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 
@@ -23,5 +24,20 @@ public class PRListFactory {
             }
         }
         return new PreformedResponseList<PreformedStatus>(list, responseList);
+    }
+
+    public static PreformedResponseList<PreformedStatus> create(
+            QueryResult queryResult, AuthUserRecord receivedUser) {
+        ArrayList<PreformedStatus> list;
+        if (queryResult == null) {
+            list = new ArrayList<PreformedStatus>();
+        }
+        else {
+            list = new ArrayList<PreformedStatus>(queryResult.getTweets().size());
+            for (Status s : queryResult.getTweets()) {
+                list.add(new PreformedStatus(s, receivedUser));
+            }
+        }
+        return new PreformedResponseList<PreformedStatus>(list, queryResult);
     }
 }

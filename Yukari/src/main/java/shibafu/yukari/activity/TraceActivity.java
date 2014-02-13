@@ -8,6 +8,7 @@ import android.view.Window;
 import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.TweetListFragment;
+import shibafu.yukari.fragment.TweetListFragmentFactory;
 
 /**
  * Created by Shibafu on 13/08/29.
@@ -20,7 +21,7 @@ public class TraceActivity extends FragmentActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);
 
-        TweetListFragment fragment = new TweetListFragment();
+        TweetListFragment fragment = TweetListFragmentFactory.create(TabType.TABTYPE_TRACE);
         Bundle args = new Bundle(getIntent().getExtras());
         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
         fragment.setArguments(args);

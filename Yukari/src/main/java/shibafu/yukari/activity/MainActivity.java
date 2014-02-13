@@ -47,6 +47,7 @@ import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.TweetListFragment;
+import shibafu.yukari.fragment.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.TwitterException;
@@ -194,32 +195,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                         intent.setData(Uri.parse("http://twitter.com/" + sn));
                                         intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
                                         startActivity(intent);
-
-//                                        AsyncTask<String, Void, User> task = new AsyncTask<String, Void, User>() {
-//                                            @Override
-//                                            protected User doInBackground(String... params) {
-//                                                try {
-//                                                    return service.getTwitter().showUser(params[0]);
-//                                                } catch (TwitterException e) {
-//                                                    e.printStackTrace();
-//                                                }
-//                                                return null;
-//                                            }
-//
-//                                            @Override
-//                                            protected void onPostExecute(User user) {
-//                                                if (user != null) {
-//                                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-//                                                    intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
-//                                                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
-//                                                    startActivity(intent);
-//                                                }
-//                                                else {
-//                                                    Toast.makeText(MainActivity.this, "ユーザー検索エラー", Toast.LENGTH_SHORT).show();
-//                                                }
-//                                            }
-//                                        };
-//                                        task.execute(sn);
                                     }
                                 });
                                 builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -397,7 +372,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void addTab(TabInfo tabInfo) {
-        TweetListFragment fragment = new TweetListFragment();
+        TweetListFragment fragment = TweetListFragmentFactory.create(tabInfo.getType());
         Bundle b = new Bundle();
         String title;
         switch (tabInfo.getType()) {

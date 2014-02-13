@@ -2,6 +2,7 @@ package shibafu.yukari.twitter;
 
 import java.util.ArrayList;
 
+import twitter4j.QueryResult;
 import twitter4j.RateLimitStatus;
 import twitter4j.ResponseList;
 
@@ -20,6 +21,16 @@ public class PreformedResponseList<T> extends ArrayList<T> implements ResponseLi
         if (responseList != null) {
             this.rateLimitStatus = responseList.getRateLimitStatus();
             this.accessLevel = responseList.getAccessLevel();
+        }
+    }
+
+    public PreformedResponseList(ArrayList<T> preformedList, QueryResult queryResult) {
+        if (preformedList != null && preformedList.size() > 0) {
+            addAll(preformedList);
+        }
+        if (queryResult != null) {
+            this.rateLimitStatus = queryResult.getRateLimitStatus();
+            this.accessLevel = queryResult.getAccessLevel();
         }
     }
 
