@@ -134,6 +134,13 @@ public class TweetAdapterWrap {
         viewHolder.tvTimestamp.setTextSize(fontSize * 0.8f);
         String timestamp = sdf.format(st.getCreatedAt()) + " via " + st.getSource();
 
+        if (st.getUser().isProtected()) {
+            viewHolder.ivProtected.setVisibility(View.VISIBLE);
+        }
+        else {
+            viewHolder.ivProtected.setVisibility(View.INVISIBLE);
+        }
+
         viewHolder.llAttach.removeAllViews();
 
         if ((preferences.getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
@@ -191,6 +198,13 @@ public class TweetAdapterWrap {
                         sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                 viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
                 v.setBackgroundResource(R.drawable.selector_tweet_retweet_background);
+
+                if (st.getRetweetedStatus().getUser().isProtected()) {
+                    viewHolder.ivProtected.setVisibility(View.VISIBLE);
+                }
+                else {
+                    viewHolder.ivProtected.setVisibility(View.INVISIBLE);
+                }
 
                 viewHolder.ivRetweeterIcon.setVisibility(View.VISIBLE);
                 viewHolder.ivRetweeterIcon.setImageResource(R.drawable.yukatterload);
@@ -261,6 +275,7 @@ public class TweetAdapterWrap {
         TextView tvName;
         TextView tvText;
         ImageView ivIcon, ivRetweeterIcon;
+        ImageView ivProtected;
         TextView tvTimestamp;
         LinearLayout llAttach;
 
@@ -269,6 +284,7 @@ public class TweetAdapterWrap {
             tvText = (TextView) v.findViewById(R.id.tweet_text);
             ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
             ivRetweeterIcon = (ImageView) v.findViewById(R.id.tweet_retweeter);
+            ivProtected = (ImageView) v.findViewById(R.id.tweet_protected);
             tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
         }
