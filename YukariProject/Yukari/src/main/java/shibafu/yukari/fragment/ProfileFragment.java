@@ -624,13 +624,15 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             //マップ要素数の入力
             int mapSize = in.readInt();
             //マップ要素の復元
-            relationships = new LinkedHashMap<AuthUserRecord, Relationship>(mapSize);
-            AuthUserRecord userRecord;
-            Relationship relationship;
-            for (int i = 0; i < mapSize; ++i) {
-                userRecord = (AuthUserRecord) in.readSerializable();
-                relationship = (Relationship) in.readSerializable();
-                relationships.put(userRecord, relationship);
+            if (mapSize > -1) {
+                relationships = new LinkedHashMap<AuthUserRecord, Relationship>(mapSize);
+                AuthUserRecord userRecord;
+                Relationship relationship;
+                for (int i = 0; i < mapSize; ++i) {
+                    userRecord = (AuthUserRecord) in.readSerializable();
+                    relationship = (Relationship) in.readSerializable();
+                    relationships.put(userRecord, relationship);
+                }
             }
         }
 
@@ -644,11 +646,16 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             //targetUserの出力
             out.writeSerializable(targetUser);
             //マップ内要素数を出力
-            out.writeInt(relationships.size());
-            //K,V,K,...の順番でマップ内要素を出力
-            for (AuthUserRecord userRecord : relationships.keySet()) {
-                out.writeSerializable(userRecord);
-                out.writeSerializable(relationships.get(userRecord));
+            if (relationships == null) {
+                out.writeInt(-1);
+            }
+            else {
+                out.writeInt(relationships.size());
+                //K,V,K,...の順番でマップ内要素を出力
+                for (AuthUserRecord userRecord : relationships.keySet()) {
+                    out.writeSerializable(userRecord);
+                    out.writeSerializable(relationships.get(userRecord));
+                }
             }
         }
 
