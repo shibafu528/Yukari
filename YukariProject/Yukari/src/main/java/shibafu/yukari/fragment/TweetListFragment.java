@@ -196,6 +196,7 @@ public abstract class TweetListFragment extends ListFragment implements Attachab
         }
 
         if (mode == TabType.TABTYPE_DM) {
+            footerProgress.setVisibility(View.INVISIBLE);
             footerText.setText("DM機能は未実装です");
         }
     }

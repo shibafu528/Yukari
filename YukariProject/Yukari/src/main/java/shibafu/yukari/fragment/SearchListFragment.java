@@ -100,12 +100,7 @@ public class SearchListFragment extends TweetListFragment {
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
                 QueryResult result = twitter.search(params[0].getQuery());
-                if (result.hasNext()) {
-                    nextQuery = result.nextQuery();
-                }
-                else {
-                    nextQuery = null;
-                }
+                nextQuery = result.nextQuery();
                 return PRListFactory.create(result, params[0].getUserRecord());
             } catch (TwitterException e) {
                 e.printStackTrace();
