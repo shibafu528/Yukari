@@ -88,19 +88,34 @@
                 android:layout_marginTop="15dp"
                 android:id="@+id/linearLayout">
 
-            <TextView
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:padding="4dp"
+                android:background="#9eee"
+                android:layout_gravity="center_horizontal">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="User Name"
+                        android:id="@+id/tvProfileName"
+                        android:layout_gravity="center"
+                        android:textColor="#fff"
+                    android:phoneNumber="false"
+                        android:shadowColor="#333"
+                        android:shadowRadius="5"/>
+
+                <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="User Name"
-                    android:id="@+id/tvProfileName"
-                    android:layout_gravity="center"
-                    android:textColor="#fff"
-                    android:background="#9eee"
-                    android:padding="4dp"
-                    android:phoneNumber="false"
-                    android:shadowColor="#333"
-                    android:shadowRadius="5"/>
+                    android:id="@+id/ivProfileProtected"
+                    android:src="@drawable/ic_secure"
+                    android:layout_marginLeft="2dp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <TextView
                     android:layout_width="wrap_content"
