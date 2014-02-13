@@ -10,8 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
@@ -186,12 +184,12 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
 
     @Override
     public void scrollToTop() {
-        listView.setSelection(0);
+        getListView().setSelection(0);
     }
 
     @Override
     public void scrollToBottom() {
-        listView.setSelection(statuses.size() - 1);
+        getListView().setSelection(statuses.size() - 1);
     }
 
     private void changeFooterProgress(boolean isLoading) {
