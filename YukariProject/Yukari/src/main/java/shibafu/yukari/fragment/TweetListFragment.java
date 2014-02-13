@@ -32,8 +32,11 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.RESTLoader;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
+import twitter4j.Query;
+import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -45,7 +48,7 @@ import twitter4j.UserMentionEntity;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TweetListFragment extends ListFragment implements TwitterService.StatusListener, AttachableList {
+public abstract class TweetListFragment extends ListFragment implements AttachableList {
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -53,28 +56,32 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     public static final String EXTRA_TRACE_START = "trace_start";
     public static final String EXTRA_SHOW_USER = "show_user";
 
-    private LinkedList<PreformedStatus> statuses = new LinkedList<PreformedStatus>();
+    public static final int LOADER_LOAD_INIT = 0;
+    public static final int LOADER_LOAD_MORE = 1;
 
-    private Twitter twitter;
-    private TweetAdapterWrap adapterWrap;
-    private AuthUserRecord user;
-    private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
+    //Statuses List
+    protected LinkedList<PreformedStatus> statuses = new LinkedList<PreformedStatus>();
+    protected ListView listView;
+    protected TweetAdapterWrap adapterWrap;
+
+    //Binding Accounts
+    protected List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
+
+    //Fragment States
     private String title;
     private int mode;
 
-    private Status traceStart = null;
-    private User targetUser = null;
-
-    private ListView listView;
+    //Footer View
     private View footerView;
     private ProgressBar footerProgress;
     private TextView footerText;
-
-    private long lastStatusId = -1;
     private boolean isLoading = false;
 
+    //Twitter Wrapper
+    protected Twitter twitter;
     private TwitterService service;
     private boolean serviceBound = false;
+
     private Handler handler = new Handler();
 
     public TweetListFragment() {
@@ -91,15 +98,6 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             users.add(manager);
         }
         mode = args.getInt(EXTRA_MODE, -1);
-        if (mode == TabType.TABTYPE_TRACE) {
-            traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            if (statuses.isEmpty()) {
-                statuses.add(new PreformedStatus(traceStart, user));
-            }
-        }
-        else if (mode == TabType.TABTYPE_USER || mode == TabType.TABTYPE_FAVORITE) {
-            targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
-        }
     }
 
     @Override
@@ -128,16 +126,8 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
                 }
                 else if (position == statuses.size() && !isLoading) {
                     //フッタークリック
-                    switch (mode) {
-                        case TabType.TABTYPE_HOME:
-                        case TabType.TABTYPE_MENTION:
-                        case TabType.TABTYPE_DM:
-                        case TabType.TABTYPE_USER:
-                        case TabType.TABTYPE_FAVORITE:
-                            for (AuthUserRecord user : users) {
-                                RESTLoader loader = new RESTLoader();
-                                loader.execute(loader.new Params(lastStatusId, user));
-                            }
+                    for (AuthUserRecord user : users) {
+                        executeLoader(LOADER_LOAD_MORE, user);
                     }
                 }
             }
@@ -147,28 +137,9 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        if (mode == TabType.TABTYPE_HOME) {
-            getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
-            getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (mode == TabType.TABTYPE_HOME) {
-            getActivity().unregisterReceiver(onReloadReceiver);
-            getActivity().unregisterReceiver(onActiveChangedReceiver);
-        }
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
         if (serviceBound) {
-            service.removeStatusListener(this);
             getActivity().unbindService(connection);
             serviceBound = false;
         }
@@ -179,8 +150,29 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
     }
 
     public AuthUserRecord getCurrentUser() {
-        return user;
+        if (users != null && !users.isEmpty()) {
+            return users.get(0);
+        }
+        else return null;
     }
+
+    public int getMode() {
+        return mode;
+    }
+
+    protected TwitterService getService() {
+        return service;
+    }
+
+    protected boolean isServiceBound() {
+        return serviceBound;
+    }
+
+    protected Handler getHandler() {
+        return handler;
+    }
+
+    public abstract boolean isCloseable();
 
     @Override
     public void scrollToTop() {
@@ -192,7 +184,7 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         getListView().setSelection(statuses.size() - 1);
     }
 
-    private void changeFooterProgress(boolean isLoading) {
+    protected void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
             footerProgress.setVisibility(View.VISIBLE);
@@ -208,7 +200,11 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         }
     }
 
-    private int prepareInsertStatus(PreformedStatus status) {
+    protected void removeFooter() {
+        listView.removeFooterView(footerView);
+    }
+
+    protected int prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
         boolean isMyTweet = service.isMyTweet(status) != null;
         //優先ユーザチェック
@@ -244,24 +240,11 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
         return statuses.size();
     }
 
-    private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
+    protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
-        }
-    };
+    protected abstract void onServiceConnected();
 
-    private BroadcastReceiver onActiveChangedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ArrayList<AuthUserRecord> inactiveList = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(TwitterService.EXTRA_CHANGED_INACTIVE);
-            for (AuthUserRecord inactive : inactiveList) {
-                if (users.contains(inactive)) {
-                    users.remove(inactive);
-                }
-            }
-        }
-    };
+    protected abstract void onServiceDisconnected();
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -272,202 +255,43 @@ public class TweetListFragment extends ListFragment implements TwitterService.St
             serviceBound = true;
 
             if (users.isEmpty()) {
-                if (user == null) {
-                    users.addAll(TweetListFragment.this.service.getActiveUsers());
-                }
-                else {
-                    users.add(TweetListFragment.this.service.getPrimaryUser());
-                }
+                users.addAll(TweetListFragment.this.service.getActiveUsers());
             }
 
-            if (mode == TabType.TABTYPE_TRACE) {
-                if (user == null) {
-                    user = TweetListFragment.this.service.getPrimaryUser();
-                }
-                AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(twitter4j.Status... params) {
-                        twitter.setOAuthAccessToken(user.getAccessToken());
-                        twitter4j.Status status = params[0];
-                        while (status.getInReplyToStatusId() > -1) {
-                            try {
-                                final twitter4j.Status reply = status = twitter.showStatus(status.getInReplyToStatusId());
-                                final PreformedStatus ps = new PreformedStatus(reply, user);
-                                final int location = prepareInsertStatus(ps);
-                                if (location > -1) {
-                                    handler.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            statuses.add(location, ps);
-                                            adapterWrap.notifyDataSetChanged();
-                                        }
-                                    });
-                                }
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                                break;
-                            }
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void result) {
-                        listView.removeFooterView(footerView);
-                    }
-                };
-                task.execute(traceStart);
-                changeFooterProgress(true);
-            }
-            else if (statuses.isEmpty()) {
-                for (AuthUserRecord user : users) {
-                    RESTLoader loader = new RESTLoader();
-                    loader.execute(loader.new Params(user));
-                }
-            }
-
-            if (mode == TabType.TABTYPE_HOME || mode == TabType.TABTYPE_MENTION) {
-                TweetListFragment.this.service.addStatusListener(TweetListFragment.this);
-            }
+            TweetListFragment.this.onServiceConnected();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             serviceBound = false;
+            TweetListFragment.this.onServiceDisconnected();
         }
     };
 
-    @Override
-    public void onStatus(AuthUserRecord from, final PreformedStatus status) {
-        if (users.contains(from) && !statuses.contains(status)) {
-            if (mode == TabType.TABTYPE_MENTION &&
-                    ( !status.isMentionedToMe() || status.isRetweet() )) return;
-
-            final int position = prepareInsertStatus(status);
-            if (position > -1) {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!statuses.contains(status)) {
-                            if (position < statuses.size())  {
-                                if (statuses.get(position).getId() == status.getId()) return;
-                            }
-                            statuses.add(position, status);
-                            adapterWrap.notifyDataSetChanged();
-                            if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
-                                listView.setSelection(0);
-                            } else {
-                                listView.setSelection(listView.getFirstVisiblePosition() + 1);
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    @Override
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
-        //TODO: DM受信時の処理
-    }
-
-    @Override
-    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Iterator<PreformedStatus> iterator = statuses.iterator();
-                while (iterator.hasNext()) {
-                    if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
-                        iterator.remove();
-                        adapterWrap.notifyDataSetChanged();
-                        break;
-                    }
-                }
-            }
-        });
-    }
-
-    private class RESTLoader extends AsyncTask<RESTLoader.Params, Void, PreformedResponseList<PreformedStatus>> {
-        class Params {
-            private Paging paging;
-            private AuthUserRecord userRecord;
-
-            public Params(AuthUserRecord userRecord) {
-                this.paging = new Paging();
-                this.userRecord = userRecord;
-            }
-
-            public Params(long lastStatusId, AuthUserRecord userRecord) {
-                this.paging = new Paging();
-                if (lastStatusId > -1) {
-                    paging.setMaxId(lastStatusId - 1);
-                }
-                this.userRecord = userRecord;
-            }
-
-            public Paging getPaging() {
-                return paging;
-            }
-
-            public AuthUserRecord getUserRecord() {
-                return userRecord;
-            }
+    private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
+        @Override
+        public List<PreformedStatus> getStatuses() {
+            return statuses;
         }
 
         @Override
-        protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
-            try {
-                ResponseList<twitter4j.Status> responseList = null;
-                Paging paging = params[0].getPaging();
-                paging.setCount(60);
-                switch (mode) {
-                    case TabType.TABTYPE_HOME:
-                        responseList = twitter.getHomeTimeline(paging);
-                        break;
-                    case TabType.TABTYPE_MENTION:
-                        responseList = twitter.getMentionsTimeline(paging);
-                        break;
-                    case TabType.TABTYPE_USER:
-                        responseList = twitter.getUserTimeline(targetUser.getId(), paging);
-                        break;
-                    case TabType.TABTYPE_FAVORITE:
-                        responseList = twitter.getFavorites(targetUser.getId(), paging);
-                        break;
-                }
-                if (responseList == null) {
-                    lastStatusId = -1;
-                }
-                else if (responseList.size() > 0) {
-                    lastStatusId = responseList.get(responseList.size() - 1).getId();
-                }
-                return PRListFactory.create(responseList, params[0].getUserRecord());
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            }
-            return null;
+        public void notifyDataSetChanged() {
+            adapterWrap.notifyDataSetChanged();
         }
 
         @Override
-        protected void onPreExecute() {
-            changeFooterProgress(true);
+        public int prepareInsertStatus(PreformedStatus status) {
+            return TweetListFragment.this.prepareInsertStatus(status);
         }
 
         @Override
-        protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
-            if (result != null) {
-                int position;
-                for (PreformedStatus status : result) {
-                    position = prepareInsertStatus(status);
-                    if (position > -1) {
-                        statuses.add(position, status);
-                    }
-                }
-                adapterWrap.notifyDataSetChanged();
-            }
-            changeFooterProgress(false);
+        public void changeFooterProgress(boolean isLoading) {
+            TweetListFragment.this.changeFooterProgress(isLoading);
         }
+    };
+
+    protected RESTLoader.RESTLoaderInterface getDefaultRESTInterface() {
+        return defaultRESTInterface;
     }
 
 }
