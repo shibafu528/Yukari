@@ -80,12 +80,19 @@ public class BitmapResizer {
             c.close();
         }
 
-        Cursor c = context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-        c.moveToFirst();
+        String dataUri;
+        if (uri.getScheme().contains("file")) {
+            dataUri = uri.toString();
+        }
+        else {
+            Cursor c = context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+            c.moveToFirst();
+            dataUri = c.getString(0);
+        }
 
         ExifInterface exif;
         try {
-            exif = new ExifInterface(c.getString(0));
+            exif = new ExifInterface(dataUri);
         } catch (IOException e) {
             e.printStackTrace();
             return -1;

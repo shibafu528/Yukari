@@ -63,4 +63,15 @@
         android:layout_marginRight="-4dp"
         android:layout_marginBottom="-4dp" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tweet_protected"
+        android:src="@drawable/ic_secure"
+        android:layout_alignBottom="@+id/tweet_timestamp"
+        android:layout_alignParentLeft="true"
+        android:visibility="invisible"
+        android:layout_marginLeft="-4dp"
+        android:layout_marginBottom="-2dp" />
+
 </RelativeLayout>

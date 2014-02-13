@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.PopupMenu;
 import android.text.InputType;
 import android.util.Log;
@@ -51,7 +52,7 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
-public class MainActivity extends FragmentActivity implements TwitterServiceDelegate {
+public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate {
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_FRIEND_CACHE = 2;
@@ -96,7 +97,7 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
