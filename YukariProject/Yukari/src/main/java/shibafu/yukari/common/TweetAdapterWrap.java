@@ -3,6 +3,7 @@ package shibafu.yukari.common;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.preference.PreferenceManager;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -190,6 +191,12 @@ public class TweetAdapterWrap {
                         sdf.format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                 viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
                 v.setBackgroundResource(R.drawable.selector_tweet_retweet_background);
+
+                viewHolder.ivRetweeterIcon.setVisibility(View.VISIBLE);
+                viewHolder.ivRetweeterIcon.setImageResource(R.drawable.yukatterload);
+                viewHolder.ivRetweeterIcon.setTag(st.getUser().getProfileImageURLHttps());
+                IconLoaderTask task = new IconLoaderTask(context, viewHolder.ivRetweeterIcon);
+                task.executeIf(st.getUser().getProfileImageURLHttps());
             }
             else if (isMention) {
                 v.setBackgroundResource(R.drawable.selector_tweet_mention_background);
@@ -199,6 +206,11 @@ public class TweetAdapterWrap {
             }
             else {
                 v.setBackgroundResource(R.drawable.selector_tweet_normal_background);
+            }
+
+            if (!st.isRetweet()) {
+                viewHolder.ivRetweeterIcon.setVisibility(View.INVISIBLE);
+                viewHolder.ivRetweeterIcon.setImageDrawable(new ColorDrawable(Color.TRANSPARENT));
             }
         }
         viewHolder.tvTimestamp.setText(timestamp);
@@ -248,7 +260,7 @@ public class TweetAdapterWrap {
     private static class TweetViewHolder {
         TextView tvName;
         TextView tvText;
-        ImageView ivIcon;
+        ImageView ivIcon, ivRetweeterIcon;
         TextView tvTimestamp;
         LinearLayout llAttach;
 
@@ -256,6 +268,7 @@ public class TweetAdapterWrap {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
             tvText = (TextView) v.findViewById(R.id.tweet_text);
             ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
+            ivRetweeterIcon = (ImageView) v.findViewById(R.id.tweet_retweeter);
             tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
         }
