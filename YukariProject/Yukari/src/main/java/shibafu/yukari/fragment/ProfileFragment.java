@@ -29,6 +29,7 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ import java.util.regex.Pattern;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
@@ -84,6 +86,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
 
+    private ProgressBar progressBar;
     private AsyncTask<Void, Void, LoadHolder> profileLoadTask = null;
 
     private LoadDialogFragment currentProgress;
@@ -101,6 +104,8 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             selfLoadId = true;
             selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
         }
+
+        progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
         ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
         ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
@@ -272,55 +277,45 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
                     @Override
                     protected LoadHolder doInBackground(Void... params) {
-                        if (!serviceBound) {
+                        while (!serviceBound) {
                             try {
-                                Thread.sleep(3000);
+                                Thread.sleep(100);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                            if (!serviceBound) {
-                                return null;
-                            }
                         }
 
-                        try {
-                            User user;
-                            if (selfLoadId) {
-                                String name = selfLoadName;
-                                if (name.startsWith("@")) {
-                                    name = name.substring(1);
-                                }
-                                user = service.getTwitter().showUser(name);
-                            } else {
-                                user = service.getTwitter().showUser(targetId);
+                        DBUser user;
+                        if (selfLoadId) {
+                            String name = selfLoadName;
+                            if (name.startsWith("@")) {
+                                name = name.substring(1);
                             }
-                            service.getDatabase().updateUser(new DBUser(user));
 
-                            if (ProfileFragment.this.user == null) {
-                                ProfileFragment.this.user = service.getPrimaryUser();
-                            }
-                            if (user != null) {
-                                LinkedHashMap<AuthUserRecord, Relationship> relationships =
-                                        new LinkedHashMap<AuthUserRecord, Relationship>();
-                                for (AuthUserRecord userRecord : service.getUsers()) {
-                                    relationships.put(userRecord,
-                                            service.getTwitter().showFriendship(userRecord.NumericId, user.getId()));
-                                }
-                                return new LoadHolder(user, relationships);
-                            } else return null;
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
+                            user = service.getDatabase().getUser(name);
+                        } else {
+                            user = service.getDatabase().getUser(targetId);
+                        }
+
+                        if (ProfileFragment.this.user == null) {
+                            ProfileFragment.this.user = service.getPrimaryUser();
+                        }
+                        if (user != null) {
+                            return new LoadHolder(user, null);
                         }
                         return null;
                     }
 
                     @Override
                     protected void onPostExecute(LoadHolder holder) {
-                        if (currentProgress != null) {
-                            currentProgress.dismiss();
-                            currentProgress = null;
+                        new ProfileLoader().execute();
+                        if (holder != null) {
+                            if (currentProgress != null) {
+                                currentProgress.dismiss();
+                                currentProgress = null;
+                            }
+                            showProfile(holder);
                         }
-                        showProfile(holder);
                         profileLoadTask = null;
                     }
                 };
@@ -331,6 +326,9 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
                 profileLoadTask = task;
                 task.execute();
+
+                btnFollowManage.setEnabled(false);
+                btnFollowManage.setText("読み込み中...");
             }
         }
     }
@@ -692,6 +690,101 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             else {
                 dismissRequest = true;
             }
+        }
+    }
+
+    private class ProfileLoader extends SimpleAsyncTask {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (!serviceBound) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (!serviceBound) {
+                    return null;
+                }
+            }
+
+            try {
+                User user;
+                if (selfLoadId) {
+                    String name = selfLoadName;
+                    if (name.startsWith("@")) {
+                        name = name.substring(1);
+                    }
+                    user = service.getTwitter().showUser(name);
+                } else {
+                    user = service.getTwitter().showUser(targetId);
+                }
+
+                if (user != null) {
+                    service.getDatabase().updateUser(new DBUser(user));
+                    if (loadHolder == null) {
+                        loadHolder = new LoadHolder(user, null);
+                    }
+                    else {
+                        loadHolder.targetUser = user;
+                    }
+                }
+                else {
+                    loadHolder = null;
+                }
+            } catch (TwitterException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (currentProgress != null) {
+                currentProgress.dismiss();
+                currentProgress = null;
+            }
+            showProfile(loadHolder);
+            if (loadHolder.targetUser != null) {
+                new RelationLoader().execute();
+            }
+        }
+    }
+
+    private class RelationLoader extends SimpleAsyncTask {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if (!serviceBound) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (!serviceBound) {
+                    return null;
+                }
+            }
+
+            LinkedHashMap<AuthUserRecord, Relationship> relationships =
+                    new LinkedHashMap<AuthUserRecord, Relationship>();
+            for (AuthUserRecord userRecord : service.getUsers()) {
+                try {
+                    relationships.put(userRecord,
+                            service.getTwitter().showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                }
+            }
+            loadHolder.relationships = relationships;
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressBar.setVisibility(View.INVISIBLE);
+            btnFollowManage.setEnabled(true);
+            btnFollowManage.setText("フォロー管理");
         }
     }
 }

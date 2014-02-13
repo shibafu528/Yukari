@@ -401,7 +401,37 @@ public class DBUser implements User, DBRecord {
     @Override
     @Deprecated
     public URLEntity getURLEntity() {
-        return null;
+        return new URLEntity() {
+            @Override
+            public String getText() {
+                return url;
+            }
+
+            @Override
+            public String getURL() {
+                return url;
+            }
+
+            @Override
+            public String getExpandedURL() {
+                return url;
+            }
+
+            @Override
+            public String getDisplayURL() {
+                return url;
+            }
+
+            @Override
+            public int getStart() {
+                return 0;
+            }
+
+            @Override
+            public int getEnd() {
+                return url.length();
+            }
+        };
     }
 
     @Override
