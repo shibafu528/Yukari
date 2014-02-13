@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:baselineAligned="false"
-              android:padding="4dp">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:padding="4dp">
 
     <com.loopj.android.image.SmartImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:id="@+id/tweet_icon"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/tweet_icon"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true" />
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="\uFF20null / Name"
-            android:id="@+id/tweet_name"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@+id/tweet_icon"
-            android:layout_marginLeft="8dp"
-            android:textColor="#ff419b38"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\uFF20null / Name"
+        android:id="@+id/tweet_name"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/tweet_icon"
+        android:layout_marginLeft="8dp"
+        android:textColor="#ff419b38"
         android:layout_marginTop="-2dp" />
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tweet Text"
-            android:id="@+id/tweet_text"
-            android:layout_below="@+id/tweet_name"
-            android:layout_alignLeft="@+id/tweet_name"
-            android:textColor="#000"
-            android:layout_marginTop="2dp"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tweet Text"
+        android:id="@+id/tweet_text"
+        android:layout_below="@+id/tweet_name"
+        android:layout_alignLeft="@+id/tweet_name"
+        android:textColor="#000"
+        android:layout_marginTop="2dp" />
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="2013/01/01 00:00:00 via Yukari for Android"
-            android:id="@+id/tweet_timestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="2013/01/01 00:00:00 via Yukari for Android"
+        android:id="@+id/tweet_timestamp"
         android:textColor="#ff8b8b8b"
-            android:textSize="11sp"
+        android:textSize="11sp"
         android:layout_below="@+id/tweet_attach"
         android:layout_alignLeft="@+id/tweet_attach" />
 
@@ -52,6 +52,15 @@
         android:layout_below="@+id/tweet_text"
         android:layout_alignParentRight="true"
         android:layout_marginTop="4dp"
-        android:id="@+id/tweet_attach"></LinearLayout>
+        android:id="@+id/tweet_attach" />
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:id="@+id/tweet_retweeter"
+        android:layout_alignBottom="@+id/tweet_icon"
+        android:layout_alignRight="@+id/tweet_icon"
+        android:layout_marginRight="-4dp"
+        android:layout_marginBottom="-4dp" />
 
 </RelativeLayout>
