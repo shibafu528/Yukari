@@ -238,7 +238,7 @@ public class CentralDatabase {
     }
 
     public DBUser getUser(String screenName) {
-        Cursor c = db.query(TABLE_USER, null, COL_USER_SCREEN_NAME + "=" + screenName, null, null, null, null);
+        Cursor c = db.query(TABLE_USER, null, COL_USER_SCREEN_NAME + "=?", new String[]{screenName}, null, null, null);
         DBUser user = null;
         try {
             if (c.moveToFirst()) {
