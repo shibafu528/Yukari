@@ -63,6 +63,14 @@ public class SearchDialogFragment extends DialogFragment{
                 sendQuery();
             }
         });
+        ibSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                searchQuery.setText("ﾕｯｶﾘｰﾝ");
+                sendQuery();
+                return true;
+            }
+        });
 
         return v;
     }
