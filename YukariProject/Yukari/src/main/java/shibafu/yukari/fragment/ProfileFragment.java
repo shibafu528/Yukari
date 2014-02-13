@@ -47,6 +47,7 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -268,10 +269,16 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         if (savedInstanceState != null) {
             LoadHolder holder = savedInstanceState.getParcelable("loadHolder");
             showProfile(holder);
+            if (holder.relationships == null) {
+                new RelationLoader().execute();
+            }
         }
         else {
             if (loadHolder != null) {
                 showProfile(loadHolder);
+                if (loadHolder.relationships == null) {
+                    new RelationLoader().execute();
+                }
             }
             else {
                 final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
@@ -340,6 +347,9 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             return;
         }
         this.loadHolder = holder;
+        if (loadHolder.targetUser != null && loadHolder.relationships != null) {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
 
         ivProfileIcon.setTag(holder.targetUser.getBiggerProfileImageURL());
         IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
@@ -390,6 +400,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         tvLocation.setText(holder.targetUser.getLocation());
         tvWeb.setText(holder.targetUser.getURLEntity().getExpandedURL());
         tvSince.setText(sdf.format(holder.targetUser.getCreatedAt()));
+        tvUserId.setText("#" + holder.targetUser.getId());
 
         commandAdapter.getItem(0).strBottom = String.valueOf(holder.targetUser.getStatusesCount());
         commandAdapter.getItem(1).strBottom = String.valueOf(holder.targetUser.getFavouritesCount());
@@ -693,10 +704,10 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         }
     }
 
-    private class ProfileLoader extends SimpleAsyncTask {
+    private class ProfileLoader extends TwitterAsyncTask {
 
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected TwitterException doInBackground(Void... voids) {
             if (!serviceBound) {
                 try {
                     Thread.sleep(3000);
@@ -733,19 +744,27 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     loadHolder = null;
                 }
             } catch (TwitterException e) {
-                e.printStackTrace();
+                return e;
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(Void aVoid) {
+        protected void onPostExecute(TwitterException e) {
             if (currentProgress != null) {
                 currentProgress.dismiss();
                 currentProgress = null;
             }
-            showProfile(loadHolder);
-            if (loadHolder.targetUser != null) {
+
+            if (e != null) {
+                Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました\n\n" + e.getErrorMessage(), Toast.LENGTH_LONG).show();
+                getActivity().finish();
+            }
+            else {
+                showProfile(loadHolder);
+            }
+
+            if (loadHolder != null) {
                 new RelationLoader().execute();
             }
         }
@@ -778,6 +797,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             }
             loadHolder.relationships = relationships;
             return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+            btnFollowManage.setEnabled(false);
+            btnFollowManage.setText("読み込み中...");
         }
 
         @Override

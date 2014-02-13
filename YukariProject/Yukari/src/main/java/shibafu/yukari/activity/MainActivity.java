@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -188,31 +189,36 @@ public class MainActivity extends FragmentActivity implements TwitterServiceDele
                                             sn = sn.substring(1);
                                         }
 
-                                        AsyncTask<String, Void, User> task = new AsyncTask<String, Void, User>() {
-                                            @Override
-                                            protected User doInBackground(String... params) {
-                                                try {
-                                                    return service.getTwitter().showUser(params[0]);
-                                                } catch (TwitterException e) {
-                                                    e.printStackTrace();
-                                                }
-                                                return null;
-                                            }
+                                        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                                        intent.setData(Uri.parse("http://twitter.com/" + sn));
+                                        intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
+                                        startActivity(intent);
 
-                                            @Override
-                                            protected void onPostExecute(User user) {
-                                                if (user != null) {
-                                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                                                    intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
-                                                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
-                                                    startActivity(intent);
-                                                }
-                                                else {
-                                                    Toast.makeText(MainActivity.this, "ユーザー検索エラー", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        };
-                                        task.execute(sn);
+//                                        AsyncTask<String, Void, User> task = new AsyncTask<String, Void, User>() {
+//                                            @Override
+//                                            protected User doInBackground(String... params) {
+//                                                try {
+//                                                    return service.getTwitter().showUser(params[0]);
+//                                                } catch (TwitterException e) {
+//                                                    e.printStackTrace();
+//                                                }
+//                                                return null;
+//                                            }
+//
+//                                            @Override
+//                                            protected void onPostExecute(User user) {
+//                                                if (user != null) {
+//                                                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+//                                                    intent.putExtra(ProfileActivity.EXTRA_TARGET, user.getId());
+//                                                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
+//                                                    startActivity(intent);
+//                                                }
+//                                                else {
+//                                                    Toast.makeText(MainActivity.this, "ユーザー検索エラー", Toast.LENGTH_SHORT).show();
+//                                                }
+//                                            }
+//                                        };
+//                                        task.execute(sn);
                                     }
                                 });
                                 builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
