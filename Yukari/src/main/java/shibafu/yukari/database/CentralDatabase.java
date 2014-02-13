@@ -237,6 +237,19 @@ public class CentralDatabase {
         return user;
     }
 
+    public DBUser getUser(String screenName) {
+        Cursor c = db.query(TABLE_USER, null, COL_USER_SCREEN_NAME + "=" + screenName, null, null, null, null);
+        DBUser user = null;
+        try {
+            if (c.moveToFirst()) {
+                user = new DBUser(c);
+            }
+        } finally {
+            c.close();
+        }
+        return user;
+    }
+
     public Cursor getUsersCursor(String where, String[] whereClause) {
         return db.query(TABLE_USER, null, where, whereClause, null, null, COL_USER_SCREEN_NAME + " ASC");
     }

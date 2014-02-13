@@ -37,10 +37,9 @@
                 android:id="@+id/ibProfileSearch"
                 android:src="@drawable/ic_search"
                 android:layout_gravity="center"
-                android:layout_below="@+id/ivProfileHeader"
-                android:layout_toRightOf="@+id/ibProfileMenu"
-                android:layout_marginTop="4dp"
-            android:visibility="invisible" />
+            android:visibility="invisible"
+            android:layout_below="@+id/progressBar"
+            android:layout_toRightOf="@+id/ibProfileMenu" />
 
         <Button
                 android:layout_width="160dp"
@@ -289,15 +288,16 @@
                     android:id="@+id/tvProfileUserId"/>
         </LinearLayout>
 
-        <com.loopj.android.image.SmartImageView
-                android:layout_width="48dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/ivProfileCurrent"
-                android:layout_toLeftOf="@+id/btnProfileFollow"
-                android:layout_alignTop="@+id/btnProfileFollow"
-                android:layout_alignBottom="@+id/btnProfileFollow"
-                android:scaleType="centerCrop"
-            android:padding="4dp"/>
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar"
+            android:layout_below="@+id/ivProfileHeader"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="-7dp"
+            android:indeterminate="true" />
 
 
     </RelativeLayout>
