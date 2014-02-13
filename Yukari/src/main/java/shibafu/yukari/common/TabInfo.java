@@ -151,6 +151,9 @@ public class TabInfo implements DBRecord {
                 return "Mentions";
             case TabType.TABTYPE_DM:
                 return "DM";
+            case TabType.TABTYPE_SEARCH:
+            case TabType.TABTYPE_TRACE:
+                return "Search: " + getSearchKeyword();
             default:
                 return "?Unknown Tab";
         }

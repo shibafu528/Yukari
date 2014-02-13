@@ -46,6 +46,8 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.MenuDialogFragment;
+import shibafu.yukari.fragment.SearchDialogFragment;
+import shibafu.yukari.fragment.SearchListFragment;
 import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.fragment.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
@@ -53,7 +55,7 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
-public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate {
+public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_FRIEND_CACHE = 2;
@@ -71,6 +73,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private List<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
+    private ImageButton ibClose;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
@@ -172,6 +175,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
+                            case R.id.action_search_tweets:
+                            {
+                                SearchDialogFragment dialogFragment = new SearchDialogFragment();
+                                dialogFragment.show(getSupportFragmentManager(), "search");
+                                break;
+                            }
                             case R.id.action_show_user:
                             {
                                 final EditText tvInput = new EditText(MainActivity.this);
@@ -240,6 +249,30 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             ibMenu.setVisibility(View.GONE);
         }
 
+        ibClose = (ImageButton) findViewById(R.id.ibClose);
+        ibClose.setOnTouchListener(tweetGestureListener);
+        ibClose.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (currentPage.isCloseable()) {
+                    int current = viewPager.getCurrentItem();
+                    pageList.remove(current);
+                    viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
+                    viewPager.setCurrentItem(current - 1);
+                    return true;
+                }
+                else return false;
+            }
+        });
+        ibClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (currentPage.isCloseable()) {
+                    Toast.makeText(MainActivity.this, "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -251,6 +284,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
                 currentPage = (TweetListFragment) pageList.get(i).getAttachableList();
+                if (currentPage.isCloseable()) {
+                    ibClose.setVisibility(View.VISIBLE);
+                }
+                else {
+                    ibClose.setVisibility(View.INVISIBLE);
+                }
             }
 
             @Override
@@ -374,22 +413,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private void addTab(TabInfo tabInfo) {
         TweetListFragment fragment = TweetListFragmentFactory.create(tabInfo.getType());
         Bundle b = new Bundle();
-        String title;
         switch (tabInfo.getType()) {
-            case TabType.TABTYPE_HOME:
-                title = "Home";
-                break;
-            case TabType.TABTYPE_MENTION:
-                title = "Mentions";
-                break;
-            case TabType.TABTYPE_DM:
-                title = "DM";
-                break;
-            default:
-                title = "?Unknown Tab";
+            case TabType.TABTYPE_SEARCH:
+            case TabType.TABTYPE_TRACK:
+                b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
                 break;
         }
-        b.putString(TweetListFragment.EXTRA_TITLE, title);
+        b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
         b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
         b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
         fragment.setArguments(b);
@@ -440,6 +470,15 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     @Override
     public TwitterService getTwitterService() {
         return service;
+    }
+
+    @Override
+    public void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking) {
+        TabInfo tabInfo = new TabInfo(
+                TabType.TABTYPE_SEARCH, pageList.size(), service.getPrimaryUser(), searchQuery);
+        addTab(tabInfo);
+        viewPager.getAdapter().notifyDataSetChanged();
+        viewPager.setCurrentItem(tabInfo.getOrder());
     }
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
