@@ -20,21 +20,16 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.util.Pair;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.prefs.Preferences;
-import java.util.prefs.PreferencesFactory;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
@@ -42,8 +37,11 @@ import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.PreformedStatus;
-import shibafu.yukari.twitter.StreamUser;
+import shibafu.yukari.twitter.streaming.Stream;
+import shibafu.yukari.twitter.streaming.StreamListener;
+import shibafu.yukari.twitter.streaming.StreamUser;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
@@ -54,7 +52,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
-import twitter4j.auth.AccessToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 import twitter4j.media.ImageUpload;
@@ -111,78 +108,84 @@ public class TwitterService extends Service{
     private Twitter twitter;
     private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
     private List<StreamUser> streamUsers = new ArrayList<StreamUser>();
-    private StreamUser.StreamListener listener = new StreamUser.StreamListener() {
+    private Map<String, FilterStream> filterMap = new HashMap<String, FilterStream>();
+    private StreamListener listener = new StreamListener() {
 
         @Override
-        public void onFavorite(AuthUserRecord from, User user, User user2, Status status) {
+        public void onFavorite(Stream from, User user, User user2, Status status) {
             database.updateUser(new DBUser(status.getUser()));
             database.updateUser(new DBUser(user));
             database.updateUser(new DBUser(user2));
-            if (from.NumericId == user.getId())
+            if (from.getUserRecord().NumericId == user.getId())
                 return;
 
             showNotification(NOTIF_FAVED, status, user);
         }
 
         @Override
-        public void onUnfavorite(AuthUserRecord from, User user, User user2, Status status) {
+        public void onUnfavorite(Stream from, User user, User user2, Status status) {
 
         }
 
         @Override
-        public void onFollow(AuthUserRecord from, User user, User user2) {
+        public void onFollow(Stream from, User user, User user2) {
 
         }
 
         @Override
-        public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
+        public void onDirectMessage(Stream from, DirectMessage directMessage) {
             database.updateUser(new DBUser(directMessage.getSender()));
             for (StatusListener sl : statusListeners) {
-                sl.onDirectMessage(from, directMessage);
+                sl.onDirectMessage(from.getUserRecord(), directMessage);
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from, directMessage));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), directMessage));
             }
         }
 
         @Override
-        public void onBlock(AuthUserRecord from, User user, User user2) {
+        public void onBlock(Stream from, User user, User user2) {
 
         }
 
         @Override
-        public void onUnblock(AuthUserRecord from, User user, User user2) {
+        public void onUnblock(Stream from, User user, User user2) {
 
         }
 
         @Override
-        public void onStatus(AuthUserRecord from, Status status) {
+        public void onStatus(Stream from, Status status) {
             Log.d(LOG_TAG, "onStatus(Registered Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             database.updateUser(new DBUser(status.getUser()));
+            AuthUserRecord user = from.getUserRecord();
 
             //自分のツイートかどうかマッチングを行う
             AuthUserRecord checkOwn = isMyTweet(status);
             if (checkOwn != null) {
                 //自分のツイートであれば受信元は発信元アカウントということにする
-                from = checkOwn;
+                user = checkOwn;
             }
 
-            PreformedStatus preformedStatus = new PreformedStatus(status, from);
+            PreformedStatus preformedStatus = new PreformedStatus(status, user);
             for (StatusListener sl : statusListeners) {
-                sl.onStatus(from, preformedStatus);
+                if (deliver(sl, from)) {
+                    sl.onStatus(user, preformedStatus);
+                }
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from, preformedStatus));
+                if (deliver(e.getKey(), from)) {
+                    e.getValue().offer(new EventBuffer(user, preformedStatus));
+                }
             }
 
-            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == from.NumericId &&
+            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                     checkOwn == null) {
                 showNotification(NOTIF_RETWEET, preformedStatus, status.getUser());
             }
             else if (!status.isRetweet()) {
                 UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                 for (UserMentionEntity ume : userMentionEntities) {
-                    if (ume.getId() == from.NumericId) {
+                    if (ume.getId() == user.NumericId) {
                         showNotification(NOTIF_REPLY, preformedStatus, status.getUser());
                     }
                 }
@@ -195,12 +198,12 @@ public class TwitterService extends Service{
         }
 
         @Override
-        public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice) {
+        public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
             for (StatusListener sl : statusListeners) {
-                sl.onDelete(from, statusDeletionNotice);
+                sl.onDelete(from.getUserRecord(), statusDeletionNotice);
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from, statusDeletionNotice));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), statusDeletionNotice));
             }
         }
 
@@ -284,8 +287,20 @@ public class TwitterService extends Service{
                 }
             }
         }
+
+        private boolean deliver(StatusListener sl, Stream from) {
+            if (sl.getStreamFilter() == null && from instanceof StreamUser) {
+                return true;
+            }
+            else if (from instanceof FilterStream &&
+                    ((FilterStream) from).getQuery().equals(sl.getStreamFilter())) {
+                return true;
+            }
+            else return false;
+        }
     };
     public interface StatusListener {
+        public String getStreamFilter();
         public void onStatus(AuthUserRecord from, PreformedStatus status);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
         public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
@@ -352,9 +367,12 @@ public class TwitterService extends Service{
             if (isConnected && disconnectedStream) {
                 //Stream再接続を行う
                 Log.d("TwitterService", "Network connected.");
-                showToast("UserStreamを再接続します");
+                showToast("Streamを再接続します");
                 for (StreamUser streamUser : streamUsers) {
                     streamUser.start();
+                }
+                for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+                    e.getValue().start();
                 }
                 disconnectedStream = false;
             }
@@ -362,6 +380,9 @@ public class TwitterService extends Service{
                 Log.d("TwitterService", "Network disconnected.");
                 for (StreamUser streamUser : streamUsers) {
                     streamUser.stop();
+                }
+                for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+                    e.getValue().stop();
                 }
                 disconnectedStream = true;
             }
@@ -413,6 +434,10 @@ public class TwitterService extends Service{
     public void onDestroy() {
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
+
+        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().stop();
+        }
 
         unregisterReceiver(connectivityChangeListener);
         for (final StreamUser su : streamUsers) {
@@ -470,6 +495,25 @@ public class TwitterService extends Service{
         }
     }
 
+    public void startFilterStream(String query, AuthUserRecord manager) {
+        if (!filterMap.containsKey(query)) {
+            FilterStream filterStream = new FilterStream(this, manager, query);
+            filterStream.setListener(listener);
+            filterMap.put(query, filterStream);
+            filterStream.start();
+            showToast("Start FilterStream:" + query);
+        }
+    }
+
+    public void stopFilterStream(String query) {
+        if (filterMap.containsKey(query)) {
+            FilterStream filterStream = filterMap.get(query);
+            filterStream.stop();
+            filterMap.remove(query);
+            showToast("Stop FilterStream:" + query);
+        }
+    }
+
     //<editor-fold desc="ユーザ情報管理">
     public void reloadUsers() {
         Cursor cursor = database.getAccounts();
@@ -522,8 +566,6 @@ public class TwitterService extends Service{
         sendBroadcast(broadcastIntent);
         Log.d(LOG_TAG, "Reloaded users. User=" + users.size() + ", StreamUsers=" + streamUsers.size());
     }
-
-
 
     public List<AuthUserRecord> getUsers() {
         return users;

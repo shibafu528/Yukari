@@ -10,7 +10,13 @@ import shibafu.yukari.twitter.AuthUserRecord;
 public abstract class AttachableListFragment extends ListFragment {
     public abstract String getTitle();
     public abstract AuthUserRecord getCurrentUser();
-    public abstract void scrollToTop();
-    public abstract void scrollToBottom();
     public abstract boolean isCloseable();
+
+    public void scrollToTop() {
+        getListView().setSelection(0);
+    }
+
+    public void scrollToBottom() {
+        getListView().setSelection(getListAdapter().getCount() - 1);
+    }
 }

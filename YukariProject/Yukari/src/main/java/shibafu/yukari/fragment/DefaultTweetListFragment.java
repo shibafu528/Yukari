@@ -172,6 +172,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
     };
 
     @Override
+    public String getStreamFilter() {
+        return null;
+    }
+
+    @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status) {
         if (users.contains(from) && !statuses.contains(status)) {
             if (getMode() == TabType.TABTYPE_MENTION &&

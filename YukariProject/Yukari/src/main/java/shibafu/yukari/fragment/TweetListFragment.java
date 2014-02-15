@@ -156,16 +156,6 @@ public abstract class TweetListFragment extends AttachableListFragment {
         return handler;
     }
 
-    @Override
-    public void scrollToTop() {
-        getListView().setSelection(0);
-    }
-
-    @Override
-    public void scrollToBottom() {
-        getListView().setSelection(statuses.size() - 1);
-    }
-
     protected void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {

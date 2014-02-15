@@ -69,7 +69,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private ArrayList<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
-    private ImageButton ibClose;
+    private ImageButton ibClose, ibStream;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
@@ -253,6 +253,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             public boolean onLongClick(View view) {
                 if (currentPage.isCloseable()) {
                     int current = viewPager.getCurrentItem();
+                    TabInfo tabInfo = pageList.get(current);
+                    if (tabInfo.getAttachableListFragment() instanceof SearchListFragment &&
+                            ((SearchListFragment) tabInfo.getAttachableListFragment()).isStreaming()) {
+                        service.stopFilterStream(tabInfo.getSearchKeyword());
+                    }
+
                     pageList.remove(current);
                     viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
                     viewPager.setCurrentItem(current - 1);
@@ -266,6 +272,24 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             public void onClick(View view) {
                 if (currentPage.isCloseable()) {
                     Toast.makeText(MainActivity.this, "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ibStream = (ImageButton) findViewById(R.id.ibStream);
+        ibStream.setOnTouchListener(tweetGestureListener);
+        ibStream.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (currentPage instanceof SearchListFragment) {
+                    boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
+                    ((SearchListFragment) currentPage).setStreaming(isStreaming);
+                    if (isStreaming) {
+                        ibStream.setImageResource(R.drawable.ic_play);
+                    }
+                    else {
+                        ibStream.setImageResource(R.drawable.ic_pause);
+                    }
                 }
             }
         });
@@ -286,6 +310,18 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 }
                 else {
                     ibClose.setVisibility(View.INVISIBLE);
+                }
+                if (currentPage instanceof SearchListFragment) {
+                    ibStream.setVisibility(View.VISIBLE);
+                    if (((SearchListFragment) currentPage).isStreaming()) {
+                        ibStream.setImageResource(R.drawable.ic_play);
+                    }
+                    else {
+                        ibStream.setImageResource(R.drawable.ic_pause);
+                    }
+                }
+                else {
+                    ibStream.setVisibility(View.INVISIBLE);
                 }
             }
 
@@ -427,8 +463,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         TweetListFragment fragment = TweetListFragmentFactory.create(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
-            case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
+                service.startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
+            case TabType.TABTYPE_SEARCH:
                 b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
                 break;
         }
