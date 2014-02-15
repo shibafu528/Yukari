@@ -2,8 +2,13 @@ package shibafu.yukari.common;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
@@ -21,7 +26,7 @@ public class TabInfo implements DBRecord, Serializable {
     private String searchKeyword;
     private String filterQuery;
 
-    private AttachableList attachableList;
+    private transient AttachableListFragment attachableListFragment;
 
     public TabInfo(int type, int order, AuthUserRecord bindAccount) {
         this.type = type;
@@ -137,12 +142,12 @@ public class TabInfo implements DBRecord, Serializable {
         this.filterQuery = filterQuery;
     }
 
-    public AttachableList getAttachableList() {
-        return attachableList;
+    public AttachableListFragment getAttachableListFragment() {
+        return attachableListFragment;
     }
 
-    public void setAttachableList(AttachableList attachableList) {
-        this.attachableList = attachableList;
+    public void setAttachableListFragment(AttachableListFragment attachableListFragment) {
+        this.attachableListFragment = attachableListFragment;
     }
 
     public String getTitle() {
