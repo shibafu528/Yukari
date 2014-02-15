@@ -7,14 +7,12 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -28,7 +26,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -39,7 +36,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
@@ -52,8 +48,6 @@ import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.fragment.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import twitter4j.TwitterException;
-import twitter4j.User;
 
 public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
 
@@ -70,7 +64,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private float tweetGestureY = 0;
 
     private TweetListFragment currentPage;
-    private List<TabInfo> pageList = new ArrayList<TabInfo>();
+    private ArrayList<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
     private ImageButton ibClose;
@@ -345,6 +339,22 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("screen", isKeepScreenOn);
+        outState.putSerializable("pagelist", pageList);
+        getSupportFragmentManager().putFragment(outState, "current", currentPage);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        isKeepScreenOn = savedInstanceState.getBoolean("screen");
+        currentPage = (TweetListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
+        pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("pagelist");
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             showExitDialog();
@@ -428,19 +438,30 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         pageList.add(tabInfo);
     }
 
-    private void reloadTabs() {
-        pageList.clear();
+    private void initTabs(boolean reload) {
+        int pageId = 0;
+        if (reload) {
+            pageList.clear();
 
-        ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
-        for (TabInfo info : tabs) {
-            addTab(info);
+            ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
+            for (TabInfo info : tabs) {
+                addTab(info);
+            }
+        }
+        else {
+            for (int i = 0; i < pageList.size(); ++i) {
+                if (pageList.get(i).getAttachableList() == currentPage) {
+                    pageId = i;
+                    break;
+                }
+            }
         }
 
         TabPagerAdapter adapter = new TabPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
 
-        currentPage = (TweetListFragment) pageList.get(0).getAttachableList();
-        tvTabText.setText(pageList.get(0).getTitle());
+        currentPage = (TweetListFragment) pageList.get(pageId).getAttachableList();
+        tvTabText.setText(pageList.get(pageId).getTitle());
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -456,8 +477,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 startActivityForResult(intent, REQUEST_OAUTH);
                 finish();
             }
-            else if (pageList.size() < 1) {
-                reloadTabs();
+            else {
+                initTabs(pageList.isEmpty());
             }
         }
 

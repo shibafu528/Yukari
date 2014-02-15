@@ -1,12 +1,9 @@
 package shibafu.yukari.fragment;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,7 +15,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,20 +25,9 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PRListFactory;
-import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
-import twitter4j.DirectMessage;
-import twitter4j.Paging;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
 /**
