@@ -154,6 +154,18 @@ public class TabInfo implements DBRecord {
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACE:
                 return "Search: " + getSearchKeyword();
+            case TabType.TABTYPE_TRACK:
+                return "Thread";
+            case TabType.TABTYPE_FAVORITE:
+                return "Favorites";
+            case TabType.TABTYPE_FILTER:
+                return "F: " + getFilterQuery();
+            case TabType.TABTYPE_HISTORY:
+                return "History";
+            case TabType.TABTYPE_LIST:
+                return "List: " + getBindListId();
+            case TabType.TABTYPE_USER:
+                return "User";
             default:
                 return "?Unknown Tab";
         }

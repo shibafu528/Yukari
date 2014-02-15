@@ -10,7 +10,7 @@ public class TweetListFragmentFactory {
     public static TweetListFragment create(int tabType) {
         switch (tabType) {
             case TabType.TABTYPE_SEARCH:
-            case TabType.TABTYPE_TRACE:
+            case TabType.TABTYPE_TRACK:
                 return new SearchListFragment();
             default:
                 return new DefaultTweetListFragment();
