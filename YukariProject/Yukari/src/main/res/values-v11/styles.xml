@@ -19,7 +19,10 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="YukariTheme"></style>
+    <style name="AppThemeNoTitle" parent="YukariTheme">
+        <item name="android:actionBarStyle">@style/TransparentActionBarYukariTheme</item>
+        <item name="ptrHeaderStyle">@style/Widget.Custom.PtrHeader</item>
+    </style>
 
     <style name="AppThemeTranslucent" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
