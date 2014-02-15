@@ -2,6 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.KeyEvent;
@@ -20,14 +21,18 @@ import shibafu.yukari.R;
  * Created by shibafu on 14/02/13.
  */
 public class SearchDialogFragment extends DialogFragment{
+
     public interface SearchDialogCallback {
         void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking);
     }
 
+    private InputMethodManager imm;
     private EditText searchQuery;
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+
         Dialog dialog = new Dialog(getActivity());
 
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
@@ -35,6 +40,13 @@ public class SearchDialogFragment extends DialogFragment{
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
 
         dialog.setContentView(inflateView(getActivity().getLayoutInflater()));
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface dialogInterface) {
+                imm.showSoftInput(searchQuery, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
 
         return dialog;
     }
@@ -48,7 +60,6 @@ public class SearchDialogFragment extends DialogFragment{
             public boolean onKey(View view, int i, KeyEvent keyEvent) {
                 if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
                         keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                     sendQuery();
                 }
