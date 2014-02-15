@@ -2,16 +2,12 @@ package shibafu.yukari.common;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
+import shibafu.yukari.fragment.AttachableListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**

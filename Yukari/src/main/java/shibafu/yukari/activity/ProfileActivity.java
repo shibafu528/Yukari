@@ -12,7 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.AttachableListFragment;
+import shibafu.yukari.fragment.AttachableListFragment;
 import shibafu.yukari.fragment.ProfileFragment;
 
 /**

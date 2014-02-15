@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +24,6 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.common.AttachableListFragment;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.service.TwitterService;
