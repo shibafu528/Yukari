@@ -2,6 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
@@ -11,11 +12,15 @@ import shibafu.yukari.twitter.RESTLoader;
 import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.TwitterException;
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.Options;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment {
+public class SearchListFragment extends TweetListFragment implements OnRefreshListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
@@ -32,6 +37,19 @@ public class SearchListFragment extends TweetListFragment {
             //どうしてもnullが渡ってきてしまった場合はこうしてこうじゃ
             searchQuery = "ﾕｯｶﾘｰﾝ";
         }
+
+        ViewGroup viewGroup = (ViewGroup) view;
+
+        Options.Builder options = new Options.Builder()
+                .noMinimize();
+
+        PullToRefreshLayout pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+        ActionBarPullToRefresh.from(getActivity())
+                .insertLayoutInto(viewGroup)
+                .theseChildrenArePullable(getListView(), getListView().getEmptyView())
+                .listener(this)
+                .options(options.build())
+                .setup(pullToRefreshLayout);
     }
 
     @Override
@@ -62,6 +80,11 @@ public class SearchListFragment extends TweetListFragment {
     @Override
     public boolean isCloseable() {
         return true;
+    }
+
+    @Override
+    public void onRefreshStarted(View view) {
+
     }
 
     private class SearchRESTLoader

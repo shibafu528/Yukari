@@ -23,7 +23,10 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="YukariTheme"></style>
+    <style name="AppThemeNoTitle" parent="YukariTheme">
+        <item name="actionBarStyle">@style/TransparentActionBarYukariTheme</item>
+        <item name="ptrHeaderStyle">@style/Widget.Custom.PtrHeader</item>
+    </style>
 
     <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
         <item name="android:windowIsTranslucent">true</item>
@@ -38,6 +41,11 @@
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    </style>
+
+    <style name="Widget.Custom.PtrHeader" parent="android:Widget">
+        <item name="ptrHeaderBackground">@drawable/status_bar_color</item>
+        <item name="ptrProgressBarColor">@color/key_color</item>
     </style>
 
 </resources>
