@@ -39,7 +39,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.AttachableListFragment;
+import shibafu.yukari.fragment.AttachableListFragment;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;

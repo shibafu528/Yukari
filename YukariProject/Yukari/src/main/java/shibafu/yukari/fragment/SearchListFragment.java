@@ -25,6 +25,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
     private Query nextQuery;
+    private PullToRefreshLayout pullToRefreshLayout;
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -43,7 +44,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         Options.Builder options = new Options.Builder()
                 .noMinimize();
 
-        PullToRefreshLayout pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+        pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
         ActionBarPullToRefresh.from(getActivity())
                 .insertLayoutInto(viewGroup)
                 .theseChildrenArePullable(getListView(), getListView().getEmptyView())
@@ -57,6 +58,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         SearchRESTLoader restLoader = new SearchRESTLoader(getDefaultRESTInterface());
         switch (requestMode) {
             case LOADER_LOAD_INIT:
+            case LOADER_LOAD_UPDATE:
                 restLoader.execute(restLoader.new Params(userRecord, searchQuery));
                 break;
             case LOADER_LOAD_MORE:
@@ -69,7 +71,9 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
 
     @Override
     protected void onServiceConnected() {
-        executeLoader(LOADER_LOAD_INIT, getCurrentUser());
+        if (statuses.isEmpty()) {
+            executeLoader(LOADER_LOAD_INIT, getCurrentUser());
+        }
     }
 
     @Override
@@ -84,7 +88,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
 
     @Override
     public void onRefreshStarted(View view) {
-
+        executeLoader(LOADER_LOAD_UPDATE, getCurrentUser());
     }
 
     private class SearchRESTLoader
@@ -137,6 +141,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
             if (nextQuery == null) {
                 removeFooter();
             }
+            pullToRefreshLayout.setRefreshComplete();
         }
     }
 }

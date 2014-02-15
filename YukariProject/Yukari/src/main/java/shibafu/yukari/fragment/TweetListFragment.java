@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -20,7 +19,6 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
-import shibafu.yukari.common.AttachableListFragment;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
@@ -41,8 +39,9 @@ public abstract class TweetListFragment extends AttachableListFragment {
     public static final String EXTRA_TRACE_START = "trace_start";
     public static final String EXTRA_SHOW_USER = "show_user";
 
-    public static final int LOADER_LOAD_INIT = 0;
-    public static final int LOADER_LOAD_MORE = 1;
+    public static final int LOADER_LOAD_INIT   = 0;
+    public static final int LOADER_LOAD_MORE   = 1;
+    public static final int LOADER_LOAD_UPDATE = 2;
 
     //Statuses List
     protected LinkedList<PreformedStatus> statuses = new LinkedList<PreformedStatus>();
