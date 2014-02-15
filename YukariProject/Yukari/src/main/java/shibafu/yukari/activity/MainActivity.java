@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,15 +31,21 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.SimpleAsyncTask;
+import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.fragment.AttachableListFragment;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
@@ -50,11 +57,16 @@ import shibafu.yukari.fragment.TweetListFragment;
 import shibafu.yukari.fragment.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.StatusUpdate;
+import twitter4j.TwitterException;
+import twitter4j.util.CharacterUtil;
 
 public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_FRIEND_CACHE = 2;
+    private static final int REQUEST_CHOOSE_ACCOUNT = 3;
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -70,6 +82,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private TextView tvTabText;
     private ViewPager viewPager;
     private ImageButton ibClose, ibStream;
+
+    private InputMethodManager imm;
+    private AuthUserRecord selectedAccount;
+    private LinearLayout llQuickTweet;
+    private ImageButton ibCloseTweet, ibSendTweet, ibSelectAccount;
+    private EditText etTweet;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
@@ -101,6 +119,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
+        imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(this, "[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です", Toast.LENGTH_LONG).show();
             finish();
@@ -112,6 +132,19 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             finish();
             return;
         }
+
+        TextView tvStreamStates = (TextView) findViewById(R.id.tvStreamStates);
+        tvStreamStates.setOnTouchListener(tweetGestureListener);
+        tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                llQuickTweet.setVisibility(View.VISIBLE);
+                if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
+                    etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                }
+                return true;
+            }
+        });
 
         tvTabText = (TextView) findViewById(R.id.tvMainTab);
         tvTabText.setOnClickListener(new View.OnClickListener() {
@@ -331,6 +364,48 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         });
 
+        llQuickTweet = (LinearLayout) findViewById(R.id.llQuickTweet);
+        ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
+        ibCloseTweet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (etTweet.getText().length() < 1) {
+                    llQuickTweet.setVisibility(View.GONE);
+                }
+                else {
+                    etTweet.setText("");
+                }
+            }
+        });
+        ibSelectAccount = (ImageButton) findViewById(R.id.ibAccount);
+        ibSelectAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+                startActivityForResult(intent, REQUEST_CHOOSE_ACCOUNT);
+            }
+        });
+        etTweet = (EditText) findViewById(R.id.etTweetInput);
+        etTweet.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View view, int i, KeyEvent keyEvent) {
+                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
+                        keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    postTweet();
+                }
+                return false;
+            }
+        });
+        etTweet.setTypeface(FontAsset.getInstance(this).getFont());
+        ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);
+        ibSendTweet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                postTweet();
+            }
+        });
+
         //スリープ防止設定
         final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
@@ -396,7 +471,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            showExitDialog();
+            if (llQuickTweet.getVisibility() == View.VISIBLE) {
+                llQuickTweet.setVisibility(View.GONE);
+            }
+            else {
+                showExitDialog();
+            }
             return true;
         }
         else if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_MENU) {
@@ -455,7 +535,89 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     startActivity(intent);
                     break;
                 }
+                case REQUEST_CHOOSE_ACCOUNT:
+                {
+                    selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
+                    IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
+                    task.executeIf(selectedAccount.ProfileImageUrl);
+                    break;
+                }
             }
+        }
+    }
+
+    private void postTweet() {
+        if (etTweet.getText().length() < 1) {
+            if (currentPage instanceof SearchListFragment) {
+                etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
+            }
+            else {
+                Toast.makeText(this, "テキストが入力されていません", Toast.LENGTH_LONG).show();
+            }
+        }
+        else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
+            TwitterAsyncTask task = new TwitterAsyncTask() {
+                private String status;
+                private AuthUserRecord account;
+
+                @Override
+                protected TwitterException doInBackground(Void... voids) {
+                    try {
+                        service.postTweet(account, new StatusUpdate(status));
+                    } catch (TwitterException e) {
+                        return e;
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPreExecute() {
+                    Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
+                    this.status = etTweet.getText().toString();
+                    this.account = selectedAccount;
+                    etTweet.setText("");
+                    if (currentPage instanceof SearchListFragment) {
+                        etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                    }
+                    etTweet.requestFocus();
+                    imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED);
+                }
+
+                @Override
+                protected void onPostExecute(TwitterException e) {
+                    if (e != null) {
+                        Toast.makeText(
+                                MainActivity.this,
+                                String.format("投稿エラー:%d\n%s\n--------\nツイートは下書きに保存されます.",
+                                        e.getErrorCode(),
+                                        e.getErrorMessage()),
+                                Toast.LENGTH_LONG).show();
+                        ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+                        writers.add(account);
+                        TweetDraft draft = new TweetDraft(
+                                writers,
+                                status,
+                                System.currentTimeMillis(),
+                                -1,
+                                false,
+                                null,
+                                false,
+                                0,
+                                0,
+                                false,
+                                false,
+                                false);
+                        service.getDatabase().updateDraft(draft);
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this,
+                                "Success Update!",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }
+            };
+            task.execute();
         }
     }
 
@@ -518,6 +680,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
             else {
                 initTabs(pageList.isEmpty());
+            }
+
+            if (selectedAccount == null) {
+                selectedAccount = MainActivity.this.service.getPrimaryUser();
+                ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
+                IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
+                task.executeIf(selectedAccount.ProfileImageUrl);
             }
         }
 
