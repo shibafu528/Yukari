@@ -3,6 +3,8 @@ package shibafu.yukari.common;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import java.io.Serializable;
+
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -10,7 +12,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 /**
  * Created by Shibafu on 13/12/30.
  */
-public class TabInfo implements DBRecord {
+public class TabInfo implements DBRecord, Serializable {
     private int id = -1;
     private int type;
     private int order;
