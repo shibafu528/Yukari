@@ -66,7 +66,7 @@ public class SearchDialogFragment extends DialogFragment{
         ibSearch.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                searchQuery.setText("ﾕｯｶﾘｰﾝ");
+                searchQuery.setText(String.format("\"%s\"", searchQuery.getText().toString()));
                 sendQuery();
                 return true;
             }
