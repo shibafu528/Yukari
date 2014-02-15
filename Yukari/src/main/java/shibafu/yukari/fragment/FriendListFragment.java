@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,26 +20,17 @@ import android.widget.TextView;
 
 import com.loopj.android.image.SmartImageView;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.activity.StatusActivity;
-import shibafu.yukari.common.AttachableList;
+import shibafu.yukari.common.AttachableListFragment;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.IconLoaderTask;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterUtil;
-import twitter4j.DirectMessage;
 import twitter4j.PagableResponseList;
-import twitter4j.ResponseList;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -48,7 +38,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class FriendListFragment extends ListFragment implements AttachableList {
+public class FriendListFragment extends AttachableListFragment {
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -153,6 +143,11 @@ public class FriendListFragment extends ListFragment implements AttachableList {
     @Override
     public void scrollToBottom() {
         listView.setSelection(users.size() - 1);
+    }
+
+    @Override
+    public boolean isCloseable() {
+        return false;
     }
 
     private void changeFooterProgress(boolean isLoading) {

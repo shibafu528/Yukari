@@ -20,7 +20,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
-import shibafu.yukari.common.AttachableList;
+import shibafu.yukari.common.AttachableListFragment;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
@@ -33,7 +33,7 @@ import twitter4j.UserMentionEntity;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TweetListFragment extends ListFragment implements AttachableList {
+public abstract class TweetListFragment extends AttachableListFragment {
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -156,8 +156,6 @@ public abstract class TweetListFragment extends ListFragment implements Attachab
     protected Handler getHandler() {
         return handler;
     }
-
-    public abstract boolean isCloseable();
 
     @Override
     public void scrollToTop() {

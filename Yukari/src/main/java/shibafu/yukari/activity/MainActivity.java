@@ -38,6 +38,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.AttachableListFragment;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
@@ -63,7 +64,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
-    private TweetListFragment currentPage;
+    private AttachableListFragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<TabInfo>();
     private TextView tvTabText;
     private ViewPager viewPager;
@@ -277,7 +278,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             @Override
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
-                currentPage = (TweetListFragment) pageList.get(i).getAttachableList();
+                currentPage = pageList.get(i).getAttachableListFragment();
                 if (currentPage.isCloseable()) {
                     ibClose.setVisibility(View.VISIBLE);
                 }
@@ -342,8 +343,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("screen", isKeepScreenOn);
-        outState.putSerializable("pagelist", pageList);
         getSupportFragmentManager().putFragment(outState, "current", currentPage);
+        outState.putSerializable("tabinfo", pageList);
     }
 
     @Override
@@ -351,7 +352,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         super.onRestoreInstanceState(savedInstanceState);
         isKeepScreenOn = savedInstanceState.getBoolean("screen");
         currentPage = (TweetListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
-        pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("pagelist");
+        pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
     }
 
     @Override
@@ -433,7 +434,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
         b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
         fragment.setArguments(b);
-        tabInfo.setAttachableList(fragment);
+        tabInfo.setAttachableListFragment(fragment);
 
         pageList.add(tabInfo);
     }
@@ -448,19 +449,18 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 addTab(info);
             }
         }
-        else {
-            for (int i = 0; i < pageList.size(); ++i) {
-                if (pageList.get(i).getAttachableList() == currentPage) {
-                    pageId = i;
-                    break;
-                }
+        else for (int i = 0; i < pageList.size(); ++i) {
+            if (pageList.get(i).getAttachableListFragment() == currentPage) {
+                pageId = i;
+                break;
             }
         }
 
         TabPagerAdapter adapter = new TabPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
+        viewPager.setCurrentItem(pageId);
 
-        currentPage = (TweetListFragment) pageList.get(pageId).getAttachableList();
+        currentPage = pageList.get(pageId).getAttachableListFragment();
         tvTabText.setText(pageList.get(pageId).getTitle());
     }
 
@@ -510,7 +510,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
         @Override
         public Fragment getItem(int i) {
-            return (Fragment) pageList.get(i).getAttachableList();
+            return pageList.get(i).getAttachableListFragment();
         }
 
         @Override
