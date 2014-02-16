@@ -155,6 +155,10 @@ public class TwitterService extends Service{
 
         @Override
         public void onStatus(Stream from, Status status) {
+            if (from == null || status == null) {
+                Log.w(LOG_TAG, "onStatus, NullPointer!");
+                return;
+            }
             Log.d(LOG_TAG, "onStatus(Registered Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
             database.updateUser(new DBUser(status.getUser()));
             AuthUserRecord user = from.getUserRecord();

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
@@ -191,7 +192,9 @@ public class StatusLinkFragment extends ListFragment{
                                         public void onClick(DialogInterface dialog, int which) {
                                             dialog.dismiss();
 
-                                            // TODO: 検索の呼び出しをここに
+                                            Intent intent = new Intent(getActivity(), MainActivity.class);
+                                            intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, lr.text);
+                                            startActivity(intent);
                                         }
                                     })
                                     .setNeutralButton("キャンセル", new DialogInterface.OnClickListener() {
