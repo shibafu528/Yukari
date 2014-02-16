@@ -1,6 +1,7 @@
 package shibafu.yukari.service;
 
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,8 +33,10 @@ import java.util.Map;
 import java.util.Queue;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -267,6 +270,17 @@ public class TwitterService extends Service{
                         vibrator.vibrate(pattern, -1);
                     }
                     builder.setAutoCancel(true);
+                    switch (category) {
+                        case NOTIF_REPLY:
+                        {
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(
+                                    getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                            builder.setContentIntent(pendingIntent);
+                            break;
+                        }
+                    }
                     notificationManager.notify(category, builder.build());
                 }
                 else {
@@ -431,7 +445,6 @@ public class TwitterService extends Service{
         registerReceiver(connectivityChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         Log.d(LOG_TAG, "onCreate completed.");
-        //Toast.makeText(this, "Yukari Serviceを起動しました", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -473,7 +486,6 @@ public class TwitterService extends Service{
         database = null;
 
         Log.d(LOG_TAG, "onDestroy completed.");
-        //Toast.makeText(this, "Yukari Serviceを停止しました", Toast.LENGTH_SHORT).show();
     }
 
     public void addStatusListener(StatusListener l) {
@@ -712,6 +724,7 @@ public class TwitterService extends Service{
 
     public ConfigurationBuilder getBuilder() {
         ConfigurationBuilder builder = new ConfigurationBuilder();
+        builder.setUseSSL(true);
         builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
         builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
         return builder;

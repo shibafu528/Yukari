@@ -69,6 +69,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private static final int REQUEST_CHOOSE_ACCOUNT = 3;
 
     public static final String EXTRA_SEARCH_WORD = "searchWord";
+    public static final String EXTRA_SHOW_TAB = "showTab";
 
     private TwitterService service;
     private boolean serviceBound = false;
@@ -449,6 +450,17 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         else if (intent.getData() != null && intent.getData().getHost().equals("shibafu.yukari.link")) {
             String hash = "#" + intent.getData().getLastPathSegment();
             onSearchQuery(hash, false, false);
+        }
+        else if (intent.hasExtra(EXTRA_SHOW_TAB)) {
+            int tabType = intent.getIntExtra(EXTRA_SHOW_TAB, -1);
+            if (tabType > -1) {
+                for (TabInfo info : pageList) {
+                    if (info.getType() == tabType) {
+                        viewPager.setCurrentItem(pageList.indexOf(info));
+                        break;
+                    }
+                }
+            }
         }
     }
 
