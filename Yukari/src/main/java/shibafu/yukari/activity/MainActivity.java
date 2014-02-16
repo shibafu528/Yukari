@@ -68,6 +68,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private static final int REQUEST_FRIEND_CACHE = 2;
     private static final int REQUEST_CHOOSE_ACCOUNT = 3;
 
+    public static final String EXTRA_SEARCH_WORD = "searchWord";
+
     private TwitterService service;
     private boolean serviceBound = false;
 
@@ -435,6 +437,18 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     sp.edit().putBoolean("first_guide", true).commit();
                 }
             });
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent.hasExtra(EXTRA_SEARCH_WORD)) {
+            onSearchQuery(intent.getStringExtra(EXTRA_SEARCH_WORD), false, false);
+        }
+        else if (intent.getData() != null && intent.getData().getHost().equals("shibafu.yukari.link")) {
+            String hash = "#" + intent.getData().getLastPathSegment();
+            onSearchQuery(hash, false, false);
         }
     }
 
