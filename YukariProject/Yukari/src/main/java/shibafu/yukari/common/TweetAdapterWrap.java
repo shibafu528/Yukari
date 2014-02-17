@@ -155,9 +155,8 @@ public class TweetAdapterWrap {
             }
             if (!hidden) {
                 List<LinkMedia> mediaList = st.getMediaLinkList();
-                int frameWidth = viewHolder.llAttach.getWidth();
                 if (mediaList.size() > 0) {
-                    FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(frameWidth / mediaList.size(), 140);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(140, 140, 1);
                     for (LinkMedia media : mediaList) {
                         SmartImageView siv = new SmartImageView(context);
                         siv.setImageResource(R.drawable.yukatterload);
