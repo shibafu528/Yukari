@@ -269,76 +269,71 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         gridCommands.setAdapter(commandAdapter);
 
         if (savedInstanceState != null) {
-            LoadHolder holder = savedInstanceState.getParcelable("loadHolder");
-            showProfile(holder);
-            if (holder.relationships == null) {
+            loadHolder = savedInstanceState.getParcelable("loadHolder");
+        }
+
+        if (loadHolder != null) {
+            showProfile(loadHolder);
+            if (loadHolder.relationships == null) {
                 new RelationLoader().execute();
             }
         }
         else {
-            if (loadHolder != null) {
-                showProfile(loadHolder);
-                if (loadHolder.relationships == null) {
-                    new RelationLoader().execute();
+            final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
+                @Override
+                protected LoadHolder doInBackground(Void... params) {
+                    while (!serviceBound) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    DBUser user;
+                    if (selfLoadId) {
+                        String name = selfLoadName;
+                        if (name.startsWith("@")) {
+                            name = name.substring(1);
+                        }
+
+                        user = service.getDatabase().getUser(name);
+                    } else {
+                        user = service.getDatabase().getUser(targetId);
+                    }
+
+                    if (ProfileFragment.this.user == null) {
+                        ProfileFragment.this.user = service.getPrimaryUser();
+                    }
+                    if (user != null) {
+                        return new LoadHolder(user, null);
+                    }
+                    return null;
                 }
-            }
-            else {
-                final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
-                    @Override
-                    protected LoadHolder doInBackground(Void... params) {
-                        while (!serviceBound) {
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
 
-                        DBUser user;
-                        if (selfLoadId) {
-                            String name = selfLoadName;
-                            if (name.startsWith("@")) {
-                                name = name.substring(1);
-                            }
-
-                            user = service.getDatabase().getUser(name);
-                        } else {
-                            user = service.getDatabase().getUser(targetId);
+                @Override
+                protected void onPostExecute(LoadHolder holder) {
+                    new ProfileLoader().execute();
+                    if (holder != null) {
+                        if (currentProgress != null) {
+                            currentProgress.dismiss();
+                            currentProgress = null;
                         }
-
-                        if (ProfileFragment.this.user == null) {
-                            ProfileFragment.this.user = service.getPrimaryUser();
-                        }
-                        if (user != null) {
-                            return new LoadHolder(user, null);
-                        }
-                        return null;
+                        showProfile(holder);
                     }
+                    profileLoadTask = null;
+                }
+            };
 
-                    @Override
-                    protected void onPostExecute(LoadHolder holder) {
-                        new ProfileLoader().execute();
-                        if (holder != null) {
-                            if (currentProgress != null) {
-                                currentProgress.dismiss();
-                                currentProgress = null;
-                            }
-                            showProfile(holder);
-                        }
-                        profileLoadTask = null;
-                    }
-                };
+            currentProgress = new LoadDialogFragment();
+            currentProgress.setTargetFragment(ProfileFragment.this, 0);
+            currentProgress.show(getFragmentManager(), "Loading");
 
-                currentProgress = new LoadDialogFragment();
-                currentProgress.setTargetFragment(ProfileFragment.this, 0);
-                currentProgress.show(getFragmentManager(), "Loading");
+            profileLoadTask = task;
+            task.execute();
 
-                profileLoadTask = task;
-                task.execute();
-
-                btnFollowManage.setEnabled(false);
-                btnFollowManage.setText("読み込み中...");
-            }
+            btnFollowManage.setEnabled(false);
+            btnFollowManage.setText("読み込み中...");
         }
     }
 
