@@ -52,6 +52,7 @@
         android:layout_below="@+id/tweet_text"
         android:layout_alignParentRight="true"
         android:layout_marginTop="4dp"
+        android:orientation="horizontal"
         android:id="@+id/tweet_attach" />
 
     <ImageView
