@@ -589,7 +589,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         }
         else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
-            TwitterAsyncTask task = new TwitterAsyncTask() {
+            TwitterAsyncTask task = new TwitterAsyncTask<Void>() {
                 private String status;
                 private AuthUserRecord account;
 
@@ -654,7 +654,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void addTab(TabInfo tabInfo) {
-        TweetListFragment fragment = TweetListFragmentFactory.getInstance(tabInfo.getType());
+        TweetListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:

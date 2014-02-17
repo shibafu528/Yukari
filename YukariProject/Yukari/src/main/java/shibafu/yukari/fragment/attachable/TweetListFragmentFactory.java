@@ -7,7 +7,7 @@ import shibafu.yukari.common.TabType;
  */
 public class TweetListFragmentFactory {
 
-    public static TweetListFragment getInstance(int tabType) {
+    public static TweetListFragment newInstance(int tabType) {
         switch (tabType) {
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:

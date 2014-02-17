@@ -208,7 +208,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 switch (position) {
                     case 0:
                     {
-                        fragment = TweetListFragmentFactory.getInstance(TabType.TABTYPE_USER);
+                        fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
@@ -217,7 +217,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     }
                     case 1:
                     {
-                        fragment = TweetListFragmentFactory.getInstance(TabType.TABTYPE_FAVORITE);
+                        fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
@@ -718,7 +718,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         }
     }
 
-    private class ProfileLoader extends TwitterAsyncTask {
+    private class ProfileLoader extends TwitterAsyncTask<Void> {
 
         @Override
         protected TwitterException doInBackground(Void... voids) {

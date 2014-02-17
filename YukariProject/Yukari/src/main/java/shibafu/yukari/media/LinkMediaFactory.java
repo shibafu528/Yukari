@@ -5,7 +5,7 @@ package shibafu.yukari.media;
  */
 public class LinkMediaFactory {
 
-    public static LinkMedia getInstance(String mediaURL) {
+    public static LinkMedia newInstance(String mediaURL) {
         LinkMedia linkMedia = null;
 
         if (mediaURL.contains("twimg.com")) {

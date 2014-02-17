@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;
@@ -284,7 +286,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected Trend[] doInBackground(Void... voids) {
                         try {
-                            return getService().getTwitter().getPlaceTrends(1118370).getTrends();
+                            return getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends();
                         } catch (TwitterException e) {
                             e.printStackTrace();
                         }
@@ -325,8 +327,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
     }
 
-    public static class SavedSearchFragment extends SearchChildFragment {
+    public static class SavedSearchFragment extends SearchChildFragment
+            implements AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener {
         private ArrayList<SavedSearch> savedSearches;
+        private SavedSearch selected;
+        private SavedSearchFragment.SavedSearchAdapter adapter;
 
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
@@ -353,7 +358,8 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         if (savedSearches != null) {
                             ArrayList<SavedSearch> ss = new ArrayList<SavedSearch>(savedSearches);
                             SavedSearchFragment.this.savedSearches = ss;
-                            setListAdapter(new SavedSearchAdapter(getActivity(), ss));
+                            adapter = new SavedSearchAdapter(getActivity(), ss);
+                            setListAdapter(adapter);
                         }
                         else {
                             Toast.makeText(getActivity(), "保存した検索の取得中にエラーが発生しました", Toast.LENGTH_LONG).show();
@@ -363,14 +369,79 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 task.execute();
             }
             else {
-                setListAdapter(new SavedSearchAdapter(getActivity(), savedSearches));
+                adapter = new SavedSearchAdapter(getActivity(), savedSearches);
+                setListAdapter(adapter);
             }
+
+            getListView().setOnItemLongClickListener(this);
         }
 
         @Override
         public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
             outState.putSerializable("saved", savedSearches);
+        }
+
+        @Override
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            super.onListItemClick(l, v, position, id);
+            getParent().sendQuery(savedSearches.get(position).getQuery());
+        }
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+            selected = savedSearches.get(i);
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    "確認",
+                    String.format("次の保存された検索を削除します\n%s", selected.getName()),
+                    "OK",
+                    "キャンセル"
+            );
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(getChildFragmentManager(), "dialog");
+            return true;
+        }
+
+        @Override
+        //DialogInterface.OnClickListener
+        public void onClick(DialogInterface dialogInterface, int i) {
+            if (selected != null && i == DialogInterface.BUTTON_POSITIVE) {
+                TwitterAsyncTask<SavedSearch> task = new TwitterAsyncTask<SavedSearch>() {
+                    private SavedSearch savedSearch;
+
+                    @Override
+                    protected TwitterException doInBackground(SavedSearch... savedSearches) {
+                        savedSearch = savedSearches[0];
+                        try {
+                            getServiceAwait().getTwitter().destroySavedSearch(savedSearch.getId());
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return e;
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(TwitterException e) {
+                        if (e == null) {
+                            Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
+                            if (!isDetached() && adapter != null) {
+                                savedSearches.remove(savedSearch);
+                                adapter.notifyDataSetChanged();
+                            }
+                        }
+                        else {
+                            Toast.makeText(
+                                    getActivity(),
+                                    String.format("エラーが発生しました:%d\n%s",
+                                            e.getErrorCode(),
+                                            e.getErrorMessage()),
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    }
+                };
+                task.execute(selected);
+            }
         }
 
         private class SavedSearchAdapter extends ArrayAdapter<SavedSearch> {
