@@ -5,6 +5,12 @@
     android:layout_height="match_parent"
     android:padding="8dp">
 
+    <FrameLayout
+        android:id="@+id/spacer"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:visibility="gone"/>
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
