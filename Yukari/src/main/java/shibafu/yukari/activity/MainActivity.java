@@ -589,7 +589,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         }
         else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
-            TwitterAsyncTask task = new TwitterAsyncTask<Void>() {
+            TwitterAsyncTask<Void> task = new TwitterAsyncTask<Void>() {
                 private String status;
                 private AuthUserRecord account;
 
@@ -712,13 +712,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
             else {
                 initTabs(pageList.isEmpty());
-            }
 
-            if (selectedAccount == null) {
-                selectedAccount = MainActivity.this.service.getPrimaryUser();
-                ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
-                IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
-                task.executeIf(selectedAccount.ProfileImageUrl);
+                if (selectedAccount == null) {
+                    selectedAccount = MainActivity.this.service.getPrimaryUser();
+                    ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
+                    IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
+                    task.executeIf(selectedAccount.ProfileImageUrl);
+                }
             }
         }
 
