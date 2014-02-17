@@ -47,12 +47,12 @@ import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.TwitterAsyncTask;
-import shibafu.yukari.fragment.AttachableListFragment;
+import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
-import shibafu.yukari.fragment.SearchListFragment;
-import shibafu.yukari.fragment.TweetListFragment;
-import shibafu.yukari.fragment.TweetListFragmentFactory;
+import shibafu.yukari.fragment.attachable.SearchListFragment;
+import shibafu.yukari.fragment.attachable.TweetListFragment;
+import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -654,7 +654,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void addTab(TabInfo tabInfo) {
-        TweetListFragment fragment = TweetListFragmentFactory.create(tabInfo.getType());
+        TweetListFragment fragment = TweetListFragmentFactory.getInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:

@@ -13,7 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
-import shibafu.yukari.fragment.AttachableListFragment;
+import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.fragment.ProfileFragment;
 
 /**

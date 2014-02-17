@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.attachable;
 
 import android.content.ComponentName;
 import android.content.Context;

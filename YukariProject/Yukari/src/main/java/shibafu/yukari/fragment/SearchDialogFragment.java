@@ -10,9 +10,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
@@ -31,8 +29,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +38,6 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
-import twitter4j.Trends;
 import twitter4j.TwitterException;
 
 /**

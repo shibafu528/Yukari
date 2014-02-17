@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.attachable;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,7 +10,6 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.service.TwitterService;
