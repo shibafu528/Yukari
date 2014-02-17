@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.AttachableListFragment;
@@ -49,6 +50,11 @@ public class ProfileActivity extends FragmentActivity{
 
         if (savedInstanceState == null) {
             Intent intent = getIntent();
+            if (intent.getData().getLastPathSegment() == null) {
+                Toast.makeText(this, "エラー: 無効なユーザ指定です", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
 
             ProfileFragment fragment = new ProfileFragment();
             Bundle b = new Bundle();
