@@ -1,10 +1,12 @@
 package shibafu.yukari.fragment;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -15,8 +17,11 @@ import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -51,6 +56,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking);
     }
 
+    private View spacer;
     private InputMethodManager imm;
     private EditText searchQuery;
     private SectionsPagerAdapter adapter;
@@ -112,8 +118,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         return inflateView(inflater);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private View inflateView(LayoutInflater inflater) {
         View v = inflater.inflate(R.layout.dialog_search, null);
+
+        spacer = v.findViewById(R.id.spacer);
 
         searchQuery = (EditText) v.findViewById(R.id.editText);
         searchQuery.setOnKeyListener(new View.OnKeyListener() {
@@ -127,6 +136,30 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 return false;
             }
         });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            searchQuery.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+                @Override
+                public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                    return true;
+                }
+
+                @Override
+                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                    spacer.setVisibility(View.VISIBLE);
+                    return true;
+                }
+
+                @Override
+                public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                    return false;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode actionMode) {
+                    spacer.setVisibility(View.GONE);
+                }
+            });
+        }
 
         ImageButton ibSearch = (ImageButton) v.findViewById(R.id.ibSearch);
         ibSearch.setOnClickListener(new View.OnClickListener() {
