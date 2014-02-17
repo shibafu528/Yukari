@@ -15,6 +15,8 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +40,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;
+import twitter4j.SavedSearch;
 import twitter4j.Trend;
 import twitter4j.Trends;
 import twitter4j.TwitterException;
@@ -66,6 +69,16 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         serviceDelegate = (TwitterServiceDelegate) activity;
+        if (serviceDelegate != null) {
+            Log.d("SearchDialog", "Attached Service Delegate");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        serviceDelegate = null;
+        Log.d("SearchDialog", "Detached Service Delegate");
     }
 
     @Override
@@ -74,10 +87,18 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         Dialog dialog = new Dialog(getActivity());
 
+        dialog.getContext().setTheme(R.style.YukariDialogTheme);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
 
-        dialog.setContentView(inflateView(getActivity().getLayoutInflater()));
+        dialog.setContentView(R.layout.dialog_search);
+        {
+            DisplayMetrics metrics = getResources().getDisplayMetrics();
+            WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
+            lp.width = (int) (metrics.widthPixels * 0.9);
+            dialog.getWindow().setAttributes(lp);
+        }
 
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
@@ -87,6 +108,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         });
 
         return dialog;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflateView(inflater);
     }
 
     private View inflateView(LayoutInflater inflater) {
@@ -124,7 +150,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             }
         });
 
-        /*adapter = new SectionsPagerAdapter(getChildFragmentManager());
+        adapter = new SectionsPagerAdapter(getChildFragmentManager());
 
         viewPager = (ViewPager) v.findViewById(R.id.pager);
         viewPager.setAdapter(adapter);
@@ -132,12 +158,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColorResource(R.color.key_color);*/
-
-        TrendFragment trendFragment = new TrendFragment();
-        trendFragment.setTargetFragment(this, 0);
-        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        transaction.add(R.id.frame, trendFragment).commit();
+        tabStrip.setTabIndicatorColorResource(R.color.key_color);
 
         return v;
     }
@@ -208,7 +229,12 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            parent = (SearchDialogFragment) getTargetFragment();
+            if (getTargetFragment() != null && getTargetFragment() instanceof SearchDialogFragment) {
+                parent = (SearchDialogFragment) getTargetFragment();
+            }
+            else if (getParentFragment() != null && getParentFragment() instanceof SearchDialogFragment) {
+                parent = (SearchDialogFragment) getParentFragment();
+            }
             service = parent.getTwitterService();
         }
 
@@ -221,6 +247,17 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         protected TwitterService getService() {
             return service;
+        }
+
+        protected TwitterService getServiceAwait() {
+            while (parent == null || parent.getTwitterService() == null) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return parent.getTwitterService();
         }
 
         protected SearchDialogFragment getParent() {
@@ -237,34 +274,44 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     public static class TrendFragment extends SearchChildFragment {
+        private ArrayList<String> list;
+
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
 
-            AsyncTask<Void, Void, Trend[]> task = new AsyncTask<Void, Void, Trend[]>() {
-                @Override
-                protected Trend[] doInBackground(Void... voids) {
-                    try {
-                        return getService().getTwitter().getPlaceTrends(1118370).getTrends();
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
+            if (savedInstanceState != null) {
+                list = savedInstanceState.getStringArrayList("trends");
+            }
 
-                @Override
-                protected void onPostExecute(Trend[] trends) {
-                    super.onPostExecute(trends);
-                    if (trends != null) {
-                        List<String> list = new ArrayList<String>();
-                        for (Trend t : trends) {
-                            list.add(t.getName());
+            if (list == null) {
+                AsyncTask<Void, Void, Trend[]> task = new AsyncTask<Void, Void, Trend[]>() {
+                    @Override
+                    protected Trend[] doInBackground(Void... voids) {
+                        try {
+                            return getService().getTwitter().getPlaceTrends(1118370).getTrends();
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
                         }
-                        setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
+                        return null;
                     }
-                }
-            };
-            task.execute();
+
+                    @Override
+                    protected void onPostExecute(Trend[] trends) {
+                        if (trends != null) {
+                            list = new ArrayList<String>();
+                            for (Trend t : trends) {
+                                list.add(t.getName());
+                            }
+                            setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
+                        }
+                    }
+                };
+                task.execute();
+            }
+            else {
+                setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
+            }
         }
 
         @Override
@@ -273,13 +320,84 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             String query = (String) getListAdapter().getItem(position);
             getParent().sendQuery(query);
         }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            if (list != null) {
+                outState.putStringArrayList("trends", list);
+            }
+        }
     }
 
-    public class SavedSearchFragment extends SearchChildFragment {
+    public static class SavedSearchFragment extends SearchChildFragment {
+        private ArrayList<SavedSearch> savedSearches;
+
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, new String[]{""}));
+
+            if (savedInstanceState != null) {
+                savedSearches = (ArrayList<SavedSearch>) savedInstanceState.getSerializable("saved");
+            }
+
+            if (savedSearches == null) {
+                AsyncTask<Void, Void, ResponseList<SavedSearch>> task = new AsyncTask<Void, Void, ResponseList<SavedSearch>>() {
+                    @Override
+                    protected ResponseList<SavedSearch> doInBackground(Void... voids) {
+                        try {
+                            return getServiceAwait().getTwitter().getSavedSearches();
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(ResponseList<SavedSearch> savedSearches) {
+                        if (savedSearches != null) {
+                            ArrayList<SavedSearch> ss = new ArrayList<SavedSearch>(savedSearches);
+                            SavedSearchFragment.this.savedSearches = ss;
+                            setListAdapter(new SavedSearchAdapter(getActivity(), ss));
+                        }
+                        else {
+                            Toast.makeText(getActivity(), "保存した検索の取得中にエラーが発生しました", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                };
+                task.execute();
+            }
+            else {
+                setListAdapter(new SavedSearchAdapter(getActivity(), savedSearches));
+            }
+        }
+
+        @Override
+        public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            outState.putSerializable("saved", savedSearches);
+        }
+
+        private class SavedSearchAdapter extends ArrayAdapter<SavedSearch> {
+
+            public SavedSearchAdapter(Context context, List<SavedSearch> objects) {
+                super(context, 0, objects);
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    convertView = inflater.inflate(android.R.layout.simple_list_item_1, null);
+                }
+
+                SavedSearch ss = getItem(position);
+                if (ss != null) {
+                    TextView tv = (TextView) convertView.findViewById(android.R.id.text1);
+                    tv.setText(ss.getName());
+                }
+                return convertView;
+            }
         }
     }
 }
