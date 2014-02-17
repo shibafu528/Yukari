@@ -7,5 +7,5 @@ import twitter4j.TwitterException;
 /**
  * Created by Shibafu on 13/11/23.
  */
-public abstract class TwitterAsyncTask extends AsyncTask<Void, Void, TwitterException> {
+public abstract class TwitterAsyncTask<P> extends AsyncTask<P, Void, TwitterException> {
 }

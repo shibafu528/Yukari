@@ -54,7 +54,7 @@ public class PreformedStatus implements Status{
         ArrayList<URLEntity> urlEntities = new ArrayList<URLEntity>();
         mediaLinkList = new ArrayList<LinkMedia>();
         for (URLEntity urlEntity : status.getURLEntities()) {
-            LinkMedia media = LinkMediaFactory.getInstance(urlEntity.getExpandedURL());
+            LinkMedia media = LinkMediaFactory.newInstance(urlEntity.getExpandedURL());
             if (media != null) {
                 mediaLinkList.add(media);
             }
@@ -64,7 +64,7 @@ public class PreformedStatus implements Status{
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
-            mediaLinkList.add(LinkMediaFactory.getInstance(mediaEntity.getMediaURL()));
+            mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURL()));
         }
         //メンション判定
         if (receiveUser != null) {
