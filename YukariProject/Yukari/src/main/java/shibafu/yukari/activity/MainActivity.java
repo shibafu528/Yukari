@@ -229,14 +229,20 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                         dialog.dismiss();
 
                                         String sn = tvInput.getText().toString();
-                                        if (sn.startsWith("@")) {
-                                            sn = sn.substring(1);
-                                        }
 
-                                        Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                                        intent.setData(Uri.parse("http://twitter.com/" + sn));
-                                        intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
-                                        startActivity(intent);
+                                        if (sn == null || sn.length() < 1) {
+                                            Toast.makeText(MainActivity.this, "何も入力されていません", Toast.LENGTH_LONG).show();
+                                        }
+                                        else {
+                                            if (sn.startsWith("@")) {
+                                                sn = sn.substring(1);
+                                            }
+
+                                            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+                                            intent.setData(Uri.parse("http://twitter.com/" + sn));
+                                            intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
+                                            startActivity(intent);
+                                        }
                                     }
                                 });
                                 builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
