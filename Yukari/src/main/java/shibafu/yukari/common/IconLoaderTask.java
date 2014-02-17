@@ -35,6 +35,7 @@ public class IconLoaderTask extends AsyncTask<String, Void, Bitmap> {
             //キャッシュから画像を取得
             Bitmap image = ProfileIconCache.getImage(params[0], context);
             if (image == null) {
+                publishProgress();
                 //無かったらWebから取得だ！
                 URL imageUrl = new URL(params[0]);
                 InputStream is = imageUrl.openStream();
@@ -49,6 +50,13 @@ public class IconLoaderTask extends AsyncTask<String, Void, Bitmap> {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+        if (tag.equals(imageView.getTag())) {
+            imageView.setImageResource(R.drawable.yukatterload);
+        }
     }
 
     @Override

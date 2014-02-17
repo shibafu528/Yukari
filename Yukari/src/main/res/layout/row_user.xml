@@ -6,13 +6,12 @@
               android:baselineAligned="false"
               android:padding="4dp">
 
-    <com.loopj.android.image.SmartImageView
+    <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:id="@+id/user_icon"
             android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:src="@drawable/yukatterload"/>
+            android:layout_alignParentLeft="true"/>
 
     <TextView
             android:layout_width="match_parent"

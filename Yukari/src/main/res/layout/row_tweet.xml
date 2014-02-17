@@ -6,7 +6,7 @@
     android:baselineAligned="false"
     android:padding="4dp">
 
-    <com.loopj.android.image.SmartImageView
+    <ImageView
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:id="@+id/tweet_icon"

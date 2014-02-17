@@ -83,7 +83,6 @@ public class MenuDialogFragment extends DialogFragment {
             ImageView iv = new ImageView(getActivity());
             iv.setFocusable(false);
             iv.setClickable(false);
-            iv.setImageResource(R.drawable.yukatterload);
             iv.setTag(user.ProfileImageUrl);
             IconLoaderTask task = new IconLoaderTask(getActivity(), iv);
             task.executeIf(user.ProfileImageUrl);

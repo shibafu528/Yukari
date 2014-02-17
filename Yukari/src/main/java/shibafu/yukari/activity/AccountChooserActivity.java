@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -18,22 +17,17 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.IconLoaderTask;
-import shibafu.yukari.common.SimpleAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.TwitterException;
-import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -223,7 +217,7 @@ public class AccountChooserActivity extends ListActivity {
             if (v == null) {
                 v = inflater.inflate(R.layout.row_account, parent, false);
                 vh = new ViewHolder();
-                vh.ivIcon = (SmartImageView) v.findViewById(R.id.user_icon);
+                vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
                 vh.tvName = (TextView) v.findViewById(R.id.user_name);
                 vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
                 vh.checkBox = (CheckBox) v.findViewById(R.id.user_check);
@@ -259,7 +253,7 @@ public class AccountChooserActivity extends ListActivity {
         }
 
         public class ViewHolder {
-            SmartImageView ivIcon;
+            ImageView ivIcon;
             TextView tvScreenName;
             TextView tvName;
             CheckBox checkBox;

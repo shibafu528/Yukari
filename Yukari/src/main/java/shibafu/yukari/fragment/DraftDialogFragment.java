@@ -4,12 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,15 +16,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.loopj.android.image.SmartImageView;
-
-import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
@@ -39,8 +28,6 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.TwitterException;
-import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/08/07.
@@ -198,8 +185,7 @@ public class DraftDialogFragment extends DialogFragment {
                 tvText.setTypeface(FontAsset.getInstance(getActivity()).getFont());
                 tvText.setText(d.getText());
 
-                final ImageView ivIcon = (SmartImageView)v.findViewById(R.id.tweet_icon);
-                ivIcon.setImageResource(R.drawable.yukatterload);
+                final ImageView ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
                 AuthUserRecord user = d.getWriters().get(0);
                 ivIcon.setTag(user.ProfileImageUrl);
                 IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
