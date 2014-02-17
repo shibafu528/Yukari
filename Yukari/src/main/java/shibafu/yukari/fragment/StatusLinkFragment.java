@@ -73,9 +73,7 @@ public class StatusLinkFragment extends ListFragment{
         //リスト要素を作成する
         list = new ArrayList<LinkRow>();
         for (LinkMedia lm : status.getMediaLinkList()) {
-            if (lm.canPreview()) {
-                list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | TYPE_URL_MEDIA), 0, null, false));
-            }
+            list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
             list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));

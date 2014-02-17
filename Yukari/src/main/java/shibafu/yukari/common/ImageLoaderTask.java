@@ -31,22 +31,24 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
 
     @Override
     protected Bitmap doInBackground(String... params) {
-        try {
-            //キャッシュから画像を取得
-            Bitmap image = ImageCache.getImage(params[0], context);
-            if (image == null) {
-                //無かったらWebから取得だ！
-                URL imageUrl = new URL(params[0]);
-                InputStream is = imageUrl.openStream();
-                image = BitmapFactory.decodeStream(is);
-                //キャッシュに保存
-                ImageCache.putImage(params[0], image, context);
+        if (params[0] != null) {
+            try {
+                //キャッシュから画像を取得
+                Bitmap image = ImageCache.getImage(params[0], context);
+                if (image == null) {
+                    //無かったらWebから取得だ！
+                    URL imageUrl = new URL(params[0]);
+                    InputStream is = imageUrl.openStream();
+                    image = BitmapFactory.decodeStream(is);
+                    //キャッシュに保存
+                    ImageCache.putImage(params[0], image, context);
+                }
+                return image;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            return image;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return null;
     }

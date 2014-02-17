@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 public class ImageMatch implements Cloneable{
     private Pattern mPage;
     private String mFullPagePattern;
+    private String[] matchGroup;
 
     public ImageMatch(String pageRegex, String fullPagePattern) {
         mPage = Pattern.compile(pageRegex);
@@ -29,10 +30,16 @@ public class ImageMatch implements Cloneable{
         }
         else return null;
 
+        matchGroup = fragment;
+
         String url = mFullPagePattern;
         for (int i = 0; i < fragment.length; i++) {
             url = url.replace("%" + (i+1), fragment[i]);
         }
         return url;
+    }
+
+    public String[] getMatchGroup() {
+        return matchGroup;
     }
 }

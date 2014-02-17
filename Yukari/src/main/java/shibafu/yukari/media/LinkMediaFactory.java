@@ -35,6 +35,12 @@ public class LinkMediaFactory {
         else if (mediaURL.contains("nico.ms/im") || mediaURL.contains("seiga.nicovideo.jp/seiga/im")) {
             linkMedia = new NicoSeiga(mediaURL);
         }
+        else if (mediaURL.contains("nico.ms/") || mediaURL.contains("www.nicovideo.jp/watch")) {
+            linkMedia = new NicoVideo(mediaURL);
+        }
+        else if (mediaURL.contains("www.youtube.com/watch?") || mediaURL.contains("youtu.be/")) {
+            linkMedia = new YouTube(mediaURL);
+        }
         else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
             linkMedia = new SimplePicture(mediaURL);
         }
