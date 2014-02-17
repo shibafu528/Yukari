@@ -49,6 +49,9 @@ import shibafu.yukari.common.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.fragment.attachable.FriendListFragment;
+import shibafu.yukari.fragment.attachable.TweetListFragment;
+import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
@@ -205,7 +208,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 switch (position) {
                     case 0:
                     {
-                        fragment = TweetListFragmentFactory.create(TabType.TABTYPE_USER);
+                        fragment = TweetListFragmentFactory.getInstance(TabType.TABTYPE_USER);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
@@ -214,7 +217,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     }
                     case 1:
                     {
-                        fragment = TweetListFragmentFactory.create(TabType.TABTYPE_FAVORITE);
+                        fragment = TweetListFragmentFactory.getInstance(TabType.TABTYPE_FAVORITE);
                         args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
                         args.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);

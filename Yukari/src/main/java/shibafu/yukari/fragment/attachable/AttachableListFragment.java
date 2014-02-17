@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.attachable;
 
 import android.support.v4.app.ListFragment;
 

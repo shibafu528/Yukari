@@ -199,7 +199,7 @@ public class PreviewActivity extends FragmentActivity {
             }
         });
 
-        final LinkMedia linkMedia = LinkMediaFactory.createLinkMedia(data.toString());
+        final LinkMedia linkMedia = LinkMediaFactory.getInstance(data.toString());
         final String mediaUrl;
         if (linkMedia != null) {
             mediaUrl = linkMedia.getMediaURL();

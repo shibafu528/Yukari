@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.attachable;
 
 import shibafu.yukari.common.TabType;
 
@@ -7,7 +7,7 @@ import shibafu.yukari.common.TabType;
  */
 public class TweetListFragmentFactory {
 
-    public static TweetListFragment create(int tabType) {
+    public static TweetListFragment getInstance(int tabType) {
         switch (tabType) {
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:

@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
-import shibafu.yukari.fragment.AttachableListFragment;
+import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
