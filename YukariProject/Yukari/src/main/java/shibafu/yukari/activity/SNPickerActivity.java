@@ -1,12 +1,12 @@
 package shibafu.yukari.activity;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -14,14 +14,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,6 @@ public class SNPickerActivity extends Activity {
     public static final String EXTRA_SCREEN_NAME = "screen_name";
     public static final String EXTRA_NAME = "name";
 
-    private ListView listView;
     private TextView tvHead;
     private EditText editText;
 
@@ -50,13 +48,14 @@ public class SNPickerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_snpicker);
 
-        tvHead = (TextView) findViewById(R.id.tvSNPickHead);
-        listView = (ListView) findViewById(R.id.lvSNPick);
         dataList = new ArrayList<Data>();
         adapter = new Adapter(this, dataList);
+
+        ListView listView = (ListView) findViewById(R.id.lvSNPick);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -70,17 +69,15 @@ public class SNPickerActivity extends Activity {
                 finish();
             }
         });
+
+        tvHead = (TextView) findViewById(R.id.tvSNPickHead);
         editText = (EditText) findViewById(R.id.etSNPickName);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
