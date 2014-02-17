@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -17,10 +16,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import com.loopj.android.image.SmartImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -170,7 +168,7 @@ public class AccountManageActivity extends ListActivity {
             if (v == null) {
                 v = inflater.inflate(R.layout.row_account, parent, false);
                 vh = new ViewHolder();
-                vh.ivIcon = (SmartImageView) v.findViewById(R.id.user_icon);
+                vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
                 vh.tvName = (TextView) v.findViewById(R.id.user_name);
                 vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
                 vh.checkBox = (CheckBox) v.findViewById(R.id.user_check);
@@ -195,7 +193,7 @@ public class AccountManageActivity extends ListActivity {
         }
 
         private class ViewHolder {
-            SmartImageView ivIcon;
+            ImageView ivIcon;
             TextView tvScreenName;
             TextView tvName;
             CheckBox checkBox;

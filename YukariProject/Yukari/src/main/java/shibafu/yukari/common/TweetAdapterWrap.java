@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.preference.PreferenceManager;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +26,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import twitter4j.Status;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -124,7 +122,6 @@ public class TweetAdapterWrap {
             imageUrl = st.getRetweetedStatus().getUser().getBiggerProfileImageURL();
         }
         if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
-            viewHolder.ivIcon.setImageResource(R.drawable.yukatterload);
             viewHolder.ivIcon.setTag(imageUrl);
             IconLoaderTask loaderTask = new IconLoaderTask(context, viewHolder.ivIcon);
             loaderTask.executeIf(imageUrl);
@@ -207,7 +204,6 @@ public class TweetAdapterWrap {
                 }
 
                 viewHolder.ivRetweeterIcon.setVisibility(View.VISIBLE);
-                viewHolder.ivRetweeterIcon.setImageResource(R.drawable.yukatterload);
                 viewHolder.ivRetweeterIcon.setTag(st.getUser().getProfileImageURLHttps());
                 IconLoaderTask task = new IconLoaderTask(context, viewHolder.ivRetweeterIcon);
                 task.executeIf(st.getUser().getProfileImageURLHttps());

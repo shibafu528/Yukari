@@ -13,11 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.loopj.android.image.SmartImageView;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -234,7 +233,7 @@ public class FriendListFragment extends AttachableListFragment {
             if (v == null) {
                 v = inflater.inflate(R.layout.row_user, parent, false);
                 vh = new ViewHolder();
-                vh.ivIcon = (SmartImageView) v.findViewById(R.id.user_icon);
+                vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
                 vh.tvName = (TextView) v.findViewById(R.id.user_name);
                 vh.tvName.setTypeface(FontAsset.getInstance(getContext()).getFont());
                 vh.tvName.setTextColor(getResources().getColor(android.R.color.primary_text_light));
@@ -251,7 +250,6 @@ public class FriendListFragment extends AttachableListFragment {
             if (u != null) {
                 vh.tvName.setText(u.getName());
                 vh.tvScreenName.setText("@" + u.getScreenName());
-                vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 vh.ivIcon.setTag(u.getBiggerProfileImageURL());
                 IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), vh.ivIcon);
                 loaderTask.executeIf(u.getBiggerProfileImageURL());
@@ -261,7 +259,7 @@ public class FriendListFragment extends AttachableListFragment {
         }
 
         private class ViewHolder {
-            SmartImageView ivIcon;
+            ImageView ivIcon;
             TextView tvScreenName;
             TextView tvName;
         }
