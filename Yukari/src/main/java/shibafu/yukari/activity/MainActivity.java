@@ -674,7 +674,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
     private void initTabs(boolean reload) {
         int pageId = 0;
-        if (reload) {
+        if (reload || pageList.isEmpty()) {
             pageList.clear();
 
             ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
