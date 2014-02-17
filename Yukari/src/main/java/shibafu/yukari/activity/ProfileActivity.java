@@ -50,7 +50,7 @@ public class ProfileActivity extends FragmentActivity{
 
         if (savedInstanceState == null) {
             Intent intent = getIntent();
-            if (intent.getData().getLastPathSegment() == null) {
+            if (intent.getData() != null && intent.getData().getLastPathSegment() == null) {
                 Toast.makeText(this, "エラー: 無効なユーザ指定です", Toast.LENGTH_LONG).show();
                 finish();
                 return;
