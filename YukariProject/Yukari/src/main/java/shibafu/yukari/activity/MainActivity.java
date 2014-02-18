@@ -674,7 +674,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
     private void initTabs(boolean reload) {
         int pageId = 0;
-        if (reload || pageList.isEmpty()) {
+        if (reload) {
             pageList.clear();
 
             ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
@@ -700,6 +700,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d("MainActivity", "onServiceConnected");
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             MainActivity.this.service = binder.getService();
             serviceBound = true;
@@ -724,6 +725,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d("MainActivity", "onServiceDisconnected");
             serviceBound = false;
         }
     };
