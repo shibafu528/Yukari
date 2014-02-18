@@ -184,7 +184,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         viewPager = (ViewPager) v.findViewById(R.id.pager);
         viewPager.setAdapter(adapter);
-        viewPager.setCurrentItem(1);
+        viewPager.setCurrentItem(0);
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
@@ -218,12 +218,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             Fragment fragment;
             switch (i) {
                 case 0:
-                    fragment = new HistoryFragment();
-                    break;
-                case 1:
                     fragment = new TrendFragment();
                     break;
-                case 2:
+                case 1:
                     fragment = new SavedSearchFragment();
                     break;
                 default:
@@ -235,17 +232,15 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         @Override
         public int getCount() {
-            return 3;
+            return 2;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "History";
-                case 1:
                     return "Trend";
-                case 2:
+                case 1:
                     return "Saved";
             }
             return null;
