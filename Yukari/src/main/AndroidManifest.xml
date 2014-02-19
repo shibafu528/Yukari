@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="8"
-    android:versionName="0.67alpha (prototype 140218)" >
+    android:versionCode="11"
+    android:versionName="0.68alpha (prototype 140219)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -199,6 +199,15 @@
         <activity
             android:name=".activity.LicenseActivity"
             android:label="@string/title_activity_about" />
+
+        <activity
+            android:name=".activity.ProfileEditActivity"
+            android:label="@string/title_activity_profile_edit"
+            android:uiOptions="splitActionBarWhenNarrow">
+            <meta-data
+                android:name="android.support.UI_OPTIONS"
+                android:value="splitActionBarWhenNarrow" />
+        </activity>
     </application>
 
 </manifest>
