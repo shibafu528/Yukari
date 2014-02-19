@@ -9,6 +9,8 @@
 
     <style name="ActionBarYukariTheme" parent="Widget.AppCompat.ActionBar">
         <item name="android:background">@drawable/key_color</item>
+        <item name="background">@drawable/key_color</item>
+        <item name="backgroundSplit">@drawable/key_color</item>
         <item name="android:titleTextStyle" tools:ignore="NewApi">
             @style/ActionBarYukariTheme.TitleText
         </item>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="ActionBarYukariTheme" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@drawable/key_color</item>
+        <item name="android:backgroundSplit">@drawable/key_color</item>
+        <item name="android:titleTextStyle">@style/ActionBarYukariTheme.TitleText</item>
+    </style>
+
+</resources>

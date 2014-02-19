@@ -5,6 +5,8 @@
 
     <style name="YukariTheme" parent="Theme.AppCompat.Light">
 
+        <item name="android:actionMenuTextColor">@color/white</item>
+
         <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
 
         <item name="android:editTextBackground">@drawable/yukaritheme_edit_text_holo_light</item>
