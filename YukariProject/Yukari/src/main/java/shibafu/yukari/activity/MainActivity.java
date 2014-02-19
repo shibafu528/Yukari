@@ -85,6 +85,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private ImageButton ibClose, ibStream;
 
     private InputMethodManager imm;
+    private boolean enableQuickPost = true;
     private AuthUserRecord selectedAccount;
     private LinearLayout llQuickTweet;
     private ImageButton ibCloseTweet, ibSendTweet, ibSelectAccount;
@@ -139,11 +140,14 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                llQuickTweet.setVisibility(View.VISIBLE);
-                if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
-                    etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                if (enableQuickPost) {
+                    llQuickTweet.setVisibility(View.VISIBLE);
+                    if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
+                        etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                    }
+                    return true;
                 }
-                return true;
+                else return false;
             }
         });
 
@@ -580,7 +584,10 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void postTweet() {
-        if (etTweet.getText().length() < 1) {
+        if (selectedAccount == null) {
+            Toast.makeText(this, "アカウントが選択されていません", Toast.LENGTH_LONG).show();
+        }
+        else if (etTweet.getText().length() < 1) {
             if (currentPage instanceof SearchListFragment) {
                 etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
             }
@@ -716,9 +723,20 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
                 if (selectedAccount == null) {
                     selectedAccount = MainActivity.this.service.getPrimaryUser();
-                    ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
-                    IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
-                    task.executeIf(selectedAccount.ProfileImageUrl);
+                    if (selectedAccount == null) {
+                        Toast.makeText(MainActivity.this, "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                        enableQuickPost = false;
+                    }
+                    else if (ibSelectAccount == null) {
+                        Toast.makeText(MainActivity.this, "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                        enableQuickPost = false;
+                    }
+                    else {
+                        ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
+                        IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
+                        task.executeIf(selectedAccount.ProfileImageUrl);
+                        enableQuickPost = true;
+                    }
                 }
             }
         }
