@@ -229,6 +229,16 @@ public class TweetAdapterWrap {
             viewHolder.tvTimestamp.setTextColor(Color.BLACK);
         }
 
+        if (preferences.getBoolean("pref_show_received", false)) {
+            viewHolder.tvReceived.setVisibility(View.VISIBLE);
+            viewHolder.tvReceived.setTypeface(FontAsset.getInstance(context).getFont());
+            viewHolder.tvReceived.setTextSize(fontSize * 0.8f);
+            viewHolder.tvReceived.setText(String.format("Received from @%s", st.getReceiveUser().ScreenName));
+        }
+        else {
+            viewHolder.tvReceived.setVisibility(View.GONE);
+        }
+
         return v;
     }
 
@@ -273,6 +283,7 @@ public class TweetAdapterWrap {
         ImageView ivProtected;
         TextView tvTimestamp;
         LinearLayout llAttach;
+        TextView tvReceived;
 
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
@@ -282,6 +293,7 @@ public class TweetAdapterWrap {
             ivProtected = (ImageView) v.findViewById(R.id.tweet_protected);
             tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
+            tvReceived = (TextView) v.findViewById(R.id.tweet_receive);
         }
 
     }
