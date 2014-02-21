@@ -62,6 +62,14 @@
             android:defaultValue="5"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="デバッグ設定">
+        <CheckBoxPreference
+            android:key="pref_show_received"
+            android:title="受信アカウントの表示"
+            android:summary="ツイートを受信したアカウントを表示します"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
     </PreferenceCategory>

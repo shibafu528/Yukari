@@ -75,4 +75,16 @@
         android:layout_marginLeft="-4dp"
         android:layout_marginBottom="-2dp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Received from \@"
+        android:textColor="#ff8b8b8b"
+        android:textSize="11sp"
+        android:id="@+id/tweet_receive"
+        android:layout_below="@+id/tweet_timestamp"
+        android:layout_alignLeft="@+id/tweet_timestamp"
+        android:layout_alignStart="@+id/tweet_timestamp" />
+
 </RelativeLayout>
