@@ -4,11 +4,14 @@ import android.os.AsyncTask;
 
 import java.util.List;
 
+import shibafu.yukari.service.TwitterService;
+
 /**
  * Created by shibafu on 14/02/13.
  */
 public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends AsyncTask<P, Void, T> {
     public interface RESTLoaderInterface {
+        TwitterService getService();
         List<PreformedStatus> getStatuses();
         void notifyDataSetChanged();
         int prepareInsertStatus(PreformedStatus status);
@@ -32,6 +35,10 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Asy
             List<PreformedStatus> dest = loaderInterface.getStatuses();
             int position;
             for (PreformedStatus status : result) {
+                AuthUserRecord checkOwn = loaderInterface.getService().isMyTweet(status);
+                if (checkOwn != null) {
+                    status.setReceiveUser(checkOwn);
+                }
                 position = loaderInterface.prepareInsertStatus(status);
                 if (position > -1) {
                     dest.add(position, status);
