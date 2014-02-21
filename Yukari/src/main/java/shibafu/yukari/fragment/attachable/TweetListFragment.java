@@ -243,6 +243,11 @@ public abstract class TweetListFragment extends AttachableListFragment {
 
     private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
         @Override
+        public TwitterService getService() {
+            return TweetListFragment.this.getService();
+        }
+
+        @Override
         public List<PreformedStatus> getStatuses() {
             return statuses;
         }
