@@ -12,6 +12,7 @@ import shibafu.yukari.R;
  * Created by shibafu on 14/02/19.
  */
 public class ProfileEditActivity extends ActionBarActivity {
+    public static final String EXTRA_USER = "user";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
