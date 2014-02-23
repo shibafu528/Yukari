@@ -2,10 +2,10 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:yukari="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/action_accept"
-        android:title="保存"
-        yukari:showAsAction="always"/>
     <item android:id="@+id/action_cancel"
         android:title="キャンセル"
+        yukari:showAsAction="always"/>
+    <item android:id="@+id/action_accept"
+        android:title="保存"
         yukari:showAsAction="always"/>
 </menu>
