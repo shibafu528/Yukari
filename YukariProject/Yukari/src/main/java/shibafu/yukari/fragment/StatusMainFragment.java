@@ -53,6 +53,8 @@ public class StatusMainFragment extends Fragment{
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
     private View tweetView;
+    private ImageButton ibShare;
+    private ImageButton ibQuote;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -267,7 +269,7 @@ public class StatusMainFragment extends Fragment{
             }
         });
 
-        ImageButton ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
+        ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
         ibQuote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -288,43 +290,43 @@ public class StatusMainFragment extends Fragment{
                     }
                 });
                 builder.setItems(
-                        new String[] {
+                        new String[]{
                                 "非公式RT ( RT @id: ... )",
                                 "QT ( QT @id: ... )",
                                 "公式アプリ風 ( \"@id: ...\" )",
                                 "URLのみ ( http://... )"},
                         new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        currentDialog = null;
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
 
-                        Intent intent = new Intent(getActivity(), TweetActivity.class);
-                        intent.putExtra(TweetActivity.EXTRA_USER, user);
-                        switch (which) {
-                            case 0:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                                break;
-                            case 1:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                                break;
-                            case 2:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
-                                break;
-                            case 3:
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                                break;
-                        }
-                        startActivity(intent);
-                    }
-                });
+                                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                                switch (which) {
+                                    case 0:
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                                        break;
+                                    case 1:
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                                        break;
+                                    case 2:
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
+                                        break;
+                                    case 3:
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                                        break;
+                                }
+                                startActivity(intent);
+                            }
+                        });
                 AlertDialog ad = builder.create();
                 ad.show();
                 currentDialog = ad;
             }
         });
 
-        ImageButton ibShare = (ImageButton) v.findViewById(R.id.ib_state_share);
+        ibShare = (ImageButton) v.findViewById(R.id.ib_state_share);
         ibShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -440,12 +442,16 @@ public class StatusMainFragment extends Fragment{
             serviceBound = true;
 
             if (StatusMainFragment.this.service.isMyTweet(status) != null) {
+                //自分のツイートの場合
                 ibFavorite.setEnabled(false);
                 ibFavRt.setEnabled(false);
             }
             if (status.getUser().isProtected()) {
+                //鍵postの場合
                 ibRetweet.setEnabled(false);
                 ibFavRt.setEnabled(false);
+                ibShare.setEnabled(false);
+                ibQuote.setEnabled(false);
             }
         }
 

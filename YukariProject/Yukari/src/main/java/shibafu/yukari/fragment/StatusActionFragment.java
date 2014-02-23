@@ -40,7 +40,6 @@ import shibafu.yukari.twitter.TwitterUtil;
 public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",
-            "クリップボードにコピー",
             "[×] ブックマークする",
             "[×] ミュート",
             "ツイート削除"
@@ -65,14 +64,16 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
-        PackageManager pm = getActivity().getPackageManager();
-        Intent query = new Intent("jp.r246.twicca.ACTION_SHOW_TWEET");
-        query.addCategory(Intent.CATEGORY_DEFAULT);
-        plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
-        Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
-        pluginNames.clear();
-        for (ResolveInfo ri : plugins) {
-            pluginNames.add(ri.activityInfo.loadLabel(pm).toString());
+        if (!status.getUser().isProtected()) {
+            PackageManager pm = getActivity().getPackageManager();
+            Intent query = new Intent("jp.r246.twicca.ACTION_SHOW_TWEET");
+            query.addCategory(Intent.CATEGORY_DEFAULT);
+            plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
+            Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
+            pluginNames.clear();
+            for (ResolveInfo ri : plugins) {
+                pluginNames.add(ri.activityInfo.loadLabel(pm).toString());
+            }
         }
     }
 
@@ -102,18 +103,11 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 target.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(Intent.createChooser(target, null));
                 break;
-            case 1:
-            {
-                ClipboardManager cb = (ClipboardManager)getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                cb.setText(TwitterUtil.createSTOT(status));
-                Toast.makeText(getActivity(), "クリップボードにコピーしました", Toast.LENGTH_LONG).show();
-                break;
-            }
+            case 1: break;
             case 2: break;
-            case 3: break;
             default:
             {
-                if (position == 4 && user != null && status.getUser().getId() == user.NumericId) {
+                if (position == 3 && user != null && status.getUser().getId() == user.NumericId) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
