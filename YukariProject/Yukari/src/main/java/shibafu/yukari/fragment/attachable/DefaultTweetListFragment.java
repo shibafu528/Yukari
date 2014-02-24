@@ -296,9 +296,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         @Override
         protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             super.onPostExecute(result);
-            if (!result.isEmpty()) {
-                Toast.makeText(getActivity(), "Returned @" + result.get(0).getReceiveUser().ScreenName, Toast.LENGTH_SHORT).show();
-            }
         }
     }
 }

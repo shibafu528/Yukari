@@ -19,6 +19,7 @@ import twitter4j.conf.ConfigurationBuilder;
  * Created by Shibafu on 13/08/01.
  */
 public class StreamUser extends Stream{
+    public static final String STREAM_TYPE = "User";
     private static final String LOG_TAG = "StreamUser";
     private UserStreamAdapter streamAdapter = new UserStreamAdapter() {
 
@@ -81,5 +82,10 @@ public class StreamUser extends Stream{
     public void stop() {
         Log.d(LOG_TAG, "Shutdown UserStream user: @" + getUserRecord().ScreenName);
         stream.shutdown();
+    }
+
+    @Override
+    protected String getStreamType() {
+        return STREAM_TYPE;
     }
 }
