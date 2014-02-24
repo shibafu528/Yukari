@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter.streaming;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -13,6 +14,8 @@ import twitter4j.StatusDeletionNotice;
  * Created by shibafu on 14/02/16.
  */
 public class FilterStream extends Stream{
+    public static final String STREAM_TYPE = "Filter";
+    public static final String EXTRA_FILTER_QUERY = "query";
     private static final String LOG_TAG = "FilterStream";
     private final String query;
     private StatusAdapter statusListener = new StatusAdapter() {
@@ -50,5 +53,17 @@ public class FilterStream extends Stream{
 
     public String getQuery() {
         return query;
+    }
+
+    @Override
+    protected String getStreamType() {
+        return STREAM_TYPE;
+    }
+
+    @Override
+    protected Intent createBroadcast(String action) {
+        Intent intent = super.createBroadcast(action);
+        intent.putExtra(EXTRA_FILTER_QUERY, query);
+        return intent;
     }
 }

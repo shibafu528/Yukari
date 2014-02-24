@@ -93,7 +93,6 @@ public class TwitterService extends Service{
 
     //システムサービス系
     private NotificationManager notificationManager;
-    private ConnectivityManager connectivityManager;
     private Vibrator vibrator;
     private static final int NOTIF_FAVED = 1;
     private static final int NOTIF_REPLY = 2;
@@ -105,7 +104,6 @@ public class TwitterService extends Service{
     private long[] vibFaved = {140, 100};
 
     //ネットワーク管理
-    private boolean disconnectedStream = false;
 
     //Twitter通信系
     private Twitter twitter;
@@ -158,7 +156,7 @@ public class TwitterService extends Service{
 
         @Override
         public void onStatus(Stream from, Status status) {
-            if (from == null || status == null) {
+            if (from == null || status == null || status.getUser() == null) {
                 Log.w(LOG_TAG, "onStatus, NullPointer!");
                 return;
             }
@@ -369,40 +367,16 @@ public class TwitterService extends Service{
     private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<StatusListener, Queue<EventBuffer>>();
 
-    private BroadcastReceiver connectivityChangeListener = new BroadcastReceiver() {
+    private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            boolean isConnected;
-            {
-                NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-                if (info == null) {
-                    isConnected = false;
-                }
-                else {
-                    isConnected = info.isConnected();
-                }
+            if (intent.getAction().equals(Stream.CONNECTED_STREAM)) {
+                AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
+                showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
             }
-            if (isConnected && disconnectedStream) {
-                //Stream再接続を行う
-                Log.d("TwitterService", "Network connected.");
-                showToast("Streamを再接続します");
-                for (StreamUser streamUser : streamUsers) {
-                    streamUser.start();
-                }
-                for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
-                    e.getValue().start();
-                }
-                disconnectedStream = false;
-            }
-            if (!isConnected && !disconnectedStream) {
-                Log.d("TwitterService", "Network disconnected.");
-                for (StreamUser streamUser : streamUsers) {
-                    streamUser.stop();
-                }
-                for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
-                    e.getValue().stop();
-                }
-                disconnectedStream = true;
+            else if (intent.getAction().equals(Stream.DISCONNECTED_STREAM)) {
+                AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
+                showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
             }
         }
     };
@@ -438,11 +412,11 @@ public class TwitterService extends Service{
 
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        connectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 
         //ネットワーク状態の監視
-        registerReceiver(connectivityChangeListener, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
+        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
 
         Log.d(LOG_TAG, "onCreate completed.");
     }
@@ -456,7 +430,7 @@ public class TwitterService extends Service{
             e.getValue().stop();
         }
 
-        unregisterReceiver(connectivityChangeListener);
+        unregisterReceiver(streamConnectivityListener);
         for (final StreamUser su : streamUsers) {
             Thread thread = new Thread(new Runnable() {
                 @Override
