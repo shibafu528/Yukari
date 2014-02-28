@@ -1,18 +1,26 @@
 package shibafu.yukari.activity;
 
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import shibafu.yukari.R;
+import shibafu.yukari.service.TwitterService;
 
 /**
  * Created by shibafu on 14/02/19.
  */
 public class ProfileEditActivity extends ActionBarActivity {
     public static final String EXTRA_USER = "user";
+
+    private TwitterService service;
+    private boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,4 +49,30 @@ public class ProfileEditActivity extends ActionBarActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbindService(connection);
+    }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
+            ProfileEditActivity.this.service = binder.getService();
+            serviceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 }

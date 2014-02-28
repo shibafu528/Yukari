@@ -177,8 +177,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             public boolean onLongClick(View v) {
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 Menu menu = popupMenu.getMenu();
-                menu.add(Menu.NONE, 0, Menu.NONE, "⇧ TLの一番上へ");
-                menu.add(Menu.NONE, 1, Menu.NONE, "⇩ TLの一番下へ");
+                menu.add(Menu.NONE, 0, 0, "⇧ TLの一番上へ");
+                menu.add(Menu.NONE, 2, 1, "◇ カラム編集");
+                menu.add(Menu.NONE, 1, 9, "⇩ TLの一番下へ");
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
@@ -188,6 +189,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                 return true;
                             case 1:
                                 currentPage.scrollToBottom();
+                                return true;
+                            case 2:
+                                startActivity(new Intent(MainActivity.this, ColumnEditActivity.class));
                                 return true;
                         }
                         return false;
