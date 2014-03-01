@@ -22,19 +22,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.TabInfo;
+import shibafu.yukari.common.TabType;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by shibafu on 14/02/28.
  */
-public class ColumnEditActivity extends ActionBarActivity implements TwitterServiceDelegate{
+public class ColumnEditActivity extends ActionBarActivity
+        implements TwitterServiceDelegate, DialogInterface.OnClickListener{
 
     private static final String FRAGMENT_TAG = "inner";
     private TwitterService service;
@@ -63,6 +68,14 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
         unbindService(connection);
     }
 
+    @Override
+    public void onBackPressed() {
+        SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                android.R.drawable.ic_dialog_info,
+                "Info", "変更はアプリの再起動後に適用されます", "OK", null);
+        dialogFragment.show(getSupportFragmentManager(), "dialog");
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -83,6 +96,42 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
     @Override
     public TwitterService getTwitterService() {
         return service;
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        finish();
+    }
+
+    public void addColumn(int type) {
+        if (type < 0) return;
+        if (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM) {
+            findInnerFragment().addColumn(type, null, null);
+        }
+        else {
+            Intent intent = new Intent(this, AccountChooserActivity.class);
+            startActivityForResult(intent, type);
+        }
+    }
+
+    public void addColumn(int type, AuthUserRecord userRecord) {
+        if (type == TabType.TABTYPE_LIST) {
+            //TODO: List選択ダイアログ
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+            addColumn(requestCode, userRecord);
+        }
+    }
+
+    public InnerFragment findInnerFragment() {
+        return ((InnerFragment)getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG));
     }
 
     public static class InnerFragment extends ListFragment {
@@ -112,6 +161,28 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
                 }
             }
             return super.onOptionsItemSelected(item);
+        }
+
+        public void addColumn(int type, AuthUserRecord userRecord, Object argument) {
+            switch (type) {
+                case TabType.TABTYPE_HOME:
+                case TabType.TABTYPE_MENTION:
+                case TabType.TABTYPE_DM:
+                    for (TabInfo info : tabs) {
+                        if (info.getType() == type) {
+                            return;
+                        }
+                    }
+                    ((ColumnEditActivity)getActivity()).getTwitterService().getDatabase()
+                            .updateTab(new TabInfo(type, tabs.size() + 1, null));
+                    reloadList();
+                    break;
+                case TabType.TABTYPE_LIST:
+                    ((ColumnEditActivity)getActivity()).getTwitterService().getDatabase()
+                            .updateTab(new TabInfo(type, tabs.size() + 1, userRecord, (Long) argument));
+                    reloadList();
+                    break;
+            }
         }
 
         public void reloadList() {
@@ -154,7 +225,25 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
                     .setItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-
+                            int type;
+                            switch (which) {
+                                case 0:
+                                    type = TabType.TABTYPE_HOME;
+                                    break;
+                                case 1:
+                                    type = TabType.TABTYPE_MENTION;
+                                    break;
+                                case 2:
+                                    type = TabType.TABTYPE_DM;
+                                    break;
+                                case 3:
+                                    type = TabType.TABTYPE_LIST;
+                                    break;
+                                default:
+                                    type = -1;
+                                    break;
+                            }
+                            ((ColumnEditActivity)getActivity()).addColumn(type);
                         }
                     });
             return builder.create();
