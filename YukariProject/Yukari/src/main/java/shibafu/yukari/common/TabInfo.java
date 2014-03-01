@@ -53,7 +53,7 @@ public class TabInfo implements DBRecord, Serializable {
     }
 
     public TabInfo(Cursor cursor) {
-        this.id = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_ID));
+        this.id = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_ID + "_t"));
         this.type = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TYPE));
         this.order = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TAB_ORDER));
         long accountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID));

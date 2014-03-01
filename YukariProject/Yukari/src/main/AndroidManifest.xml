@@ -211,7 +211,7 @@
         </activity>
 
         <activity
-            android:name=".activity.ColumnEditActivity"
+            android:name=".activity.TabEditActivity"
             android:label="@string/title_activity_column_edit" />
     </application>
 

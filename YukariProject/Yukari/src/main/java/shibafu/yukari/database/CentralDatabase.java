@@ -391,7 +391,7 @@ public class CentralDatabase {
     }
 
     public ArrayList<TabInfo> getTabs() {
-        Cursor cursor = db.rawQuery("SELECT * FROM " +
+        Cursor cursor = db.rawQuery("SELECT " + joinColumnName(TABLE_TABS, COL_TABS_ID) + " AS _id_t, * FROM " +
                 TABLE_TABS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
                 TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
                 " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
@@ -411,4 +411,8 @@ public class CentralDatabase {
         return tabs;
     }
     //</editor-fold>
+
+    public static String joinColumnName(String table, String column) {
+        return table + "." + column;
+    }
 }

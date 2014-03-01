@@ -23,5 +23,5 @@
 
     <string name="key_viewholder">viewholder</string>
     <string name="title_activity_profile_edit">プロフィール編集</string>
-    <string name="title_activity_column_edit">カラム編集</string>
+    <string name="title_activity_column_edit">タブの編集</string>
 </resources>

@@ -178,7 +178,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 Menu menu = popupMenu.getMenu();
                 menu.add(Menu.NONE, 0, 0, "⇧ TLの一番上へ");
-                menu.add(Menu.NONE, 2, 1, "◇ カラム編集");
+                menu.add(Menu.NONE, 2, 1, "◇ タブの編集");
                 menu.add(Menu.NONE, 1, 9, "⇩ TLの一番下へ");
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
@@ -191,7 +191,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                 currentPage.scrollToBottom();
                                 return true;
                             case 2:
-                                startActivity(new Intent(MainActivity.this, ColumnEditActivity.class));
+                                startActivity(new Intent(MainActivity.this, TabEditActivity.class));
                                 return true;
                         }
                         return false;
@@ -704,8 +704,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(pageId);
 
-        currentPage = pageList.get(pageId).getAttachableListFragment();
-        tvTabText.setText(pageList.get(pageId).getTitle());
+        if (!pageList.isEmpty()) {
+            currentPage = pageList.get(pageId).getAttachableListFragment();
+            tvTabText.setText(pageList.get(pageId).getTitle());
+        }
+        else {
+            tvTabText.setText("!EMPTY!");
+        }
     }
 
     private ServiceConnection connection = new ServiceConnection() {
