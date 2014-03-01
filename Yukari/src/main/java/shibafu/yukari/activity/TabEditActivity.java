@@ -10,7 +10,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
@@ -21,6 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,7 +38,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 /**
  * Created by shibafu on 14/02/28.
  */
-public class ColumnEditActivity extends ActionBarActivity
+public class TabEditActivity extends ActionBarActivity
         implements TwitterServiceDelegate, DialogInterface.OnClickListener{
 
     private static final String FRAGMENT_TAG = "inner";
@@ -80,7 +80,7 @@ public class ColumnEditActivity extends ActionBarActivity
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            ColumnEditActivity.this.service = binder.getService();
+            TabEditActivity.this.service = binder.getService();
             serviceBound = true;
 
             InnerFragment fragment = (InnerFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
@@ -103,10 +103,10 @@ public class ColumnEditActivity extends ActionBarActivity
         finish();
     }
 
-    public void addColumn(int type) {
+    public void addTab(int type) {
         if (type < 0) return;
         if (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM) {
-            findInnerFragment().addColumn(type, null, null);
+            findInnerFragment().addTab(type, null, null);
         }
         else {
             Intent intent = new Intent(this, AccountChooserActivity.class);
@@ -114,7 +114,7 @@ public class ColumnEditActivity extends ActionBarActivity
         }
     }
 
-    public void addColumn(int type, AuthUserRecord userRecord) {
+    public void addTab(int type, AuthUserRecord userRecord) {
         if (type == TabType.TABTYPE_LIST) {
             //TODO: List選択ダイアログ
 
@@ -126,7 +126,7 @@ public class ColumnEditActivity extends ActionBarActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-            addColumn(requestCode, userRecord);
+            addTab(requestCode, userRecord);
         }
     }
 
@@ -134,9 +134,10 @@ public class ColumnEditActivity extends ActionBarActivity
         return ((InnerFragment)getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG));
     }
 
-    public static class InnerFragment extends ListFragment {
+    public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
 
         private ArrayList<TabInfo> tabs;
+        private TabInfo deleteReserve = null;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -146,7 +147,7 @@ public class ColumnEditActivity extends ActionBarActivity
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-            MenuItem addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "カラムの追加").setIcon(R.drawable.ic_action_add);
+            MenuItem addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "タブの追加").setIcon(R.drawable.ic_action_add);
             MenuItemCompat.setShowAsAction(addMenu, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
         }
 
@@ -163,7 +164,18 @@ public class ColumnEditActivity extends ActionBarActivity
             return super.onOptionsItemSelected(item);
         }
 
-        public void addColumn(int type, AuthUserRecord userRecord, Object argument) {
+        @Override
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            deleteReserve = tabs.get(position);
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    android.R.drawable.ic_dialog_alert,
+                    "確認", "タブを削除しますか?", "OK", "キャンセル"
+            );
+            dialogFragment.setTargetFragment(this, 1);
+            dialogFragment.show(getChildFragmentManager(), "alert");
+        }
+
+        public void addTab(int type, AuthUserRecord userRecord, Object argument) {
             switch (type) {
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
@@ -173,12 +185,12 @@ public class ColumnEditActivity extends ActionBarActivity
                             return;
                         }
                     }
-                    ((ColumnEditActivity)getActivity()).getTwitterService().getDatabase()
+                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
                             .updateTab(new TabInfo(type, tabs.size() + 1, null));
                     reloadList();
                     break;
                 case TabType.TABTYPE_LIST:
-                    ((ColumnEditActivity)getActivity()).getTwitterService().getDatabase()
+                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
                             .updateTab(new TabInfo(type, tabs.size() + 1, userRecord, (Long) argument));
                     reloadList();
                     break;
@@ -186,8 +198,19 @@ public class ColumnEditActivity extends ActionBarActivity
         }
 
         public void reloadList() {
-            tabs = ((ColumnEditActivity) getActivity()).getTwitterService().getDatabase().getTabs();
+            tabs = ((TabEditActivity) getActivity()).getTwitterService().getDatabase().getTabs();
             setListAdapter(new Adapter(getActivity(), tabs));
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
+                ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
+                        .deleteTab(deleteReserve.getId());
+                reloadList();
+                Toast.makeText(getActivity(), "タブを削除しました", Toast.LENGTH_LONG).show();
+            }
+            deleteReserve = null;
         }
 
         private class Adapter extends ArrayAdapter<TabInfo> {
@@ -221,7 +244,7 @@ public class ColumnEditActivity extends ActionBarActivity
                     "List"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
-                    .setTitle("カラムの種類を選択")
+                    .setTitle("タブの種類を選択")
                     .setItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -243,7 +266,7 @@ public class ColumnEditActivity extends ActionBarActivity
                                     type = -1;
                                     break;
                             }
-                            ((ColumnEditActivity)getActivity()).addColumn(type);
+                            ((TabEditActivity)getActivity()).addTab(type);
                         }
                     });
             return builder.create();
