@@ -30,11 +30,12 @@ public class TabInfo implements DBRecord, Serializable {
         this.bindAccount = bindAccount;
     }
 
-    public TabInfo(int type, int order, AuthUserRecord bindAccount, long bindListId) {
+    public TabInfo(int type, int order, AuthUserRecord bindAccount, long bindListId, String listSlug) {
         this.type = type;
         this.order = order;
         this.bindAccount = bindAccount;
         this.bindListId = bindListId;
+        this.searchKeyword = listSlug;
     }
 
     public TabInfo(int type, int order, AuthUserRecord bindAccount, String word) {
@@ -81,7 +82,8 @@ public class TabInfo implements DBRecord, Serializable {
         values.put(CentralDatabase.COL_TABS_TAB_ORDER, order);
         values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.NumericId:-1);
         values.put(CentralDatabase.COL_TABS_BIND_LIST_ID, (type == TabType.TABTYPE_LIST)?bindListId:-1);
-        values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD, (type == TabType.TABTYPE_SEARCH || type == TabType.TABTYPE_TRACK)? searchKeyword:"");
+        values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD,
+                (type == TabType.TABTYPE_SEARCH || type == TabType.TABTYPE_TRACK || type == TabType.TABTYPE_LIST)? searchKeyword:"");
         values.put(CentralDatabase.COL_TABS_FILTER_QUERY, (type == TabType.TABTYPE_FILTER)?filterQuery:"");
         return values;
     }
@@ -126,6 +128,9 @@ public class TabInfo implements DBRecord, Serializable {
         return searchKeyword;
     }
 
+    //Alias of SearchKeyword (for List TabInfo)
+    public String getListSlug() { return searchKeyword; }
+
     public void setSearchKeyword(String searchKeyword) {
         this.searchKeyword = searchKeyword;
     }
@@ -166,7 +171,7 @@ public class TabInfo implements DBRecord, Serializable {
             case TabType.TABTYPE_HISTORY:
                 return "History";
             case TabType.TABTYPE_LIST:
-                return "List: " + getBindListId();
+                return "List: " + getListSlug();
             case TabType.TABTYPE_USER:
                 return "User";
             default:

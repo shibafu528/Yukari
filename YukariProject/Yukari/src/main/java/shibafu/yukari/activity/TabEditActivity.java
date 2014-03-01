@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,10 +31,15 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.ThrowableAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.ResponseList;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.UserList;
 
 /**
  * Created by shibafu on 14/02/28.
@@ -116,8 +122,14 @@ public class TabEditActivity extends ActionBarActivity
 
     public void addTab(int type, AuthUserRecord userRecord) {
         if (type == TabType.TABTYPE_LIST) {
-            //TODO: List選択ダイアログ
+            ListChooseDialogFragment dialogFragment = ListChooseDialogFragment.newInstance(userRecord);
+            dialogFragment.show(getSupportFragmentManager(), "list");
+        }
+    }
 
+    public void addTab(int type, AuthUserRecord userRecord, Object... args) {
+        if (type == TabType.TABTYPE_LIST && args.length == 2) {
+            findInnerFragment().addTab(type, userRecord, args);
         }
     }
 
@@ -175,7 +187,7 @@ public class TabEditActivity extends ActionBarActivity
             dialogFragment.show(getChildFragmentManager(), "alert");
         }
 
-        public void addTab(int type, AuthUserRecord userRecord, Object argument) {
+        public void addTab(int type, AuthUserRecord userRecord, Object... args) {
             switch (type) {
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
@@ -191,7 +203,12 @@ public class TabEditActivity extends ActionBarActivity
                     break;
                 case TabType.TABTYPE_LIST:
                     ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateTab(new TabInfo(type, tabs.size() + 1, userRecord, (Long) argument));
+                            .updateTab(new TabInfo(
+                                    type,
+                                    tabs.size() + 1,
+                                    userRecord,
+                                    (Long) args[0],
+                                    (String) args[1]));
                     reloadList();
                     break;
             }
@@ -270,6 +287,119 @@ public class TabEditActivity extends ActionBarActivity
                         }
                     });
             return builder.create();
+        }
+    }
+
+    public static class ListChooseDialogFragment extends DialogFragment {
+        private List<UserList> userLists = new ArrayList<UserList>();
+        private AlertDialog dialog;
+        public static final String ARG_USER = "user";
+
+        public static ListChooseDialogFragment newInstance(AuthUserRecord userRecord) {
+            ListChooseDialogFragment fragment = new ListChooseDialogFragment();
+            Bundle args = new Bundle();
+            args.putSerializable(ARG_USER, userRecord);
+            fragment.setArguments(args);
+            return fragment;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            dialog = new AlertDialog.Builder(getActivity())
+                    .setTitle("Loading...")
+                    .setAdapter(new Adapter(getActivity(), userLists), new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Bundle args = getArguments();
+                            UserList userList = userLists.get(which);
+                            ((TabEditActivity) getActivity()).addTab(
+                                    TabType.TABTYPE_LIST,
+                                    (AuthUserRecord) args.getSerializable(ARG_USER),
+                                    (long) userList.getId(),
+                                    userList.getSlug());
+                        }
+                    })
+                    .create();
+            Bundle args = getArguments();
+            loadLists((AuthUserRecord) args.getSerializable(ARG_USER));
+            return dialog;
+        }
+
+        private void loadLists(AuthUserRecord userRecord) {
+            if (userLists.isEmpty() && userRecord != null) {
+                ThrowableAsyncTask<AuthUserRecord, Void, ResponseList<UserList>> task =
+                        new ThrowableAsyncTask<AuthUserRecord, Void, ResponseList<UserList>>() {
+                            @Override
+                            protected ThrowableResult<ResponseList<UserList>> doInBackground(AuthUserRecord... params) {
+                                Twitter twitter = ((TabEditActivity) getActivity()).getTwitterService().getTwitter();
+                                twitter.setOAuthAccessToken(params[0].getAccessToken());
+                                try {
+                                    return new ThrowableResult<ResponseList<UserList>>(twitter.getUserLists(params[0].NumericId));
+                                } catch (TwitterException e) {
+                                    e.printStackTrace();
+                                    return new ThrowableResult<ResponseList<UserList>>(e);
+                                }
+                            }
+
+                            @Override
+                            protected void onPostExecute(ThrowableResult<ResponseList<UserList>> result) {
+                                if (result != null && !result.isException()) {
+                                    userLists = result.getResult();
+                                    loadLists(null);
+                                }
+                                else if (result != null) {
+                                    Exception e = result.getException();
+                                    if (e instanceof TwitterException) {
+                                        TwitterException te = (TwitterException) e;
+                                        Toast.makeText(getActivity(),
+                                                String.format("Listの取得中にエラー: %d\n%s",
+                                                        te.getErrorCode(),
+                                                        te.getErrorMessage()),
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                    else {
+                                        Toast.makeText(getActivity(),
+                                                String.format("Listの取得中にエラー: \n%s",
+                                                        e.getMessage()),
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                    dismiss();
+                                }
+                                else {
+                                    dismiss();
+                                    Toast.makeText(getActivity(),
+                                            "Listの取得中にエラー",
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            }
+                        };
+                task.execute(userRecord);
+            }
+            else {
+                dialog.setTitle("Listを選択");
+                dialog.getListView().setAdapter(new Adapter(getActivity(), userLists));
+            }
+        }
+
+        private class Adapter extends ArrayAdapter<UserList> {
+
+            public Adapter(Context context, List<UserList> objects) {
+                super(context, 0, objects);
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                if (convertView == null) {
+                    convertView = getActivity().getLayoutInflater().inflate(
+                            android.R.layout.simple_list_item_1, null);
+                }
+                UserList item = getItem(position);
+                if (item != null) {
+                    TextView tv = (TextView) convertView.findViewById(android.R.id.text1);
+                    tv.setText(item.getFullName());
+                }
+                return convertView;
+            }
         }
     }
 }
