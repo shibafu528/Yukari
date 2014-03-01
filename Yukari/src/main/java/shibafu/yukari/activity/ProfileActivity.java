@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.view.Window;
 import android.widget.LinearLayout;
@@ -19,7 +20,7 @@ import shibafu.yukari.fragment.ProfileFragment;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileActivity extends FragmentActivity{
+public class ProfileActivity extends ActionBarActivity{
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
@@ -27,8 +28,8 @@ public class ProfileActivity extends FragmentActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);
+        getSupportActionBar().hide();
 
         final LinearLayout llTitle = (LinearLayout) findViewById(R.id.llFrameTitle);
         final TextView tvTitle = (TextView) findViewById(R.id.tvFrameTitle);
