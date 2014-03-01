@@ -59,36 +59,37 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
                 statuses.add(new PreformedStatus(traceStart, getCurrentUser()));
             }
         }
-        else if (mode == TabType.TABTYPE_USER || mode == TabType.TABTYPE_FAVORITE) {
-            targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
-        }
-        else if (mode == TabType.TABTYPE_LIST) {
-            listId = args.getLong(EXTRA_LIST_ID, -1);
-        }
+        else {
+            if (mode == TabType.TABTYPE_USER || mode == TabType.TABTYPE_FAVORITE) {
+                targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
+            }
+            else if (mode == TabType.TABTYPE_LIST) {
+                listId = args.getLong(EXTRA_LIST_ID, -1);
+            }
 
-        ViewGroup viewGroup = (ViewGroup) view;
+            ViewGroup viewGroup = (ViewGroup) view;
 
-        Options.Builder options = new Options.Builder()
-                .noMinimize();
+            Options.Builder options = new Options.Builder()
+                    .noMinimize();
 
-        pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+            pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
 
-        ActionBarPullToRefresh.from(getActivity())
-                .insertLayoutInto(viewGroup)
-                .theseChildrenArePullable(getListView(), getListView().getEmptyView())
-                .listener(this)
-                .options(options.build())
-                .setup(pullToRefreshLayout);
+            ActionBarPullToRefresh.from(getActivity())
+                    .insertLayoutInto(viewGroup)
+                    .theseChildrenArePullable(getListView(), getListView().getEmptyView())
+                    .listener(this)
+                    .options(options.build())
+                    .setup(pullToRefreshLayout);
 
-        switch (getMode()) {
-            case TabType.TABTYPE_HOME:
-            case TabType.TABTYPE_MENTION:
-            case TabType.TABTYPE_DM:
-            case TabType.TABTYPE_FILTER:
-            case TabType.TABTYPE_HISTORY:
-            case TabType.TABTYPE_TRACE:
-                pullToRefreshLayout.setEnabled(false);
-                break;
+            switch (getMode()) {
+                case TabType.TABTYPE_HOME:
+                case TabType.TABTYPE_MENTION:
+                case TabType.TABTYPE_DM:
+                case TabType.TABTYPE_FILTER:
+                case TabType.TABTYPE_HISTORY:
+                    pullToRefreshLayout.setEnabled(false);
+                    break;
+            }
         }
     }
 
