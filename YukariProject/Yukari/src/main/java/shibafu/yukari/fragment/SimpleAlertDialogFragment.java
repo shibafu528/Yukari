@@ -11,6 +11,7 @@ import android.support.v4.app.DialogFragment;
  */
 public class SimpleAlertDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
+    public static final String ARG_ICON = "icon";
     public static final String ARG_TITLE = "title";
     public static final String ARG_MESSAGE = "message";
     public static final String ARG_POSSITIVE = "possitive";
@@ -28,9 +29,24 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         return fragment;
     }
 
+    public static SimpleAlertDialogFragment newInstance(
+            int iconId,
+            String title, String message, String possitive, String negative) {
+        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_ICON, iconId);
+        args.putString(ARG_TITLE, title);
+        args.putString(ARG_MESSAGE, message);
+        args.putString(ARG_POSSITIVE, possitive);
+        args.putString(ARG_NEGATIVE, negative);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
+        int iconId = args.getInt(ARG_ICON, -1);
         String title = args.getString(ARG_TITLE);
         String message = args.getString(ARG_MESSAGE);
         String possitive = args.getString(ARG_POSSITIVE);
@@ -38,6 +54,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
+        if (iconId > -1) builder.setIcon(iconId);
         if (title != null) builder.setTitle(title);
         if (message != null) builder.setMessage(message);
         if (possitive != null) builder.setPositiveButton(possitive, this);
@@ -66,5 +83,10 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         if (listener != null) {
             listener.onClick(dialogInterface, i);
         }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
     }
 }
