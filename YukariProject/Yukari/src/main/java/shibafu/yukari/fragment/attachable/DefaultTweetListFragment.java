@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -26,16 +27,25 @@ import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.Options;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements TwitterService.StatusListener {
+public class DefaultTweetListFragment extends TweetListFragment implements TwitterService.StatusListener, OnRefreshListener {
+
+    public static final String EXTRA_LIST_ID = "listid";
 
     private Status traceStart = null;
     private User targetUser = null;
+    private long listId = -1;
 
     private long lastStatusId = -1;
+
+    private PullToRefreshLayout pullToRefreshLayout;
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -51,6 +61,34 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         }
         else if (mode == TabType.TABTYPE_USER || mode == TabType.TABTYPE_FAVORITE) {
             targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
+        }
+        else if (mode == TabType.TABTYPE_LIST) {
+            listId = args.getLong(EXTRA_LIST_ID, -1);
+        }
+
+        ViewGroup viewGroup = (ViewGroup) view;
+
+        Options.Builder options = new Options.Builder()
+                .noMinimize();
+
+        pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+
+        ActionBarPullToRefresh.from(getActivity())
+                .insertLayoutInto(viewGroup)
+                .theseChildrenArePullable(getListView(), getListView().getEmptyView())
+                .listener(this)
+                .options(options.build())
+                .setup(pullToRefreshLayout);
+
+        switch (getMode()) {
+            case TabType.TABTYPE_HOME:
+            case TabType.TABTYPE_MENTION:
+            case TabType.TABTYPE_DM:
+            case TabType.TABTYPE_FILTER:
+            case TabType.TABTYPE_HISTORY:
+            case TabType.TABTYPE_TRACE:
+                pullToRefreshLayout.setEnabled(false);
+                break;
         }
     }
 
@@ -89,6 +127,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
                 break;
             case LOADER_LOAD_MORE:
                 loader.execute(loader.new Params(lastStatusId, userRecord));
+                break;
+            case LOADER_LOAD_UPDATE:
+                loader.execute(loader.new Params(userRecord, true));
                 break;
         }
     }
@@ -227,11 +268,19 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         });
     }
 
+    @Override
+    public void onRefreshStarted(View view) {
+        for (AuthUserRecord user : users) {
+            executeLoader(LOADER_LOAD_UPDATE, user);
+        }
+    }
+
     private class DefaultRESTLoader
             extends RESTLoader<DefaultRESTLoader.Params, PreformedResponseList<PreformedStatus>> {
         class Params {
             private Paging paging;
             private AuthUserRecord userRecord;
+            private boolean saveLastPaging;
 
             public Params(AuthUserRecord userRecord) {
                 this.paging = new Paging();
@@ -246,12 +295,22 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
                 this.userRecord = userRecord;
             }
 
+            public Params(AuthUserRecord userRecord, boolean saveLastPaging) {
+                this.paging = new Paging();
+                this.userRecord = userRecord;
+                this.saveLastPaging = saveLastPaging;
+            }
+
             public Paging getPaging() {
                 return paging;
             }
 
             public AuthUserRecord getUserRecord() {
                 return userRecord;
+            }
+
+            public boolean isSaveLastPaging() {
+                return saveLastPaging;
             }
         }
 
@@ -279,12 +338,17 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
                     case TabType.TABTYPE_FAVORITE:
                         responseList = twitter.getFavorites(targetUser.getId(), paging);
                         break;
+                    case TabType.TABTYPE_LIST:
+                        responseList = twitter.getUserListStatuses((int)listId, paging);
+                        break;
                 }
-                if (responseList == null) {
-                    lastStatusId = -1;
-                }
-                else if (responseList.size() > 0) {
-                    lastStatusId = responseList.get(responseList.size() - 1).getId();
+                if (!params[0].isSaveLastPaging()) {
+                    if (responseList == null) {
+                        lastStatusId = -1;
+                    }
+                    else if (responseList.size() > 0) {
+                        lastStatusId = responseList.get(responseList.size() - 1).getId();
+                    }
                 }
                 return PRListFactory.create(responseList, params[0].getUserRecord());
             } catch (TwitterException e) {
@@ -296,6 +360,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         @Override
         protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             super.onPostExecute(result);
+            pullToRefreshLayout.setRefreshComplete();
         }
     }
 }
