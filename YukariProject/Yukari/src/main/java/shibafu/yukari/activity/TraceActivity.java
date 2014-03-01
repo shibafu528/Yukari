@@ -21,12 +21,14 @@ public class TraceActivity extends FragmentActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);
 
-        TweetListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
-        Bundle args = new Bundle(getIntent().getExtras());
-        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
-        fragment.setArguments(args);
+        if (savedInstanceState == null) {
+            TweetListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
+            Bundle args = new Bundle(getIntent().getExtras());
+            args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
+            fragment.setArguments(args);
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.frame, fragment).commit();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.frame, fragment).commit();
+        }
     }
 }
