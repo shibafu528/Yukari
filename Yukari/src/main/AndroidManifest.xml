@@ -177,7 +177,7 @@
 
         <activity
             android:name=".activity.TraceActivity"
-            android:theme="@style/AppThemeNoTitle"
+            android:theme="@style/AppDialogThemeWhenLarge"
             android:label="Trace" />
 
         <activity

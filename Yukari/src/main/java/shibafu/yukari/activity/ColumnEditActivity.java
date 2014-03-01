@@ -1,11 +1,15 @@
 package shibafu.yukari.activity;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
@@ -97,6 +101,19 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
             MenuItemCompat.setShowAsAction(addMenu, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
         }
 
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_add:
+                {
+                    TypeChooseDialogFragment dialogFragment = new TypeChooseDialogFragment();
+                    dialogFragment.show(getChildFragmentManager(), "typechoose");
+                    return true;
+                }
+            }
+            return super.onOptionsItemSelected(item);
+        }
+
         public void reloadList() {
             tabs = ((ColumnEditActivity) getActivity()).getTwitterService().getDatabase().getTabs();
             setListAdapter(new Adapter(getActivity(), tabs));
@@ -120,6 +137,27 @@ public class ColumnEditActivity extends ActionBarActivity implements TwitterServ
                 }
                 return convertView;
             }
+        }
+    }
+
+    public static class TypeChooseDialogFragment extends DialogFragment {
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            String[] items = {
+                    "Home",
+                    "Mentions",
+                    "DM",
+                    "List"
+            };
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
+                    .setTitle("カラムの種類を選択")
+                    .setItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+            return builder.create();
         }
     }
 }

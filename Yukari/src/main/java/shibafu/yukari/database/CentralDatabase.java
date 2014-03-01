@@ -375,6 +375,7 @@ public class CentralDatabase {
     }
     //</editor-fold>
 
+    //<editor-fold desc="Tabs">
     public void updateTab(TabInfo tabInfo) {
         ContentValues values = tabInfo.getContentValues();
         if (values.containsKey(COL_TABS_ID)) {
@@ -409,4 +410,5 @@ public class CentralDatabase {
         }
         return tabs;
     }
+    //</editor-fold>
 }
