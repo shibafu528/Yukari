@@ -50,6 +50,7 @@ import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
+import shibafu.yukari.fragment.attachable.DefaultTweetListFragment;
 import shibafu.yukari.fragment.attachable.SearchListFragment;
 import shibafu.yukari.fragment.attachable.TweetListFragment;
 import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
@@ -672,6 +673,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 service.startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
             case TabType.TABTYPE_SEARCH:
                 b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
+                break;
+            case TabType.TABTYPE_LIST:
+                b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
                 break;
         }
         b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
