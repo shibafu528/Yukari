@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.annotation.TargetApi;
 import android.app.Dialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
@@ -373,6 +374,7 @@ public class PreviewActivity extends FragmentActivity {
             ibSave.setVisibility(View.GONE);
         }
         ibSave.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.GINGERBREAD)
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
@@ -395,7 +397,12 @@ public class PreviewActivity extends FragmentActivity {
                     request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment());
                     File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     pathExternalPublicDir.mkdirs();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                        request.setShowRunningNotification(true);
+                    }
+                    else {
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    }
                     dlm.enqueue(request);
                 }
             }
