@@ -67,28 +67,30 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
                 listId = args.getLong(EXTRA_LIST_ID, -1);
             }
 
-            ViewGroup viewGroup = (ViewGroup) view;
-
-            Options.Builder options = new Options.Builder()
-                    .noMinimize();
-
-            pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
-
-            ActionBarPullToRefresh.from(getActivity())
-                    .insertLayoutInto(viewGroup)
-                    .theseChildrenArePullable(getListView(), getListView().getEmptyView())
-                    .listener(this)
-                    .options(options.build())
-                    .setup(pullToRefreshLayout);
-
             switch (getMode()) {
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
                 case TabType.TABTYPE_DM:
                 case TabType.TABTYPE_FILTER:
                 case TabType.TABTYPE_HISTORY:
-                    pullToRefreshLayout.setEnabled(false);
                     break;
+                default:
+                {
+                    ViewGroup viewGroup = (ViewGroup) view;
+
+                    Options.Builder options = new Options.Builder()
+                            .noMinimize();
+
+                    pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+
+                    ActionBarPullToRefresh.from(getActivity())
+                            .insertLayoutInto(viewGroup)
+                            .theseChildrenArePullable(getListView(), getListView().getEmptyView())
+                            .listener(this)
+                            .options(options.build())
+                            .setup(pullToRefreshLayout);
+                    break;
+                }
             }
         }
     }
@@ -361,7 +363,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         @Override
         protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             super.onPostExecute(result);
-            pullToRefreshLayout.setRefreshComplete();
+            if (pullToRefreshLayout != null) {
+                pullToRefreshLayout.setRefreshComplete();
+            }
         }
     }
 }
