@@ -328,14 +328,13 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         });
 
         //添付データがある場合は設定する
-        String strMedia = args.getStringExtra(EXTRA_MEDIA);
+        Uri mediaUri = args.getParcelableExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
             attachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
         }
-        else if (strMedia != null) {
-            Uri uri = Uri.parse(strMedia);
-            attachPicture(uri);
+        else if (mediaUri != null) {
+            attachPicture(mediaUri);
         }
 
         //投稿ボタンの設定

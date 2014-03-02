@@ -85,6 +85,7 @@
         android:id="@+id/tweet_receive"
         android:layout_below="@+id/tweet_timestamp"
         android:layout_alignLeft="@+id/tweet_timestamp"
-        android:layout_alignStart="@+id/tweet_timestamp" />
+        android:layout_alignStart="@+id/tweet_timestamp"
+        android:visibility="gone"/>
 
 </RelativeLayout>
