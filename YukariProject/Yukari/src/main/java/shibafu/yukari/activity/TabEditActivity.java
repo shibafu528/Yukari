@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -54,10 +55,11 @@ public class TabEditActivity extends ActionBarActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_parent);
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             InnerFragment fragment = new InnerFragment();
-            transaction.replace(android.R.id.content, fragment, FRAGMENT_TAG);
+            transaction.replace(R.id.frame, fragment, FRAGMENT_TAG);
             transaction.commit();
         }
     }
@@ -89,8 +91,7 @@ public class TabEditActivity extends ActionBarActivity
             TabEditActivity.this.service = binder.getService();
             serviceBound = true;
 
-            InnerFragment fragment = (InnerFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
-            fragment.reloadList();
+            findInnerFragment().reloadList();
         }
 
         @Override
@@ -231,15 +232,17 @@ public class TabEditActivity extends ActionBarActivity
         }
 
         private class Adapter extends ArrayAdapter<TabInfo> {
+            private LayoutInflater inflater;
 
             public Adapter(Context context, List<TabInfo> objects) {
                 super(context, 0, objects);
+                inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             }
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = getActivity().getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
+                    convertView = inflater.inflate(android.R.layout.simple_list_item_1, null);
                 }
                 TabInfo item = getItem(position);
                 if (item != null) {
