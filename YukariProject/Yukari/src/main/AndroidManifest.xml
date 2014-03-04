@@ -54,6 +54,9 @@
         </activity>
 
         <service android:name="shibafu.yukari.service.TwitterService" />
+        <service
+            android:name=".service.CacheCleanerService"
+            android:process=":cleaner"/>
 
         <activity
             android:name="shibafu.yukari.activity.TweetActivity"
