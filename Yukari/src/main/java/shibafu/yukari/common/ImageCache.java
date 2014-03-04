@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import shibafu.yukari.util.StringUtil;
+
 /**
  * Created by Shibafu on 13/10/28.
  */
@@ -28,7 +30,7 @@ public class ImageCache {
     };
 
     public static Bitmap getImage(String key, Context context) {
-        key = encodeKey(key);
+        key = StringUtil.encodeKey(key);
         //メモリ上のキャッシュから取得を試みる
         Bitmap image = lruCache.get(key);
         if (image == null && context != null) {
@@ -48,6 +50,7 @@ public class ImageCache {
             if (cacheFile.exists()) {
                 //存在していたらファイルを読み込む
                 image = BitmapFactory.decodeFile(cacheFile.getPath());
+                cacheFile.setLastModified(System.currentTimeMillis());
             }
         }
         return image;
@@ -56,7 +59,7 @@ public class ImageCache {
     public static void putImage(String key, Bitmap image, Context context) {
         if (key == null || image == null) return;
 
-        key = encodeKey(key);
+        key = StringUtil.encodeKey(key);
         //メモリ上のキャッシュと、ファイルに書き込む
         lruCache.put(key, image);
         if (context != null) {
@@ -84,15 +87,6 @@ public class ImageCache {
                     }
                 }
             }
-        }
-    }
-
-    private static String encodeKey(String key) {
-        try {
-            return URLEncoder.encode(key, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            return key;
         }
     }
 
