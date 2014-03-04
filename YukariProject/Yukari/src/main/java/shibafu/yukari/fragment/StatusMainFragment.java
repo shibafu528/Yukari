@@ -152,7 +152,10 @@ public class StatusMainFragment extends Fragment{
                 if (status.isRetweet()) {
                     source = status.getRetweetedStatus().getSource();
                 }
-                if (source.contains("ShootingStar") || source.contains("TheWorld") || source.contains("Biyon≡(　ε:)"))
+                if (source.contains("ShootingStar") ||
+                        source.contains("TheWorld") ||
+                        source.contains("Biyon≡(　ε:)") ||
+                        source.contains("MoonStrike"))
                 {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
