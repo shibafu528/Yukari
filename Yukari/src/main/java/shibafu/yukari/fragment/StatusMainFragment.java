@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.SimpleAsyncTask;
@@ -171,6 +172,9 @@ public class StatusMainFragment extends Fragment{
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
                                     currentDialog = null;
+                                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, status.getPlainText());
+                                    startActivity(intent);
                                 }
                             })
                             .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
