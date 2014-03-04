@@ -64,7 +64,8 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
-        if (!status.getUser().isProtected()) {
+        if ((!status.isRetweet() && !status.getUser().isProtected()) ||
+                (status.isRetweet() && !status.getRetweetedStatus().getUser().isProtected())) {
             PackageManager pm = getActivity().getPackageManager();
             Intent query = new Intent("jp.r246.twicca.ACTION_SHOW_TWEET");
             query.addCategory(Intent.CATEGORY_DEFAULT);
