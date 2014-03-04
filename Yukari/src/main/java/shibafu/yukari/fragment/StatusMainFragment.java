@@ -447,7 +447,8 @@ public class StatusMainFragment extends Fragment{
                 ibFavorite.setEnabled(false);
                 ibFavRt.setEnabled(false);
             }
-            if (status.getUser().isProtected()) {
+            if ((!status.isRetweet() && status.getUser().isProtected()) ||
+                    (status.isRetweet() && status.getRetweetedStatus().getUser().isProtected())) {
                 //鍵postの場合
                 ibRetweet.setEnabled(false);
                 ibFavRt.setEnabled(false);
