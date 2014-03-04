@@ -99,20 +99,22 @@ public class TweetAdapterWrap {
         viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
         viewHolder.tvText.setTextSize(fontSize);
         String text = st.isRetweet()? st.getRetweetedStatus().getText() : st.getText();
-        if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
-            text = text.replace('\n', ' ');
-        }
-        if ((multilineMode & 0x30) > 0) {
-            String[] lines = text.split("\n");
-            text = "";
-            int limit = (multilineMode & CONFIG_OMISSION_AFTER_4) == CONFIG_OMISSION_AFTER_4? 3 : 7;
-            int i;
-            for (i = 0; i < lines.length && i < limit; ++i) {
-                if (i > 0) text += "\n";
-                text += lines[i];
+        if (mode == MODE_DEFAULT) {
+            if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
+                text = text.replace('\n', ' ');
             }
-            if (i >= limit && i <= lines.length) {
-                text += " ...";
+            if ((multilineMode & 0x30) > 0) {
+                String[] lines = text.split("\n");
+                text = "";
+                int limit = (multilineMode & CONFIG_OMISSION_AFTER_4) == CONFIG_OMISSION_AFTER_4? 3 : 7;
+                int i;
+                for (i = 0; i < lines.length && i < limit; ++i) {
+                    if (i > 0) text += "\n";
+                    text += lines[i];
+                }
+                if (i >= limit && i <= lines.length) {
+                    text += " ...";
+                }
             }
         }
         viewHolder.tvText.setText(text);
