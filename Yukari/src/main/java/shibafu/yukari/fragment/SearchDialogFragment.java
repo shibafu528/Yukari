@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.ThrowableAsyncTask;
 import shibafu.yukari.common.TwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -305,6 +306,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
     public static class TrendFragment extends SearchChildFragment {
         private ArrayList<String> list;
+        private ThrowableAsyncTask<Void, Void, Trend[]> downloadTask;
 
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
@@ -315,29 +317,48 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             }
 
             if (list == null) {
-                AsyncTask<Void, Void, Trend[]> task = new AsyncTask<Void, Void, Trend[]>() {
+                downloadTask = new ThrowableAsyncTask<Void, Void, Trend[]>() {
                     @Override
-                    protected Trend[] doInBackground(Void... voids) {
+                    protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            return getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends();
+                            return new ThrowableResult<Trend[]>(getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends());
                         } catch (TwitterException e) {
                             e.printStackTrace();
+                            return new ThrowableResult<Trend[]>(e);
                         }
-                        return null;
                     }
 
                     @Override
-                    protected void onPostExecute(Trend[] trends) {
-                        if (trends != null) {
+                    protected void onPostExecute(ThrowableResult<Trend[]> throwableResult) {
+                        downloadTask = null;
+                        if (isCancelled()) return;
+                        if (!throwableResult.isException() && throwableResult.getResult() != null) {
                             list = new ArrayList<String>();
-                            for (Trend t : trends) {
+                            for (Trend t : throwableResult.getResult()) {
                                 list.add(t.getName());
                             }
                             setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
                         }
+                        else {
+                            Exception e = throwableResult.getException();
+                            if (e instanceof TwitterException) {
+                                TwitterException te = (TwitterException) e;
+                                Toast.makeText(getActivity(),
+                                        String.format("Trendsの取得中にエラー: %d\n%s",
+                                                te.getErrorCode(),
+                                                te.getErrorMessage()),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                            else {
+                                Toast.makeText(getActivity(),
+                                        String.format("Trendsの取得中にエラー: \n%s",
+                                                e.getMessage()),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
                     }
                 };
-                task.execute();
+                downloadTask.execute();
             }
             else {
                 setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
@@ -358,6 +379,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 outState.putStringArrayList("trends", list);
             }
         }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            if (downloadTask != null) {
+                downloadTask.cancel(true);
+            }
+        }
     }
 
     public static class SavedSearchFragment extends SearchChildFragment
@@ -365,6 +394,8 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         private ArrayList<SavedSearch> savedSearches;
         private SavedSearch selected;
         private SavedSearchFragment.SavedSearchAdapter adapter;
+
+        private ThrowableAsyncTask<Void, Void, ResponseList<SavedSearch>> downloadTask;
 
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
@@ -375,31 +406,48 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             }
 
             if (savedSearches == null) {
-                AsyncTask<Void, Void, ResponseList<SavedSearch>> task = new AsyncTask<Void, Void, ResponseList<SavedSearch>>() {
+                downloadTask = new ThrowableAsyncTask<Void, Void, ResponseList<SavedSearch>>() {
                     @Override
-                    protected ResponseList<SavedSearch> doInBackground(Void... voids) {
+                    protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            return getServiceAwait().getTwitter().getSavedSearches();
+                            return new ThrowableResult<ResponseList<SavedSearch>>(
+                                    getServiceAwait().getTwitter().getSavedSearches());
                         } catch (TwitterException e) {
                             e.printStackTrace();
+                            return new ThrowableResult<ResponseList<SavedSearch>>(e);
                         }
-                        return null;
                     }
 
                     @Override
-                    protected void onPostExecute(ResponseList<SavedSearch> savedSearches) {
-                        if (savedSearches != null) {
-                            ArrayList<SavedSearch> ss = new ArrayList<SavedSearch>(savedSearches);
+                    protected void onPostExecute(ThrowableResult<ResponseList<SavedSearch>> result) {
+                        downloadTask = null;
+                        if (isCancelled()) return;
+                        if (!result.isException() && result.getResult() != null) {
+                            ArrayList<SavedSearch> ss = new ArrayList<SavedSearch>(result.getResult());
                             SavedSearchFragment.this.savedSearches = ss;
                             adapter = new SavedSearchAdapter(getActivity(), ss);
                             setListAdapter(adapter);
                         }
                         else {
-                            Toast.makeText(getActivity(), "保存した検索の取得中にエラーが発生しました", Toast.LENGTH_LONG).show();
+                            Exception e = result.getException();
+                            if (e instanceof TwitterException) {
+                                TwitterException te = (TwitterException) e;
+                                Toast.makeText(getActivity(),
+                                        String.format("保存した検索の取得中にエラー: %d\n%s",
+                                                te.getErrorCode(),
+                                                te.getErrorMessage()),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                            else {
+                                Toast.makeText(getActivity(),
+                                        String.format("保存した検索の取得中にエラー: \n%s",
+                                                e.getMessage()),
+                                        Toast.LENGTH_LONG).show();
+                            }
                         }
                     }
                 };
-                task.execute();
+                downloadTask.execute();
             }
             else {
                 adapter = new SavedSearchAdapter(getActivity(), savedSearches);
@@ -413,6 +461,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public void onSaveInstanceState(Bundle outState) {
             super.onSaveInstanceState(outState);
             outState.putSerializable("saved", savedSearches);
+        }
+
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            if (downloadTask != null) {
+                downloadTask.cancel(true);
+            }
         }
 
         @Override
