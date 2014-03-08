@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,6 +19,7 @@ import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.StatusManager;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -35,7 +35,7 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements TwitterService.StatusListener, OnRefreshListener {
+public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener, OnRefreshListener {
 
     public static final String EXTRA_LIST_ID = "listid";
 
@@ -116,7 +116,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
     @Override
     public void onDestroy() {
         if (isServiceBound()) {
-            getService().removeStatusListener(this);
+            getStatusManager().removeStatusListener(this);
         }
         super.onDestroy();
     }
@@ -182,7 +182,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Twitt
         }
 
         if (getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION) {
-            getService().addStatusListener(this);
+            getStatusManager().addStatusListener(this);
         }
     }
 

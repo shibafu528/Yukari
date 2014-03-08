@@ -305,7 +305,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     TabInfo tabInfo = pageList.get(current);
                     if (tabInfo.getAttachableListFragment() instanceof SearchListFragment &&
                             ((SearchListFragment) tabInfo.getAttachableListFragment()).isStreaming()) {
-                        service.stopFilterStream(tabInfo.getSearchKeyword());
+                        service.getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
                     }
 
                     pageList.remove(current);
@@ -670,7 +670,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:
-                service.startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
+                service.getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
             case TabType.TABTYPE_SEARCH:
                 b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
                 break;
