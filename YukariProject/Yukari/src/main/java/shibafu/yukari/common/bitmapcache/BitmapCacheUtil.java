@@ -1,4 +1,4 @@
-package shibafu.yukari.common;
+package shibafu.yukari.common.bitmapcache;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,30 +9,18 @@ import android.support.v4.util.LruCache;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 import shibafu.yukari.util.StringUtil;
 
 /**
- * Created by Shibafu on 13/10/28.
+ * Created by shibafu on 14/03/09.
  */
-public class ImageCache {
-
-    private static final String DIR = "picture";
-    private static int maxCacheSize = 12 * 1024 * 1024;
-
-    private static LruCache<String, Bitmap> lruCache = new LruCache<String, Bitmap>(maxCacheSize) {
-        @Override
-        protected int sizeOf(String key, Bitmap value) {
-            return value.getRowBytes() * value.getHeight();
-        }
-    };
-
-    public static Bitmap getImage(String key, Context context) {
+public class BitmapCacheUtil {
+    public static Bitmap getImage(String key, Context context,
+                                  String directory, LruCache<String, Bitmap> cache) {
         key = StringUtil.encodeKey(key);
         //メモリ上のキャッシュから取得を試みる
-        Bitmap image = lruCache.get(key);
+        Bitmap image = cache.get(key);
         if (image == null && context != null) {
             //無かったらファイルから取得を試みる
             File cacheDir;
@@ -42,7 +30,7 @@ public class ImageCache {
             else {
                 cacheDir = context.getCacheDir();
             }
-            cacheDir = new File(cacheDir, DIR);
+            cacheDir = new File(cacheDir, directory);
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
@@ -56,12 +44,13 @@ public class ImageCache {
         return image;
     }
 
-    public static void putImage(String key, Bitmap image, Context context) {
+    public static void putImage(String key, Bitmap image, Context context,
+                                String directory, LruCache<String, Bitmap> cache) {
         if (key == null || image == null) return;
 
         key = StringUtil.encodeKey(key);
         //メモリ上のキャッシュと、ファイルに書き込む
-        lruCache.put(key, image);
+        cache.put(key, image);
         if (context != null) {
             File cacheDir;
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -70,7 +59,7 @@ public class ImageCache {
             else {
                 cacheDir = context.getCacheDir();
             }
-            cacheDir = new File(cacheDir, DIR);
+            cacheDir = new File(cacheDir, directory);
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();
             }
@@ -89,5 +78,4 @@ public class ImageCache {
             }
         }
     }
-
 }

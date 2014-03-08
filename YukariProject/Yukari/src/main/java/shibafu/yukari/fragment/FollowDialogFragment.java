@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.ImageLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.User;

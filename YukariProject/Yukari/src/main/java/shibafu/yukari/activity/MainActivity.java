@@ -42,7 +42,7 @@ import java.util.ArrayList;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;

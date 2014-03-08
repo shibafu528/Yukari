@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;

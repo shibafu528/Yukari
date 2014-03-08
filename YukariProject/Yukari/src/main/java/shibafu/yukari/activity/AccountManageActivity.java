@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 
