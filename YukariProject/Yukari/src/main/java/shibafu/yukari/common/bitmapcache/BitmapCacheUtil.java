@@ -15,7 +15,7 @@ import shibafu.yukari.util.StringUtil;
 /**
  * Created by shibafu on 14/03/09.
  */
-public class BitmapCacheUtil {
+class BitmapCacheUtil {
     public static Bitmap getImage(String key, Context context,
                                   String directory, LruCache<String, Bitmap> cache) {
         key = StringUtil.encodeKey(key);
