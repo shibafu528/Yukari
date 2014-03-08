@@ -7,7 +7,7 @@ import android.support.v4.util.LruCache;
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ProfileIconCache {
+class ProfileIconCache {
 
     private static final String DIR = "icon";
     private static int maxCacheSize = 8 * 1024 * 1024;

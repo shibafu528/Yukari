@@ -7,7 +7,7 @@ import android.support.v4.util.LruCache;
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ImageCache {
+class ImageCache {
 
     private static final String DIR = "picture";
     private static int maxCacheSize = 12 * 1024 * 1024;
