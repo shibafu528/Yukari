@@ -7,12 +7,12 @@ import android.view.ViewGroup;
 import java.util.Iterator;
 
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.StatusManager;
 import twitter4j.DirectMessage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -26,7 +26,7 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements OnRefreshListener, TwitterService.StatusListener {
+public class SearchListFragment extends TweetListFragment implements OnRefreshListener, StatusManager.StatusListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
@@ -86,12 +86,12 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         if (statuses.isEmpty()) {
             executeLoader(LOADER_LOAD_INIT, getCurrentUser());
         }
-        getService().addStatusListener(this);
+        getStatusManager().addStatusListener(this);
     }
 
     @Override
     protected void onServiceDisconnected() {
-        getService().removeStatusListener(this);
+        getStatusManager().removeStatusListener(this);
     }
 
     @Override
@@ -107,11 +107,11 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         this.streaming = streaming;
         if (streaming) {
             pullToRefreshLayout.setEnabled(false);
-            getService().startFilterStream(searchQuery, getCurrentUser());
+            getStatusManager().startFilterStream(searchQuery, getCurrentUser());
         }
         else {
             pullToRefreshLayout.setEnabled(true);
-            getService().stopFilterStream(searchQuery);
+            getStatusManager().stopFilterStream(searchQuery);
         }
     }
 

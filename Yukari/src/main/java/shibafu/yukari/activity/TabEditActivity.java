@@ -20,7 +20,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -113,7 +112,7 @@ public class TabEditActivity extends ActionBarActivity
     public void addTab(int type) {
         if (type < 0) return;
         if (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM) {
-            findInnerFragment().addTab(type, null, null);
+            findInnerFragment().addTab(type, null);
         }
         else {
             Intent intent = new Intent(this, AccountChooserActivity.class);

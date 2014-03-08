@@ -25,6 +25,7 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.StatusManager;
 import twitter4j.Twitter;
 import twitter4j.UserMentionEntity;
 
@@ -146,6 +147,10 @@ public abstract class TweetListFragment extends AttachableListFragment {
 
     protected TwitterService getService() {
         return service;
+    }
+
+    protected StatusManager getStatusManager() {
+        return service.getStatusManager();
     }
 
     protected boolean isServiceBound() {

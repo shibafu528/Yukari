@@ -3,37 +3,53 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingBottom="6dp">
+    android:paddingBottom="6dp"
+    android:orientation="vertical">
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:paddingLeft="4dp"
-        android:paddingRight="4dp"
-        android:paddingTop="6dp"
-        android:padding="6dp"
-        android:focusable="true"
-        android:clickable="true"
-        android:background="@drawable/selector_key_light_background"
-        android:id="@+id/llMenuAccountParent">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Active Accounts:"
-            android:layout_gravity="center_vertical"
-            android:focusable="false"
-            android:clickable="false" />
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:paddingTop="6dp"
+            android:padding="6dp"
+            android:focusable="true"
+            android:clickable="true"
+            android:background="@drawable/selector_key_light_background"
+            android:id="@+id/llMenuAccountParent"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Active Accounts:"
+                android:layout_gravity="center_vertical"
+                android:focusable="false"
+                android:clickable="false" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="8dp"
+                android:id="@+id/llMenuAccounts" />
+        </LinearLayout>
+
+        <ImageButton
+            android:layout_width="46dp"
             android:layout_height="match_parent"
-            android:paddingLeft="8dp"
-            android:id="@+id/llMenuAccounts" />
+            android:id="@+id/ibMenuReconnect"
+            android:layout_gravity="center_vertical"
+            android:background="@drawable/selector_key_light_background"
+            android:src="@drawable/ic_navigation_refresh"
+            android:layout_marginLeft="2dp" />
     </LinearLayout>
 
     <ImageView

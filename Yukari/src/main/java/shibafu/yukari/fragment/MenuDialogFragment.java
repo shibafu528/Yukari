@@ -13,8 +13,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -204,6 +206,16 @@ public class MenuDialogFragment extends DialogFragment {
                 dismiss();
                 startActivity(new Intent(getActivity(), ProfileEditActivity.class));
                 return true;
+            }
+        });
+
+        ImageButton ibReconnect = (ImageButton) v.findViewById(R.id.ibMenuReconnect);
+        ibReconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
+                dismiss();
+                ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
             }
         });
 
