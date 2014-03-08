@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.SimpleAsyncTask;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.BitmapResizer;

@@ -1,4 +1,4 @@
-package shibafu.yukari.common;
+package shibafu.yukari.common.async;
 
 import android.os.AsyncTask;
 

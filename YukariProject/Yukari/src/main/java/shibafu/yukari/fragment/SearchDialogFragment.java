@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -39,8 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.ThrowableAsyncTask;
-import shibafu.yukari.common.TwitterAsyncTask;
+import shibafu.yukari.common.async.ThrowableAsyncTask;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;

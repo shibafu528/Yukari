@@ -46,7 +46,7 @@ import shibafu.yukari.common.IconLoaderTask;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.TwitterAsyncTask;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
