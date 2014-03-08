@@ -31,7 +31,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.ThrowableAsyncTask;
+import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;

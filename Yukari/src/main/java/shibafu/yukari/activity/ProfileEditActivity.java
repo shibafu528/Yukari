@@ -5,13 +5,19 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.async.ThrowableAsyncTask;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
 
 /**
  * Created by shibafu on 14/02/19.
@@ -21,6 +27,10 @@ public class ProfileEditActivity extends ActionBarActivity {
 
     private TwitterService service;
     private boolean serviceBound = false;
+
+    private AuthUserRecord userRecord;
+
+    private ThrowableAsyncTask<Void, Void, ?> currentTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +70,43 @@ public class ProfileEditActivity extends ActionBarActivity {
     protected void onStop() {
         super.onStop();
         unbindService(connection);
+        if (currentTask != null) {
+            currentTask.cancel(true);
+        }
+    }
+
+    private void loadUserProfile(User user) {
+
+    }
+
+    private void onServiceConnected() {
+        currentTask = new ThrowableTwitterAsyncTask<Void, User>() {
+            @Override
+            protected void showToast(String message) {
+                Toast.makeText(ProfileEditActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            protected ThrowableResult<User> doInBackground(Void... params) {
+                try {
+                    Twitter twitter = service.getTwitter();
+                    twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                    return new ThrowableResult<User>(twitter.showUser(userRecord.NumericId));
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    return new ThrowableResult<User>(e);
+                }
+            }
+
+            @Override
+            protected void onPostExecute(ThrowableResult<User> result) {
+                super.onPostExecute(result);
+                if (!isErrored()) {
+                    loadUserProfile(result.getResult());
+                }
+            }
+        };
+        currentTask.execute();
     }
 
     private ServiceConnection connection = new ServiceConnection() {
@@ -68,6 +115,7 @@ public class ProfileEditActivity extends ActionBarActivity {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             ProfileEditActivity.this.service = binder.getService();
             serviceBound = true;
+            ProfileEditActivity.this.onServiceConnected();
         }
 
         @Override

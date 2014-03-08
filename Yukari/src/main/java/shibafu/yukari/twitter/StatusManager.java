@@ -26,7 +26,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
-import shibafu.yukari.common.SimpleAsyncTask;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
