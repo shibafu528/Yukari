@@ -22,7 +22,7 @@ import java.util.Locale;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;

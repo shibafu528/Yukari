@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
