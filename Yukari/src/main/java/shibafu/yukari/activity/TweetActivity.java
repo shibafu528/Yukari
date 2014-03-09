@@ -505,6 +505,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
                     }
                     c.close();
+                    Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
                 }
                 return true;
             }
