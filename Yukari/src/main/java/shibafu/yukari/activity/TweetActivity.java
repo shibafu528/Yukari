@@ -359,17 +359,29 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     return;
                 }
 
-                AsyncTask<Void, Void, Integer> task = new AsyncTask<Void, Void, Integer>() {
+                //コマンド処理
+                String inputText = etInput.getText().toString();
+                if (etInput.getText().toString().startsWith("::")) {
+                    String input = etInput.getText().toString();
+                    if (input.equals("::sb")) {
+                        inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
+                    }
+                    else if (input.equals("::jb")) {
+                        inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
+                    }
+                }
+
+                AsyncTask<String, Void, Integer> task = new AsyncTask<String, Void, Integer>() {
                     @Override
-                    protected Integer doInBackground(Void... params) {
+                    protected Integer doInBackground(String... params) {
                         int successCount = 0;
                         for (AuthUserRecord user : writers) {
                             try {
                                 if (isDirectMessage) {
-                                    service.sendDirectMessage(directMessageDestSN, user, etInput.getText().toString());
+                                    service.sendDirectMessage(directMessageDestSN, user, params[0]);
                                 }
                                 else {
-                                    StatusUpdate update = new StatusUpdate(etInput.getText().toString());
+                                    StatusUpdate update = new StatusUpdate(params[0]);
                                     //statusが引数に付加されている場合はin-reply-toとして設定する
                                     if (status != null) {
                                         update.setInReplyToStatusId(status.getId());
@@ -430,7 +442,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         }
                     }
                 };
-                task.execute();
+                task.execute(inputText);
                 ProgressDialog pd = new ProgressDialog(TweetActivity.this);
                 pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                 pd.setIndeterminate(false);
