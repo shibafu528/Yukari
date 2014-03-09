@@ -448,10 +448,10 @@ public class CentralDatabase {
     public void updateSearchHistory(String query) {
         db.replace(TABLE_SEARCH_HISTORY, null,
                 new SearchHistory(query, new Date(System.currentTimeMillis())).getContentValues());
-    }
-
-    public void updateSearchHistory(SearchHistory searchHistory) {
-        db.replace(TABLE_SEARCH_HISTORY, null, searchHistory.getContentValues());
+        db.execSQL("DELETE FROM " + TABLE_SEARCH_HISTORY + " WHERE " + COL_SHISTORY_ID + " IN (" +
+                        "SELECT " + COL_SHISTORY_ID + " FROM " + TABLE_SEARCH_HISTORY +
+                        " ORDER BY " + COL_SHISTORY_DATE + " DESC LIMIT -1 OFFSET 10)"
+        );
     }
 
     public void deleteSearchHistory(long id) {
