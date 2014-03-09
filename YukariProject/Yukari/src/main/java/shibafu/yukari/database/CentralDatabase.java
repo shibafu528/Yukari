@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import shibafu.yukari.common.TabInfo;
@@ -21,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 2;
+    private static final int DB_VER = 3;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -86,8 +87,12 @@ public class CentralDatabase {
     public static final String COL_TABS_SEARCH_KEYWORD = "SearchKeyword";
     public static final String COL_TABS_FILTER_QUERY = "FilterQuery";
 
-    //インスタンス
-    private Context context;
+    //SearchHistoryテーブル
+    public static final String TABLE_SEARCH_HISTORY = "SearchHistory";
+    public static final String COL_SHISTORY_ID = "_id";
+    public static final String COL_SHISTORY_QUERY = "query";
+    public static final String COL_SHISTORY_DATE = "date";
+
     private CentralDBHelper helper;
     private SQLiteDatabase db;
 
@@ -168,6 +173,12 @@ public class CentralDatabase {
                 TabInfo dmTab = new TabInfo(TabType.TABTYPE_DM, 2, null);
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
             }
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_SEARCH_HISTORY + " (" +
+                    COL_SHISTORY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_SHISTORY_QUERY + " TEXT UNIQUE, " +
+                    COL_SHISTORY_DATE + " INTEGER)"
+            );
         }
 
         @Override
@@ -181,12 +192,20 @@ public class CentralDatabase {
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
                 ++oldVersion;
             }
+            if (oldVersion == 2) {
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_SEARCH_HISTORY + " (" +
+                        COL_SHISTORY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_SHISTORY_QUERY + " TEXT UNIQUE, " +
+                        COL_SHISTORY_DATE + " INTEGER)"
+                );
+                ++oldVersion;
+            }
         }
     }
 
     public CentralDatabase(Context context) {
-        this.context = context;
-        helper = new CentralDBHelper(this.context);
+        helper = new CentralDBHelper(context);
     }
 
     public CentralDatabase open() {
@@ -409,6 +428,34 @@ public class CentralDatabase {
             cursor.close();
         }
         return tabs;
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="SearchHistory">
+    public List<SearchHistory> getSearchHistories() {
+        List<SearchHistory> searchHistories = new ArrayList<SearchHistory>();
+        Cursor cursor = db.query(TABLE_SEARCH_HISTORY, null, null, null, null, null, COL_SHISTORY_DATE + " DESC");
+        try {
+            if (cursor.moveToFirst()) do {
+                searchHistories.add(new SearchHistory(cursor));
+            } while (cursor.moveToNext());
+        } finally {
+            cursor.close();
+        }
+        return searchHistories;
+    }
+
+    public void updateSearchHistory(String query) {
+        db.replace(TABLE_SEARCH_HISTORY, null,
+                new SearchHistory(query, new Date(System.currentTimeMillis())).getContentValues());
+    }
+
+    public void updateSearchHistory(SearchHistory searchHistory) {
+        db.replace(TABLE_SEARCH_HISTORY, null, searchHistory.getContentValues());
+    }
+
+    public void deleteSearchHistory(long id) {
+        db.delete(TABLE_SEARCH_HISTORY, COL_SHISTORY_ID + "=" + id, null);
     }
     //</editor-fold>
 
