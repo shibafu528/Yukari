@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -40,6 +41,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;
@@ -202,6 +204,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             Toast.makeText(getActivity(), "検索ワードが空です", Toast.LENGTH_LONG).show();
         }
         else {
+            //DBに検索履歴を保存
+            getTwitterService().getDatabase().updateSearchHistory(query);
+            //コールバック着火
             ((SearchDialogCallback)getActivity()).onSearchQuery(query, false, false);
             dismiss();
         }
@@ -295,11 +300,81 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
     }
 
-    public static class HistoryFragment extends SearchChildFragment {
+    public static class HistoryFragment extends SearchChildFragment
+            implements AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener {
+        private List<SearchHistory> searchHistories;
+        private AsyncTask<Void, Void, List<SearchHistory>> task;
+        private SearchHistory selected;
+
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, new String[]{""}));
+
+            reloadHistory();
+
+            getListView().setOnItemLongClickListener(this);
+        }
+
+        private void reloadHistory() {
+            task = new AsyncTask<Void, Void, List<SearchHistory>>() {
+                @Override
+                protected List<SearchHistory> doInBackground(Void... params) {
+                    return getServiceAwait().getDatabase().getSearchHistories();
+                }
+
+                @Override
+                protected void onPostExecute(List<SearchHistory> searchHistories) {
+                    task = null;
+                    if (isCancelled()) return;
+                    HistoryFragment.this.searchHistories = searchHistories;
+                    setListAdapter(new ArrayAdapter<SearchHistory>(getActivity(), android.R.layout.simple_list_item_1, searchHistories));
+                }
+            };
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
+            else {
+                task.execute();
+            }
+        }
+
+        @Override
+        public void onListItemClick(ListView l, View v, int position, long id) {
+            super.onListItemClick(l, v, position, id);
+            String query = searchHistories.get(position).getQuery();
+            getParent().sendQuery(query);
+        }
+
+        @Override
+        public void onDestroyView() {
+            super.onDestroyView();
+            if (task != null) {
+                task.cancel(true);
+            }
+        }
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            selected = searchHistories.get(position);
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    "確認",
+                    String.format("次の検索履歴を削除します\n%s", selected.getQuery()),
+                    "OK",
+                    "キャンセル"
+            );
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(getChildFragmentManager(), "dialog");
+            return true;
+        }
+
+        @Override
+        //DialogInterface.OnClickListener
+        public void onClick(DialogInterface dialog, int which) {
+            if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
+                getService().getDatabase().deleteSearchHistory(selected.getId());
+                Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
+                reloadHistory();
+            }
         }
     }
 
@@ -380,8 +455,8 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         @Override
-        public void onDestroy() {
-            super.onDestroy();
+        public void onDestroyView() {
+            super.onDestroyView();
             if (downloadTask != null) {
                 downloadTask.cancel(true);
             }
@@ -463,8 +538,8 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         @Override
-        public void onDestroy() {
-            super.onDestroy();
+        public void onDestroyView() {
+            super.onDestroyView();
             if (downloadTask != null) {
                 downloadTask.cancel(true);
             }
