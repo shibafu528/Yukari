@@ -61,6 +61,7 @@ public class StatusManager {
     private Context context;
     private NotificationManager notificationManager;
     private Vibrator vibrator;
+    private AudioManager audioManager;
     private SharedPreferences sharedPreferences;
     private Handler handler;
 
@@ -225,7 +226,7 @@ public class StatusManager {
                         builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
                     }
                     if (notificationType.isUseVibration()) {
-                        vibrator.vibrate(pattern, -1);
+                        vibrate(pattern, -1);
                     }
                     builder.setAutoCancel(true);
                     switch (category) {
@@ -247,7 +248,7 @@ public class StatusManager {
                         mediaPlayer.start();
                     }
                     if (notificationType.isUseVibration()) {
-                        vibrator.vibrate(pattern, -1);
+                        vibrate(pattern, -1);
                     }
                     final String text = tickerHeader + actionBy.getScreenName() + "\n" +
                             status.getUser().getScreenName() + ": " + status.getText();
@@ -261,6 +262,17 @@ public class StatusManager {
                         }
                     });
                 }
+            }
+        }
+
+        // サイレントに設定しててもうっかりバイブが震えちゃうような
+        // クソ端末でそのような挙動が起きないように
+        private void vibrate(long[] pattern, int repeat) {
+            switch (audioManager.getRingerMode()) {
+                case AudioManager.RINGER_MODE_NORMAL:
+                case AudioManager.RINGER_MODE_VIBRATE:
+                    vibrator.vibrate(pattern, repeat);
+                    break;
             }
         }
 
@@ -336,6 +348,7 @@ public class StatusManager {
         //システムサービスの取得
         this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         //ハッシュタグキャッシュのロード
         hashCache = new HashCache(context);
