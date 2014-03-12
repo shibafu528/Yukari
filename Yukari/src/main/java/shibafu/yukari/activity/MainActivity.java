@@ -73,7 +73,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private TwitterService service;
     private boolean serviceBound = false;
 
-    private boolean isKeepScreenOn = false;
+    private boolean keepScreenOn = false;
 
     private boolean isTouchTweet = false;
     private float tweetGestureYStart = 0;
@@ -85,11 +85,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private ViewPager viewPager;
     private ImageButton ibClose, ibStream;
 
+    //QuickPost関連
     private InputMethodManager imm;
     private boolean enableQuickPost = true;
     private AuthUserRecord selectedAccount;
     private LinearLayout llQuickTweet;
-    private ImageButton ibCloseTweet, ibSendTweet, ibSelectAccount;
+    private ImageButton ibSelectAccount;
     private EditText etTweet;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
@@ -125,7 +126,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            Toast.makeText(this, "[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です", Toast.LENGTH_LONG).show();
+            Toast.makeText(this,
+                    "[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です\nSDカードが挿入されているか確認してください",
+                    Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -136,6 +139,41 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             return;
         }
 
+        findViews();
+
+        //スリープ防止設定
+        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
+
+        //初回起動時の操作ガイド
+        if (!sp.getBoolean("first_guide", false)) {
+            final View guideView = getLayoutInflater().inflate(R.layout.overlay_guide, null);
+            guideView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return true;
+                }
+            });
+            addContentView(guideView,
+                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT));
+            guideView.findViewById(R.id.bGuideClose).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.anim_fadeout);
+                    guideView.startAnimation(animation);
+                    guideView.setVisibility(View.GONE);
+                    guideView.setClickable(false);
+                    v.setFocusable(false);
+                    v.setClickable(false);
+
+                    sp.edit().putBoolean("first_guide", true).commit();
+                }
+            });
+        }
+    }
+
+    private void findViews() {
         TextView tvStreamStates = (TextView) findViewById(R.id.tvStreamStates);
         tvStreamStates.setOnTouchListener(tweetGestureListener);
         tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
@@ -381,14 +419,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         });
 
         llQuickTweet = (LinearLayout) findViewById(R.id.llQuickTweet);
-        ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
+        ImageButton ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
         ibCloseTweet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (etTweet.getText().length() < 1) {
                     llQuickTweet.setVisibility(View.GONE);
-                }
-                else {
+                } else {
                     etTweet.setText("");
                 }
             }
@@ -414,44 +451,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         });
         etTweet.setTypeface(FontAsset.getInstance(this).getFont());
-        ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);
+        ImageButton ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);
         ibSendTweet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 postTweet();
             }
         });
-
-        //スリープ防止設定
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
-
-        //初回起動時の操作ガイド
-        if (!sp.getBoolean("first_guide", false)) {
-            final View guideView = getLayoutInflater().inflate(R.layout.overlay_guide, null);
-            guideView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    return true;
-                }
-            });
-            addContentView(guideView,
-                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.MATCH_PARENT));
-            guideView.findViewById(R.id.bGuideClose).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.anim_fadeout);
-                    guideView.startAnimation(animation);
-                    guideView.setVisibility(View.GONE);
-                    guideView.setClickable(false);
-                    v.setFocusable(false);
-                    v.setClickable(false);
-
-                    sp.edit().putBoolean("first_guide", true).commit();
-                }
-            });
-        }
     }
 
     @Override
@@ -494,7 +500,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("screen", isKeepScreenOn);
+        outState.putBoolean("screen", keepScreenOn);
         if (currentPage != null) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
@@ -509,7 +515,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         super.onRestoreInstanceState(savedInstanceState);
         Log.d("MainActivity", "call onRestoreInstanceState");
 
-        isKeepScreenOn = savedInstanceState.getBoolean("screen");
+        keepScreenOn = savedInstanceState.getBoolean("screen");
         currentPage = (TweetListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         int currentId = savedInstanceState.getInt("currentId", -1);
@@ -544,12 +550,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     public boolean isKeepScreenOn() {
-        return isKeepScreenOn;
+        return keepScreenOn;
     }
 
-    public void setKeepScreenOn(boolean isKeepScreenOn) {
-        this.isKeepScreenOn = isKeepScreenOn;
-        if (isKeepScreenOn) {
+    public void setKeepScreenOn(boolean keepScreenOn) {
+        this.keepScreenOn = keepScreenOn;
+        if (keepScreenOn) {
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
         else {
@@ -762,6 +768,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 if (statusManager != null && !statusManager.isStarted()) {
                     statusManager.start();
                 }
+
+                onNewIntent(getIntent());
             }
         }
 
@@ -779,11 +787,28 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
     @Override
     public void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking) {
-        TabInfo tabInfo = new TabInfo(
-                TabType.TABTYPE_SEARCH, pageList.size(), service.getPrimaryUser(), searchQuery);
-        addTab(tabInfo);
-        viewPager.getAdapter().notifyDataSetChanged();
-        viewPager.setCurrentItem(tabInfo.getOrder());
+        boolean exist = false;
+        int existId = -1;
+        for (int i = 0; i < pageList.size(); i++) {
+            TabInfo tabInfo = pageList.get(i);
+            //既に同じようなタブがある場合は作らない
+            if (tabInfo.getType() == TabType.TABTYPE_SEARCH && tabInfo.getSearchKeyword().equals(searchQuery)) {
+                exist = true;
+                existId = i;
+                break;
+            }
+        }
+
+        if (!exist) {
+            TabInfo tabInfo = new TabInfo(
+                    TabType.TABTYPE_SEARCH, pageList.size(), service.getPrimaryUser(), searchQuery);
+            addTab(tabInfo);
+            viewPager.getAdapter().notifyDataSetChanged();
+            viewPager.setCurrentItem(tabInfo.getOrder());
+        }
+        else {
+            viewPager.setCurrentItem(existId);
+        }
     }
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
