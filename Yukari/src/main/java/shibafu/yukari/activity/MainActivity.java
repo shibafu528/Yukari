@@ -42,15 +42,14 @@ import java.util.ArrayList;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.TwitterAsyncTask;
-import shibafu.yukari.fragment.attachable.AttachableListFragment;
+import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
-import shibafu.yukari.fragment.attachable.DefaultTweetListFragment;
+import shibafu.yukari.fragment.attachable.AttachableListFragment;
 import shibafu.yukari.fragment.attachable.SearchListFragment;
 import shibafu.yukari.fragment.attachable.TweetListFragment;
 import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
@@ -498,15 +497,30 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         if (currentPage != null) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
+        outState.putInt("currentId", viewPager.getCurrentItem());
         outState.putSerializable("tabinfo", pageList);
+
+        Log.d("MainActivity", "call onSaveInstanceState");
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        Log.d("MainActivity", "call onRestoreInstanceState");
+
         isKeepScreenOn = savedInstanceState.getBoolean("screen");
         currentPage = (TweetListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
+        int currentId = savedInstanceState.getInt("currentId", -1);
+        for (int i = 0; i < pageList.size(); i++) {
+            TabInfo tabInfo = pageList.get(i);
+            if (i == currentId) {
+                tabInfo.setAttachableListFragment(currentPage);
+            }
+            else if (tabInfo.getAttachableListFragment() == null) {
+                tabInfo.setAttachableListFragment(TweetListFragmentFactory.newInstance(tabInfo));
+            }
+        }
     }
 
     @Override
@@ -666,22 +680,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void addTab(TabInfo tabInfo) {
-        TweetListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
-        Bundle b = new Bundle();
+        TweetListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:
                 service.getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
-            case TabType.TABTYPE_SEARCH:
-                b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
-                break;
-            case TabType.TABTYPE_LIST:
-                b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
                 break;
         }
-        b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
-        b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
-        b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
-        fragment.setArguments(b);
         tabInfo.setAttachableListFragment(fragment);
 
         pageList.add(tabInfo);
