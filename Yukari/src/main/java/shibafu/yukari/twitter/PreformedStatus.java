@@ -14,6 +14,7 @@ import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Place;
 import twitter4j.RateLimitStatus;
+import twitter4j.Scopes;
 import twitter4j.Status;
 import twitter4j.SymbolEntity;
 import twitter4j.URLEntity;
@@ -214,8 +215,13 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public String getIsoLanguageCode() {
-        return status.getIsoLanguageCode();
+    public String getLang() {
+        return status.getLang();
+    }
+
+    @Override
+    public Scopes getScopes() {
+        return status.getScopes();
     }
 
     @Override

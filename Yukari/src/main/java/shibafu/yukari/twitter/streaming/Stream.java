@@ -29,7 +29,6 @@ public abstract class Stream {
         this.context = context;
         this.userRecord = userRecord;
         ConfigurationBuilder cb = new ConfigurationBuilder();
-        cb.setUseSSL(true);
         cb.setOAuthConsumerKey(context.getString(R.string.twitter_consumer_key));
         cb.setOAuthConsumerSecret(context.getString(R.string.twitter_consumer_secret));
         stream = new TwitterStreamFactory(cb.build()).getInstance(userRecord.getAccessToken());

@@ -20,6 +20,11 @@ dependencies {
     //compile 'com.github.chrisbanes.actionbarpulltorefresh:extra-abc:+'
     compile project(':actionbar-ptr-compat')
 
+    compile 'org.twitter4j:twitter4j-core:4.0.0'
+    compile 'org.twitter4j:twitter4j-async:4.0.0'
+    compile 'org.twitter4j:twitter4j-media-support:4.0.0'
+    compile 'org.twitter4j:twitter4j-stream:4.0.0'
+
     compile fileTree(dir: './libs', includes: ['*.jar'])
 }
 

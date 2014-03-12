@@ -311,7 +311,6 @@ public class TwitterService extends Service{
 
     public ConfigurationBuilder getBuilder() {
         ConfigurationBuilder builder = new ConfigurationBuilder();
-        builder.setUseSSL(true);
         builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
         builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
         return builder;

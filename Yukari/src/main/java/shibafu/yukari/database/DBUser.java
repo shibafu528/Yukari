@@ -8,8 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Date;
 
 import twitter4j.RateLimitStatus;
@@ -183,17 +181,6 @@ public class DBUser implements User, DBRecord {
     }
 
     @Override
-    @Deprecated
-    public URL getProfileImageUrlHttps() {
-        try {
-            return new URL(profileImageUrl);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
     public String getProfileImageURLHttps() {
         return profileImageUrl;
     }
@@ -300,12 +287,6 @@ public class DBUser implements User, DBRecord {
     @Override
     @Deprecated
     public String getTimeZone() {
-        return null;
-    }
-
-    @Override
-    @Deprecated
-    public String getProfileBackgroundImageUrl() {
         return null;
     }
 
