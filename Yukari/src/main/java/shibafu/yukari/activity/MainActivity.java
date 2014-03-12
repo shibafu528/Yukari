@@ -56,6 +56,7 @@ import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.StatusManager;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
@@ -754,6 +755,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                         task.executeIf(selectedAccount.ProfileImageUrl);
                         enableQuickPost = true;
                     }
+                }
+
+                //UserStreamを開始する
+                StatusManager statusManager = MainActivity.this.service.getStatusManager();
+                if (statusManager != null && !statusManager.isStarted()) {
+                    statusManager.start();
                 }
             }
         }

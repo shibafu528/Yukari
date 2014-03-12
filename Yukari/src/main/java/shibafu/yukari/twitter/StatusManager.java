@@ -68,6 +68,9 @@ public class StatusManager {
     //キャッシュ
     private HashCache hashCache;
 
+    //ステータス
+    private boolean isStarted;
+
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<StreamUser>();
     private Map<String, FilterStream> filterMap = new HashMap<String, FilterStream>();
@@ -374,7 +377,39 @@ public class StatusManager {
         return streamUsers.size();
     }
 
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public void start() {
+        Log.d(LOG_TAG, "call start");
+
+        for (StreamUser u : streamUsers) {
+            u.start();
+        }
+        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().start();
+        }
+
+        isStarted = true;
+    }
+
+    public void stop() {
+        Log.d(LOG_TAG, "call stop");
+
+        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().stop();
+        }
+        for (StreamUser su : streamUsers) {
+            su.stop();
+        }
+
+        isStarted = false;
+    }
+
     public void shutdownAll() {
+        Log.d(LOG_TAG, "call shutdownAll");
+
         for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
@@ -426,7 +461,9 @@ public class StatusManager {
         StreamUser su = new StreamUser(context, userRecord);
         su.setListener(listener);
         streamUsers.add(su);
-        su.start();
+        if (isStarted) {
+            su.start();
+        }
     }
 
     public void stopUserStream(AuthUserRecord userRecord) {
@@ -449,8 +486,10 @@ public class StatusManager {
             FilterStream filterStream = new FilterStream(context, manager, query);
             filterStream.setListener(listener);
             filterMap.put(query, filterStream);
-            filterStream.start();
-            showToast("Start FilterStream:" + query);
+            if (isStarted) {
+                filterStream.start();
+                showToast("Start FilterStream:" + query);
+            }
         }
     }
 
