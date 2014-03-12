@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="twitter4j-media-support-3.0.5">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/Yukari/libs/twitter4j-media-support-3.0.5.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

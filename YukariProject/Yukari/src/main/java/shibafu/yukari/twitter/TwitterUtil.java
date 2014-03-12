@@ -20,7 +20,6 @@ public class TwitterUtil {
 		String consumer_secret = context.getString(R.string.twitter_consumer_secret);
 
         ConfigurationBuilder configuration = new ConfigurationBuilder();
-        configuration.setUseSSL(true);
 
 		TwitterFactory factory = new TwitterFactory(configuration.build());
 		Twitter twitter = factory.getInstance();
