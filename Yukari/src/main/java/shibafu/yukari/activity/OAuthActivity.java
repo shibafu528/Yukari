@@ -104,7 +104,9 @@ public class OAuthActivity extends Activity {
                     })
                     .create().show();
         }
-        else startOAuth();
+        else {
+            startOAuth();
+        }
     }
 
     @Override
@@ -139,6 +141,18 @@ public class OAuthActivity extends Activity {
     protected void onStop() {
         super.onStop();
         unbindService(connection);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("rq", requestToken);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        requestToken = (RequestToken) savedInstanceState.getSerializable("rq");
     }
 
     @Override
@@ -216,8 +230,7 @@ public class OAuthActivity extends Activity {
             protected AccessToken doInBackground(String... params) {
                 if (params[0] == null) return null;
                 try {
-                    AccessToken accessToken = twitter.getOAuthAccessToken(requestToken, params[0]);
-                    return accessToken;
+                    return twitter.getOAuthAccessToken(requestToken, params[0]);
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
