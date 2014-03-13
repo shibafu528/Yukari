@@ -204,7 +204,10 @@ public class MenuDialogFragment extends DialogFragment {
             @Override
             public boolean onLongClick(View view) {
                 dismiss();
-                startActivity(new Intent(getActivity(), ProfileEditActivity.class));
+                Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
+                intent.putExtra(ProfileEditActivity.EXTRA_USER,
+                        ((TwitterServiceDelegate)getActivity()).getTwitterService().getPrimaryUser());
+                startActivity(intent);
                 return true;
             }
         });
