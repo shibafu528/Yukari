@@ -19,6 +19,7 @@ import android.widget.Toast;
 import java.util.concurrent.CountDownLatch;
 
 import shibafu.yukari.R;
+import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -267,11 +268,14 @@ public class OAuthActivity extends Activity {
                     }
                     twitter = service.getTwitter();
                     twitter.setOAuthAccessToken(accessToken);
+
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);
                     userRecord.isActive = true;
-                    service.getDatabase().addAccount(userRecord);
+
+                    CentralDatabase database = service.getDatabase();
+                    database.addAccount(userRecord);
                     User user = twitter.showUser(accessToken.getUserId());
-                    service.getDatabase().updateUser(new DBUser(user));
+                    database.updateUser(new DBUser(user));
 
                     service.reloadUsers();
                     return true;

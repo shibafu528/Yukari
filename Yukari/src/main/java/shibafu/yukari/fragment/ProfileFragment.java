@@ -375,7 +375,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
             //URLを展開する
             URLEntity[] urlEntities = holder.targetUser.getDescriptionURLEntities();
-            for (URLEntity entity : urlEntities) {
+            if (urlEntities != null) for (URLEntity entity : urlEntities) {
                 bio = bio.replace(entity.getURL(), entity.getExpandedURL());
             }
 
