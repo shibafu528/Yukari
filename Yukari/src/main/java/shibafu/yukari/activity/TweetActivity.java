@@ -359,7 +359,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     return;
                 }
 
-                //コマンド処理
+                //エイリアス処理
                 String inputText = etInput.getText().toString();
                 if (etInput.getText().toString().startsWith("::")) {
                     String input = etInput.getText().toString();
@@ -368,6 +368,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     }
                     else if (input.equals("::jb")) {
                         inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
+                    }
+                    else if (input.startsWith("::bb")) {
+                        inputText = input.replace("::bb", "@la0c bbop");
                     }
                 }
 
