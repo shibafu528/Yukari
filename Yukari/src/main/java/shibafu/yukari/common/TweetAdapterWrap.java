@@ -24,6 +24,7 @@ import java.util.Locale;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.media.LinkMedia;
+import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import twitter4j.UserMentionEntity;
@@ -160,6 +161,7 @@ public class TweetAdapterWrap {
                 if (mediaList.size() > 0) {
                     LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(140, 140, 1);
                     for (LinkMedia media : mediaList) {
+                        if (!preferences.getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) continue;
                         SmartImageView siv = new SmartImageView(context);
                         siv.setImageResource(R.drawable.yukatterload);
                         siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
