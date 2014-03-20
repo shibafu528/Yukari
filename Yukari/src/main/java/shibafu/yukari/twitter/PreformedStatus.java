@@ -52,8 +52,8 @@ public class PreformedStatus implements Status{
             plainSource = status.getSource();
         }
         //メディアリンクリストを作成
-        ArrayList<URLEntity> urlEntities = new ArrayList<URLEntity>();
-        mediaLinkList = new ArrayList<LinkMedia>();
+        ArrayList<URLEntity> urlEntities = new ArrayList<>();
+        mediaLinkList = new ArrayList<>();
         for (URLEntity urlEntity : status.getURLEntities()) {
             LinkMedia media = LinkMediaFactory.newInstance(urlEntity.getExpandedURL());
             if (media != null) {

@@ -72,8 +72,8 @@ public class StatusManager {
     private boolean isStarted;
 
     //Streaming
-    private List<StreamUser> streamUsers = new ArrayList<StreamUser>();
-    private Map<String, FilterStream> filterMap = new HashMap<String, FilterStream>();
+    private List<StreamUser> streamUsers = new ArrayList<>();
+    private Map<String, FilterStream> filterMap = new HashMap<>();
     private StreamListener listener = new StreamListener() {
 
         @Override

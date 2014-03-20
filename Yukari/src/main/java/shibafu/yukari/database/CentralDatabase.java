@@ -416,7 +416,7 @@ public class CentralDatabase {
                 " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
                 " ORDER BY " + COL_TABS_TAB_ORDER, null
         );
-        ArrayList<TabInfo> tabs = new ArrayList<TabInfo>();
+        ArrayList<TabInfo> tabs = new ArrayList<>();
         try {
             if (cursor.moveToFirst()) {
                 do {
@@ -433,7 +433,7 @@ public class CentralDatabase {
 
     //<editor-fold desc="SearchHistory">
     public List<SearchHistory> getSearchHistories() {
-        List<SearchHistory> searchHistories = new ArrayList<SearchHistory>();
+        List<SearchHistory> searchHistories = new ArrayList<>();
         Cursor cursor = db.query(TABLE_SEARCH_HISTORY, null, null, null, null, null, COL_SHISTORY_DATE + " DESC");
         try {
             if (cursor.moveToFirst()) do {

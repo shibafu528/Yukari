@@ -73,9 +73,7 @@ public class DBUser implements User, DBRecord {
         try {
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(cursor.getBlob(cursor.getColumnIndex(CentralDatabase.COL_USER_DESCRIPTION_URLENTITIES))));
             descriptionURLEntities = (URLEntity[]) ois.readObject();
-        } catch (IOException e){
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e){
             e.printStackTrace();
         }
         location = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_LOCATION));
