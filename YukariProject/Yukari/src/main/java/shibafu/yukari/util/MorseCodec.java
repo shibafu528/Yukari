@@ -80,7 +80,7 @@ public class MorseCodec {
     public static String decode(String signals) {
         Matcher matcher = SIGNAL_PATTERN.matcher(signals);
 
-        ArrayList<String> results = new ArrayList<String>();
+        ArrayList<String> results = new ArrayList<>();
         while(matcher.find()) {
             String match = matcher.group();
             match = match.replaceAll("－", "−");

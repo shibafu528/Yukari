@@ -15,29 +15,29 @@ public class PRListFactory {
             ResponseList<Status> responseList, AuthUserRecord receivedUser) {
         ArrayList<PreformedStatus> list;
         if (responseList == null) {
-            list = new ArrayList<PreformedStatus>();
+            list = new ArrayList<>();
         }
         else {
-            list = new ArrayList<PreformedStatus>(responseList.size());
+            list = new ArrayList<>(responseList.size());
             for (Status s : responseList) {
                 list.add(new PreformedStatus(s, receivedUser));
             }
         }
-        return new PreformedResponseList<PreformedStatus>(list, responseList);
+        return new PreformedResponseList<>(list, responseList);
     }
 
     public static PreformedResponseList<PreformedStatus> create(
             QueryResult queryResult, AuthUserRecord receivedUser) {
         ArrayList<PreformedStatus> list;
         if (queryResult == null) {
-            list = new ArrayList<PreformedStatus>();
+            list = new ArrayList<>();
         }
         else {
-            list = new ArrayList<PreformedStatus>(queryResult.getTweets().size());
+            list = new ArrayList<>(queryResult.getTweets().size());
             for (Status s : queryResult.getTweets()) {
                 list.add(new PreformedStatus(s, receivedUser));
             }
         }
-        return new PreformedResponseList<PreformedStatus>(list, queryResult);
+        return new PreformedResponseList<>(list, queryResult);
     }
 }

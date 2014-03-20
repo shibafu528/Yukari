@@ -154,7 +154,7 @@ public class TwitterService extends Service{
         List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
         cursor.close();
         //消えたレコードの削除処理
-        ArrayList<AuthUserRecord> removeList = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
             if (!dbList.contains(aur)) {
                 statusManager.stopUserStream(aur);
@@ -164,7 +164,7 @@ public class TwitterService extends Service{
         }
         users.removeAll(removeList);
         //新しいレコードの登録
-        ArrayList<AuthUserRecord> addedList = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> addedList = new ArrayList<>();
         for (AuthUserRecord aur : dbList) {
             if (!users.contains(aur)) {
                 addedList.add(aur);
@@ -220,7 +220,7 @@ public class TwitterService extends Service{
 
     public void setActiveUsers(ArrayList<AuthUserRecord> activeUsers) {
         ArrayList<AuthUserRecord> oldActiveList = getActiveUsers();
-        ArrayList<AuthUserRecord> inactiveList = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> inactiveList = new ArrayList<>();
         for (AuthUserRecord userRecord : users) {
             if (activeUsers.contains(userRecord)) {
                 userRecord.isActive = true;
@@ -247,7 +247,7 @@ public class TwitterService extends Service{
     }
 
     public ArrayList<AuthUserRecord> getWriterUsers() {
-        ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> writers = new ArrayList<>();
         for (AuthUserRecord userRecord : users) {
             if (userRecord.isWriter) {
                 writers.add(userRecord);

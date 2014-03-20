@@ -19,7 +19,7 @@ import java.util.List;
 public class HashCache {
     private static final int LIMIT = 10;
     public static final String FILE_NAME = "hashtag.txt";
-    private LinkedList<String> cache = new LinkedList<String>();
+    private LinkedList<String> cache = new LinkedList<>();
 
     public HashCache(Context context) {
         //既存データのロードを試みる

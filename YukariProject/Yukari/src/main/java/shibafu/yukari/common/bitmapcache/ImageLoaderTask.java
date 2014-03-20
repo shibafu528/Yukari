@@ -9,7 +9,6 @@ import android.widget.ImageView;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -45,8 +44,6 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
                     BitmapCache.putImage(params[0], image, context, BitmapCache.IMAGE_CACHE);
                 }
                 return image;
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }

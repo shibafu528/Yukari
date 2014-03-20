@@ -1,22 +1,14 @@
 package shibafu.yukari.common;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
-import shibafu.common.SerialRecord;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.Status;
 
 /**
  * Created by Shibafu on 13/08/07.
@@ -24,7 +16,7 @@ import twitter4j.Status;
 public class TweetDraft implements Serializable{
 
     private int id = -1;
-    private ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+    private ArrayList<AuthUserRecord> writers = new ArrayList<>();
     private String text;
     private long dateTime;
     private long inReplyTo;

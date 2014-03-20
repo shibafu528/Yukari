@@ -53,7 +53,7 @@ public class TweetAdapterWrap {
 
     public TweetAdapterWrap(Context context, AuthUserRecord userRecord, List<PreformedStatus> statuses) {
         this.context = context;
-        this.userRecords = new ArrayList<AuthUserRecord>();
+        this.userRecords = new ArrayList<>();
         userRecords.add(userRecord);
         this.statuses = statuses;
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
