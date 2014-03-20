@@ -49,10 +49,10 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
-import shibafu.yukari.fragment.tabcontent.AttachableListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -79,8 +79,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
-    private AttachableListFragment currentPage;
-    private ArrayList<TabInfo> pageList = new ArrayList<TabInfo>();
+    private TwitterListFragment currentPage;
+    private ArrayList<TabInfo> pageList = new ArrayList<>();
     private TextView tvTabText;
     private ViewPager viewPager;
     private ImageButton ibClose, ibStream;
@@ -341,8 +341,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 if (currentPage.isCloseable()) {
                     int current = viewPager.getCurrentItem();
                     TabInfo tabInfo = pageList.get(current);
-                    if (tabInfo.getAttachableListFragment() instanceof SearchListFragment &&
-                            ((SearchListFragment) tabInfo.getAttachableListFragment()).isStreaming()) {
+                    if (tabInfo.getListFragment() instanceof SearchListFragment &&
+                            ((SearchListFragment) tabInfo.getListFragment()).isStreaming()) {
                         service.getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
                     }
 
@@ -391,7 +391,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             @Override
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
-                currentPage = pageList.get(i).getAttachableListFragment();
+                currentPage = pageList.get(i).getListFragment();
                 if (currentPage.isCloseable()) {
                     ibClose.setVisibility(View.VISIBLE);
                 }
@@ -522,10 +522,10 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         for (int i = 0; i < pageList.size(); i++) {
             TabInfo tabInfo = pageList.get(i);
             if (i == currentId) {
-                tabInfo.setAttachableListFragment(currentPage);
+                tabInfo.setListFragment(currentPage);
             }
-            else if (tabInfo.getAttachableListFragment() == null) {
-                tabInfo.setAttachableListFragment(TweetListFragmentFactory.newInstance(tabInfo));
+            else if (tabInfo.getListFragment() == null) {
+                tabInfo.setListFragment(TweetListFragmentFactory.newInstance(tabInfo));
             }
         }
     }
@@ -693,7 +693,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 service.getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
                 break;
         }
-        tabInfo.setAttachableListFragment(fragment);
+        tabInfo.setListFragment(fragment);
 
         pageList.add(tabInfo);
     }
@@ -709,7 +709,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         }
         else for (int i = 0; i < pageList.size(); ++i) {
-            if (pageList.get(i).getAttachableListFragment() == currentPage) {
+            if (pageList.get(i).getListFragment() == currentPage) {
                 pageId = i;
                 break;
             }
@@ -720,7 +720,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         viewPager.setCurrentItem(pageId);
 
         if (!pageList.isEmpty()) {
-            currentPage = pageList.get(pageId).getAttachableListFragment();
+            currentPage = pageList.get(pageId).getListFragment();
             tvTabText.setText(pageList.get(pageId).getTitle());
         }
         else {
@@ -819,7 +819,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
         @Override
         public Fragment getItem(int i) {
-            return pageList.get(i).getAttachableListFragment();
+            return pageList.get(i).getListFragment();
         }
 
         @Override

@@ -24,6 +24,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -209,7 +210,7 @@ public class StatusLinkFragment extends ListFragment{
                             Intent intent = new Intent(getActivity(), TraceActivity.class);
                             intent.putExtra(TweetListFragment.EXTRA_USER, user);
                             intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                            intent.putExtra(TweetListFragment.EXTRA_TRACE_START, status);
+                            intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
                             startActivity(intent);
                             break;
                         }

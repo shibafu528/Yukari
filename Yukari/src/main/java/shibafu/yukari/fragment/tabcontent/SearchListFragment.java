@@ -83,7 +83,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
 
     @Override
     protected void onServiceConnected() {
-        if (statuses.isEmpty()) {
+        if (elements.isEmpty()) {
             executeLoader(LOADER_LOAD_INIT, getCurrentUser());
         }
         getStatusManager().addStatusListener(this);
@@ -127,7 +127,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
 
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status) {
-        if (users.contains(from) && !statuses.contains(status)) {
+        if (users.contains(from) && !elements.contains(status)) {
             if (getMode() == TabType.TABTYPE_MENTION &&
                     ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
@@ -136,13 +136,13 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
                 getHandler().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (!statuses.contains(status)) {
-                            if (position < statuses.size())  {
-                                if (statuses.get(position).getId() == status.getId()) return;
+                        if (!elements.contains(status)) {
+                            if (position < elements.size())  {
+                                if (elements.get(position).getId() == status.getId()) return;
                             }
-                            statuses.add(position, status);
+                            elements.add(position, status);
                             adapterWrap.notifyDataSetChanged();
-                            if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                            if (elements.size() == 1 || listView.getFirstVisiblePosition() < 2) {
                                 listView.setSelection(0);
                             } else {
                                 listView.setSelection(listView.getFirstVisiblePosition() + 1);
@@ -162,7 +162,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                Iterator<PreformedStatus> iterator = statuses.iterator();
+                Iterator<PreformedStatus> iterator = elements.iterator();
                 while (iterator.hasNext()) {
                     if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
                         iterator.remove();

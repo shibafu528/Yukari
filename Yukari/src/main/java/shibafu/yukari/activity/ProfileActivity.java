@@ -12,8 +12,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
-import shibafu.yukari.fragment.tabcontent.AttachableListFragment;
 import shibafu.yukari.fragment.ProfileFragment;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 
 /**
  * Created by Shibafu on 13/08/10.
@@ -37,9 +37,9 @@ public class ProfileActivity extends ActionBarActivity{
             @Override
             public void onBackStackChanged() {
                 Fragment f = manager.findFragmentByTag("contain");
-                if (manager.getBackStackEntryCount() > 0 && f instanceof AttachableListFragment) {
+                if (manager.getBackStackEntryCount() > 0 && f instanceof TwitterListFragment) {
                     llTitle.setVisibility(View.VISIBLE);
-                    tvTitle.setText(((AttachableListFragment) f).getTitle());
+                    tvTitle.setText(((TwitterListFragment) f).getTitle());
                 }
                 else {
                     llTitle.setVisibility(View.GONE);
