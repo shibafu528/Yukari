@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment.attachable;
+package shibafu.yukari.fragment.tabcontent;
 
 import android.os.Bundle;
 import android.view.View;

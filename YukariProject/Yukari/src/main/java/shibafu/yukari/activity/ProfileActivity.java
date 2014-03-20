@@ -3,18 +3,16 @@ package shibafu.yukari.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.view.View;
-import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
-import shibafu.yukari.fragment.attachable.AttachableListFragment;
+import shibafu.yukari.fragment.tabcontent.AttachableListFragment;
 import shibafu.yukari.fragment.ProfileFragment;
 
 /**

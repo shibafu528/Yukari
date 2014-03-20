@@ -7,8 +7,8 @@ import android.view.Window;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.fragment.attachable.TweetListFragment;
-import shibafu.yukari.fragment.attachable.TweetListFragmentFactory;
+import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 
 /**
  * Created by Shibafu on 13/08/29.
