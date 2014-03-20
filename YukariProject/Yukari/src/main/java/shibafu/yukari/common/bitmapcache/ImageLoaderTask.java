@@ -34,7 +34,7 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
         if (params[0] != null) {
             try {
                 //キャッシュから画像を取得
-                Bitmap image = ImageCache.getImage(params[0], context);
+                Bitmap image = BitmapCache.getImage(params[0], context, BitmapCache.IMAGE_CACHE);
                 if (image == null) {
                     publishProgress();
                     //無かったらWebから取得だ！
@@ -42,7 +42,7 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
                     InputStream is = imageUrl.openStream();
                     image = BitmapFactory.decodeStream(is);
                     //キャッシュに保存
-                    ImageCache.putImage(params[0], image, context);
+                    BitmapCache.putImage(params[0], image, context, BitmapCache.IMAGE_CACHE);
                 }
                 return image;
             } catch (MalformedURLException e) {

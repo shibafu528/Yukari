@@ -33,7 +33,7 @@ public class IconLoaderTask extends AsyncTask<String, Void, Bitmap> {
     protected Bitmap doInBackground(String... params) {
         try {
             //キャッシュから画像を取得
-            Bitmap image = ProfileIconCache.getImage(params[0], context);
+            Bitmap image = BitmapCache.getImage(params[0], context, BitmapCache.PROFILE_ICON_CACHE);
             if (image == null) {
                 publishProgress();
                 //無かったらWebから取得だ！
@@ -41,7 +41,7 @@ public class IconLoaderTask extends AsyncTask<String, Void, Bitmap> {
                 InputStream is = imageUrl.openStream();
                 image = BitmapFactory.decodeStream(is);
                 //キャッシュに保存
-                ProfileIconCache.putImage(params[0], image, context);
+                BitmapCache.putImage(params[0], image, context, BitmapCache.PROFILE_ICON_CACHE);
             }
             return image;
         } catch (MalformedURLException e) {
