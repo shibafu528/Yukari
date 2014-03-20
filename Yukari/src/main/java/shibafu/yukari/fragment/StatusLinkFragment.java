@@ -24,7 +24,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.fragment.attachable.TweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
