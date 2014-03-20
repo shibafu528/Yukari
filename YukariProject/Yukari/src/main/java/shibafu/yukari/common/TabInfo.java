@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
-import shibafu.yukari.fragment.tabcontent.AttachableListFragment;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
@@ -22,7 +22,7 @@ public class TabInfo implements DBRecord, Serializable {
     private String searchKeyword;
     private String filterQuery;
 
-    private transient AttachableListFragment attachableListFragment;
+    private transient TwitterListFragment listFragment;
 
     public TabInfo(int type, int order, AuthUserRecord bindAccount) {
         this.type = type;
@@ -143,12 +143,12 @@ public class TabInfo implements DBRecord, Serializable {
         this.filterQuery = filterQuery;
     }
 
-    public AttachableListFragment getAttachableListFragment() {
-        return attachableListFragment;
+    public TwitterListFragment getListFragment() {
+        return listFragment;
     }
 
-    public void setAttachableListFragment(AttachableListFragment attachableListFragment) {
-        this.attachableListFragment = attachableListFragment;
+    public void setListFragment(TwitterListFragment listFragment) {
+        this.listFragment = listFragment;
     }
 
     public String getTitle() {

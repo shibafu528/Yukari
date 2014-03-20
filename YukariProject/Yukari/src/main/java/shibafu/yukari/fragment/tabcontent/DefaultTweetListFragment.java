@@ -38,6 +38,7 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener, OnRefreshListener {
 
     public static final String EXTRA_LIST_ID = "listid";
+    public static final String EXTRA_TRACE_START = "trace_start";
 
     private Status traceStart = null;
     private User targetUser = null;
@@ -55,8 +56,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         int mode = getMode();
         if (mode == TabType.TABTYPE_TRACE) {
             traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            if (statuses.isEmpty()) {
-                statuses.add(new PreformedStatus(traceStart, getCurrentUser()));
+            if (elements.isEmpty()) {
+                elements.add(new PreformedStatus(traceStart, getCurrentUser()));
             }
         }
         else {
@@ -154,7 +155,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 getHandler().post(new Runnable() {
                                     @Override
                                     public void run() {
-                                        statuses.add(location, ps);
+                                        elements.add(location, ps);
                                         adapterWrap.notifyDataSetChanged();
                                     }
                                 });
@@ -175,7 +176,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             task.execute(traceStart);
             changeFooterProgress(true);
         }
-        else if (statuses.isEmpty()) {
+        else if (elements.isEmpty()) {
             for (AuthUserRecord user : users) {
                 executeLoader(LOADER_LOAD_INIT, user);
             }
@@ -222,7 +223,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status) {
-        if (users.contains(from) && !statuses.contains(status)) {
+        if (users.contains(from) && !elements.contains(status)) {
             if (getMode() == TabType.TABTYPE_MENTION &&
                     ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
@@ -231,13 +232,13 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 getHandler().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (!statuses.contains(status)) {
-                            if (position < statuses.size())  {
-                                if (statuses.get(position).getId() == status.getId()) return;
+                        if (!elements.contains(status)) {
+                            if (position < elements.size())  {
+                                if (elements.get(position).getId() == status.getId()) return;
                             }
-                            statuses.add(position, status);
+                            elements.add(position, status);
                             adapterWrap.notifyDataSetChanged();
-                            if (statuses.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                            if (elements.size() == 1 || listView.getFirstVisiblePosition() < 2) {
                                 listView.setSelection(0);
                             } else {
                                 listView.setSelection(listView.getFirstVisiblePosition() + 1);
@@ -250,16 +251,14 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {
-        //TODO: DM受信時の処理
-    }
+    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
 
     @Override
     public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
-                Iterator<PreformedStatus> iterator = statuses.iterator();
+                Iterator<PreformedStatus> iterator = elements.iterator();
                 while (iterator.hasNext()) {
                     if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
                         iterator.remove();
