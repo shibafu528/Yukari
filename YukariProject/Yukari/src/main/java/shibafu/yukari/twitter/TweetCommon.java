@@ -15,12 +15,12 @@ public class TweetCommon {
 
     private TweetCommon() {}
 
-    public static Class<? extends TweetCommonDelegate> getImplementClass(Class<? extends TwitterResponse> clz) {
+    public static TweetCommonDelegate newInstance(Class<? extends TwitterResponse> clz) {
         if (PreformedStatus.class.isAssignableFrom(clz)) {
-            return StatusCommonDelegate.class;
+            return new StatusCommonDelegate();
         }
         else if (DirectMessage.class.isAssignableFrom(clz)) {
-            return MessageCommonDelegate.class;
+            return new MessageCommonDelegate();
         }
         throw new ClassCastException("対応されているクラスではありません.");
     }
