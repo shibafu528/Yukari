@@ -6,7 +6,7 @@ package shibafu.yukari.media;
 public class Twimg extends LinkMedia{
 
     public Twimg(String mediaURL) {
-        super(mediaURL);
+        super(mediaURL.replace("http://", "https://"));
     }
 
     @Override
