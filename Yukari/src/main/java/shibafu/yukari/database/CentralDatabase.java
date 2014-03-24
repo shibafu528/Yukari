@@ -366,7 +366,7 @@ public class CentralDatabase {
     }
 
     public List<TweetDraft> getDrafts() {
-        List<TweetDraft> draftList = new ArrayList<TweetDraft>();
+        List<TweetDraft> draftList = new ArrayList<>();
         Cursor cursor = db.query(
                 TABLE_DRAFTS + "," + TABLE_ACCOUNTS + "," + TABLE_USER,
                 null,

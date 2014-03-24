@@ -71,7 +71,7 @@ public class AssetExtractActivity extends Activity{
             protected void onPostExecute(Boolean aBoolean) {
                 progressDialog.dismiss();
 
-                if (!aBoolean.booleanValue()) {
+                if (!aBoolean) {
                     Toast.makeText(AssetExtractActivity.this, "[Yukari 起動エラー] フォント展開エラー\nフォントの展開に失敗しました\n起動は中断されます", Toast.LENGTH_LONG).show();
                     finish();
                 }

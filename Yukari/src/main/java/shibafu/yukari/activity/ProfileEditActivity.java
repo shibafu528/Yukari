@@ -156,10 +156,10 @@ public class ProfileEditActivity extends ActionBarActivity {
                     try {
                         Twitter twitter = service.getTwitter();
                         twitter.setOAuthAccessToken(userRecord.getAccessToken());
-                        return new ThrowableResult<User>(twitter.showUser(userRecord.NumericId));
+                        return new ThrowableResult<>(twitter.showUser(userRecord.NumericId));
                     } catch (TwitterException e) {
                         e.printStackTrace();
-                        return new ThrowableResult<User>(e);
+                        return new ThrowableResult<>(e);
                     }
                 }
 

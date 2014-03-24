@@ -2,27 +2,22 @@ package shibafu.yukari.activity;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerTabStrip;
-import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
-import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.fragment.StatusActionFragment;
 import shibafu.yukari.fragment.StatusLinkFragment;
 import shibafu.yukari.fragment.StatusMainFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import twitter4j.Status;
 
 public class StatusActivity extends FragmentActivity {
 

@@ -71,7 +71,7 @@ public class StatusLinkFragment extends ListFragment{
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
         //リスト要素を作成する
-        list = new ArrayList<LinkRow>();
+        list = new ArrayList<>();
         for (LinkMedia lm : status.getMediaLinkList()) {
             list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
         }

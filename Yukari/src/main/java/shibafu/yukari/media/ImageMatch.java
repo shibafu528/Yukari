@@ -22,7 +22,7 @@ public class ImageMatch implements Cloneable{
         String[] fragment;
         Matcher m = mPage.matcher(pageUrl);
         if (m.find()) {
-            List<String> l = new ArrayList<String>();
+            List<String> l = new ArrayList<>();
             for (int i = 1; i <= m.groupCount(); i++) {
                 l.add(m.group(i));
             }

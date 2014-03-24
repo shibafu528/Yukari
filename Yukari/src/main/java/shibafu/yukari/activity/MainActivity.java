@@ -658,7 +658,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                         e.getErrorCode(),
                                         e.getErrorMessage()),
                                 Toast.LENGTH_LONG).show();
-                        ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+                        ArrayList<AuthUserRecord> writers = new ArrayList<>();
                         writers.add(account);
                         TweetDraft draft = new TweetDraft(
                                 writers,

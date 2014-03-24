@@ -17,8 +17,6 @@ import java.util.List;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
-import shibafu.yukari.twitter.TwitterUtil;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 

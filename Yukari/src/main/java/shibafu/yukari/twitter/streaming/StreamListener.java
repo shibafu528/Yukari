@@ -1,6 +1,5 @@
 package shibafu.yukari.twitter.streaming;
 
-import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;

@@ -327,7 +327,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     task = null;
                     if (isCancelled()) return;
                     HistoryFragment.this.searchHistories = searchHistories;
-                    setListAdapter(new ArrayAdapter<SearchHistory>(getActivity(), android.R.layout.simple_list_item_1, searchHistories));
+                    setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, searchHistories));
                 }
             };
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -395,10 +395,10 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<Trend[]>(getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends());
+                            return new ThrowableResult<>(getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends());
                         } catch (TwitterException e) {
                             e.printStackTrace();
-                            return new ThrowableResult<Trend[]>(e);
+                            return new ThrowableResult<>(e);
                         }
                     }
 
@@ -407,11 +407,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         downloadTask = null;
                         if (isCancelled()) return;
                         if (!throwableResult.isException() && throwableResult.getResult() != null) {
-                            list = new ArrayList<String>();
+                            list = new ArrayList<>();
                             for (Trend t : throwableResult.getResult()) {
                                 list.add(t.getName());
                             }
-                            setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
+                            setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, list));
                         }
                         else {
                             Exception e = throwableResult.getException();
@@ -435,7 +435,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 downloadTask.execute();
             }
             else {
-                setListAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, list));
+                setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, list));
             }
         }
 
@@ -484,11 +484,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<ResponseList<SavedSearch>>(
+                            return new ThrowableResult<>(
                                     getServiceAwait().getTwitter().getSavedSearches());
                         } catch (TwitterException e) {
                             e.printStackTrace();
-                            return new ThrowableResult<ResponseList<SavedSearch>>(e);
+                            return new ThrowableResult<>(e);
                         }
                     }
 
@@ -497,7 +497,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         downloadTask = null;
                         if (isCancelled()) return;
                         if (!result.isException() && result.getResult() != null) {
-                            ArrayList<SavedSearch> ss = new ArrayList<SavedSearch>(result.getResult());
+                            ArrayList<SavedSearch> ss = new ArrayList<>(result.getResult());
                             SavedSearchFragment.this.savedSearches = ss;
                             adapter = new SavedSearchAdapter(getActivity(), ss);
                             setListAdapter(adapter);

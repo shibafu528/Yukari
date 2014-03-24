@@ -37,7 +37,7 @@ public class AccountManageActivity extends ListActivity {
     private boolean serviceBound = false;
 
     private Adapter adapter;
-    private List<Data> dataList = new ArrayList<Data>();
+    private List<Data> dataList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

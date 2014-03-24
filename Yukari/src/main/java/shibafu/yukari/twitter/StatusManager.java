@@ -339,8 +339,8 @@ public class StatusManager {
             }
         }
     }
-    private List<StatusListener> statusListeners = new ArrayList<StatusListener>();
-    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<StatusListener, Queue<EventBuffer>>();
+    private List<StatusListener> statusListeners = new ArrayList<>();
+    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
 
     public StatusManager(TwitterService service) {
         this.context = this.service = service;
@@ -366,7 +366,7 @@ public class StatusManager {
     }
 
     public ArrayList<AuthUserRecord> getActiveUsers() {
-        ArrayList<AuthUserRecord> activeUsers = new ArrayList<AuthUserRecord>();
+        ArrayList<AuthUserRecord> activeUsers = new ArrayList<>();
         for (StreamUser su : streamUsers) {
             activeUsers.add(su.getUserRecord());
         }

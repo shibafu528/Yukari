@@ -52,7 +52,7 @@ public class SNPickerActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_snpicker);
 
-        dataList = new ArrayList<Data>();
+        dataList = new ArrayList<>();
         adapter = new Adapter(this, dataList);
 
         ListView listView = (ListView) findViewById(R.id.lvSNPick);
