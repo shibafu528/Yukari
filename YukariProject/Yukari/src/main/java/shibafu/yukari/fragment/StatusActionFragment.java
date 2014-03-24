@@ -14,11 +14,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ListFragment;
-import android.text.ClipboardManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +44,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     };
 
     private List<ResolveInfo> plugins;
-    private List<String> pluginNames = new ArrayList<String>();
+    private List<String> pluginNames = new ArrayList<>();
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -82,7 +80,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        ArrayList<String> menu = new ArrayList<String>();
+        ArrayList<String> menu = new ArrayList<>();
         menu.addAll(Arrays.asList(ITEMS));
         menu.addAll(pluginNames);
 
@@ -90,7 +88,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             menu.remove(ITEMS.length - 1);
         }
 
-        setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
+        setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);

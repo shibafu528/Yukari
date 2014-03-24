@@ -2,7 +2,6 @@ package shibafu.yukari.common;
 
 import android.content.Context;
 import android.graphics.Typeface;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;

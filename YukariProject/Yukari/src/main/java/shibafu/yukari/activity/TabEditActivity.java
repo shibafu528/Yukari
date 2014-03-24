@@ -293,7 +293,7 @@ public class TabEditActivity extends ActionBarActivity
     }
 
     public static class ListChooseDialogFragment extends DialogFragment {
-        private List<UserList> userLists = new ArrayList<UserList>();
+        private List<UserList> userLists = new ArrayList<>();
         private AlertDialog dialog;
         public static final String ARG_USER = "user";
 
@@ -317,7 +317,7 @@ public class TabEditActivity extends ActionBarActivity
                             ((TabEditActivity) getActivity()).addTab(
                                     TabType.TABTYPE_LIST,
                                     (AuthUserRecord) args.getSerializable(ARG_USER),
-                                    (long) userList.getId(),
+                                    userList.getId(),
                                     userList.getSlug());
                         }
                     })
@@ -336,10 +336,10 @@ public class TabEditActivity extends ActionBarActivity
                                 Twitter twitter = ((TabEditActivity) getActivity()).getTwitterService().getTwitter();
                                 twitter.setOAuthAccessToken(params[0].getAccessToken());
                                 try {
-                                    return new ThrowableResult<ResponseList<UserList>>(twitter.getUserLists(params[0].NumericId));
+                                    return new ThrowableResult<>(twitter.getUserLists(params[0].NumericId));
                                 } catch (TwitterException e) {
                                     e.printStackTrace();
-                                    return new ThrowableResult<ResponseList<UserList>>(e);
+                                    return new ThrowableResult<>(e);
                                 }
                             }
 

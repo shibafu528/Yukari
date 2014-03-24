@@ -51,10 +51,10 @@ public class AccountChooserActivity extends ListActivity {
     private boolean serviceBound = false;
 
     private boolean isMultipleChoose = false;
-    private List<Long> defaultSelectedUserIds = new ArrayList<Long>();
+    private List<Long> defaultSelectedUserIds = new ArrayList<>();
 
     private Adapter adapter;
-    private List<Data> dataList = new ArrayList<Data>();
+    private List<Data> dataList = new ArrayList<>();
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
@@ -120,7 +120,7 @@ public class AccountChooserActivity extends ListActivity {
     public void onBackPressed() {
         if (isMultipleChoose) {
             Intent result = new Intent();
-            ArrayList<AuthUserRecord> userRecords = new ArrayList<AuthUserRecord>();
+            ArrayList<AuthUserRecord> userRecords = new ArrayList<>();
             for (Data d : dataList) {
                 if (d.checked) {
                     userRecords.add(d.record);

@@ -143,7 +143,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         ibMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<String> menuList = new ArrayList<String>();
+                List<String> menuList = new ArrayList<>();
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
                 menuList.add("ブラウザで開く");
@@ -262,7 +262,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
 
-        List<Command> commands = new ArrayList<Command>();
+        List<Command> commands = new ArrayList<>();
         commands.add(new Command(R.drawable.ic_prof_tweets, "Tweets", "0"));
         commands.add(new Command(R.drawable.ic_prof_favorite, "Favorites", "0"));
         commands.add(new Command(R.drawable.ic_prof_follow, "Follows", "0"));
@@ -623,7 +623,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             int mapSize = in.readInt();
             //マップ要素の復元
             if (mapSize > -1) {
-                relationships = new LinkedHashMap<AuthUserRecord, Relationship>(mapSize);
+                relationships = new LinkedHashMap<>(mapSize);
                 AuthUserRecord userRecord;
                 Relationship relationship;
                 for (int i = 0; i < mapSize; ++i) {
@@ -800,7 +800,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             }
 
             LinkedHashMap<AuthUserRecord, Relationship> relationships =
-                    new LinkedHashMap<AuthUserRecord, Relationship>();
+                    new LinkedHashMap<>();
             for (AuthUserRecord userRecord : service.getUsers()) {
                 try {
                     relationships.put(userRecord,

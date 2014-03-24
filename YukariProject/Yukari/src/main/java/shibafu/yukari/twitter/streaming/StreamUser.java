@@ -3,17 +3,12 @@ package shibafu.yukari.twitter.streaming;
 import android.content.Context;
 import android.util.Log;
 
-import shibafu.yukari.R;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.DirectMessage;
-import twitter4j.FilterQuery;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
-import twitter4j.TwitterStream;
-import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
 import twitter4j.UserStreamAdapter;
-import twitter4j.conf.ConfigurationBuilder;
 
 /**
  * Created by Shibafu on 13/08/01.

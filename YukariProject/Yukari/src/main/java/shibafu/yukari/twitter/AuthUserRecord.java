@@ -67,13 +67,13 @@ public class AuthUserRecord implements Serializable, DBRecord{
     }
 
     public List<AuthUserRecord> toSingleList() {
-        List<AuthUserRecord> l = new ArrayList<AuthUserRecord>();
+        List<AuthUserRecord> l = new ArrayList<>();
         l.add(this);
         return l;
     }
 
     public static List<AuthUserRecord> getAccountsList(Cursor cursor) {
-        List<AuthUserRecord> records = new ArrayList<AuthUserRecord>();
+        List<AuthUserRecord> records = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
                 records.add(new AuthUserRecord(cursor));

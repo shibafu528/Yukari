@@ -45,7 +45,7 @@ public class FollowDialogFragment extends DialogFragment {
 
     private AlertDialog dialog;
 
-    private List<ListEntry> entryList = new ArrayList<ListEntry>();
+    private List<ListEntry> entryList = new ArrayList<>();
     private User targetUser;
     private ListView listView;
 
@@ -103,7 +103,7 @@ public class FollowDialogFragment extends DialogFragment {
             public void onClick(DialogInterface dialogInterface, int i) {
                 FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
                 if (callback != null) {
-                    List<RelationClaim> claims = new ArrayList<RelationClaim>();
+                    List<RelationClaim> claims = new ArrayList<>();
                     for (ListEntry entry : entryList) {
                         if (entry.beforeRelation != entry.afterRelation) {
                             claims.add(new RelationClaim(entry.getUserRecord(), targetUser.getId(), entry.afterRelation));

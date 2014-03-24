@@ -117,7 +117,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private ImageView ivAttach;
 
     //Writer指定
-    private ArrayList<AuthUserRecord> writers = new ArrayList<AuthUserRecord>();
+    private ArrayList<AuthUserRecord> writers = new ArrayList<>();
     //アカウントのWriter指定を使用する(Writerアカウント指定呼び出しの場合は折る)
     private boolean useStoredWriters = true;
 
@@ -645,6 +645,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     }
                 });
             } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
             }
         }
         ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
@@ -904,8 +905,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             pic.width = size[0];
             pic.height = size[1];
             ivAttach.setImageBitmap(bmp);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

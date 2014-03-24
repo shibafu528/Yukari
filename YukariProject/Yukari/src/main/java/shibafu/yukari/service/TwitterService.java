@@ -70,7 +70,7 @@ public class TwitterService extends Service{
 
     //Twitter通信系
     private Twitter twitter;
-    private List<AuthUserRecord> users = new ArrayList<AuthUserRecord>();
+    private List<AuthUserRecord> users = new ArrayList<>();
     private StatusManager statusManager;
 
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {

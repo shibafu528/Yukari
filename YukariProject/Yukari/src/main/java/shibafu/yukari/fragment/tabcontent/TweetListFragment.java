@@ -44,7 +44,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         boolean isMyTweet = getService().isMyTweet(status) != null;
         //優先ユーザチェック
         if (!isMyTweet) {
-            ArrayList<Long> mentions = new ArrayList<Long>();
+            ArrayList<Long> mentions = new ArrayList<>();
             for (UserMentionEntity entity : status.getUserMentionEntities()) {
                 mentions.add(entity.getId());
             }
