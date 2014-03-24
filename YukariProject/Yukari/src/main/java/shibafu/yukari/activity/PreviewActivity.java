@@ -66,6 +66,7 @@ public class PreviewActivity extends FragmentActivity {
     private boolean isShowPanel = true;
     private int displayWidth;
     private int displayHeight;
+    private TweetAdapterWrap.ViewConverter viewConverter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -407,6 +408,12 @@ public class PreviewActivity extends FragmentActivity {
                 }
             }
         });
+
+        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
+                this,
+                null,
+                PreferenceManager.getDefaultSharedPreferences(this),
+                PreformedStatus.class);
     }
 
     @Override
@@ -417,10 +424,7 @@ public class PreviewActivity extends FragmentActivity {
             new android.os.Handler().post(new Runnable() {
                 @Override
                 public void run() {
-                    TweetAdapterWrap.setStatusToView(
-                            PreviewActivity.this, tweetView, status, null,
-                            PreferenceManager.getDefaultSharedPreferences(PreviewActivity.this),
-                            TweetAdapterWrap.MODE_PREVIEW);
+                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW);
                 }
             });
         }

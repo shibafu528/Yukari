@@ -49,6 +49,8 @@ public class StatusMainFragment extends Fragment{
     private TwitterService service;
     private boolean serviceBound = false;
 
+    private TweetAdapterWrap.ViewConverter viewConverter;
+
     private AlertDialog currentDialog = null;
     private ImageButton ibFavorite;
     private ImageButton ibFavRt;
@@ -370,6 +372,11 @@ public class StatusMainFragment extends Fragment{
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
+                getActivity(),
+                (user != null)? user.toSingleList() : null,
+                PreferenceManager.getDefaultSharedPreferences(getActivity()),
+                PreformedStatus.class);
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
@@ -385,12 +392,7 @@ public class StatusMainFragment extends Fragment{
             getView().post(new Runnable() {
                 @Override
                 public void run() {
-                    TweetAdapterWrap.setStatusToView(getActivity(),
-                            tweetView,
-                            status,
-                            (user != null)?user.toSingleList() : null,
-                            PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                            TweetAdapterWrap.MODE_DETAIL);
+                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL);
                 }
             });
         }
