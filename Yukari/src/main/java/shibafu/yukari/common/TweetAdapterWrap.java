@@ -155,12 +155,12 @@ public class TweetAdapterWrap {
         protected ViewConverter(Context context,
                                 List<AuthUserRecord> userRecords,
                                 SharedPreferences preferences,
-                                Class<? extends TweetCommonDelegate> delegateClass)
+                                TweetCommonDelegate delegate)
                 throws IllegalAccessException, InstantiationException {
             this.context = context;
             this.userRecords = userRecords;
             this.preferences = preferences;
-            this.delegate = delegateClass.newInstance();
+            this.delegate = delegate;
         }
 
         protected Context getContext() {
@@ -284,7 +284,7 @@ public class TweetAdapterWrap {
                                       List<AuthUserRecord> userRecords,
                                       SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
-            super(context, userRecords, preferences, TweetCommon.getImplementClass(PreformedStatus.class));
+            super(context, userRecords, preferences, TweetCommon.newInstance(PreformedStatus.class));
         }
 
         @Override
@@ -356,7 +356,7 @@ public class TweetAdapterWrap {
                                        List<AuthUserRecord> userRecords,
                                        SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
-            super(context, userRecords, preferences, TweetCommon.getImplementClass(DirectMessage.class));
+            super(context, userRecords, preferences, TweetCommon.newInstance(DirectMessage.class));
         }
 
         @Override
