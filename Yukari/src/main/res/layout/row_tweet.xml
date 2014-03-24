@@ -62,7 +62,8 @@
         android:layout_alignBottom="@+id/tweet_icon"
         android:layout_alignRight="@+id/tweet_icon"
         android:layout_marginRight="-4dp"
-        android:layout_marginBottom="-4dp" />
+        android:layout_marginBottom="-4dp"
+        android:visibility="invisible" />
 
     <ImageView
         android:layout_width="wrap_content"
