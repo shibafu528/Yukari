@@ -44,7 +44,6 @@ import android.widget.Toast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -57,14 +56,14 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.DBUser;
-import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.util.BitmapResizer;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.util.BitmapResizer;
 import twitter4j.GeoLocation;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -382,6 +381,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                             try {
                                 if (isDirectMessage) {
                                     service.sendDirectMessage(directMessageDestSN, user, params[0]);
+                                    ++successCount;
                                 }
                                 else {
                                     StatusUpdate update = new StatusUpdate(params[0]);
@@ -405,8 +405,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                                 service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
                                             }
                                             ++successCount;
-                                        } catch (FileNotFoundException e) {
-                                            e.printStackTrace();
                                         } catch (IOException e) {
                                             e.printStackTrace();
                                         }
@@ -704,7 +702,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         //DM判定
         isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
         if (isDirectMessage) {
-            directMessageDestId = args.getIntExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
             directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
             //表題変更
             ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
