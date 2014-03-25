@@ -1,20 +1,8 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
-    }
-}
 apply plugin: 'android'
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    compile 'com.android.support:appcompat-v7:19.0.+'
-    compile 'com.android.support:support-v4:19.0.+'
+    compile 'com.android.support:appcompat-v7:+'
+    compile 'com.android.support:support-v4:+'
 
     //ActionBar-PullToRefresh はバグが修正されていないので自前でcloneしたdevelopmentブランチを使用
     //compile 'com.github.chrisbanes.actionbarpulltorefresh:extra-abc:+'
@@ -52,8 +40,11 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
-}
 
-tasks.withType(Compile) {
-    options.encoding = 'UTF-8'
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
 }
