@@ -10,18 +10,20 @@ import shibafu.yukari.common.TabType;
  */
 public class TweetListFragmentFactory {
 
-    public static TweetListFragment newInstance(int tabType) {
+    public static TwitterListFragment newInstance(int tabType) {
         switch (tabType) {
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
                 return new SearchListFragment();
+            case TabType.TABTYPE_DM:
+                return new MessageListFragment();
             default:
                 return new DefaultTweetListFragment();
         }
     }
 
-    public static TweetListFragment newInstance(TabInfo tabInfo) {
-        TweetListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
+    public static TwitterListFragment newInstance(TabInfo tabInfo) {
+        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_SEARCH:

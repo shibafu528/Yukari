@@ -687,7 +687,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     private void addTab(TabInfo tabInfo) {
-        TweetListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
+        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:
                 service.getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());

@@ -26,6 +26,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.streaming.Stream;
+import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -532,6 +533,16 @@ public class TwitterService extends Service{
         if (users == null) return null;
         for (AuthUserRecord aur : users) {
             if (status.getUser().getId() == aur.NumericId) {
+                return aur;
+            }
+        }
+        return null;
+    }
+
+    public AuthUserRecord isMyTweet(DirectMessage message) {
+        if (users == null) return null;
+        for (AuthUserRecord aur : users) {
+            if (message.getRecipientId() == aur.NumericId) {
                 return aur;
             }
         }

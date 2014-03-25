@@ -39,6 +39,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         startActivity(intent);
     }
 
+    @Override
     protected int prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
         boolean isMyTweet = getService().isMyTweet(status) != null;
