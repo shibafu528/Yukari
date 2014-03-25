@@ -18,10 +18,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.TabType;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.TweetCommon;
+import shibafu.yukari.twitter.TweetCommonDelegate;
 import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
 
@@ -60,6 +61,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected Twitter twitter;
     private TwitterService service;
     private boolean serviceBound = false;
+
+    //TweetCommon Delegate
+    private TweetCommonDelegate commonDelegate;
 
     private Handler handler = new Handler();
 
@@ -153,11 +157,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             footerProgress.setVisibility(View.INVISIBLE);
             footerText.setText("more");
         }
-
-        if (mode == TabType.TABTYPE_DM) {
-            footerProgress.setVisibility(View.INVISIBLE);
-            footerText.setText("DM機能は未実装です");
-        }
     }
 
     protected void removeFooter() {
@@ -185,6 +184,24 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected abstract void onServiceConnected();
 
     protected abstract void onServiceDisconnected();
+
+    protected int prepareInsertStatus(T status) {
+        if (commonDelegate == null) {
+            commonDelegate = TweetCommon.newInstance(status.getClass());
+        }
+        //挿入位置の探索と追加
+        T storedStatus;
+        for (int i = 0; i < elements.size(); ++i) {
+            storedStatus = elements.get(i);
+            if (commonDelegate.getId(status) == commonDelegate.getId(storedStatus)) {
+                return -1;
+            }
+            else if (commonDelegate.getId(status) > commonDelegate.getId(storedStatus)) {
+                return i;
+            }
+        }
+        return elements.size();
+    }
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override

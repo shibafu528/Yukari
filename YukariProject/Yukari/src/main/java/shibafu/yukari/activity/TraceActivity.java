@@ -9,6 +9,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 
 /**
  * Created by Shibafu on 13/08/29.
@@ -22,7 +23,7 @@ public class TraceActivity extends FragmentActivity {
         setContentView(R.layout.activity_parent);
 
         if (savedInstanceState == null) {
-            TweetListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
+            TwitterListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
             Bundle args = new Bundle(getIntent().getExtras());
             args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
             fragment.setArguments(args);
