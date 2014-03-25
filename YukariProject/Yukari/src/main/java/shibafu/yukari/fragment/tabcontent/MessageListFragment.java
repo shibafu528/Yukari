@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
@@ -27,16 +29,19 @@ import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
+import twitter4j.User;
 
 /**
  * Created by shibafu on 14/03/25.
  */
-public class MessageListFragment extends TwitterListFragment<DirectMessage> implements StatusManager.StatusListener {
+public class MessageListFragment extends TwitterListFragment<DirectMessage>
+        implements StatusManager.StatusListener, DialogInterface.OnClickListener {
 
     //ListView Adapter Wrapper
     private TweetAdapterWrap adapterWrap;
 
     private long lastStatusId = -1;
+    private DirectMessage lastClicked;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -99,8 +104,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage> impl
 
     @Override
     public void onListItemClick(DirectMessage clickedElement) {
+        lastClicked = clickedElement;
         MessageMenuDialogFragment dialogFragment = MessageMenuDialogFragment.newInstance(clickedElement);
-        dialogFragment.show(getChildFragmentManager(), "menu");
+        dialogFragment.setTargetFragment(this, 1);
+        dialogFragment.show(getFragmentManager(), "menu");
     }
 
     @Override
@@ -180,6 +187,41 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage> impl
                 }
             }
         });
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        if (lastClicked != null) {
+            switch (which) {
+                case 0:
+                {
+                    Intent intent = new Intent(getActivity(), TweetActivity.class);
+                    intent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                    intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, lastClicked.getSenderId());
+                    intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lastClicked.getSenderScreenName());
+                    startActivity(intent);
+                    break;
+                }
+                case 1:
+                {
+                    Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                    intent.putExtra(ProfileActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                    intent.putExtra(ProfileActivity.EXTRA_TARGET, lastClicked.getSenderId());
+                    startActivity(intent);
+                    break;
+                }
+            }
+        }
+    }
+
+    private AuthUserRecord findUserRecord(User user) {
+        for (AuthUserRecord userRecord : users) {
+            if (userRecord.NumericId == user.getId()) {
+                return userRecord;
+            }
+        }
+        return null;
     }
 
     private class MessageRESTLoader extends AsyncTask<MessageRESTLoader.Params, Void, List<DirectMessage>> {
@@ -279,7 +321,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage> impl
         }
     }
 
-    public static class MessageMenuDialogFragment extends DialogFragment {
+    public static class MessageMenuDialogFragment extends DialogFragment implements DialogInterface.OnClickListener{
 
         public static MessageMenuDialogFragment newInstance(DirectMessage message) {
             MessageMenuDialogFragment fragment = new MessageMenuDialogFragment();
@@ -296,21 +338,25 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage> impl
             Bundle args = getArguments();
             List<String> items = new ArrayList<>(Arrays.asList(new String[]{
                     "返信する",
-                    "削除",
+                    //"削除",
                     "@" + args.getString("sender")
             }));
-            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+            return new AlertDialog.Builder(getActivity())
                     .setTitle(args.getString("text"))
-                    .setItems(items.toArray(new String[items.size()]),
-                            new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    })
+                    .setItems(items.toArray(new String[items.size()]), this)
                     .setCancelable(true)
                     .create();
-            return dialog;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            dialog.dismiss();
+            if (getParentFragment() != null && getParentFragment() instanceof DialogInterface.OnClickListener) {
+                ((DialogInterface.OnClickListener) getParentFragment()).onClick(dialog, which);
+            }
+            else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
+                ((DialogInterface.OnClickListener) getTargetFragment()).onClick(dialog, which);
+            }
         }
     }
 }
