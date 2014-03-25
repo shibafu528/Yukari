@@ -13,6 +13,7 @@ public interface TweetCommonDelegate {
     int REL_OWN = 1;
     int REL_MENTION = 2;
 
+    long getId(TwitterResponse object);
     User getUser(TwitterResponse object);
     String getRecipientScreenName(TwitterResponse object);
     String getText(TwitterResponse object);
