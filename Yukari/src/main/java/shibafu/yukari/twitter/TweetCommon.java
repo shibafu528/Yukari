@@ -119,7 +119,7 @@ public class TweetCommon {
                     return REL_OWN;
                 }
             }
-            return 0;
+            return REL_MENTION;
         }
     }
 }
