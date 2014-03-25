@@ -229,7 +229,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage> impl
                 ResponseList<DirectMessage> inBoxResponse = twitter.getDirectMessages(paging);
                 ResponseList<DirectMessage> sentBoxResponse = twitter.getSentDirectMessages(paging);
                 if (!params[0].isSaveLastPaging()) {
-                    if (inBoxResponse != null && inBoxResponse.isEmpty() &&
+                    if (inBoxResponse != null && !inBoxResponse.isEmpty() &&
                             sentBoxResponse != null && !sentBoxResponse.isEmpty()) {
                         lastStatusId = Math.min(inBoxResponse.get(inBoxResponse.size() - 1).getId(),
                                 sentBoxResponse.get(sentBoxResponse.size() - 1).getId());
