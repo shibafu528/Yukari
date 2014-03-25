@@ -12,16 +12,21 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    compile 'com.github.castorflex.smoothprogressbar:library:0.2.0'
+}
+
 android {
-    compileSdkVersion 19
-    buildToolsVersion "19.0.3"
+    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
+    buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {
         minSdkVersion 8
-        targetSdkVersion 19
+        targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             runProguard false
@@ -33,8 +38,4 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
-}
-
-dependencies {
-    compile 'com.github.castorflex.smoothprogressbar:library:0.2.0'
 }

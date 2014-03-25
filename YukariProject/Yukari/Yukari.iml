@@ -70,14 +70,14 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="twitter4j-core-4.0.1" level="project" />
-    <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-19.0.1" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-stream-4.0.1" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.1" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-async-4.0.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-19.0.1" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-async-4.0.1" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-stream-4.0.1" level="project" />
+    <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-core-4.0.1" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-19.0.1" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.1" level="project" />
     <orderEntry type="module" module-name="actionbar-ptr-compat" exported="" />
   </component>
 </module>
