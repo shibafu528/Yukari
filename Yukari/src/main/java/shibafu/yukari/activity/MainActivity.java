@@ -501,7 +501,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("screen", keepScreenOn);
-        if (currentPage != null) {
+        if (currentPage != null && !currentPage.isDetached()) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
         outState.putInt("currentId", viewPager.getCurrentItem());

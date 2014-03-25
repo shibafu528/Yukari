@@ -72,10 +72,11 @@ public class MenuDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (((MainActivity)getActivity()).isKeepScreenOn()) {
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity.isKeepScreenOn()) {
             keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
         }
-        activeAccounts = ((TwitterServiceDelegate)getActivity()).getTwitterService().getActiveUsers();
+        activeAccounts = activity.getTwitterService().getActiveUsers();
         createAccountIconView();
     }
 

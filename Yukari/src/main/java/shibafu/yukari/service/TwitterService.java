@@ -194,9 +194,11 @@ public class TwitterService extends Service{
     }
 
     public AuthUserRecord getPrimaryUser() {
-        for (AuthUserRecord userRecord : users) {
-            if (userRecord.isPrimary) {
-                return userRecord;
+        if (users != null) {
+            for (AuthUserRecord userRecord : users) {
+                if (userRecord.isPrimary) {
+                    return userRecord;
+                }
             }
         }
         return null;
