@@ -39,6 +39,7 @@ import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.TwitterResponse;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
@@ -50,6 +51,7 @@ public class StatusManager {
     private static final int NOTIF_FAVED = 1;
     private static final int NOTIF_REPLY = 2;
     private static final int NOTIF_RETWEET = 3;
+    private static final int NOTIF_DM = 4;
 
     //バイブレーションパターン
     private final static long[] VIB_REPLY = {450, 130, 140, 150};
@@ -105,6 +107,11 @@ public class StatusManager {
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 e.getValue().offer(new EventBuffer(from.getUserRecord(), directMessage));
+            }
+
+            boolean checkOwn = service.isMyTweet(directMessage) != null;
+            if (!checkOwn) {
+                showNotification(NOTIF_DM, directMessage, directMessage.getSender());
             }
         }
 
@@ -176,7 +183,9 @@ public class StatusManager {
             }
         }
 
-        private void showNotification(int category, Status status, User actionBy) {
+        private void showNotification(int category, TwitterResponse status, User actionBy) {
+            TweetCommonDelegate delegate = TweetCommon.newInstance(status.getClass());
+
             int prefValue = 5;
             switch (category) {
                 case NOTIF_REPLY:
@@ -187,6 +196,9 @@ public class StatusManager {
                     break;
                 case NOTIF_FAVED:
                     prefValue = sharedPreferences.getInt("pref_notif_fav", 5);
+                    break;
+                case NOTIF_DM:
+                    prefValue = sharedPreferences.getInt("pref_notif_dm", 5);
                     break;
             }
             NotificationType notificationType = new NotificationType(prefValue);
@@ -218,12 +230,19 @@ public class StatusManager {
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                         pattern = VIB_FAVED;
                         break;
+                    case NOTIF_DM:
+                        icon = R.drawable.ic_stat_message;
+                        titleHeader = "Message from @";
+                        tickerHeader = "DM : @";
+                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+                        pattern = VIB_REPLY;
+                        break;
                 }
                 if (notificationType.getNotificationType() == NotificationType.TYPE_NOTIF) {
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext());
                     builder.setSmallIcon(icon);
                     builder.setContentTitle(titleHeader + actionBy.getScreenName());
-                    builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
+                    builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
                     builder.setTicker(tickerHeader + actionBy.getScreenName());
                     if (notificationType.isUseSound()) {
                         builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
@@ -242,6 +261,15 @@ public class StatusManager {
                             builder.setContentIntent(pendingIntent);
                             break;
                         }
+                        case NOTIF_DM:
+                        {
+                            Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
+                            intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_DM);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(
+                                    context.getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                            builder.setContentIntent(pendingIntent);
+                            break;
+                        }
                     }
                     notificationManager.notify(category, builder.build());
                 }
@@ -254,7 +282,7 @@ public class StatusManager {
                         vibrate(pattern, -1);
                     }
                     final String text = tickerHeader + actionBy.getScreenName() + "\n" +
-                            status.getUser().getScreenName() + ": " + status.getText();
+                            delegate.getUser(status).getScreenName() + ": " + delegate.getText(status);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
