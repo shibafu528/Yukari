@@ -65,6 +65,11 @@
             android:title="お気に入り通知"
             android:summary="ツイートがお気に入りに追加された際に通知します"
             android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_dm"
+            android:title="メッセージ通知"
+            android:summary="ダイレクトメッセージを受信した際に通知します"
+            android:defaultValue="5"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="デバッグ設定">

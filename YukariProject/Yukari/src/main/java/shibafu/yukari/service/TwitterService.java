@@ -542,7 +542,7 @@ public class TwitterService extends Service{
     public AuthUserRecord isMyTweet(DirectMessage message) {
         if (users == null) return null;
         for (AuthUserRecord aur : users) {
-            if (message.getRecipientId() == aur.NumericId) {
+            if (message.getSenderId() == aur.NumericId) {
                 return aur;
             }
         }
