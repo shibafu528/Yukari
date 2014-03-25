@@ -27,6 +27,11 @@ public class TweetCommon {
 
     public static class StatusCommonDelegate implements TweetCommonDelegate {
         @Override
+        public long getId(TwitterResponse object) {
+            return ((PreformedStatus) object).getId();
+        }
+
+        @Override
         public User getUser(TwitterResponse object) {
             return ((PreformedStatus) object).isRetweet() ?
                     ((PreformedStatus) object).getRetweetedStatus().getUser()
@@ -77,6 +82,11 @@ public class TweetCommon {
     }
 
     public static class MessageCommonDelegate implements TweetCommonDelegate {
+        @Override
+        public long getId(TwitterResponse object) {
+            return ((DirectMessage) object).getId();
+        }
+
         @Override
         public User getUser(TwitterResponse object) {
             return ((DirectMessage) object).getSender();
