@@ -45,7 +45,6 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
@@ -53,12 +52,11 @@ import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
-import twitter4j.StatusUpdate;
-import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
 public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
@@ -622,67 +620,30 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             }
         }
         else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
-            TwitterAsyncTask<Void> task = new TwitterAsyncTask<Void>() {
-                private String status;
-                private AuthUserRecord account;
+            //ドラフト生成
+            TweetDraft draft = new TweetDraft(
+                    selectedAccount.toSingleList(),
+                    etTweet.getText().toString(),
+                    System.currentTimeMillis(),
+                    -1,
+                    false,
+                    null,
+                    false,
+                    0,
+                    0,
+                    false,
+                    false);
 
-                @Override
-                protected TwitterException doInBackground(Void... voids) {
-                    try {
-                        service.postTweet(account, new StatusUpdate(status));
-                    } catch (TwitterException e) {
-                        return e;
-                    }
-                    return null;
-                }
+            //サービス起動
+            startService(PostService.newIntent(this, draft));
 
-                @Override
-                protected void onPreExecute() {
-                    Toast.makeText(MainActivity.this, "Updating...", Toast.LENGTH_SHORT).show();
-                    this.status = etTweet.getText().toString();
-                    this.account = selectedAccount;
-                    etTweet.setText("");
-                    if (currentPage instanceof SearchListFragment) {
-                        etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
-                    }
-                    etTweet.requestFocus();
-                    imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED);
-                }
-
-                @Override
-                protected void onPostExecute(TwitterException e) {
-                    if (e != null) {
-                        Toast.makeText(
-                                MainActivity.this,
-                                String.format("投稿エラー:%d\n%s\n--------\nツイートは下書きに保存されます.",
-                                        e.getErrorCode(),
-                                        e.getErrorMessage()),
-                                Toast.LENGTH_LONG).show();
-                        ArrayList<AuthUserRecord> writers = new ArrayList<>();
-                        writers.add(account);
-                        TweetDraft draft = new TweetDraft(
-                                writers,
-                                status,
-                                System.currentTimeMillis(),
-                                -1,
-                                false,
-                                null,
-                                false,
-                                0,
-                                0,
-                                false,
-                                false,
-                                false);
-                        service.getDatabase().updateDraft(draft);
-                    }
-                    else {
-                        Toast.makeText(MainActivity.this,
-                                "Success Update!",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                }
-            };
-            task.execute();
+            //投稿欄を掃除する
+            etTweet.setText("");
+            if (currentPage instanceof SearchListFragment) {
+                etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
+            }
+            etTweet.requestFocus();
+            imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED);
         }
     }
 

@@ -17,7 +17,7 @@ import shibafu.yukari.util.StringUtil;
 /**
  * Created by shibafu on 14/03/09.
  */
-class BitmapCache {
+public class BitmapCache {
     public static final String PROFILE_ICON_CACHE = "icon";
     public static final String IMAGE_CACHE = "picture";
 

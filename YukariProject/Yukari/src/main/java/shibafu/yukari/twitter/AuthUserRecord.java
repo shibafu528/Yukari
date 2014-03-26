@@ -66,8 +66,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
         return ScreenName.hashCode();
     }
 
-    public List<AuthUserRecord> toSingleList() {
-        List<AuthUserRecord> l = new ArrayList<>();
+    public ArrayList<AuthUserRecord> toSingleList() {
+        ArrayList<AuthUserRecord> l = new ArrayList<>();
         l.add(this);
         return l;
     }

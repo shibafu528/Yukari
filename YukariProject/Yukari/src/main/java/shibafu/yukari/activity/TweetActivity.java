@@ -17,7 +17,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -27,7 +26,6 @@ import android.speech.RecognizerIntent;
 import android.support.v4.app.FragmentActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
@@ -42,11 +40,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,15 +54,13 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.database.DBUser;
 import shibafu.yukari.fragment.DraftDialogFragment;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.BitmapResizer;
-import twitter4j.GeoLocation;
 import twitter4j.Status;
-import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
@@ -374,85 +367,16 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     }
                 }
 
-                AsyncTask<String, Void, Integer> task = new AsyncTask<String, Void, Integer>() {
-                    @Override
-                    protected Integer doInBackground(String... params) {
-                        int successCount = 0;
-                        for (AuthUserRecord user : writers) {
-                            try {
-                                if (isDirectMessage) {
-                                    service.sendDirectMessage(directMessageDestSN, user, params[0]);
-                                    ++successCount;
-                                }
-                                else {
-                                    StatusUpdate update = new StatusUpdate(params[0]);
-                                    //statusが引数に付加されている場合はin-reply-toとして設定する
-                                    if (status != null) {
-                                        update.setInReplyToStatusId(status.getId());
-                                    }
-                                    //attachPictureがある場合は添付
-                                    if (attachPicture != null) {
-                                        try {
-                                            if (Math.max(attachPicture.width, attachPicture.height) > 960) {
-                                                Log.d("TweetActivity", "添付画像の長辺が960pxを超えています。圧縮対象とします。");
-                                                Bitmap resized = BitmapResizer.resizeBitmap(TweetActivity.this, attachPicture.uri, 960, 960, null);
-                                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                                resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                                Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                                service.postTweet(user, update, new InputStream[]{bais});
-                                            }
-                                            else {
-                                                service.postTweet(user, update, new InputStream[]{getContentResolver().openInputStream(attachPicture.uri)});
-                                            }
-                                            ++successCount;
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                    else {
-                                        service.postTweet(user, update);
-                                        ++successCount;
-                                    }
-                                }
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                            }
-                            publishProgress();
-                        }
-                        return successCount;
-                    }
+                //ドラフトを作成
+                TweetDraft draft = getTweetDraft();
+                draft.setText(inputText);
 
-                    @Override
-                    protected void onProgressUpdate(Void... values) {
-                        progress.incrementProgressBy(1);
-                    }
+                //サービスに投げる
+                Intent intent = PostService.newIntent(TweetActivity.this, draft);
+                startService(intent);
 
-                    @Override
-                    protected void onPostExecute(Integer result) {
-                        if (progress != null) {
-                            progress.dismiss();
-                            progress = null;
-                        }
-                        if (result == writers.size()) {
-                            Toast.makeText(TweetActivity.this, "投稿に成功しました", Toast.LENGTH_SHORT).show();
-                            setResult(RESULT_OK);
-                            finish();
-                        }
-                        else {
-                            Toast.makeText(TweetActivity.this, String.format("成功: %d\n失敗: %d", result, writers.size() - result), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                };
-                task.execute(inputText);
-                ProgressDialog pd = new ProgressDialog(TweetActivity.this);
-                pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                pd.setIndeterminate(false);
-                pd.setCancelable(false);
-                pd.setMessage("送信中...");
-                pd.setMax(writers.size());
-                pd.show();
-                progress = pd;
+                //閉じる
+                finish();
             }
         });
 
@@ -594,20 +518,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
                                         else {
-                                            TweetDraft draft = new TweetDraft(
-                                                    writers,
-                                                    etInput.getText().toString(),
-                                                    System.currentTimeMillis(),
-                                                    isDirectMessage? directMessageDestId : ( (status==null)? -1 : status.getId() ),
-                                                    false,
-                                                    (attachPicture==null)? null : attachPicture.uri,
-                                                    false,
-                                                    0,
-                                                    0,
-                                                    false,
-                                                    isDirectMessage,
-                                                    false);
-                                            service.getDatabase().updateDraft(draft);
+                                            service.getDatabase().updateDraft(getTweetDraft());
                                             Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
                                         }
                                         break;
@@ -941,29 +852,44 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     @Override
     public void onDraftSelected(TweetDraft selected) {
-        Intent intent = new Intent(this, TweetActivity.class);
-        intent.putExtra(EXTRA_TEXT, selected.getText());
-        intent.putExtra(EXTRA_MEDIA, selected.getAttachedPicture());
-        intent.putExtra(EXTRA_WRITERS, selected.getWriters());
-        if (selected.isDirectMessage()) {
-            intent.putExtra(EXTRA_MODE, MODE_DM);
-            intent.putExtra(EXTRA_IN_REPLY_TO, selected.getInReplyTo());
-            DBUser dbUser = service.getDatabase().getUser(selected.getInReplyTo());
-            intent.putExtra(EXTRA_DM_TARGET_SN, dbUser!=null? dbUser.getScreenName() : null);
-        }
-        else if (selected.getInReplyTo() > -1) {
-            intent.putExtra(EXTRA_MODE, MODE_REPLY);
-            intent.putExtra(EXTRA_IN_REPLY_TO, selected.getInReplyTo());
-        }
-        else {
-            intent.putExtra(EXTRA_MODE, MODE_TWEET);
-        }
-        if (selected.isUseGeoLocation()) {
-            intent.putExtra(EXTRA_GEO_LOCATION, new GeoLocation(selected.getGeoLatitude(), selected.getGeoLongitude()));
-        }
+        Intent intent = selected.getTweetIntent(this);
 
         startActivity(intent);
         finish();
+    }
+
+    private TweetDraft getTweetDraft() {
+        TweetDraft draft;
+        if (isDirectMessage) {
+            draft = new TweetDraft(
+                    writers,
+                    etInput.getText().toString(),
+                    System.currentTimeMillis(),
+                    directMessageDestId,
+                    directMessageDestSN,
+                    false,
+                    (attachPicture == null) ? null : attachPicture.uri,
+                    false,
+                    0,
+                    0,
+                    false,
+                    false);
+        }
+        else {
+            draft = new TweetDraft(
+                    writers,
+                    etInput.getText().toString(),
+                    System.currentTimeMillis(),
+                    (status == null) ? -1 : status.getId(),
+                    false,
+                    (attachPicture == null) ? null : attachPicture.uri,
+                    false,
+                    0,
+                    0,
+                    false,
+                    false);
+        }
+        return draft;
     }
 
     @Override
