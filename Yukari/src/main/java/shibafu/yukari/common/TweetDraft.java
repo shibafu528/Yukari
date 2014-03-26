@@ -1,14 +1,21 @@
 package shibafu.yukari.common;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.GeoLocation;
 
 /**
  * Created by Shibafu on 13/08/07.
@@ -21,19 +28,20 @@ public class TweetDraft implements Serializable{
     private long dateTime;
     private long inReplyTo;
     private boolean isQuoted;
-    private Uri attachedPicture;
+    private transient Uri attachedPicture;
     private boolean useGeoLocation;
     private double geoLatitude;
     private double geoLongitude;
     private boolean isPossiblySensitive;
     private boolean isDirectMessage;
     private boolean isFailedDelivery;
+    private String messageTarget;
 
     public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime, long inReplyTo,
                       boolean isQuoted, Uri attachedPicture,
                       boolean useGeoLocation,
                       double geoLatitude, double geoLongitude,
-                      boolean isPossiblySensitive, boolean isDirectMessage, boolean isFailedDelivery) {
+                      boolean isPossiblySensitive, boolean isFailedDelivery) {
         this.writers = writers;
         this.text = text;
         this.dateTime = dateTime;
@@ -44,8 +52,31 @@ public class TweetDraft implements Serializable{
         this.geoLatitude = geoLatitude;
         this.geoLongitude = geoLongitude;
         this.isPossiblySensitive = isPossiblySensitive;
-        this.isDirectMessage = isDirectMessage;
+        this.isDirectMessage = false;
         this.isFailedDelivery = isFailedDelivery;
+        this.messageTarget = "";
+    }
+
+    public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime,
+                      long inReplyTo, String messageTarget,
+                      boolean isQuoted, Uri attachedPicture,
+                      boolean useGeoLocation,
+                      double geoLatitude, double geoLongitude,
+                      boolean isPossiblySensitive,
+                      boolean isFailedDelivery) {
+        this.writers = writers;
+        this.text = text;
+        this.dateTime = dateTime;
+        this.inReplyTo = inReplyTo;
+        this.isQuoted = isQuoted;
+        this.attachedPicture = attachedPicture;
+        this.useGeoLocation = useGeoLocation;
+        this.geoLatitude = geoLatitude;
+        this.geoLongitude = geoLongitude;
+        this.isPossiblySensitive = isPossiblySensitive;
+        this.isDirectMessage = true;
+        this.isFailedDelivery = isFailedDelivery;
+        this.messageTarget = messageTarget;
     }
 
     public TweetDraft(Cursor cursor) {
@@ -62,6 +93,7 @@ public class TweetDraft implements Serializable{
         isPossiblySensitive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_POSSIBLY_SENSITIVE)) == 1;
         isDirectMessage = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_DIRECT_MESSAGE)) == 1;
         isFailedDelivery = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_FAILED_DELIVERY)) == 1;
+        messageTarget = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_MESSAGE_TARGET));
     }
 
     public ContentValues[] getContentValuesArray() {
@@ -81,6 +113,7 @@ public class TweetDraft implements Serializable{
             values.put(CentralDatabase.COL_DRAFTS_IS_POSSIBLY_SENSITIVE, isPossiblySensitive);
             values.put(CentralDatabase.COL_DRAFTS_IS_DIRECT_MESSAGE, isDirectMessage);
             values.put(CentralDatabase.COL_DRAFTS_IS_FAILED_DELIVERY, isFailedDelivery);
+            values.put(CentralDatabase.COL_DRAFTS_MESSAGE_TARGET, messageTarget);
             valuesArray[i] = values;
         }
         return valuesArray;
@@ -188,5 +221,51 @@ public class TweetDraft implements Serializable{
 
     public void addWriter(AuthUserRecord user) {
         writers.add(user);
+    }
+
+    public String getMessageTarget() {
+        return messageTarget;
+    }
+
+    public void setMessageTarget(String messageTarget) {
+        this.messageTarget = messageTarget;
+    }
+
+    public Intent getTweetIntent(Context context) {
+        Intent intent = new Intent(context, TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_TEXT, getText());
+        intent.putExtra(TweetActivity.EXTRA_MEDIA, getAttachedPicture());
+        intent.putExtra(TweetActivity.EXTRA_WRITERS, getWriters());
+        if (isDirectMessage()) {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, getInReplyTo());
+            intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, getMessageTarget());
+        }
+        else if (getInReplyTo() > -1) {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, getInReplyTo());
+        }
+        else {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_TWEET);
+        }
+        if (isUseGeoLocation()) {
+            intent.putExtra(TweetActivity.EXTRA_GEO_LOCATION, new GeoLocation(getGeoLatitude(), getGeoLongitude()));
+        }
+        return intent;
+    }
+
+    private void writeObject(ObjectOutputStream stream) throws IOException {
+        stream.defaultWriteObject();
+
+        stream.writeUTF(attachedPicture != null ? attachedPicture.toString() : "null");
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+
+        String uri = stream.readUTF();
+        if (uri != null && !uri.equals("null")) {
+            attachedPicture = Uri.parse(uri);
+        }
     }
 }

@@ -22,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 3;
+    private static final int DB_VER = 4;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -73,6 +73,7 @@ public class CentralDatabase {
     public static final String COL_DRAFTS_IS_POSSIBLY_SENSITIVE = "IsPossiblySensitive";
     public static final String COL_DRAFTS_IS_DIRECT_MESSAGE = "IsDirectMessage";
     public static final String COL_DRAFTS_IS_FAILED_DELIVERY= "IsFailedDelivery";//送信失敗が原因で保存されたツイート
+    public static final String COL_DRAFTS_MESSAGE_TARGET = "MessageTarget";
 
     //Bookmarksテーブル
     //一旦あきらめた!! ✌(('ω'✌ ))三✌(('ω'))✌三(( ✌'ω'))✌
@@ -153,7 +154,8 @@ public class CentralDatabase {
                     COL_DRAFTS_GEO_LONGITUDE + " REAL, " +
                     COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
                     COL_DRAFTS_IS_DIRECT_MESSAGE + " INTEGER, " +
-                    COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER)"
+                    COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER, " +
+                    COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '')"
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_TABS + " (" +
@@ -198,6 +200,13 @@ public class CentralDatabase {
                         COL_SHISTORY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         COL_SHISTORY_QUERY + " TEXT UNIQUE, " +
                         COL_SHISTORY_DATE + " INTEGER)"
+                );
+                ++oldVersion;
+            }
+            if (oldVersion == 3) {
+                db.execSQL(
+                        "ALTER TABLE " + TABLE_DRAFTS + " ADD " + COL_DRAFTS_MESSAGE_TARGET +
+                        " TEXT DEFAULT ''"
                 );
                 ++oldVersion;
             }

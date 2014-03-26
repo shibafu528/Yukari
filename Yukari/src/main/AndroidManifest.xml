@@ -95,6 +95,7 @@
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
         </activity>
+        <service android:name=".service.PostService"/>
 
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
