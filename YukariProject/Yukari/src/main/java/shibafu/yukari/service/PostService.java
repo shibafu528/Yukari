@@ -195,19 +195,21 @@ public class PostService extends IntentService{
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("PostService", "onCreate PostService");
         bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.d("PostService", "onDestory PostService");
         unbindService(connection);
     }
 
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("MainActivity", "onServiceConnected");
+            Log.d("PostService", "onServiceConnected");
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             PostService.this.service = binder.getService();
             serviceBound = true;
