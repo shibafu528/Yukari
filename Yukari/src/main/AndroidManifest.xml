@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="13"
-    android:versionName="0.85alpha (prototype 140326)" >
+    android:versionName="0.86alpha (prototype 140327)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -160,7 +160,7 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.MorseInputActivity"
+            android:name=".plugin.MorseInputActivity"
             android:icon="@drawable/ic_launcher_morse"
             android:label="@string/title_morse_input"
             android:theme="@style/AppThemeTranslucent" >
@@ -217,6 +217,15 @@
         <activity
             android:name=".activity.TabEditActivity"
             android:label="@string/title_activity_column_edit" />
+
+        <activity
+            android:name=".plugin.OpenAclogActivity"
+            android:label="このツイートのaclogを開く">
+            <intent-filter>
+                <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

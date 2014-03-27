@@ -1,4 +1,4 @@
-package shibafu.yukari.activity;
+package shibafu.yukari.plugin;
 
 import android.app.Activity;
 import android.app.AlertDialog;
