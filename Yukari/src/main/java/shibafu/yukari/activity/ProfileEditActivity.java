@@ -2,12 +2,17 @@ package shibafu.yukari.activity;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -16,6 +21,12 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
@@ -33,17 +44,23 @@ import twitter4j.User;
 public class ProfileEditActivity extends ActionBarActivity {
     public static final String EXTRA_USER = "user";
 
+    private static final int REQUEST_GALLERY = 0;
+    private static final int REQUEST_CROP = 1;
+
     private TwitterService service;
     private boolean serviceBound = false;
 
     private AuthUserRecord userRecord;
     private User user;
 
+    private Bitmap trimmedIcon;
+
     private ThrowableAsyncTask<Void, Void, ?> currentTask;
 
     private ImageView ivIcon, ivHeader;
     private EditText etName, etLocation, etWeb, etBio;
     private LoadDialogFragment dialogFragment;
+    private File tempFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,13 +78,67 @@ public class ProfileEditActivity extends ActionBarActivity {
         etWeb = (EditText) findViewById(R.id.etProfileWeb);
         etBio = (EditText) findViewById(R.id.etProfileBio);
 
+        findViewById(R.id.btnChooseIcon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_GALLERY);
+            }
+        });
+
         findViewById(R.id.btnUndoIcon).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (trimmedIcon != null) {
+                    trimmedIcon.recycle();
+                    trimmedIcon = null;
+                }
                 ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
                 Toast.makeText(ProfileEditActivity.this, "Undo!", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // トリミング処理このへん参考にした
+        // http://goodspeed.hatenablog.com/entry/20120313/1331623333
+        if (requestCode == REQUEST_GALLERY && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+
+            Intent intent = new Intent("com.android.camera.action.CROP");
+            try {
+                tempFile = File.createTempFile("profile_icon", ".png");
+                intent.setDataAndType(uri, "image/*");
+                intent.putExtra("outputX", 512);
+                intent.putExtra("outputY", 512);
+                intent.putExtra("aspectX", 1);
+                intent.putExtra("aspectY", 1);
+                intent.putExtra("scale", true);
+                intent.putExtra("noFaceDetection", true);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempFile));
+                intent.putExtra("outputFormat", Bitmap.CompressFormat.PNG.name());
+
+                startActivityForResult(intent, REQUEST_CROP);
+            } catch (IOException | ActivityNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "トリミングの呼び出しに失敗しました", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        if (requestCode == REQUEST_CROP && resultCode == RESULT_OK) {
+            try {
+                InputStream is = new FileInputStream(tempFile);
+                trimmedIcon = BitmapFactory.decodeStream(is);
+                ivIcon.setImageBitmap(trimmedIcon);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "画像のロードに失敗しました", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override
@@ -129,6 +200,10 @@ public class ProfileEditActivity extends ActionBarActivity {
     private void loadUserProfile(User user) {
         this.user = user;
 
+        if (trimmedIcon != null) {
+            trimmedIcon.recycle();
+            trimmedIcon = null;
+        }
         ivIcon.setTag(user.getBiggerProfileImageURLHttps());
         ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
 
