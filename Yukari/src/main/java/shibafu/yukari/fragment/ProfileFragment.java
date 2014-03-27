@@ -43,11 +43,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
@@ -149,6 +150,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 menuList.add("ブラウザで開く");
                 //menuList.add("リストへ追加/削除");
 
+                if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
+                        (targetId >= 0 && targetId == user.NumericId) ||
+                        (selfLoadId && selfLoadName.equals(user.ScreenName))) {
+                    menuList.add("プロフィール編集");
+                    menuList.add("ブロックリスト");
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setItems(menuList.toArray(new String[0]), new DialogInterface.OnClickListener() {
                     @Override
@@ -179,6 +187,29 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                                         Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
+                                break;
+                            }
+                            case 3:
+                            {
+                                Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
+                                intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
+                                startActivity(intent);
+                                break;
+                            }
+                            case 4:
+                            {
+                                FriendListFragment fragment = new FriendListFragment();
+                                Bundle args = new Bundle();
+                                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
+                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                                args.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
+                                fragment.setArguments(args);
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                transaction.replace(R.id.frame, fragment, "contain");
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                                break;
                             }
                         }
                         currentDialog = null;
@@ -351,8 +382,20 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             progressBar.setVisibility(View.INVISIBLE);
         }
 
+        if (serviceBound) {
+            List<AuthUserRecord> users = service.getUsers();
+            for (AuthUserRecord usr : users) {
+                if (usr.NumericId == holder.targetUser.getId()) {
+                    user = usr;
+                    break;
+                }
+            }
+        }
+
         ImageLoaderTask.loadProfileIcon(getActivity(), ivProfileIcon, holder.targetUser.getBiggerProfileImageURLHttps());
-        ImageLoaderTask.loadBitmap(getActivity(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
+        if (loadHolder.targetUser.getProfileBannerMobileURL() != null) {
+            ImageLoaderTask.loadBitmap(getActivity(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
+        }
 
         if (holder.targetUser.isProtected()) {
             ivProtected.setVisibility(View.VISIBLE);

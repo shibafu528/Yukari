@@ -31,6 +31,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
     public static final int MODE_FRIEND   = 0;
     public static final int MODE_FOLLOWER = 1;
+    public static final int MODE_BLOCKING = 2;
 
     private User targetUser = null;
 
@@ -102,6 +103,9 @@ public class FriendListFragment extends TwitterListFragment<User> {
                         break;
                     case MODE_FOLLOWER:
                         responseList = twitter.getFollowersList(targetUser.getId(), loadCursor);
+                        break;
+                    case MODE_BLOCKING:
+                        responseList = twitter.getBlocksList(loadCursor);
                         break;
                 }
                 if (responseList != null && !responseList.isEmpty()) {
