@@ -25,7 +25,6 @@ import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -197,17 +196,6 @@ public class MenuDialogFragment extends DialogFragment {
             public void onClick(View v) {
                 dismiss();
                 startActivity(new Intent(getActivity(), ConfigActivity.class));
-            }
-        });
-        configMenu.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                dismiss();
-                Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
-                intent.putExtra(ProfileEditActivity.EXTRA_USER,
-                        ((TwitterServiceDelegate)getActivity()).getTwitterService().getPrimaryUser());
-                startActivity(intent);
-                return true;
             }
         });
 

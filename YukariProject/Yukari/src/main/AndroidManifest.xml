@@ -220,7 +220,7 @@
 
         <activity
             android:name=".plugin.OpenAclogActivity"
-            android:label="このツイートのaclogを開く">
+            android:label="@string/title_activity_open_aclog">
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
                 <category android:name="android.intent.category.DEFAULT"/>

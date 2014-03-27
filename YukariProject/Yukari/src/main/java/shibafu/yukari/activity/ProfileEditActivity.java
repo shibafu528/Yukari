@@ -204,11 +204,11 @@ public class ProfileEditActivity extends ActionBarActivity {
             trimmedIcon.recycle();
             trimmedIcon = null;
         }
-        ivIcon.setTag(user.getBiggerProfileImageURLHttps());
         ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
 
-        ivHeader.setTag(user.getProfileBannerMobileURL());
-        ImageLoaderTask.loadBitmap(ProfileEditActivity.this, ivHeader, user.getProfileBannerMobileURL());
+        if (user.getProfileBannerMobileURL() != null) {
+            ImageLoaderTask.loadBitmap(ProfileEditActivity.this, ivHeader, user.getProfileBannerMobileURL());
+        }
 
         etName.setText(user.getName());
         etLocation.setText(user.getLocation());
