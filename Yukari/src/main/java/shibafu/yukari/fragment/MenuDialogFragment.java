@@ -27,7 +27,7 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -87,9 +87,7 @@ public class MenuDialogFragment extends DialogFragment {
             ImageView iv = new ImageView(getActivity());
             iv.setFocusable(false);
             iv.setClickable(false);
-            iv.setTag(user.ProfileImageUrl);
-            IconLoaderTask task = new IconLoaderTask(getActivity(), iv);
-            task.executeIf(user.ProfileImageUrl);
+            ImageLoaderTask.loadProfileIcon(getActivity(), iv, user.ProfileImageUrl);
             llActiveAccounts.addView(iv, iconSize, iconSize);
         }
     }

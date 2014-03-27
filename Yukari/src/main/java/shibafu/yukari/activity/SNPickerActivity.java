@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.service.TwitterService;
 
@@ -189,9 +189,7 @@ public class SNPickerActivity extends Activity {
             if (d != null) {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
-                vh.ivIcon.setTag(d.imageURL);
-                IconLoaderTask task = new IconLoaderTask(SNPickerActivity.this, vh.ivIcon);
-                task.executeIf(d.imageURL);
+                ImageLoaderTask.loadProfileIcon(SNPickerActivity.this, vh.ivIcon, d.imageURL);
             }
 
             return v;

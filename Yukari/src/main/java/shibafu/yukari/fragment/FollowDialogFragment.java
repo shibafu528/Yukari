@@ -189,11 +189,11 @@ public class FollowDialogFragment extends DialogFragment {
             if (e != null) {
                 ImageView ivOwn = (ImageView) v.findViewById(R.id.ivFoOwn);
                 ivOwn.setTag(e.getUserRecord().ProfileImageUrl);
-                new ImageLoaderTask(getContext(), ivOwn).executeIf(e.getUserRecord().ProfileImageUrl);
+                ImageLoaderTask.loadProfileIcon(getContext(), ivOwn, e.getUserRecord().ProfileImageUrl);
 
                 ImageView ivTarget = (ImageView) v.findViewById(R.id.ivFoTarget);
                 ivTarget.setTag(targetUser.getProfileImageURLHttps());
-                new ImageLoaderTask(getContext(), ivTarget).executeIf(targetUser.getProfileImageURLHttps());
+                ImageLoaderTask.loadProfileIcon(getContext(), ivTarget, targetUser.getBiggerProfileImageURLHttps());
 
                 final ImageView ivRelation = (ImageView) v.findViewById(R.id.ivFollowStatus);
                 final Button btnFollow = (Button) v.findViewById(R.id.btnFollow);

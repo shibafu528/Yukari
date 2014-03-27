@@ -20,7 +20,6 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -65,8 +64,7 @@ public class ProfileEditActivity extends ActionBarActivity {
         findViewById(R.id.btnUndoIcon).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ivIcon.setTag(user.getBiggerProfileImageURLHttps());
-                new IconLoaderTask(ProfileEditActivity.this, ivIcon).executeIf(user.getBiggerProfileImageURLHttps());
+                ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
                 Toast.makeText(ProfileEditActivity.this, "Undo!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -132,10 +130,10 @@ public class ProfileEditActivity extends ActionBarActivity {
         this.user = user;
 
         ivIcon.setTag(user.getBiggerProfileImageURLHttps());
-        new IconLoaderTask(this, ivIcon).executeIf(user.getBiggerProfileImageURLHttps());
+        ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
 
         ivHeader.setTag(user.getProfileBannerMobileURL());
-        new ImageLoaderTask(this, ivHeader).executeIf(user.getProfileBannerMobileURL());
+        ImageLoaderTask.loadBitmap(ProfileEditActivity.this, ivHeader, user.getProfileBannerMobileURL());
 
         etName.setText(user.getName());
         etLocation.setText(user.getLocation());

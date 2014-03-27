@@ -16,7 +16,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
 import twitter4j.TwitterException;
@@ -163,9 +163,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
             if (u != null) {
                 vh.tvName.setText(u.getName());
                 vh.tvScreenName.setText("@" + u.getScreenName());
-                vh.ivIcon.setTag(u.getBiggerProfileImageURL());
-                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), vh.ivIcon);
-                loaderTask.executeIf(u.getBiggerProfileImageURL());
+                ImageLoaderTask.loadProfileIcon(getActivity(), vh.ivIcon, u.getBiggerProfileImageURLHttps());
             }
 
             return v;
