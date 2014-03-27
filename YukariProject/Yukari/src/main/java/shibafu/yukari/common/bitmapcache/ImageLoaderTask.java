@@ -17,36 +17,30 @@ import shibafu.yukari.R;
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
+public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
     private Context context;
     private ImageView imageView;
     private String tag;
 
-    public ImageLoaderTask(Context context, ImageView imageView) {
+    private ImageLoaderTask(Context context, ImageView imageView) {
         this.context = context;
         this.imageView = imageView;
         tag = this.imageView.getTag().toString();
     }
 
     @Override
-    protected Bitmap doInBackground(String... params) {
-        if (params[0] != null) {
-            try {
-                //キャッシュから画像を取得
-                Bitmap image = BitmapCache.getImage(params[0], context, BitmapCache.IMAGE_CACHE);
-                if (image == null) {
-                    publishProgress();
-                    //無かったらWebから取得だ！
-                    URL imageUrl = new URL(params[0]);
-                    InputStream is = imageUrl.openStream();
-                    image = BitmapFactory.decodeStream(is);
-                    //キャッシュに保存
-                    BitmapCache.putImage(params[0], image, context, BitmapCache.IMAGE_CACHE);
-                }
-                return image;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    protected Bitmap doInBackground(Params... params) {
+        try {
+            publishProgress();
+            //無かったらWebから取得だ！
+            URL imageUrl = new URL(params[0].getUri());
+            InputStream is = imageUrl.openStream();
+            Bitmap image = BitmapFactory.decodeStream(is);
+            //キャッシュに保存
+            BitmapCache.putImage(params[0].getUri(), image, context, params[0].getMode());
+            return image;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return null;
     }
@@ -65,12 +59,12 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
                 imageView.setImageBitmap(bitmap);
             }
             else {
-                imageView.setImageResource(R.drawable.yukatterload);
+                imageView.setImageResource(R.drawable.ic_states_warning);
             }
         }
     }
 
-    public void executeIf(String... params) {
+    public void executeIf(Params... params) {
         if (getStatus() == Status.RUNNING && !isCancelled()) return;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -81,6 +75,47 @@ public class ImageLoaderTask extends AsyncTask<String, Void, Bitmap> {
             }
         } catch (RejectedExecutionException e) {
             executeIf(params);
+        }
+    }
+
+    public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
+        loadBitmap(context, imageView, uri, BitmapCache.PROFILE_ICON_CACHE);
+    }
+
+    public static void loadBitmap(Context context, ImageView imageView, String uri) {
+        loadBitmap(context, imageView, uri, BitmapCache.IMAGE_CACHE);
+    }
+
+    public static void loadBitmap(Context context, ImageView imageView, String uri, String mode) {
+        imageView.setTag(uri);
+        if (uri == null) {
+            imageView.setImageResource(R.drawable.ic_states_warning);
+        }
+        else {
+            Bitmap cache = BitmapCache.getImage(uri, context, mode);
+            if (cache != null) {
+                imageView.setImageBitmap(cache);
+            } else {
+                new ImageLoaderTask(context, imageView).executeIf(new Params(mode, uri));
+            }
+        }
+    }
+
+    static class Params {
+        private String mode;
+        private String uri;
+
+        private Params(String mode, String uri) {
+            this.mode = mode;
+            this.uri = uri;
+        }
+
+        public String getMode() {
+            return mode;
+        }
+
+        public String getUri() {
+            return uri;
         }
     }
 }

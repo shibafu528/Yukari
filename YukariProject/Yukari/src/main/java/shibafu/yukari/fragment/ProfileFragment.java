@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;
@@ -351,9 +351,8 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             progressBar.setVisibility(View.INVISIBLE);
         }
 
-        ivProfileIcon.setTag(holder.targetUser.getBiggerProfileImageURL());
-        IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivProfileIcon);
-        loaderTask.executeIf(holder.targetUser.getBiggerProfileImageURL());
+        ImageLoaderTask.loadProfileIcon(getActivity(), ivProfileIcon, holder.targetUser.getBiggerProfileImageURLHttps());
+        ImageLoaderTask.loadBitmap(getActivity(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
 
         if (holder.targetUser.isProtected()) {
             ivProtected.setVisibility(View.VISIBLE);
@@ -362,7 +361,6 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             ivProtected.setVisibility(View.GONE);
         }
 
-        ivHeader.setImageUrl(holder.targetUser.getProfileBannerMobileURL());
         Log.d("ProfileFragment", "header url: " + holder.targetUser.getProfileBannerMobileURL());
         tvName.setText(holder.targetUser.getName());
         tvScreenName.setText("@" + holder.targetUser.getScreenName());

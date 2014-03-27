@@ -45,7 +45,7 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
@@ -598,9 +598,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 case REQUEST_CHOOSE_ACCOUNT:
                 {
                     selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                    ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
-                    IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
-                    task.executeIf(selectedAccount.ProfileImageUrl);
+                    ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
                     break;
                 }
             }
@@ -717,9 +715,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                         enableQuickPost = false;
                     }
                     else {
-                        ibSelectAccount.setTag(selectedAccount.ProfileImageUrl);
-                        IconLoaderTask task = new IconLoaderTask(MainActivity.this, ibSelectAccount);
-                        task.executeIf(selectedAccount.ProfileImageUrl);
+                        ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
                         enableQuickPost = true;
                     }
                 }

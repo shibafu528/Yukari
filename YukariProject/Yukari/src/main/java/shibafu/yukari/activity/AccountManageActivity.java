@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 
@@ -183,9 +183,7 @@ public class AccountManageActivity extends ListActivity {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
-                vh.ivIcon.setTag(d.imageURL);
-                IconLoaderTask task = new IconLoaderTask(AccountManageActivity.this, vh.ivIcon);
-                task.executeIf(d.imageURL);
+                ImageLoaderTask.loadProfileIcon(AccountManageActivity.this, vh.ivIcon, d.imageURL);
                 vh.checkBox.setChecked(d.isPrimary);
             }
 

@@ -22,7 +22,7 @@ import java.util.Locale;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
@@ -187,9 +187,7 @@ public class DraftDialogFragment extends DialogFragment {
 
                 final ImageView ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
                 AuthUserRecord user = d.getWriters().get(0);
-                ivIcon.setTag(user.ProfileImageUrl);
-                IconLoaderTask loaderTask = new IconLoaderTask(getActivity(), ivIcon);
-                loaderTask.executeIf(user.ProfileImageUrl);
+                ImageLoaderTask.loadProfileIcon(getActivity(), ivIcon, user.ProfileImageUrl);
 
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";

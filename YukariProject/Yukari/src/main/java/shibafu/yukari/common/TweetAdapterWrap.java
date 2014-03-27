@@ -13,15 +13,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.loopj.android.image.SmartImageView;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
 import shibafu.yukari.R;
-import shibafu.yukari.common.bitmapcache.IconLoaderTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -225,9 +223,7 @@ public class TweetAdapterWrap {
 
             String imageUrl = u.getBiggerProfileImageURL();
             if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
-                viewHolder.ivIcon.setTag(imageUrl);
-                IconLoaderTask loaderTask = new IconLoaderTask(context, viewHolder.ivIcon);
-                loaderTask.executeIf(imageUrl);
+                ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, imageUrl);
             }
 
             viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
@@ -311,11 +307,10 @@ public class TweetAdapterWrap {
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(140, 140, 1);
                         for (LinkMedia media : mediaList) {
                             if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) continue;
-                            SmartImageView siv = new SmartImageView(getContext());
-                            siv.setImageResource(R.drawable.yukatterload);
-                            siv.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                            siv.setImageUrl(media.getThumbURL());
-                            viewHolder.llAttach.addView(siv, lp);
+                            ImageView iv = new ImageView(getContext());
+                            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                            ImageLoaderTask.loadBitmap(getContext(), iv, media.getThumbURL());
+                            viewHolder.llAttach.addView(iv, lp);
                         }
                     }
                 }
@@ -337,9 +332,9 @@ public class TweetAdapterWrap {
                     }
 
                     viewHolder.ivRetweeterIcon.setVisibility(View.VISIBLE);
-                    viewHolder.ivRetweeterIcon.setTag(st.getUser().getProfileImageURLHttps());
-                    IconLoaderTask task = new IconLoaderTask(getContext(), viewHolder.ivRetweeterIcon);
-                    task.executeIf(st.getUser().getProfileImageURLHttps());
+                    ImageLoaderTask.loadProfileIcon(getContext(),
+                            viewHolder.ivRetweeterIcon,
+                            st.getUser().getBiggerProfileImageURLHttps());
                 }
                 else {
                     viewHolder.ivRetweeterIcon.setVisibility(View.INVISIBLE);
