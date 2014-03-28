@@ -16,19 +16,19 @@ public abstract class ThrowableTwitterAsyncTask<Params, Result> extends Throwabl
 
     private void checkDefaultError(ThrowableResult<Result> result) {
         if (result == null) {
-            showToast("Listの取得中にエラー");
+            showToast("エラーが発生しました");
             isErrored = true;
         }
         else if (result.isException()) {
             Exception e = result.getException();
             if (e instanceof TwitterException) {
                 TwitterException te = (TwitterException) e;
-                showToast(String.format("Listの取得中にエラー: %d\n%s",
+                showToast(String.format("通信エラー: %d\n%s",
                         te.getErrorCode(),
                         te.getErrorMessage()));
             }
             else {
-                showToast(String.format("Listの取得中にエラー: \n%s",
+                showToast(String.format("エラーが発生しました: \n%s",
                         e.getMessage()));
             }
             isErrored = true;
