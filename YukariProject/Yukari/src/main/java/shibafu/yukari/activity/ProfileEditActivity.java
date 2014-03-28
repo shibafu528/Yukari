@@ -25,7 +25,6 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 
 import shibafu.yukari.R;
@@ -111,7 +110,7 @@ public class ProfileEditActivity extends ActionBarActivity {
 
             Intent intent = new Intent("com.android.camera.action.CROP");
             try {
-                tempFile = File.createTempFile("profile_icon", ".png");
+                tempFile = new File(getExternalCacheDir(), "icon_temp.png");
                 intent.setDataAndType(uri, "image/*");
                 intent.putExtra("outputX", 512);
                 intent.putExtra("outputY", 512);
@@ -123,7 +122,7 @@ public class ProfileEditActivity extends ActionBarActivity {
                 intent.putExtra("outputFormat", Bitmap.CompressFormat.PNG.name());
 
                 startActivityForResult(intent, REQUEST_CROP);
-            } catch (IOException | ActivityNotFoundException e) {
+            } catch (ActivityNotFoundException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "トリミングの呼び出しに失敗しました", Toast.LENGTH_SHORT).show();
             }
