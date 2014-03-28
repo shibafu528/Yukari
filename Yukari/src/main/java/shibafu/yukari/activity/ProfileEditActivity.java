@@ -157,6 +157,54 @@ public class ProfileEditActivity extends ActionBarActivity {
                 finish();
                 return true;
             case R.id.action_accept:
+                new ThrowableTwitterAsyncTask<Void, Void>() {
+                    PostProgressDialogFragment dialogFragment;
+
+                    @Override
+                    protected void showToast(String message) {
+                        Toast.makeText(ProfileEditActivity.this, message, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    protected ThrowableResult<Void> doInBackground(Void... params) {
+                        try {
+                            Twitter twitter = service.getTwitter();
+                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                            twitter.updateProfile(
+                                    etName.getText().toString(),
+                                    etWeb.getText().toString(),
+                                    etLocation.getText().toString(),
+                                    etBio.getText().toString());
+                            //新しいアイコンよー、それー
+                            if (trimmedIcon != null && tempFile != null) {
+                                twitter.updateProfileImage(tempFile);
+                            }
+                            return new ThrowableResult<>((Void) null);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return new ThrowableResult<>(e);
+                        }
+                    }
+
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                        dialogFragment = PostProgressDialogFragment.newInstance();
+                        dialogFragment.show(getSupportFragmentManager(), "post");
+                    }
+
+                    @Override
+                    protected void onPostExecute(ThrowableResult<Void> result) {
+                        super.onPostExecute(result);
+                        if (dialogFragment != null) {
+                            dialogFragment.dismiss();
+                        }
+                        if (!isErrored()) {
+                            Toast.makeText(ProfileEditActivity.this, "プロフィールを更新しました", Toast.LENGTH_LONG).show();
+                            finish();
+                        }
+                    }
+                }.execute();
                 return true;
         }
         return super.onOptionsItemSelected(item);
