@@ -156,6 +156,8 @@ public class ProfileEditActivity extends ActionBarActivity {
             case R.id.action_cancel:
                 finish();
                 return true;
+            case R.id.action_accept:
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -280,6 +282,23 @@ public class ProfileEditActivity extends ActionBarActivity {
         public void onCancel(DialogInterface dialog) {
             super.onCancel(dialog);
             ((ProfileEditActivity)getActivity()).onCancelledLoading();
+        }
+    }
+
+    public static class PostProgressDialogFragment extends DialogFragment {
+        public static PostProgressDialogFragment newInstance() {
+            PostProgressDialogFragment fragment = new PostProgressDialogFragment();
+            fragment.setCancelable(false);
+            return fragment;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ProgressDialog pd = new ProgressDialog(getActivity());
+            pd.setMessage("送信中...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setIndeterminate(true);
+            return pd;
         }
     }
 }

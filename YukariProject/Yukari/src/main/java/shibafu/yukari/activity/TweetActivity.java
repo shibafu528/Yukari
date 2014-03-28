@@ -377,6 +377,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 startService(intent);
 
                 //閉じる
+                setResult(RESULT_OK);
                 finish();
             }
         });
