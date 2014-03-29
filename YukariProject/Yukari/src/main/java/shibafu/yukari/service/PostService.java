@@ -63,6 +63,7 @@ public class PostService extends IntentService{
                 .setTicker("ツイートを送信中")
                 .setContentTitle("ツイートを送信中")
                 .setContentText(draft.getText())
+                .setContentIntent(getEmptyPendingIntent())
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(android.R.drawable.stat_sys_upload)
                 .setProgress(1, 0, true)
@@ -176,6 +177,7 @@ public class PostService extends IntentService{
                 .setTicker("ツイートに失敗しました")
                 .setContentTitle("ツイートに失敗しました")
                 .setContentText(reason)
+                .setContentIntent(getEmptyPendingIntent())
                 .setAutoCancel(true)
                 .setSmallIcon(android.R.drawable.stat_notify_error)
                 .setWhen(System.currentTimeMillis());
@@ -190,6 +192,10 @@ public class PostService extends IntentService{
             service.getDatabase().updateDraft(draft);
         }
         nm.notify(id, builder.build());
+    }
+
+    private PendingIntent getEmptyPendingIntent() {
+        return PendingIntent.getActivity(getApplicationContext(), 0, new Intent(), 0);
     }
 
     @Override
