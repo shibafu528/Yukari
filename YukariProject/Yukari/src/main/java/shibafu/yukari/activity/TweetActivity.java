@@ -9,6 +9,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -21,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.FragmentActivity;
@@ -375,6 +377,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 //サービスに投げる
                 Intent intent = PostService.newIntent(TweetActivity.this, draft);
                 startService(intent);
+
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                if (sp.getBoolean("first_guide", true)) {
+                    sp.edit().putBoolean("first_guide", false).commit();
+                }
 
                 //閉じる
                 setResult(RESULT_OK);

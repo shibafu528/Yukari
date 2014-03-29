@@ -161,4 +161,36 @@
             android:src="@drawable/ic_prof_tweets"
             android:background="@drawable/selector_key_background" />
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llTweetGuide"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/llQuickTweet"
+        android:layout_marginTop="162dp"
+        android:layout_above="@+id/tweetgesture"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@drawable/rect_transbox"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:padding="6dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_prof_tweets" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="紫のバーを上に向かってスライドするとツイート画面が開きます。"
+            android:layout_marginTop="2dp"
+            android:layout_marginLeft="2dp" />
+    </LinearLayout>
 </RelativeLayout>
