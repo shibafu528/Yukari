@@ -28,8 +28,6 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -68,6 +66,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     public static final String EXTRA_SEARCH_WORD = "searchWord";
     public static final String EXTRA_SHOW_TAB = "showTab";
 
+    private SharedPreferences sharedPreferences;
     private TwitterService service;
     private boolean serviceBound = false;
 
@@ -82,6 +81,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private TextView tvTabText;
     private ViewPager viewPager;
     private ImageButton ibClose, ibStream;
+    private LinearLayout llTweetGuide;
 
     //QuickPost関連
     private InputMethodManager imm;
@@ -140,35 +140,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         findViews();
 
         //スリープ防止設定
-        final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        setKeepScreenOn(sp.getBoolean("pref_boot_screenon", false));
-
-        //初回起動時の操作ガイド
-        if (!sp.getBoolean("first_guide", false)) {
-            final View guideView = getLayoutInflater().inflate(R.layout.overlay_guide, null);
-            guideView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    return true;
-                }
-            });
-            addContentView(guideView,
-                    new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.MATCH_PARENT));
-            guideView.findViewById(R.id.bGuideClose).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.anim_fadeout);
-                    guideView.startAnimation(animation);
-                    guideView.setVisibility(View.GONE);
-                    guideView.setClickable(false);
-                    v.setFocusable(false);
-                    v.setClickable(false);
-
-                    sp.edit().putBoolean("first_guide", true).commit();
-                }
-            });
-        }
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
     }
 
     private void findViews() {
@@ -456,6 +429,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                 postTweet();
             }
         });
+
+        llTweetGuide = (LinearLayout) findViewById(R.id.llTweetGuide);
     }
 
     @Override
@@ -493,6 +468,13 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         super.onStop();
         Log.d("MainActivity", "call onStop");
         unbindService(connection);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //ツイート操作ガイド
+        llTweetGuide.setVisibility(sharedPreferences.getBoolean("first_guide", true)? View.VISIBLE : View.GONE);
     }
 
     @Override
