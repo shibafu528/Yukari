@@ -86,7 +86,7 @@ public class StatusManager {
             if (from.getUserRecord().NumericId == user.getId())
                 return;
 
-            showNotification(NOTIF_FAVED, status, user);
+            showNotification(NOTIF_FAVED, new PreformedStatus(status, from.getUserRecord()), user);
         }
 
         @Override
