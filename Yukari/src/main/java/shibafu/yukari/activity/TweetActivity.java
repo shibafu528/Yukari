@@ -56,6 +56,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
@@ -64,6 +65,7 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.BitmapResizer;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
@@ -356,6 +358,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 }
 
                 //エイリアス処理
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String inputText = etInput.getText().toString();
                 if (etInput.getText().toString().startsWith("::")) {
                     String input = etInput.getText().toString();
@@ -368,6 +371,51 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     else if (input.startsWith("::bb")) {
                         inputText = input.replace("::bb", "@la0c bbop");
                     }
+                    else if (input.startsWith("::cn") && sp.getBoolean("cmd_cn", false)) {
+                        String name = inputText.replace("::cn ", "");
+                        new ThrowableTwitterAsyncTask<String, Void>() {
+                            @Override
+                            protected ThrowableResult<Void> doInBackground(String... params) {
+                                try {
+                                    Twitter twitter = getTwitterService().getTwitter();
+                                    for (AuthUserRecord user : writers) {
+                                        twitter.setOAuthAccessToken(user.getAccessToken());
+                                        twitter.updateProfile(params[0], null, null, null);
+                                    }
+                                    return new ThrowableResult<>((Void) null);
+                                } catch (TwitterException e) {
+                                    e.printStackTrace();
+                                    return new ThrowableResult<>(e);
+                                }
+                            }
+
+                            @Override
+                            protected void onPreExecute() {
+                                super.onPreExecute();
+                                showToast("Updating your name...");
+                            }
+
+                            @Override
+                            protected void onPostExecute(ThrowableResult<Void> result) {
+                                super.onPostExecute(result);
+                                if (!result.isException()) {
+                                    showToast("Updated your name!");
+                                }
+                            }
+
+                            @Override
+                            protected void showToast(String message) {
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                            }
+                        }.execute(name);
+                        setResult(RESULT_OK);
+                        finish();
+                        return;
+                    }
+                    else if (input.startsWith("::cmd")) {
+                        startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
+                        return;
+                    }
                 }
 
                 //ドラフトを作成
@@ -378,7 +426,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 Intent intent = PostService.newIntent(TweetActivity.this, draft);
                 startService(intent);
 
-                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 if (sp.getBoolean("first_guide", true)) {
                     sp.edit().putBoolean("first_guide", false).commit();
                 }

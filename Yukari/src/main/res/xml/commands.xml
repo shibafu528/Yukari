@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:title="::cmd"
+        android:summary="Open this activity" />
+    <Preference
+        android:title="::jb"
+        android:summary="Javaビームｗｗｗｗｗｗ" />
+    <Preference
+        android:title="::sb"
+        android:summary="違法エビビーム" />
+    <Preference
+        android:title="::bb"
+        android:summary="\@la0c bbop" />
+    <CheckBoxPreference
+        android:key="cmd_cn"
+        android:title="::cn &lt;NAME&gt;"
+        android:summary="Change Name" />
+</PreferenceScreen>
