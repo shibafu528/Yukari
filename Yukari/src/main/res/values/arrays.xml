@@ -65,4 +65,17 @@
         <item>22</item>
         <item>23</item>
     </string-array>
+
+    <string-array name="pref_upload_size_entries">
+        <item>960px</item>
+        <item>1280px</item>
+        <item>1920px</item>
+        <item>無制限</item>
+    </string-array>
+    <string-array name="pref_upload_size_values">
+        <item>960</item>
+        <item>1280</item>
+        <item>1920</item>
+        <item>0</item>
+    </string-array>
 </resources>
