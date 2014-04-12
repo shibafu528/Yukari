@@ -7,8 +7,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
@@ -50,6 +52,9 @@ public class PostService extends IntentService{
     @Override
     protected void onHandleIntent(Intent intent) {
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        int imageResizeLength = Integer.valueOf(sp.getString("pref_upload_size", "960"));
+        Log.d("PostService", "Upload Limit : " + imageResizeLength + "px");
 
         TweetDraft draft = (TweetDraft) intent.getSerializableExtra(EXTRA_DRAFT);
         if (draft == null) {
@@ -109,12 +114,17 @@ public class PostService extends IntentService{
                             Bitmap thumb = BitmapResizer.resizeBitmap(this, draft.getAttachedPicture(), 128, 128, size);
                             thumb.recycle();
                         }
-                        if (Math.max(size[0], size[1]) > 960) {
-                            Log.d("TweetActivity", "添付画像の長辺が960pxを超えています。圧縮対象とします。");
-                            Bitmap resized = BitmapResizer.resizeBitmap(this, draft.getAttachedPicture(), 960, 960, null);
+                        if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
+                            Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
+                            Bitmap resized = BitmapResizer.resizeBitmap(
+                                    this,
+                                    draft.getAttachedPicture(),
+                                    imageResizeLength,
+                                    imageResizeLength,
+                                    null);
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                            Log.d("TweetActivity", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                            Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
                             ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
                             service.postTweet(userRecord, update, new InputStream[]{bais});
                         } else {
