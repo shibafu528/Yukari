@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,7 +59,6 @@ public class ProfileEditActivity extends ActionBarActivity {
 
     private ImageView ivIcon, ivHeader;
     private EditText etName, etLocation, etWeb, etBio;
-    private LoadDialogFragment dialogFragment;
     private File tempFile;
 
     @Override
@@ -158,8 +158,6 @@ public class ProfileEditActivity extends ActionBarActivity {
                 return true;
             case R.id.action_accept:
                 new ThrowableTwitterAsyncTask<Void, Void>() {
-                    PostProgressDialogFragment dialogFragment;
-
                     @Override
                     protected void showToast(String message) {
                         Toast.makeText(ProfileEditActivity.this, message, Toast.LENGTH_LONG).show();
@@ -189,15 +187,16 @@ public class ProfileEditActivity extends ActionBarActivity {
                     @Override
                     protected void onPreExecute() {
                         super.onPreExecute();
-                        dialogFragment = PostProgressDialogFragment.newInstance();
+                        PostProgressDialogFragment dialogFragment = PostProgressDialogFragment.newInstance();
                         dialogFragment.show(getSupportFragmentManager(), "post");
                     }
 
                     @Override
                     protected void onPostExecute(ThrowableResult<Void> result) {
                         super.onPostExecute(result);
-                        if (dialogFragment != null) {
-                            dialogFragment.dismiss();
+                        Fragment dialogFragment = getSupportFragmentManager().findFragmentByTag("post");
+                        if (dialogFragment != null && dialogFragment instanceof PostProgressDialogFragment) {
+                            ((PostProgressDialogFragment) dialogFragment).dismiss();
                         }
                         if (!isErrored()) {
                             Toast.makeText(ProfileEditActivity.this, "プロフィールを更新しました", Toast.LENGTH_LONG).show();
@@ -217,31 +216,15 @@ public class ProfileEditActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (user == null) {
-            dialogFragment = new LoadDialogFragment();
-            dialogFragment.show(getSupportFragmentManager(), "load");
-        }
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         unbindService(connection);
-        if (currentTask != null) {
-            currentTask.cancel(true);
-        }
-        if (dialogFragment != null) {
-            dialogFragment.dismiss();
-            dialogFragment = null;
-        }
     }
 
     private void onCancelledLoading() {
-        dialogFragment = null;
         if (currentTask != null) {
             currentTask.cancel(true);
+            currentTask = null;
         }
         finish();
     }
@@ -286,15 +269,22 @@ public class ProfileEditActivity extends ActionBarActivity {
                 }
 
                 @Override
+                protected void onPreExecute() {
+                    LoadDialogFragment dialogFragment = new LoadDialogFragment();
+                    dialogFragment.show(getSupportFragmentManager(), "load");
+                }
+
+                @Override
                 protected void onPostExecute(ThrowableResult<User> result) {
                     super.onPostExecute(result);
-                    if (dialogFragment != null) {
-                        dialogFragment.dismiss();
-                        dialogFragment = null;
+                    Fragment fragment = getSupportFragmentManager().findFragmentByTag("load");
+                    if (fragment != null && fragment instanceof LoadDialogFragment) {
+                        ((LoadDialogFragment) fragment).dismiss();
                     }
                     if (!isErrored() && !isCancelled()) {
                         loadUserProfile(result.getResult());
                     }
+                    currentTask = null;
                 }
             };
             currentTask.execute();

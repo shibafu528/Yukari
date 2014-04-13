@@ -210,6 +210,7 @@
         <activity
             android:name=".activity.ProfileEditActivity"
             android:label="@string/title_activity_profile_edit"
+            android:configChanges="orientation|keyboardHidden|screenSize"
             android:uiOptions="splitActionBarWhenNarrow">
             <meta-data
                 android:name="android.support.UI_OPTIONS"
