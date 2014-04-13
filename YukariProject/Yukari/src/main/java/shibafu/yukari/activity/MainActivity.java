@@ -512,12 +512,17 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            if (llQuickTweet.getVisibility() == View.VISIBLE) {
-                llQuickTweet.setVisibility(View.GONE);
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && event.isLongPress()) {
+                finish();
             }
-            else {
-                showExitDialog();
+            else if (event.getAction() == KeyEvent.ACTION_UP && !event.isLongPress()) {
+                if (llQuickTweet.getVisibility() == View.VISIBLE) {
+                    llQuickTweet.setVisibility(View.GONE);
+                }
+                else {
+                    showExitDialog();
+                }
             }
             return true;
         }
