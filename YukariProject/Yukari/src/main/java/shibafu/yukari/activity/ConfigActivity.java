@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -21,6 +22,9 @@ public class ConfigActivity extends PreferenceActivity {
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            setTheme(android.R.style.Theme_Light);
+        }
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref);
 
