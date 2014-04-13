@@ -71,7 +71,12 @@ public class StatusLinkFragment extends ListFragment{
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
         //リスト要素を作成する
-        list = new ArrayList<>();
+        list = new ArrayList<LinkRow>() {
+            @Override
+            public boolean add(LinkRow object) {
+                return !list.contains(object) && super.add(object);
+            }
+        };
         for (LinkMedia lm : status.getMediaLinkList()) {
             list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
         }
@@ -251,6 +256,33 @@ public class StatusLinkFragment extends ListFragment{
             this.targetUser = targetUser;
             this.targetUserSN = targetUserSN;
             this.showTargetUser = showTargetUser;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            LinkRow linkRow = (LinkRow) o;
+
+            if (showTargetUser != linkRow.showTargetUser) return false;
+            if (targetUser != linkRow.targetUser) return false;
+            if (type != linkRow.type) return false;
+            if (targetUserSN != null ? !targetUserSN.equals(linkRow.targetUserSN) : linkRow.targetUserSN != null)
+                return false;
+            if (text != null ? !text.equals(linkRow.text) : linkRow.text != null) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = text != null ? text.hashCode() : 0;
+            result = 31 * result + type;
+            result = 31 * result + (int) (targetUser ^ (targetUser >>> 32));
+            result = 31 * result + (targetUserSN != null ? targetUserSN.hashCode() : 0);
+            result = 31 * result + (showTargetUser ? 1 : 0);
+            return result;
         }
     }
 
