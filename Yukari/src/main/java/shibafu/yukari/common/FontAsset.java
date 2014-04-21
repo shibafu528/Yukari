@@ -2,6 +2,7 @@ package shibafu.yukari.common;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.io.File;
@@ -27,7 +28,11 @@ public class FontAsset {
     public static FontAsset getInstance(Context context) {
         if (instance == null) {
             try {
-                if (checkUserFontExt(context)) {
+                if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_font_face", false)) {
+                    Log.d("FontAsset", "システムフォントを使用します");
+                    instance = new FontAsset(Typeface.DEFAULT);
+                }
+                else if (checkUserFontExt(context)) {
                     Log.d("FontAsset", "userfont.ttfを使用します");
                     instance = new FontAsset(Typeface.createFromFile(getUserFontExtPath(context)));
                 }

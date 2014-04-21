@@ -21,6 +21,11 @@
             android:inputType="number"
             android:defaultValue="14"
             android:maxLength="2"/>
+        <CheckBoxPreference
+            android:key="pref_font_face"
+            android:title="システムフォントを使用する"
+            android:summary="フォントの読み込みを行わないようにします"
+            android:defaultValue="false"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
