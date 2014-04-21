@@ -1,9 +1,11 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
@@ -284,9 +287,9 @@ public class TweetAdapterWrap {
         }
 
         @Override
-        protected View convertViewAbs(View v, TweetViewHolder viewHolder, TwitterResponse content, int mode) {
+        protected View convertViewAbs(View v, TweetViewHolder viewHolder, final TwitterResponse content, int mode) {
             viewHolder.llAttach.removeAllViews();
-            PreformedStatus st = (PreformedStatus) content;
+            final PreformedStatus st = (PreformedStatus) content;
 
             if ((getPreferences().getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
                 boolean hidden = false;
@@ -305,12 +308,27 @@ public class TweetAdapterWrap {
                     List<LinkMedia> mediaList = st.getMediaLinkList();
                     if (mediaList.size() > 0) {
                         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(140, 140, 1);
-                        for (LinkMedia media : mediaList) {
+                        for (final LinkMedia media : mediaList) {
                             if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) continue;
                             ImageView iv = new ImageView(getContext());
                             iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                             ImageLoaderTask.loadBitmap(getContext(), iv, media.getThumbURL());
                             viewHolder.llAttach.addView(iv, lp);
+
+                            if (mode == MODE_DETAIL && media.canPreview()) {
+                                iv.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent intent = new Intent(
+                                                Intent.ACTION_VIEW,
+                                                Uri.parse(media.getBrowseURL()),
+                                                getContext(),
+                                                PreviewActivity.class);
+                                        intent.putExtra(PreviewActivity.EXTRA_STATUS, st);
+                                        getContext().startActivity(intent);
+                                    }
+                                });
+                            }
                         }
                     }
                 }
