@@ -1,10 +1,7 @@
 package shibafu.yukari.activity;
 
 import android.annotation.TargetApi;
-import android.app.Dialog;
 import android.app.DownloadManager;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,7 +12,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.util.FloatMath;
 import android.view.Display;
@@ -99,7 +95,7 @@ public class PreviewActivity extends FragmentActivity {
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                //TODO: 画像のロードが済んでいない時にもしこの辺のコードが呼ばれるとクラッシュする
+                if (image == null) return false;
                 //ピンチの処理
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_POINTER_DOWN:
@@ -211,15 +207,6 @@ public class PreviewActivity extends FragmentActivity {
         }
 
         loaderTask = new AsyncTask<String, Void, Bitmap>() {
-            LoadingDialogFragment dialogFragment;
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                dialogFragment = new LoadingDialogFragment();
-                dialogFragment.show(getSupportFragmentManager(), null);
-            }
-
             @Override
             protected Bitmap doInBackground(String... params) {
                 String url = params[0];
@@ -297,10 +284,8 @@ public class PreviewActivity extends FragmentActivity {
 
             @Override
             protected void onPostExecute(Bitmap bitmap) {
-                if (dialogFragment != null) {
-                    dialogFragment.dismiss();
-                    dialogFragment = null;
-                }
+                findViewById(R.id.progressBar).setVisibility(View.GONE);
+
                 if (isCancelled()) {
                     return;
                 }
@@ -341,24 +326,28 @@ public class PreviewActivity extends FragmentActivity {
         ibRotateLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Matrix rotateMatrix = new Matrix();
-                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                rotateMatrix.postRotate(-90f);
-                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                matrix.preConcat(rotateMatrix);
-                updateMatrix();
+                if (image != null) {
+                    Matrix rotateMatrix = new Matrix();
+                    rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                    rotateMatrix.postRotate(-90f);
+                    rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                    matrix.preConcat(rotateMatrix);
+                    updateMatrix();
+                }
             }
         });
         ImageButton ibRotateRight = (ImageButton) findViewById(R.id.ibPreviewRotateRight);
         ibRotateRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Matrix rotateMatrix = new Matrix();
-                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                rotateMatrix.postRotate(90f);
-                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                matrix.preConcat(rotateMatrix);
-                updateMatrix();
+                if (image != null) {
+                    Matrix rotateMatrix = new Matrix();
+                    rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                    rotateMatrix.postRotate(90f);
+                    rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                    matrix.preConcat(rotateMatrix);
+                    updateMatrix();
+                }
             }
         });
 
@@ -430,28 +419,16 @@ public class PreviewActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (loaderTask != null) {
+            loaderTask.cancel(true);
+        }
+    }
+
     private void updateMatrix() {
         imageView.setImageMatrix(matrix);
         imageView.invalidate();
-    }
-
-    private class LoadingDialogFragment extends DialogFragment {
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            ProgressDialog dialog = new ProgressDialog(getActivity());
-            dialog.setIndeterminate(true);
-            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            dialog.setMessage("読み込み中...");
-            return dialog;
-        }
-
-        @Override
-        public void onCancel(DialogInterface dialog) {
-            super.onCancel(dialog);
-            if (loaderTask != null) {
-                loaderTask.cancel(true);
-            }
-            finish();
-        }
     }
 }
