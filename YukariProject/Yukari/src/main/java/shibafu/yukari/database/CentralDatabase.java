@@ -94,6 +94,14 @@ public class CentralDatabase {
     public static final String COL_SHISTORY_QUERY = "query";
     public static final String COL_SHISTORY_DATE = "date";
 
+    //Muteテーブル
+    public static final String TABLE_MUTE = "Mute";
+    public static final String COL_MUTE_ID = "_id";
+    public static final String COL_MUTE_SCOPE = "Scope";
+    public static final String COL_MUTE_MATCH = "Match";
+    public static final String COL_MUTE_MUTE = "Mute";
+    public static final String COL_MUTE_QUERY = "Query";
+
     private CentralDBHelper helper;
     private SQLiteDatabase db;
 
@@ -181,6 +189,14 @@ public class CentralDatabase {
                     COL_SHISTORY_QUERY + " TEXT UNIQUE, " +
                     COL_SHISTORY_DATE + " INTEGER)"
             );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_MUTE + " (" +
+                            COL_MUTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_MUTE_SCOPE + " INTEGER, " +
+                            COL_MUTE_MATCH + " INTEGER, " +
+                            COL_MUTE_MUTE + " INTEGER, " +
+                            COL_MUTE_QUERY + " TEXT)"
+            );
         }
 
         @Override
@@ -207,6 +223,17 @@ public class CentralDatabase {
                 db.execSQL(
                         "ALTER TABLE " + TABLE_DRAFTS + " ADD " + COL_DRAFTS_MESSAGE_TARGET +
                         " TEXT DEFAULT ''"
+                );
+                ++oldVersion;
+            }
+            if (oldVersion == 4) {
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_MUTE + " (" +
+                                COL_MUTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_MUTE_SCOPE + " INTEGER, " +
+                                COL_MUTE_MATCH + " INTEGER, " +
+                                COL_MUTE_MUTE + " INTEGER, " +
+                                COL_MUTE_QUERY + " TEXT)"
                 );
                 ++oldVersion;
             }
@@ -465,6 +492,29 @@ public class CentralDatabase {
 
     public void deleteSearchHistory(long id) {
         db.delete(TABLE_SEARCH_HISTORY, COL_SHISTORY_ID + "=" + id, null);
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Mute">
+    public List<MuteConfig> getMuteConfig() {
+        List<MuteConfig> muteConfigs = new ArrayList<>();
+        Cursor cursor = db.query(TABLE_MUTE, null, null, null, null, null, null);
+        try {
+            if (cursor.moveToFirst()) do {
+                muteConfigs.add(new MuteConfig(cursor));
+            } while (cursor.moveToNext());
+        } finally {
+            cursor.close();
+        }
+        return muteConfigs;
+    }
+
+    public void updateMuteConfig(MuteConfig muteConfig) {
+        db.replace(TABLE_MUTE, null, muteConfig.getContentValues());
+    }
+
+    public void deleteMuteConfig(long id) {
+        db.delete(TABLE_MUTE, COL_MUTE_ID + "=" + id, null);
     }
     //</editor-fold>
 
