@@ -52,6 +52,10 @@
             android:title="めしてろモザイク"
             android:summary="夜間(PM10:00～AM6:00)にあからさまなツイートのサムネイルにモザイクをかけます"
             android:defaultValue="false"/>-->
+        <Preference
+            android:key="pref_mute"
+            android:title="ミュート設定"
+            android:summary="条件を指定してツイートや通知などを非表示にします"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="通知設定">

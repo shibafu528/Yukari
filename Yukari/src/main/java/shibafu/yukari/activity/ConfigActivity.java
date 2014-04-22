@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.view.MenuItem;
 
 import shibafu.yukari.R;
 
@@ -24,6 +25,9 @@ public class ConfigActivity extends PreferenceActivity {
     protected void onCreate(Bundle savedInstanceState) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             setTheme(android.R.style.Theme_Light);
+        }
+        else {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
         }
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref);
@@ -97,5 +101,21 @@ public class ConfigActivity extends PreferenceActivity {
                 return true;
             }
         });
+
+        findPreference("pref_mute").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(ConfigActivity.this, MuteActivity.class));
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

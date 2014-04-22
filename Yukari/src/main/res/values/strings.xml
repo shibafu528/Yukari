@@ -25,4 +25,5 @@
     <string name="title_activity_profile_edit">プロフィール編集</string>
     <string name="title_activity_column_edit">タブの編集</string>
     <string name="title_activity_open_aclog">このツイートのaclogを開く</string>
+    <string name="title_activity_mute">ミュート設定</string>
 </resources>
