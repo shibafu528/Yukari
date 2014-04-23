@@ -78,4 +78,27 @@
         <item>1920</item>
         <item>0</item>
     </string-array>
+
+    <string-array name="mute_target_values">
+        <item>本文</item>
+        <item>ユーザ名</item>
+        <item>スクリーンネーム(\@ID)</item>
+        <item>ユーザID</item>
+    </string-array>
+
+    <string-array name="mute_match_values">
+        <item>完全一致</item>
+        <item>部分一致</item>
+        <item>正規表現</item>
+    </string-array>
+
+    <string-array name="mute_erase_values">
+        <item>ツイート</item>
+        <item>ツイート(RTされたものを含む)</item>
+        <item>リツイート</item>
+        <item>お気に入り通知</item>
+        <item>RT通知</item>
+        <item>リプライ通知</item>
+        <item>画像サムネイル</item>
+    </string-array>
 </resources>
