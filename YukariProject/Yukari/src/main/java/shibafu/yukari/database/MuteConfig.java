@@ -3,10 +3,12 @@ package shibafu.yukari.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import java.io.Serializable;
+
 /**
  * Created by shibafu on 14/04/22.
  */
-public class MuteConfig implements DBRecord{
+public class MuteConfig implements DBRecord, Serializable{
     public static final int SCOPE_TEXT = 0;
     public static final int SCOPE_USER_NAME = 1;
     public static final int SCOPE_USER_SN = 2;
@@ -17,13 +19,13 @@ public class MuteConfig implements DBRecord{
     public static final int MATCH_PARTIAL = 1;
     public static final int MATCH_REGEX = 2;
 
-    public static final int MUTE_TWEET = 0x01;
-    public static final int MUTE_TWEET_RTED = 0x02;
-    public static final int MUTE_RETWEET = 0x04;
-    public static final int MUTE_NOTIF_FAV = 0x08;
-    public static final int MUTE_NOTIF_RT = 0x10;
-    public static final int MUTE_NOTIF_MENTION = 0x20;
-    public static final int MUTE_IMAGE_THUMB = 0x40;
+    public static final int MUTE_TWEET = 0;
+    public static final int MUTE_TWEET_RTED = 1;
+    public static final int MUTE_RETWEET = 2;
+    public static final int MUTE_NOTIF_FAV = 3;
+    public static final int MUTE_NOTIF_RT = 4;
+    public static final int MUTE_NOTIF_MENTION = 5;
+    public static final int MUTE_IMAGE_THUMB = 6;
 
     private long id = -1;
     private int scope; //検査対象

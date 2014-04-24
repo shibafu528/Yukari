@@ -84,6 +84,7 @@
         <item>ユーザ名</item>
         <item>スクリーンネーム(\@ID)</item>
         <item>ユーザID</item>
+        <item>クライアント名(via)</item>
     </string-array>
 
     <string-array name="mute_match_values">
