@@ -22,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 4;
+    private static final int DB_VER = 5;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
