@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.util.LongSparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -44,7 +45,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private User targetUser = null;
     private long listId = -1;
 
-    private long lastStatusId = -1;
+    private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
     private PullToRefreshLayout pullToRefreshLayout;
 
@@ -130,7 +131,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 loader.execute(loader.new Params(userRecord));
                 break;
             case LOADER_LOAD_MORE:
-                loader.execute(loader.new Params(lastStatusId, userRecord));
+                loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
                 loader.execute(loader.new Params(userRecord, true));
@@ -346,10 +347,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 }
                 if (!params[0].isSaveLastPaging()) {
                     if (responseList == null) {
-                        lastStatusId = -1;
+                        lastStatusIds.put(params[0].getUserRecord().NumericId, -1L);
                     }
                     else if (responseList.size() > 0) {
-                        lastStatusId = responseList.get(responseList.size() - 1).getId();
+                        lastStatusIds.put(params[0].getUserRecord().NumericId,
+                                responseList.get(responseList.size() - 1).getId());
                     }
                 }
                 return PRListFactory.create(responseList, params[0].getUserRecord());
