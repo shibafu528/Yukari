@@ -14,7 +14,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import shibafu.yukari.R;
@@ -41,7 +40,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public static final int LOADER_LOAD_UPDATE = 2;
 
     //Elements List
-    protected LinkedList<T> elements = new LinkedList<>();
+    protected ArrayList<T> elements = new ArrayList<>();
     protected ListView listView;
 
     //Binding Accounts
