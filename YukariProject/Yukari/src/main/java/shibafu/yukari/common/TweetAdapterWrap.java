@@ -279,6 +279,8 @@ public class TweetAdapterWrap {
 
     private static class StatusViewConverter extends ViewConverter {
 
+        public static final LinearLayout.LayoutParams LP_THUMB = new LinearLayout.LayoutParams(140, 140, 1);
+
         protected StatusViewConverter(Context context,
                                       List<AuthUserRecord> userRecords,
                                       SharedPreferences preferences)
@@ -288,7 +290,6 @@ public class TweetAdapterWrap {
 
         @Override
         protected View convertViewAbs(View v, TweetViewHolder viewHolder, final TwitterResponse content, int mode) {
-            viewHolder.llAttach.removeAllViews();
             final PreformedStatus st = (PreformedStatus) content;
 
             if ((getPreferences().getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
@@ -307,13 +308,26 @@ public class TweetAdapterWrap {
                 if (!hidden) {
                     List<LinkMedia> mediaList = st.getMediaLinkList();
                     if (mediaList.size() > 0) {
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(140, 140, 1);
-                        for (final LinkMedia media : mediaList) {
-                            if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) continue;
-                            ImageView iv = new ImageView(getContext());
+                        viewHolder.llAttach.setVisibility(View.VISIBLE);
+                        ImageView iv;
+                        int i;
+                        for (i = 0; i < mediaList.size(); ++i) {
+                            final LinkMedia media = mediaList.get(i);
+                            iv = (ImageView) viewHolder.llAttach.findViewById(i);
+                            if (iv == null) {
+                                iv = new ImageView(getContext());
+                                iv.setId(i);
+                                viewHolder.llAttach.addView(iv, LP_THUMB);
+                            }
+                            else if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) {
+                                iv.setVisibility(View.GONE);
+                                continue;
+                            }
+                            else {
+                                iv.setVisibility(View.VISIBLE);
+                            }
                             iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                             ImageLoaderTask.loadBitmap(getContext(), iv, media.getThumbURL());
-                            viewHolder.llAttach.addView(iv, lp);
 
                             if (mode == MODE_DETAIL && media.canPreview()) {
                                 iv.setOnClickListener(new View.OnClickListener() {
@@ -330,8 +344,24 @@ public class TweetAdapterWrap {
                                 });
                             }
                         }
+                        //使ってない分はしまっちゃおうね
+                        int childCount = viewHolder.llAttach.getChildCount();
+                        if (i < childCount) {
+                            for (; i < childCount; ++i) {
+                                viewHolder.llAttach.findViewById(i).setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                    else {
+                        viewHolder.llAttach.setVisibility(View.GONE);
                     }
                 }
+                else {
+                    viewHolder.llAttach.setVisibility(View.GONE);
+                }
+            }
+            else {
+                viewHolder.llAttach.setVisibility(View.GONE);
             }
 
             if (mode != MODE_PREVIEW) {
