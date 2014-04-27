@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.util.LongSparseArray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     //ListView Adapter Wrapper
     private TweetAdapterWrap adapterWrap;
 
-    private long lastStatusId = -1;
+    private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
 
     @Override
@@ -118,7 +119,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 loader.execute(loader.new Params(userRecord));
                 break;
             case LOADER_LOAD_MORE:
-                loader.execute(loader.new Params(lastStatusId, userRecord));
+                loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
                 loader.execute(loader.new Params(userRecord, true));
@@ -271,6 +272,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 ResponseList<DirectMessage> inBoxResponse = twitter.getDirectMessages(paging);
                 ResponseList<DirectMessage> sentBoxResponse = twitter.getSentDirectMessages(paging);
                 if (!params[0].isSaveLastPaging()) {
+                    long lastStatusId;
                     if (inBoxResponse != null && !inBoxResponse.isEmpty() &&
                             sentBoxResponse != null && !sentBoxResponse.isEmpty()) {
                         lastStatusId = Math.min(inBoxResponse.get(inBoxResponse.size() - 1).getId(),
@@ -285,6 +287,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     else {
                         lastStatusId = -1;
                     }
+                    lastStatusIds.put(params[0].getUserRecord().NumericId, lastStatusId);
                 }
                 List<DirectMessage> response = new ArrayList<>();
                 if (inBoxResponse != null) {
