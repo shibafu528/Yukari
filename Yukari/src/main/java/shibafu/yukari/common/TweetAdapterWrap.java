@@ -305,6 +305,8 @@ public class TweetAdapterWrap {
                     Calendar calendar = Calendar.getInstance();
                     hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)];
                 }
+                hidden |= st.isCensoredThumbs();
+
                 if (!hidden) {
                     List<LinkMedia> mediaList = st.getMediaLinkList();
                     if (mediaList.size() > 0) {
@@ -389,6 +391,11 @@ public class TweetAdapterWrap {
                     viewHolder.ivRetweeterIcon.setImageDrawable(new ColorDrawable(Color.TRANSPARENT));
                 }
             }
+
+            if (st.isCensoredThumbs()) {
+                viewHolder.tvTimestamp.setText(viewHolder.tvTimestamp.getText() + "\n[Thumbnail Muted]");
+            }
+
             return v;
         }
     }
