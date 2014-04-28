@@ -34,6 +34,7 @@ public class PreformedStatus implements Status{
     private List<LinkMedia> mediaLinkList;
     private URLEntity[] urlEntities;
     private boolean isMentionedToMe;
+    private boolean censoredThumbs;
 
     private AuthUserRecord receiveUser;
 
@@ -270,5 +271,13 @@ public class PreformedStatus implements Status{
 
     public boolean isMentionedToMe() {
         return isMentionedToMe;
+    }
+
+    public boolean isCensoredThumbs() {
+        return censoredThumbs;
+    }
+
+    public void setCensoredThumbs(boolean censoredThumbs) {
+        this.censoredThumbs = censoredThumbs;
     }
 }

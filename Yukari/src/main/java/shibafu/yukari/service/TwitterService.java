@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
@@ -48,6 +49,7 @@ public class TwitterService extends Service{
     public static final String CHANGED_ACTIVE_STATE = "shibafu.yukari.CHANGED_ACTIVE_STATE";
     public static final String EXTRA_CHANGED_INACTIVE = "inactive";
     public static final String EXTRA_CHANGED_ACTIVE = "active";
+    public static final String RELOADED_MUTE_CONFIG = "shibafu.yukari.RELOADED_MUTE_CONFIG";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
@@ -60,6 +62,9 @@ public class TwitterService extends Service{
 
     //メインデータベース
     private CentralDatabase database;
+
+    //ミュート判定
+    private Suppressor suppressor;
 
     //Preference
     private SharedPreferences sharedPreferences;
@@ -104,6 +109,10 @@ public class TwitterService extends Service{
 
         //データベースのオープン
         database = new CentralDatabase(this).open();
+
+        //ミュート設定の読み込み
+        suppressor = new Suppressor();
+        suppressor.setConfigs(database.getMuteConfig());
 
         //SharedPreferenceの取得
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -245,6 +254,7 @@ public class TwitterService extends Service{
         Intent broadcastIntent = new Intent(CHANGED_ACTIVE_STATE);
         broadcastIntent.putExtra(EXTRA_CHANGED_ACTIVE, activeUsers);
         broadcastIntent.putExtra(EXTRA_CHANGED_INACTIVE, inactiveList);
+        sendBroadcast(broadcastIntent);
         storeUsers();
         reloadUsers();
     }
@@ -338,6 +348,15 @@ public class TwitterService extends Service{
 
     public CentralDatabase getDatabase() {
         return database;
+    }
+
+    public Suppressor getSuppressor() {
+        return suppressor;
+    }
+
+    public void updateMuteConfig() {
+        suppressor.setConfigs(database.getMuteConfig());
+        sendBroadcast(new Intent(RELOADED_MUTE_CONFIG));
     }
 
     //<editor-fold desc="投稿操作系">

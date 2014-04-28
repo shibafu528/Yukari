@@ -26,10 +26,12 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
+import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -59,6 +61,7 @@ public class StatusManager {
     private final static long[] VIB_FAVED = {140, 100};
 
     private TwitterService service;
+    private Suppressor suppressor;
 
     private Context context;
     private NotificationManager notificationManager;
@@ -86,7 +89,12 @@ public class StatusManager {
             if (from.getUserRecord().NumericId == user.getId())
                 return;
 
-            showNotification(NOTIF_FAVED, new PreformedStatus(status, from.getUserRecord()), user);
+            PreformedStatus preformedStatus = new PreformedStatus(status, from.getUserRecord());
+            boolean[] mute = suppressor.decision(preformedStatus);
+            boolean[] muteUser = suppressor.decisionUser(user);
+            if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
+                showNotification(NOTIF_FAVED, preformedStatus, user);
+            }
         }
 
         @Override
@@ -143,22 +151,35 @@ public class StatusManager {
             }
 
             PreformedStatus preformedStatus = new PreformedStatus(status, user);
-            for (StatusListener sl : statusListeners) {
-                if (deliver(sl, from)) {
-                    sl.onStatus(user, preformedStatus);
-                }
+
+            //ミュートチェックを行う
+            boolean[] mute = suppressor.decision(preformedStatus);
+            if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
+                preformedStatus.setCensoredThumbs(true);
             }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                if (deliver(e.getKey(), from)) {
-                    e.getValue().offer(new EventBuffer(user, preformedStatus));
+
+            if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
+                    (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
+                    (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
+                for (StatusListener sl : statusListeners) {
+                    if (deliver(sl, from)) {
+                        sl.onStatus(user, preformedStatus);
+                    }
+                }
+                for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                    if (deliver(e.getKey(), from)) {
+                        e.getValue().offer(new EventBuffer(user, preformedStatus));
+                    }
                 }
             }
 
-            if (status.isRetweet() && status.getRetweetedStatus().getUser().getId() == user.NumericId &&
+            if (status.isRetweet() &&
+                    !mute[MuteConfig.MUTE_NOTIF_RT] &&
+                    status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                     checkOwn == null) {
                 showNotification(NOTIF_RETWEET, preformedStatus, status.getUser());
             }
-            else if (!status.isRetweet()) {
+            else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
                 UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                 for (UserMentionEntity ume : userMentionEntities) {
                     if (ume.getId() == user.NumericId) {
@@ -373,6 +394,7 @@ public class StatusManager {
     public StatusManager(TwitterService service) {
         this.context = this.service = service;
 
+        this.suppressor = service.getSuppressor();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.handler = new Handler();
 
