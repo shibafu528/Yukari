@@ -164,7 +164,10 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         }
 
         public void updateMuteConfig(MuteConfig config) {
-            ((MuteActivity)getActivity()).getTwitterService().getDatabase().updateMuteConfig(config);
+            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+            twitterService.getDatabase().updateMuteConfig(config);
+            twitterService.updateMuteConfig();
+
             reloadList();
         }
 
@@ -176,8 +179,9 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         @Override
         public void onClick(DialogInterface dialog, int which) {
             if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
-                ((MuteActivity)getActivity()).getTwitterService().getDatabase()
-                        .deleteMuteConfig(deleteReserve.getId());
+                TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+                twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
+                twitterService.updateMuteConfig();
                 reloadList();
                 Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
             }
