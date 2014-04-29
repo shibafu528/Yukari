@@ -102,4 +102,26 @@
         <item>リプライ通知</item>
         <item>画像サムネイル</item>
     </string-array>
+
+    <string-array name="pref_cache_size_entries">
+        <item>2MB</item>
+        <item>4MB</item>
+        <item>8MB</item>
+        <item>16MB</item>
+        <item>32MB</item>
+        <item>64MB</item>
+        <item>128MB</item>
+        <item>256MB</item>
+    </string-array>
+
+    <string-array name="pref_cache_size_values">
+        <item>2</item>
+        <item>4</item>
+        <item>8</item>
+        <item>16</item>
+        <item>32</item>
+        <item>64</item>
+        <item>128</item>
+        <item>256</item>
+    </string-array>
 </resources>

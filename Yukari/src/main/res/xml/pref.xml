@@ -94,6 +94,30 @@
             android:defaultValue="960"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="キャッシュ設定">
+        <ListPreference
+            android:key="pref_icon_cache_size"
+            android:title="アイコンキャッシュ容量"
+            android:summary="プロフィール画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="4"/>
+        <ListPreference
+            android:key="pref_picture_cache_size"
+            android:title="ピクチャキャッシュ容量"
+            android:summary="サムネイル・プロフィールヘッダー画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="8"/>
+        <ListPreference
+            android:key="pref_preview_cache_size"
+            android:title="プレビューキャッシュ容量"
+            android:summary="プレビュー時のフルサイズ画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="16"/>
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="デバッグ設定">
         <CheckBoxPreference
             android:key="pref_show_received"
