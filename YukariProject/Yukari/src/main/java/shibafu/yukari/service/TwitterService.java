@@ -154,6 +154,8 @@ public class TwitterService extends Service{
         database.close();
         database = null;
 
+        startService(new Intent(this, CacheCleanerService.class));
+
         Log.d(LOG_TAG, "onDestroy completed.");
     }
 
