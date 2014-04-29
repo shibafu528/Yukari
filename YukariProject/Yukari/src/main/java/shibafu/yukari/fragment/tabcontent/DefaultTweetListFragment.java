@@ -141,6 +141,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     @Override
     protected void onServiceConnected() {
+        super.onServiceConnected();
         if (getMode() == TabType.TABTYPE_TRACE) {
             AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
                 @Override
@@ -223,30 +224,35 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    public void onStatus(AuthUserRecord from, final PreformedStatus status) {
+    public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
         if (users.contains(from) && !elements.contains(status)) {
             if (getMode() == TabType.TABTYPE_MENTION &&
                     ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
-            final int position = prepareInsertStatus(status);
-            if (position > -1) {
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!elements.contains(status)) {
-                            if (position < elements.size())  {
-                                if (elements.get(position).getId() == status.getId()) return;
-                            }
-                            elements.add(position, status);
-                            adapterWrap.notifyDataSetChanged();
-                            if (elements.size() == 1 || listView.getFirstVisiblePosition() < 2) {
-                                listView.setSelection(0);
-                            } else {
-                                listView.setSelection(listView.getFirstVisiblePosition() + 1);
+            if (muted) {
+                stash.add(status);
+            }
+            else {
+                final int position = prepareInsertStatus(status);
+                if (position > -1) {
+                    getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!elements.contains(status)) {
+                                if (position < elements.size()) {
+                                    if (elements.get(position).getId() == status.getId()) return;
+                                }
+                                elements.add(position, status);
+                                adapterWrap.notifyDataSetChanged();
+                                if (elements.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                                    listView.setSelection(0);
+                                } else {
+                                    listView.setSelection(listView.getFirstVisiblePosition() + 1);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }
@@ -269,6 +275,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 }
             }
         });
+        for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
+            if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
+                iterator.remove();
+            }
+        }
     }
 
     @Override

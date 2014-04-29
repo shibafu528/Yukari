@@ -158,18 +158,17 @@ public class StatusManager {
                 preformedStatus.setCensoredThumbs(true);
             }
 
-            if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
+            boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
                     (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                    (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                for (StatusListener sl : statusListeners) {
-                    if (deliver(sl, from)) {
-                        sl.onStatus(user, preformedStatus);
-                    }
+                    (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
+            for (StatusListener sl : statusListeners) {
+                if (deliver(sl, from)) {
+                    sl.onStatus(user, preformedStatus, muted);
                 }
-                for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                    if (deliver(e.getKey(), from)) {
-                        e.getValue().offer(new EventBuffer(user, preformedStatus));
-                    }
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                if (deliver(e.getKey(), from)) {
+                    e.getValue().offer(new EventBuffer(user, preformedStatus, muted));
                 }
             }
 
@@ -341,7 +340,7 @@ public class StatusManager {
     };
     public interface StatusListener {
         public String getStreamFilter();
-        public void onStatus(AuthUserRecord from, PreformedStatus status);
+        public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
         public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
     }
@@ -355,11 +354,13 @@ public class StatusManager {
         private PreformedStatus status;
         private DirectMessage directMessage;
         private StatusDeletionNotice statusDeletionNotice;
+        private boolean muted;
 
-        public EventBuffer(AuthUserRecord from, PreformedStatus status) {
+        public EventBuffer(AuthUserRecord from, PreformedStatus status, boolean muted) {
             this.eventType = E_STATUS;
             this.from = from;
             this.status = status;
+            this.muted = muted;
         }
 
         public EventBuffer(AuthUserRecord from, DirectMessage directMessage) {
@@ -377,7 +378,7 @@ public class StatusManager {
         public void sendBufferedEvent(StatusListener listener) {
             switch (eventType) {
                 case E_STATUS:
-                    listener.onStatus(from, status);
+                    listener.onStatus(from, status, muted);
                     break;
                 case E_DM:
                     listener.onDirectMessage(from, directMessage);

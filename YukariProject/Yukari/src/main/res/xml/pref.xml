@@ -21,11 +21,10 @@
             android:inputType="number"
             android:defaultValue="14"
             android:maxLength="2"/>
-        <CheckBoxPreference
-            android:key="pref_font_face"
-            android:title="システムフォントを使用する"
-            android:summary="フォントの読み込みを行わないようにします"
-            android:defaultValue="false"/>
+        <Preference
+            android:key="pref_mute"
+            android:title="ミュート設定"
+            android:summary="条件を指定してツイートや通知などを非表示にします"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
@@ -33,6 +32,14 @@
             android:entries="@array/pref_mode_multiline_entries"
             android:entryValues="@array/pref_mode_multiline_values"
             android:defaultValue="0"/>
+        <CheckBoxPreference
+            android:key="pref_font_face"
+            android:title="システムフォントを使用する"
+            android:summary="フォントの読み込みを行わないようにします"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="表示設定/サムネイル">
         <CheckBoxPreference
             android:key="pref_prev_enable"
             android:title="サムネイルを表示"
@@ -52,10 +59,6 @@
             android:title="めしてろモザイク"
             android:summary="夜間(PM10:00～AM6:00)にあからさまなツイートのサムネイルにモザイクをかけます"
             android:defaultValue="false"/>-->
-        <Preference
-            android:key="pref_mute"
-            android:title="ミュート設定"
-            android:summary="条件を指定してツイートや通知などを非表示にします"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="通知設定">
