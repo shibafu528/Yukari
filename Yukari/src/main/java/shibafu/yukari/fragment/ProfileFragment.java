@@ -33,8 +33,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.loopj.android.image.SmartImageView;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -43,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TabType;
@@ -83,7 +82,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     private TwitterService service;
     private boolean serviceBound = false;
 
-    private SmartImageView ivProfileIcon, ivHeader;
+    private ImageView ivProfileIcon, ivHeader;
     private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage;
@@ -113,8 +112,8 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
-        ivProfileIcon = (SmartImageView)v.findViewById(R.id.ivProfileIcon);
-        ivHeader = (SmartImageView) v.findViewById(R.id.ivProfileHeader);
+        ivProfileIcon = (ImageView)v.findViewById(R.id.ivProfileIcon);
+        ivHeader = (ImageView) v.findViewById(R.id.ivProfileHeader);
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
@@ -148,6 +147,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
                 menuList.add("ブラウザで開く");
+                menuList.add("ミュートする");
                 //menuList.add("リストへ追加/削除");
 
                 if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
@@ -191,12 +191,19 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                             }
                             case 3:
                             {
+                                MuteMenuDialogFragment dialogFragment =
+                                        MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
+                                dialogFragment.show(getChildFragmentManager(), "mute");
+                                break;
+                            }
+                            case 4:
+                            {
                                 Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
                                 intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
                                 startActivity(intent);
                                 break;
                             }
-                            case 4:
+                            case 5:
                             {
                                 FriendListFragment fragment = new FriendListFragment();
                                 Bundle args = new Bundle();
@@ -592,6 +599,27 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         }.execute();
     }
 
+    public void onSelectedMuteOption(int which) {
+        String query;
+        switch (which) {
+            case 1:
+                query = loadHolder.targetUser.getName();
+                break;
+            case 2:
+                query = loadHolder.targetUser.getScreenName();
+                break;
+            case 3:
+                query = String.valueOf(loadHolder.targetUser.getId());
+                break;
+            default:
+                throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
+        }
+        Intent intent = new Intent(getActivity(), MuteActivity.class);
+        intent.putExtra(MuteActivity.EXTRA_QUERY, query);
+        intent.putExtra(MuteActivity.EXTRA_SCOPE, which);
+        startActivity(intent);
+    }
+
     private class Command {
         public int iconId;
         public String strTop;
@@ -866,6 +894,49 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             progressBar.setVisibility(View.INVISIBLE);
             btnFollowManage.setEnabled(true);
             btnFollowManage.setText("フォロー管理");
+        }
+    }
+
+    public static class MuteMenuDialogFragment extends DialogFragment {
+
+        public static MuteMenuDialogFragment newInstance(User user, ProfileFragment target) {
+            MuteMenuDialogFragment fragment = new MuteMenuDialogFragment();
+            Bundle args = new Bundle();
+            args.putSerializable("user", user);
+            fragment.setArguments(args);
+            fragment.setTargetFragment(target, 0);
+            return fragment;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Bundle args = getArguments();
+            User user = (User) args.getSerializable("user");
+            String[] items = {
+                    "ユーザ名(" + user.getName() + ")",
+                    "スクリーンネーム(@" + user.getScreenName() + ")",
+                    "ユーザID(" + user.getId() + ")"
+            };
+
+            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                    .setTitle("ミュート")
+                    .setItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                            ProfileFragment fragment = (ProfileFragment) getTargetFragment();
+                            if (fragment != null) {
+                                fragment.onSelectedMuteOption(which+1);
+                            }
+                        }
+                    })
+                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .create();
+            return dialog;
         }
     }
 }
