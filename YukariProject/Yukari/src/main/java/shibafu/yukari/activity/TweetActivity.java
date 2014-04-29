@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
@@ -25,7 +26,9 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -58,6 +61,7 @@ import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.DraftDialogFragment;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
@@ -137,6 +141,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     //Writer一覧ビュー
     private TextView tvTweetBy;
+    private Button btnPost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -336,15 +341,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         }
 
         //投稿ボタンの設定
-        Button btnPost = (Button) findViewById(R.id.btnTweet);
+        btnPost = (Button) findViewById(R.id.btnTweet);
         btnPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (tweetCount < 0) {
                     Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
                     return;
-                }
-                else if (tweetCount >= 140 && attachPicture == null) {
+                } else if (tweetCount >= 140 && attachPicture == null) {
                     Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -364,14 +368,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     String input = etInput.getText().toString();
                     if (input.equals("::sb")) {
                         inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
-                    }
-                    else if (input.equals("::jb")) {
+                    } else if (input.equals("::jb")) {
                         inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
-                    }
-                    else if (input.startsWith("::bb")) {
+                    } else if (input.startsWith("::bb")) {
                         inputText = input.replace("::bb", "@la0c bbop");
-                    }
-                    else if (input.startsWith("::cn") && sp.getBoolean("cmd_cn", false)) {
+                    } else if (input.startsWith("::cn") && sp.getBoolean("cmd_cn", false)) {
                         String name = inputText.replace("::cn ", "");
                         new ThrowableTwitterAsyncTask<String, Void>() {
                             @Override
@@ -411,8 +412,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         setResult(RESULT_OK);
                         finish();
                         return;
-                    }
-                    else if (input.startsWith("::cmd")) {
+                    } else if (input.startsWith("::cmd")) {
                         startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
                         return;
                     }
@@ -433,6 +433,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 //閉じる
                 setResult(RESULT_OK);
                 finish();
+            }
+        });
+        btnPost.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                YukarinFragment fragment = new YukarinFragment();
+                getSupportFragmentManager().beginTransaction().add(fragment, "yukarin").commit();
+                return true;
             }
         });
 
@@ -957,5 +965,36 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         public Uri uri = null;
         public int width = -1;
         public int height = -1;
+    }
+
+    public void onYukarin(boolean cancelled) {
+        FragmentManager manager = getSupportFragmentManager();
+        Fragment fragment = manager.findFragmentByTag("yukarin");
+        manager.beginTransaction().remove(fragment).commit();
+        if (!cancelled) {
+            etInput.setText("＼ﾕｯｶﾘｰﾝ／");
+            btnPost.performClick();
+        }
+    }
+
+    public static class YukarinFragment extends Fragment implements DialogInterface.OnClickListener{
+
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
+            );
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(getFragmentManager(), "yukarindlg");
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            TweetActivity activity = (TweetActivity)getActivity();
+            if (activity != null && !isDetached()) {
+                activity.onYukarin(which != DialogInterface.BUTTON_POSITIVE);
+            }
+        }
     }
 }

@@ -39,7 +39,7 @@
             android:defaultValue="false"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="表示設定/サムネイル">
+    <PreferenceCategory android:title="サムネイル設定">
         <CheckBoxPreference
             android:key="pref_prev_enable"
             android:title="サムネイルを表示"
