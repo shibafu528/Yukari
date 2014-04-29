@@ -49,7 +49,6 @@ public class TwitterService extends Service{
     public static final String CHANGED_ACTIVE_STATE = "shibafu.yukari.CHANGED_ACTIVE_STATE";
     public static final String EXTRA_CHANGED_INACTIVE = "inactive";
     public static final String EXTRA_CHANGED_ACTIVE = "active";
-    public static final String RELOADED_MUTE_CONFIG = "shibafu.yukari.RELOADED_MUTE_CONFIG";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
@@ -356,7 +355,6 @@ public class TwitterService extends Service{
 
     public void updateMuteConfig() {
         suppressor.setConfigs(database.getMuteConfig());
-        sendBroadcast(new Intent(RELOADED_MUTE_CONFIG));
     }
 
     //<editor-fold desc="投稿操作系">

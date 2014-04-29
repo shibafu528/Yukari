@@ -145,7 +145,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onStatus(AuthUserRecord from, PreformedStatus status) {}
+    public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted) {}
 
     @Override
     public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {
