@@ -21,10 +21,9 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
-import com.loopj.android.image.SmartImageView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,7 +53,7 @@ public class PreviewActivity extends FragmentActivity {
 
     private AsyncTask<String, Void, Bitmap> loaderTask = null;
 
-    private SmartImageView imageView;
+    private ImageView imageView;
     private View tweetView;
     private PreformedStatus status;
 
@@ -80,7 +79,7 @@ public class PreviewActivity extends FragmentActivity {
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
-        imageView = (SmartImageView) findViewById(R.id.ivPreviewImage);
+        imageView = (ImageView) findViewById(R.id.ivPreviewImage);
         imageView.setOnTouchListener(new View.OnTouchListener() {
             private static final int TOUCH_NONE = 0;
             private static final int TOUCH_DRAG = 1;

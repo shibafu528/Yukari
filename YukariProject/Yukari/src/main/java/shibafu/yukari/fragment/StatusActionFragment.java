@@ -241,7 +241,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 query = status.getSource();
                 break;
             default:
-                throw new RuntimeException("ミュートスコープ選択が不正");
+                throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
         }
         Intent intent = new Intent(getActivity(), MuteActivity.class);
         intent.putExtra(MuteActivity.EXTRA_QUERY, query);
