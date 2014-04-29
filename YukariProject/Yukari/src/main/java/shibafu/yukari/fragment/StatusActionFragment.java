@@ -2,6 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.R;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.AdapterView;
@@ -25,11 +27,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -38,8 +42,7 @@ import shibafu.yukari.twitter.TwitterUtil;
 public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",
-            "[×] ブックマークする",
-            "[×] ミュート",
+            "ミュート",
             "ツイート削除"
     };
 
@@ -88,7 +91,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             menu.remove(ITEMS.length - 1);
         }
 
-        setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
+        setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
@@ -102,11 +105,12 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 target.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(Intent.createChooser(target, null));
                 break;
-            case 1: break;
-            case 2: break;
+            case 1:
+                MuteMenuDialogFragment.newInstance(status, this).show(getChildFragmentManager(), "mute");
+                break;
             default:
             {
-                if (position == 3 && user != null && status.getUser().getId() == user.NumericId) {
+                if (position == 2 && user != null && status.getUser().getId() == user.NumericId) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
@@ -217,6 +221,34 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         }
     }
 
+    public void onSelectedMuteOption(int which) {
+        String query;
+        PreformedStatus status = this.status.isRetweet()? this.status.getRetweetedStatus() : this.status;
+        switch (which) {
+            case 0:
+                query = status.getText();
+                break;
+            case 1:
+                query = status.getUser().getName();
+                break;
+            case 2:
+                query = status.getUser().getScreenName();
+                break;
+            case 3:
+                query = String.valueOf(status.getUser().getId());
+                break;
+            case 4:
+                query = status.getSource();
+                break;
+            default:
+                throw new RuntimeException("ミュートスコープ選択が不正");
+        }
+        Intent intent = new Intent(getActivity(), MuteActivity.class);
+        intent.putExtra(MuteActivity.EXTRA_QUERY, query);
+        intent.putExtra(MuteActivity.EXTRA_SCOPE, which);
+        startActivity(intent);
+    }
+
     private ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -230,4 +262,50 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             serviceBound = false;
         }
     };
+
+    public static class MuteMenuDialogFragment extends DialogFragment {
+
+        public static MuteMenuDialogFragment newInstance(PreformedStatus status, StatusActionFragment target) {
+            MuteMenuDialogFragment fragment = new MuteMenuDialogFragment();
+            Bundle args = new Bundle();
+            args.putSerializable("status", status);
+            fragment.setArguments(args);
+            fragment.setTargetFragment(target, 0);
+            return fragment;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Bundle args = getArguments();
+            PreformedStatus status = (PreformedStatus) args.getSerializable("status");
+            User user = status.isRetweet()? status.getRetweetedStatus().getUser() : status.getUser();
+            String[] items = {
+                    "本文",
+                    "ユーザ名(" + user.getName() + ")",
+                    "スクリーンネーム(@" + user.getScreenName() + ")",
+                    "ユーザID(" + user.getId() + ")",
+                    "クライアント名(" + status.getSource() + ")"
+            };
+
+            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                    .setTitle("ミュート")
+                    .setItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismiss();
+                            StatusActionFragment fragment = (StatusActionFragment) getTargetFragment();
+                            if (fragment != null) {
+                                fragment.onSelectedMuteOption(which);
+                            }
+                        }
+                    })
+                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .create();
+            return dialog;
+        }
+    }
 }

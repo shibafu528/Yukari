@@ -45,6 +45,9 @@ import shibafu.yukari.service.TwitterServiceDelegate;
  */
 public class MuteActivity extends ActionBarActivity implements TwitterServiceDelegate{
 
+    public static final String EXTRA_QUERY = "query";
+    public static final String EXTRA_SCOPE = "scope";
+
     private static final String FRAGMENT_TAG = "inner";
     private TwitterService service;
     private boolean serviceBound = false;
@@ -59,6 +62,18 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
             InnerFragment fragment = new InnerFragment();
             transaction.replace(R.id.frame, fragment, FRAGMENT_TAG);
             transaction.commit();
+
+            Intent intent = getIntent();
+            if (intent.hasExtra(EXTRA_QUERY)) {
+                MuteConfig config = new MuteConfig(
+                        intent.getIntExtra(EXTRA_SCOPE, 0),
+                        MuteConfig.MATCH_EXACT,
+                        MuteConfig.MUTE_TWEET,
+                        intent.getStringExtra(EXTRA_QUERY)
+                );
+                MuteConfigDialogFragment dialogFragment = MuteConfigDialogFragment.newInstance(config, fragment);
+                dialogFragment.show(getSupportFragmentManager(), "config");
+            }
         }
     }
 
