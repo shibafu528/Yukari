@@ -284,7 +284,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         }
                         return null;
                     }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid) {
+                        showQuotedStatus();
+                    }
                 }.execute();
+            }
+            else if (status != null) {
+                showQuotedStatus();
             }
         }
 
@@ -777,6 +785,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             sb.append(writers.get(i).ScreenName);
         }
         tvTweetBy.setText(sb.toString());
+    }
+
+    private void showQuotedStatus() {
+        TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
+        if (status != null) {
+            Status s = status.isRetweet()? status.getRetweetedStatus() : status;
+            tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
+        }
     }
 
     @Override
