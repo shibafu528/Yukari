@@ -43,6 +43,7 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
@@ -55,13 +56,16 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
 public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_FRIEND_CACHE = 2;
-    private static final int REQUEST_CHOOSE_ACCOUNT = 3;
+    private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
+    private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
 
     public static final String EXTRA_SEARCH_WORD = "searchWord";
     public static final String EXTRA_SHOW_TAB = "showTab";
@@ -220,10 +224,19 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             public void onClick(View v) {
                 PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
                 popupMenu.inflate(R.menu.search);
+                if (currentPage instanceof SearchListFragment) {
+                    popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
+                }
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
+                            case R.id.action_save_search:
+                            {
+                                Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+                                startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
+                                break;
+                            }
                             case R.id.action_search_tweets:
                             {
                                 SearchDialogFragment dialogFragment = new SearchDialogFragment();
@@ -406,7 +419,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_CHOOSE_ACCOUNT);
+                startActivityForResult(intent, REQUEST_QPOST_CHOOSE_ACCOUNT);
             }
         });
         etTweet = (EditText) findViewById(R.id.etTweetInput);
@@ -582,10 +595,56 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     startActivity(intent);
                     break;
                 }
-                case REQUEST_CHOOSE_ACCOUNT:
+                case REQUEST_QPOST_CHOOSE_ACCOUNT:
                 {
                     selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                     ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
+                    break;
+                }
+                case REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT:
+                {
+                    AuthUserRecord selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    class Args {
+                        public AuthUserRecord account;
+                        public String query;
+                        public Args(AuthUserRecord account, String query) {
+                            this.account = account;
+                            this.query = query;
+                        }
+                    }
+                    new TwitterAsyncTask<Args>() {
+                        @Override
+                        protected TwitterException doInBackground(Args... params) {
+                            Twitter twitter = service.getTwitter();
+                            twitter.setOAuthAccessToken(params[0].account.getAccessToken());
+                            try {
+                                twitter.createSavedSearch(params[0].query);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return e;
+                            }
+                            return null;
+                        }
+
+                        private void showToast(String text) {
+                            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        protected void onPreExecute() {
+                            showToast("検索を保存しています...");
+                        }
+
+                        @Override
+                        protected void onPostExecute(TwitterException e) {
+                            if (e == null) {
+                                showToast("検索を保存しました");
+                            }
+                            else {
+                                showToast(String.format("検索の保存に失敗:%d\n%s", e.getErrorCode(), e.getErrorMessage()));
+                            }
+                        }
+                    }.execute(new Args(selectedAccount, pageList.get(viewPager.getCurrentItem()).getSearchKeyword()));
                     break;
                 }
             }
