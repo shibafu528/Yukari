@@ -2,263 +2,250 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".TweetActivity">
 
     <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/etTweetInput"
-            android:inputType="textMultiLine"
-            android:minLines="2"
-            android:gravity="left|top"
-            android:maxLines="6"
+        android:id="@+id/etTweetInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/tvTweetCount"
-            android:layout_alignParentEnd="true"
-        android:layout_below="@+id/tvTweetBy">
-        <requestFocus/>
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/tvTweetBy"
+        android:gravity="left|top"
+        android:inputType="textMultiLine"
+        android:maxLines="6"
+        android:minLines="2">
+
+        <requestFocus />
     </EditText>
 
     <Button
-            android:layout_width="130dp"
-            android:layout_height="90dp"
-            android:text="Tweet"
-            android:id="@+id/btnTweet"
-            android:layout_below="@+id/etTweetInput"
-            android:layout_alignRight="@+id/etTweetInput"
-            android:layout_toRightOf="@+id/tlTweetAction"
-            android:layout_marginLeft="16dp"
-            android:layout_alignBottom="@+id/tlTweetAction"/>
+        android:id="@+id/btnTweet"
+        android:layout_width="130dp"
+        android:layout_height="90dp"
+        android:layout_alignBottom="@+id/tlTweetAction"
+        android:layout_alignRight="@+id/etTweetInput"
+        android:layout_below="@+id/etTweetInput"
+        android:layout_marginLeft="16dp"
+        android:layout_toRightOf="@+id/tlTweetAction"
+        android:text="Tweet" />
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="140"
-            android:id="@+id/tvTweetCount"
-            android:layout_below="@+id/ivProfileHeader"
-            android:layout_alignLeft="@+id/tvTweetTitle"
-            android:layout_marginTop="8dp"/>
+        android:id="@+id/tvTweetCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tvTweetTitle"
+        android:layout_below="@+id/ivProfileHeader"
+        android:layout_marginTop="8dp"
+        android:text="140"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/tvTweetBy"
-            android:textColor="@color/selector_key_light_textcolor"
-        android:text=">> SELECT ACCOUNT(S)"
-        android:background="@drawable/selector_key_light_background"
-        android:focusable="true"
-        android:clickable="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/ivProfileHeader"
         android:layout_marginTop="8dp"
+        android:background="@drawable/selector_key_light_background"
+        android:clickable="true"
+        android:focusable="true"
         android:gravity="right"
-        android:paddingLeft="4dp" />
+        android:paddingLeft="4dp"
+        android:text=">> SELECT ACCOUNT(S)"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/selector_key_light_textcolor" />
 
     <TableLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/etTweetInput"
-            android:layout_alignLeft="@+id/etTweetInput"
-            android:id="@+id/tlTweetAction">
+        android:id="@+id/tlTweetAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/etTweetInput"
+        android:layout_below="@+id/etTweetInput">
 
         <TableRow
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetAttachPic"
-                    android:layout_column="0"
-                    android:src="@drawable/ic_content_picture"/>
+                android:id="@+id/ibTweetAttachPic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:src="@drawable/ic_content_picture" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetTakePic"
-                    android:src="@drawable/ic_access_camera"
-                    android:layout_column="1"/>
+                android:id="@+id/ibTweetTakePic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:src="@drawable/ic_access_camera" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetSetHash"
-                    android:layout_column="2"
-                    android:src="@drawable/ic_hashtag"/>
+                android:id="@+id/ibTweetSetHash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:src="@drawable/ic_hashtag" />
 
         </TableRow>
 
         <TableRow
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent">
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetGrasses"
-                    android:src="@drawable/ic_grass"
-                    android:layout_column="0"/>
+                android:id="@+id/ibTweetGrasses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:src="@drawable/ic_grass" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="fill_parent"
-                    android:id="@+id/ibTweetSanten"
-                    android:src="@drawable/ic_santen"
-                    android:layout_column="1"/>
+                android:id="@+id/ibTweetSanten"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_column="1"
+                android:src="@drawable/ic_santen" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetDraft"
-                    android:src="@drawable/ic_list"
-                    android:layout_column="2"/>
+                android:id="@+id/ibTweetDraft"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:src="@drawable/ic_list" />
 
         </TableRow>
 
     </TableLayout>
 
     <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/horizontalScrollView"
-            android:layout_below="@+id/tlTweetAction"
-            android:layout_alignLeft="@+id/tlTweetAction"
-            android:layout_marginTop="8dp">
+        android:id="@+id/horizontalScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tlTweetAction"
+        android:layout_below="@+id/tlTweetAction"
+        android:layout_marginTop="8dp">
 
         <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:id="@+id/llTweetExtra">
+            android:id="@+id/llTweetExtra"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent">
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetSNPicker"
-                    android:src="@drawable/ic_reply_b"
-                    android:visibility="gone"/>
+                android:id="@+id/ibTweetSNPicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_reply_b"
+                android:visibility="gone" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetVoiceInput"
-                    android:src="@drawable/ic_voice_input"
-                    />
+                android:id="@+id/ibTweetVoiceInput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_voice_input" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetMorseInput"
-                    android:src="@drawable/ic_morse"
-                    />
+                android:id="@+id/ibTweetMorseInput"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_morse" />
 
             <ImageButton
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ibTweetNowPlaying"
-                    android:src="@drawable/ic_playing_music"
-                    android:visibility="gone"/>
+                android:id="@+id/ibTweetNowPlaying"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_playing_music"
+                android:visibility="gone" />
 
         </LinearLayout>
     </HorizontalScrollView>
 
     <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tweet"
-            android:id="@+id/tvTweetTitle"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"/>
+        android:id="@+id/tvTweetTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="Tweet" />
 
     <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/ivProfileHeader"
-            android:layout_below="@+id/tvTweetTitle"
-            android:layout_alignLeft="@+id/etTweetInput"
-            android:src="@android:drawable/divider_horizontal_textfield"
-            android:layout_alignParentRight="true"
-            android:scaleType="fitXY"/>
-
-    <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/horizontalScrollView"
-            android:layout_alignLeft="@+id/horizontalScrollView"
-            android:layout_marginTop="4dp"
-            android:id="@+id/llTweetAttachParent"
-            android:visibility="gone"
-        android:layout_alignRight="@+id/tvTweetBy">
-
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Attach"
-                android:layout_below="@+id/horizontalScrollView"
-                android:layout_alignLeft="@+id/imageView2"
-                android:layout_gravity="left|center_vertical"/>
-
-        <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-            android:src="@android:drawable/divider_horizontal_textfield"
-                android:scaleType="fitXY"
-                android:layout_alignLeft="@+id/horizontalScrollView"
-                android:layout_below="@+id/tvProfileScreenName"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="left|center_vertical"/>
-
-        <ImageView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:id="@+id/ivTweetImageAttach"
-                android:scaleType="centerInside"
-                />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_below="@+id/llTweetAttachParent"
+        android:id="@+id/ivProfileHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/etTweetInput"
         android:layout_alignParentRight="true"
-        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/tvTweetTitle"
+        android:scaleType="fitXY"
+        android:src="@android:drawable/divider_horizontal_textfield" />
+
+    <LinearLayout
+        android:id="@+id/llTweetAttachParent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/horizontalScrollView"
+        android:layout_alignRight="@+id/tvTweetBy"
+        android:layout_below="@+id/horizontalScrollView"
         android:layout_marginTop="4dp"
-        android:id="@+id/llTweetQuoteParent"
+        android:orientation="vertical"
         android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Quote"
-            android:layout_below="@+id/horizontalScrollView"
-            android:layout_alignLeft="@+id/imageView2"
             android:layout_gravity="left|center_vertical"
-            android:id="@+id/textView" />
+            android:text="Attach" />
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@android:drawable/divider_horizontal_textfield"
+            android:layout_gravity="left|center_vertical"
             android:scaleType="fitXY"
-            android:layout_alignLeft="@+id/horizontalScrollView"
-            android:layout_below="@+id/tvProfileScreenName"
-            android:layout_alignParentRight="true"
-            android:layout_gravity="left|center_vertical" />
+            android:src="@android:drawable/divider_horizontal_textfield" />
+
+        <ImageView
+            android:id="@+id/ivTweetImageAttach"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:scaleType="centerInside" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llTweetQuoteParent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/llTweetAttachParent"
+        android:layout_marginTop="4dp"
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="RT \uff20screen_name Quoted Tweet"
+            android:layout_gravity="left|center_vertical"
+            android:text="Quote" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical"
+            android:scaleType="fitXY"
+            android:src="@android:drawable/divider_horizontal_textfield" />
+
+        <TextView
             android:id="@+id/tvTweetQuote"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
-            android:layout_marginLeft="4dp" />
+            android:text="RT \uff20screen_name: Tweet" />
 
     </LinearLayout>
 
