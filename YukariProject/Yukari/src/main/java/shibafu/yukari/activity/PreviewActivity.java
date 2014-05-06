@@ -371,6 +371,10 @@ public class PreviewActivity extends FragmentActivity {
                 }
                 else {
                     Uri uri = Uri.parse(mediaUrl);
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
+                            "https".equals(uri.getScheme())) {
+                        uri = Uri.parse(mediaUrl.replace("https://", "http://"));
+                    }
                     DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
                     DownloadManager.Request request = new DownloadManager.Request(uri);
                     request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
