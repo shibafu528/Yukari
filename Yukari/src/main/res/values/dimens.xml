@@ -4,4 +4,7 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
 
     <dimen name="menudialog_textsize">12sp</dimen>
+
+    <dimen name="mainfooter_height">36dp</dimen>
+    <dimen name="mainfooter_button_width">90dp</dimen>
 </resources>
