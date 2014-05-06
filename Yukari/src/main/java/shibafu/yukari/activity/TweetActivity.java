@@ -265,6 +265,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             if (defaultText == null) {
                 defaultText = args.getStringExtra(Intent.EXTRA_TEXT);
             }
+            if (args.hasExtra(Intent.EXTRA_TITLE)) {
+                defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
+            }
+            else if (args.hasExtra(Intent.EXTRA_SUBJECT)) {
+                defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
+            }
         }
         else {
             defaultText = args.getStringExtra(EXTRA_TEXT);

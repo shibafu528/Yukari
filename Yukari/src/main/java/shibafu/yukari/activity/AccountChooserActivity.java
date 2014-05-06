@@ -172,8 +172,21 @@ public class AccountChooserActivity extends ListActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
             AccountChooserActivity.this.service = binder.getService();
-            createList();
             serviceBound = true;
+
+            List<AuthUserRecord> users = AccountChooserActivity.this.service.getUsers();
+            if (!isMultipleChoose && users.size() == 1) {
+                AuthUserRecord user = users.get(0);
+                Intent result = new Intent();
+                result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
+                result.putExtra(EXTRA_SELECTED_USERSN, user.ScreenName);
+                result.putExtra(EXTRA_SELECTED_RECORD, user);
+                setResult(RESULT_OK, result);
+                finish();
+            }
+            else {
+                createList();
+            }
         }
 
         @Override
