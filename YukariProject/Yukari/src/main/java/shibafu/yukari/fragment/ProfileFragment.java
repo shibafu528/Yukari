@@ -70,6 +70,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
 
+    private final static long A_DAY = 24 * 60 * 60 * 1000;
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
     private AuthUserRecord user;
@@ -454,7 +455,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         tvLocation.setText(holder.targetUser.getLocation());
         tvWeb.setText(holder.targetUser.getURLEntity().getExpandedURL());
-        tvSince.setText(sdf.format(holder.targetUser.getCreatedAt()));
+        {
+            String dateStr = sdf.format(holder.targetUser.getCreatedAt());
+            int totalDay = (int) ((System.currentTimeMillis() - holder.targetUser.getCreatedAt().getTime()) / A_DAY);
+            float tpd = (float)holder.targetUser.getStatusesCount() / totalDay;
+
+            tvSince.setText(String.format("%s (%d日, %.2ftweet/day)", dateStr, totalDay, tpd));
+        }
         tvUserId.setText("#" + holder.targetUser.getId());
 
         commandAdapter.getItem(0).strBottom = String.valueOf(holder.targetUser.getStatusesCount());
