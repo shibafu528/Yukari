@@ -11,13 +11,13 @@ public class Twitpic extends LinkMedia {
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "http://twitpic.com/show/full/%1");
+        ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "https://twitpic.com/show/full/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "http://twitpic.com/show/thumb/%1");
+        ImageMatch matcher = new ImageMatch("http://twitpic\\.com/([a-zA-Z0-9]+)", "https://twitpic.com/show/thumb/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
