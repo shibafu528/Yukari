@@ -78,6 +78,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     public static final int MODE_TWEET = 0;
     public static final int MODE_REPLY = 1;
     public static final int MODE_DM    = 2;
+    public static final int MODE_QUOTE = 3;
 
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
@@ -276,8 +277,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
         etInput.setText((defaultText != null)?defaultText : "");
-        if (args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_REPLY) {
-            etInput.setSelection(etInput.getText().length());
+        int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
+        if (mode == MODE_REPLY || mode == MODE_QUOTE) {
+            if (mode == MODE_REPLY) {
+                etInput.setSelection(etInput.getText().length());
+            }
             final long inReplyTo = args.getIntExtra(EXTRA_IN_REPLY_TO, -1);
             if (status == null && inReplyTo > -1) {
                 new SimpleAsyncTask() {
