@@ -25,9 +25,12 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
@@ -66,6 +69,18 @@ public class StatusMainFragment extends Fragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
         tweetView = v.findViewById(R.id.status_tweet);
+        if (status.getInReplyToStatusId() > 0) {
+            tweetView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), TraceActivity.class);
+                    intent.putExtra(TweetListFragment.EXTRA_USER, user);
+                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
+                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
+                    startActivity(intent);
+                }
+            });
+        }
 
         ImageButton ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
