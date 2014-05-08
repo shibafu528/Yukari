@@ -312,6 +312,8 @@ public class StatusMainFragment extends Fragment{
 
                                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                                 intent.putExtra(TweetActivity.EXTRA_USER, user);
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
                                 switch (which) {
                                     case 0:
                                         intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
