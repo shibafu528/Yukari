@@ -28,7 +28,7 @@ public class LinkMediaFactory {
                 linkMedia = new Twipple(mediaURL);
             } else if (mediaURL.contains("xvideos.com")) {
                 linkMedia = new XVideos(mediaURL);
-            } else if (mediaURL.contains("instagr.am") || mediaURL.contains("instagram.com")) {
+            } else if (mediaURL.contains("instagr.am/p/") || mediaURL.contains("instagram.com/p/")) {
                 linkMedia = new Instagram(mediaURL);
             } else if (mediaURL.contains("lockerz.com")) {
                 linkMedia = new Lockerz(mediaURL);
