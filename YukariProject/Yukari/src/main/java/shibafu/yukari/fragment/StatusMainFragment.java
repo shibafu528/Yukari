@@ -35,6 +35,7 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter4j.UserMentionEntity;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -94,6 +95,34 @@ public class StatusMainFragment extends Fragment{
                         ((status.isRetweet())?status.getRetweetedStatus().getUser().getScreenName()
                                 : status.getUser().getScreenName()) + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
+            }
+        });
+        ibReply.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                {
+                    StringBuilder ids = new StringBuilder(
+                            String.format("@%s ",
+                                    ((status.isRetweet()) ?
+                                            status.getRetweetedStatus().getUser().getScreenName()
+                                            : status.getUser().getScreenName())));
+                    for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                        if (!ids.toString().contains("@" + entity.getScreenName())
+                                && !entity.getScreenName().equals(user.ScreenName)) {
+                            ids.append("@");
+                            ids.append(entity.getScreenName());
+                            ids.append(" ");
+                        }
+                    }
+
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
+                }
+                startActivityForResult(intent, REQUEST_REPLY);
+                return true;
             }
         });
 
