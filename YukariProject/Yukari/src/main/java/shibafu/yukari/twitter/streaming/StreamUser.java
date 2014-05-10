@@ -59,6 +59,11 @@ public class StreamUser extends Stream{
         }
 
         @Override
+        public void onDeletionNotice(long directMessageId, long userId) {
+            if (listener != null) listener.onDeletionNotice(StreamUser.this, directMessageId, userId);
+        }
+
+        @Override
         public void onException(Exception ex) {
             ex.printStackTrace();
         }

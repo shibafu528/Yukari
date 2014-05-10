@@ -203,6 +203,17 @@ public class StatusManager {
             }
         }
 
+        @Override
+        public void onDeletionNotice(Stream from, long directMessageId, long userId) {
+            for (StatusListener sl : statusListeners) {
+                sl.onDeletionNotice(from.getUserRecord(), directMessageId, userId);
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(),
+                        new MessageDeletionNotice(directMessageId, userId)));
+            }
+        }
+
         private void showNotification(int category, TwitterResponse status, User actionBy) {
             TweetCommonDelegate delegate = TweetCommon.newInstance(status.getClass());
 
@@ -343,6 +354,57 @@ public class StatusManager {
         public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
         public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
+        public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId);
+    }
+    private class MessageDeletionNotice implements StatusDeletionNotice {
+        private long messageId;
+        private long userId;
+
+        public MessageDeletionNotice(long messageId, long userId) {
+            this.messageId = messageId;
+            this.userId = userId;
+        }
+
+        @Override
+        public long getStatusId() {
+            return messageId;
+        }
+
+        @Override
+        public long getUserId() {
+            return userId;
+        }
+
+        @Override
+        public int compareTo(StatusDeletionNotice that) {
+            long delta = this.messageId - that.getStatusId();
+            if (delta < Integer.MIN_VALUE) {
+                return Integer.MIN_VALUE;
+            } else if (delta > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            }
+            return (int) delta;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            MessageDeletionNotice that = (MessageDeletionNotice) o;
+
+            if (messageId != that.messageId) return false;
+            if (userId != that.userId) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (messageId ^ (messageId >>> 32));
+            result = 31 * result + (int) (userId ^ (userId >>> 32));
+            return result;
+        }
     }
     private class EventBuffer {
         public static final int E_STATUS = 0;
@@ -384,7 +446,14 @@ public class StatusManager {
                     listener.onDirectMessage(from, directMessage);
                     break;
                 case E_DELETE:
-                    listener.onDelete(from, statusDeletionNotice);
+                    if (statusDeletionNotice instanceof MessageDeletionNotice) {
+                        listener.onDeletionNotice(from,
+                                statusDeletionNotice.getStatusId(),
+                                statusDeletionNotice.getUserId());
+                    }
+                    else {
+                        listener.onDelete(from, statusDeletionNotice);
+                    }
                     break;
             }
         }

@@ -283,6 +283,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
+    public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId) {}
+
+    @Override
     public void onRefreshStarted(View view) {
         for (AuthUserRecord user : users) {
             executeLoader(LOADER_LOAD_UPDATE, user);

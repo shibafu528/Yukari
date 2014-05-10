@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -10,7 +11,11 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,6 +26,8 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
@@ -29,6 +36,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -174,13 +182,16 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {
+    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {}
+
+    @Override
+    public void onDeletionNotice(AuthUserRecord from, final long directMessageId, long userId) {
         getHandler().post(new Runnable() {
             @Override
             public void run() {
                 Iterator<DirectMessage> iterator = elements.iterator();
                 while (iterator.hasNext()) {
-                    if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
+                    if (iterator.next().getId() == directMessageId) {
                         iterator.remove();
                         adapterWrap.notifyDataSetChanged();
                         break;
@@ -206,6 +217,17 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 }
                 case 1:
                 {
+                    MessageDeleteFragment fragment = new MessageDeleteFragment();
+                    Bundle args = new Bundle();
+                    args.putSerializable("message", lastClicked);
+                    fragment.setArguments(args);
+                    fragment.setTargetFragment(this, 0);
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.add(fragment, "deletemsg").commit();
+                    break;
+                }
+                case 2:
+                {
                     Intent intent = new Intent(getActivity(), ProfileActivity.class);
                     intent.putExtra(ProfileActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
                     intent.putExtra(ProfileActivity.EXTRA_TARGET, lastClicked.getSenderId());
@@ -214,6 +236,54 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 }
             }
         }
+    }
+
+    public void requestDeleteMessage(final DirectMessage message) {
+        cancelledDeleteMessage();
+        new ThrowableTwitterAsyncTask<DirectMessage, Boolean>() {
+
+            @Override
+            protected ThrowableResult<Boolean> doInBackground(DirectMessage... params) {
+                AuthUserRecord user = null;
+                for (AuthUserRecord userRecord : getService().getUsers()) {
+                    if (params[0].getRecipientId() == userRecord.NumericId
+                        || params[0].getSenderId() == userRecord.NumericId) {
+                        user = userRecord;
+                    }
+                }
+                if (user == null) {
+                    return new ThrowableResult<>(new IllegalArgumentException("操作対象のユーザが見つかりません."));
+                }
+                Twitter t = getService().getTwitter();
+                t.setOAuthAccessToken(user.getAccessToken());
+                try {
+                    t.destroyDirectMessage(message.getId());
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    return new ThrowableResult<>(e);
+                }
+                return new ThrowableResult<>(true);
+            }
+
+            @Override
+            protected void onPostExecute(ThrowableResult<Boolean> result) {
+                super.onPostExecute(result);
+                if (!isErrored() && result.getResult()) {
+                    showToast("削除しました");
+                }
+            }
+
+            @Override
+            protected void showToast(String message) {
+                Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+            }
+        }.execute(message);
+    }
+
+    public void cancelledDeleteMessage() {
+        FragmentManager manager = getFragmentManager();
+        Fragment fragment = manager.findFragmentByTag("deletemsg");
+        manager.beginTransaction().remove(fragment).commit();
     }
 
     private AuthUserRecord findUserRecord(User user) {
@@ -341,7 +411,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             Bundle args = getArguments();
             List<String> items = new ArrayList<>(Arrays.asList(new String[]{
                     "返信する",
-                    //"削除",
+                    "削除",
                     "@" + args.getString("sender")
             }));
             return new AlertDialog.Builder(getActivity())
@@ -359,6 +429,33 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             }
             else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
                 ((DialogInterface.OnClickListener) getTargetFragment()).onClick(dialog, which);
+            }
+        }
+    }
+
+    public static class MessageDeleteFragment extends Fragment implements DialogInterface.OnClickListener{
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    android.R.drawable.ic_dialog_alert,
+                    "確認",
+                    "メッセージを削除してもよろしいですか？",
+                    "OK",
+                    "キャンセル");
+            dialogFragment.setTargetFragment(this, 0);
+            dialogFragment.show(getFragmentManager(), "msdeld");
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if (which == DialogInterface.BUTTON_POSITIVE) {
+                Bundle args = getArguments();
+                DirectMessage message = (DirectMessage) args.getSerializable("message");
+                ((MessageListFragment) getTargetFragment()).requestDeleteMessage(message);
+            }
+            else {
+                ((MessageListFragment) getTargetFragment()).cancelledDeleteMessage();
             }
         }
     }

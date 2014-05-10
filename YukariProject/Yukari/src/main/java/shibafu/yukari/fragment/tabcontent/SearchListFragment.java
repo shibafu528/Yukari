@@ -185,6 +185,9 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
         }
     }
 
+    @Override
+    public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId) {}
+
     private class SearchRESTLoader
             extends RESTLoader<SearchRESTLoader.Params, PreformedResponseList<PreformedStatus>> {
         class Params {
