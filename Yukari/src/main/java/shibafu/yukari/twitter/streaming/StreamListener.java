@@ -17,4 +17,5 @@ public interface StreamListener {
     public void onUnblock       (Stream from, User user, User user2);
     public void onStatus        (Stream from, Status status);
     public void onDelete        (Stream from, StatusDeletionNotice statusDeletionNotice);
+    public void onDeletionNotice(Stream from, long directMessageId, long userId);
 }
