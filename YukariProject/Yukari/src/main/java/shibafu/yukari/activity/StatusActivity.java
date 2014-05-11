@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
+import android.view.View;
 import android.view.Window;
 import android.widget.Toast;
 
@@ -30,11 +31,20 @@ public class StatusActivity extends FragmentActivity {
     private AuthUserRecord user = null;
     private PreformedStatus status = null;
 
+    private boolean isTablet;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);
+
+        {
+            View v = getLayoutInflater().inflate(R.layout.fragment_status_main, null);
+            if (v.findViewById(R.id.frame) != null) {
+                isTablet = true;
+            }
+        }
 
         Intent args = getIntent();
         status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
@@ -49,7 +59,7 @@ public class StatusActivity extends FragmentActivity {
 
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-        mViewPager.setCurrentItem(1);
+        mViewPager.setCurrentItem(isTablet?0:1);
 
         PagerTabStrip pagerTabStrip = (PagerTabStrip) findViewById(R.id.pager_title_strip);
         pagerTabStrip.setDrawFullUnderline(true);
@@ -67,6 +77,7 @@ public class StatusActivity extends FragmentActivity {
         public Fragment getItem(int position) {
             Fragment f = null;
             Bundle b = new Bundle();
+            if (isTablet) ++position;
             switch (position) {
                 case 0:
                     f = new StatusLinkFragment();
@@ -86,11 +97,12 @@ public class StatusActivity extends FragmentActivity {
 
         @Override
         public int getCount() {
-            return 3;
+            return isTablet? 2 : 3;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
+            if (isTablet) ++position;
             switch (position) {
                 case 0:
                     return "Link";

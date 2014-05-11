@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -410,6 +411,17 @@ public class StatusMainFragment extends Fragment{
         else if (faved > 0) {
             tvCounter.setText(countFav);
             tvCounter.setVisibility(View.VISIBLE);
+        }
+
+        if (v.findViewById(R.id.frame) != null) {
+            StatusLinkFragment fragment = new StatusLinkFragment();
+            Bundle bundle = new Bundle(b);
+            fragment.setArguments(bundle);
+            getChildFragmentManager()
+                    .beginTransaction()
+                    .setTransition(FragmentTransaction.TRANSIT_NONE)
+                    .replace(R.id.frame, fragment)
+                    .commit();
         }
 
         return v;

@@ -91,7 +91,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             menu.remove(ITEMS.length - 1);
         }
 
-        setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
+        setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
