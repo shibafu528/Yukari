@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -19,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -108,34 +110,32 @@ public class PostService extends IntentService{
                         update.setInReplyToStatusId(draft.getInReplyTo());
                     }
                     //attachPictureがある場合は添付
-                    if (draft.getAttachedPicture() != null) {
-                        int[] size = new int[2];
-                        {
-                            Bitmap thumb = BitmapResizer.resizeBitmap(this, draft.getAttachedPicture(), 128, 128, size);
-                            thumb.recycle();
+                    if (!draft.getAttachedPictures().isEmpty()) {
+                        List<InputStream> iss = new ArrayList<>();
+                        for (Uri u : draft.getAttachedPictures()) {
+                            int[] size = new int[2];
+                            {
+                                Bitmap thumb = BitmapResizer.resizeBitmap(this, u, 128, 128, size);
+                                thumb.recycle();
+                            }
+                            if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
+                                Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
+                                Bitmap resized = BitmapResizer.resizeBitmap(
+                                        this,
+                                        u,
+                                        imageResizeLength,
+                                        imageResizeLength,
+                                        null);
+                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                                iss.add(bais);
+                            } else {
+                                iss.add(getContentResolver().openInputStream(u));
+                            }
                         }
-                        if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
-                            Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
-                            Bitmap resized = BitmapResizer.resizeBitmap(
-                                    this,
-                                    draft.getAttachedPicture(),
-                                    imageResizeLength,
-                                    imageResizeLength,
-                                    null);
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                            Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                            service.postTweet(userRecord, update, new InputStream[]{bais});
-                        } else {
-                            service.postTweet(
-                                    userRecord,
-                                    update,
-                                    new InputStream[]{
-                                            getContentResolver().openInputStream(draft.getAttachedPicture())
-                                    }
-                            );
-                        }
+                        service.postTweet(userRecord, update, iss.toArray(new InputStream[iss.size()]));
                     } else {
                         service.postTweet(userRecord, update);
                     }

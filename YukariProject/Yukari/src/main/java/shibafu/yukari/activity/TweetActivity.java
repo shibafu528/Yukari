@@ -31,8 +31,10 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -51,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,6 +73,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.BitmapResizer;
 import twitter4j.Status;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
@@ -117,7 +121,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     //添付プレビュー
     private LinearLayout llTweetAttachParent;
-    private ImageView ivAttach;
+    private LinearLayout llTweetAttachInner;
 
     //Writer指定
     private ArrayList<AuthUserRecord> writers = new ArrayList<>();
@@ -125,11 +129,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private boolean useStoredWriters = true;
 
     private Status status;
-    private AttachPicture attachPicture;
+    private List<AttachPicture> attachPictures = new ArrayList<>();
 
     //サービスバインド
     private TwitterService service;
     private boolean serviceBound = false;
+
+    //最大添付数
+    private int maxMediaPerUpload = 1;
 
     //撮影用の一時変数
     private Uri cameraTemp;
@@ -308,54 +315,18 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
         //添付エリアの設定
         llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
-        ivAttach = (ImageView) findViewById(R.id.ivTweetImageAttach);
-        ivAttach.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (attachPicture != null) {
-                    AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
-                            .setTitle("添付の取り消し")
-                            .setMessage("画像の添付を取り消してもよろしいですか？")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton("はい", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                    attachPicture = null;
-
-                                    llTweetAttachParent.setVisibility(View.GONE);
-                                }
-                            })
-                            .setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
-                            })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
-                            })
-                            .create();
-                    ad.show();
-                    currentDialog = ad;
-                }
-            }
-        });
+        llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
 
         //添付データがある場合は設定する
-        Uri mediaUri = args.getParcelableExtra(EXTRA_MEDIA);
+        ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
             attachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
         }
         else if (mediaUri != null) {
-            attachPicture(mediaUri);
+            for (String s : mediaUri) {
+                attachPicture(Uri.parse(s));
+            }
         }
 
         //投稿ボタンの設定
@@ -366,7 +337,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 if (tweetCount < 0) {
                     Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
                     return;
-                } else if (tweetCount >= 140 && attachPicture == null) {
+                } else if (tweetCount >= 140 && attachPictures.isEmpty()) {
                     Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -467,6 +438,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         ibCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //添付上限判定
+                if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                    Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 //SDカード使用可否のチェックを行う
                 boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
                 if (!existExternal) {
@@ -498,6 +474,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         ibAttach.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //添付上限判定
+                if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                    Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
                 startActivityForResult(intent, REQUEST_GALLERY);
@@ -506,7 +487,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         ibAttach.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                if (attachPicture == null) {
+                if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
                     Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
                     if (c.moveToLast()) {
                         long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
@@ -596,7 +577,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                 switch (which) {
                                     case 0:
                                     {
-                                        if (tweetCount >= 140 && attachPicture == null) {
+                                        if (tweetCount >= 140 && attachPictures.isEmpty()) {
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
                                         else {
@@ -899,6 +880,60 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         unbindService(connection);
     }
 
+    private ImageView createAttachThumb(Bitmap bmp) {
+        int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
+        final ImageView ivAttach = new ImageView(this);
+        ivAttach.setLayoutParams(new ViewGroup.LayoutParams(size, size));
+        ivAttach.setImageBitmap(bmp);
+        ivAttach.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
+                        .setTitle("添付の取り消し")
+                        .setMessage("画像の添付を取り消してもよろしいですか？")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton("はい", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                llTweetAttachInner.removeView(ivAttach);
+                                for (Iterator<AttachPicture> it = attachPictures.iterator(); it.hasNext(); ) {
+                                    AttachPicture attachPicture = it.next();
+                                    if (attachPicture.imageView == ivAttach) {
+                                        it.remove();
+                                        break;
+                                    }
+                                }
+
+                                if (attachPictures.isEmpty()) {
+                                    llTweetAttachParent.setVisibility(View.GONE);
+                                }
+                            }
+                        })
+                        .setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .create();
+                ad.show();
+                currentDialog = ad;
+            }
+        });
+        return ivAttach;
+    }
+
     private void attachPicture(Uri uri) {
         AttachPicture pic = new AttachPicture();
         pic.uri = uri;
@@ -907,11 +942,18 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             Bitmap bmp = BitmapResizer.resizeBitmap(this, uri, 256, 256, size);
             pic.width = size[0];
             pic.height = size[1];
-            ivAttach.setImageBitmap(bmp);
+            pic.imageView = createAttachThumb(bmp);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        attachPicture = pic;
+        if (maxMediaPerUpload == 1 && attachPictures.size() >= 1) {
+            llTweetAttachInner.removeView(attachPictures.get(0).imageView);
+            attachPictures.set(0, pic);
+        }
+        else {
+            attachPictures.add(pic);
+        }
+        llTweetAttachInner.addView(pic.imageView);
         llTweetAttachParent.setVisibility(View.VISIBLE);
     }
 
@@ -932,6 +974,12 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 writers = TweetActivity.this.service.getWriterUsers();
                 updateWritersView();
             }
+
+            TwitterAPIConfiguration apiConfiguration = TweetActivity.this.service.getApiConfiguration();
+            if (apiConfiguration != null) {
+                maxMediaPerUpload = apiConfiguration.getMaxMediaPerUpload();
+                ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+            }
         }
 
         @Override
@@ -949,6 +997,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     }
 
     private TweetDraft getTweetDraft() {
+        // TODO: 最初のひとつしか下書き保存していない
         TweetDraft draft;
         if (isDirectMessage) {
             draft = new TweetDraft(
@@ -958,7 +1007,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     directMessageDestId,
                     directMessageDestSN,
                     false,
-                    (attachPicture == null) ? null : attachPicture.uri,
+                    AttachPicture.toUriList(attachPictures),
                     false,
                     0,
                     0,
@@ -972,7 +1021,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     System.currentTimeMillis(),
                     (status == null) ? -1 : status.getId(),
                     false,
-                    (attachPicture == null) ? null : attachPicture.uri,
+                    AttachPicture.toUriList(attachPictures),
                     false,
                     0,
                     0,
@@ -987,10 +1036,19 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         return service;
     }
 
-    private class AttachPicture {
+    private static class AttachPicture {
         public Uri uri = null;
         public int width = -1;
         public int height = -1;
+        public ImageView imageView;
+
+        public static List<Uri> toUriList(List<AttachPicture> from) {
+            List<Uri> list = new ArrayList<>();
+            for (AttachPicture ap : from) {
+                list.add(ap.uri);
+            }
+            return list;
+        }
     }
 
     public void onYukarin(boolean cancelled) {

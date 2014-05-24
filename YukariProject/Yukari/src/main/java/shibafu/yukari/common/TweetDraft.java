@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.database.CentralDatabase;
@@ -28,7 +30,7 @@ public class TweetDraft implements Serializable{
     private long dateTime;
     private long inReplyTo;
     private boolean isQuoted;
-    private transient Uri attachedPicture;
+    private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
     private boolean useGeoLocation;
     private double geoLatitude;
     private double geoLongitude;
@@ -38,7 +40,7 @@ public class TweetDraft implements Serializable{
     private String messageTarget;
 
     public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime, long inReplyTo,
-                      boolean isQuoted, Uri attachedPicture,
+                      boolean isQuoted, List<Uri> attachedPictures,
                       boolean useGeoLocation,
                       double geoLatitude, double geoLongitude,
                       boolean isPossiblySensitive, boolean isFailedDelivery) {
@@ -47,7 +49,7 @@ public class TweetDraft implements Serializable{
         this.dateTime = dateTime;
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
-        this.attachedPicture = attachedPicture;
+        this.attachedPictures.addAll(attachedPictures);
         this.useGeoLocation = useGeoLocation;
         this.geoLatitude = geoLatitude;
         this.geoLongitude = geoLongitude;
@@ -59,7 +61,7 @@ public class TweetDraft implements Serializable{
 
     public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime,
                       long inReplyTo, String messageTarget,
-                      boolean isQuoted, Uri attachedPicture,
+                      boolean isQuoted, List<Uri> attachedPictures,
                       boolean useGeoLocation,
                       double geoLatitude, double geoLongitude,
                       boolean isPossiblySensitive,
@@ -69,7 +71,7 @@ public class TweetDraft implements Serializable{
         this.dateTime = dateTime;
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
-        this.attachedPicture = attachedPicture;
+        this.attachedPictures.addAll(attachedPictures);
         this.useGeoLocation = useGeoLocation;
         this.geoLatitude = geoLatitude;
         this.geoLongitude = geoLongitude;
@@ -85,8 +87,14 @@ public class TweetDraft implements Serializable{
         dateTime = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_DATETIME));
         inReplyTo = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IN_REPLY_TO));
         isQuoted = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_QUOTED)) == 1;
-        String attachedPictureString = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE));
-        attachedPicture = (attachedPictureString==null || attachedPictureString.equals(""))? null : Uri.parse(attachedPictureString);
+        {
+            String attachedPictureString = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE));
+            if (!TextUtils.isEmpty(attachedPictureString)) {
+                for (String att : attachedPictureString.split("\\|")) {
+                    attachedPictures.add(Uri.parse(att));
+                }
+            }
+        }
         useGeoLocation = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_USE_GEO_LOCATION)) == 1;
         geoLatitude = cursor.getDouble(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_GEO_LATITUDE));
         geoLongitude = cursor.getDouble(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_GEO_LONGITUDE));
@@ -106,7 +114,14 @@ public class TweetDraft implements Serializable{
             values.put(CentralDatabase.COL_DRAFTS_TEXT, text);
             values.put(CentralDatabase.COL_DRAFTS_IN_REPLY_TO, inReplyTo);
             values.put(CentralDatabase.COL_DRAFTS_IS_QUOTED, isQuoted);
-            if (attachedPicture != null) values.put(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE, attachedPicture.toString());
+            if (!attachedPictures.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (Uri u : attachedPictures) {
+                    if (sb.length() > 0) sb.append("|");
+                    sb.append(u.toString());
+                }
+                values.put(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE, sb.toString());
+            }
             values.put(CentralDatabase.COL_DRAFTS_USE_GEO_LOCATION, useGeoLocation);
             values.put(CentralDatabase.COL_DRAFTS_GEO_LATITUDE, geoLatitude);
             values.put(CentralDatabase.COL_DRAFTS_GEO_LONGITUDE, geoLongitude);
@@ -147,12 +162,16 @@ public class TweetDraft implements Serializable{
         this.isQuoted = isQuoted;
     }
 
-    public Uri getAttachedPicture() {
-        return attachedPicture;
+    public List<Uri> getAttachedPictures() {
+        return attachedPictures;
     }
 
-    public void setAttachedPicture(Uri attachedPicture) {
-        this.attachedPicture = attachedPicture;
+    public ArrayList<String> getStringAttachedPictures() {
+        ArrayList<String> list = new ArrayList<>();
+        for (Uri u : attachedPictures) {
+            list.add(u.toString());
+        }
+        return list;
     }
 
     public double getGeoLatitude() {
@@ -234,7 +253,7 @@ public class TweetDraft implements Serializable{
     public Intent getTweetIntent(Context context) {
         Intent intent = new Intent(context, TweetActivity.class);
         intent.putExtra(TweetActivity.EXTRA_TEXT, getText());
-        intent.putExtra(TweetActivity.EXTRA_MEDIA, getAttachedPicture());
+        intent.putExtra(TweetActivity.EXTRA_MEDIA, getStringAttachedPictures());
         intent.putExtra(TweetActivity.EXTRA_WRITERS, getWriters());
         if (isDirectMessage()) {
             intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
@@ -257,15 +276,19 @@ public class TweetDraft implements Serializable{
     private void writeObject(ObjectOutputStream stream) throws IOException {
         stream.defaultWriteObject();
 
-        stream.writeUTF(attachedPicture != null ? attachedPicture.toString() : "null");
+        stream.writeInt(attachedPictures.size());
+        for (Uri u : attachedPictures) {
+            stream.writeUTF(u.toString());
+        }
     }
 
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
 
-        String uri = stream.readUTF();
-        if (uri != null && !uri.equals("null")) {
-            attachedPicture = Uri.parse(uri);
+        int attached = stream.readInt();
+        attachedPictures.clear();
+        for (int i = 0; i < attached; ++i) {
+            attachedPictures.add(Uri.parse(stream.readUTF()));
         }
     }
 }
