@@ -195,6 +195,7 @@
         android:visibility="gone">
 
         <TextView
+            android:id="@+id/tvTweetAttach"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left|center_vertical"
@@ -207,11 +208,17 @@
             android:scaleType="fitXY"
             android:src="@android:drawable/divider_horizontal_textfield" />
 
-        <ImageView
-            android:id="@+id/ivTweetImageAttach"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:scaleType="centerInside" />
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="72dp">
+
+            <LinearLayout
+                android:id="@+id/llTweetAttachInner"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent">
+            </LinearLayout>
+        </HorizontalScrollView>
 
     </LinearLayout>
 

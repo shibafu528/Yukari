@@ -22,6 +22,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
@@ -31,6 +32,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
@@ -52,6 +54,7 @@ public class TwitterService extends Service{
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
+    private TwitterAPIConfiguration apiConfiguration;
 
     public class TweetReceiverBinder extends Binder {
         public TwitterService getService() {
@@ -124,6 +127,20 @@ public class TwitterService extends Service{
 
         //Twitterインスタンスの生成
         twitter = TwitterUtil.getTwitterInstance(this);
+
+        //Configurationの取得
+        new TwitterAsyncTask<Void>() {
+            @Override
+            protected TwitterException doInBackground(Void... params) {
+                try {
+                    apiConfiguration = getTwitter().getAPIConfiguration();
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    return e;
+                }
+                return null;
+            }
+        }.execute();
 
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -349,6 +366,10 @@ public class TwitterService extends Service{
 
     public CentralDatabase getDatabase() {
         return database;
+    }
+
+    public TwitterAPIConfiguration getApiConfiguration() {
+        return apiConfiguration;
     }
 
     public Suppressor getSuppressor() {
