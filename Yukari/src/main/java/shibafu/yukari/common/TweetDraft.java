@@ -286,7 +286,7 @@ public class TweetDraft implements Serializable{
         stream.defaultReadObject();
 
         int attached = stream.readInt();
-        attachedPictures.clear();
+        attachedPictures = new ArrayList<>();
         for (int i = 0; i < attached; ++i) {
             attachedPictures.add(Uri.parse(stream.readUTF()));
         }
