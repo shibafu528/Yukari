@@ -359,45 +359,37 @@ public class PreviewActivity extends FragmentActivity {
         });
 
         ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
-            ibSave.setVisibility(View.GONE);
-        }
         ibSave.setOnClickListener(new View.OnClickListener() {
             @TargetApi(Build.VERSION_CODES.GINGERBREAD)
             @Override
             public void onClick(View v) {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
-                    Toast.makeText(PreviewActivity.this, "Android2.3未満ではこのボタンは使えません\n今のところそういう仕様です", Toast.LENGTH_LONG).show();
+                Uri uri = Uri.parse(mediaUrl);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
+                        "https".equals(uri.getScheme())) {
+                    uri = Uri.parse(mediaUrl.replace("https://", "http://"));
+                }
+                DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Request request = new DownloadManager.Request(uri);
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                String[] split = uri.getLastPathSegment().split("\\.");
+                if (split != null && split.length > 1) {
+                    request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
                 }
                 else {
-                    Uri uri = Uri.parse(mediaUrl);
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
-                            "https".equals(uri.getScheme())) {
-                        uri = Uri.parse(mediaUrl.replace("https://", "http://"));
-                    }
-                    DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                    DownloadManager.Request request = new DownloadManager.Request(uri);
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                    String[] split = uri.getLastPathSegment().split("\\.");
-                    if (split != null && split.length > 1) {
-                        request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
-                    }
-                    else {
-                        //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
-                        uri = Uri.parse(uri.toString() + ".png");
-                        request.setMimeType("image/png");
-                    }
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
-                    File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    pathExternalPublicDir.mkdirs();
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                        request.setShowRunningNotification(true);
-                    }
-                    else {
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    }
-                    dlm.enqueue(request);
+                    //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
+                    uri = Uri.parse(uri.toString() + ".png");
+                    request.setMimeType("image/png");
                 }
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
+                File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                pathExternalPublicDir.mkdirs();
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                    request.setShowRunningNotification(true);
+                }
+                else {
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                }
+                dlm.enqueue(request);
             }
         });
 
