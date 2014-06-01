@@ -9,6 +9,7 @@ import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.ActionBarActivity;
@@ -30,6 +31,8 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.fragment.tabcontent.FriendListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 
 /**
@@ -75,7 +78,19 @@ public class UserSearchActivity extends ActionBarActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                return false;
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args = new Bundle();
+                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_SEARCH);
+                args.putSerializable(TweetListFragment.EXTRA_USER, serviceBound? service.getPrimaryUser() : null);
+                args.putString(FriendListFragment.EXTRA_SEARCH_QUERY, s);
+                args.putString(TweetListFragment.EXTRA_TITLE, "Search: " + s);
+                fragment.setArguments(args);
+
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, fragment).commit();
+
+                searchView.clearFocus();
+                return true;
             }
 
             @Override
@@ -88,7 +103,7 @@ public class UserSearchActivity extends ActionBarActivity {
                     tipsLayout.setVisibility(View.GONE);
                     tipsLayout.startAnimation(outAnim);
                 }
-                return false;
+                return true;
             }
         });
         searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
