@@ -70,14 +70,16 @@ public class StatusMainFragment extends Fragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
         tweetView = v.findViewById(R.id.status_tweet);
-        if (status.getInReplyToStatusId() > 0) {
+        if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
+                || status.getInReplyToStatusId() > 0) {
             tweetView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(getActivity(), TraceActivity.class);
                     intent.putExtra(TweetListFragment.EXTRA_USER, user);
                     intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
+                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
+                            status.isRetweet()? status.getRetweetedStatus() : status);
                     startActivity(intent);
                 }
             });
