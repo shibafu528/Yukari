@@ -79,7 +79,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
     protected void executeLoader(int requestMode, AuthUserRecord userRecord) {
         switch (requestMode) {
             case LOADER_LOAD_INIT:
-                loadCursor = getMode() != MODE_SEARCH ? -1 : 0;
+                loadCursor = getMode() != MODE_SEARCH ? -1 : 1;
             default:
                 new FriendsLoadTask().execute();
         }
