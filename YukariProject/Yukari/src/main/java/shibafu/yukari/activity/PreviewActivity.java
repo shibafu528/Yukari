@@ -380,14 +380,14 @@ public class PreviewActivity extends FragmentActivity {
                     request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
                     String[] split = uri.getLastPathSegment().split("\\.");
                     if (split != null && split.length > 1) {
-                        request.setMimeType("image/" + split[split.length-1]);
+                        request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
                     }
                     else {
                         //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
                         uri = Uri.parse(uri.toString() + ".png");
                         request.setMimeType("image/png");
                     }
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment());
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
                     File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                     pathExternalPublicDir.mkdirs();
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {

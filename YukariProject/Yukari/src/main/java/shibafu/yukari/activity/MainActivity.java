@@ -243,6 +243,9 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                                 dialogFragment.show(getSupportFragmentManager(), "search");
                                 break;
                             }
+                            case R.id.action_search_users:
+                                startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
+                                break;
                             case R.id.action_show_user:
                             {
                                 final EditText tvInput = new EditText(MainActivity.this);

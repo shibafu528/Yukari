@@ -19,6 +19,7 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
+import twitter4j.ResponseList;
 import twitter4j.TwitterException;
 import twitter4j.User;
 
@@ -28,12 +29,15 @@ import twitter4j.User;
 public class FriendListFragment extends TwitterListFragment<User> {
 
     public static final String EXTRA_SHOW_USER = "show_user";
+    public static final String EXTRA_SEARCH_QUERY = "query";
 
     public static final int MODE_FRIEND   = 0;
     public static final int MODE_FOLLOWER = 1;
     public static final int MODE_BLOCKING = 2;
+    public static final int MODE_SEARCH   = 3;
 
     private User targetUser = null;
+    private String query;
 
     private UserAdapter adapter;
     private long loadCursor = -1;
@@ -47,6 +51,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
+        query = args.getString(EXTRA_SEARCH_QUERY);
     }
 
     @Override
@@ -74,7 +79,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
     protected void executeLoader(int requestMode, AuthUserRecord userRecord) {
         switch (requestMode) {
             case LOADER_LOAD_INIT:
-                loadCursor = -1;
+                loadCursor = getMode() != MODE_SEARCH ? -1 : 0;
             default:
                 new FriendsLoadTask().execute();
         }
@@ -90,13 +95,13 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
     }
 
-    private class FriendsLoadTask extends AsyncTask<Void, Void, PagableResponseList<User>> {
+    private class FriendsLoadTask extends AsyncTask<Void, Void, ResponseList<User>> {
 
         @Override
-        protected PagableResponseList<twitter4j.User> doInBackground(Void... params) {
+        protected ResponseList<User> doInBackground(Void... params) {
             twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
             try {
-                PagableResponseList<twitter4j.User> responseList = null;
+                ResponseList<twitter4j.User> responseList = null;
                 switch (getMode()) {
                     case MODE_FRIEND:
                         responseList = twitter.getFriendsList(targetUser.getId(), loadCursor);
@@ -107,9 +112,17 @@ public class FriendListFragment extends TwitterListFragment<User> {
                     case MODE_BLOCKING:
                         responseList = twitter.getBlocksList(loadCursor);
                         break;
+                    case MODE_SEARCH:
+                        responseList = twitter.searchUsers(query, (int) loadCursor);
+                        break;
                 }
                 if (responseList != null && !responseList.isEmpty()) {
-                    loadCursor = responseList.getNextCursor();
+                    if (getMode() == MODE_SEARCH) {
+                        loadCursor++;
+                    }
+                    else {
+                        loadCursor = ((PagableResponseList) responseList).getNextCursor();
+                    }
                 }
                 return responseList;
             } catch (TwitterException e) {
@@ -124,7 +137,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
         }
 
         @Override
-        protected void onPostExecute(PagableResponseList<twitter4j.User> users) {
+        protected void onPostExecute(ResponseList<twitter4j.User> users) {
             if (users != null) {
                 elements.addAll(users);
                 adapter.notifyDataSetChanged();

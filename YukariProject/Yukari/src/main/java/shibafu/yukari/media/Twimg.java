@@ -11,7 +11,7 @@ public class Twimg extends LinkMedia{
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        return browseURL;
+        return browseURL + ":orig";
     }
 
     @Override
