@@ -43,6 +43,9 @@
         <item name="android:fastScrollThumbDrawable">@drawable/yukaritheme_fastscroll_thumb_holo
         </item>
 
+        <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
+
+        <item name="android:selectableItemBackground">@drawable/selector_key_background</item>
     </style>
 
     <style name="YukariDialogTheme" parent="android:Theme.Holo.Light.Dialog">

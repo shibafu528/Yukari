@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="17"
-    android:versionName="0.104alpha (prototype 140525)" >
+    android:versionName="0.105alpha (prototype 140601)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -233,6 +233,10 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".activity.UserSearchActivity"
+            android:label="@string/title_activity_user_search"/>
     </application>
 
 </manifest>

@@ -7,7 +7,6 @@
     <item android:id="@+id/action_search_tweets"
         android:title="ツイート検索"/>
     <item android:id="@+id/action_search_users"
-        android:visible="false"
         android:title="ユーザー検索"/>
     <item android:id="@+id/action_show_user"
         android:title="ユーザーを直接表示"/>
