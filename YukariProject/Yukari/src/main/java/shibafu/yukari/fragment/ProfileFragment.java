@@ -429,7 +429,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             }
 
             //改行コードをBRタグにする
-            bio = bio.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+            bio = bio.replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");
 
             //エスケープしてテキストを表示
             tvBio.setText(Html.fromHtml(bio).toString());
