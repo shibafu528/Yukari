@@ -30,6 +30,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -91,6 +92,10 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     private LinearLayout llQuickTweet;
     private ImageButton ibSelectAccount;
     private EditText etTweet;
+
+    //投稿ボタン関連
+    private FrameLayout flTweet;
+    private ImageView ivTweet;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
@@ -400,6 +405,16 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         });
 
         llTweetGuide = (LinearLayout) findViewById(R.id.llTweetGuide);
+
+        flTweet = (FrameLayout) findViewById(R.id.tweetbutton_frame);
+        ivTweet = (ImageView) findViewById(R.id.ivTweet);
+        ivTweet.setOnTouchListener(tweetGestureListener);
+        ivTweet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, TweetActivity.class));
+            }
+        });
     }
 
     @Override
@@ -444,6 +459,8 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         super.onResume();
         //ツイート操作ガイド
         llTweetGuide.setVisibility(sharedPreferences.getBoolean("first_guide", true)? View.VISIBLE : View.GONE);
+        //投稿ボタン
+        flTweet.setVisibility(sharedPreferences.getBoolean("pref_show_tweetbutton", false)? View.VISIBLE : View.GONE);
     }
 
     @Override
