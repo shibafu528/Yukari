@@ -204,6 +204,12 @@ public class TweetAdapterWrap {
             viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());
             viewHolder.tvText.setTextSize(fontSize);
             String text = delegate.getText(content);
+            if (preferences.getBoolean("j_grassleaf", false)) {
+                text = text.replaceAll("(wwww+|ｗｗ+|。|\\.\\.\\.|…|・・・)", "wwwwwwwwwwwwwwwwwwwwwwwwwww")
+                        .replaceAll("[？?]", "？wwwwwwwwwwwwwwwwwwww")
+                        .replaceAll("[^＾][~〜]+", "＾〜〜〜〜wwwwwwwwwww");
+                viewHolder.tvText.setTextColor(Color.parseColor("#0b5b12"));
+            }
             if (mode == MODE_DEFAULT) {
                 if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
                     text = text.replace('\n', ' ');
