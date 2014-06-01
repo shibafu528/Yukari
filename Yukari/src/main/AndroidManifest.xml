@@ -236,7 +236,8 @@
 
         <activity
             android:name=".activity.UserSearchActivity"
-            android:label="@string/title_activity_user_search"/>
+            android:label="@string/title_activity_user_search"
+            android:windowSoftInputMode="adjustResize"/>
     </application>
 
 </manifest>

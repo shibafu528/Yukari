@@ -19,7 +19,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import shibafu.yukari.R;
@@ -35,11 +39,18 @@ public class UserSearchActivity extends ActionBarActivity {
     private TwitterService service;
     private boolean serviceBound = false;
 
+    private LinearLayout tipsLayout;
+    private Animation inAnim, outAnim;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_parent);
+        setContentView(R.layout.activity_user_search);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        tipsLayout = (LinearLayout) findViewById(R.id.llFrameTitle);
+        inAnim = AnimationUtils.loadAnimation(this, R.anim.activity_tweet_open_enter);
+        outAnim = AnimationUtils.loadAnimation(this, R.anim.activity_tweet_close_exit);
     }
 
     @Override
@@ -69,6 +80,14 @@ public class UserSearchActivity extends ActionBarActivity {
 
             @Override
             public boolean onQueryTextChange(String s) {
+                if (s.length() < 1) {
+                    tipsLayout.setVisibility(View.VISIBLE);
+                    tipsLayout.startAnimation(inAnim);
+                }
+                else if (tipsLayout.getVisibility() == View.VISIBLE) {
+                    tipsLayout.setVisibility(View.GONE);
+                    tipsLayout.startAnimation(outAnim);
+                }
                 return false;
             }
         });
@@ -88,8 +107,11 @@ public class UserSearchActivity extends ActionBarActivity {
                     screenName = user.getScreenName();
                 }
                 else {
-                    screenName = c.getString(1).replace("@", "");
+                    screenName = c.getString(1).replaceAll("[@＠]", "");
                 }
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
+
                 Intent intent = new Intent(UserSearchActivity.this, ProfileActivity.class);
                 intent.setData(Uri.parse("http://twitter.com/" + screenName));
                 intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
@@ -178,7 +200,7 @@ public class UserSearchActivity extends ActionBarActivity {
 
         @Override
         public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
-            if (!TextUtils.isEmpty(constraint) && constraint.charAt(0) == '@') {
+            if (!TextUtils.isEmpty(constraint) && (constraint.charAt(0) == '@' || constraint.charAt(0) == '＠')) {
                 MatrixCursor cursor = new MatrixCursor(new String[] {"_id", "text"});
                 cursor.addRow(new Object[] {-1, constraint});
                 return cursor;
