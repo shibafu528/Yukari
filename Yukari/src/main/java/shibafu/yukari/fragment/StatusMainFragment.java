@@ -222,7 +222,8 @@ public class StatusMainFragment extends Fragment{
                                     dialog.dismiss();
                                     currentDialog = null;
                                     Intent intent = new Intent(getActivity(), MainActivity.class);
-                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, status.getPlainText());
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD,
+                                            status.isRetweet()? status.getRetweetedStatus().getPlainText() : status.getPlainText());
                                     startActivity(intent);
                                 }
                             })
