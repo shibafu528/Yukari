@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,7 +17,6 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.PopupMenu;
-import android.text.InputType;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -63,7 +61,6 @@ import twitter4j.util.CharacterUtil;
 public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
 
     private static final int REQUEST_OAUTH = 1;
-    private static final int REQUEST_FRIEND_CACHE = 2;
     private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
     private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
 
@@ -245,50 +242,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                             }
                             case R.id.action_search_users:
                                 startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
-                                break;
-                            case R.id.action_show_user:
-                            {
-                                final EditText tvInput = new EditText(MainActivity.this);
-                                tvInput.setHint("@screen_name (@省略可)");
-                                tvInput.setInputType(InputType.TYPE_CLASS_TEXT);
-
-                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                builder.setTitle("プロフィールを直接開く");
-                                builder.setView(tvInput);
-                                builder.setPositiveButton("開く", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-
-                                        String sn = tvInput.getText().toString();
-
-                                        if (sn == null || sn.length() < 1) {
-                                            Toast.makeText(MainActivity.this, "何も入力されていません", Toast.LENGTH_LONG).show();
-                                        }
-                                        else {
-                                            if (sn.startsWith("@")) {
-                                                sn = sn.substring(1);
-                                            }
-
-                                            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                                            intent.setData(Uri.parse("http://twitter.com/" + sn));
-                                            intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
-                                            startActivity(intent);
-                                        }
-                                    }
-                                });
-                                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                    }
-                                });
-                                AlertDialog ad = builder.create();
-                                ad.show();
-                                break;
-                            }
-                            case R.id.action_find_name:
-                                startActivityForResult(new Intent(MainActivity.this, SNPickerActivity.class), REQUEST_FRIEND_CACHE);
                                 break;
                         }
                         return false;
@@ -589,15 +542,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         Log.d("MainActivity", "call onActivityResult | request=" + requestCode + ", result=" + resultCode);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case REQUEST_FRIEND_CACHE:
-                {
-                    long id = data.getLongExtra(SNPickerActivity.EXTRA_USER_ID, -1);
-                    Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-                    intent.putExtra(ProfileActivity.EXTRA_TARGET, id);
-                    intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
-                    startActivity(intent);
-                    break;
-                }
                 case REQUEST_QPOST_CHOOSE_ACCOUNT:
                 {
                     selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
