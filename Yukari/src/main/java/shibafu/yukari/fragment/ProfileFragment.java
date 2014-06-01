@@ -419,6 +419,9 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         //Bioはエスケープや短縮の展開を行う
         {
             String bio = holder.targetUser.getDescription();
+            if (bio == null) {
+                bio = "";
+            }
 
             //TODO: リンクがうまくはれてないことがしばしばあるよ
 
