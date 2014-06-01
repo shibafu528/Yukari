@@ -8,11 +8,10 @@
     <android.support.v4.view.ViewPager
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/pager">
+        android:id="@+id/pager"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/llTweetGuide"
+        android:layout_alignEnd="@+id/llTweetGuide">
     </android.support.v4.view.ViewPager>
 
     <FrameLayout
@@ -193,4 +192,33 @@
             android:layout_marginTop="2dp"
             android:layout_marginLeft="2dp" />
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/tweetbutton_frame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tweetgesture"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:visibility="gone"
+        android:background="@drawable/status_bar_color">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/ivTweet"
+            android:layout_above="@+id/tweetgesture"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_prof_tweets"
+            android:background="@drawable/selector_key_background"
+            android:padding="@dimen/mainfooter_tweet_button" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="center_horizontal|bottom"
+            android:src="@color/key_color" />
+    </FrameLayout>
+
 </RelativeLayout>

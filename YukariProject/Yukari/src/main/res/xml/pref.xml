@@ -5,11 +5,15 @@
         <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="起動処理の設定">
+    <PreferenceCategory android:title="機能設定">
         <CheckBoxPreference
             android:key="pref_boot_screenon"
             android:title="デフォルトでスリープ防止"
             android:summary="アプリ起動時にスリープ防止をオンにします"/>
+        <CheckBoxPreference
+            android:key="pref_show_tweetbutton"
+            android:title="投稿ボタンを表示"
+            android:summary="投稿画面を呼び出すボタンを表示します"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
