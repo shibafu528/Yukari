@@ -140,7 +140,7 @@ public class TwitterService extends Service{
                     }
                     return null;
                 }
-            }.execute();
+            }.executePararell();
         }
 
         //システムサービスの取得
