@@ -49,7 +49,9 @@ public class TweetDraft implements Serializable{
         this.dateTime = dateTime;
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
-        this.attachedPictures.addAll(attachedPictures);
+        if (attachedPictures != null) {
+            this.attachedPictures.addAll(attachedPictures);
+        }
         this.useGeoLocation = useGeoLocation;
         this.geoLatitude = geoLatitude;
         this.geoLongitude = geoLongitude;
@@ -71,7 +73,9 @@ public class TweetDraft implements Serializable{
         this.dateTime = dateTime;
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
-        this.attachedPictures.addAll(attachedPictures);
+        if (attachedPictures != null) {
+            this.attachedPictures.addAll(attachedPictures);
+        }
         this.useGeoLocation = useGeoLocation;
         this.geoLatitude = geoLatitude;
         this.geoLongitude = geoLongitude;
