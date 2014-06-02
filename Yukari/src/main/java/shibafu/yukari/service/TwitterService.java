@@ -15,7 +15,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,18 +128,20 @@ public class TwitterService extends Service{
         twitter = TwitterUtil.getTwitterInstance(this);
 
         //Configurationの取得
-        new TwitterAsyncTask<Void>() {
-            @Override
-            protected TwitterException doInBackground(Void... params) {
-                try {
-                    apiConfiguration = getTwitter().getAPIConfiguration();
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    return e;
+        if (!users.isEmpty() && getPrimaryUser() != null) {
+            new TwitterAsyncTask<Void>() {
+                @Override
+                protected TwitterException doInBackground(Void... params) {
+                    try {
+                        apiConfiguration = getTwitter().getAPIConfiguration();
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return e;
+                    }
+                    return null;
                 }
-                return null;
-            }
-        }.execute();
+            }.execute();
+        }
 
         //システムサービスの取得
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -233,12 +234,7 @@ public class TwitterService extends Service{
 
     public void setPrimaryUser(long id) {
         for (AuthUserRecord userRecord : users) {
-            if (userRecord.NumericId == id) {
-                userRecord.isPrimary = true;
-            }
-            else {
-                userRecord.isPrimary = false;
-            }
+            userRecord.isPrimary = userRecord.NumericId == id;
         }
         storeUsers();
         reloadUsers();
@@ -289,12 +285,7 @@ public class TwitterService extends Service{
 
     public void setWriterUsers(List<AuthUserRecord> writers) {
         for (AuthUserRecord userRecord : users) {
-            if (writers.contains(userRecord)) {
-                userRecord.isWriter = true;
-            }
-            else {
-                userRecord.isWriter = false;
-            }
+            userRecord.isWriter = writers.contains(userRecord);
         }
         storeUsers();
     }
@@ -394,57 +385,6 @@ public class TwitterService extends Service{
         }
     }
 
-    public void postTweet(AuthUserRecord user, StatusUpdate status, File[] media) throws  TwitterException {
-        ConfigurationBuilder builder = getBuilder();
-        if (user != null) {
-            builder.setOAuthAccessToken(user.getAccessToken().getToken());
-            builder.setOAuthAccessTokenSecret(user.getAccessToken().getTokenSecret());
-
-            Configuration conf = builder.build();
-
-            MediaProvider service = MediaProvider.TWITTER;
-            StringBuilder urls = new StringBuilder(status.getStatus());
-            for (File m : media) {
-                ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
-                String url = upload.upload(m, status.getStatus());
-                if (service.getClass() != MediaProvider.TWITTER.getClass()) {
-                    urls.append(" ");
-                    urls.append(url);
-                }
-                else {
-                    return;
-                }
-            }
-            postTweet(user, new StatusUpdate(urls.toString()));
-        }
-        else {
-            for (AuthUserRecord aur : users) {
-                builder.setOAuthAccessToken(aur.getAccessToken().getToken());
-                builder.setOAuthAccessTokenSecret(aur.getAccessToken().getTokenSecret());
-
-                Configuration conf = builder.build();
-
-                MediaProvider service = MediaProvider.TWITTER;
-                StringBuilder urls = new StringBuilder(status.getStatus());
-                boolean skip = false;
-                for (File m : media) {
-                    ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
-                    String url = upload.upload(m, status.getStatus());
-                    if (service.getClass() != MediaProvider.TWITTER.getClass()) {
-                        urls.append(" ");
-                        urls.append(url);
-                    }
-                    else {
-                        skip = true;
-                        break;
-                    }
-                }
-                if (skip) continue;
-                postTweet(user, new StatusUpdate(urls.toString()));
-            }
-        }
-    }
-
     public void postTweet(AuthUserRecord user, StatusUpdate status, InputStream[] media) throws  TwitterException {
         ConfigurationBuilder builder = getBuilder();
         if (user != null) {
@@ -491,7 +431,7 @@ public class TwitterService extends Service{
                     }
                 }
                 if (skip) continue;
-                postTweet(user, new StatusUpdate(urls.toString()));
+                postTweet(aur, new StatusUpdate(urls.toString()));
             }
         }
     }
