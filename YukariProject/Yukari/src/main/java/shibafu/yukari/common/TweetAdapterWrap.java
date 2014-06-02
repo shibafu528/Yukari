@@ -205,7 +205,7 @@ public class TweetAdapterWrap {
             viewHolder.tvText.setTextSize(fontSize);
             String text = delegate.getText(content);
             if (preferences.getBoolean("j_grassleaf", false)) {
-                text = text.replaceAll("(wwww+|ｗｗ+|。|\\.\\.\\.|…|・・・)", "wwwwwwwwwwwwwwwwwwwwwwwwwww")
+                text = text.replaceAll("(wwww|ｗｗ|。|\\.\\.\\.|…|・・・)", "wwwwwwwwwwwwwwwwwwwwwwwwwww")
                         .replaceAll("[？?]", "？wwwwwwwwwwwwwwwwwwww")
                         .replaceAll("[^＾][~〜]+", "＾〜〜〜〜wwwwwwwwwww");
                 viewHolder.tvText.setTextColor(Color.parseColor("#0b5b12"));
