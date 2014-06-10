@@ -163,9 +163,35 @@ public class StatusLinkFragment extends ListFragment{
                     switch (lr.type) {
                         case TYPE_URL:
                         {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
+                            final Uri uri = Uri.parse(lr.text);
+                            if (uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
+                                String query = uri.getQueryParameter("q");
+                                AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                        .setTitle("検索URL")
+                                        .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
+                                        .setPositiveButton("続行", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(intent);
+                                            }
+                                        })
+                                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dialog.dismiss();
+                                            }
+                                        })
+                                        .create();
+                                ad.show();
+                            }
+                            else {
+                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
                             break;
                         }
                         case (TYPE_URL | TYPE_URL_MEDIA):
