@@ -15,7 +15,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,11 +32,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
-import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
-import twitter4j.media.ImageUpload;
-import twitter4j.media.ImageUploadFactory;
-import twitter4j.media.MediaProvider;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -373,67 +368,11 @@ public class TwitterService extends Service{
 
     //<editor-fold desc="投稿操作系">
     public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
-        if (user != null) {
-            twitter.setOAuthAccessToken(user.getAccessToken());
-            twitter.updateStatus(status);
+        if (user == null) {
+            throw new IllegalArgumentException("送信元アカウントが指定されていません");
         }
-        else {
-            for (AuthUserRecord aur : users) {
-                twitter.setOAuthAccessToken(aur.getAccessToken());
-                twitter.updateStatus(status);
-            }
-        }
-    }
-
-    public void postTweet(AuthUserRecord user, StatusUpdate status, InputStream[] media) throws  TwitterException {
-        ConfigurationBuilder builder = getBuilder();
-        if (user != null) {
-            builder.setOAuthAccessToken(user.getAccessToken().getToken());
-            builder.setOAuthAccessTokenSecret(user.getAccessToken().getTokenSecret());
-
-            Configuration conf = builder.build();
-
-            MediaProvider service = MediaProvider.TWITTER;
-            StringBuilder urls = new StringBuilder(status.getStatus());
-            for (InputStream m : media) {
-                ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
-                String url = upload.upload("image", m, status.getStatus());
-                if (service.getClass() != MediaProvider.TWITTER.getClass()) {
-                    urls.append(" ");
-                    urls.append(url);
-                }
-                else {
-                    return;
-                }
-            }
-            postTweet(user, new StatusUpdate(urls.toString()));
-        }
-        else {
-            for (AuthUserRecord aur : users) {
-                builder.setOAuthAccessToken(aur.getAccessToken().getToken());
-                builder.setOAuthAccessTokenSecret(aur.getAccessToken().getTokenSecret());
-
-                Configuration conf = builder.build();
-
-                MediaProvider service = MediaProvider.TWITTER;
-                StringBuilder urls = new StringBuilder(status.getStatus());
-                boolean skip = false;
-                for (InputStream m : media) {
-                    ImageUpload upload = new ImageUploadFactory(conf).getInstance(MediaProvider.TWITTER);
-                    String url = upload.upload("image", m, status.getStatus());
-                    if (service.getClass() != MediaProvider.TWITTER.getClass()) {
-                        urls.append(" ");
-                        urls.append(url);
-                    }
-                    else {
-                        skip = true;
-                        break;
-                    }
-                }
-                if (skip) continue;
-                postTweet(aur, new StatusUpdate(urls.toString()));
-            }
-        }
+        twitter.setOAuthAccessToken(user.getAccessToken());
+        twitter.updateStatus(status);
     }
 
     public void sendDirectMessage(String to, AuthUserRecord from, String message) throws TwitterException {
