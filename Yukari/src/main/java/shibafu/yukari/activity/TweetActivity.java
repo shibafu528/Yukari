@@ -796,14 +796,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     break;
                 case REQUEST_CAMERA:
                 {
-                    if (cameraTemp == null && data.getData() == null) {
-                        Toast.makeText(TweetActivity.this, "カメラとの連携に失敗しました。\n使用したカメラアプリとの相性かもしれません。", Toast.LENGTH_LONG).show();
-                        return;
-                    }
-                    else if (data.getData() != null) {
+                    if (data != null && data.getData() != null) {
                         //getDataでUriが返ってくる端末用
                         //フィールドは手に入ったUriで上書き
                         cameraTemp = data.getData();
+                    }
+                    if (cameraTemp == null) {
+                        Toast.makeText(TweetActivity.this, "カメラとの連携に失敗しました。\n使用したカメラアプリとの相性かもしれません。", Toast.LENGTH_LONG).show();
+                        return;
                     }
                     //添付に追加する
                     attachPicture(cameraTemp);
