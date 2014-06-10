@@ -135,10 +135,9 @@ public class PostService extends IntentService{
                                 iss.add(getContentResolver().openInputStream(u));
                             }
                         }
-                        service.postTweet(userRecord, update, iss.toArray(new InputStream[iss.size()]));
-                    } else {
-                        service.postTweet(userRecord, update);
+                        update.setMedia("image", iss.get(0));
                     }
+                    service.postTweet(userRecord, update);
                 }
             } catch (TwitterException e) {
                 e.printStackTrace();
