@@ -56,9 +56,18 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
         int mode = getMode();
         if (mode == TabType.TABTYPE_TRACE) {
-            traceStart = (Status) args.getSerializable(EXTRA_TRACE_START);
-            if (elements.isEmpty()) {
-                elements.add(new PreformedStatus(traceStart, getCurrentUser()));
+            Object trace = args.getSerializable(EXTRA_TRACE_START);
+            if (trace instanceof PreformedStatus) {
+                traceStart = (Status) trace;
+                if (elements.isEmpty()) {
+                    elements.add((PreformedStatus) trace);
+                }
+            }
+            else if (trace instanceof Status) {
+                traceStart = (Status) trace;
+                if (elements.isEmpty()) {
+                    elements.add(new PreformedStatus(traceStart, getCurrentUser()));
+                }
             }
         }
         else {
