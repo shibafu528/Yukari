@@ -4,8 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Yukari/Yukari.iml" filepath="$PROJECT_DIR$/Yukari/Yukari.iml" />
       <module fileurl="file://$PROJECT_DIR$/YukariProject.iml" filepath="$PROJECT_DIR$/YukariProject.iml" />
-      <module fileurl="file://$PROJECT_DIR$/actionbar-ptr-compat/actionbar-ptr-compat.iml" filepath="$PROJECT_DIR$/actionbar-ptr-compat/actionbar-ptr-compat.iml" />
-      <module fileurl="file://$PROJECT_DIR$/actionbar-pulltorefresh/actionbar-pulltorefresh.iml" filepath="$PROJECT_DIR$/actionbar-pulltorefresh/actionbar-pulltorefresh.iml" />
     </modules>
   </component>
 </project>

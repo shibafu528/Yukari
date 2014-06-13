@@ -9,8 +9,6 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Yukari" />
-            <option value="$PROJECT_DIR$/actionbar-ptr-compat" />
-            <option value="$PROJECT_DIR$/actionbar-pulltorefresh" />
           </set>
         </option>
       </GradleProjectSettings>
