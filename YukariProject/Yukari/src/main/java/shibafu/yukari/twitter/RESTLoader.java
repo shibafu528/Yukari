@@ -43,7 +43,7 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Asy
             for (PreformedStatus status : result) {
                 AuthUserRecord checkOwn = loaderInterface.getService().isMyTweet(status);
                 if (checkOwn != null) {
-                    status.setReceiveUser(checkOwn);
+                    status.setOwner(checkOwn);
                 }
 
                 mute = suppressor.decision(status);

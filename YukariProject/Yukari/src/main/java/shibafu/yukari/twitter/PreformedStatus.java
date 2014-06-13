@@ -2,13 +2,14 @@ package shibafu.yukari.twitter;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.util.MorseCodec;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -27,8 +28,11 @@ import twitter4j.UserMentionEntity;
 public class PreformedStatus implements Status{
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
 
+    //基本ステータスデータ
     private Status status;
     private PreformedStatus retweetedStatus;
+
+    //最初の受信時に一度だけ加工しておく情報
     private String text;
     private String plainSource;
     private List<LinkMedia> mediaLinkList;
@@ -36,11 +40,23 @@ public class PreformedStatus implements Status{
     private boolean isMentionedToMe;
     private boolean censoredThumbs;
 
-    private AuthUserRecord receiveUser;
+    //受信の度に変動する情報
+    private int favoriteCount;
+    private int retweetCount;
+    private RateLimitStatus rateLimitStatus;
+    private HashMapEx<Long, Boolean> isFavorited = new HashMapEx<>();
+    private HashMapEx<Long, Boolean> isRetweeted = new HashMapEx<>();
+    private HashMapEx<Long, Boolean> isMentioned = new HashMapEx<>();
 
-    public PreformedStatus(Status status, AuthUserRecord receiveUser) {
+    //代表ユーザ
+    private AuthUserRecord representUser;
+    //受信したユーザのList
+    private List<AuthUserRecord> receivedUsers = new ArrayList<>();
+
+    public PreformedStatus(Status status, AuthUserRecord receivedUser) {
         this.status = status;
-        this.receiveUser = receiveUser;
+        this.representUser = receivedUser;
+        receivedUsers.add(receivedUser);
 
         //全Entity置き換え、モールスの復号を行う
         text = MorseCodec.decode(replaceAllEntities(status));
@@ -68,18 +84,80 @@ public class PreformedStatus implements Status{
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
             mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURL()));
         }
-        //メンション判定
-        if (receiveUser != null) {
+        //RTステータスならそちらも生成
+        if (isRetweet()) {
+            retweetedStatus = new PreformedStatus(status.getRetweetedStatus(), receivedUser);
+        }
+        merge(status, receivedUser);
+    }
+
+    public void merge(Status status, AuthUserRecord receivedUser) {
+        favoriteCount = status.getFavoriteCount();
+        retweetCount = status.getRetweetCount();
+        rateLimitStatus = status.getRateLimitStatus();
+        if (receivedUser != null) {
+            if (!receivedUsers.contains(receivedUser)) {
+                receivedUsers.add(receivedUser);
+            }
+            isFavorited.put(receivedUser.NumericId, status.isFavorited());
+            isRetweeted.put(receivedUser.NumericId, status.isRetweeted());
+            //メンション判定
             for (UserMentionEntity entity : status.getUserMentionEntities()) {
-                if (entity.getId() == receiveUser.NumericId) {
+                if (entity.getId() == receivedUser.NumericId) {
                     isMentionedToMe = true;
+                    isMentioned.put(receivedUser.NumericId, true);
                     break;
                 }
             }
+            //代表ユーザ判定
+            // Owner > Mentioned > Primary > Other
+            if (status.getUser().getId() == receivedUser.NumericId
+                    || isMentioned.get(receivedUser.NumericId, false)
+                    || !isMentionedToMe && !representUser.isPrimary) {
+                representUser = receivedUser;
+            }
         }
-        //RTステータスならそちらも生成
-        if (isRetweet()) {
-            retweetedStatus = new PreformedStatus(status.getRetweetedStatus(), receiveUser);
+        if (retweetedStatus != null && status.isRetweeted()) {
+            retweetedStatus.merge(status.getRetweetedStatus(), receivedUser);
+        }
+    }
+
+    public void merge(PreformedStatus status) {
+        favoriteCount = status.getFavoriteCount();
+        retweetCount = status.getRetweetCount();
+        rateLimitStatus = status.getRateLimitStatus();
+        for (AuthUserRecord userRecord : status.getReceivedUsers()) {
+            if (!receivedUsers.contains(userRecord)) {
+                receivedUsers.add(userRecord);
+            }
+            isFavorited.put(userRecord.NumericId, status.isFavoritedBy(userRecord));
+            isRetweeted.put(userRecord.NumericId, status.isRetweetedBy(userRecord));
+            //メンション判定
+            if (status.isMentionedTo(userRecord.NumericId)) {
+                isMentionedToMe = true;
+                isMentioned.put(userRecord.NumericId, true);
+            }
+        }
+        //代表ユーザ判定
+        // Owner > Mentioned > Primary > Other
+        long representId = status.getRepresentUser().NumericId;
+        if (status.getUser().getId() == representId
+                || isMentioned.get(representId, false)
+                || !isMentionedToMe && !representUser.isPrimary) {
+            representUser = status.getRepresentUser();
+        }
+        if (retweetedStatus != null && status.isRetweeted()) {
+            retweetedStatus.merge(status.getRetweetedStatus());
+        }
+    }
+
+    //外部でオーナー判定した時に代表ユーザを上書きするためのメソッド
+    public void setOwner(AuthUserRecord ownerUser) {
+        if (status.getUser().getId() == ownerUser.NumericId) {
+            representUser = ownerUser;
+            if (!receivedUsers.contains(ownerUser)) {
+                receivedUsers.add(ownerUser);
+            }
         }
     }
 
@@ -153,31 +231,13 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public boolean isFavorited() {
-        return status.isFavorited();
-    }
-
-    @Override
-    public boolean isRetweeted() {
-        return status.isRetweeted();
-    }
-
-    @Override
     public int getFavoriteCount() {
-        return status.getFavoriteCount();
+        return favoriteCount;
     }
 
     @Override
     public User getUser() {
         return status.getUser();
-    }
-
-    public AuthUserRecord getReceiveUser() {
-        return receiveUser;
-    }
-
-    public void setReceiveUser(AuthUserRecord receiveUser) {
-        this.receiveUser = receiveUser;
     }
 
     @Override
@@ -197,7 +257,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public int getRetweetCount() {
-        return status.getRetweetCount();
+        return retweetCount;
     }
 
     @Override
@@ -261,7 +321,7 @@ public class PreformedStatus implements Status{
 
     @Override
     public RateLimitStatus getRateLimitStatus() {
-        return status.getRateLimitStatus();
+        return rateLimitStatus;
     }
 
     @Override
@@ -269,8 +329,50 @@ public class PreformedStatus implements Status{
         return status.getAccessLevel();
     }
 
+    @Override
+    public boolean isFavorited() {
+        return isFavoritedBy(representUser);
+    }
+
+    @Override
+    public boolean isRetweeted() {
+        return isRetweetedBy(representUser);
+    }
+
+    public boolean isFavoritedBy(AuthUserRecord userRecord) {
+        return isFavorited.get(userRecord.NumericId, false);
+    }
+
+    public boolean isFavoritedBy(long id) {
+        return isFavorited.get(id, false);
+    }
+
+    public boolean isFavoritedSomeone() {
+        return isFavorited.values().contains(true);
+    }
+
+    public boolean isRetweetedBy(AuthUserRecord userRecord) {
+        return isRetweeted.get(userRecord.NumericId, false);
+    }
+
+    public boolean isRetweetedBy(long id) {
+        return isRetweeted.get(id, false);
+    }
+
+    public boolean isRetweetedSomeone() {
+        return isRetweeted.values().contains(true);
+    }
+
     public boolean isMentionedToMe() {
         return isMentionedToMe;
+    }
+
+    public boolean isMentionedTo(AuthUserRecord userRecord) {
+        return isMentioned.get(userRecord.NumericId, false);
+    }
+
+    public boolean isMentionedTo(long id) {
+        return isMentioned.get(id, false);
     }
 
     public boolean isCensoredThumbs() {
@@ -279,5 +381,21 @@ public class PreformedStatus implements Status{
 
     public void setCensoredThumbs(boolean censoredThumbs) {
         this.censoredThumbs = censoredThumbs;
+    }
+
+    public AuthUserRecord getRepresentUser() {
+        return representUser;
+    }
+
+    public List<AuthUserRecord> getReceivedUsers() {
+        return receivedUsers;
+    }
+
+    private class HashMapEx<K, V> extends HashMap<K, V> {
+        public V get(K key, V ifNotExistValue) {
+            V val = get(key);
+            if (val == null) return ifNotExistValue;
+            else return val;
+        }
     }
 }
