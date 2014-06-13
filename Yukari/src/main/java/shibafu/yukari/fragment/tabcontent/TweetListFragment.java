@@ -15,7 +15,6 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
-import twitter4j.UserMentionEntity;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -43,7 +42,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     public void onListItemClick(PreformedStatus clickedElement) {
         Intent intent = new Intent(getActivity(), StatusActivity.class);
         intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement);
-        intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.getReceiveUser());
+        intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.getRepresentUser());
         startActivity(intent);
     }
 
@@ -115,31 +114,16 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     @Override
     protected int prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
-        boolean isMyTweet = getService().isMyTweet(status) != null;
-        //優先ユーザチェック
-        if (!isMyTweet) {
-            ArrayList<Long> mentions = new ArrayList<>();
-            for (UserMentionEntity entity : status.getUserMentionEntities()) {
-                mentions.add(entity.getId());
-            }
-            for (AuthUserRecord user : users) {
-                //指名されている場合はそちらを優先する
-                if (mentions.contains(user.NumericId)) {
-                    status.setReceiveUser(user);
-                    break;
-                }
-            }
+        AuthUserRecord owner = getService().isMyTweet(status);
+        if (owner != null) {
+            status.setOwner(owner);
         }
         //挿入位置の探索と追加
         PreformedStatus storedStatus;
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
             if (status.getId() == storedStatus.getId()) {
-                //既に他のアカウントで受信されていた場合でも、今回の受信がプライマリアカウントによるものであれば
-                //受信アカウントのフィールドを上書きする
-                if (!isMyTweet && status.getReceiveUser().isPrimary && !storedStatus.getReceiveUser().isPrimary) {
-                    storedStatus.setReceiveUser(status.getReceiveUser());
-                }
+                storedStatus.merge(status);
                 return -1;
             }
             else if (status.getId() > storedStatus.getId()) {

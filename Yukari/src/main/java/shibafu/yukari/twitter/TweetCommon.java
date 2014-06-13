@@ -41,7 +41,7 @@ public class TweetCommon {
 
         @Override
         public String getRecipientScreenName(TwitterResponse object) {
-            return ((PreformedStatus) object).getReceiveUser().ScreenName;
+            return ((PreformedStatus) object).getRepresentUser().ScreenName;
         }
 
         @Override
