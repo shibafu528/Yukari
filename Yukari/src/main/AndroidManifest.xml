@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="20"
-    android:versionName="0.107alpha (prototype 140611)" >
+    android:versionName="0.108alpha (prototype 140613)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -103,8 +103,7 @@
             android:theme="@style/YukariDialogTheme" >
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.StatusIntentActivity"
-            android:label="@string/title_activity_status"
+            android:name=".activity.IntentActivity"
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -114,19 +113,9 @@
 
                 <data
                     android:host="twitter.com"
-                    android:pathPattern="/.*/status/.*"
                     android:scheme="http" />
                 <data
                     android:host="twitter.com"
-                    android:pathPattern="/.*/status/.*"
-                    android:scheme="https" />
-                <data
-                    android:host="twitter.com"
-                    android:pathPattern="/.*/statuses/.*"
-                    android:scheme="http" />
-                <data
-                    android:host="twitter.com"
-                    android:pathPattern="/.*/statuses/.*"
                     android:scheme="https" />
             </intent-filter>
         </activity>

@@ -1,7 +1,5 @@
 package shibafu.yukari.media;
 
-import android.util.Log;
-
 import java.io.Serializable;
 
 /**
@@ -13,7 +11,6 @@ public abstract class LinkMedia implements Serializable{
     private String thumbURL;
 
     public LinkMedia(String browseURL) {
-        Log.d("LinkMedia", "Expanding Media: " + browseURL);
         this.browseURL = browseURL;
         this.mediaURL = expandMediaURL(browseURL);
         this.thumbURL = expandThumbURL(browseURL);
