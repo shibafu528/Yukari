@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.util.LongSparseArray;
 import android.view.View;
-import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,15 +27,11 @@ import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.Options;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener, OnRefreshListener {
+public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener {
 
     public static final String EXTRA_LIST_ID = "listid";
     public static final String EXTRA_TRACE_START = "trace_start";
@@ -46,8 +41,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private long listId = -1;
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
-
-    private PullToRefreshLayout pullToRefreshLayout;
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -76,32 +69,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
             else if (mode == TabType.TABTYPE_LIST) {
                 listId = args.getLong(EXTRA_LIST_ID, -1);
-            }
-
-            switch (getMode()) {
-                case TabType.TABTYPE_HOME:
-                case TabType.TABTYPE_MENTION:
-                case TabType.TABTYPE_DM:
-                case TabType.TABTYPE_FILTER:
-                case TabType.TABTYPE_HISTORY:
-                    break;
-                default:
-                {
-                    ViewGroup viewGroup = (ViewGroup) view;
-
-                    Options.Builder options = new Options.Builder()
-                            .noMinimize();
-
-                    pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
-
-                    ActionBarPullToRefresh.from(getActivity())
-                            .insertLayoutInto(viewGroup)
-                            .theseChildrenArePullable(getListView(), getListView().getEmptyView())
-                            .listener(this)
-                            .options(options.build())
-                            .setup(pullToRefreshLayout);
-                    break;
-                }
             }
         }
     }
@@ -294,13 +261,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     @Override
     public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId) {}
 
-    @Override
-    public void onRefreshStarted(View view) {
-        for (AuthUserRecord user : users) {
-            executeLoader(LOADER_LOAD_UPDATE, user);
-        }
-    }
-
     private class DefaultRESTLoader
             extends RESTLoader<DefaultRESTLoader.Params, PreformedResponseList<PreformedStatus>> {
         class Params {
@@ -387,9 +347,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         @Override
         protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             super.onPostExecute(result);
-            if (pullToRefreshLayout != null) {
-                pullToRefreshLayout.setRefreshComplete();
-            }
+            setRefreshComplete();
         }
     }
 }
