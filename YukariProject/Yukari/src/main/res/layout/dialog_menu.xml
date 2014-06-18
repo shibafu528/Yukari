@@ -240,7 +240,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
-                android:text="レポート投稿"
+                android:text="作者に連絡"
                 android:textSize="@dimen/menudialog_textsize"
                 android:layout_gravity="center_horizontal"
                 android:singleLine="false" />
