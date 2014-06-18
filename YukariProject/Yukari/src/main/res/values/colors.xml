@@ -22,4 +22,7 @@
 
     <drawable name="focus_gray_color">#caaa</drawable>
     <drawable name="press_gray_color">#c777</drawable>
+
+    <color name="key_color_2">#ff50307d</color>
+    <color name="key_color_3">#ffa35af4</color>
 </resources>

@@ -2,7 +2,6 @@ package shibafu.yukari.fragment.tabcontent;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 
 import java.util.Iterator;
 
@@ -18,20 +17,15 @@ import twitter4j.Query;
 import twitter4j.QueryResult;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.TwitterException;
-import uk.co.senab.actionbarpulltorefresh.extras.actionbarcompat.PullToRefreshLayout;
-import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
-import uk.co.senab.actionbarpulltorefresh.library.Options;
-import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements OnRefreshListener, StatusManager.StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusManager.StatusListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
     private Query nextQuery;
-    private PullToRefreshLayout pullToRefreshLayout;
     private boolean streaming;
 
     @Override
@@ -46,22 +40,8 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
             searchQuery = "ﾕｯｶﾘｰﾝ";
         }
 
-        ViewGroup viewGroup = (ViewGroup) view;
-
-        Options.Builder options = new Options.Builder()
-                .noMinimize();
-
-        pullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
-        ActionBarPullToRefresh.from(getActivity())
-                .insertLayoutInto(viewGroup)
-                .theseChildrenArePullable(getListView(), getListView().getEmptyView())
-                .listener(this)
-                .options(options.build())
-                .setup(pullToRefreshLayout);
-
         if (getMode() == TabType.TABTYPE_TRACK) {
             streaming = true;
-            pullToRefreshLayout.setEnabled(false);
         }
     }
 
@@ -107,18 +87,11 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
     public void setStreaming(boolean streaming) {
         this.streaming = streaming;
         if (streaming) {
-            pullToRefreshLayout.setEnabled(false);
             getStatusManager().startFilterStream(searchQuery, getCurrentUser());
         }
         else {
-            pullToRefreshLayout.setEnabled(true);
             getStatusManager().stopFilterStream(searchQuery);
         }
-    }
-
-    @Override
-    public void onRefreshStarted(View view) {
-        executeLoader(LOADER_LOAD_UPDATE, getCurrentUser());
     }
 
     @Override
@@ -238,7 +211,7 @@ public class SearchListFragment extends TweetListFragment implements OnRefreshLi
             if (nextQuery == null) {
                 removeFooter();
             }
-            pullToRefreshLayout.setRefreshComplete();
+            setRefreshComplete();
         }
     }
 }
