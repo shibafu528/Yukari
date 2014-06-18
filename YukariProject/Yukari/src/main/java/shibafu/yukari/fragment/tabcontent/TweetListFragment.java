@@ -14,6 +14,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
@@ -40,6 +41,11 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (getMode() == TabType.TABTYPE_TRACE) {
+            //会話トレースにリロード機能なんかいらねんじゃ
+            return super.onCreateView(inflater, container, savedInstanceState);
+        }
+
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
@@ -167,7 +173,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     }
 
     protected void setRefreshComplete() {
-        if (--refreshCounter < 1) {
+        if (--refreshCounter < 1 && swipeRefreshLayout != null) {
             swipeRefreshLayout.setRefreshing(false);
         }
     }

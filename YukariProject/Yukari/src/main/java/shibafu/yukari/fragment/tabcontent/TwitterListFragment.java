@@ -71,8 +71,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         title = args.getString(EXTRA_TITLE);
         AuthUserRecord manager = (AuthUserRecord) args.getSerializable(EXTRA_USER);
