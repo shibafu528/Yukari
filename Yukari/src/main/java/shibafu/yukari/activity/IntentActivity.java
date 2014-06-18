@@ -57,6 +57,21 @@ public class IntentActivity extends Activity{
                         activity.finish();
                     }
                 }));
+        matchTemp.add(new Pair<Pattern, AfterWork>(
+                Pattern.compile("^https?://twitter\\.com/intent/tweet"),
+                new AfterWork() {
+                    @Override
+                    public void work(IntentActivity activity) {
+                        Intent intent = new Intent(
+                                Intent.ACTION_SEND,
+                                activity.getIntent().getData(),
+                                activity.getApplicationContext(),
+                                TweetActivity.class
+                        );
+                        activity.startActivity(intent);
+                        activity.finish();
+                    }
+                }));
         MATCHES = Collections.unmodifiableList(matchTemp);
     }
 
