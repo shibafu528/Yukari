@@ -16,7 +16,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 /**
  * Created by shibafu on 14/06/19.

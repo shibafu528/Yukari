@@ -2,6 +2,7 @@ package shibafu.yukari.twitter;
 
 import java.util.ArrayList;
 
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.QueryResult;
 import twitter4j.ResponseList;
 import twitter4j.Status;

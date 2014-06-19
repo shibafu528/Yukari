@@ -30,12 +30,12 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.StatusManager;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
-import twitter4j.StatusDeletionNotice;
+import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -182,23 +182,22 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {}
-
-    @Override
-    public void onDeletionNotice(AuthUserRecord from, final long directMessageId, long userId) {
-        getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                Iterator<DirectMessage> iterator = elements.iterator();
-                while (iterator.hasNext()) {
-                    if (iterator.next().getId() == directMessageId) {
-                        iterator.remove();
-                        adapterWrap.notifyDataSetChanged();
-                        break;
+    public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {
+        if (kind == StatusManager.UPDATE_DELETED_DM) {
+            getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    Iterator<DirectMessage> iterator = elements.iterator();
+                    while (iterator.hasNext()) {
+                        if (iterator.next().getId() == status.getId()) {
+                            iterator.remove();
+                            adapterWrap.notifyDataSetChanged();
+                            break;
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override

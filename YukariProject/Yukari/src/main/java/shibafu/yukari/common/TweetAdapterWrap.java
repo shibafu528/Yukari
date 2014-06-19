@@ -26,7 +26,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import twitter4j.DirectMessage;
@@ -99,7 +99,7 @@ public class TweetAdapterWrap {
         TextView tvName;
         TextView tvText;
         ImageView ivIcon, ivRetweeterIcon;
-        ImageView ivProtected;
+        ImageView ivProtected, ivFavorited;
         TextView tvTimestamp;
         LinearLayout llAttach;
         TextView tvReceived;
@@ -110,6 +110,7 @@ public class TweetAdapterWrap {
             ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
             ivRetweeterIcon = (ImageView) v.findViewById(R.id.tweet_retweeter);
             ivProtected = (ImageView) v.findViewById(R.id.tweet_protected);
+            ivFavorited = (ImageView) v.findViewById(R.id.tweet_faved);
             tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
             tvReceived = (TextView) v.findViewById(R.id.tweet_receive);
@@ -243,6 +244,13 @@ public class TweetAdapterWrap {
             }
             else {
                 viewHolder.ivProtected.setVisibility(View.INVISIBLE);
+            }
+
+            if (delegate.isFavorited(content)) {
+                viewHolder.ivFavorited.setVisibility(View.VISIBLE);
+            }
+            else {
+                viewHolder.ivFavorited.setVisibility(View.INVISIBLE);
             }
 
             int statusRelation = (userRecords != null) ?

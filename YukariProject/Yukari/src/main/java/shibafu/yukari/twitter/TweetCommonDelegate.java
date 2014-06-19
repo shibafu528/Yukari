@@ -20,4 +20,5 @@ public interface TweetCommonDelegate {
     Date getCreatedAt(TwitterResponse object);
     String getSource(TwitterResponse object);
     int getStatusRelation(List<AuthUserRecord> userRecords, TwitterResponse object);
+    boolean isFavorited(TwitterResponse object);
 }

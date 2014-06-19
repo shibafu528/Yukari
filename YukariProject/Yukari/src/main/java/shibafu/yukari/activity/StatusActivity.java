@@ -17,7 +17,7 @@ import shibafu.yukari.fragment.StatusActionFragment;
 import shibafu.yukari.fragment.StatusLinkFragment;
 import shibafu.yukari.fragment.StatusMainFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 public class StatusActivity extends FragmentActivity {
 

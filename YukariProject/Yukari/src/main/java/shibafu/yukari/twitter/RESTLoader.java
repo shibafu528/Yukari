@@ -7,6 +7,7 @@ import java.util.List;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 /**
  * Created by shibafu on 14/02/13.

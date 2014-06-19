@@ -3,6 +3,7 @@ package shibafu.yukari.twitter;
 import android.content.Context;
 
 import shibafu.yukari.R;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
