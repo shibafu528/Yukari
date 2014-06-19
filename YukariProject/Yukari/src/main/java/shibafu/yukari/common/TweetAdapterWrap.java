@@ -231,7 +231,7 @@ public class TweetAdapterWrap {
             }
             viewHolder.tvText.setText(text);
 
-            String imageUrl = u.getBiggerProfileImageURL();
+            String imageUrl = u.getBiggerProfileImageURLHttps();
             if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
                 ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, imageUrl);
             }
