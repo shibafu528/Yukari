@@ -435,6 +435,20 @@ public class TwitterService extends Service{
         }
     }
 
+    public void destroyFavorite(AuthUserRecord user, long id) {
+        if (user == null) {
+            throw new IllegalArgumentException("アカウントが指定されていません");
+        }
+        twitter.setOAuthAccessToken(user.getAccessToken());
+        try {
+            twitter.destroyFavorite(id);
+            showToast("あんふぁぼしました (@" + user.ScreenName + ")");
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            showToast("あんふぁぼに失敗しました (@" + user.ScreenName + ")");
+        }
+    }
+
     public void destroyStatus(AuthUserRecord user, long id) {
         if (user != null) {
             twitter.setOAuthAccessToken(user.getAccessToken());
