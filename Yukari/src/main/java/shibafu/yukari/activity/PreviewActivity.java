@@ -74,6 +74,13 @@ public class PreviewActivity extends FragmentActivity {
             finish();
             return;
         }
+        else if ("vine.co".equals(data.getHost())) {
+            Intent intent = new Intent(Intent.ACTION_VIEW, data, this, MoviePreviewActivity.class);
+            intent.putExtras(getIntent());
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);

@@ -43,6 +43,8 @@ public class LinkMediaFactory {
                 linkMedia = new YouTube(mediaURL);
             } else if (mediaURL.contains("/mstr.in/photos/")) {
                 linkMedia = new Meshi(mediaURL);
+            } else if (mediaURL.contains("/vine.co/v/")) {
+                linkMedia = new Vine(mediaURL);
             } else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
                 linkMedia = new SimplePicture(mediaURL);
             }
