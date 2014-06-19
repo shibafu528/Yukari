@@ -9,13 +9,13 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.StatusManager;
 import twitter4j.DirectMessage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
-import twitter4j.StatusDeletionNotice;
+import twitter4j.Status;
 import twitter4j.TwitterException;
 
 /**
@@ -137,29 +137,53 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
 
     @Override
-    public void onDelete(AuthUserRecord from, final StatusDeletionNotice statusDeletionNotice) {
-        getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                Iterator<PreformedStatus> iterator = elements.iterator();
-                while (iterator.hasNext()) {
-                    if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
+    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
+        switch (kind) {
+            case StatusManager.UPDATE_DELETED:
+                getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Iterator<PreformedStatus> iterator = elements.iterator();
+                        while (iterator.hasNext()) {
+                            if (iterator.next().getId() == status.getId()) {
+                                iterator.remove();
+                                adapterWrap.notifyDataSetChanged();
+                                break;
+                            }
+                        }
+                    }
+                });
+                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
+                    if (iterator.next().getId() == status.getId()) {
                         iterator.remove();
-                        adapterWrap.notifyDataSetChanged();
-                        break;
                     }
                 }
-            }
-        });
-        for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
-            if (iterator.next().getId() == statusDeletionNotice.getStatusId()) {
-                iterator.remove();
-            }
+                break;
+            default:
+                int position = 0;
+                for (; position < elements.size(); ++position) {
+                    if (elements.get(position).getId() == status.getId()) break;
+                }
+                if (position < elements.size()) {
+                    final int p = position;
+                    getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            elements.get(p).merge(status, from);
+                            adapterWrap.notifyDataSetChanged();
+                        }
+                    });
+                }
+                else {
+                    for (position = 0; position < stash.size(); ++position) {
+                        if (stash.get(position).getId() == status.getId()) break;
+                    }
+                    if (position < stash.size()) {
+                        stash.get(position).merge(status, from);
+                    }
+                }
         }
     }
-
-    @Override
-    public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId) {}
 
     private class SearchRESTLoader
             extends RESTLoader<SearchRESTLoader.Params, PreformedResponseList<PreformedStatus>> {

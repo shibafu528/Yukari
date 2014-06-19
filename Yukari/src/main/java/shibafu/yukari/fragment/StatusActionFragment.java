@@ -31,7 +31,7 @@ import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.User;
 

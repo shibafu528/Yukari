@@ -27,12 +27,15 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.statusimpl.FakeStatus;
+import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
@@ -49,6 +52,11 @@ import twitter4j.UserMentionEntity;
  * Created by shibafu on 14/03/08.
  */
 public class StatusManager {
+    public static final int UPDATE_FAVED = 1;
+    public static final int UPDATE_UNFAVED = 2;
+    public static final int UPDATE_DELETED = 3;
+    public static final int UPDATE_DELETED_DM = 4;
+
     private static final String LOG_TAG = "StatusManager";
     private static final int NOTIF_FAVED = 1;
     private static final int NOTIF_REPLY = 2;
@@ -83,11 +91,19 @@ public class StatusManager {
 
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
+            Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true));
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true)));
+            }
+
             getDatabase().updateUser(new DBUser(status.getUser()));
             getDatabase().updateUser(new DBUser(user));
             getDatabase().updateUser(new DBUser(user2));
-            if (from.getUserRecord().NumericId == user.getId())
-                return;
+
+            if (from.getUserRecord().NumericId == user.getId()) return;
 
             PreformedStatus preformedStatus = new PreformedStatus(status, from.getUserRecord());
             boolean[] mute = suppressor.decision(preformedStatus);
@@ -99,7 +115,13 @@ public class StatusManager {
 
         @Override
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
-
+            Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false));
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false)));
+            }
         }
 
         @Override
@@ -196,21 +218,20 @@ public class StatusManager {
         @Override
         public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
             for (StatusListener sl : statusListeners) {
-                sl.onDelete(from.getUserRecord(), statusDeletionNotice);
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId()));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), statusDeletionNotice));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
             }
         }
 
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {
             for (StatusListener sl : statusListeners) {
-                sl.onDeletionNotice(from.getUserRecord(), directMessageId, userId);
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(),
-                        new MessageDeletionNotice(directMessageId, userId)));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
             }
         }
 
@@ -353,69 +374,19 @@ public class StatusManager {
         public String getStreamFilter();
         public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
         public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
-        public void onDelete(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice);
-        public void onDeletionNotice(AuthUserRecord from, long directMessageId, long userId);
+        public void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
     }
-    private class MessageDeletionNotice implements StatusDeletionNotice {
-        private long messageId;
-        private long userId;
 
-        public MessageDeletionNotice(long messageId, long userId) {
-            this.messageId = messageId;
-            this.userId = userId;
-        }
-
-        @Override
-        public long getStatusId() {
-            return messageId;
-        }
-
-        @Override
-        public long getUserId() {
-            return userId;
-        }
-
-        @Override
-        public int compareTo(StatusDeletionNotice that) {
-            long delta = this.messageId - that.getStatusId();
-            if (delta < Integer.MIN_VALUE) {
-                return Integer.MIN_VALUE;
-            } else if (delta > Integer.MAX_VALUE) {
-                return Integer.MAX_VALUE;
-            }
-            return (int) delta;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            MessageDeletionNotice that = (MessageDeletionNotice) o;
-
-            if (messageId != that.messageId) return false;
-            if (userId != that.userId) return false;
-
-            return true;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) (messageId ^ (messageId >>> 32));
-            result = 31 * result + (int) (userId ^ (userId >>> 32));
-            return result;
-        }
-    }
     private class EventBuffer {
         public static final int E_STATUS = 0;
         public static final int E_DM     = 1;
-        public static final int E_DELETE = 2;
+        public static final int E_UPDATE = 2;
 
         private int eventType;
         private AuthUserRecord from;
-        private PreformedStatus status;
+        private Status status;
         private DirectMessage directMessage;
-        private StatusDeletionNotice statusDeletionNotice;
+        private int kind;
         private boolean muted;
 
         public EventBuffer(AuthUserRecord from, PreformedStatus status, boolean muted) {
@@ -431,29 +402,23 @@ public class StatusManager {
             this.directMessage = directMessage;
         }
 
-        public EventBuffer(AuthUserRecord from, StatusDeletionNotice statusDeletionNotice) {
-            this.eventType = E_DELETE;
+        public EventBuffer(AuthUserRecord from, int kind, Status status) {
+            this.eventType = E_UPDATE;
             this.from = from;
-            this.statusDeletionNotice = statusDeletionNotice;
+            this.kind = kind;
+            this.status = status;
         }
 
         public void sendBufferedEvent(StatusListener listener) {
             switch (eventType) {
                 case E_STATUS:
-                    listener.onStatus(from, status, muted);
+                    listener.onStatus(from, (PreformedStatus) status, muted);
                     break;
                 case E_DM:
                     listener.onDirectMessage(from, directMessage);
                     break;
-                case E_DELETE:
-                    if (statusDeletionNotice instanceof MessageDeletionNotice) {
-                        listener.onDeletionNotice(from,
-                                statusDeletionNotice.getStatusId(),
-                                statusDeletionNotice.getUserId());
-                    }
-                    else {
-                        listener.onDelete(from, statusDeletionNotice);
-                    }
+                case E_UPDATE:
+                    listener.onUpdatedStatus(from, kind, status);
                     break;
             }
         }

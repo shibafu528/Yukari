@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.database.MuteConfig;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.User;
 
 /**

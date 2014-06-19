@@ -1,4 +1,4 @@
-package shibafu.yukari.twitter;
+package shibafu.yukari.twitter.statusimpl;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -92,6 +93,11 @@ public class PreformedStatus implements Status{
     }
 
     public void merge(Status status, AuthUserRecord receivedUser) {
+        if (status instanceof FakeStatus) {
+            merge((FakeStatus) status, receivedUser);
+            return;
+        }
+
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
@@ -148,6 +154,15 @@ public class PreformedStatus implements Status{
         }
         if (retweetedStatus != null && status.isRetweeted()) {
             retweetedStatus.merge(status.getRetweetedStatus());
+        }
+    }
+
+    public void merge(FakeStatus status, AuthUserRecord receivedUser) {
+        if (status instanceof FavFakeStatus && receivedUser != null) {
+            if (!receivedUsers.contains(receivedUser)) {
+                receivedUsers.add(receivedUser);
+            }
+            isFavorited.put(receivedUser.NumericId, status.isFavorited());
         }
     }
 

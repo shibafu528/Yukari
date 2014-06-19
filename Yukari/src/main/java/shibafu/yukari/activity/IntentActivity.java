@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
