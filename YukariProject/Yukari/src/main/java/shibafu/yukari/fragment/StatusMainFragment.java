@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -27,14 +28,14 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -187,8 +188,7 @@ public class StatusMainFragment extends Fragment{
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            private void doFavorite() {
                 final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
@@ -203,8 +203,7 @@ public class StatusMainFragment extends Fragment{
                 if (source.contains("ShootingStar") ||
                         source.contains("TheWorld") ||
                         source.contains("Biyon≡(　ε:)") ||
-                        source.contains("MoonStrike"))
-                {
+                        source.contains("MoonStrike")) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("このツイートは" + source + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
@@ -225,7 +224,7 @@ public class StatusMainFragment extends Fragment{
                                     currentDialog = null;
                                     Intent intent = new Intent(getActivity(), MainActivity.class);
                                     intent.putExtra(MainActivity.EXTRA_SEARCH_WORD,
-                                            status.isRetweet()? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                                            status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
                                     startActivity(intent);
                                 }
                             })
@@ -246,11 +245,61 @@ public class StatusMainFragment extends Fragment{
                             .create();
                     ad.show();
                     currentDialog = ad;
-                }
-                else {
+                } else {
                     task.execute();
                     getActivity().finish();
                 }
+            }
+
+            private void doUnfavorite(final AuthUserRecord userRecord) {
+                new SimpleAsyncTask() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        service.destroyFavorite(userRecord,
+                                (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        return null;
+                    }
+                }.execute();
+                getActivity().finish();
+            }
+
+            @Override
+            public void onClick(View v) {
+                if (status.isFavoritedSomeone()) {
+                    final List<AuthUserRecord> faved = status.getFavoritedAccounts();
+                    if (faved.size() == 1 && service.getUsers().size() == 1) {
+                        doUnfavorite(faved.get(0));
+                    }
+                    else {
+                        List<String> items = new ArrayList<>();
+                        items.add("お気に入り登録");
+                        for (AuthUserRecord userRecord : faved) {
+                            items.add("解除: @" + userRecord.ScreenName);
+                        }
+                        AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                .setTitle("お気に入り/お気に入り解除")
+                                .setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        currentDialog = null;
+                                        if (which == 0) doFavorite();
+                                        else doUnfavorite(faved.get(which - 1));
+                                    }
+                                })
+                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        currentDialog = null;
+                                    }
+                                })
+                                .create();
+                        ad.show();
+                        currentDialog = ad;
+                    }
+                }
+                else doFavorite();
             }
         });
         ibFavorite.setOnLongClickListener(new View.OnLongClickListener() {

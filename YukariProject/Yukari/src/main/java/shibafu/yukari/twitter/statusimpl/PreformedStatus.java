@@ -157,6 +157,9 @@ public class PreformedStatus implements Status{
 
     public void merge(FakeStatus status, AuthUserRecord receivedUser) {
         if (status instanceof FavFakeStatus && receivedUser != null) {
+            if (status.getUser().getId() == receivedUser.NumericId) {
+                addReceivedUserIfNotExist(receivedUser);
+            }
             isFavorited.put(status.getUser().getId(), status.isFavorited());
         }
     }
@@ -359,6 +362,19 @@ public class PreformedStatus implements Status{
         return isFavorited.containsWithFilter(receivedIds, true);
     }
 
+    public List<AuthUserRecord> getFavoritedAccounts() {
+        List<Long> ids = isFavorited.filterByKey(receivedIds).filterByValue(true);
+        List<AuthUserRecord> userRecords = new ArrayList<>();
+        for (Long id : ids) {
+            for (AuthUserRecord receivedUser : receivedUsers) {
+                if (receivedUser.NumericId == id) {
+                    userRecords.add(receivedUser);
+                }
+            }
+        }
+        return userRecords;
+    }
+
     public boolean isRetweetedBy(AuthUserRecord userRecord) {
         return isRetweeted.get(userRecord.NumericId, false);
     }
@@ -422,6 +438,26 @@ public class PreformedStatus implements Status{
                 }
             }
             return false;
+        }
+
+        public HashMapEx<K, V> filterByKey(Collection<K> keyCollection) {
+            HashMapEx<K, V> mapEx = new HashMapEx<>();
+            for (Entry<K, V> kvEntry : this.entrySet()) {
+                if (keyCollection.contains(kvEntry.getKey())) {
+                    mapEx.put(kvEntry.getKey(), kvEntry.getValue());
+                }
+            }
+            return mapEx;
+        }
+
+        public List<K> filterByValue(V value) {
+            List<K> keys = new ArrayList<>();
+            for (Entry<K, V> kvEntry : this.entrySet()) {
+                if (kvEntry.getValue().equals(value)) {
+                    keys.add(kvEntry.getKey());
+                }
+            }
+            return keys;
         }
     }
 }
