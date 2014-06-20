@@ -159,9 +159,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
         }
 
-        if (getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION) {
-            getStatusManager().addStatusListener(this);
-        }
+        getStatusManager().addStatusListener(this);
     }
 
     @Override
@@ -200,14 +198,14 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
-        if (users.contains(from) && !elements.contains(status)) {
+        if ((getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION)
+                && users.contains(from) && !elements.contains(status)) {
             if (getMode() == TabType.TABTYPE_MENTION &&
-                    ( !status.isMentionedToMe() || status.isRetweet() )) return;
+                    (!status.isMentionedToMe() || status.isRetweet())) return;
 
             if (muted) {
                 stash.add(status);
-            }
-            else {
+            } else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
                     getHandler().post(new Runnable() {
@@ -215,7 +213,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         public void run() {
                             if (!elements.contains(status)) {
                                 if (position < elements.size()) {
-                                    if (elements.get(position).getId() == status.getId()) return;
+                                    if (elements.get(position).getId() == status.getId())
+                                        return;
                                 }
                                 elements.add(position, status);
                                 adapterWrap.notifyDataSetChanged();
