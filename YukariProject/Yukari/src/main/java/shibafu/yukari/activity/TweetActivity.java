@@ -355,7 +355,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 String inputText = etInput.getText().toString();
                 if (etInput.getText().toString().startsWith("::")) {
                     String input = etInput.getText().toString();
-                    if (input.equals("::sb")) {
+                    if (input.startsWith("::cmd")) {
+                        startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
+                        return;
+                    } else if (input.equals("::sb")) {
                         inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
                     } else if (input.equals("::jb")) {
                         inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
@@ -401,9 +404,14 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         setResult(RESULT_OK);
                         finish();
                         return;
-                    } else if (input.startsWith("::cmd")) {
-                        startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
-                        return;
+                    } else if (input.startsWith("::d250g2")) {
+                        if (inputText.split(" ").length > 1) {
+                            String comment = inputText.replace("::d250g2 ", "");
+                            inputText = comment + " http://twitpic.com/d250g2";
+                        }
+                        else {
+                            inputText = "http://twitpic.com/d250g2";
+                        }
                     }
                 }
 

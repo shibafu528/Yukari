@@ -18,6 +18,9 @@
             android:key="cmd_cn"
             android:title="::cn &lt;NAME&gt;"
             android:summary="発言者の名前を&lt;NAME&gt;に変更する" />
+        <Preference
+            android:title="::d250g2 &lt;COMMENT&gt;"
+            android:summary="&lt;COMMENT&gt; http://twitpic.com/d250g2" />
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
