@@ -93,10 +93,10 @@ public class StatusManager {
         public void onFavorite(Stream from, User user, User user2, Status status) {
             Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
             for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true));
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true)));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
             }
 
             getDatabase().updateUser(new DBUser(status.getUser()));
@@ -117,10 +117,10 @@ public class StatusManager {
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
             Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
             for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false));
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false)));
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
             }
         }
 

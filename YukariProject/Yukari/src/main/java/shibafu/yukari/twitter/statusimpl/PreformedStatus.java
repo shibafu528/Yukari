@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter.statusimpl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,7 @@ public class PreformedStatus implements Status{
     private AuthUserRecord representUser;
     //受信したユーザのList
     private List<AuthUserRecord> receivedUsers = new ArrayList<>();
+    private List<Long> receivedIds = new ArrayList<>();
 
     public PreformedStatus(Status status, AuthUserRecord receivedUser) {
         this.status = status;
@@ -102,9 +104,7 @@ public class PreformedStatus implements Status{
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
         if (receivedUser != null) {
-            if (!receivedUsers.contains(receivedUser)) {
-                receivedUsers.add(receivedUser);
-            }
+            addReceivedUserIfNotExist(receivedUser);
             isFavorited.put(receivedUser.NumericId, status.isFavorited());
             isRetweeted.put(receivedUser.NumericId, status.isRetweeted());
             //メンション判定
@@ -133,9 +133,7 @@ public class PreformedStatus implements Status{
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
         for (AuthUserRecord userRecord : status.getReceivedUsers()) {
-            if (!receivedUsers.contains(userRecord)) {
-                receivedUsers.add(userRecord);
-            }
+            addReceivedUserIfNotExist(userRecord);
             isFavorited.put(userRecord.NumericId, status.isFavoritedBy(userRecord));
             isRetweeted.put(userRecord.NumericId, status.isRetweetedBy(userRecord));
             //メンション判定
@@ -159,10 +157,7 @@ public class PreformedStatus implements Status{
 
     public void merge(FakeStatus status, AuthUserRecord receivedUser) {
         if (status instanceof FavFakeStatus && receivedUser != null) {
-            if (!receivedUsers.contains(receivedUser)) {
-                receivedUsers.add(receivedUser);
-            }
-            isFavorited.put(receivedUser.NumericId, status.isFavorited());
+            isFavorited.put(status.getUser().getId(), status.isFavorited());
         }
     }
 
@@ -170,9 +165,7 @@ public class PreformedStatus implements Status{
     public void setOwner(AuthUserRecord ownerUser) {
         if (status.getUser().getId() == ownerUser.NumericId) {
             representUser = ownerUser;
-            if (!receivedUsers.contains(ownerUser)) {
-                receivedUsers.add(ownerUser);
-            }
+            addReceivedUserIfNotExist(ownerUser);
         }
     }
 
@@ -363,7 +356,7 @@ public class PreformedStatus implements Status{
     }
 
     public boolean isFavoritedSomeone() {
-        return isFavorited.values().contains(true);
+        return isFavorited.containsWithFilter(receivedIds, true);
     }
 
     public boolean isRetweetedBy(AuthUserRecord userRecord) {
@@ -375,7 +368,7 @@ public class PreformedStatus implements Status{
     }
 
     public boolean isRetweetedSomeone() {
-        return isRetweeted.values().contains(true);
+        return isRetweeted.containsWithFilter(receivedIds, true);
     }
 
     public boolean isMentionedToMe() {
@@ -406,11 +399,29 @@ public class PreformedStatus implements Status{
         return receivedUsers;
     }
 
+    private void addReceivedUserIfNotExist(AuthUserRecord userRecord) {
+        if (!receivedUsers.contains(userRecord)) {
+            receivedUsers.add(userRecord);
+        }
+        if (!receivedIds.contains(userRecord.NumericId)) {
+            receivedIds.add(userRecord.NumericId);
+        }
+    }
+
     private class HashMapEx<K, V> extends HashMap<K, V> {
         public V get(K key, V ifNotExistValue) {
             V val = get(key);
             if (val == null) return ifNotExistValue;
             else return val;
+        }
+
+        public boolean containsWithFilter(Collection<K> keyCollection, V value) {
+            for (Entry<K, V> kvEntry : this.entrySet()) {
+                if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
