@@ -32,6 +32,7 @@
     <style name="AppThemeTranslucentBg" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarTranslucentBGTheme</item>
     </style>
 
 </resources>
