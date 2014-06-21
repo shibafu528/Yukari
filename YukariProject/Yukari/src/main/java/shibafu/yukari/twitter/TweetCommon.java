@@ -80,11 +80,6 @@ public class TweetCommon {
             }
             return 0;
         }
-
-        @Override
-        public boolean isFavorited(TwitterResponse object) {
-            return ((PreformedStatus) object).isFavoritedSomeone();
-        }
     }
 
     public static class MessageCommonDelegate implements TweetCommonDelegate {
@@ -126,11 +121,6 @@ public class TweetCommon {
                 }
             }
             return REL_MENTION;
-        }
-
-        @Override
-        public boolean isFavorited(TwitterResponse object) {
-            return false;
         }
     }
 }

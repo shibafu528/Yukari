@@ -63,6 +63,8 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Asy
                 else {
                     stash.add(status);
                 }
+
+                StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
             loaderInterface.notifyDataSetChanged();
         }

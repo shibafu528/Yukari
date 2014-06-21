@@ -98,4 +98,16 @@
         android:layout_toRightOf="@+id/tweet_protected"
         android:visibility="invisible"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tweet_timestamp"
+        android:layout_alignLeft="@+id/tweet_timestamp"
+        android:layout_alignStart="@+id/tweet_timestamp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:id="@+id/tweet_include"/>
+
 </RelativeLayout>

@@ -29,6 +29,7 @@ import twitter4j.UserMentionEntity;
  */
 public class PreformedStatus implements Status{
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
+    private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
 
     //基本ステータスデータ
     private Status status;
@@ -39,6 +40,7 @@ public class PreformedStatus implements Status{
     private String plainSource;
     private List<LinkMedia> mediaLinkList;
     private URLEntity[] urlEntities;
+    private List<Long> quoteEntities;
     private boolean isMentionedToMe;
     private boolean censoredThumbs;
 
@@ -71,9 +73,10 @@ public class PreformedStatus implements Status{
         else {
             plainSource = status.getSource();
         }
-        //メディアリンクリストを作成
+        //リンクリストを作成
         ArrayList<URLEntity> urlEntities = new ArrayList<>();
         mediaLinkList = new ArrayList<>();
+        quoteEntities = new ArrayList<>();
         for (URLEntity urlEntity : status.getURLEntities()) {
             LinkMedia media = LinkMediaFactory.newInstance(urlEntity.getExpandedURL());
             if (media != null) {
@@ -81,6 +84,11 @@ public class PreformedStatus implements Status{
             }
             else {
                 urlEntities.add(urlEntity);
+            }
+
+            Matcher m = STATUS_PATTERN.matcher(urlEntity.getExpandedURL());
+            if (m.find()) {
+                quoteEntities.add(Long.valueOf(m.group(1)));
             }
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
@@ -422,6 +430,10 @@ public class PreformedStatus implements Status{
         if (!receivedIds.contains(userRecord.NumericId)) {
             receivedIds.add(userRecord.NumericId);
         }
+    }
+
+    public List<Long> getQuoteEntities() {
+        return quoteEntities;
     }
 
     private class HashMapEx<K, V> extends HashMap<K, V> {
