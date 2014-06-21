@@ -379,13 +379,9 @@ public class CentralDatabase {
     public void updateDraft(TweetDraft draft) {
         beginTransaction();
         try {
+            deleteDraft(draft);
             for (ContentValues values : draft.getContentValuesArray()) {
-                if (values.containsKey(COL_DRAFTS_ID)) {
-                    db.replace(TABLE_DRAFTS, null, values);
-                }
-                else {
-                    db.insert(TABLE_DRAFTS, null, values);
-                }
+                db.insert(TABLE_DRAFTS, null, values);
             }
             setTransactionSuccessful();
         } finally {

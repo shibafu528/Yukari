@@ -177,6 +177,7 @@ public class PostService extends IntentService{
             builder.setContentTitle("ツイートに成功しました");
             builder.setContentText("");
             nm.notify(0, builder.build());
+            service.getDatabase().deleteDraft(draft);
         }
         nm.cancel(0);
     }
@@ -198,6 +199,7 @@ public class PostService extends IntentService{
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
             builder.setContentIntent(pendingIntent);
             //下書きを保存
+            draft.setFailedDelivery(true);
             service.getDatabase().updateDraft(draft);
         }
         nm.notify(id, builder.build());

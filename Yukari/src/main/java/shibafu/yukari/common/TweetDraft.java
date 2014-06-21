@@ -138,6 +138,47 @@ public class TweetDraft implements Serializable{
         return valuesArray;
     }
 
+    public void updateFields(ArrayList<AuthUserRecord> writers, String text, long inReplyTo,
+                             boolean isQuoted, List<Uri> attachedPictures,
+                             boolean useGeoLocation,
+                             double geoLatitude, double geoLongitude,
+                             boolean isPossiblySensitive) {
+        this.writers = writers;
+        this.text = text;
+        this.inReplyTo = inReplyTo;
+        this.isQuoted = isQuoted;
+        if (attachedPictures != null) {
+            this.attachedPictures.addAll(attachedPictures);
+        }
+        this.useGeoLocation = useGeoLocation;
+        this.geoLatitude = geoLatitude;
+        this.geoLongitude = geoLongitude;
+        this.isPossiblySensitive = isPossiblySensitive;
+        this.isDirectMessage = false;
+        this.messageTarget = "";
+    }
+
+    public void updateFields(ArrayList<AuthUserRecord> writers, String text,
+                             long inReplyTo, String messageTarget,
+                             boolean isQuoted, List<Uri> attachedPictures,
+                             boolean useGeoLocation,
+                             double geoLatitude, double geoLongitude,
+                             boolean isPossiblySensitive) {
+        this.writers = writers;
+        this.text = text;
+        this.inReplyTo = inReplyTo;
+        this.isQuoted = isQuoted;
+        if (attachedPictures != null) {
+            this.attachedPictures.addAll(attachedPictures);
+        }
+        this.useGeoLocation = useGeoLocation;
+        this.geoLatitude = geoLatitude;
+        this.geoLongitude = geoLongitude;
+        this.isPossiblySensitive = isPossiblySensitive;
+        this.isDirectMessage = true;
+        this.messageTarget = messageTarget;
+    }
+
     public int getId() {
         return id;
     }
@@ -274,6 +315,7 @@ public class TweetDraft implements Serializable{
         if (isUseGeoLocation()) {
             intent.putExtra(TweetActivity.EXTRA_GEO_LOCATION, new GeoLocation(getGeoLatitude(), getGeoLongitude()));
         }
+        intent.putExtra(TweetActivity.EXTRA_DRAFT, this);
         return intent;
     }
 

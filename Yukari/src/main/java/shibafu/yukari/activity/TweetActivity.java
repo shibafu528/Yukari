@@ -2,7 +2,6 @@ package shibafu.yukari.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.ContentUris;
@@ -93,6 +92,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     public static final String EXTRA_TEXT = "text";
     public static final String EXTRA_MEDIA = "media";
     public static final String EXTRA_GEO_LOCATION = "geo";
+    public static final String EXTRA_DRAFT = "draft";
 
     private static final int REQUEST_GALLERY = 0x01;
     private static final int REQUEST_CAMERA = 0x02;
@@ -141,7 +141,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     //撮影用の一時変数
     private Uri cameraTemp;
 
-    private ProgressDialog progress;
     private AlertDialog currentDialog;
 
     //ScreenNameピッカーの呼び出しボタン
@@ -1005,24 +1004,37 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     }
 
     private TweetDraft getTweetDraft() {
-        // TODO: 最初のひとつしか下書き保存していない
-        TweetDraft draft;
+        TweetDraft draft = (TweetDraft) getIntent().getSerializableExtra(EXTRA_DRAFT);
         if (isDirectMessage) {
-            draft = new TweetDraft(
-                    writers,
-                    etInput.getText().toString(),
-                    System.currentTimeMillis(),
-                    directMessageDestId,
-                    directMessageDestSN,
-                    false,
-                    AttachPicture.toUriList(attachPictures),
-                    false,
-                    0,
-                    0,
-                    false,
-                    false);
-        }
-        else {
+            if (draft == null) {
+                draft = new TweetDraft(
+                        writers,
+                        etInput.getText().toString(),
+                        System.currentTimeMillis(),
+                        directMessageDestId,
+                        directMessageDestSN,
+                        false,
+                        AttachPicture.toUriList(attachPictures),
+                        false,
+                        0,
+                        0,
+                        false,
+                        false);
+            } else {
+                draft.updateFields(
+                        writers,
+                        etInput.getText().toString(),
+                        directMessageDestId,
+                        directMessageDestSN,
+                        false,
+                        AttachPicture.toUriList(attachPictures),
+                        false,
+                        0,
+                        0,
+                        false
+                );
+            }
+        } else if (draft == null) {
             draft = new TweetDraft(
                     writers,
                     etInput.getText().toString(),
@@ -1035,7 +1047,20 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     0,
                     false,
                     false);
+        } else {
+            draft.updateFields(
+                    writers,
+                    etInput.getText().toString(),
+                    (status == null) ? -1 : status.getId(),
+                    false,
+                    AttachPicture.toUriList(attachPictures),
+                    false,
+                    0,
+                    0,
+                    false
+            );
         }
+        setIntent(getIntent().putExtra(EXTRA_DRAFT, draft));
         return draft;
     }
 
