@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -52,6 +53,8 @@ import twitter4j.UserMentionEntity;
  * Created by shibafu on 14/03/08.
  */
 public class StatusManager {
+    private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
+
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
     public static final int UPDATE_DELETED = 3;
@@ -213,6 +216,8 @@ public class StatusManager {
             for (HashtagEntity he : hashtagEntities) {
                 hashCache.put("#" + he.getText());
             }
+
+            receivedStatuses.put(preformedStatus.getId(), preformedStatus);
         }
 
         @Override
@@ -612,5 +617,9 @@ public class StatusManager {
                 Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public static LongSparseArray<PreformedStatus> getReceivedStatuses() {
+        return receivedStatuses;
     }
 }

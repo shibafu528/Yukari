@@ -26,9 +26,10 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
@@ -103,6 +104,7 @@ public class TweetAdapterWrap {
         TextView tvTimestamp;
         LinearLayout llAttach;
         TextView tvReceived;
+        LinearLayout flInclude;
 
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
@@ -114,6 +116,7 @@ public class TweetAdapterWrap {
             tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
             tvReceived = (TextView) v.findViewById(R.id.tweet_receive);
+            flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
         }
     }
 
@@ -128,6 +131,7 @@ public class TweetAdapterWrap {
         public static final int MODE_DEFAULT = 0;
         public static final int MODE_DETAIL  = 1; //サムネイル表示強制
         public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
+        public static final int MODE_INCLUDE = 3;
 
         private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
@@ -244,13 +248,6 @@ public class TweetAdapterWrap {
             }
             else {
                 viewHolder.ivProtected.setVisibility(View.INVISIBLE);
-            }
-
-            if (delegate.isFavorited(content)) {
-                viewHolder.ivFavorited.setVisibility(View.VISIBLE);
-            }
-            else {
-                viewHolder.ivFavorited.setVisibility(View.INVISIBLE);
             }
 
             int statusRelation = (userRecords != null) ?
@@ -408,6 +405,38 @@ public class TweetAdapterWrap {
 
             if (st.isCensoredThumbs()) {
                 viewHolder.tvTimestamp.setText(viewHolder.tvTimestamp.getText() + "\n[Thumbnail Muted]");
+            }
+
+            if (st.isFavoritedSomeone()) {
+                viewHolder.ivFavorited.setVisibility(View.VISIBLE);
+            }
+            else {
+                viewHolder.ivFavorited.setVisibility(View.INVISIBLE);
+            }
+
+            switch (mode) {
+                default:
+                    viewHolder.flInclude.setVisibility(View.GONE);
+                    break;
+                case MODE_DEFAULT:
+                case MODE_DETAIL:
+                    List<Long> quoteEntities = st.getQuoteEntities();
+                    if (quoteEntities.size() > 0) {
+                        viewHolder.flInclude.removeAllViews();
+                        viewHolder.flInclude.setVisibility(View.VISIBLE);
+                        for (Long quoteId : quoteEntities) {
+                            if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
+                                View tv = View.inflate(getContext(), R.layout.row_tweet, null);
+                                ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getPreferences(), PreformedStatus.class);
+                                vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), MODE_INCLUDE);
+                                viewHolder.flInclude.addView(tv);
+                            }
+                        }
+                    }
+                    else {
+                        viewHolder.flInclude.setVisibility(View.GONE);
+                    }
+                    break;
             }
 
             return v;
