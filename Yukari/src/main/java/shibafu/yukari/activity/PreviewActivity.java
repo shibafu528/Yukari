@@ -23,6 +23,8 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -51,7 +53,7 @@ public class PreviewActivity extends FragmentActivity {
     private Matrix matrix;
     private float minScale = 1.0f;
 
-    private AsyncTask<String, Void, Bitmap> loaderTask = null;
+    private AsyncTask<String, Object, Bitmap> loaderTask = null;
 
     private ImageView imageView;
     private View tweetView;
@@ -62,6 +64,9 @@ public class PreviewActivity extends FragmentActivity {
     private int displayWidth;
     private int displayHeight;
     private TweetAdapterWrap.ViewConverter viewConverter;
+
+    private ProgressBar loadProgress;
+    private TextView loadProgressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +86,9 @@ public class PreviewActivity extends FragmentActivity {
             finish();
             return;
         }
+
+        loadProgress = (ProgressBar) findViewById(R.id.pbPreview);
+        loadProgressText = (TextView) findViewById(R.id.tvPreviewProgress);
 
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
@@ -212,7 +220,12 @@ public class PreviewActivity extends FragmentActivity {
             mediaUrl = data.toString();
         }
 
-        loaderTask = new AsyncTask<String, Void, Bitmap>() {
+        loaderTask = new AsyncTask<String, Object, Bitmap>() {
+            class Callback {
+                public int received, contentLength;
+                public long beginTime, currentTime;
+            }
+
             @Override
             protected Bitmap doInBackground(String... params) {
                 String url = params[0];
@@ -237,23 +250,29 @@ public class PreviewActivity extends FragmentActivity {
                     try {
                         HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
                         connection.connect();
+                        Callback callback = new Callback();
+                        callback.contentLength = connection.getContentLength();
+                        callback.beginTime = System.currentTimeMillis();
                         InputStream input = connection.getInputStream();
                         FileOutputStream output = new FileOutputStream(cacheFile);
                         byte[] buf = new byte[4096];
                         int length;
                         while ((length = input.read(buf, 0, buf.length)) != -1) {
                             output.write(buf, 0, length);
+                            callback.received += length;
+                            callback.currentTime = System.currentTimeMillis();
                             if (isCancelled()) {
-                                input.close();
                                 output.close();
                                 connection.disconnect();
                                 cacheFile.delete();
                                 return null;
+                            } else {
+                                publishProgress(callback);
                             }
                         }
                         output.close();
-                        input.close();
                         connection.disconnect();
+                        System.gc();
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
@@ -289,8 +308,26 @@ public class PreviewActivity extends FragmentActivity {
             }
 
             @Override
+            protected void onProgressUpdate(Object... values) {
+                Callback callback = (Callback) values[0];
+                int progress = callback.received * 100 / callback.contentLength;
+                loadProgress.setProgress(progress);
+                long elapsed = (callback.currentTime - callback.beginTime) / 1000;
+                if (elapsed < 1) {
+                    elapsed = 1;
+                }
+                loadProgressText.setText(String.format("%d/%d %dKB/s [%d%%]",
+                        callback.received,
+                        callback.contentLength,
+                        (callback.received / 1024) / elapsed,
+                        progress));
+            }
+
+            @Override
             protected void onPostExecute(Bitmap bitmap) {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
+                loadProgress.setVisibility(View.GONE);
+                loadProgressText.setVisibility(View.GONE);
 
                 if (isCancelled()) {
                     return;

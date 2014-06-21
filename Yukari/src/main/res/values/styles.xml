@@ -36,6 +36,7 @@
     <style name="AppThemeTranslucentBg" parent="android:Theme.Light.NoTitleBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarTranslucentBGTheme</item>
     </style>
 
     <style name="AppDialogThemeWhenLarge" parent="AppThemeNoTitle"/>
