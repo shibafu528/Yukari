@@ -109,6 +109,14 @@ public class ConfigActivity extends PreferenceActivity {
                 return true;
             }
         });
+
+        findPreference("pref_font").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(ConfigActivity.this, FontSelectorActivity.class));
+                return true;
+            }
+        });
     }
 
     @Override

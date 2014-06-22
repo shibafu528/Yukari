@@ -36,11 +36,10 @@
             android:entries="@array/pref_mode_multiline_entries"
             android:entryValues="@array/pref_mode_multiline_values"
             android:defaultValue="0"/>
-        <CheckBoxPreference
-            android:key="pref_font_face"
-            android:title="システムフォントを使用する"
-            android:summary="フォントの読み込みを行わないようにします"
-            android:defaultValue="false"/>
+        <Preference
+            android:key="pref_font"
+            android:title="フォント設定"
+            android:summary="タイムラインのフォントを選択します"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="サムネイル設定">

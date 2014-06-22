@@ -69,6 +69,7 @@
     <orderEntry type="library" exported="" name="library-0.4.0" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-async-4.0.1" level="project" />
     <orderEntry type="library" exported="" name="library-0.9.9" level="project" />
+    <orderEntry type="library" exported="" name="butterknife-5.1.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-19.1.0" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
     <orderEntry type="library" exported="" name="extra-abc-0.9.9" level="project" />

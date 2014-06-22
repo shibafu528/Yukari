@@ -1,6 +1,7 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -12,9 +13,9 @@ import java.io.File;
  */
 public class FontAsset {
 
+    public static final String SYSTEM_FONT_ID = "*SYS*";
     public static final String FONT_NAME = "VL-PGothic-Regular-Mixed4.ttf";
     public static final String FONT_ZIP = "VL-PGothic-Regular-Mixed4.zip";
-    public static final String USERFONT_NAME = "userfont.ttf";
     private static FontAsset instance;
     private Typeface font;
 
@@ -28,17 +29,15 @@ public class FontAsset {
     public static FontAsset getInstance(Context context) {
         if (instance == null) {
             try {
-                if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_font_face", false)) {
+                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                String fileName = preferences.getString("pref_font_file", FONT_NAME);
+                if (preferences.getBoolean("pref_font_face", false) || SYSTEM_FONT_ID.equals(fileName)) {
                     Log.d("FontAsset", "システムフォントを使用します");
                     instance = new FontAsset(Typeface.DEFAULT);
                 }
-                else if (checkUserFontExt(context)) {
-                    Log.d("FontAsset", "userfont.ttfを使用します");
-                    instance = new FontAsset(Typeface.createFromFile(getUserFontExtPath(context)));
-                }
-                else {
-                    Log.d("FontAsset", "ビルトインフォントを使用します");
-                    instance = new FontAsset(Typeface.createFromFile(getFontFileExtPath(context)));
+                else if (checkFontFileExt(context, fileName)) {
+                    Log.d("FontAsset", fileName + "を使用します");
+                    instance = new FontAsset(Typeface.createFromFile(getFontFileExtPath(context, fileName)));
                 }
                 if (instance.getFont() == null) {
                     throw new RuntimeException("フォント読み込みに失敗しました");
@@ -52,7 +51,12 @@ public class FontAsset {
         return instance;
     }
 
-    public static boolean checkFontFileExt(Context context) {
+    public static void reloadInstance(Context context) {
+        instance = null;
+        getInstance(context);
+    }
+
+    public static boolean checkFontFileExt(Context context, String filename) {
         File dir = new File(context.getExternalFilesDir(null), "font");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -61,21 +65,8 @@ public class FontAsset {
         return new File(dir, FONT_NAME).exists();
     }
 
-    public static boolean checkUserFontExt(Context context) {
-        File dir = new File(context.getExternalFilesDir(null), "font");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-
-        return new File(dir, USERFONT_NAME).exists();
-    }
-
-    public static File getFontFileExtPath(Context context) {
-        return new File(new File(context.getExternalFilesDir(null), "font"), FONT_NAME);
-    }
-
-    public static File getUserFontExtPath(Context context) {
-        return new File(new File(context.getExternalFilesDir(null), "font"), USERFONT_NAME);
+    public static File getFontFileExtPath(Context context, String fileName) {
+        return new File(new File(context.getExternalFilesDir(null), "font"), fileName);
     }
 
     public Typeface getFont() {
