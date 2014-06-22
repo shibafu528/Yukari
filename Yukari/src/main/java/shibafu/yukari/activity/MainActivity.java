@@ -136,7 +136,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
             finish();
             return;
         }
-        else if (!FontAsset.checkFontFileExt(this)) {
+        else if (!FontAsset.checkFontFileExt(this, FontAsset.FONT_NAME)) {
             Intent intent = new Intent(this, AssetExtractActivity.class);
             startActivity(intent);
             finish();

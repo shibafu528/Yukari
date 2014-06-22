@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="20"
-    android:versionName="0.112alpha (prototype 140621)" >
+    android:versionName="0.113alpha (prototype 140622)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -181,6 +181,10 @@
         <activity
             android:name=".activity.MuteActivity"
             android:label="@string/title_activity_mute"/>
+
+        <activity
+            android:name=".activity.FontSelectorActivity"
+            android:label="@string/title_activity_font_selector"/>
 
         <activity android:name=".activity.CommandsPrefActivity"/>
 

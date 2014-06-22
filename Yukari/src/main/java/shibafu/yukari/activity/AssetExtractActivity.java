@@ -44,7 +44,7 @@ public class AssetExtractActivity extends Activity{
                         progressDialog.setMax((int)ze.getSize());
                         int loaded = 0;
 
-                        String path = FontAsset.getFontFileExtPath(AssetExtractActivity.this).getPath();
+                        String path = FontAsset.getFontFileExtPath(AssetExtractActivity.this, FontAsset.FONT_NAME).getPath();
                         FileOutputStream fos = new FileOutputStream(path, false);
                         byte[] buf = new byte[1024];
                         int size = 0;
