@@ -199,6 +199,11 @@ public class DBUser implements User, DBRecord {
     }
 
     @Override
+    public boolean isDefaultProfileImage() {
+        return false;
+    }
+
+    @Override
     public String getURL() {
         return url;
     }
@@ -252,6 +257,11 @@ public class DBUser implements User, DBRecord {
     @Override
     @Deprecated
     public boolean isProfileUseBackgroundImage() {
+        return false;
+    }
+
+    @Override
+    public boolean isDefaultProfile() {
         return false;
     }
 

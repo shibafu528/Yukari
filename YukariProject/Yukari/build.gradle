@@ -1,11 +1,10 @@
 apply plugin: 'android'
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
-    compile 'com.android.support:support-v4:+'
+    compile 'com.android.support:appcompat-v7:19.+'
+    compile 'com.android.support:support-v4:19.+'
 
     compile 'com.jakewharton:butterknife:5.+'
-    compile 'com.github.chrisbanes.actionbarpulltorefresh:extra-abc:+'
 
     compile 'org.twitter4j:twitter4j-core:4.+'
     compile 'org.twitter4j:twitter4j-async:4.+'
