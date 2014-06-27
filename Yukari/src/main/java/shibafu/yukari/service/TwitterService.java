@@ -15,6 +15,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +36,7 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.UploadedMedia;
 import twitter4j.conf.ConfigurationBuilder;
 
 /**
@@ -373,6 +378,28 @@ public class TwitterService extends Service{
         }
         twitter.setOAuthAccessToken(user.getAccessToken());
         twitter.updateStatus(status);
+    }
+
+    public UploadedMedia uploadMedia(AuthUserRecord user, InputStream inputStream) throws TwitterException, IOException {
+        File tempFile = File.createTempFile("uploadMedia", ".tmp", getExternalCacheDir());
+        try {
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            byte[] buffer = new byte[4096];
+            int length;
+            try {
+                while ((length = inputStream.read(buffer)) != -1) {
+                    fos.write(buffer, 0, length);
+                }
+            } finally {
+                fos.close();
+            }
+
+            twitter.setOAuthAccessToken(user.getAccessToken());
+            return twitter.uploadMedia(tempFile);
+        }
+        finally {
+            tempFile.delete();
+        }
     }
 
     public void sendDirectMessage(String to, AuthUserRecord from, String message) throws TwitterException {

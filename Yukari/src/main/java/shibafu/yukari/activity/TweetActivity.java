@@ -486,7 +486,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent intent = new Intent(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? Intent.ACTION_PICK : Intent.ACTION_GET_CONTENT);
                 intent.setType("image/*");
                 startActivityForResult(intent, REQUEST_GALLERY);
             }
@@ -984,7 +984,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
             TwitterAPIConfiguration apiConfiguration = TweetActivity.this.service.getApiConfiguration();
             if (apiConfiguration != null) {
-                maxMediaPerUpload = apiConfiguration.getMaxMediaPerUpload();
+                maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
                 ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
             }
         }
