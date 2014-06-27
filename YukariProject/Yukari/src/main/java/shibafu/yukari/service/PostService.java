@@ -111,8 +111,11 @@ public class PostService extends IntentService{
                     }
                     //attachPictureがある場合は添付
                     if (!draft.getAttachedPictures().isEmpty()) {
-                        List<InputStream> iss = new ArrayList<>();
-                        for (Uri u : draft.getAttachedPictures()) {
+                        List<Uri> attachedPictures = draft.getAttachedPictures();
+                        long[] mediaIds = new long[attachedPictures.size()];
+                        for (int j = 0; j < mediaIds.length; ++j) {
+                            Uri u = attachedPictures.get(j);
+                            InputStream is;
                             int[] size = new int[2];
                             {
                                 Bitmap thumb = BitmapResizer.resizeBitmap(this, u, 128, 128, size);
@@ -129,13 +132,14 @@ public class PostService extends IntentService{
                                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                 resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                                 Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-                                iss.add(bais);
+                                is = new ByteArrayInputStream(baos.toByteArray());
                             } else {
-                                iss.add(getContentResolver().openInputStream(u));
+                                is = getContentResolver().openInputStream(u);
                             }
+
+                            mediaIds[j] = service.uploadMedia(userRecord, is).getMediaId();
                         }
-                        update.setMedia("image", iss.get(0));
+                        update.setMediaIds(mediaIds);
                     }
                     service.postTweet(userRecord, update);
                 }
@@ -150,7 +154,7 @@ public class PostService extends IntentService{
             } catch (IOException e) {
                 e.printStackTrace();
                 showErrorMessage(i + 1, draft, String.format(
-                        "@%s/添付画像のデコードエラー",
+                        "@%s/添付画像の処理エラー",
                         userRecord.ScreenName));
                 ++error;
             }
