@@ -165,6 +165,11 @@ public class FakeStatus implements Status {
     }
 
     @Override
+    public MediaEntity[] getExtendedMediaEntities() {
+        return new MediaEntity[0];
+    }
+
+    @Override
     public SymbolEntity[] getSymbolEntities() {
         return new SymbolEntity[0];
     }

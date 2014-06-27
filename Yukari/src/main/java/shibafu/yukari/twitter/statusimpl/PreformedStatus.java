@@ -75,7 +75,12 @@ public class PreformedStatus implements Status{
         }
         //リンクリストを作成
         ArrayList<URLEntity> urlEntities = new ArrayList<>();
-        mediaLinkList = new ArrayList<>();
+        mediaLinkList = new ArrayList<LinkMedia>() {
+            @Override
+            public boolean add(LinkMedia object) {
+                return !this.contains(object) && super.add(object);
+            }
+        };
         quoteEntities = new ArrayList<>();
         for (URLEntity urlEntity : status.getURLEntities()) {
             LinkMedia media = LinkMediaFactory.newInstance(urlEntity.getExpandedURL());
@@ -93,7 +98,12 @@ public class PreformedStatus implements Status{
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
-            mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURL()));
+            mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+        }
+        if (status.getExtendedMediaEntities().length > 1) {
+            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+            }
         }
         //RTステータスならそちらも生成
         if (isRetweet()) {
@@ -327,6 +337,11 @@ public class PreformedStatus implements Status{
     @Override
     public MediaEntity[] getMediaEntities() {
         return status.getMediaEntities();
+    }
+
+    @Override
+    public MediaEntity[] getExtendedMediaEntities() {
+        return status.getExtendedMediaEntities();
     }
 
     @Override
