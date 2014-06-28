@@ -1,4 +1,5 @@
 /Yukari/build
+/build
 /.gradle
 /local.properties
 /.idea/workspace.xml
