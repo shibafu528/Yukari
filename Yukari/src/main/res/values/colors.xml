@@ -25,4 +25,5 @@
 
     <color name="key_color_2">#ff50307d</color>
     <color name="key_color_3">#ffa35af4</color>
+    <color name="key_color_accent">#ea80fc</color>
 </resources>
