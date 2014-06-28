@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="twitter4j-media-support-4.0.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.twitter4j/twitter4j-media-support/4.0.2/2d3214a4177bdbb16056a084d5877eee3e17e645/twitter4j-media-support-4.0.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.twitter4j/twitter4j-media-support/4.0.2/b9dde223dae5d3df3cfff1d7761f936e223af180/twitter4j-media-support-4.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
