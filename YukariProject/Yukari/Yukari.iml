@@ -59,17 +59,18 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 19 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android API 20, L preview Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="android-smart-image-view-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="support-v4-19.1.0" level="project" />
+    <orderEntry type="library" exported="" name="appcompat-v7-21.0.0-rc1" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-stream-4.0.2" level="project" />
+    <orderEntry type="library" exported="" name="support-annotations-21.0.0-rc1" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-async-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="butterknife-5.1.1" level="project" />
-    <orderEntry type="library" exported="" name="appcompat-v7-19.1.0" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-core-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
+    <orderEntry type="library" exported="" name="support-v4-21.0.0-rc1" level="project" />
   </component>
 </module>
 
