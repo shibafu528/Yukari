@@ -1,7 +1,6 @@
 package shibafu.yukari.activity;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -53,7 +52,7 @@ public class StatusActivity extends FragmentActivity {
 
         PagerTabStrip pagerTabStrip = (PagerTabStrip) findViewById(R.id.pager_title_strip);
         pagerTabStrip.setDrawFullUnderline(true);
-        pagerTabStrip.setTabIndicatorColor(Color.parseColor("#FFFFFF"));
+        pagerTabStrip.setTabIndicatorColorResource(R.color.key_color);
 
     }
 

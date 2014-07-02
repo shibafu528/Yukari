@@ -143,7 +143,6 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     deleteReserve = configs.get(position);
                     SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            android.R.drawable.ic_dialog_alert,
                             "確認", "設定を削除しますか?", "OK", "キャンセル"
                     );
                     dialogFragment.setTargetFragment(InnerFragment.this, 1);
