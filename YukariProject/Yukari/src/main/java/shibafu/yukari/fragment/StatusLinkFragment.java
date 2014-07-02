@@ -31,6 +31,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.URLEntity;
@@ -47,6 +48,7 @@ public class StatusLinkFragment extends ListFragment{
 
     private static final int TYPE_HASH  = 0x02;
     private static final int TYPE_TRACE = 0x04;
+    private static final int TYPE_GEO = 0x08;
 
     private static final int TYPE_USER         = 0x10;
     private static final int TYPE_USER_REPLY   = TYPE_USER | 0x01;
@@ -87,6 +89,11 @@ public class StatusLinkFragment extends ListFragment{
         }
         for (HashtagEntity h : status.getHashtagEntities()) {
             list.add(new LinkRow("#" + h.getText(), TYPE_HASH, 0, null, false));
+        }
+        if (status.getGeoLocation() != null) {
+            GeoLocation geoLocation = status.getGeoLocation();
+            String query = String.format("geo:0,0?q=%f,%f", geoLocation.getLatitude(), geoLocation.getLongitude());
+            list.add(new LinkRow(query, TYPE_GEO, 0, null, false));
         }
         if (status.getInReplyToStatusId() > -1) {
             list.add(new LinkRow("会話をたどる", TYPE_TRACE, 0, null, false));
@@ -159,9 +166,11 @@ public class StatusLinkFragment extends ListFragment{
                     }
                 } else {
                     switch (lr.type) {
+                        case TYPE_GEO:
                         case TYPE_URL: {
                             final Uri uri = Uri.parse(lr.text);
-                            if (uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
+                            if (lr.type == TYPE_URL &&
+                                    uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
                                 String query = uri.getQueryParameter("q");
                                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                                         .setTitle("検索URL")
