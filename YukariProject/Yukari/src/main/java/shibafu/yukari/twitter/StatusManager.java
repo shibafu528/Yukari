@@ -25,6 +25,7 @@ import java.util.Queue;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.Suppressor;
@@ -316,6 +317,20 @@ public class StatusManager {
                             PendingIntent pendingIntent = PendingIntent.getActivity(
                                     context.getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
                             builder.setContentIntent(pendingIntent);
+
+                            {
+                                PreformedStatus ps = (PreformedStatus) status;
+                                Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
+                                replyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
+                                replyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
+                                replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                                replyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
+                                        ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
+                                                : ps.getUser().getScreenName()) + " ");
+                                builder.addAction(R.drawable.ic_stat_do_reply, "返信", PendingIntent.getActivity(
+                                                context.getApplicationContext(), 1, replyIntent, PendingIntent.FLAG_ONE_SHOT)
+                                );
+                            }
                             break;
                         }
                         case NOTIF_DM:
