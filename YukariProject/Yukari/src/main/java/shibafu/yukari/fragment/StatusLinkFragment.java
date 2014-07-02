@@ -4,8 +4,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -133,15 +135,13 @@ public class StatusLinkFragment extends ListFragment{
                 if ((lr.type & TYPE_USER) == TYPE_USER) {
                     switch (lr.type) {
                         case TYPE_USER_REPLY:
-                        case TYPE_USER_DM:
-                        {
+                        case TYPE_USER_DM: {
                             Intent intent = new Intent(getActivity(), TweetActivity.class);
                             intent.putExtra(TweetActivity.EXTRA_USER, user);
                             if (lr.type == TYPE_USER_REPLY) {
                                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + lr.targetUserSN + " ");
                                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                            }
-                            else {
+                            } else {
                                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
                                 intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, lr.targetUser);
                                 intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lr.targetUserSN);
@@ -149,8 +149,7 @@ public class StatusLinkFragment extends ListFragment{
                             startActivity(intent);
                             break;
                         }
-                        case TYPE_USER_PROFILE:
-                        {
+                        case TYPE_USER_PROFILE: {
                             Intent intent = new Intent(getActivity(), ProfileActivity.class);
                             intent.putExtra(ProfileActivity.EXTRA_USER, user);
                             intent.putExtra(ProfileActivity.EXTRA_TARGET, lr.targetUser);
@@ -158,11 +157,9 @@ public class StatusLinkFragment extends ListFragment{
                             break;
                         }
                     }
-                }
-                else {
+                } else {
                     switch (lr.type) {
-                        case TYPE_URL:
-                        {
+                        case TYPE_URL: {
                             final Uri uri = Uri.parse(lr.text);
                             if (uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
                                 String query = uri.getQueryParameter("q");
@@ -186,23 +183,20 @@ public class StatusLinkFragment extends ListFragment{
                                         })
                                         .create();
                                 ad.show();
-                            }
-                            else {
+                            } else {
                                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
                             }
                             break;
                         }
-                        case (TYPE_URL | TYPE_URL_MEDIA):
-                        {
+                        case (TYPE_URL | TYPE_URL_MEDIA): {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
                             intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
                             startActivity(intent);
                             break;
                         }
-                        case TYPE_HASH:
-                        {
+                        case TYPE_HASH: {
                             AlertDialog ad = new AlertDialog.Builder(getActivity())
                                     .setTitle(lr.text)
                                     .setPositiveButton("つぶやく", new DialogInterface.OnClickListener() {
@@ -236,8 +230,7 @@ public class StatusLinkFragment extends ListFragment{
                             ad.show();
                             break;
                         }
-                        case TYPE_TRACE:
-                        {
+                        case TYPE_TRACE: {
                             Intent intent = new Intent(getActivity(), TraceActivity.class);
                             intent.putExtra(TweetListFragment.EXTRA_USER, user);
                             intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
@@ -267,6 +260,9 @@ public class StatusLinkFragment extends ListFragment{
                 return false;
             }
         });
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        getListView().setStackFromBottom(sp.getBoolean("pref_bottom_stack", false));
     }
 
     private class LinkRow {
