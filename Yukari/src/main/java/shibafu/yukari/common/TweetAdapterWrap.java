@@ -31,6 +31,7 @@ import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
+import twitter4j.GeoLocation;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 
@@ -403,11 +404,18 @@ public class TweetAdapterWrap {
                 }
             }
 
+            if ((st.isRetweet() && st.getRetweetedStatus().getGeoLocation() != null) || st.getGeoLocation() != null) {
+                GeoLocation geoLocation = st.isRetweet()? st.getRetweetedStatus().getGeoLocation() : st.getGeoLocation();
+                viewHolder.tvTimestamp.setText(String.format("%s\nGeo: %f, %f",
+                        viewHolder.tvTimestamp.getText(),
+                        geoLocation.getLatitude(),
+                        geoLocation.getLongitude()));
+            }
             if (st.isCensoredThumbs()) {
                 viewHolder.tvTimestamp.setText(viewHolder.tvTimestamp.getText() + "\n[Thumbnail Muted]");
             }
 
-            if (st.isFavoritedSomeone()) {
+            if ((st.isRetweet() && st.getRetweetedStatus().isFavoritedSomeone()) || st.isFavoritedSomeone()) {
                 viewHolder.ivFavorited.setVisibility(View.VISIBLE);
             }
             else {
