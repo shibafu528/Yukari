@@ -327,7 +327,7 @@ public class StatusManager {
                                 replyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
                                         ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
                                                 : ps.getUser().getScreenName()) + " ");
-                                builder.addAction(R.drawable.ic_stat_do_reply, "返信", PendingIntent.getActivity(
+                                builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
                                                 context.getApplicationContext(), 1, replyIntent, PendingIntent.FLAG_ONE_SHOT)
                                 );
                             }
@@ -340,6 +340,18 @@ public class StatusManager {
                             PendingIntent pendingIntent = PendingIntent.getActivity(
                                     context.getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
                             builder.setContentIntent(pendingIntent);
+
+                            {
+                                DirectMessage dm = (DirectMessage) status;
+                                Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
+                                intent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
+                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
+                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                                builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
+                                                context.getApplicationContext(), 1, replyIntent, PendingIntent.FLAG_ONE_SHOT)
+                                );
+                            }
                             break;
                         }
                     }
@@ -388,6 +400,15 @@ public class StatusManager {
                 return true;
             }
             else return false;
+        }
+
+        private AuthUserRecord findUserRecord(User user) {
+            for (AuthUserRecord userRecord : service.getUsers()) {
+                if (userRecord.NumericId == user.getId()) {
+                    return userRecord;
+                }
+            }
+            return null;
         }
     };
     public interface StatusListener {
