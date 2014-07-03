@@ -46,6 +46,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.twitter.Extractor;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -108,6 +110,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
 
+    private static final Extractor EXTRACTOR = new Extractor();
+
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
@@ -135,8 +139,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private TwitterService service;
     private boolean serviceBound = false;
 
+    //短縮URLの文字数
+    private int shortUrlLength = 22;
+
     //最大添付数
-    private int maxMediaPerUpload = 1;
+    private int maxMediaPerUpload = 4;
 
     //撮影用の一時変数
     private Uri cameraTemp;
@@ -215,7 +222,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
             @Override
             public void afterTextChanged(Editable s) {
-                int count = CharacterUtil.count(s.toString());
+                String text = s.toString();
+                int count = CharacterUtil.count(text);
+                List<String> urls = EXTRACTOR.extractURLs(text);
+                for (String url : urls) {
+                    count -= url.length() < shortUrlLength ? -(shortUrlLength - url.length()) : (url.length() - shortUrlLength);
+                    if (url.startsWith("https://")) {
+                        count += 1;
+                    }
+                }
                 tweetCount = 140 - count - reservedCount;
                 tvCount.setText(String.valueOf(tweetCount));
                 if (count < 0) {
@@ -226,7 +241,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
                 if (ibSNPicker != null) {
                     if (count > 0 && etInput.getSelectionStart() > 0 &&
-                            s.toString().charAt(etInput.getSelectionStart() - 1) == '@') {
+                            text.charAt(etInput.getSelectionStart() - 1) == '@') {
                         ibSNPicker.setVisibility(View.VISIBLE);
                     }
                     else {
@@ -986,6 +1001,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             if (apiConfiguration != null) {
                 maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
                 ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+                shortUrlLength = apiConfiguration.getShortURLLength();
             }
         }
 
