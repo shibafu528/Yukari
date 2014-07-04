@@ -3,9 +3,7 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="YukariTheme" parent="Theme.AppCompat.Light">
-
-        <item name="actionMenuTextColor">@color/white</item>
+    <style name="YukariTheme" parent="Theme.AppCompat.Light.DarkActionBar">
 
         <item name="actionBarStyle">@style/ActionBarYukariTheme</item>
 

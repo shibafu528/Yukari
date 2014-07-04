@@ -2,13 +2,15 @@ package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.io.Serializable;
 
 /**
  * Created by shibafu on 14/04/22.
  */
-public class MuteConfig implements DBRecord, Serializable{
+public class MuteConfig implements DBRecord, Serializable, Parcelable {
     public static final int SCOPE_TEXT = 0;
     public static final int SCOPE_USER_NAME = 1;
     public static final int SCOPE_USER_SN = 2;
@@ -96,4 +98,36 @@ public class MuteConfig implements DBRecord, Serializable{
         values.put(CentralDatabase.COL_MUTE_QUERY, query);
         return values;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(this.id);
+        dest.writeInt(this.scope);
+        dest.writeInt(this.match);
+        dest.writeInt(this.mute);
+        dest.writeString(this.query);
+    }
+
+    private MuteConfig(Parcel in) {
+        this.id = in.readLong();
+        this.scope = in.readInt();
+        this.match = in.readInt();
+        this.mute = in.readInt();
+        this.query = in.readString();
+    }
+
+    public static final Parcelable.Creator<MuteConfig> CREATOR = new Parcelable.Creator<MuteConfig>() {
+        public MuteConfig createFromParcel(Parcel source) {
+            return new MuteConfig(source);
+        }
+
+        public MuteConfig[] newArray(int size) {
+            return new MuteConfig[size];
+        }
+    };
 }
