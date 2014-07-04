@@ -3,9 +3,7 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="YukariTheme" parent="Theme.AppCompat.Light">
-
-        <item name="android:actionMenuTextColor">@color/white</item>
+    <style name="YukariTheme" parent="Theme.AppCompat.Light.DarkActionBar">
 
         <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
 
@@ -43,6 +41,9 @@
         <item name="android:fastScrollThumbDrawable">@drawable/yukaritheme_fastscroll_thumb_holo
         </item>
 
+    </style>
+
+    <style name="YukariSearchTheme" parent="YukariTheme">
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
 

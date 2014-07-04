@@ -3,7 +3,9 @@ apply plugin: 'android'
 dependencies {
     compile 'com.android.support:appcompat-v7:19.+'
     compile 'com.android.support:support-v4:19.+'
+    compile 'com.google.android.gms:play-services:5.0.77'
 
+    compile 'com.google.code.gson:gson:2.+'
     compile 'com.jakewharton:butterknife:5.+'
 
     compile 'org.twitter4j:twitter4j-core:4.+'
