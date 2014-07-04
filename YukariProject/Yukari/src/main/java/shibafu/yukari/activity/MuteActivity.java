@@ -2,12 +2,10 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -19,7 +17,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,30 +31,13 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.SupportErrorDialogFragment;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.drive.Contents;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi;
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.google.android.gms.drive.query.Filters;
-import com.google.android.gms.drive.query.Query;
-import com.google.android.gms.drive.query.SearchableField;
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -147,6 +127,8 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
+        private static final String DRIVE_FILE_NAME = "mute.json";
+        private static final String DRIVE_MIME_TYPE = "application/json";
 
         private List<MuteConfig> configs;
         private MuteConfig deleteReserve = null;
@@ -189,13 +171,14 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                     return true;
                 }
                 case R.id.action_import: {
-                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance();
-                    dialogFragment.setTargetFragment(this, 0);
+                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance(
+                            DRIVE_FILE_NAME, DRIVE_MIME_TYPE, this);
                     dialogFragment.show(getFragmentManager(), "import");
                     return true;
                 }
                 case R.id.action_export: {
-                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance(configs);
+                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance(
+                            DRIVE_FILE_NAME, DRIVE_MIME_TYPE, new Gson().toJson(configs).getBytes());
                     dialogFragment.show(getFragmentManager(), "export");
                     return true;
                 }
@@ -342,197 +325,4 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         }
     }
 
-    public static class DriveConnectionDialogFragment extends DialogFragment implements
-            GoogleApiClient.ConnectionCallbacks,
-            GoogleApiClient.OnConnectionFailedListener{
-        public static final int MODE_EXPORT = 0;
-        public static final int MODE_IMPORT = 1;
-
-        private static final int REQUEST_RESOLVE_CONNECTION = 1;
-        private static final int REQUEST_ERROR_SERVICE_AVAIL = 2;
-
-        private GoogleApiClient apiClient;
-        private List<MuteConfig> configs;
-
-        public static DriveConnectionDialogFragment newInstance() {
-            DriveConnectionDialogFragment fragment = new DriveConnectionDialogFragment();
-            Bundle args = new Bundle();
-            args.putInt("mode", MODE_IMPORT);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public static DriveConnectionDialogFragment newInstance(List<MuteConfig> muteConfigs) {
-            DriveConnectionDialogFragment fragment = new DriveConnectionDialogFragment();
-            Bundle args = new Bundle();
-            args.putInt("mode", MODE_EXPORT);
-            args.putParcelableArrayList("entries", new ArrayList<>(muteConfigs));
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public void onActivityCreated(Bundle savedInstanceState) {
-            super.onActivityCreated(savedInstanceState);
-            Bundle args = getArguments();
-            configs = args.getParcelableArrayList("entries");
-            apiClient = new GoogleApiClient.Builder(getActivity())
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_FILE)
-                    .addScope(Drive.SCOPE_APPFOLDER)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
-            apiClient.connect();
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            Bundle args = getArguments();
-            ProgressDialog dialog = ProgressDialog.show(getActivity(),
-                    null,
-                    args.getInt("mode", 0) == 0? "エクスポート中..." : "インポート中...",
-                    true,
-                    false);
-            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            return dialog;
-        }
-
-        @Override
-        public void onConnected(Bundle bundle) {
-            Bundle args = getArguments();
-            switch (args.getInt("mode", MODE_EXPORT)) {
-                case MODE_EXPORT:
-                    exportEntries();
-                    break;
-                case MODE_IMPORT:
-                    break;
-            }
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-
-        }
-
-        @Override
-        public void onConnectionFailed(ConnectionResult connectionResult) {
-            if (!connectionResult.hasResolution()) {
-                GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), getActivity(), 0).show();
-                return;
-            }
-            try {
-                connectionResult.startResolutionForResult(getActivity(), REQUEST_RESOLVE_CONNECTION);
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
-                Toast.makeText(getActivity(), "Driveとの接続に失敗しました", Toast.LENGTH_LONG).show();
-            }
-        }
-
-        @Override
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
-            if (requestCode == REQUEST_RESOLVE_CONNECTION && resultCode == RESULT_OK) {
-                apiClient.connect();
-            }
-        }
-
-        private boolean checkServiceAvailable() {
-            int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity()) ;
-            if (resultCode != ConnectionResult.SUCCESS) {
-                Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, getActivity(), REQUEST_ERROR_SERVICE_AVAIL);
-                if (dialog != null) {
-                    SupportErrorDialogFragment.newInstance(dialog).show(getFragmentManager(), "error_service_avail");
-                }
-                return false;
-            }
-            return true;
-        }
-
-        private void importEntries() {
-            if (!checkServiceAvailable() || getTargetFragment() == null) {
-                dismiss();
-                return;
-            }
-            //TODO: なんとか
-        }
-
-        private void exportEntries() {
-            if (!checkServiceAvailable()) {
-                dismiss();
-                return;
-            }
-
-            Query query = new Query.Builder().addFilter(Filters.eq(SearchableField.TITLE, "mute.json")).build();
-            final DriveFolder appFolder = Drive.DriveApi.getAppFolder(apiClient);
-            appFolder.queryChildren(apiClient, query).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
-                private DriveFile existFile;
-
-                @Override
-                public void onResult(DriveApi.MetadataBufferResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        Log.e("MuteExport", "query failed.");
-                        dismiss();
-                        return;
-                    }
-                    if (result.getMetadataBuffer().getCount() < 1) {
-                        Drive.DriveApi.newContents(apiClient).setResultCallback(resultCallback);
-                    } else {
-                        existFile = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
-                        existFile.openContents(apiClient, DriveFile.MODE_WRITE_ONLY, null).setResultCallback(resultCallback);
-                    }
-                }
-
-                private ResultCallback<DriveApi.ContentsResult> resultCallback = new ResultCallback<DriveApi.ContentsResult>() {
-                    @Override
-                    public void onResult(DriveApi.ContentsResult result) {
-                        if (!result.getStatus().isSuccess()) {
-                            Toast.makeText(getActivity(), "Export failed.", Toast.LENGTH_SHORT).show();
-                            dismiss();
-                            return;
-                        }
-                        Contents contents = result.getContents();
-
-                        OutputStream os = contents.getOutputStream();
-                        try {
-                            os.write(new Gson().toJson(configs).getBytes());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                        MetadataChangeSet metadata = new MetadataChangeSet.Builder()
-                                .setTitle("mute.json")
-                                .setMimeType("application/json")
-                                .build();
-
-                        if (existFile == null) {
-                            appFolder.createFile(apiClient, metadata, contents).setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
-                                @Override
-                                public void onResult(DriveFolder.DriveFileResult driveFileResult) {
-                                    showResultMessage(driveFileResult.getStatus());
-                                }
-                            });
-                        } else {
-                            existFile.commitAndCloseContents(apiClient, contents).setResultCallback(new ResultCallback<Status>() {
-                                @Override
-                                public void onResult(Status status) {
-                                    showResultMessage(status.getStatus());
-                                }
-                            });
-                        }
-                    }
-
-                    private void showResultMessage(Status status) {
-                        if (status.isSuccess()) {
-                            Toast.makeText(getActivity(), "Export Complete!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getActivity(), "Export failed.", Toast.LENGTH_SHORT).show();
-                        }
-                        dismiss();
-                    }
-                };
-            });
-        }
-
-    }
 }
