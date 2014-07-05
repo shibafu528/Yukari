@@ -11,16 +11,23 @@ import android.support.v4.app.DialogFragment;
  */
 public class SimpleAlertDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
+    public static final String ARG_REQUEST_CODE = "requestcode";
     public static final String ARG_ICON = "icon";
     public static final String ARG_TITLE = "title";
     public static final String ARG_MESSAGE = "message";
     public static final String ARG_POSSITIVE = "possitive";
     public static final String ARG_NEGATIVE = "negative";
 
+    public static interface OnDialogChoseListener {
+        void onDialogChose(int requestCode, int which);
+    }
+
+    @Deprecated
     public static SimpleAlertDialogFragment newInstance(
             String title, String message, String possitive, String negative) {
         SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
         Bundle args = new Bundle();
+        args.putBoolean("compat", true);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
         args.putString(ARG_POSSITIVE, possitive);
@@ -30,10 +37,26 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     }
 
     public static SimpleAlertDialogFragment newInstance(
+            int requestCode,
+            String title, String message, String possitive, String negative) {
+        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_REQUEST_CODE, requestCode);
+        args.putString(ARG_TITLE, title);
+        args.putString(ARG_MESSAGE, message);
+        args.putString(ARG_POSSITIVE, possitive);
+        args.putString(ARG_NEGATIVE, negative);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static SimpleAlertDialogFragment newInstance(
+            int requestCode,
             int iconId,
             String title, String message, String possitive, String negative) {
         SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
         Bundle args = new Bundle();
+        args.putInt(ARG_REQUEST_CODE, requestCode);
         args.putInt(ARG_ICON, iconId);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
@@ -67,21 +90,36 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     public void onClick(DialogInterface dialogInterface, int i) {
         dismiss();
 
-        DialogInterface.OnClickListener listener = null;
-        if (getParentFragment() != null &&
-                getParentFragment() instanceof DialogInterface.OnClickListener) {
-            listener = (DialogInterface.OnClickListener) getParentFragment();
-        }
-        else if (getTargetFragment() != null &&
-                getTargetFragment() instanceof DialogInterface.OnClickListener) {
-            listener = (DialogInterface.OnClickListener) getTargetFragment();
-        }
-        else if (getActivity() != null && getActivity() instanceof DialogInterface.OnClickListener) {
-            listener = (DialogInterface.OnClickListener) getActivity();
-        }
+        if (getArguments().getBoolean("compat")) {
+            DialogInterface.OnClickListener listener = null;
+            if (getParentFragment() != null &&
+                    getParentFragment() instanceof DialogInterface.OnClickListener) {
+                listener = (DialogInterface.OnClickListener) getParentFragment();
+            } else if (getTargetFragment() != null &&
+                    getTargetFragment() instanceof DialogInterface.OnClickListener) {
+                listener = (DialogInterface.OnClickListener) getTargetFragment();
+            } else if (getActivity() != null && getActivity() instanceof DialogInterface.OnClickListener) {
+                listener = (DialogInterface.OnClickListener) getActivity();
+            }
 
-        if (listener != null) {
-            listener.onClick(dialogInterface, i);
+            if (listener != null) {
+                listener.onClick(dialogInterface, i);
+            }
+        } else {
+            OnDialogChoseListener listener = null;
+            if (getParentFragment() != null &&
+                    getParentFragment() instanceof OnDialogChoseListener) {
+                listener = (OnDialogChoseListener) getParentFragment();
+            } else if (getTargetFragment() != null &&
+                    getTargetFragment() instanceof OnDialogChoseListener) {
+                listener = (OnDialogChoseListener) getTargetFragment();
+            } else if (getActivity() != null && getActivity() instanceof OnDialogChoseListener) {
+                listener = (OnDialogChoseListener) getActivity();
+            }
+
+            if (listener != null) {
+                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i);
+            }
         }
     }
 

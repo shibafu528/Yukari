@@ -3,6 +3,7 @@ package shibafu.yukari.fragment;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -47,6 +48,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
     private byte[] data;
     private String fileName;
     private String mimeType;
+    private boolean isCancelled;
 
     public static interface OnDriveImportCompletedListener {
         void onDriveImportCompleted(byte[] bytes);
@@ -107,6 +109,12 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 false);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         return dialog;
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        super.onCancel(dialog);
+        isCancelled = true;
     }
 
     @Override
@@ -207,10 +215,12 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     }
                     file.commitAndCloseContents(apiClient, contents);
 
-                    OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
-                    listener.onDriveImportCompleted(baos.toByteArray());
-                    Toast.makeText(getActivity(), "Import Complete!", Toast.LENGTH_SHORT).show();
-                    dismiss();
+                    if (!isCancelled) {
+                        OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
+                        listener.onDriveImportCompleted(baos.toByteArray());
+                        Toast.makeText(getActivity(), "Import Complete!", Toast.LENGTH_SHORT).show();
+                        dismiss();
+                    }
                 }
             };
         });
@@ -264,20 +274,22 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                             .setMimeType(mimeType)
                             .build();
 
-                    if (existFile == null) {
-                        appFolder.createFile(apiClient, metadata, contents).setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
-                            @Override
-                            public void onResult(DriveFolder.DriveFileResult driveFileResult) {
-                                showResultMessage(driveFileResult.getStatus());
-                            }
-                        });
-                    } else {
-                        existFile.commitAndCloseContents(apiClient, contents).setResultCallback(new ResultCallback<Status>() {
-                            @Override
-                            public void onResult(Status status) {
-                                showResultMessage(status.getStatus());
-                            }
-                        });
+                    if (!isCancelled) {
+                        if (existFile == null) {
+                            appFolder.createFile(apiClient, metadata, contents).setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
+                                @Override
+                                public void onResult(DriveFolder.DriveFileResult driveFileResult) {
+                                    showResultMessage(driveFileResult.getStatus());
+                                }
+                            });
+                        } else {
+                            existFile.commitAndCloseContents(apiClient, contents).setResultCallback(new ResultCallback<Status>() {
+                                @Override
+                                public void onResult(Status status) {
+                                    showResultMessage(status.getStatus());
+                                }
+                            });
+                        }
                     }
                 }
 
