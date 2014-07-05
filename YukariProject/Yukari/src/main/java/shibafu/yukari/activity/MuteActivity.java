@@ -128,10 +128,14 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
     }
 
     public static class InnerFragment extends ListFragment implements
-            DialogInterface.OnClickListener,
+            SimpleAlertDialogFragment.OnDialogChoseListener,
             DriveConnectionDialogFragment.OnDriveImportCompletedListener {
         private static final String DRIVE_FILE_NAME = "mute.json";
         private static final String DRIVE_MIME_TYPE = "application/json";
+
+        private static final int DIALOG_DELETE = 0;
+        private static final int DIALOG_IMPORT = 1;
+        private static final int DIALOG_EXPORT = 2;
 
         private List<MuteConfig> configs;
         private MuteConfig deleteReserve = null;
@@ -150,6 +154,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     deleteReserve = configs.get(position);
                     SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                            DIALOG_DELETE,
                             "確認", "設定を削除しますか?", "OK", "キャンセル"
                     );
                     dialogFragment.setTargetFragment(InnerFragment.this, 1);
@@ -174,15 +179,27 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                     return true;
                 }
                 case R.id.action_import: {
-                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance(
-                            DRIVE_FILE_NAME, DRIVE_MIME_TYPE, this);
-                    dialogFragment.show(getFragmentManager(), "import");
+                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                            DIALOG_IMPORT,
+                            "Driveからインポート",
+                            "Driveから設定をインポートします。\nこの端末のミュート設定は全て上書きされます！！\n実行してもよろしいですか？",
+                            "OK",
+                            "キャンセル"
+                    );
+                    dialogFragment.setTargetFragment(this, 0);
+                    dialogFragment.show(getFragmentManager(), "dimport");
                     return true;
                 }
                 case R.id.action_export: {
-                    DriveConnectionDialogFragment dialogFragment = DriveConnectionDialogFragment.newInstance(
-                            DRIVE_FILE_NAME, DRIVE_MIME_TYPE, new Gson().toJson(configs).getBytes());
-                    dialogFragment.show(getFragmentManager(), "export");
+                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                            DIALOG_EXPORT,
+                            "Driveにエクスポート",
+                            "Driveに設定をエクスポートします。\n既にエクスポートしたデータがある場合上書きします。\n実行してもよろしいですか？",
+                            "OK",
+                            "キャンセル"
+                    );
+                    dialogFragment.setTargetFragment(this, 0);
+                    dialogFragment.show(getFragmentManager(), "dimport");
                     return true;
                 }
             }
@@ -210,15 +227,30 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         }
 
         @Override
-        public void onClick(DialogInterface dialog, int which) {
-            if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
-                TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
-                twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
-                twitterService.updateMuteConfig();
-                reloadList();
-                Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
+        public void onDialogChose(int requestCode, int which) {
+            if (which == DialogInterface.BUTTON_POSITIVE) {
+                switch (requestCode) {
+                    case DIALOG_DELETE:
+                        if (deleteReserve != null) {
+                            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+                            twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
+                            twitterService.updateMuteConfig();
+                            reloadList();
+                            Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
+                        }
+                        deleteReserve = null;
+                        break;
+                    case DIALOG_IMPORT:
+                        DriveConnectionDialogFragment.newInstance(DRIVE_FILE_NAME, DRIVE_MIME_TYPE, this)
+                                .show(getFragmentManager(), "import");
+                        break;
+                    case DIALOG_EXPORT:
+                        DriveConnectionDialogFragment.newInstance(
+                                DRIVE_FILE_NAME, DRIVE_MIME_TYPE, new Gson().toJson(configs).getBytes())
+                                .show(getFragmentManager(), "export");
+                        break;
+                }
             }
-            deleteReserve = null;
         }
 
         @Override
