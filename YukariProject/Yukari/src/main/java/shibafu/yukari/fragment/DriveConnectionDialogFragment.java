@@ -88,7 +88,13 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-        apiClient.connect();
+        apiClient.connect(); //TODO: なんかログイン処理後に再び実際の処理に繋げない
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        apiClient.disconnect();
     }
 
     @Override
@@ -204,6 +210,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
                     listener.onDriveImportCompleted(baos.toByteArray());
                     Toast.makeText(getActivity(), "Import Complete!", Toast.LENGTH_SHORT).show();
+                    dismiss();
                 }
             };
         });

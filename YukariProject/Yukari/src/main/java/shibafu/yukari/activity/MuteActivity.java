@@ -32,6 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.List;
 
@@ -126,7 +127,9 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         return service;
     }
 
-    public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
+    public static class InnerFragment extends ListFragment implements
+            DialogInterface.OnClickListener,
+            DriveConnectionDialogFragment.OnDriveImportCompletedListener {
         private static final String DRIVE_FILE_NAME = "mute.json";
         private static final String DRIVE_MIME_TYPE = "application/json";
 
@@ -216,6 +219,15 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                 Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
             }
             deleteReserve = null;
+        }
+
+        @Override
+        public void onDriveImportCompleted(byte[] bytes) {
+            List<MuteConfig> newConfigs = new Gson().fromJson(new String(bytes), new TypeToken<List<MuteConfig>>(){}.getType());
+            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+            twitterService.getDatabase().importMuteConfigs(newConfigs);
+            twitterService.updateMuteConfig();
+            reloadList();
         }
 
         private class Adapter extends ArrayAdapter<MuteConfig> {
