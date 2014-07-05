@@ -512,6 +512,19 @@ public class CentralDatabase {
     public void deleteMuteConfig(long id) {
         db.delete(TABLE_MUTE, COL_MUTE_ID + "=" + id, null);
     }
+
+    public void importMuteConfigs(List<MuteConfig> muteConfigs) {
+        beginTransaction();
+        try {
+            db.delete(TABLE_MUTE, null, null);
+            for (MuteConfig muteConfig : muteConfigs) {
+                db.insert(TABLE_MUTE, null, muteConfig.getContentValues());
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
+    }
     //</editor-fold>
 
     public static String joinColumnName(String table, String column) {
