@@ -18,9 +18,11 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
+import android.text.ClipboardManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,10 +48,12 @@ import twitter4j.User;
 public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",
+            "パーマリンクをコピー",
             "ミュート",
             "ツイート削除"
     };
 
+    private boolean enableDelete = true;
     private List<ResolveInfo> plugins;
     private List<String> pluginNames = new ArrayList<>();
 
@@ -93,6 +97,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
         if (user == null || status.getUser().getId() != user.NumericId) {
             menu.remove(ITEMS.length - 1);
+            enableDelete = false;
         }
 
         setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
@@ -114,11 +119,16 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 startActivity(Intent.createChooser(target, null));
                 break;
             case 1:
+                ClipboardManager cb = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                cb.setText(TwitterUtil.getTweetURL(status));
+                Toast.makeText(getActivity(), "リンクをコピーしました", Toast.LENGTH_SHORT).show();
+                break;
+            case 2:
                 MuteMenuDialogFragment.newInstance(status, this).show(getChildFragmentManager(), "mute");
                 break;
             default:
             {
-                if (position == 2 && user != null && status.getUser().getId() == user.NumericId) {
+                if (position == ITEMS.length-1 && enableDelete) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
