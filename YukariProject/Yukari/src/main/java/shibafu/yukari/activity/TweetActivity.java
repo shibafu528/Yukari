@@ -80,10 +80,11 @@ import twitter4j.util.CharacterUtil;
 
 public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener, TwitterServiceDelegate{
 
-    public static final int MODE_TWEET = 0;
-    public static final int MODE_REPLY = 1;
-    public static final int MODE_DM    = 2;
-    public static final int MODE_QUOTE = 3;
+    public static final int MODE_TWEET   = 0;
+    public static final int MODE_REPLY   = 1;
+    public static final int MODE_DM      = 2;
+    public static final int MODE_QUOTE   = 3;
+    public static final int MODE_COMPOSE = 4;
 
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
@@ -122,6 +123,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private boolean isDirectMessage = false;
     private long directMessageDestId;
     private String directMessageDestSN;
+
+    //編集モード
+    private boolean isComposerMode = false;
 
     //添付プレビュー
     private LinearLayout llTweetAttachParent;
@@ -325,6 +329,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             else if (status != null) {
                 showQuotedStatus();
             }
+        } else if (mode == MODE_COMPOSE) {
+            isComposerMode = true;
+            ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
         }
 
         //添付エリアの設定
@@ -353,10 +360,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     return;
                 } else if (tweetCount >= 140 && attachPictures.isEmpty()) {
                     Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (!serviceBound) {
-                    Toast.makeText(TweetActivity.this, "サービスが停止しています", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (writers.size() < 1) {
@@ -433,16 +436,22 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 TweetDraft draft = getTweetDraft();
                 draft.setText(inputText);
 
-                //サービスに投げる
-                Intent intent = PostService.newIntent(TweetActivity.this, draft);
-                startService(intent);
-
-                if (sp.getBoolean("first_guide", true)) {
-                    sp.edit().putBoolean("first_guide", false).commit();
+                if (isComposerMode) {
+                    Intent intent = new Intent();
+                    intent.putExtra(EXTRA_DRAFT, draft);
+                    setResult(RESULT_OK, intent);
                 }
+                else {
+                    //サービスに投げる
+                    Intent intent = PostService.newIntent(TweetActivity.this, draft);
+                    startService(intent);
 
-                //閉じる
-                setResult(RESULT_OK);
+                    if (sp.getBoolean("first_guide", true)) {
+                        sp.edit().putBoolean("first_guide", false).commit();
+                    }
+
+                    setResult(RESULT_OK);
+                }
                 finish();
             }
         });
