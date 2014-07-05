@@ -223,6 +223,10 @@
             android:theme="@style/YukariSearchTheme"
             android:label="@string/title_activity_user_search"
             android:windowSoftInputMode="adjustResize"/>
+
+        <activity
+            android:name=".activity.MaintenanceActivity"
+            android:label="Maintainance Mode" />
     </application>
 
 </manifest>

@@ -375,6 +375,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     if (input.startsWith("::cmd")) {
                         startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
                         return;
+                    } else if (input.equals("::main")) {
+                        startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
+                        return;
                     } else if (input.equals("::sb")) {
                         inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
                     } else if (input.equals("::jb")) {
@@ -429,6 +432,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         else {
                             inputText = "http://twitpic.com/d250g2";
                         }
+                    } else if (input.startsWith("::grgr")) {
+                        inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
                     }
                 }
 
