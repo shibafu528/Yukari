@@ -50,6 +50,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
 
     public static final String EXTRA_QUERY = "query";
     public static final String EXTRA_SCOPE = "scope";
+    public static final String EXTRA_MATCH = "match";
 
     private static final String FRAGMENT_TAG = "inner";
     private TwitterService service;
@@ -70,7 +71,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
             if (intent.hasExtra(EXTRA_QUERY)) {
                 MuteConfig config = new MuteConfig(
                         intent.getIntExtra(EXTRA_SCOPE, 0),
-                        MuteConfig.MATCH_EXACT,
+                        intent.getIntExtra(EXTRA_MATCH, MuteConfig.MATCH_EXACT),
                         MuteConfig.MUTE_TWEET,
                         intent.getStringExtra(EXTRA_QUERY)
                 );

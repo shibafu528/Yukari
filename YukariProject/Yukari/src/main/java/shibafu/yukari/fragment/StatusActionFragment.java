@@ -31,10 +31,12 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter4j.HashtagEntity;
 import twitter4j.User;
 
 /**
@@ -229,6 +231,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
     public void onSelectedMuteOption(int which) {
         String query;
+        int match = MuteConfig.MATCH_EXACT;
         PreformedStatus status = this.status.isRetweet()? this.status.getRetweetedStatus() : this.status;
         switch (which) {
             case 0:
@@ -247,11 +250,19 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 query = status.getSource();
                 break;
             default:
-                throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
+                HashtagEntity[] hash = status.getHashtagEntities();
+                if (hash.length <= 0 || which - 5 > hash.length) {
+                    throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
+                } else {
+                    query = "[#＃]" + hash[which - 5].getText();
+                    which = MuteConfig.SCOPE_TEXT;
+                    match = MuteConfig.MATCH_REGEX;
+                }
         }
         Intent intent = new Intent(getActivity(), MuteActivity.class);
         intent.putExtra(MuteActivity.EXTRA_QUERY, query);
         intent.putExtra(MuteActivity.EXTRA_SCOPE, which);
+        intent.putExtra(MuteActivity.EXTRA_MATCH, match);
         startActivity(intent);
     }
 
@@ -285,17 +296,20 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             Bundle args = getArguments();
             PreformedStatus status = (PreformedStatus) args.getSerializable("status");
             User user = status.isRetweet()? status.getRetweetedStatus().getUser() : status.getUser();
-            String[] items = {
+            List<String> items = new ArrayList<>(Arrays.asList(new String[]{
                     "本文",
                     "ユーザ名(" + user.getName() + ")",
                     "スクリーンネーム(@" + user.getScreenName() + ")",
                     "ユーザID(" + user.getId() + ")",
                     "クライアント名(" + status.getSource() + ")"
-            };
+            }));
+            for (HashtagEntity hashtagEntity : status.getHashtagEntities()) {
+                items.add("#" + hashtagEntity.getText());
+            }
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("ミュート")
-                    .setItems(items, new DialogInterface.OnClickListener() {
+                    .setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dismiss();
