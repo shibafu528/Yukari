@@ -21,8 +21,8 @@ import shibafu.yukari.twitter.AuthUserRecord;
 public class CentralDatabase {
 
     //DB基本情報
-    private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 5;
+    public static final String DB_FILENAME = "yukari.db";
+    public static final int DB_VER = 5;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
