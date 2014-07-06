@@ -97,6 +97,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
             this.activity = activity;
             this.tag = tag;
             this.cls = cls;
+            this.fragment = getSupportFragmentManager().findFragmentByTag(tag);
         }
 
         @Override
@@ -104,7 +105,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
             if (fragment == null) {
                 fragment = Fragment.instantiate(activity, cls.getName());
                 fragmentTransaction.add(R.id.frame, fragment, tag);
-            } else {
+            } else if (fragment.isDetached()) {
                 fragmentTransaction.attach(fragment);
             }
         }
