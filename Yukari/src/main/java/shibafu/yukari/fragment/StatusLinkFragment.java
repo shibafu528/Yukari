@@ -1,20 +1,32 @@
 package shibafu.yukari.fragment;
 
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +42,7 @@ import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -74,6 +87,8 @@ public class StatusLinkFragment extends ListFragment{
         }
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
+        PackageManager pm = getActivity().getPackageManager();
+
         //リスト要素を作成する
         list = new ArrayList<LinkRow>() {
             @Override
@@ -85,7 +100,13 @@ public class StatusLinkFragment extends ListFragment{
             list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
-            list.add(new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false));
+            LinkRow row = new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false);
+            Uri uri = Uri.parse(u.getExpandedURL());
+            Intent intent = new Intent(Plugin.ACTION_LINK_ACCEL, uri);
+            for (ResolveInfo resolveInfo : pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)) {
+                row.plugins.add(new Plugin(pm, resolveInfo, uri));
+            }
+            list.add(row);
         }
         for (HashtagEntity h : status.getHashtagEntities()) {
             list.add(new LinkRow("#" + h.getText(), TYPE_HASH, 0, null, false));
@@ -165,38 +186,45 @@ public class StatusLinkFragment extends ListFragment{
                         }
                     }
                 } else {
+                    class BrowserExecutor {
+                        void executeIntent(Uri uri) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                        }
+                    }
                     switch (lr.type) {
-                        case TYPE_GEO:
                         case TYPE_URL: {
-                            final Uri uri = Uri.parse(lr.text);
-                            if (lr.type == TYPE_URL &&
-                                    uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
-                                String query = uri.getQueryParameter("q");
-                                AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                        .setTitle("検索URL")
-                                        .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
-                                        .setPositiveButton("続行", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                startActivity(intent);
-                                            }
-                                        })
-                                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.dismiss();
-                                            }
-                                        })
-                                        .create();
-                                ad.show();
-                            } else {
-                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                            }
+                                final Uri uri = Uri.parse(lr.text);
+                                final BrowserExecutor executor = new BrowserExecutor();
+                                if (lr.type == TYPE_URL &&
+                                        uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
+                                    String query = uri.getQueryParameter("q");
+                                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                            .setTitle("検索URL")
+                                            .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
+                                            .setPositiveButton("続行", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                    executor.executeIntent(uri);
+                                                }
+                                            })
+                                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.dismiss();
+                                                }
+                                            })
+                                            .create();
+                                    ad.show();
+                                } else {
+                                    executor.executeIntent(uri);
+                                }
+                            break;
+                        }
+                        case TYPE_GEO: {
+                            new BrowserExecutor().executeIntent(Uri.parse(lr.text));
                             break;
                         }
                         case (TYPE_URL | TYPE_URL_MEDIA): {
@@ -274,12 +302,48 @@ public class StatusLinkFragment extends ListFragment{
         getListView().setStackFromBottom(sp.getBoolean("pref_bottom_stack", false));
     }
 
+    private class Plugin {
+        public static final String ACTION_LINK_ACCEL = "shibafu.yukari.ACTION_LINK_ACCEL";
+        private ResolveInfo resolveInfo;
+        private Drawable icon;
+        private CharSequence label;
+        private boolean canReceiveName;
+        private Uri uri;
+
+        Plugin(PackageManager pm, ResolveInfo ri, Uri uri) {
+            resolveInfo = ri;
+            icon = ri.loadIcon(pm);
+            label = ri.loadLabel(pm);
+            try {
+                ActivityInfo info = pm.getActivityInfo(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name), PackageManager.GET_META_DATA);
+                canReceiveName = info.metaData.getBoolean("can_receive_name", false);
+            } catch (NullPointerException | PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            this.uri = uri;
+        }
+
+        public void executeIntent(boolean grantName) {
+            Intent intent = new Intent(ACTION_LINK_ACCEL, uri);
+            intent.setPackage(resolveInfo.activityInfo.packageName);
+            intent.setClassName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);
+            intent.putExtra("grant_name", grantName);
+            intent.putExtra("user_name", user.Name);
+            intent.putExtra("user_screen_name", user.ScreenName);
+            intent.putExtra("user_id", user.NumericId);
+            intent.putExtra("user_profile_image_url", user.ProfileImageUrl);
+            intent.putExtra("status_url", TwitterUtil.getTweetURL(status));
+            startActivity(intent);
+        }
+    }
+
     private class LinkRow {
         public String text;
         public int type;
         public long targetUser;
         public String targetUserSN;
         public boolean showTargetUser;
+        public List<Plugin> plugins = new ArrayList<>();
 
         private LinkRow(String text, int type, long targetUser, String targetUserSN, boolean showTargetUser) {
             this.text = text;
@@ -347,6 +411,35 @@ public class StatusLinkFragment extends ListFragment{
 
                 TextView tvContent = (TextView) v.findViewById(R.id.statuslink_content);
                 tvContent.setText(d.text);
+
+                LinearLayout ll = (LinearLayout) v.findViewById(R.id.linearLayout);
+                ll.removeAllViews();
+                final float density = getResources().getDisplayMetrics().density;
+                final int iconSize = (int) (density * 24);
+                if (d.plugins.size() > 0) {
+                    ll.setPadding(0, 0, (int) (density * 4), 0);
+                }
+                for (final Plugin plugin : d.plugins) {
+                    ImageButton ib = new ImageButton(getContext());
+                    ib.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                    ib.setImageBitmap(Bitmap.createScaledBitmap(((BitmapDrawable) plugin.icon).getBitmap(), iconSize, iconSize, true));
+                    ib.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            plugin.executeIntent(plugin.canReceiveName);
+                        }
+                    });
+                    ib.setOnLongClickListener(new View.OnLongClickListener() {
+                        @Override
+                        public boolean onLongClick(View v) {
+                            Toast toast = Toast.makeText(getContext(), plugin.label, Toast.LENGTH_SHORT);
+                            toast.setGravity(Gravity.TOP, 0, 0);
+                            toast.show();
+                            return true;
+                        }
+                    });
+                    ll.addView(ib, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                }
             }
 
             return v;

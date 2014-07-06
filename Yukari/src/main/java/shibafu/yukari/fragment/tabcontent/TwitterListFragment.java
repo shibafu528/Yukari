@@ -211,7 +211,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             serviceBound = true;
 
             if (users.isEmpty()) {
-                users.addAll(TwitterListFragment.this.service.getActiveUsers());
+                users.addAll(TwitterListFragment.this.service.getUsers());
             }
 
             TwitterListFragment.this.onServiceConnected();

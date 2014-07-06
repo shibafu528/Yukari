@@ -4,6 +4,7 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:descendantFocusability="blocksDescendants"
         >
 
     <TextView
@@ -21,15 +22,28 @@
             android:paddingRight="4dp"
             android:paddingBottom="4dp"/>
 
-    <TextView
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginRight="6dp"
+        android:layout_marginBottom="6dp">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:orientation="horizontal"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Content"
-            android:id="@+id/statuslink_content"
-            android:layout_gravity="left|center_vertical"
-            android:padding="4dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="6dp"
-            android:layout_marginLeft="6dp"/>
+            android:layout_height="match_parent"/>
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Content"
+                android:id="@+id/statuslink_content"
+                android:layout_gravity="left|center_vertical"
+                android:padding="4dp"/>
+    </LinearLayout>
 </LinearLayout>

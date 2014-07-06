@@ -6,7 +6,6 @@ import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Pair;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -39,7 +39,7 @@ public class IntentActivity extends Activity{
                     public void work(IntentActivity activity) {
                         String id = activity.matchedWork.first.group(1);
                         TweetLoaderTask task = activity.new TweetLoaderTask();
-                        task.execute(Long.valueOf(id));
+                        task.executeIf(Long.valueOf(id));
                     }
                 }));
         matchTemp.add(new Pair<Pattern, AfterWork>(
@@ -132,7 +132,7 @@ public class IntentActivity extends Activity{
         }
     };
 
-    private class TweetLoaderTask extends AsyncTask<Long, Void, PreformedStatus> {
+    private class TweetLoaderTask extends ParallelAsyncTask<Long, Void, PreformedStatus> {
 
         private ProgressDialog currentDialog;
 
@@ -177,11 +177,11 @@ public class IntentActivity extends Activity{
                 intent.putExtra(StatusActivity.EXTRA_STATUS, status);
                 intent.putExtra(StatusActivity.EXTRA_USER, primaryUser);
                 startActivity(intent);
-                finish();
             }
             else if (!isCancelled()) {
                 Toast.makeText(IntentActivity.this, "ツイートの受信に失敗しました", Toast.LENGTH_SHORT).show();
             }
+            finish();
         }
 
         @Override
@@ -190,6 +190,7 @@ public class IntentActivity extends Activity{
                 currentDialog.dismiss();
                 currentDialog = null;
             }
+            finish();
         }
     }
 
