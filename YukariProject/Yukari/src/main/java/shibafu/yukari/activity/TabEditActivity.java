@@ -78,7 +78,6 @@ public class TabEditActivity extends ActionBarActivity
     @Override
     public void onBackPressed() {
         SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                android.R.drawable.ic_dialog_info,
                 "Info", "変更はアプリの再起動後に適用されます", "OK", null);
         dialogFragment.show(getSupportFragmentManager(), "dialog");
     }
@@ -180,7 +179,6 @@ public class TabEditActivity extends ActionBarActivity
         public void onListItemClick(ListView l, View v, int position, long id) {
             deleteReserve = tabs.get(position);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    android.R.drawable.ic_dialog_alert,
                     "確認", "タブを削除しますか?", "OK", "キャンセル"
             );
             dialogFragment.setTargetFragment(this, 1);

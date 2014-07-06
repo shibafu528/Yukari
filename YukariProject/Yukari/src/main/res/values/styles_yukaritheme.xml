@@ -111,4 +111,8 @@
         <item name="android:dividerHeight">1dp</item>
     </style>
 
+    <style name="ActionBarTabYukariTheme" parent="Widget.AppCompat.ActionBar.TabView">
+        <item name="android:background">@drawable/selector_tab_background</item>
+    </style>
+
 </resources>

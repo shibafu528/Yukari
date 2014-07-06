@@ -46,6 +46,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.twitter.Extractor;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -78,10 +80,11 @@ import twitter4j.util.CharacterUtil;
 
 public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener, TwitterServiceDelegate{
 
-    public static final int MODE_TWEET = 0;
-    public static final int MODE_REPLY = 1;
-    public static final int MODE_DM    = 2;
-    public static final int MODE_QUOTE = 3;
+    public static final int MODE_TWEET   = 0;
+    public static final int MODE_REPLY   = 1;
+    public static final int MODE_DM      = 2;
+    public static final int MODE_QUOTE   = 3;
+    public static final int MODE_COMPOSE = 4;
 
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
@@ -108,6 +111,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
 
+    private static final Extractor EXTRACTOR = new Extractor();
+
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
@@ -118,6 +123,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private boolean isDirectMessage = false;
     private long directMessageDestId;
     private String directMessageDestSN;
+
+    //編集モード
+    private boolean isComposerMode = false;
 
     //添付プレビュー
     private LinearLayout llTweetAttachParent;
@@ -135,8 +143,11 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private TwitterService service;
     private boolean serviceBound = false;
 
+    //短縮URLの文字数
+    private int shortUrlLength = 22;
+
     //最大添付数
-    private int maxMediaPerUpload = 1;
+    private int maxMediaPerUpload = 4;
 
     //撮影用の一時変数
     private Uri cameraTemp;
@@ -215,7 +226,15 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
             @Override
             public void afterTextChanged(Editable s) {
-                int count = CharacterUtil.count(s.toString());
+                String text = s.toString();
+                int count = CharacterUtil.count(text);
+                List<String> urls = EXTRACTOR.extractURLs(text);
+                for (String url : urls) {
+                    count -= url.length() < shortUrlLength ? -(shortUrlLength - url.length()) : (url.length() - shortUrlLength);
+                    if (url.startsWith("https://")) {
+                        count += 1;
+                    }
+                }
                 tweetCount = 140 - count - reservedCount;
                 tvCount.setText(String.valueOf(tweetCount));
                 if (count < 0) {
@@ -226,7 +245,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
                 if (ibSNPicker != null) {
                     if (count > 0 && etInput.getSelectionStart() > 0 &&
-                            s.toString().charAt(etInput.getSelectionStart() - 1) == '@') {
+                            text.charAt(etInput.getSelectionStart() - 1) == '@') {
                         ibSNPicker.setVisibility(View.VISIBLE);
                     }
                     else {
@@ -310,6 +329,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             else if (status != null) {
                 showQuotedStatus();
             }
+        } else if (mode == MODE_COMPOSE) {
+            isComposerMode = true;
+            ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
         }
 
         //添付エリアの設定
@@ -340,10 +362,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (!serviceBound) {
-                    Toast.makeText(TweetActivity.this, "サービスが停止しています", Toast.LENGTH_SHORT).show();
-                    return;
-                }
                 if (writers.size() < 1) {
                     Toast.makeText(TweetActivity.this, "アカウントを指定してください", Toast.LENGTH_SHORT).show();
                     return;
@@ -356,6 +374,9 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     String input = etInput.getText().toString();
                     if (input.startsWith("::cmd")) {
                         startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
+                        return;
+                    } else if (input.equals("::main")) {
+                        startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
                         return;
                     } else if (input.equals("::sb")) {
                         inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
@@ -411,6 +432,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                         else {
                             inputText = "http://twitpic.com/d250g2";
                         }
+                    } else if (input.startsWith("::grgr")) {
+                        inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
                     }
                 }
 
@@ -418,16 +441,22 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 TweetDraft draft = getTweetDraft();
                 draft.setText(inputText);
 
-                //サービスに投げる
-                Intent intent = PostService.newIntent(TweetActivity.this, draft);
-                startService(intent);
-
-                if (sp.getBoolean("first_guide", true)) {
-                    sp.edit().putBoolean("first_guide", false).commit();
+                if (isComposerMode) {
+                    Intent intent = new Intent();
+                    intent.putExtra(EXTRA_DRAFT, draft);
+                    setResult(RESULT_OK, intent);
                 }
+                else {
+                    //サービスに投げる
+                    Intent intent = PostService.newIntent(TweetActivity.this, draft);
+                    startService(intent);
 
-                //閉じる
-                setResult(RESULT_OK);
+                    if (sp.getBoolean("first_guide", true)) {
+                        sp.edit().putBoolean("first_guide", false).commit();
+                    }
+
+                    setResult(RESULT_OK);
+                }
                 finish();
             }
         });
@@ -986,6 +1015,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             if (apiConfiguration != null) {
                 maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
                 ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+                shortUrlLength = apiConfiguration.getShortURLLength();
             }
         }
 

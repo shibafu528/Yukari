@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Created by shibafu on 14/04/22.
  */
-public class MuteConfig implements DBRecord, Serializable{
+public class MuteConfig implements DBRecord, Serializable {
     public static final int SCOPE_TEXT = 0;
     public static final int SCOPE_USER_NAME = 1;
     public static final int SCOPE_USER_SN = 2;
