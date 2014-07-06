@@ -19,12 +19,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
+    compileSdkVersion COMPILE_SDK_VERSION
     buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
+        targetSdkVersion TARGET_SDK_VERSION
     }
 
     compileOptions {
