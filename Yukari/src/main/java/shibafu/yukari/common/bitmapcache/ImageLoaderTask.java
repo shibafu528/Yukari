@@ -3,6 +3,8 @@ package shibafu.yukari.common.bitmapcache;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.widget.ImageView;
@@ -47,14 +49,14 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
 
     @Override
     protected void onProgressUpdate(Void... values) {
-        if (tag.equals(imageView.getTag())) {
+        if (imageView != null && tag.equals(imageView.getTag())) {
             imageView.setImageResource(R.drawable.yukatterload);
         }
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        if (tag.equals(imageView.getTag())) {
+        if (imageView != null && tag.equals(imageView.getTag())) {
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
             }
@@ -99,6 +101,24 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                 new ImageLoaderTask(context, imageView).executeIf(new Params(mode, uri));
             }
         }
+    }
+
+    public static void loadDrawable(final Context context, String uri, String mode, final DrawableLoaderCallback callback) {
+        Bitmap cache = BitmapCache.getImage(uri, context, mode);
+        if (cache != null) {
+            callback.onLoadDrawable(new BitmapDrawable(context.getResources(), cache));
+        } else {
+            new ImageLoaderTask(context, null) {
+                @Override
+                protected void onPostExecute(Bitmap bitmap) {
+                    callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
+                }
+            }.executeIf(new Params(mode, uri));
+        }
+    }
+
+    public static interface DrawableLoaderCallback {
+        void onLoadDrawable(Drawable drawable);
     }
 
     static class Params {

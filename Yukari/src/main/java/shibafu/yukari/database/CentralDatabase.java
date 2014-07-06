@@ -21,8 +21,8 @@ import shibafu.yukari.twitter.AuthUserRecord;
 public class CentralDatabase {
 
     //DB基本情報
-    private static final String DB_FILENAME = "yukari.db";
-    private static final int DB_VER = 5;
+    public static final String DB_FILENAME = "yukari.db";
+    public static final int DB_VER = 5;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -274,6 +274,10 @@ public class CentralDatabase {
         db.endTransaction();
     }
 
+    public void vacuum() {
+        db.execSQL("vacuum");
+    }
+
     //<editor-fold desc="Users">
     public void updateUser(DBUser user) {
         db.replace(TABLE_USER, null, user.getContentValues());
@@ -311,6 +315,16 @@ public class CentralDatabase {
 
     public Cursor getUsersCursor() {
         return db.query(TABLE_USER, null, null, null, null, null, COL_USER_SCREEN_NAME + " ASC");
+    }
+
+    public void wipeUsers() {
+        beginTransaction();
+        try {
+            db.delete(TABLE_USER, COL_USER_ID + " NOT IN (SELECT " + COL_ACCOUNTS_ID + " FROM " + TABLE_ACCOUNTS + ")", null);
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
     }
     //</editor-fold>
 
@@ -511,6 +525,19 @@ public class CentralDatabase {
 
     public void deleteMuteConfig(long id) {
         db.delete(TABLE_MUTE, COL_MUTE_ID + "=" + id, null);
+    }
+
+    public void importMuteConfigs(List<MuteConfig> muteConfigs) {
+        beginTransaction();
+        try {
+            db.delete(TABLE_MUTE, null, null);
+            for (MuteConfig muteConfig : muteConfigs) {
+                db.insert(TABLE_MUTE, null, muteConfig.getContentValues());
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
     }
     //</editor-fold>
 

@@ -8,17 +8,21 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.ListFragment;
+import android.text.ClipboardManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,10 +33,12 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter4j.HashtagEntity;
 import twitter4j.User;
 
 /**
@@ -42,10 +48,12 @@ import twitter4j.User;
 public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",
+            "パーマリンクをコピー",
             "ミュート",
             "ツイート削除"
     };
 
+    private boolean enableDelete = true;
     private List<ResolveInfo> plugins;
     private List<String> pluginNames = new ArrayList<>();
 
@@ -89,12 +97,17 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
         if (user == null || status.getUser().getId() != user.NumericId) {
             menu.remove(ITEMS.length - 1);
+            enableDelete = false;
         }
 
-        setListAdapter(new ArrayAdapter<String>(getActivity(), R.layout.simple_list_item_1, menu));
+        setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
         getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
+
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        getListView().setStackFromBottom(sp.getBoolean("pref_bottom_stack", false));
     }
 
     @Override
@@ -106,11 +119,16 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 startActivity(Intent.createChooser(target, null));
                 break;
             case 1:
+                ClipboardManager cb = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                cb.setText(TwitterUtil.getTweetURL(status));
+                Toast.makeText(getActivity(), "リンクをコピーしました", Toast.LENGTH_SHORT).show();
+                break;
+            case 2:
                 MuteMenuDialogFragment.newInstance(status, this).show(getChildFragmentManager(), "mute");
                 break;
             default:
             {
-                if (position == 2 && user != null && status.getUser().getId() == user.NumericId) {
+                if (position == ITEMS.length-1 && enableDelete) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
@@ -223,6 +241,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
     public void onSelectedMuteOption(int which) {
         String query;
+        int match = MuteConfig.MATCH_EXACT;
         PreformedStatus status = this.status.isRetweet()? this.status.getRetweetedStatus() : this.status;
         switch (which) {
             case 0:
@@ -241,11 +260,19 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                 query = status.getSource();
                 break;
             default:
-                throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
+                HashtagEntity[] hash = status.getHashtagEntities();
+                if (hash.length <= 0 || which - 5 > hash.length) {
+                    throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
+                } else {
+                    query = "[#＃]" + hash[which - 5].getText();
+                    which = MuteConfig.SCOPE_TEXT;
+                    match = MuteConfig.MATCH_REGEX;
+                }
         }
         Intent intent = new Intent(getActivity(), MuteActivity.class);
         intent.putExtra(MuteActivity.EXTRA_QUERY, query);
         intent.putExtra(MuteActivity.EXTRA_SCOPE, which);
+        intent.putExtra(MuteActivity.EXTRA_MATCH, match);
         startActivity(intent);
     }
 
@@ -279,17 +306,20 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
             Bundle args = getArguments();
             PreformedStatus status = (PreformedStatus) args.getSerializable("status");
             User user = status.isRetweet()? status.getRetweetedStatus().getUser() : status.getUser();
-            String[] items = {
+            List<String> items = new ArrayList<>(Arrays.asList(new String[]{
                     "本文",
                     "ユーザ名(" + user.getName() + ")",
                     "スクリーンネーム(@" + user.getScreenName() + ")",
                     "ユーザID(" + user.getId() + ")",
                     "クライアント名(" + status.getSource() + ")"
-            };
+            }));
+            for (HashtagEntity hashtagEntity : status.getHashtagEntities()) {
+                items.add("#" + hashtagEntity.getText());
+            }
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("ミュート")
-                    .setItems(items, new DialogInterface.OnClickListener() {
+                    .setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dismiss();

@@ -437,7 +437,6 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         public void onAttach(Activity activity) {
             super.onAttach(activity);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    android.R.drawable.ic_dialog_alert,
                     "確認",
                     "メッセージを削除してもよろしいですか？",
                     "OK",

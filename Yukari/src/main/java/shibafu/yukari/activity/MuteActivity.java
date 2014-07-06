@@ -16,7 +16,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,10 +31,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -47,6 +50,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
 
     public static final String EXTRA_QUERY = "query";
     public static final String EXTRA_SCOPE = "scope";
+    public static final String EXTRA_MATCH = "match";
 
     private static final String FRAGMENT_TAG = "inner";
     private TwitterService service;
@@ -67,7 +71,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
             if (intent.hasExtra(EXTRA_QUERY)) {
                 MuteConfig config = new MuteConfig(
                         intent.getIntExtra(EXTRA_SCOPE, 0),
-                        MuteConfig.MATCH_EXACT,
+                        intent.getIntExtra(EXTRA_MATCH, MuteConfig.MATCH_EXACT),
                         MuteConfig.MUTE_TWEET,
                         intent.getStringExtra(EXTRA_QUERY)
                 );
@@ -124,7 +128,15 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         return service;
     }
 
-    public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener{
+    public static class InnerFragment extends ListFragment implements
+            SimpleAlertDialogFragment.OnDialogChoseListener,
+            DriveConnectionDialogFragment.OnDriveImportCompletedListener {
+        private static final String DRIVE_FILE_NAME = "mute.json";
+        private static final String DRIVE_MIME_TYPE = "application/json";
+
+        private static final int DIALOG_DELETE = 0;
+        private static final int DIALOG_IMPORT = 1;
+        private static final int DIALOG_EXPORT = 2;
 
         private List<MuteConfig> configs;
         private MuteConfig deleteReserve = null;
@@ -143,7 +155,7 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     deleteReserve = configs.get(position);
                     SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            android.R.drawable.ic_dialog_alert,
+                            DIALOG_DELETE,
                             "確認", "設定を削除しますか?", "OK", "キャンセル"
                     );
                     dialogFragment.setTargetFragment(InnerFragment.this, 1);
@@ -151,12 +163,12 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                     return true;
                 }
             });
+
         }
 
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-            MenuItem addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "条件の追加").setIcon(R.drawable.ic_action_add);
-            MenuItemCompat.setShowAsAction(addMenu, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+            inflater.inflate(R.menu.mute, menu);
         }
 
         @Override
@@ -165,6 +177,30 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                 case R.id.action_add: {
                     MuteConfigDialogFragment dialogFragment = MuteConfigDialogFragment.newInstance(null, this);
                     dialogFragment.show(getFragmentManager(), "config");
+                    return true;
+                }
+                case R.id.action_import: {
+                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                            DIALOG_IMPORT,
+                            "Driveからインポート",
+                            "Driveから設定をインポートします。\nこの端末のミュート設定は全て上書きされます！！\n実行してもよろしいですか？",
+                            "OK",
+                            "キャンセル"
+                    );
+                    dialogFragment.setTargetFragment(this, 0);
+                    dialogFragment.show(getFragmentManager(), "dimport");
+                    return true;
+                }
+                case R.id.action_export: {
+                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                            DIALOG_EXPORT,
+                            "Driveにエクスポート",
+                            "Driveに設定をエクスポートします。\n既にエクスポートしたデータがある場合上書きします。\n実行してもよろしいですか？",
+                            "OK",
+                            "キャンセル"
+                    );
+                    dialogFragment.setTargetFragment(this, 0);
+                    dialogFragment.show(getFragmentManager(), "dimport");
                     return true;
                 }
             }
@@ -192,15 +228,39 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         }
 
         @Override
-        public void onClick(DialogInterface dialog, int which) {
-            if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
-                TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
-                twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
-                twitterService.updateMuteConfig();
-                reloadList();
-                Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
+        public void onDialogChose(int requestCode, int which) {
+            if (which == DialogInterface.BUTTON_POSITIVE) {
+                switch (requestCode) {
+                    case DIALOG_DELETE:
+                        if (deleteReserve != null) {
+                            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+                            twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
+                            twitterService.updateMuteConfig();
+                            reloadList();
+                            Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
+                        }
+                        deleteReserve = null;
+                        break;
+                    case DIALOG_IMPORT:
+                        DriveConnectionDialogFragment.newInstance(DRIVE_FILE_NAME, DRIVE_MIME_TYPE, this)
+                                .show(getFragmentManager(), "import");
+                        break;
+                    case DIALOG_EXPORT:
+                        DriveConnectionDialogFragment.newInstance(
+                                DRIVE_FILE_NAME, DRIVE_MIME_TYPE, new Gson().toJson(configs).getBytes())
+                                .show(getFragmentManager(), "export");
+                        break;
+                }
             }
-            deleteReserve = null;
+        }
+
+        @Override
+        public void onDriveImportCompleted(byte[] bytes) {
+            List<MuteConfig> newConfigs = new Gson().fromJson(new String(bytes), new TypeToken<List<MuteConfig>>(){}.getType());
+            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+            twitterService.getDatabase().importMuteConfigs(newConfigs);
+            twitterService.updateMuteConfig();
+            reloadList();
         }
 
         private class Adapter extends ArrayAdapter<MuteConfig> {
@@ -309,4 +369,5 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
             return dialog;
         }
     }
+
 }

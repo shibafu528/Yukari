@@ -1,9 +1,11 @@
-apply plugin: 'com.android.application'
+apply plugin: 'android'
 
 dependencies {
     compile 'com.android.support:appcompat-v7:21.+'
     compile 'com.android.support:support-v4:21.+'
+    compile 'com.google.android.gms:play-services:5.0.77'
 
+    compile 'com.google.code.gson:gson:2.+'
     compile 'com.jakewharton:butterknife:5.+'
 
     compile 'org.twitter4j:twitter4j-core:4.+'
@@ -11,16 +13,18 @@ dependencies {
     compile 'org.twitter4j:twitter4j-media-support:4.+'
     compile 'org.twitter4j:twitter4j-stream:4.+'
 
+    compile 'com.twitter:twitter-text:1.6.1'
+
     compile fileTree(dir: './libs', includes: ['*.jar'])
 }
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
+    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
     buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion TARGET_SDK_VERSION
+        targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
     }
 
     compileOptions {

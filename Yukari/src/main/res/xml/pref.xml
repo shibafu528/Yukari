@@ -14,6 +14,10 @@
             android:key="pref_show_tweetbutton"
             android:title="投稿ボタンを表示"
             android:summary="投稿画面を呼び出すボタンを表示します"/>
+        <CheckBoxPreference
+            android:key="pref_bottom_stack"
+            android:title="メニューを下に寄せる"
+            android:summary="ツイート詳細画面のメニューを下寄せにします"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
