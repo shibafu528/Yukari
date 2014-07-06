@@ -45,6 +45,7 @@ import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
@@ -321,7 +322,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             }
         }
         else {
-            final AsyncTask<Void, Void, LoadHolder> task = new AsyncTask<Void, Void, LoadHolder>() {
+            final ParallelAsyncTask<Void, Void, LoadHolder> task = new ParallelAsyncTask<Void, Void, LoadHolder>() {
                 @Override
                 protected LoadHolder doInBackground(Void... params) {
                     while (!serviceBound) {
@@ -372,7 +373,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             currentProgress.show(getFragmentManager(), "Loading");
 
             profileLoadTask = task;
-            task.execute();
+            task.executeIf();
 
             btnFollowManage.setEnabled(false);
             btnFollowManage.setText("読み込み中...");
