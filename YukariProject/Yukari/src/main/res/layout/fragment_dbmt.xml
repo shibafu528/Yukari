@@ -54,8 +54,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vaccum"
-        android:id="@+id/btnYdbVaccum"
+        android:text="Vacuum"
+        android:id="@+id/btnYdbVacuum"
         android:layout_below="@+id/imageView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -71,7 +71,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="6dp"
-        android:layout_below="@+id/tvYdbName" />
+        android:layout_below="@+id/tvYdbSize" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -82,5 +82,15 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 byte"
+        android:id="@+id/tvYdbSize"
+        android:layout_below="@+id/tvYdbName"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="4dp" />
 
 </RelativeLayout>

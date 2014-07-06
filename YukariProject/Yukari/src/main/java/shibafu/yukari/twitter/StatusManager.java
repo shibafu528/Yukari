@@ -533,6 +533,24 @@ public class StatusManager {
         isStarted = false;
     }
 
+    public void startAsync() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                start();
+            }
+        }).run();
+    }
+
+    public void stopAsync() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                stop();
+            }
+        }).run();
+    }
+
     public void shutdownAll() {
         Log.d(LOG_TAG, "call shutdownAll");
 
