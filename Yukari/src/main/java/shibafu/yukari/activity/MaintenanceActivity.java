@@ -1,25 +1,29 @@
 package shibafu.yukari.activity;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import shibafu.yukari.R;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -54,6 +58,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
     @Override
     protected void onStop() {
         super.onStop();
+        service.getStatusManager().startAsync();
         unbindService(connection);
     }
 
@@ -67,6 +72,8 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
             for (Fragment fragment : getSupportFragmentManager().getFragments()) {
                 ((ServiceConnectable)fragment).onServiceConnected();
             }
+
+            MaintenanceActivity.this.service.getStatusManager().stopAsync();
         }
 
         @Override
@@ -117,14 +124,14 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
 
     private interface ServiceConnectable {
         void onServiceConnected();
+        TwitterService getService();
     }
 
     public static class DBMaintenanceFragment extends Fragment implements ServiceConnectable{
 
         @InjectView(R.id.tvYdbName) TextView title;
+        @InjectView(R.id.tvYdbSize) TextView size;
         @InjectView(R.id.tvYdbUserEnt) TextView usersCount;
-        @InjectView(R.id.btnYdbWipe) Button usersWipeButton;
-        @InjectView(R.id.btnYdbVaccum) Button vaccumButton;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -132,6 +139,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
             ButterKnife.inject(this, v);
 
             title.setText(String.format("%s, version %d", CentralDatabase.DB_FILENAME, CentralDatabase.DB_VER));
+            size.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
             return v;
         }
 
@@ -142,18 +150,98 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
         }
 
         @OnClick(R.id.btnYdbWipe)
-        void onClickWipe(Button button) {
+        public void onClickWipe() {
+            new SimpleAsyncTask() {
 
+                private SimpleProgressDialogFragment fragment;
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    getService().getDatabase().wipeUsers();
+                    return null;
+                }
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    fragment = SimpleProgressDialogFragment.newInstance(
+                            null, "Wipe User table...", true, false
+                    );
+                    fragment.show(getFragmentManager(), "wipe");
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    fragment.dismiss();
+                    onServiceConnected();
+                }
+            }.execute();
         }
 
-        @OnClick(R.id.btnYdbVaccum)
-        void onClickVaccum(Button button) {
+        @OnClick(R.id.btnYdbVacuum)
+        public void onClickVacuum() {
+            new SimpleAsyncTask() {
 
+                private SimpleProgressDialogFragment fragment;
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    getService().getDatabase().vacuum();
+                    return null;
+                }
+
+                @Override
+                protected void onPreExecute() {
+                    super.onPreExecute();
+                    fragment = SimpleProgressDialogFragment.newInstance(
+                            null, "Vacuum database...", true, false
+                    );
+                    fragment.show(getFragmentManager(), "vacuum");
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    fragment.dismiss();
+                    onServiceConnected();
+                }
+            }.execute();
         }
 
         @Override
         public void onServiceConnected() {
-            usersCount.setText(String.format("%d entries", ((TwitterServiceDelegate)getActivity()).getTwitterService().getDatabase().getUsersCursor().getCount()));
+            usersCount.setText(String.format("%d entries", getService().getDatabase().getUsersCursor().getCount()));
+            size.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+        }
+
+        @Override
+        public TwitterService getService() {
+            return ((MaintenanceActivity)getActivity()).getTwitterService();
+        }
+    }
+
+    public static class SimpleProgressDialogFragment extends DialogFragment {
+
+        public static SimpleProgressDialogFragment newInstance(String title, String message, boolean indeterminate, boolean isCancellable) {
+            SimpleProgressDialogFragment fragment = new SimpleProgressDialogFragment();
+            Bundle args = new Bundle();
+            args.putString("title", title);
+            args.putString("message", message);
+            args.putBoolean("indeterminate", indeterminate);
+            fragment.setArguments(args);
+            fragment.setCancelable(isCancellable);
+            return fragment;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Bundle args = getArguments();
+            ProgressDialog dialog = ProgressDialog.show(getActivity(),
+                    args.getString("title"),
+                    args.getString("message"),
+                    args.getBoolean("indeterminate"));
+            return dialog;
         }
     }
 }
