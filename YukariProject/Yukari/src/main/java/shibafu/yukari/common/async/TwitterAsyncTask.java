@@ -1,27 +1,29 @@
 package shibafu.yukari.common.async;
 
-import android.os.AsyncTask;
-import android.os.Build;
-
-import java.util.concurrent.RejectedExecutionException;
+import android.content.Context;
+import android.widget.Toast;
 
 import twitter4j.TwitterException;
 
 /**
  * Created by Shibafu on 13/11/23.
  */
-public abstract class TwitterAsyncTask<P> extends AsyncTask<P, Void, TwitterException> {
-    public void executePararell(P... params) {
-        if (getStatus() == Status.RUNNING && !isCancelled()) return;
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
-            }
-            else {
-                this.execute(params);
-            }
-        } catch (RejectedExecutionException e) {
-            executePararell(params);
+public abstract class TwitterAsyncTask<P> extends ParallelAsyncTask<P, Void, TwitterException> {
+    private Context context;
+
+    protected TwitterAsyncTask(Context context) {
+        this.context = context;
+    }
+
+    @Override
+    protected void onPostExecute(TwitterException e) {
+        super.onPostExecute(e);
+        if (e != null) {
+            Toast.makeText(context,
+                    String.format("通信エラー: %d\n%s",
+                            e.getErrorCode(),
+                            e.getErrorMessage()),
+                    Toast.LENGTH_LONG).show();
         }
     }
 }

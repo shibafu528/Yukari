@@ -10,7 +10,7 @@ import java.util.concurrent.RejectedExecutionException;
  */
 public abstract class ParallelAsyncTask<Params, Progress, Result>
         extends AsyncTask<Params, Progress, Result> {
-    public void executeIf(Params... params) {
+    public void executeParallel(Params... params) {
         if (getStatus() == Status.RUNNING && !isCancelled()) return;
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -20,7 +20,7 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
                 this.execute(params);
             }
         } catch (RejectedExecutionException e) {
-            executeIf(params);
+            executeParallel(params);
         }
     }
 }
