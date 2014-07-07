@@ -5,21 +5,19 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.widget.ImageView;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.concurrent.RejectedExecutionException;
 
 import shibafu.yukari.R;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
+public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
     private Context context;
     private ImageView imageView;
     private String tag;
@@ -66,20 +64,6 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
         }
     }
 
-    public void executeIf(Params... params) {
-        if (getStatus() == Status.RUNNING && !isCancelled()) return;
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
-            }
-            else {
-                this.execute(params);
-            }
-        } catch (RejectedExecutionException e) {
-            executeIf(params);
-        }
-    }
-
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
         loadBitmap(context, imageView, uri, BitmapCache.PROFILE_ICON_CACHE);
     }
@@ -98,7 +82,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             if (cache != null) {
                 imageView.setImageBitmap(cache);
             } else {
-                new ImageLoaderTask(context, imageView).executeIf(new Params(mode, uri));
+                new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri));
             }
         }
     }
@@ -113,7 +97,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                 protected void onPostExecute(Bitmap bitmap) {
                     callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
                 }
-            }.executeIf(new Params(mode, uri));
+            }.executeParallel(new Params(mode, uri));
         }
     }
 

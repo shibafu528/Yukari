@@ -129,7 +129,7 @@ public class TwitterService extends Service{
 
         //Configurationの取得
         if (!users.isEmpty() && getPrimaryUser() != null) {
-            new TwitterAsyncTask<Void>() {
+            new TwitterAsyncTask<Void>(getApplicationContext()) {
                 @Override
                 protected TwitterException doInBackground(Void... params) {
                     try {
@@ -140,7 +140,7 @@ public class TwitterService extends Service{
                     }
                     return null;
                 }
-            }.executePararell();
+            }.executeParallel();
         }
 
         //システムサービスの取得
@@ -411,54 +411,30 @@ public class TwitterService extends Service{
     }
 
     public void retweetStatus(AuthUserRecord user, long id){
-        if (user != null) {
-            twitter.setOAuthAccessToken(user.getAccessToken());
-            try {
-                twitter.retweetStatus(id);
-                showToast("RTしました (@" + user.ScreenName + ")");
-            } catch (TwitterException e) {
-                e.printStackTrace();
-                showToast("RTに失敗しました (@" + user.ScreenName + ")");
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        else {
-            int success = 0, failed = 0;
-            for (AuthUserRecord aur : users) {
-                twitter.setOAuthAccessToken(aur.getAccessToken());
-                try {
-                    twitter.retweetStatus(id);
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                }
-            }
-            showToast("RT成功: " + success + ((failed > 0)? " / RT失敗: " + failed: ""));
+        twitter.setOAuthAccessToken(user.getAccessToken());
+        try {
+            twitter.retweetStatus(id);
+            showToast("RTしました (@" + user.ScreenName + ")");
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            showToast("RTに失敗しました (@" + user.ScreenName + ")");
         }
     }
 
     public void createFavorite(AuthUserRecord user, long id){
-        if (user != null) {
-            twitter.setOAuthAccessToken(user.getAccessToken());
-            try {
-                twitter.createFavorite(id);
-                showToast("ふぁぼりました (@" + user.ScreenName + ")");
-            } catch (TwitterException e) {
-                e.printStackTrace();
-                showToast("ふぁぼれませんでした (@" + user.ScreenName + ")");
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        else {
-            int success = 0, failed = 0;
-            for (AuthUserRecord aur : users) {
-                twitter.setOAuthAccessToken(aur.getAccessToken());
-                try {
-                    twitter.createFavorite(id);
-                    ++success;
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    ++failed;
-                }
-            }
-            showToast("ふぁぼ成功: " + success + ((failed > 0)? " / ふぁぼ失敗: " + failed: ""));
+        twitter.setOAuthAccessToken(user.getAccessToken());
+        try {
+            twitter.createFavorite(id);
+            showToast("ふぁぼりました (@" + user.ScreenName + ")");
+        } catch (TwitterException e) {
+            e.printStackTrace();
+            showToast("ふぁぼれませんでした (@" + user.ScreenName + ")");
         }
     }
 
@@ -477,15 +453,16 @@ public class TwitterService extends Service{
     }
 
     public void destroyStatus(AuthUserRecord user, long id) {
-        if (user != null) {
-            twitter.setOAuthAccessToken(user.getAccessToken());
-            try {
-                twitter.destroyStatus(id);
-                showToast("ツイートを削除しました");
-                return;
-            } catch (TwitterException e) {
-                e.printStackTrace();
-            }
+        if (user == null) {
+            throw new IllegalArgumentException("アカウントが指定されていません");
+        }
+        twitter.setOAuthAccessToken(user.getAccessToken());
+        try {
+            twitter.destroyStatus(id);
+            showToast("ツイートを削除しました");
+            return;
+        } catch (TwitterException e) {
+            e.printStackTrace();
         }
         showToast("ツイート削除に失敗しました");
     }

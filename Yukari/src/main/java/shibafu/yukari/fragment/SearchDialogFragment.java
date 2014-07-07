@@ -569,7 +569,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         //DialogInterface.OnClickListener
         public void onClick(DialogInterface dialogInterface, int i) {
             if (selected != null && i == DialogInterface.BUTTON_POSITIVE) {
-                TwitterAsyncTask<SavedSearch> task = new TwitterAsyncTask<SavedSearch>() {
+                TwitterAsyncTask<SavedSearch> task = new TwitterAsyncTask<SavedSearch>(getActivity().getApplicationContext()) {
                     private SavedSearch savedSearch;
 
                     @Override
@@ -586,20 +586,13 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
                     @Override
                     protected void onPostExecute(TwitterException e) {
+                        super.onPostExecute(e);
                         if (e == null) {
                             Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
                             if (!isDetached() && adapter != null) {
                                 savedSearches.remove(savedSearch);
                                 adapter.notifyDataSetChanged();
                             }
-                        }
-                        else {
-                            Toast.makeText(
-                                    getActivity(),
-                                    String.format("エラーが発生しました:%d\n%s",
-                                            e.getErrorCode(),
-                                            e.getErrorMessage()),
-                                    Toast.LENGTH_LONG).show();
                         }
                     }
                 };

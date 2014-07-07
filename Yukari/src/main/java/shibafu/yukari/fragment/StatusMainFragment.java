@@ -29,9 +29,12 @@ import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -47,6 +50,7 @@ public class StatusMainFragment extends Fragment{
     private static final int REQUEST_RETWEET  = 0x01;
     private static final int REQUEST_FAVORITE = 0x02;
     private static final int REQUEST_FAV_RT   = 0x03;
+    private static final int REQUEST_RT_QUOTE = 0x04;
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -399,7 +403,8 @@ public class StatusMainFragment extends Fragment{
                                 "非公式RT ( RT @id: ... )",
                                 "QT ( QT @id: ... )",
                                 "公式アプリ風 ( \"@id: ...\" )",
-                                "URLのみ ( http://... )"},
+                                "URLのみ ( http://... )",
+                                "RTしてから言及する ( ...＞RT )"},
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -408,23 +413,39 @@ public class StatusMainFragment extends Fragment{
 
                                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                                 intent.putExtra(TweetActivity.EXTRA_USER, user);
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
                                 intent.putExtra(TweetActivity.EXTRA_STATUS, status);
-                                switch (which) {
-                                    case 0:
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                                        break;
-                                    case 1:
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                                        break;
-                                    case 2:
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
-                                        break;
-                                    case 3:
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                                        break;
+                                if (which < 4) {
+                                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                                    switch (which) {
+                                        case 0:
+                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                                            break;
+                                        case 1:
+                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                                            break;
+                                        case 2:
+                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
+                                            break;
+                                        case 3:
+                                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                                            break;
+                                    }
+                                    startActivity(intent);
+                                } else {
+                                    int request = -1;
+                                    switch (which) {
+                                        case 4:
+                                            if (!ibRetweet.isEnabled()) {
+                                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+                                            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                                            intent.putExtra(TweetActivity.EXTRA_TEXT, " ＞RT");
+                                            request = REQUEST_RT_QUOTE;
+                                            break;
+                                    }
+                                    startActivityForResult(intent, request);
                                 }
-                                startActivity(intent);
                             }
                         });
                 AlertDialog ad = builder.create();
@@ -512,6 +533,18 @@ public class StatusMainFragment extends Fragment{
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_REPLY) {
                 getActivity().finish();
+            }
+            else if (requestCode == REQUEST_RT_QUOTE) {
+                TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
+                new ParallelAsyncTask<TweetDraft, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(TweetDraft... params) {
+                        //これ、RT失敗してもツイートしちゃうんですよねえ
+                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        getActivity().startService(PostService.newIntent(getActivity(), params[0]));
+                        return null;
+                    }
+                }.executeParallel(draft);
             }
             else {
                 final ArrayList<AuthUserRecord> actionUsers =

@@ -356,7 +356,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
                 @Override
                 protected void onPostExecute(LoadHolder holder) {
-                    new ProfileLoader().execute();
+                    new ProfileLoader(getActivity().getApplicationContext()).execute();
                     if (holder != null) {
                         if (currentProgress != null) {
                             currentProgress.dismiss();
@@ -373,7 +373,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             currentProgress.show(getFragmentManager(), "Loading");
 
             profileLoadTask = task;
-            task.executeIf();
+            task.executeParallel();
 
             btnFollowManage.setEnabled(false);
             btnFollowManage.setText("読み込み中...");
@@ -799,6 +799,10 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     }
 
     private class ProfileLoader extends TwitterAsyncTask<Void> {
+
+        protected ProfileLoader(Context context) {
+            super(context);
+        }
 
         @Override
         protected TwitterException doInBackground(Void... voids) {

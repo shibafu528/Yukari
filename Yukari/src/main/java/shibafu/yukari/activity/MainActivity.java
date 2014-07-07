@@ -576,7 +576,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                             this.query = query;
                         }
                     }
-                    new TwitterAsyncTask<Args>() {
+                    new TwitterAsyncTask<Args>(getApplicationContext()) {
                         @Override
                         protected TwitterException doInBackground(Args... params) {
                             Twitter twitter = service.getTwitter();

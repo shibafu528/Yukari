@@ -39,7 +39,7 @@ public class IntentActivity extends Activity{
                     public void work(IntentActivity activity) {
                         String id = activity.matchedWork.first.group(1);
                         TweetLoaderTask task = activity.new TweetLoaderTask();
-                        task.executeIf(Long.valueOf(id));
+                        task.executeParallel(Long.valueOf(id));
                     }
                 }));
         matchTemp.add(new Pair<Pattern, AfterWork>(

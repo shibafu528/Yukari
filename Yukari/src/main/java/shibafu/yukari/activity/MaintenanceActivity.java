@@ -352,7 +352,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
                         }
                     }
                 };
-                task.executeIf(currentUser);
+                task.executeParallel(currentUser);
             }
         }
 
