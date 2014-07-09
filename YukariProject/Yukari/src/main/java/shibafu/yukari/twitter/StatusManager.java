@@ -30,7 +30,9 @@ import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
@@ -46,6 +48,8 @@ import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -160,7 +164,7 @@ public class StatusManager {
         }
 
         @Override
-        public void onStatus(Stream from, Status status) {
+        public void onStatus(final Stream from, Status status) {
             if (from == null || status == null || status.getUser() == null) {
                 Log.w(LOG_TAG, "onStatus, NullPointer!");
                 return;
@@ -219,6 +223,29 @@ public class StatusManager {
             }
 
             receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+
+            if (status.getText().contains("#multipic") &&
+                    status.getMediaEntities().length > 0 &&
+                    status.getExtendedMediaEntities().length < 2 &&
+                    !(status instanceof ReloadedStatus)) {
+                // #multipic かつ extended_entitiesが2未満 の場合
+                // Streamで受信できていないだけの可能性があるので再受信を行う
+                new TwitterAsyncTask<PreformedStatus>(context) {
+                    @Override
+                    protected TwitterException doInBackground(PreformedStatus... params) {
+                        Twitter twitter = service.getTwitter();
+                        twitter.setOAuthAccessToken(params[0].getRepresentUser().getAccessToken());
+                        try {
+                            twitter4j.Status status = twitter.showStatus(params[0].getId());
+                            onStatus(from, new ReloadedStatus(status, params[0].getRepresentUser()));
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return e;
+                        }
+                        return null;
+                    }
+                }.executeParallel(preformedStatus);
+            }
         }
 
         @Override
@@ -410,6 +437,12 @@ public class StatusManager {
             }
             return null;
         }
+
+        class ReloadedStatus extends PreformedStatus {
+            public ReloadedStatus(Status status, AuthUserRecord receivedUser) {
+                super(status, receivedUser);
+            }
+        }
     };
     public interface StatusListener {
         public String getStreamFilter();
@@ -534,21 +567,23 @@ public class StatusManager {
     }
 
     public void startAsync() {
-        new Thread(new Runnable() {
+        new ParallelAsyncTask<Void, Void, Void>() {
             @Override
-            public void run() {
+            protected Void doInBackground(Void... params) {
                 start();
+                return null;
             }
-        }).run();
+        }.executeParallel();
     }
 
     public void stopAsync() {
-        new Thread(new Runnable() {
+        new ParallelAsyncTask<Void, Void, Void>() {
             @Override
-            public void run() {
+            protected Void doInBackground(Void... params) {
                 stop();
+                return null;
             }
-        }).run();
+        }.executeParallel();
     }
 
     public void shutdownAll() {
