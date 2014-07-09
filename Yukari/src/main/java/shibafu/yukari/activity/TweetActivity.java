@@ -142,6 +142,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     //サービスバインド
     private TwitterService service;
     private boolean serviceBound = false;
+    private SharedPreferences sp;
 
     //短縮URLの文字数
     private int shortUrlLength = 22;
@@ -166,6 +167,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
+        sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         //Extraを取得
         final Intent args = getIntent();
@@ -227,21 +229,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             @Override
             public void afterTextChanged(Editable s) {
                 String text = s.toString();
-                int count = CharacterUtil.count(text);
-                List<String> urls = EXTRACTOR.extractURLs(text);
-                for (String url : urls) {
-                    count -= url.length() < shortUrlLength ? -(shortUrlLength - url.length()) : (url.length() - shortUrlLength);
-                    if (url.startsWith("https://")) {
-                        count += 1;
-                    }
-                }
-                tweetCount = 140 - count - reservedCount;
-                tvCount.setText(String.valueOf(tweetCount));
-                if (count < 0) {
-                    tvCount.setTextColor(Color.RED);
-                } else {
-                    tvCount.setTextColor(Color.BLACK);
-                }
+                int count = updateTweetCount();
 
                 if (ibSNPicker != null) {
                     if (count > 0 && etInput.getSelectionStart() > 0 &&
@@ -368,7 +356,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                 }
 
                 //エイリアス処理
-                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 String inputText = etInput.getText().toString();
                 if (etInput.getText().toString().startsWith("::")) {
                     String input = etInput.getText().toString();
@@ -435,6 +422,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     } else if (input.startsWith("::grgr")) {
                         inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
                     }
+                }
+
+                if (attachPictures.size() > 1 && sp.getBoolean("pref_append_multipic", false)) {
+                    inputText += " #multipic";
                 }
 
                 //ドラフトを作成
@@ -822,6 +813,34 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         }
     }
 
+    private int updateTweetCount() {
+        String text = etInput.getText().toString();
+        int count = CharacterUtil.count(text);
+        List<String> urls = EXTRACTOR.extractURLs(text);
+        for (String url : urls) {
+            count -= url.length() < shortUrlLength ? -(shortUrlLength - url.length()) : (url.length() - shortUrlLength);
+            if (url.startsWith("https://")) {
+                count += 1;
+            }
+        }
+        if (attachPictures.size() > 0) {
+            reservedCount = shortUrlLength + 1;
+            if (attachPictures.size() > 1 && sp.getBoolean("pref_append_multipic", false)) {
+                reservedCount += " #multipic".length();
+            }
+        } else {
+            reservedCount = 0;
+        }
+        tweetCount = 140 - count - reservedCount;
+        tvCount.setText(String.valueOf(tweetCount));
+        if (count < 0) {
+            tvCount.setTextColor(Color.RED);
+        } else {
+            tvCount.setTextColor(Color.BLACK);
+        }
+        return count + reservedCount;
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -946,6 +965,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                 if (attachPictures.isEmpty()) {
                                     llTweetAttachParent.setVisibility(View.GONE);
                                 }
+
+                                updateTweetCount();
                             }
                         })
                         .setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
@@ -991,6 +1012,8 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         }
         llTweetAttachInner.addView(pic.imageView);
         llTweetAttachParent.setVisibility(View.VISIBLE);
+
+        updateTweetCount();
     }
 
     private void appendTextInto(String text) {

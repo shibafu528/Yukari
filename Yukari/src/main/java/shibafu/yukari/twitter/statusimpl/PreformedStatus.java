@@ -35,7 +35,7 @@ public class PreformedStatus implements Status{
     private Status status;
     private PreformedStatus retweetedStatus;
 
-    //最初の受信時に一度だけ加工しておく情報
+    //基本は最初の受信時に一度だけ加工しておく情報
     private String text;
     private String plainSource;
     private List<LinkMedia> mediaLinkList;
@@ -121,6 +121,13 @@ public class PreformedStatus implements Status{
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
+        //extended_entitiesを後から取得できた場合
+        if (this.status.getExtendedMediaEntities().length < status.getExtendedMediaEntities().length
+                && status.getExtendedMediaEntities().length > 1) {
+            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+            }
+        }
         if (receivedUser != null) {
             addReceivedUserIfNotExist(receivedUser);
             isFavorited.put(receivedUser.NumericId, status.isFavorited());
@@ -150,6 +157,13 @@ public class PreformedStatus implements Status{
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
+        //extended_entitiesを後から取得できた場合
+        if (this.status.getExtendedMediaEntities().length < status.getExtendedMediaEntities().length
+                && status.getExtendedMediaEntities().length > 1) {
+            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+            }
+        }
         for (AuthUserRecord userRecord : status.getReceivedUsers()) {
             addReceivedUserIfNotExist(userRecord);
             isFavorited.put(userRecord.NumericId, status.isFavoritedBy(userRecord));
