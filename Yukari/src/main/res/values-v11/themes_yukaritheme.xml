@@ -43,6 +43,8 @@
         <item name="android:fastScrollThumbDrawable">@drawable/yukaritheme_fastscroll_thumb_holo
         </item>
 
+        <item name="android:actionModeBackground">@drawable/key_color</item>
+
     </style>
 
     <style name="YukariSearchTheme" parent="YukariTheme">

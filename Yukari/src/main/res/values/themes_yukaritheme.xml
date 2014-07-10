@@ -39,6 +39,8 @@
 
         <item name="android:spinnerItemStyle">@style/SpinnerItemYukariTheme</item>
 
+        <item name="actionModeBackground">@drawable/key_color</item>
+
     </style>
 
     <style name="YukariDialogTheme" parent="android:Theme.Dialog">
