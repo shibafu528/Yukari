@@ -139,6 +139,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (!connectionResult.hasResolution()) {
             GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), getActivity(), 0).show();
+            dismiss();
             return;
         }
         try {
@@ -146,6 +147,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
         } catch (IntentSender.SendIntentException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(), "Driveとの接続に失敗しました", Toast.LENGTH_LONG).show();
+            dismiss();
         }
     }
 
@@ -164,6 +166,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
             if (dialog != null) {
                 SupportErrorDialogFragment.newInstance(dialog).show(getFragmentManager(), "error_service_avail");
             }
+            dismiss();
             return false;
         }
         return true;
