@@ -10,4 +10,6 @@
         android:title="Driveからインポート"/>
     <item android:id="@+id/action_export"
         android:title="Driveにエクスポート"/>
+    <item android:id="@+id/action_sign_out"
+        android:title="Driveサインアウト"/>
 </menu>
