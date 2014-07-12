@@ -137,6 +137,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     @Override
     public void onServiceConnected() {
+        super.onServiceConnected();
+
         for (AuthUserRecord userRecord : users) {
             executeLoader(LOADER_LOAD_INIT, userRecord);
         }
