@@ -203,6 +203,11 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
                     dialogFragment.show(getFragmentManager(), "dimport");
                     return true;
                 }
+                case R.id.action_sign_out: {
+                    DriveConnectionDialogFragment fragment = DriveConnectionDialogFragment.newInstance(DriveConnectionDialogFragment.MODE_SIGN_OUT);
+                    fragment.show(getFragmentManager(), "sign_out");
+                    return true;
+                }
             }
             return super.onOptionsItemSelected(item);
         }

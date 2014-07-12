@@ -28,4 +28,12 @@
     <string name="title_activity_mute">ミュート設定</string>
     <string name="title_activity_user_search">ユーザー検索</string>
     <string name="title_activity_font_selector">フォント設定</string>
+
+    <string name="drive_error_connect">Driveとの接続に失敗しました</string>
+    <string name="drive_importing">インポート中…</string>
+    <string name="drive_exporting">エクスポート中…</string>
+    <string name="drive_failed_import">Import failed.</string>
+    <string name="drive_failed_export">Export failed.</string>
+    <string name="drive_complete_import">Import Complete!</string>
+    <string name="drive_complete_export">Export Complete!</string>
 </resources>

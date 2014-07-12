@@ -9,6 +9,7 @@ import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,11 +27,14 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.plus.Plus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import shibafu.yukari.R;
 
 /**
 * Created by shibafu on 14/07/05.
@@ -38,13 +42,16 @@ import java.io.OutputStream;
 public class DriveConnectionDialogFragment extends DialogFragment implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener{
-    public static final int MODE_EXPORT = 0;
-    public static final int MODE_IMPORT = 1;
+    public static final int MODE_SIGN_OUT = -1;
+    public static final int MODE_EXPORT   = 0;
+    public static final int MODE_IMPORT   = 1;
 
+    private static final String LOG_TAG = "DriveConnectionDialogFragment";
     private static final int REQUEST_RESOLVE_CONNECTION = 1;
     private static final int REQUEST_ERROR_SERVICE_AVAIL = 2;
 
     private GoogleApiClient apiClient;
+
     private byte[] data;
     private String fileName;
     private String mimeType;
@@ -52,6 +59,24 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
 
     public static interface OnDriveImportCompletedListener {
         void onDriveImportCompleted(byte[] bytes);
+    }
+
+    public static DriveConnectionDialogFragment newInstance(int mode, String... args) {
+        DriveConnectionDialogFragment fragment = new DriveConnectionDialogFragment();
+        Bundle arg = new Bundle();
+        arg.putInt("mode", mode);
+        int count = args.length;
+        String key = null;
+        for (String s : args) {
+            if (key == null) {
+                key = s;
+            } else {
+                arg.putString(key, s);
+                key = null;
+            }
+        }
+        fragment.setArguments(arg);
+        return fragment;
     }
 
     public static DriveConnectionDialogFragment newInstance(String fileName, String mimeType, Fragment callback) {
@@ -84,27 +109,47 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
         fileName = args.getString("name");
         mimeType = args.getString("mime");
         apiClient = new GoogleApiClient.Builder(getActivity())
+                .addApi(Plus.API)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
                 .addScope(Drive.SCOPE_APPFOLDER)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
-        apiClient.connect(); //TODO: なんかログイン処理後に再び実際の処理に繋げない
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
+    public void onStart() {
+        super.onStart();
+        apiClient.connect();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
         apiClient.disconnect();
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
+        String message;
+        switch (args.getInt("mode", 0)) {
+            case MODE_SIGN_OUT:
+                message = "サインアウト中...";
+                break;
+            case MODE_IMPORT:
+                message = getActivity().getString(R.string.drive_importing);
+                break;
+            case MODE_EXPORT:
+                message = getActivity().getString(R.string.drive_exporting);
+                break;
+            default:
+                throw new IllegalArgumentException("mode extraが正しく指定されていません.");
+        }
         ProgressDialog dialog = ProgressDialog.show(getActivity(),
                 null,
-                args.getInt("mode", 0) == 0? "エクスポート中..." : "インポート中...",
+                message,
                 true,
                 false);
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -119,6 +164,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
 
     @Override
     public void onConnected(Bundle bundle) {
+        Log.d(LOG_TAG, "onConnected");
         Bundle args = getArguments();
         switch (args.getInt("mode", MODE_EXPORT)) {
             case MODE_EXPORT:
@@ -127,16 +173,21 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
             case MODE_IMPORT:
                 importEntries();
                 break;
+            case MODE_SIGN_OUT:
+                Plus.AccountApi.clearDefaultAccount(apiClient);
+                dismiss();
+                break;
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.d(LOG_TAG, "onConnectionSuspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d(LOG_TAG, "onConnectionFailed");
         if (!connectionResult.hasResolution()) {
             GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), getActivity(), 0).show();
             dismiss();
@@ -146,13 +197,16 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
             connectionResult.startResolutionForResult(getActivity(), REQUEST_RESOLVE_CONNECTION);
         } catch (IntentSender.SendIntentException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity(), "Driveとの接続に失敗しました", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), getActivity().getString(R.string.drive_error_connect), Toast.LENGTH_LONG).show();
+        } finally {
             dismiss();
         }
+        Toast.makeText(getActivity(), "画面の指示に従った後、もう一度操作をお試しください。", Toast.LENGTH_LONG).show();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(LOG_TAG, "onActivityResult");
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_RESOLVE_CONNECTION && resultCode == Activity.RESULT_OK) {
             apiClient.connect();
@@ -187,7 +241,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
             @Override
             public void onResult(DriveApi.MetadataBufferResult result) {
                 if (!result.getStatus().isSuccess() || result.getMetadataBuffer().getCount() < 1) {
-                    Toast.makeText(getActivity(), "Import failed.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
                     dismiss();
                 } else {
                     file = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
@@ -199,7 +253,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 @Override
                 public void onResult(DriveApi.ContentsResult result) {
                     if (!result.getStatus().isSuccess()) {
-                        Toast.makeText(getActivity(), "Import failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
                         dismiss();
                         return;
                     }
@@ -221,7 +275,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     if (!isCancelled) {
                         OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
                         listener.onDriveImportCompleted(baos.toByteArray());
-                        Toast.makeText(getActivity(), "Import Complete!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_complete_import), Toast.LENGTH_SHORT).show();
                         dismiss();
                     }
                 }
@@ -243,7 +297,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
             @Override
             public void onResult(DriveApi.MetadataBufferResult result) {
                 if (!result.getStatus().isSuccess()) {
-                    Toast.makeText(getActivity(), "Export failed.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_export), Toast.LENGTH_SHORT).show();
                     dismiss();
                     return;
                 }
@@ -259,7 +313,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 @Override
                 public void onResult(DriveApi.ContentsResult result) {
                     if (!result.getStatus().isSuccess()) {
-                        Toast.makeText(getActivity(), "Export failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_export), Toast.LENGTH_SHORT).show();
                         dismiss();
                         return;
                     }
@@ -298,9 +352,9 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
 
                 private void showResultMessage(Status status) {
                     if (status.isSuccess()) {
-                        Toast.makeText(getActivity(), "Export Complete!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_complete_export), Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(getActivity(), "Export failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_export), Toast.LENGTH_SHORT).show();
                     }
                     dismiss();
                 }
