@@ -1,12 +1,7 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.ListView;
@@ -18,6 +13,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
@@ -28,7 +24,7 @@ import twitter4j.TwitterResponse;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment {
+public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment implements TwitterServiceConnection.ServiceConnectionCallback {
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -58,8 +54,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
     //Twitter Wrapper
     protected Twitter twitter;
-    private TwitterService service;
-    private boolean serviceBound = false;
+    private TwitterServiceConnection connection = new TwitterServiceConnection(this);
 
     //TweetCommon Delegate
     private TweetCommonDelegate commonDelegate;
@@ -93,16 +88,13 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         footerText = (TextView) footerView.findViewById(R.id.tvLoading);
         getListView().addFooterView(footerView);
 
-        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
+        connection.connect(getActivity());
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (serviceBound) {
-            getActivity().unbindService(connection);
-            serviceBound = false;
-        }
+        connection.disconnect(getActivity());
     }
 
     public String getTitle() {
@@ -123,15 +115,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public abstract boolean isCloseable();
 
     protected TwitterService getService() {
-        return service;
-    }
-
-    protected StatusManager getStatusManager() {
-        return service.getStatusManager();
+        return connection.getTwitterService();
     }
 
     protected boolean isServiceBound() {
-        return serviceBound;
+        return connection.isServiceBound();
+    }
+
+    protected StatusManager getStatusManager() {
+        return getService().getStatusManager();
     }
 
     protected Handler getHandler() {
@@ -180,9 +172,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
     protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
-    protected abstract void onServiceConnected();
-
-    protected abstract void onServiceDisconnected();
+    public void onServiceConnected() {
+        twitter = getService().getTwitter();
+        if (users.isEmpty()) {
+            users.addAll(getService().getUsers());
+        }
+    }
 
     protected int prepareInsertStatus(T status) {
         if (commonDelegate == null) {
@@ -201,27 +196,5 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         }
         return elements.size();
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            TwitterListFragment.this.service = binder.getService();
-            twitter = TwitterListFragment.this.service.getTwitter();
-            serviceBound = true;
-
-            if (users.isEmpty()) {
-                users.addAll(TwitterListFragment.this.service.getUsers());
-            }
-
-            TwitterListFragment.this.onServiceConnected();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-            TwitterListFragment.this.onServiceDisconnected();
-        }
-    };
 
 }

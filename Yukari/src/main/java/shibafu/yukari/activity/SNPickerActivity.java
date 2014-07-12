@@ -1,13 +1,9 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -26,11 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.YukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.service.TwitterService;
 
-public class SNPickerActivity extends Activity {
+public class SNPickerActivity extends YukariBase {
 
     public static final String EXTRA_USER_ID = "user_id";
     public static final String EXTRA_SCREEN_NAME = "screen_name";
@@ -41,9 +37,6 @@ public class SNPickerActivity extends Activity {
 
     private Adapter adapter;
     private ArrayList<Data> dataList;
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,20 +79,8 @@ public class SNPickerActivity extends Activity {
         });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
-    }
-
     private void updateList() {
-        CentralDatabase db = service.getDatabase();
+        CentralDatabase db = getTwitterService().getDatabase();
 
         String et = editText.getText().toString();
         Cursor c;
@@ -130,20 +111,15 @@ public class SNPickerActivity extends Activity {
         c.close();
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            SNPickerActivity.this.service = binder.getService();
-            serviceBound = true;
-            updateList();
-        }
+    @Override
+    public void onServiceConnected() {
+        updateList();
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
+    @Override
+    public void onServiceDisconnected() {
+
+    }
 
     private class Data {
         long id;

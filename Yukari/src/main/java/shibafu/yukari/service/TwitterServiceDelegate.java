@@ -5,4 +5,5 @@ package shibafu.yukari.service;
  */
 public interface TwitterServiceDelegate {
     TwitterService getTwitterService();
+    boolean isTwitterServiceBound();
 }

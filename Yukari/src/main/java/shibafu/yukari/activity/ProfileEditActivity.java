@@ -3,19 +3,15 @@ package shibafu.yukari.activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,10 +25,10 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -41,14 +37,11 @@ import twitter4j.User;
 /**
  * Created by shibafu on 14/02/19.
  */
-public class ProfileEditActivity extends ActionBarActivity {
+public class ProfileEditActivity extends ActionBarYukariBase {
     public static final String EXTRA_USER = "user";
 
     private static final int REQUEST_GALLERY = 0;
     private static final int REQUEST_CROP = 1;
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private AuthUserRecord userRecord;
     private User user;
@@ -166,7 +159,7 @@ public class ProfileEditActivity extends ActionBarActivity {
                     @Override
                     protected ThrowableResult<Void> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = service.getTwitter();
+                            Twitter twitter = getTwitterService().getTwitter();
                             twitter.setOAuthAccessToken(userRecord.getAccessToken());
                             twitter.updateProfile(
                                     etName.getText().toString(),
@@ -209,18 +202,6 @@ public class ProfileEditActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
-    }
-
     private void onCancelledLoading() {
         if (currentTask != null) {
             currentTask.cancel(true);
@@ -248,7 +229,8 @@ public class ProfileEditActivity extends ActionBarActivity {
         etBio.setText(user.getDescription());
     }
 
-    private void onServiceConnected() {
+    @Override
+    public void onServiceConnected() {
         if (user == null) {
             currentTask = new ThrowableTwitterAsyncTask<Void, User>() {
                 @Override
@@ -259,7 +241,7 @@ public class ProfileEditActivity extends ActionBarActivity {
                 @Override
                 protected ThrowableResult<User> doInBackground(Void... params) {
                     try {
-                        Twitter twitter = service.getTwitter();
+                        Twitter twitter = getTwitterService().getTwitter();
                         twitter.setOAuthAccessToken(userRecord.getAccessToken());
                         return new ThrowableResult<>(twitter.showUser(userRecord.NumericId));
                     } catch (TwitterException e) {
@@ -291,20 +273,10 @@ public class ProfileEditActivity extends ActionBarActivity {
         }
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            ProfileEditActivity.this.service = binder.getService();
-            serviceBound = true;
-            ProfileEditActivity.this.onServiceConnected();
-        }
+    @Override
+    public void onServiceDisconnected() {
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
+    }
 
     public static class LoadDialogFragment extends DialogFragment {
         @Override

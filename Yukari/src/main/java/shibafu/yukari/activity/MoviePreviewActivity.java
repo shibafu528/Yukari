@@ -3,7 +3,6 @@ package shibafu.yukari.activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
@@ -14,6 +13,7 @@ import android.widget.VideoView;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -64,7 +64,7 @@ public class MoviePreviewActivity extends FragmentActivity{
             finish();
             return;
         }
-        new AsyncTask<LinkMedia, Void, String>() {
+        new ParallelAsyncTask<LinkMedia, Void, String>() {
             @Override
             protected String doInBackground(LinkMedia... params) {
                 return params[0].getMediaURL();
@@ -74,7 +74,7 @@ public class MoviePreviewActivity extends FragmentActivity{
             protected void onPostExecute(String s) {
                 videoView.setVideoURI(Uri.parse(s));
             }
-        }.execute(linkMedia);
+        }.executeParallel(linkMedia);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         tweetView = findViewById(R.id.inclPreviewStatus);

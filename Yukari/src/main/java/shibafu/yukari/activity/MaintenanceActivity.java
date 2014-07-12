@@ -3,20 +3,16 @@ package shibafu.yukari.activity;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,6 +33,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -52,10 +49,7 @@ import twitter4j.TwitterException;
 /**
  * Created by shibafu on 14/07/05.
  */
-public class MaintenanceActivity extends ActionBarActivity implements TwitterServiceDelegate{
-
-    private TwitterService service;
-    private boolean serviceBound = false;
+public class MaintenanceActivity extends ActionBarYukariBase implements TwitterServiceDelegate{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,43 +68,25 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
     protected void onStop() {
+        getTwitterService().getStatusManager().startAsync();
         super.onStop();
-        service.getStatusManager().startAsync();
-        unbindService(connection);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            MaintenanceActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            for (Fragment fragment : getSupportFragmentManager().getFragments()) {
-                if (fragment.isResumed()) {
-                    ((ServiceConnectable) fragment).onServiceConnected();
-                }
+    @Override
+    public void onServiceConnected() {
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment.isResumed()) {
+                ((ServiceConnectable) fragment).onServiceConnected();
             }
-
-            MaintenanceActivity.this.service.getStatusManager().stopAsync();
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
+        getTwitterService().getStatusManager().stopAsync();
+    }
 
     @Override
-    public TwitterService getTwitterService() {
-        return service;
+    public void onServiceDisconnected() {
+
     }
 
     private class TabListener<T extends Fragment> implements ActionBar.TabListener {
@@ -258,7 +234,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
 
         @Override
         public boolean serviceBound() {
-            return ((MaintenanceActivity)getActivity()).serviceBound;
+            return ((TwitterServiceDelegate)getActivity()).isTwitterServiceBound();
         }
     }
 
@@ -377,7 +353,7 @@ public class MaintenanceActivity extends ActionBarActivity implements TwitterSer
 
         @Override
         public boolean serviceBound() {
-            return ((MaintenanceActivity)getActivity()).serviceBound;
+            return ((TwitterServiceDelegate)getActivity()).isTwitterServiceBound();
         }
 
         class ApiAdapter extends BaseAdapter {

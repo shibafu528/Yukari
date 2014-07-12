@@ -3,21 +3,17 @@ package shibafu.yukari.fragment;
 import android.R;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.ListFragment;
 import android.text.ClipboardManager;
 import android.view.View;
 import android.widget.AdapterView;
@@ -34,10 +30,10 @@ import java.util.regex.Pattern;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.database.MuteConfig;
-import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.fragment.base.ListTwitterFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.HashtagEntity;
 import twitter4j.User;
 
@@ -45,7 +41,7 @@ import twitter4j.User;
  * Created by Shibafu on 13/08/02.
  */
 @SuppressWarnings("deprecation")
-public class StatusActionFragment extends ListFragment implements AdapterView.OnItemClickListener {
+public class StatusActionFragment extends ListTwitterFragment implements AdapterView.OnItemClickListener {
     private static final String[] ITEMS = {
             "ブラウザで開く",
             "パーマリンクをコピー",
@@ -59,9 +55,6 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private AlertDialog currentDialog = null;
 
@@ -103,9 +96,6 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
-        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
-
-
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
         getListView().setStackFromBottom(sp.getBoolean("pref_bottom_stack", false));
     }
@@ -141,7 +131,7 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
                                     AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                                         @Override
                                         protected Void doInBackground(Void... params) {
-                                            service.destroyStatus(user, status.getId());
+                                            getTwitterService().destroyStatus(user, status.getId());
                                             return null;
                                         }
                                     };
@@ -230,15 +220,6 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (serviceBound) {
-            getActivity().unbindService(connection);
-            serviceBound = false;
-        }
-    }
-
     public void onSelectedMuteOption(int which) {
         String query;
         int match = MuteConfig.MATCH_EXACT;
@@ -276,19 +257,15 @@ public class StatusActionFragment extends ListFragment implements AdapterView.On
         startActivity(intent);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            StatusActionFragment.this.service = binder.getService();
-            serviceBound = true;
-        }
+    @Override
+    public void onServiceConnected() {
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
 
     public static class MuteMenuDialogFragment extends DialogFragment {
 

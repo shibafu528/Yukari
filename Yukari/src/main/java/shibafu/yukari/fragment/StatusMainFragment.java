@@ -2,16 +2,11 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,10 +27,10 @@ import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -44,7 +39,7 @@ import twitter4j.UserMentionEntity;
 /**
  * Created by Shibafu on 13/08/02.
  */
-public class StatusMainFragment extends Fragment{
+public class StatusMainFragment extends TwitterFragment{
 
     private static final int REQUEST_REPLY    = 0x00;
     private static final int REQUEST_RETWEET  = 0x01;
@@ -54,9 +49,6 @@ public class StatusMainFragment extends Fragment{
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private TweetAdapterWrap.ViewConverter viewConverter;
 
@@ -149,7 +141,7 @@ public class StatusMainFragment extends Fragment{
                                 AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                                     @Override
                                     protected Void doInBackground(Void... params) {
-                                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                                         return null;
                                     }
                                 };
@@ -196,7 +188,7 @@ public class StatusMainFragment extends Fragment{
                 final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
-                        service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         return null;
                     }
                 };
@@ -259,7 +251,7 @@ public class StatusMainFragment extends Fragment{
                 new SimpleAsyncTask() {
                     @Override
                     protected Void doInBackground(Void... params) {
-                        service.destroyFavorite(userRecord,
+                        getTwitterService().destroyFavorite(userRecord,
                                 (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         return null;
                     }
@@ -271,7 +263,7 @@ public class StatusMainFragment extends Fragment{
             public void onClick(View v) {
                 if (status.isFavoritedSomeone()) {
                     final List<AuthUserRecord> faved = status.getFavoritedAccounts();
-                    if (faved.size() == 1 && service.getUsers().size() == 1) {
+                    if (faved.size() == 1 && getTwitterService().getUsers().size() == 1) {
                         doUnfavorite(faved.get(0));
                     }
                     else {
@@ -336,8 +328,8 @@ public class StatusMainFragment extends Fragment{
                                 AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                                     @Override
                                     protected Void doInBackground(Void... params) {
-                                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                                        service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                                         return null;
                                     }
                                 };
@@ -496,7 +488,6 @@ public class StatusMainFragment extends Fragment{
                 (user != null)? user.toSingleList() : null,
                 PreferenceManager.getDefaultSharedPreferences(getActivity()),
                 PreformedStatus.class);
-        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -518,15 +509,6 @@ public class StatusMainFragment extends Fragment{
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (serviceBound) {
-            getActivity().unbindService(connection);
-            serviceBound = false;
-        }
-    }
-
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -540,7 +522,7 @@ public class StatusMainFragment extends Fragment{
                     @Override
                     protected Void doInBackground(TweetDraft... params) {
                         //これ、RT失敗してもツイートしちゃうんですよねえ
-                        service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         getActivity().startService(PostService.newIntent(getActivity(), params[0]));
                         return null;
                     }
@@ -554,7 +536,7 @@ public class StatusMainFragment extends Fragment{
                         @Override
                         protected Void doInBackground(Void... params) {
                             for (AuthUserRecord user : actionUsers) {
-                                service.retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                             }
                             return null;
                         }
@@ -565,7 +547,7 @@ public class StatusMainFragment extends Fragment{
                         @Override
                         protected Void doInBackground(Void... params) {
                             for (AuthUserRecord user : actionUsers) {
-                                service.createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                                getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                             }
                             return null;
                         }
@@ -575,31 +557,25 @@ public class StatusMainFragment extends Fragment{
         }
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            StatusMainFragment.this.service = binder.getService();
-            serviceBound = true;
-
-            if (StatusMainFragment.this.service.isMyTweet(status) != null && !status.isRetweet()) {
-                //自分のツイートの場合
-                ibFavorite.setEnabled(false);
-                ibFavRt.setEnabled(false);
-            }
-            if ((!status.isRetweet() && status.getUser().isProtected()) ||
-                    (status.isRetweet() && status.getRetweetedStatus().getUser().isProtected())) {
-                //鍵postの場合
-                ibRetweet.setEnabled(false);
-                ibFavRt.setEnabled(false);
-                ibShare.setEnabled(false);
-                ibQuote.setEnabled(false);
-            }
+    @Override
+    public void onServiceConnected() {
+        if (getTwitterService().isMyTweet(status) != null && !status.isRetweet()) {
+            //自分のツイートの場合
+            ibFavorite.setEnabled(false);
+            ibFavRt.setEnabled(false);
         }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
+        if ((!status.isRetweet() && status.getUser().isProtected()) ||
+                (status.isRetweet() && status.getRetweetedStatus().getUser().isProtected())) {
+            //鍵postの場合
+            ibRetweet.setEnabled(false);
+            ibFavRt.setEnabled(false);
+            ibShare.setEnabled(false);
+            ibQuote.setEnabled(false);
         }
-    };
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
 }

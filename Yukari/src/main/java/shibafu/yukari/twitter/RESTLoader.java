@@ -1,10 +1,9 @@
 package shibafu.yukari.twitter;
 
-import android.os.AsyncTask;
-
 import java.util.List;
 
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -12,7 +11,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 /**
  * Created by shibafu on 14/02/13.
  */
-public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends AsyncTask<P, Void, T> {
+public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends ParallelAsyncTask<P, Void, T> {
     public interface RESTLoaderInterface {
         TwitterService getService();
         List<PreformedStatus> getStatuses();

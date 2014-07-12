@@ -86,12 +86,12 @@ public class FriendListFragment extends TwitterListFragment<User> {
     }
 
     @Override
-    protected void onServiceConnected() {
+    public void onServiceConnected() {
         executeLoader(LOADER_LOAD_INIT, getCurrentUser());
     }
 
     @Override
-    protected void onServiceDisconnected() {
+    public void onServiceDisconnected() {
 
     }
 

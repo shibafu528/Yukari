@@ -1,21 +1,17 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -38,6 +34,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
@@ -51,7 +48,6 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
@@ -59,7 +55,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class MainActivity extends ActionBarActivity implements TwitterServiceDelegate, SearchDialogFragment.SearchDialogCallback {
+public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
 
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
@@ -69,8 +65,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     public static final String EXTRA_SHOW_TAB = "showTab";
 
     private SharedPreferences sharedPreferences;
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private boolean keepScreenOn = false;
 
@@ -95,7 +89,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
     //投稿ボタン関連
     private FrameLayout flTweet;
-    private ImageView ivTweet;
 
     private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
@@ -288,7 +281,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     TabInfo tabInfo = pageList.get(current);
                     if (tabInfo.getListFragment() instanceof SearchListFragment &&
                             ((SearchListFragment) tabInfo.getListFragment()).isStreaming()) {
-                        service.getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
+                        getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
                     }
 
                     pageList.remove(current);
@@ -407,7 +400,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         llTweetGuide = (LinearLayout) findViewById(R.id.llTweetGuide);
 
         flTweet = (FrameLayout) findViewById(R.id.tweetbutton_frame);
-        ivTweet = (ImageView) findViewById(R.id.ivTweet);
+        ImageView ivTweet = (ImageView) findViewById(R.id.ivTweet);
         ivTweet.setOnTouchListener(tweetGestureListener);
         ivTweet.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -444,14 +437,12 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
     protected void onStart() {
         super.onStart();
         Log.d("MainActivity", "call onStart");
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         Log.d("MainActivity", "call onStop");
-        unbindService(connection);
     }
 
     @Override
@@ -579,7 +570,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
                     new TwitterAsyncTask<Args>(getApplicationContext()) {
                         @Override
                         protected TwitterException doInBackground(Args... params) {
-                            Twitter twitter = service.getTwitter();
+                            Twitter twitter = getTwitterService().getTwitter();
                             twitter.setOAuthAccessToken(params[0].account.getAccessToken());
                             try {
                                 twitter.createSavedSearch(params[0].query);
@@ -659,7 +650,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:
-                service.getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
+                getTwitterService().getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
                 break;
         }
         tabInfo.setListFragment(fragment);
@@ -672,7 +663,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         if (reload) {
             pageList.clear();
 
-            ArrayList<TabInfo> tabs = service.getDatabase().getTabs();
+            ArrayList<TabInfo> tabs = getTwitterService().getDatabase().getTabs();
             for (TabInfo info : tabs) {
                 addTab(info);
             }
@@ -697,61 +688,6 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         }
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("MainActivity", "onServiceConnected");
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            MainActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            if (MainActivity.this.service.getUsers().isEmpty()) {
-                Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
-                intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
-                startActivityForResult(intent, REQUEST_OAUTH);
-                finish();
-            }
-            else {
-                initTabs(pageList.isEmpty());
-
-                if (selectedAccount == null) {
-                    selectedAccount = MainActivity.this.service.getPrimaryUser();
-                    if (selectedAccount == null) {
-                        Toast.makeText(MainActivity.this, "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
-                        enableQuickPost = false;
-                    }
-                    else if (ibSelectAccount == null) {
-                        Toast.makeText(MainActivity.this, "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
-                        enableQuickPost = false;
-                    }
-                    else {
-                        ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
-                        enableQuickPost = true;
-                    }
-                }
-
-                //UserStreamを開始する
-                StatusManager statusManager = MainActivity.this.service.getStatusManager();
-                if (statusManager != null && !statusManager.isStarted()) {
-                    statusManager.start();
-                }
-
-                onNewIntent(getIntent());
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.d("MainActivity", "onServiceDisconnected");
-            serviceBound = false;
-        }
-    };
-
-    @Override
-    public TwitterService getTwitterService() {
-        return service;
-    }
-
     @Override
     public void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking) {
         boolean exist = false;
@@ -768,7 +704,7 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
 
         if (!exist) {
             TabInfo tabInfo = new TabInfo(
-                    TabType.TABTYPE_SEARCH, pageList.size(), service.getPrimaryUser(), searchQuery);
+                    TabType.TABTYPE_SEARCH, pageList.size(), getTwitterService().getPrimaryUser(), searchQuery);
             addTab(tabInfo);
             viewPager.getAdapter().notifyDataSetChanged();
             viewPager.setCurrentItem(tabInfo.getOrder());
@@ -776,6 +712,48 @@ public class MainActivity extends ActionBarActivity implements TwitterServiceDel
         else {
             viewPager.setCurrentItem(existId);
         }
+    }
+
+    @Override
+    public void onServiceConnected() {
+        if (getTwitterService().getUsers().isEmpty()) {
+            Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
+            intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
+            startActivityForResult(intent, REQUEST_OAUTH);
+            finish();
+        }
+        else {
+            initTabs(pageList.isEmpty());
+
+            if (selectedAccount == null) {
+                selectedAccount = getTwitterService().getPrimaryUser();
+                if (selectedAccount == null) {
+                    Toast.makeText(MainActivity.this, "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                    enableQuickPost = false;
+                }
+                else if (ibSelectAccount == null) {
+                    Toast.makeText(MainActivity.this, "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                    enableQuickPost = false;
+                }
+                else {
+                    ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
+                    enableQuickPost = true;
+                }
+            }
+
+            //UserStreamを開始する
+            StatusManager statusManager = getTwitterService().getStatusManager();
+            if (statusManager != null && !statusManager.isStarted()) {
+                statusManager.start();
+            }
+
+            onNewIntent(getIntent());
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
     }
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {

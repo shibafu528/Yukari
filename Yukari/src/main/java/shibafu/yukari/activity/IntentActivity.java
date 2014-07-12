@@ -1,13 +1,9 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Pair;
 import android.widget.Toast;
 
@@ -17,8 +13,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
@@ -27,7 +23,7 @@ import twitter4j.TwitterException;
 /**
  * Created by Shibafu on 13/08/09.
  */
-public class IntentActivity extends Activity{
+public class IntentActivity extends ListYukariBase{
 
     private static final List<Pair<Pattern, AfterWork>> MATCHES;
     static {
@@ -78,9 +74,6 @@ public class IntentActivity extends Activity{
     private Twitter twitter;
     private AuthUserRecord primaryUser;
 
-    private TwitterService service;
-    private boolean serviceBound = false;
-
     private Pair<Matcher, AfterWork> matchedWork;
 
     @Override
@@ -102,35 +95,17 @@ public class IntentActivity extends Activity{
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    public void onServiceConnected() {
+        twitter = getTwitterService().getTwitter();
+        primaryUser = getTwitterService().getPrimaryUser();
+
+        matchedWork.second.work(IntentActivity.this);
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
+    public void onServiceDisconnected() {
+
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            IntentActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            twitter = IntentActivity.this.service.getTwitter();
-            primaryUser = IntentActivity.this.service.getPrimaryUser();
-
-            matchedWork.second.work(IntentActivity.this);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
 
     private class TweetLoaderTask extends ParallelAsyncTask<Long, Void, PreformedStatus> {
 

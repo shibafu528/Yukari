@@ -1,27 +1,24 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
 import java.util.concurrent.CountDownLatch;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.YukariBase;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
@@ -33,7 +30,7 @@ import twitter4j.auth.RequestToken;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class OAuthActivity extends Activity {
+public class OAuthActivity extends YukariBase {
 
     private final int TWITTER_REQUEST_CODE = 1;
     private static final ComponentName TWITTER_AUTH_ACTIVITY = new ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity");
@@ -44,8 +41,6 @@ public class OAuthActivity extends Activity {
     private Twitter twitter;
     private RequestToken requestToken;
 
-    private TwitterService service;
-    private boolean serviceBound;
     private CountDownLatch serviceLatch;
     private boolean begunOAuth = false;
 
@@ -112,10 +107,8 @@ public class OAuthActivity extends Activity {
 
     @Override
     protected void onStart() {
-        super.onStart();
         serviceLatch = new CountDownLatch(1);
-        Log.d("OAuthActivity", "Binding Service...");
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+        super.onStart();
     }
 
     @Override
@@ -136,12 +129,6 @@ public class OAuthActivity extends Activity {
                 finish();
             }
         }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
     }
 
     @Override
@@ -266,18 +253,18 @@ public class OAuthActivity extends Activity {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    twitter = service.getTwitter();
+                    twitter = getTwitterService().getTwitter();
                     twitter.setOAuthAccessToken(accessToken);
 
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);
                     userRecord.isActive = true;
 
-                    CentralDatabase database = service.getDatabase();
+                    CentralDatabase database = getTwitterService().getDatabase();
                     database.addAccount(userRecord);
                     User user = twitter.showUser(accessToken.getUserId());
                     database.updateUser(new DBUser(user));
 
-                    service.reloadUsers();
+                    getTwitterService().reloadUsers();
                     return true;
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -311,20 +298,14 @@ public class OAuthActivity extends Activity {
         task.execute(accessToken);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            OAuthActivity.this.service = binder.getService();
-            serviceBound = true;
-            serviceLatch.countDown();
-            Log.d("OAuthActivity", "Bound Service.");
-        }
+    @Override
+    public void onServiceConnected() {
+        serviceLatch.countDown();
+        Log.d("OAuthActivity", "Bound Service.");
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-            Log.d("OAuthActivity", "Unbound Service.");
-        }
-    };
+    @Override
+    public void onServiceDisconnected() {
+        Log.d("OAuthActivity", "Unbound Service.");
+    }
 }

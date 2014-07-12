@@ -23,9 +23,6 @@ public class StatusActivity extends FragmentActivity {
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
 
-    private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager mViewPager;
-
     private AuthUserRecord user = null;
     private PreformedStatus status = null;
 
@@ -44,9 +41,9 @@ public class StatusActivity extends FragmentActivity {
             finish();
         }
 
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-        mViewPager = (ViewPager) findViewById(R.id.pager);
+        ViewPager mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setCurrentItem(1);
 

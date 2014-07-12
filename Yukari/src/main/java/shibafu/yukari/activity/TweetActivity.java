@@ -3,12 +3,10 @@ package shibafu.yukari.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -21,12 +19,10 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -60,6 +56,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -68,8 +65,6 @@ import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.BitmapResizer;
 import twitter4j.Status;
@@ -78,7 +73,7 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class TweetActivity extends FragmentActivity implements DraftDialogFragment.DraftDialogEventListener, TwitterServiceDelegate{
+public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener{
 
     public static final int MODE_TWEET   = 0;
     public static final int MODE_REPLY   = 1;
@@ -139,9 +134,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     private Status status;
     private List<AttachPicture> attachPictures = new ArrayList<>();
 
-    //サービスバインド
-    private TwitterService service;
-    private boolean serviceBound = false;
     private SharedPreferences sp;
 
     //短縮URLの文字数
@@ -301,7 +293,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                     @Override
                     protected Void doInBackground(Void... params) {
                         try {
-                            status = service.getTwitter().showStatus(inReplyTo);
+                            status = getTwitterService().getTwitter().showStatus(inReplyTo);
                         } catch (TwitterException e) {
                             e.printStackTrace();
                         }
@@ -531,7 +523,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
-                final String[] hashCache = service.getHashCache();
+                final String[] hashCache = getTwitterService().getHashCache();
                 builder.setTitle("TLで見かけたハッシュタグ");
                 builder.setItems(hashCache, new DialogInterface.OnClickListener() {
                     @Override
@@ -608,7 +600,7 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
                                         else {
-                                            service.getDatabase().updateDraft(getTweetDraft());
+                                            getTwitterService().getDatabase().updateDraft(getTweetDraft());
                                             Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
                                         }
                                         break;
@@ -911,12 +903,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
@@ -927,12 +913,10 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
 
     @Override
     protected void onStop() {
-        super.onStop();
-
         if (useStoredWriters) {
-            service.setWriterUsers(writers);
+            getTwitterService().setWriterUsers(writers);
         }
-        unbindService(connection);
+        super.onStop();
     }
 
     private ImageView createAttachThumb(Bitmap bmp) {
@@ -1022,32 +1006,6 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
         etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            TweetActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            if (useStoredWriters && writers.size() == 0) {
-                writers = TweetActivity.this.service.getWriterUsers();
-                updateWritersView();
-            }
-
-            TwitterAPIConfiguration apiConfiguration = TweetActivity.this.service.getApiConfiguration();
-            if (apiConfiguration != null) {
-                maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
-                ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
-                shortUrlLength = apiConfiguration.getShortURLLength();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
-
     @Override
     public void onDraftSelected(TweetDraft selected) {
         Intent intent = selected.getTweetIntent(this);
@@ -1118,8 +1076,23 @@ public class TweetActivity extends FragmentActivity implements DraftDialogFragme
     }
 
     @Override
-    public TwitterService getTwitterService() {
-        return service;
+    public void onServiceConnected() {
+        if (useStoredWriters && writers.size() == 0) {
+            writers = getTwitterService().getWriterUsers();
+            updateWritersView();
+        }
+
+        TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
+        if (apiConfiguration != null) {
+            maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
+            ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+            shortUrlLength = apiConfiguration.getShortURLLength();
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
     }
 
     private static class AttachPicture {

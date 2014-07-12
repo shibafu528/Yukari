@@ -1,14 +1,10 @@
 package shibafu.yukari.activity;
 
 import android.annotation.TargetApi;
-import android.app.ListActivity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by Shibafu on 13/12/16.
  */
-public class AccountChooserActivity extends ListActivity {
+public class AccountChooserActivity extends ListYukariBase {
 
     //初期選択のユーザを指定する
     public static final String EXTRA_SELECTED_USERID = "selected_id";
@@ -46,9 +42,6 @@ public class AccountChooserActivity extends ListActivity {
 
     public static final String EXTRA_SELECTED_RECORD = "selected_record";
     public static final String EXTRA_SELECTED_RECORDS = "selected_records";
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private boolean isMultipleChoose = false;
     private List<Long> defaultSelectedUserIds = new ArrayList<>();
@@ -105,18 +98,6 @@ public class AccountChooserActivity extends ListActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unbindService(connection);
-    }
-
-    @Override
     public void onBackPressed() {
         if (isMultipleChoose) {
             Intent result = new Intent();
@@ -137,7 +118,7 @@ public class AccountChooserActivity extends ListActivity {
     }
 
     private void createList() {
-        List<AuthUserRecord> users = service.getUsers();
+        List<AuthUserRecord> users = getTwitterService().getUsers();
         dataList.clear();
         boolean isSelected;
         for (AuthUserRecord userRecord : users) {
@@ -167,33 +148,27 @@ public class AccountChooserActivity extends ListActivity {
         }
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            AccountChooserActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            List<AuthUserRecord> users = AccountChooserActivity.this.service.getUsers();
-            if (!isMultipleChoose && users.size() == 1) {
-                AuthUserRecord user = users.get(0);
-                Intent result = new Intent();
-                result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
-                result.putExtra(EXTRA_SELECTED_USERSN, user.ScreenName);
-                result.putExtra(EXTRA_SELECTED_RECORD, user);
-                setResult(RESULT_OK, result);
-                finish();
-            }
-            else {
-                createList();
-            }
+    @Override
+    public void onServiceConnected() {
+        List<AuthUserRecord> users = getTwitterService().getUsers();
+        if (!isMultipleChoose && users.size() == 1) {
+            AuthUserRecord user = users.get(0);
+            Intent result = new Intent();
+            result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
+            result.putExtra(EXTRA_SELECTED_USERSN, user.ScreenName);
+            result.putExtra(EXTRA_SELECTED_RECORD, user);
+            setResult(RESULT_OK, result);
+            finish();
         }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
+        else {
+            createList();
         }
-    };
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
 
     private class Data {
         long id;
