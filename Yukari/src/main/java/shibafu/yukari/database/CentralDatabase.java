@@ -22,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 5;
+    public static final int DB_VER = 6;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -101,6 +101,7 @@ public class CentralDatabase {
     public static final String COL_MUTE_MATCH = "Match";
     public static final String COL_MUTE_MUTE = "Mute";
     public static final String COL_MUTE_QUERY = "Query";
+    public static final String COL_MUTE_EXPIRATION_DATE = "ExpirationDate";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -195,7 +196,8 @@ public class CentralDatabase {
                             COL_MUTE_SCOPE + " INTEGER, " +
                             COL_MUTE_MATCH + " INTEGER, " +
                             COL_MUTE_MUTE + " INTEGER, " +
-                            COL_MUTE_QUERY + " TEXT)"
+                            COL_MUTE_QUERY + " TEXT, " +
+                            COL_MUTE_EXPIRATION_DATE + " INTEGER DEFAULT -1)"
             );
         }
 
@@ -234,6 +236,13 @@ public class CentralDatabase {
                                 COL_MUTE_MATCH + " INTEGER, " +
                                 COL_MUTE_MUTE + " INTEGER, " +
                                 COL_MUTE_QUERY + " TEXT)"
+                );
+                ++oldVersion;
+            }
+            if (oldVersion == 5) {
+                db.execSQL(
+                        "ALTER TABLE " + TABLE_MUTE + " ADD " + COL_MUTE_EXPIRATION_DATE +
+                        " INTEGER DEFAULT -1"
                 );
                 ++oldVersion;
             }
