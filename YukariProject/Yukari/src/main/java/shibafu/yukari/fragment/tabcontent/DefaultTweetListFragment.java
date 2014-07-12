@@ -115,7 +115,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    protected void onServiceConnected() {
+    public void onServiceConnected() {
         super.onServiceConnected();
         if (getMode() == TabType.TABTYPE_TRACE) {
             AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
@@ -163,9 +163,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    protected void onServiceDisconnected() {
-
-    }
+    public void onServiceDisconnected() {}
 
     @Override
     public boolean isCloseable() {

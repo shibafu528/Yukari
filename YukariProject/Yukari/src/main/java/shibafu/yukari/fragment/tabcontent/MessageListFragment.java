@@ -136,7 +136,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    protected void onServiceConnected() {
+    public void onServiceConnected() {
         for (AuthUserRecord userRecord : users) {
             executeLoader(LOADER_LOAD_INIT, userRecord);
         }
@@ -145,7 +145,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    protected void onServiceDisconnected() {}
+    public void onServiceDisconnected() {}
 
     @Override
     public String getStreamFilter() {

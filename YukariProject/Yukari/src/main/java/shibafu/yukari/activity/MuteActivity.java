@@ -2,21 +2,17 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
-import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -37,24 +33,22 @@ import com.google.gson.reflect.TypeToken;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 
 /**
  * Created by shibafu on 14/04/22.
  */
-public class MuteActivity extends ActionBarActivity implements TwitterServiceDelegate{
+public class MuteActivity extends ActionBarYukariBase{
 
     public static final String EXTRA_QUERY = "query";
     public static final String EXTRA_SCOPE = "scope";
     public static final String EXTRA_MATCH = "match";
 
     private static final String FRAGMENT_TAG = "inner";
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,41 +85,18 @@ public class MuteActivity extends ActionBarActivity implements TwitterServiceDel
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
-    }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            MuteActivity.this.service = binder.getService();
-            serviceBound = true;
-
-            findInnerFragment().reloadList();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
-
     public InnerFragment findInnerFragment() {
         return ((InnerFragment)getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG));
     }
 
     @Override
-    public TwitterService getTwitterService() {
-        return service;
+    public void onServiceConnected() {
+        findInnerFragment().reloadList();
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
     }
 
     public static class InnerFragment extends ListFragment implements

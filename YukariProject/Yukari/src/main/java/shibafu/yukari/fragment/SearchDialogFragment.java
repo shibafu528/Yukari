@@ -71,6 +71,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     @Override
+    public boolean isTwitterServiceBound() {
+        return serviceDelegate.isTwitterServiceBound();
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         serviceDelegate = (TwitterServiceDelegate) activity;

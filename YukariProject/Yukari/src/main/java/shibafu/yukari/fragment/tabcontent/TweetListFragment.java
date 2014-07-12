@@ -100,7 +100,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     }
 
     @Override
-    protected void onServiceConnected() {
+    public void onServiceConnected() {
+        super.onServiceConnected();
         List<MuteConfig> configs = getService().getSuppressor().getConfigs();
         if (previewMuteConfig == null) {
             previewMuteConfig = configs;

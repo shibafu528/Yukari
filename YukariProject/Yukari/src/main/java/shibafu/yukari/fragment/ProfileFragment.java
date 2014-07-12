@@ -3,15 +3,12 @@ package shibafu.yukari.fragment;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.DialogFragment;
@@ -50,10 +47,10 @@ import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
@@ -64,7 +61,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileFragment extends Fragment implements FollowDialogFragment.FollowDialogCallback{
+public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback{
 
     // TODO:画面回転とかが加わるとたまに「ユーザー情報の取得に失敗」メッセージを出力して復帰に失敗するみたい
 
@@ -80,9 +77,6 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
     private boolean selfLoadId = false;
     private String selfLoadName;
-
-    private TwitterService service;
-    private boolean serviceBound = false;
 
     private ImageView ivProfileIcon, ivHeader;
     private ImageView ivProtected;
@@ -300,8 +294,6 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        getActivity().bindService(new Intent(getActivity(), TwitterService.class), connection, Context.BIND_AUTO_CREATE);
-
         List<Command> commands = new ArrayList<>();
         commands.add(new Command(R.drawable.ic_prof_tweets, "Tweets", "0"));
         commands.add(new Command(R.drawable.ic_prof_favorite, "Favorites", "0"));
@@ -325,7 +317,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             final ParallelAsyncTask<Void, Void, LoadHolder> task = new ParallelAsyncTask<Void, Void, LoadHolder>() {
                 @Override
                 protected LoadHolder doInBackground(Void... params) {
-                    while (!serviceBound) {
+                    while (!isTwitterServiceBound()) {
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -340,13 +332,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                             name = name.substring(1);
                         }
 
-                        user = service.getDatabase().getUser(name);
+                        user = getTwitterService().getDatabase().getUser(name);
                     } else {
-                        user = service.getDatabase().getUser(targetId);
+                        user = getTwitterService().getDatabase().getUser(targetId);
                     }
 
                     if (ProfileFragment.this.user == null) {
-                        ProfileFragment.this.user = service.getPrimaryUser();
+                        ProfileFragment.this.user = getTwitterService().getPrimaryUser();
                     }
                     if (user != null) {
                         return new LoadHolder(user, null);
@@ -391,8 +383,8 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             progressBar.setVisibility(View.INVISIBLE);
         }
 
-        if (serviceBound) {
-            List<AuthUserRecord> users = service.getUsers();
+        if (isTwitterServiceBound()) {
+            List<AuthUserRecord> users = getTwitterService().getUsers();
             for (AuthUserRecord usr : users) {
                 if (usr.NumericId == holder.targetUser.getId()) {
                     user = usr;
@@ -490,15 +482,6 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (serviceBound) {
-            getActivity().unbindService(connection);
-            serviceBound = false;
-        }
-    }
-
     public void onCancelledLoading() {
         if (profileLoadTask != null) {
             profileLoadTask.cancel(true);
@@ -531,7 +514,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     sb.append(": ");
 
                     //サービスがバインドされていない場合は待機する
-                    while (!serviceBound) {
+                    while (!isTwitterServiceBound()) {
                         try {
                             Thread.sleep(1000);
                         } catch (InterruptedException e) {
@@ -539,7 +522,7 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                         }
                     }
 
-                    Twitter twitter = service.getTwitter();
+                    Twitter twitter = getTwitterService().getTwitter();
                     twitter.setOAuthAccessToken(claim.getSourceAccount().getAccessToken());
 
                     switch (claim.getNewRelation()) {
@@ -631,6 +614,16 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
         startActivity(intent);
     }
 
+    @Override
+    public void onServiceConnected() {
+
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     private class Command {
         public int iconId;
         public String strTop;
@@ -672,20 +665,6 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
             return v;
         }
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            ProfileFragment.this.service = binder.getService();
-            serviceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
 
     private static class LoadHolder implements Parcelable{
         User targetUser;
@@ -806,13 +785,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         @Override
         protected TwitterException doInBackground(Void... voids) {
-            if (!serviceBound) {
+            if (!isTwitterServiceBound()) {
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (!serviceBound) {
+                if (!isTwitterServiceBound()) {
                     return null;
                 }
             }
@@ -824,13 +803,13 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
                     if (name.startsWith("@")) {
                         name = name.substring(1);
                     }
-                    user = service.getTwitter().showUser(name);
+                    user = getTwitterService().getTwitter().showUser(name);
                 } else {
-                    user = service.getTwitter().showUser(targetId);
+                    user = getTwitterService().getTwitter().showUser(targetId);
                 }
 
                 if (user != null) {
-                    service.getDatabase().updateUser(new DBUser(user));
+                    getTwitterService().getDatabase().updateUser(new DBUser(user));
                     if (loadHolder == null) {
                         loadHolder = new LoadHolder(user, null);
                     }
@@ -872,23 +851,23 @@ public class ProfileFragment extends Fragment implements FollowDialogFragment.Fo
 
         @Override
         protected Void doInBackground(Void... voids) {
-            if (!serviceBound) {
+            if (!isTwitterServiceBound()) {
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                if (!serviceBound) {
+                if (!isTwitterServiceBound()) {
                     return null;
                 }
             }
 
             LinkedHashMap<AuthUserRecord, Relationship> relationships =
                     new LinkedHashMap<>();
-            for (AuthUserRecord userRecord : service.getUsers()) {
+            for (AuthUserRecord userRecord : getTwitterService().getUsers()) {
                 try {
                     relationships.put(userRecord,
-                            service.getTwitter().showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
+                            getTwitterService().getTwitter().showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }

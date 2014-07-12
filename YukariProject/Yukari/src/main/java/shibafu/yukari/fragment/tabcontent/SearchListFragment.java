@@ -62,7 +62,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     }
 
     @Override
-    protected void onServiceConnected() {
+    public void onServiceConnected() {
         super.onServiceConnected();
         if (elements.isEmpty()) {
             executeLoader(LOADER_LOAD_INIT, getCurrentUser());
@@ -71,7 +71,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     }
 
     @Override
-    protected void onServiceDisconnected() {
+    public void onServiceDisconnected() {
         getStatusManager().removeStatusListener(this);
     }
 

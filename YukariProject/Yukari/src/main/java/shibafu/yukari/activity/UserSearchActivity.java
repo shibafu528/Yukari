@@ -1,18 +1,14 @@
 package shibafu.yukari.activity;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.CursorAdapter;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -28,19 +24,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
-import shibafu.yukari.service.TwitterService;
 
 /**
  * Created by shibafu on 14/06/01.
  */
-public class UserSearchActivity extends ActionBarActivity {
-    private TwitterService service;
-    private boolean serviceBound = false;
+public class UserSearchActivity extends ActionBarYukariBase {
 
     private LinearLayout tipsLayout;
     private Animation inAnim, outAnim;
@@ -81,7 +75,7 @@ public class UserSearchActivity extends ActionBarActivity {
                 FriendListFragment fragment = new FriendListFragment();
                 Bundle args = new Bundle();
                 args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_SEARCH);
-                args.putSerializable(TweetListFragment.EXTRA_USER, serviceBound? service.getPrimaryUser() : null);
+                args.putSerializable(TweetListFragment.EXTRA_USER, isTwitterServiceBound()? getTwitterService().getPrimaryUser() : null);
                 args.putString(FriendListFragment.EXTRA_SEARCH_QUERY, s);
                 args.putString(TweetListFragment.EXTRA_TITLE, "Search: " + s);
                 fragment.setArguments(args);
@@ -129,7 +123,7 @@ public class UserSearchActivity extends ActionBarActivity {
 
                 Intent intent = new Intent(UserSearchActivity.this, ProfileActivity.class);
                 intent.setData(Uri.parse("http://twitter.com/" + screenName));
-                intent.putExtra(ProfileActivity.EXTRA_USER, serviceBound?service.getPrimaryUser():null);
+                intent.putExtra(ProfileActivity.EXTRA_USER, isTwitterServiceBound()? getTwitterService().getPrimaryUser():null);
                 startActivity(intent);
                 return true;
             }
@@ -151,30 +145,14 @@ public class UserSearchActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    public void onServiceConnected() {
+
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        unbindService(connection);
+    public void onServiceDisconnected() {
+
     }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            UserSearchActivity.this.service = binder.getService();
-            serviceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
 
     private class UserSuggestionAdapter extends CursorAdapter {
         private LayoutInflater inflater;
@@ -220,9 +198,9 @@ public class UserSearchActivity extends ActionBarActivity {
                 cursor.addRow(new Object[] {-1, constraint});
                 return cursor;
             }
-            else if (serviceBound && !TextUtils.isEmpty(constraint)) {
+            else if (isTwitterServiceBound() && !TextUtils.isEmpty(constraint)) {
                 String st = "%" + constraint + "%";
-                return service.getDatabase().getUsersCursor(
+                return getTwitterService().getDatabase().getUsersCursor(
                         CentralDatabase.COL_USER_NAME + " LIKE ? OR " + CentralDatabase.COL_USER_SCREEN_NAME + " LIKE ?",
                         new String[]{st, st});
             }

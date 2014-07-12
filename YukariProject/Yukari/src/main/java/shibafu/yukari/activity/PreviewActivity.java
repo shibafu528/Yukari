@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -37,6 +36,7 @@ import java.net.URL;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -53,7 +53,7 @@ public class PreviewActivity extends FragmentActivity {
     private Matrix matrix;
     private float minScale = 1.0f;
 
-    private AsyncTask<String, Object, Bitmap> loaderTask = null;
+    private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
     private ImageView imageView;
     private View tweetView;
@@ -220,7 +220,7 @@ public class PreviewActivity extends FragmentActivity {
             mediaUrl = data.toString();
         }
 
-        loaderTask = new AsyncTask<String, Object, Bitmap>() {
+        loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength;
                 public long beginTime, currentTime;
@@ -360,7 +360,7 @@ public class PreviewActivity extends FragmentActivity {
                 updateMatrix();
             }
         };
-        loaderTask.execute(mediaUrl);
+        loaderTask.executeParallel(mediaUrl);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         tweetView = findViewById(R.id.inclPreviewStatus);

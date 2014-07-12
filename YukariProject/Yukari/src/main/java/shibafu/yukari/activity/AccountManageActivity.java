@@ -1,14 +1,10 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,17 +20,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by Shibafu on 13/12/21.
  */
-public class AccountManageActivity extends ListActivity {
-
-    private TwitterService service;
-    private boolean serviceBound = false;
+public class AccountManageActivity extends ListYukariBase {
 
     private Adapter adapter;
     private List<Data> dataList = new ArrayList<>();
@@ -60,20 +53,8 @@ public class AccountManageActivity extends ListActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unbindService(connection);
-    }
-
     private void createList() {
-        List<AuthUserRecord> users = service.getUsers();
+        List<AuthUserRecord> users = getTwitterService().getUsers();
         dataList.clear();
         for (AuthUserRecord userRecord : users) {
             dataList.add(new Data(userRecord.NumericId, userRecord.Name, userRecord.ScreenName, userRecord.ProfileImageUrl, userRecord.isPrimary));
@@ -92,7 +73,7 @@ public class AccountManageActivity extends ListActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == 0) {
-                            service.setPrimaryUser(dataList.get(position).id);
+                            getTwitterService().setPrimaryUser(dataList.get(position).id);
                             createList();
                         }
                         else {
@@ -103,7 +84,7 @@ public class AccountManageActivity extends ListActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            service.deleteUser(dataList.get(position).id);
+                                            getTwitterService().deleteUser(dataList.get(position).id);
                                             createList();
                                         }
                                     })
@@ -120,20 +101,15 @@ public class AccountManageActivity extends ListActivity {
         builder.create().show();
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            AccountManageActivity.this.service = binder.getService();
-            createList();
-            serviceBound = true;
-        }
+    @Override
+    public void onServiceConnected() {
+        createList();
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
-        }
-    };
+    @Override
+    public void onServiceDisconnected() {
+
+    }
 
     private class Data {
         long id;
