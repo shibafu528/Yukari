@@ -48,7 +48,6 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import twitter4j.Twitter;
@@ -553,7 +552,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 case REQUEST_QPOST_CHOOSE_ACCOUNT:
                 {
                     selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                    ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
+                    ImageLoaderTask.loadProfileIcon(getApplicationContext(), ibSelectAccount, selectedAccount.ProfileImageUrl);
                     break;
                 }
                 case REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT:
@@ -736,7 +735,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     enableQuickPost = false;
                 }
                 else {
-                    ImageLoaderTask.loadProfileIcon(MainActivity.this, ibSelectAccount, selectedAccount.ProfileImageUrl);
+                    ImageLoaderTask.loadProfileIcon(getApplicationContext(), ibSelectAccount, selectedAccount.ProfileImageUrl);
                     enableQuickPost = true;
                 }
             }

@@ -223,7 +223,7 @@ public class AccountChooserActivity extends ListYukariBase {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
-                ImageLoaderTask.loadProfileIcon(AccountChooserActivity.this, vh.ivIcon, d.imageURL);
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
                 vh.checkBox.setTag(position);
                 vh.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override

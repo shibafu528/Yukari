@@ -181,7 +181,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
             if (u != null) {
                 vh.tvName.setText(u.getName());
                 vh.tvScreenName.setText("@" + u.getScreenName());
-                ImageLoaderTask.loadProfileIcon(getActivity(), vh.ivIcon, u.getBiggerProfileImageURLHttps());
+                ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), vh.ivIcon, u.getBiggerProfileImageURLHttps());
             }
 
             return v;

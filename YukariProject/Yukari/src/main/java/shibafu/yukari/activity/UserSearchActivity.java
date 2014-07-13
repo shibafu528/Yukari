@@ -182,7 +182,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
                 DBUser user = new DBUser(cursor);
                 vh.tvName.setText(user.getName());
                 vh.tvScreenName.setText("@" + user.getScreenName());
-                ImageLoaderTask.loadProfileIcon(UserSearchActivity.this, vh.ivIcon, user.getProfileImageURLHttps());
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, user.getProfileImageURLHttps());
             }
             else {
                 vh.ivIcon.setImageResource(R.drawable.ic_profile);

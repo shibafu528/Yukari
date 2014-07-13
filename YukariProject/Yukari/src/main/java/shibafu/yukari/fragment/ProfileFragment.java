@@ -393,9 +393,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         }
 
-        ImageLoaderTask.loadProfileIcon(getActivity(), ivProfileIcon, holder.targetUser.getBiggerProfileImageURLHttps());
+        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), ivProfileIcon, holder.targetUser.getBiggerProfileImageURLHttps());
         if (loadHolder.targetUser.getProfileBannerMobileURL() != null) {
-            ImageLoaderTask.loadBitmap(getActivity(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
+            ImageLoaderTask.loadBitmap(getActivity().getApplicationContext(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
         }
 
         if (holder.targetUser.isProtected()) {
