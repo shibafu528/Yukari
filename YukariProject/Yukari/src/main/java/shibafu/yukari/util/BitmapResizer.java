@@ -41,7 +41,7 @@ public class BitmapResizer {
             sourceSize[0] = option.outWidth;
             sourceSize[1] = option.outHeight;
         }
-        //表示サイズ256*256としてスケール計算を行う
+        //スケール計算を行う
         int scaleW = option.outWidth / outWidth;
         int scaleH = option.outHeight / outHeight;
         option.inSampleSize = Math.max(scaleW, scaleH);

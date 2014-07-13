@@ -80,7 +80,7 @@ public class PostService extends IntentService{
             builder.setProgress(writers.size(), 0, false);
         }
         else {
-            icon = BitmapCache.getImage(writers.get(0).ProfileImageUrl, this, BitmapCache.PROFILE_ICON_CACHE);
+            icon = BitmapCache.getImage(writers.get(0).ProfileImageUrl, BitmapCache.PROFILE_ICON_CACHE, this);
             if (icon != null) {
                 builder.setLargeIcon(icon);
             }
