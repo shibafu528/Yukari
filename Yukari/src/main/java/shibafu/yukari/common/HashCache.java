@@ -1,7 +1,6 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -66,7 +65,6 @@ public class HashCache {
             cache.remove(hashtag);
         }
         cache.addFirst(hashtag);
-        Log.d("HashCache", "add -> " + hashtag);
         if (cache.size() > LIMIT) {
             cache.removeLast();
         }

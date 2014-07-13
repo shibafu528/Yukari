@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 
 import shibafu.yukari.R;
@@ -21,19 +22,18 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
  */
 public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
     private Context context;
-    private ImageView imageView;
+    private WeakReference<ImageView> imageViewRef;
     private String tag;
 
     private ImageLoaderTask(Context context, ImageView imageView) {
         this.context = context;
-        this.imageView = imageView;
-        tag = this.imageView.getTag().toString();
+        imageViewRef = new WeakReference<>(imageView);
+        tag = imageView.getTag().toString();
     }
 
     @Override
     protected Bitmap doInBackground(Params... params) {
         try {
-            publishProgress();
             String uri = params[0].getUri();
             Bitmap image = BitmapCache.getImageFromDisk(uri, BitmapCache.IMAGE_CACHE, context);
             //無かったらWebから取得だ！
@@ -72,16 +72,20 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
         return null;
     }
 
-    @Override
-    protected void onProgressUpdate(Void... values) {
-        if (imageView != null && tag.equals(imageView.getTag())) {
-            imageView.setImageResource(R.drawable.yukatterload);
+    private ImageView getImageViewInstance() {
+        if (imageViewRef != null) {
+            ImageView iv = imageViewRef.get();
+            if (iv != null && tag.equals(iv.getTag())) {
+                return iv;
+            }
         }
+        return null;
     }
 
     @Override
     protected void onPostExecute(Bitmap bitmap) {
-        if (imageView != null && tag.equals(imageView.getTag())) {
+        ImageView imageView = getImageViewInstance();
+        if (imageView != null) {
             if (bitmap != null) {
                 imageView.setImageBitmap(bitmap);
             }
@@ -109,6 +113,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
             if (cache != null && !cache.isRecycled()) {
                 imageView.setImageBitmap(cache);
             } else {
+                imageView.setImageResource(R.drawable.yukatterload);
                 new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri));
             }
         }

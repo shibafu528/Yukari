@@ -15,10 +15,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
@@ -30,6 +28,7 @@ import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.GeoLocation;
 import twitter4j.TwitterResponse;
@@ -134,8 +133,6 @@ public class TweetAdapterWrap {
         public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
         public static final int MODE_INCLUDE = 3;
 
-        private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
-
         private Context context;
         private List<AuthUserRecord> userRecords;
         private SharedPreferences preferences;
@@ -180,10 +177,6 @@ public class TweetAdapterWrap {
 
         protected SharedPreferences getPreferences() {
             return preferences;
-        }
-
-        protected SimpleDateFormat getDateFormat() {
-            return sdf;
         }
 
         public View convertView(View v, TwitterResponse content, int mode) {
@@ -266,7 +259,7 @@ public class TweetAdapterWrap {
                         break;
                 }
             }
-            viewHolder.tvTimestamp.setText(getDateFormat().format(delegate.getCreatedAt(content)) + " via " + delegate.getSource(content));
+            viewHolder.tvTimestamp.setText(StringUtil.formatDate(delegate.getCreatedAt(content)) + " via " + delegate.getSource(content));
 
             if (mode == MODE_PREVIEW) {
                 viewHolder.tvName.setTextColor(Color.BLACK);
@@ -382,7 +375,7 @@ public class TweetAdapterWrap {
             if (mode != MODE_PREVIEW) {
                 if (st.isRetweet()) {
                     String timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +
-                            getDateFormat().format(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
+                            StringUtil.formatDate(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                     viewHolder.tvTimestamp.setText(timestamp);
                     viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
                     v.setBackgroundResource(R.drawable.selector_tweet_retweet_background);

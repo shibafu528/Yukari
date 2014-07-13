@@ -442,6 +442,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onStop() {
         super.onStop();
         Log.d("MainActivity", "call onStop");
+        currentPage = null;
     }
 
     @Override

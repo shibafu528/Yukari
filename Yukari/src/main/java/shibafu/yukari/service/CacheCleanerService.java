@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,8 +59,16 @@ public class CacheCleanerService extends IntentService {
         for (int i = 0; i < categories.length; ++i) {
             expirations.addAll(findExpirationCaches(new File(cacheRoot, categories[i]), limits[i] * 1024 * 1024));
         }
+        File[] tmpFiles = getExternalCacheDir().listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.endsWith(".tmp");
+            }
+        });
+        expirations.addAll(Arrays.asList(tmpFiles));
 
         for (File f : expirations) {
+            Log.d("CacheCleanerService", "Deleting: " + f.getAbsolutePath());
             f.delete();
         }
     }
