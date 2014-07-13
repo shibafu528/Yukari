@@ -55,10 +55,10 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     }
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeFile(tempFile.getAbsolutePath());
-                    options.inSampleSize = Math.max(options.outWidth / 320, options.outHeight / 320);
+                    BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
+                    options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
-                    image = BitmapFactory.decodeFile(tempFile.getAbsolutePath());
+                    image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();
                 }
