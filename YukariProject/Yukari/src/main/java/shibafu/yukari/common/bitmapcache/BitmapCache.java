@@ -31,6 +31,14 @@ public class BitmapCache {
         cacheMap.put(IMAGE_CACHE, new BitmapLruCache(IMAGE_CACHE_SIZE));
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        for (Map.Entry<String, BitmapLruCache> entry : cacheMap.entrySet()) {
+            entry.getValue().evictAll();
+        }
+    }
+
     /**
      * メモリキャッシュから画像を取得します。<br>
      * メモリ上に存在していない場合は null を返します。

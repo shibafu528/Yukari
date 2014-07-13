@@ -44,6 +44,7 @@ import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
+import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
@@ -59,6 +60,8 @@ import twitter4j.UserMentionEntity;
  */
 public class StatusManager {
     private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
+
+    private static final boolean PUT_STREAM_LOG = true;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
@@ -99,7 +102,7 @@ public class StatusManager {
 
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
-            Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
+            if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
             for (StatusListener sl : statusListeners) {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user));
             }
@@ -123,7 +126,7 @@ public class StatusManager {
 
         @Override
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
-            Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
+            if (PUT_STREAM_LOG) Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
             for (StatusListener sl : statusListeners) {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user));
             }
@@ -165,11 +168,15 @@ public class StatusManager {
 
         @Override
         public void onStatus(final Stream from, Status status) {
-            if (from == null || status == null || status.getUser() == null) {
-                Log.w(LOG_TAG, "onStatus, NullPointer!");
+            if (from == null || status == null || status.getUser() == null || statusListeners == null) {
+                if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
                 return;
             }
-            Log.d(LOG_TAG, "onStatus(Registered Listener " + statusListeners.size() + "): @" + status.getUser().getScreenName() + " " + status.getText());
+            if (PUT_STREAM_LOG) Log.d(LOG_TAG,
+                    String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
+                            statusListeners.size(),
+                            StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
+                            status.getUser().getScreenName(), status.getText()));
             getDatabase().updateUser(new DBUser(status.getUser()));
             AuthUserRecord user = from.getUserRecord();
 
@@ -592,25 +599,15 @@ public class StatusManager {
         for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
-
-        for (final StreamUser su : streamUsers) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    su.stop();
-                }
-            });
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        for (StreamUser su : streamUsers) {
+            su.stop();
         }
+
         streamUsers.clear();
-        streamUsers = null;
         statusListeners.clear();
-        statusListeners = null;
-        listener = null;
+        statusBuffer.clear();
+
+        receivedStatuses.clear();
     }
 
     public void addStatusListener(StatusListener l) {
