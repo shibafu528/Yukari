@@ -165,7 +165,7 @@ public class SNPickerActivity extends YukariBase {
             if (d != null) {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
-                ImageLoaderTask.loadProfileIcon(SNPickerActivity.this, vh.ivIcon, d.imageURL);
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
             }
 
             return v;

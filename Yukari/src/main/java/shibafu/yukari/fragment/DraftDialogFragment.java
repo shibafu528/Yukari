@@ -187,7 +187,7 @@ public class DraftDialogFragment extends DialogFragment {
 
                 final ImageView ivIcon = (ImageView)v.findViewById(R.id.tweet_icon);
                 AuthUserRecord user = d.getWriters().get(0);
-                ImageLoaderTask.loadProfileIcon(getActivity(), ivIcon, user.ProfileImageUrl);
+                ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), ivIcon, user.ProfileImageUrl);
 
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";

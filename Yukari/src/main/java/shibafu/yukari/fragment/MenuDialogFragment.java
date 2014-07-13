@@ -86,7 +86,7 @@ public class MenuDialogFragment extends DialogFragment {
             ImageView iv = new ImageView(getActivity());
             iv.setFocusable(false);
             iv.setClickable(false);
-            ImageLoaderTask.loadProfileIcon(getActivity(), iv, user.ProfileImageUrl);
+            ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), iv, user.ProfileImageUrl);
             llActiveAccounts.addView(iv, iconSize, iconSize);
         }
     }

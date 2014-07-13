@@ -159,7 +159,7 @@ public class AccountManageActivity extends ListYukariBase {
                 vh.tvName.setText(d.name);
                 vh.tvScreenName.setText("@" + d.sn);
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
-                ImageLoaderTask.loadProfileIcon(AccountManageActivity.this, vh.ivIcon, d.imageURL);
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
                 vh.checkBox.setChecked(d.isPrimary);
             }
 

@@ -86,7 +86,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                     trimmedIcon.recycle();
                     trimmedIcon = null;
                 }
-                ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), ivIcon, user.getBiggerProfileImageURLHttps());
                 Toast.makeText(ProfileEditActivity.this, "Undo!", Toast.LENGTH_SHORT).show();
             }
         });
@@ -217,10 +217,10 @@ public class ProfileEditActivity extends ActionBarYukariBase {
             trimmedIcon.recycle();
             trimmedIcon = null;
         }
-        ImageLoaderTask.loadProfileIcon(ProfileEditActivity.this, ivIcon, user.getBiggerProfileImageURLHttps());
+        ImageLoaderTask.loadProfileIcon(getApplicationContext(), ivIcon, user.getBiggerProfileImageURLHttps());
 
         if (user.getProfileBannerMobileURL() != null) {
-            ImageLoaderTask.loadBitmap(ProfileEditActivity.this, ivHeader, user.getProfileBannerMobileURL());
+            ImageLoaderTask.loadBitmap(getApplicationContext(), ivHeader, user.getProfileBannerMobileURL());
         }
 
         etName.setText(user.getName());
