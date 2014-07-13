@@ -31,24 +31,53 @@ public class BitmapCache {
         cacheMap.put(IMAGE_CACHE, new BitmapLruCache(IMAGE_CACHE_SIZE));
     }
 
-    public static Bitmap getImage(String key, Context context, String cacheKey) {
-        key = StringUtil.encodeKey(key);
+    /**
+     * メモリキャッシュから画像を取得します。<br>
+     * メモリ上に存在していない場合は null を返します。
+     * @param key ファイルキー
+     * @param cacheKey キャッシュ分類キー(e.g. {@link #IMAGE_CACHE}, {@link #PROFILE_ICON_CACHE})
+     * @return キャッシュされたBitmap
+     */
+    public static Bitmap getImageFromMemory(String key, String cacheKey) {
+        key = StringUtil.generateKey(key);
+        return cacheMap.get(cacheKey).get(key);
+    }
+
+    /**
+     * ディスクキャッシュから画像を取得します。<br>
+     * ディスク上に存在していない場合は null を返します。
+     * @param key ファイルキー
+     * @param cacheKey キャッシュ分類キー(e.g. {@link #IMAGE_CACHE}, {@link #PROFILE_ICON_CACHE})
+     * @param context Context
+     * @return キャッシュされたBitmap
+     */
+    public static Bitmap getImageFromDisk(String key, String cacheKey, Context context) {
+        key = StringUtil.generateKey(key);
+        File cacheFile = getCacheFile(context, key, cacheKey);
+        if (cacheFile.exists()) {
+            //存在していたら日時を更新してファイルを読み込む
+            cacheFile.setLastModified(System.currentTimeMillis());
+            return BitmapFactory.decodeFile(cacheFile.getPath());
+        }
+        return null;
+    }
+
+    /**
+     * メモリキャッシュ、ディスクキャッシュの順に画像の取得を試みます。<br>
+     * いずれにも存在していない場合は null を返します。<br>
+     * ディスクI/Oがボトルネックになる可能性があります。
+     * @param key ファイルキー
+     * @param cacheKey キャッシュ分類キー(e.g. {@link #IMAGE_CACHE}, {@link #PROFILE_ICON_CACHE})
+     * @param context Context
+     * @return キャッシュされたBitmap
+     */
+    public static Bitmap getImage(String key, String cacheKey, Context context) {
+        key = StringUtil.generateKey(key);
         //メモリ上のキャッシュから取得を試みる
         Bitmap image = cacheMap.get(cacheKey).get(key);
         if (image == null && context != null) {
             //無かったらファイルから取得を試みる
-            File cacheDir;
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                cacheDir = context.getExternalCacheDir();
-            }
-            else {
-                cacheDir = context.getCacheDir();
-            }
-            cacheDir = new File(cacheDir, cacheKey);
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-            File cacheFile = new File(cacheDir, key);
+            File cacheFile = getCacheFile(context, key, cacheKey);
             if (cacheFile.exists()) {
                 //存在していたらファイルを読み込む
                 image = BitmapFactory.decodeFile(cacheFile.getPath());
@@ -61,22 +90,11 @@ public class BitmapCache {
     public static void putImage(String key, Bitmap image, Context context, String cacheKey) {
         if (key == null || image == null) return;
 
-        key = StringUtil.encodeKey(key);
+        key = StringUtil.generateKey(key);
         //メモリ上のキャッシュと、ファイルに書き込む
         cacheMap.get(cacheKey).put(key, image);
         if (context != null) {
-            File cacheDir;
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                cacheDir = context.getExternalCacheDir();
-            }
-            else {
-                cacheDir = context.getCacheDir();
-            }
-            cacheDir = new File(cacheDir, cacheKey);
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-            File cacheFile = new File(cacheDir, key);
+            File cacheFile = getCacheFile(context, key, cacheKey);
             synchronized (context) {
                 if (!cacheFile.exists()) {
                     //存在していなかったらファイルを書き込む
@@ -90,6 +108,21 @@ public class BitmapCache {
                 }
             }
         }
+    }
+
+    private static File getCacheFile(Context context, String fileKey, String cacheKey) {
+        File cacheDir;
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            cacheDir = context.getExternalCacheDir();
+        }
+        else {
+            cacheDir = context.getCacheDir();
+        }
+        cacheDir = new File(cacheDir, cacheKey);
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs();
+        }
+        return new File(cacheDir, fileKey);
     }
 
     private static class BitmapLruCache extends LruCache<String, Bitmap> {

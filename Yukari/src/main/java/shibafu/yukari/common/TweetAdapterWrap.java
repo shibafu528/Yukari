@@ -321,11 +321,12 @@ public class TweetAdapterWrap {
 
                 if (!hidden) {
                     List<LinkMedia> mediaList = st.getMediaLinkList();
-                    if (mediaList.size() > 0) {
+                    int mlSize = mediaList.size();
+                    if (mlSize > 0) {
                         viewHolder.llAttach.setVisibility(View.VISIBLE);
                         ImageView iv;
                         int i;
-                        for (i = 0; i < mediaList.size(); ++i) {
+                        for (i = 0; i < mlSize; ++i) {
                             final LinkMedia media = mediaList.get(i);
                             iv = (ImageView) viewHolder.llAttach.findViewById(i);
                             if (iv == null) {
@@ -429,10 +430,12 @@ public class TweetAdapterWrap {
                 case MODE_DEFAULT:
                 case MODE_DETAIL:
                     List<Long> quoteEntities = st.getQuoteEntities();
-                    if (quoteEntities.size() > 0) {
+                    int qeSize = quoteEntities.size();
+                    if (qeSize > 0) {
                         viewHolder.flInclude.removeAllViews();
                         viewHolder.flInclude.setVisibility(View.VISIBLE);
-                        for (Long quoteId : quoteEntities) {
+                        for (int i = 0; i < qeSize; i++) {
+                            Long quoteId = quoteEntities.get(i);
                             if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
                                 View tv = View.inflate(getContext(), R.layout.row_tweet, null);
                                 ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getPreferences(), PreformedStatus.class);

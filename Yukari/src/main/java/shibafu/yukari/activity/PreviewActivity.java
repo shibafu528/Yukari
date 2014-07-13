@@ -242,7 +242,7 @@ public class PreviewActivity extends FragmentActivity {
                     cacheDir.mkdirs();
                 }
                 //キャッシュファイル名を生成
-                String fileKey = StringUtil.encodeKey(url);
+                String fileKey = StringUtil.generateKey(url);
                 File cacheFile = new File(cacheDir, fileKey);
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
