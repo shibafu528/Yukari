@@ -87,6 +87,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
     @Override
     public void onServiceConnected() {
+        super.onServiceConnected();
         executeLoader(LOADER_LOAD_INIT, getCurrentUser());
     }
 
