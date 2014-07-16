@@ -304,7 +304,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     protected void onPostExecute(Void aVoid) {
                         showQuotedStatus();
                     }
-                }.execute();
+                }.executeParallel();
             }
             else if (status != null) {
                 showQuotedStatus();
