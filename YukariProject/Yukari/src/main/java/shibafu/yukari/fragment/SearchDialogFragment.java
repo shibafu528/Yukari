@@ -437,7 +437,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         }
                     }
                 };
-                downloadTask.execute();
+                downloadTask.executeParallel();
             }
             else {
                 setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, list));
@@ -526,7 +526,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         }
                     }
                 };
-                downloadTask.execute();
+                downloadTask.executeParallel();
             }
             else {
                 adapter = new SavedSearchAdapter(getActivity(), savedSearches);

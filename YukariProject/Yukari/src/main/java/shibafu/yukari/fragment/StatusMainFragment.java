@@ -255,7 +255,7 @@ public class StatusMainFragment extends TwitterFragment{
                                 (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         return null;
                     }
-                }.execute();
+                }.executeParallel();
                 getActivity().finish();
             }
 
@@ -540,7 +540,7 @@ public class StatusMainFragment extends TwitterFragment{
                             }
                             return null;
                         }
-                    }.execute();
+                    }.executeParallel();
                 }
                 if ((requestCode & REQUEST_FAVORITE) == REQUEST_FAVORITE) {
                     new SimpleAsyncTask() {
@@ -551,7 +551,7 @@ public class StatusMainFragment extends TwitterFragment{
                             }
                             return null;
                         }
-                    }.execute();
+                    }.executeParallel();
                 }
             }
         }

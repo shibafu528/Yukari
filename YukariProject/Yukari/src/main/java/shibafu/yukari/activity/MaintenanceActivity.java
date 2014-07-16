@@ -180,7 +180,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                     fragment.dismiss();
                     onServiceConnected();
                 }
-            }.execute();
+            }.executeParallel();
         }
 
         @OnClick(R.id.btnYdbVacuum)
@@ -210,7 +210,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                     fragment.dismiss();
                     onServiceConnected();
                 }
-            }.execute();
+            }.executeParallel();
         }
 
         @Override

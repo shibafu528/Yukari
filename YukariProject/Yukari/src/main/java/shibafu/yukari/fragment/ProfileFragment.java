@@ -842,7 +842,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
 
             if (loadHolder != null) {
-                new RelationLoader().execute();
+                new RelationLoader().executeParallel();
             }
         }
     }
