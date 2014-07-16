@@ -73,7 +73,7 @@ public class FontSelectorActivity extends ActionBarActivity {
             File[] files = fontDir.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String filename) {
-                    return filename.endsWith(".ttf");
+                    return filename.endsWith(".ttf") || filename.endsWith(".otf");
                 }
             });
             for (int i = 0; i < files.length; i++) {
