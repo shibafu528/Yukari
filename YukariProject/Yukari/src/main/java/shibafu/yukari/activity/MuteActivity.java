@@ -38,6 +38,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.util.StringUtil;
 
 /**
  * Created by shibafu on 14/04/22.
@@ -265,10 +266,17 @@ public class MuteActivity extends ActionBarYukariBase{
                     tv.setText(item.getQuery());
 
                     tv = (TextView) convertView.findViewById(android.R.id.text2);
-                    tv.setText(String.format("%s[%s] - %s",
+                    String text = String.format("%s[%s] - %s",
                             targetValues[item.getScope()],
                             matchValues[item.getMatch()],
-                            eraseValues[item.getMute()]));
+                            eraseValues[item.getMute()]);
+                    if (item.isTimeLimited()) {
+                        text = String.format("%s\n有効期限: %s",
+                                text,
+                                StringUtil.formatDate(item.getExpirationTimeMillis())
+                                );
+                    }
+                    tv.setText(text);
                 }
                 return convertView;
             }
@@ -296,6 +304,7 @@ public class MuteActivity extends ActionBarYukariBase{
             final Spinner spTarget = (Spinner) v.findViewById(R.id.spMuteTarget);
             final Spinner spMatch = (Spinner) v.findViewById(R.id.spMuteMatch);
             final Spinner spErase = (Spinner) v.findViewById(R.id.spMuteErase);
+            final TextView tvExpire = (TextView) v.findViewById(R.id.tvMuteExpr);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
@@ -305,6 +314,11 @@ public class MuteActivity extends ActionBarYukariBase{
                 spTarget.setSelection(config.getScope());
                 spMatch.setSelection(config.getMatch());
                 spErase.setSelection(config.getMute());
+                if (config.isTimeLimited()) {
+                    tvExpire.setText(StringUtil.formatDate(config.getExpirationTimeMillis()));
+                } else {
+                    tvExpire.setText("常にミュート");
+                }
 
                 title = "編集";
             }

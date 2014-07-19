@@ -32,7 +32,7 @@ public class MuteConfig implements DBRecord, Serializable {
     private int match; //マッチング方法
     private int mute; //ミュート対象
     private String query; //検査クエリ
-    private long expirationDate = -1; //有効期限
+    private long expirationTimeMillis; //有効期限
 
     public MuteConfig(int scope, int match, int mute, String query) {
         this.scope = scope;
@@ -41,12 +41,12 @@ public class MuteConfig implements DBRecord, Serializable {
         this.query = query;
     }
 
-    public MuteConfig(int scope, int match, int mute, String query, long expirationDate) {
+    public MuteConfig(int scope, int match, int mute, String query, long expirationTimeMillis) {
         this.scope = scope;
         this.match = match;
         this.mute = mute;
         this.query = query;
-        this.expirationDate = expirationDate;
+        this.expirationTimeMillis = expirationTimeMillis;
     }
 
     public MuteConfig(Cursor cursor) {
@@ -55,7 +55,7 @@ public class MuteConfig implements DBRecord, Serializable {
         match = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_MUTE_MATCH));
         mute = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_MUTE_MUTE));
         query = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_MUTE_QUERY));
-        expirationDate = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_MUTE_EXPIRATION_DATE));
+        expirationTimeMillis = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_MUTE_EXPIRATION_TIME_MILLIS));
     }
 
     public long getId() {
@@ -94,20 +94,20 @@ public class MuteConfig implements DBRecord, Serializable {
         this.query = query;
     }
 
-    public long getExpirationDate() {
-        return expirationDate;
+    public long getExpirationTimeMillis() {
+        return expirationTimeMillis;
     }
 
-    public void setExpirationDate(long expirationDate) {
-        this.expirationDate = expirationDate;
+    public void setExpirationTimeMillis(long expirationTimeMillis) {
+        this.expirationTimeMillis = expirationTimeMillis;
     }
 
     public boolean isTimeLimited() {
-        return expirationDate > -1;
+        return expirationTimeMillis > 0;
     }
 
     public boolean expired() {
-        return isTimeLimited() && expirationDate < System.currentTimeMillis();
+        return isTimeLimited() && expirationTimeMillis < System.currentTimeMillis();
     }
 
     @Override
@@ -120,7 +120,7 @@ public class MuteConfig implements DBRecord, Serializable {
         values.put(CentralDatabase.COL_MUTE_MATCH, match);
         values.put(CentralDatabase.COL_MUTE_MUTE, mute);
         values.put(CentralDatabase.COL_MUTE_QUERY, query);
-        values.put(CentralDatabase.COL_MUTE_EXPIRATION_DATE, expirationDate);
+        values.put(CentralDatabase.COL_MUTE_EXPIRATION_TIME_MILLIS, expirationTimeMillis);
         return values;
     }
 }

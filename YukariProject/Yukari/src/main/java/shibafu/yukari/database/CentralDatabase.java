@@ -22,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 6;
+    public static final int DB_VER = 7;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -101,7 +101,7 @@ public class CentralDatabase {
     public static final String COL_MUTE_MATCH = "Match";
     public static final String COL_MUTE_MUTE = "Mute";
     public static final String COL_MUTE_QUERY = "Query";
-    public static final String COL_MUTE_EXPIRATION_DATE = "ExpirationDate";
+    public static final String COL_MUTE_EXPIRATION_TIME_MILLIS = "ExpirationTimeMillis"; //"ExpirationDate";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -197,7 +197,7 @@ public class CentralDatabase {
                             COL_MUTE_MATCH + " INTEGER, " +
                             COL_MUTE_MUTE + " INTEGER, " +
                             COL_MUTE_QUERY + " TEXT, " +
-                            COL_MUTE_EXPIRATION_DATE + " INTEGER DEFAULT -1)"
+                            COL_MUTE_EXPIRATION_TIME_MILLIS + " INTEGER DEFAULT -1)"
             );
         }
 
@@ -240,10 +240,34 @@ public class CentralDatabase {
                 ++oldVersion;
             }
             if (oldVersion == 5) {
+                db.execSQL("ALTER TABLE " + TABLE_MUTE + " ADD ExpirationDate INTEGER DEFAULT -1");
+                ++oldVersion;
+            }
+            if (oldVersion == 6) {
+                db.execSQL("ALTER TABLE " + TABLE_MUTE + " RENAME TO tmp_Mute");
                 db.execSQL(
-                        "ALTER TABLE " + TABLE_MUTE + " ADD " + COL_MUTE_EXPIRATION_DATE +
-                        " INTEGER DEFAULT -1"
+                        "CREATE TABLE " + TABLE_MUTE + " (" +
+                                COL_MUTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_MUTE_SCOPE + " INTEGER, " +
+                                COL_MUTE_MATCH + " INTEGER, " +
+                                COL_MUTE_MUTE + " INTEGER, " +
+                                COL_MUTE_QUERY + " TEXT, " +
+                                COL_MUTE_EXPIRATION_TIME_MILLIS + " INTEGER DEFAULT -1)"
                 );
+                db.execSQL("INSERT INTO " + TABLE_MUTE + "(" +
+                        COL_MUTE_ID + ", " +
+                        COL_MUTE_SCOPE + ", " +
+                        COL_MUTE_MATCH + ", " +
+                        COL_MUTE_MUTE + ", " +
+                        COL_MUTE_QUERY + ", " +
+                        COL_MUTE_EXPIRATION_TIME_MILLIS + ") SELECT " +
+                        COL_MUTE_ID + ", " +
+                        COL_MUTE_SCOPE + ", " +
+                        COL_MUTE_MATCH + ", " +
+                        COL_MUTE_MUTE + ", " +
+                        COL_MUTE_QUERY + ", " +
+                        "ExpirationDate FROM tmp_Mute");
+                db.execSQL("DROP TABLE tmp_Mute");
                 ++oldVersion;
             }
         }

@@ -41,9 +41,22 @@ public class StringUtil {
         c.setTime(date);
         s.append(c.get(Calendar.YEAR)).append('/');
         format02d(s, c.get(Calendar.MONTH) + 1).append('/');
-        format02d(s,c.get(Calendar.DAY_OF_MONTH)).append(' ');
-        format02d(s,c.get(Calendar.HOUR_OF_DAY)).append(':');
-        format02d(s,c.get(Calendar.MINUTE)).append(':');
+        format02d(s, c.get(Calendar.DAY_OF_MONTH)).append(' ');
+        format02d(s, c.get(Calendar.HOUR_OF_DAY)).append(':');
+        format02d(s, c.get(Calendar.MINUTE)).append(':');
+        format02d(s, c.get(Calendar.SECOND));
+        return s.toString();
+    }
+
+    public static String formatDate(long timeInMillis) {
+        StringBuilder s = new StringBuilder();
+        Calendar c = Calendar.getInstance();
+        c.setTimeInMillis(timeInMillis);
+        s.append(c.get(Calendar.YEAR)).append('/');
+        format02d(s, c.get(Calendar.MONTH) + 1).append('/');
+        format02d(s, c.get(Calendar.DAY_OF_MONTH)).append(' ');
+        format02d(s, c.get(Calendar.HOUR_OF_DAY)).append(':');
+        format02d(s, c.get(Calendar.MINUTE)).append(':');
         format02d(s, c.get(Calendar.SECOND));
         return s.toString();
     }
