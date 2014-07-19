@@ -25,6 +25,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
@@ -111,6 +112,9 @@ public class TwitterService extends Service{
         //データベースのオープン
         database = new CentralDatabase(this).open();
 
+        //画像キャッシュの初期化
+        BitmapCache.initialize(getApplicationContext());
+
         //ミュート設定の読み込み
         suppressor = new Suppressor();
         suppressor.setConfigs(database.getMuteConfig());
@@ -169,10 +173,14 @@ public class TwitterService extends Service{
         storeUsers();
         users = null;
 
+        BitmapCache.dispose();
+
         database.close();
         database = null;
 
         startService(new Intent(this, CacheCleanerService.class));
+
+        System.gc();
 
         Log.d(LOG_TAG, "onDestroy completed.");
     }

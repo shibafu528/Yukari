@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
 import android.support.v4.util.LruCache;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,21 +23,56 @@ public class BitmapCache {
     public static final String IMAGE_CACHE = "picture";
 
     private static final int PROFILE_ICON_CACHE_SIZE = 8 * 1024 * 1024;
-    private static final int IMAGE_CACHE_SIZE = 12 * 1024 * 2014;
+    private static final int IMAGE_CACHE_SIZE = 12 * 1024 * 1024;
 
     private static Map<String, BitmapLruCache> cacheMap = new HashMap<>();
+    private static Map<String, Map<String, File>> existFileCache = new HashMap<>();
 
     static {
         cacheMap.put(PROFILE_ICON_CACHE, new BitmapLruCache(PROFILE_ICON_CACHE_SIZE));
         cacheMap.put(IMAGE_CACHE, new BitmapLruCache(IMAGE_CACHE_SIZE));
+
+        existFileCache.put(PROFILE_ICON_CACHE, null);
+        existFileCache.put(IMAGE_CACHE, null);
+    }
+
+    public static void initialize(final Context context) {
+        class Initializer {
+            void init(String key) {
+                Map<String, File> fileMap;
+                File[] files = getCacheDir(context, key).listFiles();
+                if (files != null) {
+                    int length = files.length;
+                    fileMap = new HashMap<>(length * 4 / 3);
+                    for (int i = 0; i < length; i++) {
+                        File file = files[i];
+                        fileMap.put(file.getName(), file);
+                    }
+                } else {
+                    fileMap = new HashMap<>();
+                }
+                existFileCache.put(key, fileMap);
+            }
+        }
+        Initializer initializer = new Initializer();
+        initializer.init(PROFILE_ICON_CACHE);
+        initializer.init(IMAGE_CACHE);
+        Log.d("BitmapCache", "Initialized cache map");
+    }
+
+    public static void dispose() {
+        for (Map.Entry<String, BitmapLruCache> entry : cacheMap.entrySet()) {
+            entry.getValue().evictAll();
+        }
+        existFileCache.put(PROFILE_ICON_CACHE, null);
+        existFileCache.put(IMAGE_CACHE, null);
+        Log.d("BitmapCache", "Disposed cache map");
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        for (Map.Entry<String, BitmapLruCache> entry : cacheMap.entrySet()) {
-            entry.getValue().evictAll();
-        }
+        dispose();
     }
 
     /**
@@ -62,12 +98,9 @@ public class BitmapCache {
     public static Bitmap getImageFromDisk(String key, String cacheKey, Context context) {
         key = StringUtil.generateKey(key);
         File cacheFile = getCacheFile(context, key, cacheKey);
-        if (cacheFile.exists()) {
-            //存在していたら日時を更新してファイルを読み込む
-            cacheFile.setLastModified(System.currentTimeMillis());
-            return BitmapFactory.decodeFile(cacheFile.getPath());
-        }
-        return null;
+        //日時を更新してファイルを読み込む
+        cacheFile.setLastModified(System.currentTimeMillis());
+        return BitmapFactory.decodeFile(cacheFile.getPath());
     }
 
     /**
@@ -86,11 +119,8 @@ public class BitmapCache {
         if (image == null && context != null) {
             //無かったらファイルから取得を試みる
             File cacheFile = getCacheFile(context, key, cacheKey);
-            if (cacheFile.exists()) {
-                //存在していたらファイルを読み込む
-                image = BitmapFactory.decodeFile(cacheFile.getPath());
-                cacheFile.setLastModified(System.currentTimeMillis());
-            }
+            image = BitmapFactory.decodeFile(cacheFile.getPath());
+            cacheFile.setLastModified(System.currentTimeMillis());
         }
         return image;
     }
@@ -113,24 +143,37 @@ public class BitmapCache {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    Map<String, File> fileMap = existFileCache.get(cacheKey);
+                    if (fileMap != null) {
+                        fileMap.put(key, cacheFile);
+                    }
                 }
             }
         }
     }
 
     private static File getCacheFile(Context context, String fileKey, String cacheKey) {
+        Map<String, File> fileMap = existFileCache.get(cacheKey);
+        if (fileMap != null && fileMap.containsKey(fileKey)) {
+            return fileMap.get(fileKey);
+        }
+        else {
+            File cacheDir = getCacheDir(context, cacheKey);
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            return new File(cacheDir, fileKey);
+        }
+    }
+
+    private static File getCacheDir(Context context, String cacheKey) {
         File cacheDir;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             cacheDir = context.getExternalCacheDir();
-        }
-        else {
+        } else {
             cacheDir = context.getCacheDir();
         }
-        cacheDir = new File(cacheDir, cacheKey);
-        if (!cacheDir.exists()) {
-            cacheDir.mkdirs();
-        }
-        return new File(cacheDir, fileKey);
+        return new File(cacheDir, cacheKey);
     }
 
     private static class BitmapLruCache extends LruCache<String, Bitmap> {
