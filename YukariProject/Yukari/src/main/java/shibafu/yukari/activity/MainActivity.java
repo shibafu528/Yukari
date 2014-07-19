@@ -89,7 +89,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     //投稿ボタン関連
     private FrameLayout flTweet;
 
-    private View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
+    private final View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             switch (event.getAction()) {
@@ -107,8 +107,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     }
                     break;
             }
-            if (v.getId() == R.id.tweetgesture) return true;
-            return false;
+            return v.getId() == R.id.tweetgesture;
         }
     };
 
@@ -321,9 +320,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int i, float v, int i2) {
-
-            }
+            public void onPageScrolled(int i, float v, int i2) {}
 
             @Override
             public void onPageSelected(int i) {
@@ -350,9 +347,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
 
             @Override
-            public void onPageScrollStateChanged(int i) {
-
-            }
+            public void onPageScrollStateChanged(int i) {}
         });
 
         llQuickTweet = (LinearLayout) findViewById(R.id.llQuickTweet);
@@ -613,8 +608,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         else if (etTweet.getText().length() < 1) {
             if (currentPage instanceof SearchListFragment) {
                 etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
-            }
-            else {
+            } else {
                 Toast.makeText(this, "テキストが入力されていません", Toast.LENGTH_LONG).show();
             }
         }
@@ -752,9 +746,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     @Override
-    public void onServiceDisconnected() {
-
-    }
+    public void onServiceDisconnected() {}
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
 

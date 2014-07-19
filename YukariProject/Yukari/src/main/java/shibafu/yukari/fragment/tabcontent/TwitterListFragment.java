@@ -92,8 +92,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDetach() {
+        super.onDetach();
         connection.disconnect(getActivity());
     }
 

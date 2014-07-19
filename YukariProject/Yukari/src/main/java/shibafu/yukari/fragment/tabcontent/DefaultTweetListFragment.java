@@ -91,11 +91,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    public void onDestroy() {
+    public void onDetach() {
         if (isServiceBound()) {
             getStatusManager().removeStatusListener(this);
         }
-        super.onDestroy();
+        super.onDetach();
     }
 
     @Override

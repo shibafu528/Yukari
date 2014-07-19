@@ -80,11 +80,11 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onDestroy() {
+    public void onDetach() {
         if (isServiceBound()) {
             getStatusManager().removeStatusListener(this);
         }
-        super.onDestroy();
+        super.onDetach();
     }
 
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
