@@ -13,6 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -284,6 +286,7 @@ public class MuteActivity extends ActionBarYukariBase{
     }
 
     public static class MuteConfigDialogFragment extends DialogFragment {
+        private long expirationTimeMillis = -1;
 
         public static MuteConfigDialogFragment newInstance(MuteConfig config, Fragment target) {
             MuteConfigDialogFragment dialogFragment = new MuteConfigDialogFragment();
@@ -305,20 +308,42 @@ public class MuteActivity extends ActionBarYukariBase{
             final Spinner spMatch = (Spinner) v.findViewById(R.id.spMuteMatch);
             final Spinner spErase = (Spinner) v.findViewById(R.id.spMuteErase);
             final TextView tvExpire = (TextView) v.findViewById(R.id.tvMuteExpr);
+            final ImageButton btnExpire = (ImageButton) v.findViewById(R.id.btnMuteExpr);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
             if (config != null) {
+                expirationTimeMillis = config.getExpirationTimeMillis();
+
                 edit.setText(config.getQuery());
 
                 spTarget.setSelection(config.getScope());
                 spMatch.setSelection(config.getMatch());
                 spErase.setSelection(config.getMute());
-                if (config.isTimeLimited()) {
-                    tvExpire.setText(StringUtil.formatDate(config.getExpirationTimeMillis()));
-                } else {
-                    tvExpire.setText("常にミュート");
-                }
+                updateExpire(tvExpire);
+
+                btnExpire.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        PopupMenu popupMenu = new PopupMenu(getActivity(), v);
+                        popupMenu.getMenuInflater().inflate(R.menu.mute_expr, popupMenu.getMenu());
+                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                            @Override
+                            public boolean onMenuItemClick(MenuItem item) {
+                                switch (item.getItemId()) {
+                                    case R.id.action_setting:
+                                        break;
+                                    case R.id.action_remove:
+                                        expirationTimeMillis = -1;
+                                        break;
+                                }
+                                updateExpire(tvExpire);
+                                return true;
+                            }
+                        });
+                        popupMenu.show();
+                    }
+                });
 
                 title = "編集";
             }
@@ -339,12 +364,14 @@ public class MuteActivity extends ActionBarYukariBase{
                                 config = new MuteConfig(spTarget.getSelectedItemPosition(),
                                         spMatch.getSelectedItemPosition(),
                                         spErase.getSelectedItemPosition(),
-                                        edit.getText().toString());
+                                        edit.getText().toString(),
+                                        expirationTimeMillis);
                             } else {
                                 config.setScope(spTarget.getSelectedItemPosition());
                                 config.setMatch(spMatch.getSelectedItemPosition());
                                 config.setMute(spErase.getSelectedItemPosition());
                                 config.setQuery(edit.getText().toString());
+                                config.setExpirationTimeMillis(expirationTimeMillis);
                             }
                             innerFragment.updateMuteConfig(config);
                         }
@@ -357,6 +384,14 @@ public class MuteActivity extends ActionBarYukariBase{
                     .create();
 
             return dialog;
+        }
+
+        private void updateExpire(TextView tv) {
+            if (expirationTimeMillis > 0) {
+                tv.setText(StringUtil.formatDate(expirationTimeMillis));
+            } else {
+                tv.setText("常にミュート");
+            }
         }
     }
 

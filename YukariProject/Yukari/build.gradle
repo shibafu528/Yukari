@@ -7,6 +7,7 @@ dependencies {
 
     compile 'com.google.code.gson:gson:2.+'
     compile 'com.jakewharton:butterknife:5.+'
+    compile 'com.github.flavienlaurent.datetimepicker:library:+'
 
     compile 'org.twitter4j:twitter4j-core:4.+'
     compile 'org.twitter4j:twitter4j-async:4.+'
