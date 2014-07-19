@@ -35,6 +35,8 @@ import twitter4j.TwitterException;
 public class PostService extends IntentService{
     public static final String EXTRA_DRAFT = "draft";
 
+    private static final int NOTIFY_ID = 1;
+
     private NotificationManager nm;
     private Bitmap icon;
 
@@ -85,7 +87,7 @@ public class PostService extends IntentService{
                 builder.setLargeIcon(icon);
             }
         }
-        nm.notify(0, builder.build());
+        startForeground(NOTIFY_ID, builder.build());
 
         //サービスバインドまで待機
         while (!serviceBound) {
@@ -161,7 +163,7 @@ public class PostService extends IntentService{
             builder.setWhen(System.currentTimeMillis());
             builder.setContentInfo((i + 1) + "/" + writers.size());
             builder.setProgress(writers.size(), i + 1, false);
-            nm.notify(0, builder.build());
+            nm.notify(NOTIFY_ID, builder.build());
         }
 
         builder.setAutoCancel(true);
@@ -173,17 +175,17 @@ public class PostService extends IntentService{
             builder.setTicker("一部ツイートに失敗しました");
             builder.setContentTitle("一部ツイートに失敗しました");
             builder.setContentText("一部アカウントで投稿中にエラーが発生しました");
-            nm.notify(0, builder.build());
+            nm.notify(NOTIFY_ID, builder.build());
         }
         else if (error == 0) {
             builder.setSmallIcon(android.R.drawable.stat_sys_upload_done);
             builder.setTicker("ツイートに成功しました");
             builder.setContentTitle("ツイートに成功しました");
             builder.setContentText("");
-            nm.notify(0, builder.build());
+            nm.notify(NOTIFY_ID, builder.build());
             service.getDatabase().deleteDraft(draft);
         }
-        nm.cancel(0);
+        stopForeground(true);
     }
 
     private void showErrorMessage(int id, TweetDraft draft, String reason) {
