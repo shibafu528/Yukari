@@ -104,4 +104,46 @@
         android:id="@+id/spMuteErase"
         android:layout_gravity="center_horizontal"
         android:entries="@array/mute_erase_values"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="EXPIRATION"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="16dp" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:src="#aaa"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="常にミュート"
+            android:id="@+id/tvMuteExpr"
+            android:layout_weight="1" />
+
+        <!-- TODO: enabled設定消そう -->
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="64dp"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="..."
+            android:id="@+id/button" />
+    </LinearLayout>
 </LinearLayout>
