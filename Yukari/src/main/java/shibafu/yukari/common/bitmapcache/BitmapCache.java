@@ -38,7 +38,7 @@ public class BitmapCache {
 
     public static void initialize(final Context context) {
         class Initializer {
-            void init(String key) {
+            Initializer init(String key) {
                 Map<String, File> fileMap;
                 File[] files = getCacheDir(context, key).listFiles();
                 if (files != null) {
@@ -49,14 +49,14 @@ public class BitmapCache {
                         fileMap.put(file.getName(), file);
                     }
                 } else {
-                    fileMap = new HashMap<>();
+                    fileMap = new HashMap<>(170);
                 }
                 existFileCache.put(key, fileMap);
+                return this;
             }
         }
-        Initializer initializer = new Initializer();
-        initializer.init(PROFILE_ICON_CACHE);
-        initializer.init(IMAGE_CACHE);
+        new Initializer().init(PROFILE_ICON_CACHE)
+                         .init(IMAGE_CACHE);
         Log.d("BitmapCache", "Initialized cache map");
     }
 
@@ -97,10 +97,12 @@ public class BitmapCache {
      */
     public static Bitmap getImageFromDisk(String key, String cacheKey, Context context) {
         key = StringUtil.generateKey(key);
-        File cacheFile = getCacheFile(context, key, cacheKey);
+        File cacheFile = getCacheFile(key, cacheKey);
         //日時を更新してファイルを読み込む
-        cacheFile.setLastModified(System.currentTimeMillis());
-        return BitmapFactory.decodeFile(cacheFile.getPath());
+        if (cacheFile != null) {
+            cacheFile.setLastModified(System.currentTimeMillis());
+            return BitmapFactory.decodeFile(cacheFile.getPath());
+        } else return null;
     }
 
     /**
@@ -118,9 +120,11 @@ public class BitmapCache {
         Bitmap image = cacheMap.get(cacheKey).get(key);
         if (image == null && context != null) {
             //無かったらファイルから取得を試みる
-            File cacheFile = getCacheFile(context, key, cacheKey);
-            image = BitmapFactory.decodeFile(cacheFile.getPath());
-            cacheFile.setLastModified(System.currentTimeMillis());
+            File cacheFile = getCacheFile(key, cacheKey);
+            if (cacheFile != null) {
+                image = BitmapFactory.decodeFile(cacheFile.getPath());
+                cacheFile.setLastModified(System.currentTimeMillis());
+            }
         }
         return image;
     }
@@ -132,7 +136,11 @@ public class BitmapCache {
         //メモリ上のキャッシュと、ファイルに書き込む
         cacheMap.get(cacheKey).put(key, image);
         if (context != null) {
-            File cacheFile = getCacheFile(context, key, cacheKey);
+            File cacheDir = getCacheDir(context, cacheKey);
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs();
+            }
+            File cacheFile = new File(cacheDir, key);
             synchronized (context) {
                 if (!cacheFile.exists()) {
                     //存在していなかったらファイルを書き込む
@@ -152,18 +160,11 @@ public class BitmapCache {
         }
     }
 
-    private static File getCacheFile(Context context, String fileKey, String cacheKey) {
+    private static File getCacheFile(String fileKey, String cacheKey) {
         Map<String, File> fileMap = existFileCache.get(cacheKey);
         if (fileMap != null && fileMap.containsKey(fileKey)) {
             return fileMap.get(fileKey);
-        }
-        else {
-            File cacheDir = getCacheDir(context, cacheKey);
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-            return new File(cacheDir, fileKey);
-        }
+        } else return null;
     }
 
     private static File getCacheDir(Context context, String cacheKey) {

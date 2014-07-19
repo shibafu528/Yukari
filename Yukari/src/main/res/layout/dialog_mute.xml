@@ -135,15 +135,14 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="常にミュート"
             android:id="@+id/tvMuteExpr"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical" />
 
-        <!-- TODO: enabled設定消そう -->
-        <Button
+        <ImageButton
             style="?android:attr/buttonStyleSmall"
             android:layout_width="64dp"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:text="..."
-            android:id="@+id/button" />
+            android:src="@drawable/ic_menu_dark"
+            android:id="@+id/btnMuteExpr" />
     </LinearLayout>
 </LinearLayout>
