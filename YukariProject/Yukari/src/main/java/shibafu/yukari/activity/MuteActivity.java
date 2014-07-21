@@ -13,7 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
-import android.support.v7.widget.PopupMenu;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,16 +24,26 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.doomonafireball.betterpickers.calendardatepicker.CalendarDatePickerDialog;
+import com.doomonafireball.betterpickers.radialtimepicker.RadialPickerLayout;
+import com.doomonafireball.betterpickers.radialtimepicker.RadialTimePickerDialog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.OnClick;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
@@ -286,7 +296,19 @@ public class MuteActivity extends ActionBarYukariBase{
     }
 
     public static class MuteConfigDialogFragment extends DialogFragment {
+        private final SimpleDateFormat dfDate = new SimpleDateFormat("yyyy/MM/dd");
+        private final SimpleDateFormat dfTime = new SimpleDateFormat("HH:mm");
         private long expirationTimeMillis = -1;
+
+        @InjectView(R.id.etMuteTarget) EditText query;
+        @InjectView(R.id.spMuteTarget) Spinner spTarget;
+        @InjectView(R.id.spMuteMatch) Spinner spMatch;
+        @InjectView(R.id.spMuteErase) Spinner spErase;
+        @InjectView(R.id.btnMuteExpr) ImageButton btnExpire;
+        @InjectView(R.id.llMuteExprNever) LinearLayout llExprNever;
+        @InjectView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
+        @InjectView(R.id.etMuteExprDate) EditText exprDate;
+        @InjectView(R.id.etMuteExprTime) EditText exprTime;
 
         public static MuteConfigDialogFragment newInstance(MuteConfig config, Fragment target) {
             MuteConfigDialogFragment dialogFragment = new MuteConfigDialogFragment();
@@ -303,47 +325,23 @@ public class MuteActivity extends ActionBarYukariBase{
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
                 v.setBackgroundColor(Color.WHITE);
             }
-            final EditText edit = (EditText) v.findViewById(R.id.etMuteTarget);
-            final Spinner spTarget = (Spinner) v.findViewById(R.id.spMuteTarget);
-            final Spinner spMatch = (Spinner) v.findViewById(R.id.spMuteMatch);
-            final Spinner spErase = (Spinner) v.findViewById(R.id.spMuteErase);
-            final TextView tvExpire = (TextView) v.findViewById(R.id.tvMuteExpr);
-            final ImageButton btnExpire = (ImageButton) v.findViewById(R.id.btnMuteExpr);
+            ButterKnife.inject(this, v);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
             if (config != null) {
                 expirationTimeMillis = config.getExpirationTimeMillis();
 
-                edit.setText(config.getQuery());
+                query.setText(config.getQuery());
 
                 spTarget.setSelection(config.getScope());
                 spMatch.setSelection(config.getMatch());
                 spErase.setSelection(config.getMute());
-                updateExpire(tvExpire);
-
-                btnExpire.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        PopupMenu popupMenu = new PopupMenu(getActivity(), v);
-                        popupMenu.getMenuInflater().inflate(R.menu.mute_expr, popupMenu.getMenu());
-                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem item) {
-                                switch (item.getItemId()) {
-                                    case R.id.action_setting:
-                                        break;
-                                    case R.id.action_remove:
-                                        expirationTimeMillis = -1;
-                                        break;
-                                }
-                                updateExpire(tvExpire);
-                                return true;
-                            }
-                        });
-                        popupMenu.show();
-                    }
-                });
+                if (config.isTimeLimited()) {
+                    llExprConfig.setVisibility(View.VISIBLE);
+                    llExprNever.setVisibility(View.GONE);
+                }
+                updateExpire();
 
                 title = "編集";
             }
@@ -364,13 +362,13 @@ public class MuteActivity extends ActionBarYukariBase{
                                 config = new MuteConfig(spTarget.getSelectedItemPosition(),
                                         spMatch.getSelectedItemPosition(),
                                         spErase.getSelectedItemPosition(),
-                                        edit.getText().toString(),
+                                        query.getText().toString(),
                                         expirationTimeMillis);
                             } else {
                                 config.setScope(spTarget.getSelectedItemPosition());
                                 config.setMatch(spMatch.getSelectedItemPosition());
                                 config.setMute(spErase.getSelectedItemPosition());
-                                config.setQuery(edit.getText().toString());
+                                config.setQuery(query.getText().toString());
                                 config.setExpirationTimeMillis(expirationTimeMillis);
                             }
                             innerFragment.updateMuteConfig(config);
@@ -378,20 +376,115 @@ public class MuteActivity extends ActionBarYukariBase{
                     })
                     .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
                         @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
+                        public void onClick(DialogInterface dialog, int which) {}
                     })
                     .create();
 
             return dialog;
         }
 
-        private void updateExpire(TextView tv) {
-            if (expirationTimeMillis > 0) {
-                tv.setText(StringUtil.formatDate(expirationTimeMillis));
-            } else {
-                tv.setText("常にミュート");
-            }
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            ButterKnife.reset(this);
+        }
+
+        private void updateExpire() {
+            Date date = new Date(expirationTimeMillis);
+            exprDate.setText(dfDate.format(date));
+            exprTime.setText(dfTime.format(date));
+        }
+
+        @OnClick(R.id.btnMuteExpr)
+        void onClickExpireMenu() {
+            AlertDialog dialog = new AlertDialog.Builder(getActivity())
+                    .setItems(R.array.mute_expr, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Calendar c = Calendar.getInstance();
+                            switch (which) {
+                                case 0:
+                                    c.add(Calendar.MINUTE, 30);
+                                    break;
+                                case 1:
+                                    c.add(Calendar.HOUR_OF_DAY, 1);
+                                    break;
+                                case 2:
+                                    c.add(Calendar.HOUR_OF_DAY, 3);
+                                    break;
+                                case 3:
+                                    c.add(Calendar.HOUR_OF_DAY, 12);
+                                    break;
+                                case 4:
+                                    c.add(Calendar.DAY_OF_MONTH, 1);
+                                    break;
+                                case 6:
+                                    c.setTimeInMillis(0);
+                                    break;
+                            }
+                            expirationTimeMillis = c.getTimeInMillis();
+                            updateExpire();
+                            if (expirationTimeMillis > 0) {
+                                llExprConfig.setVisibility(View.VISIBLE);
+                                llExprNever.setVisibility(View.GONE);
+                            } else {
+                                llExprConfig.setVisibility(View.GONE);
+                                llExprNever.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    })
+                    .create();
+            dialog.show();
+        }
+
+        @OnClick(R.id.etMuteExprDate)
+        void onClickDate() {
+            exprDate.clearFocus();
+
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(expirationTimeMillis);
+
+            CalendarDatePickerDialog dialog = CalendarDatePickerDialog.newInstance(
+                    new CalendarDatePickerDialog.OnDateSetListener() {
+                        @Override
+                        public void onDateSet(CalendarDatePickerDialog calendarDatePickerDialog, int i, int i2, int i3) {
+                            Calendar c = Calendar.getInstance();
+                            c.setTimeInMillis(expirationTimeMillis);
+                            c.set(i, i2, i3);
+                            expirationTimeMillis = c.getTimeInMillis();
+                            updateExpire();
+                        }
+                    },
+                    c.get(Calendar.YEAR),
+                    c.get(Calendar.MONTH),
+                    c.get(Calendar.DAY_OF_MONTH));
+            dialog.show(getFragmentManager(), null);
+        }
+
+        @OnClick(R.id.etMuteExprTime)
+        void onClickTime() {
+            exprTime.clearFocus();
+
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(expirationTimeMillis);
+
+            RadialTimePickerDialog dialog = RadialTimePickerDialog.newInstance(
+                    new RadialTimePickerDialog.OnTimeSetListener() {
+                        @Override
+                        public void onTimeSet(RadialPickerLayout radialPickerLayout, int i, int i2) {
+                            Calendar c = Calendar.getInstance();
+                            c.setTimeInMillis(expirationTimeMillis);
+                            c.set(Calendar.HOUR_OF_DAY, i);
+                            c.set(Calendar.MINUTE, i2);
+                            expirationTimeMillis = c.getTimeInMillis();
+                            updateExpire();
+                        }
+                    },
+                    c.get(Calendar.HOUR_OF_DAY),
+                    c.get(Calendar.MINUTE),
+                    DateFormat.is24HourFormat(getActivity())
+            );
+            dialog.show(getFragmentManager(), null);
         }
     }
 

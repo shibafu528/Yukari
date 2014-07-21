@@ -8,8 +8,7 @@ dependencies {
     compile 'com.google.code.gson:gson:2.+'
     compile 'com.jakewharton:butterknife:5.+'
 
-    //リソースIDが競合を起こすので使えない
-    //compile 'com.github.flavienlaurent.datetimepicker:library:+'
+    compile 'com.doomonafireball.betterpickers:library:1.5.2'
 
     compile 'org.twitter4j:twitter4j-core:4.+'
     compile 'org.twitter4j:twitter4j-async:4.+'
