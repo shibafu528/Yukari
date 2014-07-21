@@ -28,6 +28,8 @@ public class Suppressor {
     public boolean[] decision(PreformedStatus status) {
         boolean[] result = new boolean[7];
         for (MuteConfig config : configs) {
+            if (config.expired()) continue;
+
             PreformedStatus s;
             int mute = config.getMute();
             if (status.isRetweet() && mute != MuteConfig.MUTE_RETWEET && mute != MuteConfig.MUTE_NOTIF_RT) {

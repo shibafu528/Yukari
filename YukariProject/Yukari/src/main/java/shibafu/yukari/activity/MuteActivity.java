@@ -402,6 +402,7 @@ public class MuteActivity extends ActionBarYukariBase{
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Calendar c = Calendar.getInstance();
+                            c.set(Calendar.SECOND, 0);
                             switch (which) {
                                 case 0:
                                     c.add(Calendar.MINUTE, 30);
