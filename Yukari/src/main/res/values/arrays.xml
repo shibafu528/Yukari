@@ -124,4 +124,14 @@
         <item>128</item>
         <item>256</item>
     </string-array>
+
+    <string-array name="mute_expr">
+        <item>30分間</item>
+        <item>1時間</item>
+        <item>3時間</item>
+        <item>半日</item>
+        <item>1日</item>
+        <item>ユーザー設定</item>
+        <item>常にミュート</item>
+    </string-array>
 </resources>

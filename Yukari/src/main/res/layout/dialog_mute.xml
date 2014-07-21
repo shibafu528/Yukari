@@ -129,14 +129,56 @@
         android:layout_marginLeft="8dp"
         android:layout_marginTop="2dp">
 
-        <TextView
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="常にミュート"
-            android:id="@+id/tvMuteExpr"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical" />
+            android:layout_height="fill_parent"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/llMuteExprNever"
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="常にミュート"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llMuteExprConfig"
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:visibility="gone">
+
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:inputType="date"
+                    android:ems="10"
+                    android:id="@+id/etMuteExprDate"
+                    android:editable="false"
+                    android:focusable="false"/>
+
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:inputType="time"
+                    android:ems="10"
+                    android:editable="false"
+                    android:focusable="false"
+                    android:id="@+id/etMuteExprTime" />
+            </LinearLayout>
+
+        </LinearLayout>
 
         <ImageButton
             style="?android:attr/buttonStyleSmall"
