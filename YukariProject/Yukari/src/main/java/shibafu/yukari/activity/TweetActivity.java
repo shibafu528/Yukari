@@ -209,14 +209,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
         etInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
@@ -227,8 +223,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     if (count > 0 && etInput.getSelectionStart() > 0 &&
                             text.charAt(etInput.getSelectionStart() - 1) == '@') {
                         ibSNPicker.setVisibility(View.VISIBLE);
-                    }
-                    else {
+                    } else {
                         ibSNPicker.setVisibility(View.GONE);
                     }
                 }

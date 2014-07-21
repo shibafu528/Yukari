@@ -24,7 +24,6 @@ import twitter4j.GeoLocation;
  */
 public class TweetDraft implements Serializable{
 
-    private int id = -1;
     private ArrayList<AuthUserRecord> writers = new ArrayList<>();
     private String text;
     private long dateTime;
@@ -86,7 +85,6 @@ public class TweetDraft implements Serializable{
     }
 
     public TweetDraft(Cursor cursor) {
-        id = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ID));
         text = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_TEXT));
         dateTime = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_DATETIME));
         inReplyTo = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IN_REPLY_TO));
@@ -112,7 +110,6 @@ public class TweetDraft implements Serializable{
         ContentValues[] valuesArray = new ContentValues[writers.size()];
         for (int i = 0; i < writers.size(); ++i) {
             ContentValues values = new ContentValues();
-            if (id > -1) values.put(CentralDatabase.COL_DRAFTS_ID, id);
             values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writers.get(i).NumericId);
             values.put(CentralDatabase.COL_DRAFTS_DATETIME, dateTime);
             values.put(CentralDatabase.COL_DRAFTS_TEXT, text);
@@ -148,6 +145,7 @@ public class TweetDraft implements Serializable{
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
         if (attachedPictures != null) {
+            this.attachedPictures.clear();
             this.attachedPictures.addAll(attachedPictures);
         }
         this.useGeoLocation = useGeoLocation;
@@ -169,6 +167,7 @@ public class TweetDraft implements Serializable{
         this.inReplyTo = inReplyTo;
         this.isQuoted = isQuoted;
         if (attachedPictures != null) {
+            this.attachedPictures.clear();
             this.attachedPictures.addAll(attachedPictures);
         }
         this.useGeoLocation = useGeoLocation;
@@ -177,10 +176,6 @@ public class TweetDraft implements Serializable{
         this.isPossiblySensitive = isPossiblySensitive;
         this.isDirectMessage = true;
         this.messageTarget = messageTarget;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public String getText() {
