@@ -345,7 +345,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         responseList = twitter.getFavorites(targetUser.getId(), paging);
                         break;
                     case TabType.TABTYPE_LIST:
-                        responseList = twitter.getUserListStatuses((int)listId, paging);
+                        responseList = twitter.getUserListStatuses(listId, paging);
                         break;
                 }
                 if (!params[0].isSaveLastPaging()) {
