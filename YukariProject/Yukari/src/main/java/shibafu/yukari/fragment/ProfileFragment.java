@@ -144,7 +144,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 menuList.add("DMを送る");
                 menuList.add("ブラウザで開く");
                 menuList.add("ミュートする");
-                //menuList.add("リストへ追加/削除");
+                menuList.add("リストへ追加/削除");
 
                 if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
                         (targetId >= 0 && targetId == user.NumericId) ||
@@ -194,12 +194,20 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             }
                             case 4:
                             {
+                                ListRegisterDialogFragment dialogFragment =
+                                        ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
+                                dialogFragment.setTargetFragment(ProfileFragment.this, 1);
+                                dialogFragment.show(getChildFragmentManager(), "list");
+                                break;
+                            }
+                            case 5:
+                            {
                                 Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
                                 intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
                                 startActivity(intent);
                                 break;
                             }
-                            case 5:
+                            case 6:
                             {
                                 FriendListFragment fragment = new FriendListFragment();
                                 Bundle args = new Bundle();
