@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -46,6 +47,14 @@ public class StatusMainFragment extends TwitterFragment{
     private static final int REQUEST_FAVORITE = 0x02;
     private static final int REQUEST_FAV_RT   = 0x03;
     private static final int REQUEST_RT_QUOTE = 0x04;
+
+    private static final String[] NUISANCES = {
+            "ShootingStar",
+            "TheWorld",
+            "Biyon",
+            "MoonStrike",
+            "NightFox"
+    };
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -184,6 +193,16 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
+            private SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+            private boolean isNuisance(String source) {
+                int l = NUISANCES.length;
+                for (int i = 0; i < l; i++) {
+                    if (source.contains(NUISANCES[i])) return true;
+                }
+                return false;
+            }
+
             private void doFavorite() {
                 final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
@@ -196,10 +215,7 @@ public class StatusMainFragment extends TwitterFragment{
                 if (status.isRetweet()) {
                     source = status.getRetweetedStatus().getSource();
                 }
-                if (source.contains("ShootingStar") ||
-                        source.contains("TheWorld") ||
-                        source.contains("Biyon≡(　ε:)") ||
-                        source.contains("MoonStrike")) {
+                if (pref.getBoolean("pref_guard_nuisance", true) && isNuisance(source)) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("このツイートは" + source + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
