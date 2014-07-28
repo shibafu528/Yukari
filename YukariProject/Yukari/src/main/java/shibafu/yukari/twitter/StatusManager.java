@@ -69,10 +69,6 @@ public class StatusManager {
     public static final int UPDATE_DELETED_DM = 4;
 
     private static final String LOG_TAG = "StatusManager";
-    private static final int NOTIF_FAVED = 1;
-    private static final int NOTIF_REPLY = 2;
-    private static final int NOTIF_RETWEET = 3;
-    private static final int NOTIF_DM = 4;
 
     //バイブレーションパターン
     private final static long[] VIB_REPLY = {450, 130, 140, 150};
@@ -120,7 +116,7 @@ public class StatusManager {
             boolean[] mute = suppressor.decision(preformedStatus);
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
-                showNotification(NOTIF_FAVED, preformedStatus, user);
+                showNotification(R.integer.notification_faved, preformedStatus, user);
             }
         }
 
@@ -152,7 +148,7 @@ public class StatusManager {
 
             boolean checkOwn = service.isMyTweet(directMessage) != null;
             if (!checkOwn) {
-                showNotification(NOTIF_DM, directMessage, directMessage.getSender());
+                showNotification(R.integer.notification_message, directMessage, directMessage.getSender());
             }
         }
 
@@ -213,13 +209,13 @@ public class StatusManager {
                     !mute[MuteConfig.MUTE_NOTIF_RT] &&
                     status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                     checkOwn == null) {
-                showNotification(NOTIF_RETWEET, preformedStatus, status.getUser());
+                showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
             }
             else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
                 UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                 for (UserMentionEntity ume : userMentionEntities) {
                     if (ume.getId() == user.NumericId) {
-                        showNotification(NOTIF_REPLY, preformedStatus, status.getUser());
+                        showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
                     }
                 }
             }
@@ -280,16 +276,16 @@ public class StatusManager {
 
             int prefValue = 5;
             switch (category) {
-                case NOTIF_REPLY:
+                case R.integer.notification_replied:
                     prefValue = sharedPreferences.getInt("pref_notif_mention", 5);
                     break;
-                case NOTIF_RETWEET:
+                case R.integer.notification_retweeted:
                     prefValue = sharedPreferences.getInt("pref_notif_rt", 5);
                     break;
-                case NOTIF_FAVED:
+                case R.integer.notification_faved:
                     prefValue = sharedPreferences.getInt("pref_notif_fav", 5);
                     break;
-                case NOTIF_DM:
+                case R.integer.notification_message:
                     prefValue = sharedPreferences.getInt("pref_notif_dm", 5);
                     break;
             }
@@ -301,28 +297,28 @@ public class StatusManager {
                 String titleHeader = "", tickerHeader = "";
                 long[] pattern = null;
                 switch (category) {
-                    case NOTIF_REPLY:
+                    case R.integer.notification_replied:
                         icon = R.drawable.ic_stat_reply;
                         titleHeader = "Reply from @";
                         tickerHeader = "リプライ : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                         pattern = VIB_REPLY;
                         break;
-                    case NOTIF_RETWEET:
+                    case R.integer.notification_retweeted:
                         icon = R.drawable.ic_stat_retweet;
                         titleHeader = "Retweeted by @";
                         tickerHeader = "RTされました : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
                         pattern = VIB_RETWEET;
                         break;
-                    case NOTIF_FAVED:
+                    case R.integer.notification_faved:
                         icon = R.drawable.ic_stat_favorite;
                         titleHeader = "Faved by @";
                         tickerHeader = "ふぁぼられ : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                         pattern = VIB_FAVED;
                         break;
-                    case NOTIF_DM:
+                    case R.integer.notification_message:
                         icon = R.drawable.ic_stat_message;
                         titleHeader = "Message from @";
                         tickerHeader = "DM : @";
@@ -344,7 +340,7 @@ public class StatusManager {
                     }
                     builder.setAutoCancel(true);
                     switch (category) {
-                        case NOTIF_REPLY:
+                        case R.integer.notification_replied:
                         {
                             Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                             intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
@@ -367,7 +363,7 @@ public class StatusManager {
                             }
                             break;
                         }
-                        case NOTIF_DM:
+                        case R.integer.notification_message:
                         {
                             Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                             intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_DM);

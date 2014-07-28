@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import shibafu.yukari.R;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -34,8 +35,6 @@ import twitter4j.TwitterException;
  */
 public class PostService extends IntentService{
     public static final String EXTRA_DRAFT = "draft";
-
-    private static final int NOTIFY_ID = 1;
 
     private NotificationManager nm;
     private Bitmap icon;
@@ -87,7 +86,7 @@ public class PostService extends IntentService{
                 builder.setLargeIcon(icon);
             }
         }
-        startForeground(NOTIFY_ID, builder.build());
+        startForeground(R.integer.notification_tweet, builder.build());
 
         //サービスバインドまで待機
         while (!serviceBound) {
@@ -147,7 +146,7 @@ public class PostService extends IntentService{
                 }
             } catch (TwitterException e) {
                 e.printStackTrace();
-                showErrorMessage(i + 1, draft, String.format(
+                showErrorMessage(i + 65535, draft, String.format(
                         "@%s/%d %s",
                         userRecord.ScreenName,
                         e.getErrorCode(),
@@ -155,7 +154,7 @@ public class PostService extends IntentService{
                 ++error;
             } catch (IOException e) {
                 e.printStackTrace();
-                showErrorMessage(i + 1, draft, String.format(
+                showErrorMessage(i + 65535, draft, String.format(
                         "@%s/添付画像の処理エラー",
                         userRecord.ScreenName));
                 ++error;
@@ -163,7 +162,7 @@ public class PostService extends IntentService{
             builder.setWhen(System.currentTimeMillis());
             builder.setContentInfo((i + 1) + "/" + writers.size());
             builder.setProgress(writers.size(), i + 1, false);
-            nm.notify(NOTIFY_ID, builder.build());
+            nm.notify(R.integer.notification_tweet, builder.build());
         }
 
         builder.setAutoCancel(true);
@@ -175,14 +174,14 @@ public class PostService extends IntentService{
             builder.setTicker("一部ツイートに失敗しました");
             builder.setContentTitle("一部ツイートに失敗しました");
             builder.setContentText("一部アカウントで投稿中にエラーが発生しました");
-            nm.notify(NOTIFY_ID, builder.build());
+            nm.notify(R.integer.notification_tweet, builder.build());
         }
         else if (error == 0) {
             builder.setSmallIcon(android.R.drawable.stat_sys_upload_done);
             builder.setTicker("ツイートに成功しました");
             builder.setContentTitle("ツイートに成功しました");
             builder.setContentText("");
-            nm.notify(NOTIFY_ID, builder.build());
+            nm.notify(R.integer.notification_tweet, builder.build());
             service.getDatabase().deleteDraft(draft);
         }
         stopForeground(true);
