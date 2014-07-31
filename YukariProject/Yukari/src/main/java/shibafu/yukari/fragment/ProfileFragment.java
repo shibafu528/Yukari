@@ -623,6 +623,17 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        List<Fragment> fragments = getChildFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                fragment.onActivityResult(requestCode, resultCode, data);
+            }
+        }
+    }
+
+    @Override
     public void onServiceConnected() {
 
     }
