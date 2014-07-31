@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
@@ -30,10 +31,12 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -49,6 +52,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @InjectView(R.id.listView) ListView listView;
     @InjectView(R.id.progressBar) ProgressBar progressBar;
 
+    private static final int REQUEST_CHOOSE = 1;
     private static final String ARG_TARGET_USER = "target";
 
     private User targetUser;
@@ -103,7 +107,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         dialog.setContentView(v);
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
-        int dialogWidth = (int) (0.95f * metrics.widthPixels);
+        int dialogWidth = (int) (0.9f * metrics.widthPixels);
         WindowManager.LayoutParams lp = dialog.getWindow().getAttributes();
         lp.width = dialogWidth;
         dialog.getWindow().setAttributes(lp);
@@ -125,6 +129,26 @@ public class ListRegisterDialogFragment extends DialogFragment {
         if (currentTask != null) {
             currentTask.cancel(true);
             currentTask = null;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQUEST_CHOOSE:
+                if (resultCode == Activity.RESULT_OK) {
+                    AuthUserRecord newUser = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    if (!currentUser.equals(newUser)) {
+                        currentUser = newUser;
+                        if (userLists != null) userLists.clear();
+                        if (adapter != null) adapter.notifyDataSetChanged();
+                        menuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
+                        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), accountIcon, currentUser.ProfileImageUrl);
+                        loadList();
+                    }
+                }
+                break;
         }
     }
 
@@ -151,9 +175,18 @@ public class ListRegisterDialogFragment extends DialogFragment {
                             iterator.remove();
                         } else {
                             try {
-                                //TODO: ここ所属ユーザ一覧を引っ張ってくるAPIにしないとすぐ枯渇して使えなくなる。あっちのほうがAPI数が多い。
-                                twitter.showUserListMembership(list.getId(), targetUser.getId());
-                                membership.add(list.getId());
+                                for (long cursor = -1;;) {
+                                    PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
+                                    for (User userListMember : userListMembers) {
+                                        if (userListMember.getId() == targetUser.getId()) {
+                                            membership.add(list.getId());
+                                            break;
+                                        }
+                                    }
+                                    if (userListMembers.hasNext()) {
+                                        cursor = userListMembers.getNextCursor();
+                                    } else break;
+                                }
                             } catch (TwitterException ignored) {}
                         }
                     }
@@ -194,7 +227,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     @OnClick(R.id.llMenuAccountParent)
     void onClickTitle() {
-        //TODO: Launch Account Chooser
+        startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
     }
 
     @OnItemClick(R.id.listView)
