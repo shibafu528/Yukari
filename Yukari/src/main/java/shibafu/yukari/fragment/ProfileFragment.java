@@ -51,6 +51,8 @@ import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
+import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
@@ -143,8 +145,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 menuList.add("ツイートを送る");
                 menuList.add("DMを送る");
                 menuList.add("ブラウザで開く");
-                menuList.add("ミュートする");
+                menuList.add("保存しているリスト");
+                menuList.add("追加されているリスト");
                 menuList.add("リストへ追加/削除");
+                menuList.add("ミュートする");
 
                 if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
                         (targetId >= 0 && targetId == user.NumericId) ||
@@ -187,12 +191,35 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             }
                             case 3:
                             {
-                                MuteMenuDialogFragment dialogFragment =
-                                        MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
-                                dialogFragment.show(getChildFragmentManager(), "mute");
+                                UserListFragment fragment = new UserListFragment();
+                                Bundle args = new Bundle();
+                                args.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
+                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                                args.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
+                                fragment.setArguments(args);
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                transaction.replace(R.id.frame, fragment, "contain");
+                                transaction.addToBackStack(null);
+                                transaction.commit();
                                 break;
                             }
                             case 4:
+                            {
+                                UserListFragment fragment = new UserListFragment();
+                                Bundle args = new Bundle();
+                                args.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
+                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
+                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                                args.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
+                                fragment.setArguments(args);
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                transaction.replace(R.id.frame, fragment, "contain");
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                                break;
+                            }
+                            case 5:
                             {
                                 ListRegisterDialogFragment dialogFragment =
                                         ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
@@ -200,14 +227,21 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                                 dialogFragment.show(getChildFragmentManager(), "list");
                                 break;
                             }
-                            case 5:
+                            case 6:
+                            {
+                                MuteMenuDialogFragment dialogFragment =
+                                        MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
+                                dialogFragment.show(getChildFragmentManager(), "mute");
+                                break;
+                            }
+                            case 7:
                             {
                                 Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
                                 intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
                                 startActivity(intent);
                                 break;
                             }
-                            case 6:
+                            case 8:
                             {
                                 FriendListFragment fragment = new FriendListFragment();
                                 Bundle args = new Bundle();

@@ -41,4 +41,7 @@
     <string name="mute_match">一致条件</string>
     <string name="mute_erase">ミュートの対象</string>
     <string name="mute_expiration">有効期限</string>
+
+    <string name="list_members_count">%1$d 人のメンバー</string>
+    <string name="list_subscribers_count">, %1$d 人がリストを保存</string>
 </resources>
