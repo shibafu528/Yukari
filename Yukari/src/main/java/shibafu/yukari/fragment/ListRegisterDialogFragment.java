@@ -23,8 +23,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -63,7 +65,8 @@ public class ListRegisterDialogFragment extends DialogFragment {
     private ResponseList<UserList> userLists;
     private ArrayList<Long> membership;
 
-    private ThrowableTwitterAsyncTask<AuthUserRecord, Pair<ResponseList<UserList>, ArrayList<Long>>> currentTask;
+    private ListLoadTask currentListLoadTask;
+    private Map<ListUpdateTask, UserList> updateTasks = new HashMap<>();
     private UserListAdapter adapter;
 
     public static ListRegisterDialogFragment newInstance(User targetUser) {
@@ -126,10 +129,11 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (currentTask != null) {
-            currentTask.cancel(true);
-            currentTask = null;
+        if (currentListLoadTask != null) {
+            currentListLoadTask.cancel(true);
+            currentListLoadTask = null;
         }
+        updateTasks.clear();
     }
 
     @Override
@@ -153,76 +157,11 @@ public class ListRegisterDialogFragment extends DialogFragment {
     }
 
     private void loadList() {
-        if (currentTask != null) {
-            currentTask.cancel(true);
+        if (currentListLoadTask != null) {
+            currentListLoadTask.cancel(true);
         }
-        currentTask = new ThrowableTwitterAsyncTask<AuthUserRecord, Pair<ResponseList<UserList>, ArrayList<Long>>>() {
-            @Override
-            protected void showToast(String message) {
-                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            protected ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> doInBackground(AuthUserRecord... params) {
-                Twitter twitter = delegate.getTwitterService().getTwitter();
-                twitter.setOAuthAccessToken(params[0].getAccessToken());
-                try {
-                    ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
-                    ArrayList<Long> membership = new ArrayList<>();
-                    for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
-                        UserList list = iterator.next();
-                        if (list.getUser().getId() != params[0].NumericId) {
-                            iterator.remove();
-                        } else {
-                            try {
-                                for (long cursor = -1;;) {
-                                    PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
-                                    for (User userListMember : userListMembers) {
-                                        if (userListMember.getId() == targetUser.getId()) {
-                                            membership.add(list.getId());
-                                            break;
-                                        }
-                                    }
-                                    if (userListMembers.hasNext()) {
-                                        cursor = userListMembers.getNextCursor();
-                                    } else break;
-                                }
-                            } catch (TwitterException ignored) {}
-                        }
-                    }
-                    return new ThrowableResult<>(new Pair<>(lists, membership));
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    return new ThrowableResult<>(e);
-                }
-            }
-
-            @Override
-            protected void onCancelled() {
-                super.onCancelled();
-                currentTask = null;
-            }
-
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            protected void onPostExecute(ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> result) {
-                super.onPostExecute(result);
-                currentTask = null;
-                progressBar.setVisibility(View.GONE);
-                if (!result.isException()) {
-                    userLists = result.getResult().first;
-                    membership = result.getResult().second;
-                    adapter = new UserListAdapter(getActivity(), userLists);
-                    listView.setAdapter(adapter);
-                }
-            }
-        };
-        currentTask.executeParallel(currentUser);
+        currentListLoadTask = new ListLoadTask();
+        currentListLoadTask.executeParallel(currentUser);
     }
 
     @OnClick(R.id.llMenuAccountParent)
@@ -232,13 +171,15 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     @OnItemClick(R.id.listView)
     void onItemClick(int position) {
-        long listId = userLists.get(position).getId();
-        if (!membership.contains(listId)) {
-            membership.add(listId);
-        } else {
-            membership.remove(listId);
+        UserList userList = userLists.get(position);
+        if (!updateTasks.containsValue(userList)) {
+            ListUpdateTask task = new ListUpdateTask();
+            updateTasks.put(task, userList);
+            task.executeParallel(task.new Params(
+                    !membership.contains(userList.getId()) ? ListUpdateTask.ADD : ListUpdateTask.REMOVE,
+                    currentUser, userList));
+            adapter.notifyDataSetChanged();
         }
-        adapter.notifyDataSetChanged();
     }
 
     class UserListAdapter extends ArrayAdapter<UserList> {
@@ -264,17 +205,152 @@ public class ListRegisterDialogFragment extends DialogFragment {
             if (list != null) {
                 vh.checkBox.setText(list.getName());
                 vh.checkBox.setChecked(membership.contains(list.getId()));
+
+                if (updateTasks.containsValue(list)) {
+                    vh.checkBox.setEnabled(false);
+                    vh.progressBar.setVisibility(View.VISIBLE);
+                } else {
+                    vh.checkBox.setEnabled(true);
+                    vh.progressBar.setVisibility(View.GONE);
+                }
             }
 
             return convertView;
         }
 
         class ViewHolder {
-            @InjectView(R.id.checkBox)
-            CheckBox checkBox;
+            @InjectView(R.id.checkBox) CheckBox checkBox;
+            @InjectView(R.id.progressBar) ProgressBar progressBar;
 
             public ViewHolder(View v) {
                 ButterKnife.inject(this, v);
+            }
+        }
+    }
+
+    private class ListLoadTask extends ThrowableTwitterAsyncTask<AuthUserRecord, Pair<ResponseList<UserList>, ArrayList<Long>>> {
+        @Override
+        protected void showToast(String message) {
+            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> doInBackground(AuthUserRecord... params) {
+            Twitter twitter = delegate.getTwitterService().getTwitter();
+            twitter.setOAuthAccessToken(params[0].getAccessToken());
+            try {
+                ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
+                ArrayList<Long> membership = new ArrayList<>();
+                for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
+                    UserList list = iterator.next();
+                    if (list.getUser().getId() != params[0].NumericId) {
+                        iterator.remove();
+                    } else {
+                        try {
+                            for (long cursor = -1;;) {
+                                PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
+                                for (User userListMember : userListMembers) {
+                                    if (userListMember.getId() == targetUser.getId()) {
+                                        membership.add(list.getId());
+                                        break;
+                                    }
+                                }
+                                if (userListMembers.hasNext()) {
+                                    cursor = userListMembers.getNextCursor();
+                                } else break;
+                            }
+                        } catch (TwitterException ignored) {}
+                    }
+                }
+                return new ThrowableResult<>(new Pair<>(lists, membership));
+            } catch (TwitterException e) {
+                e.printStackTrace();
+                return new ThrowableResult<>(e);
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            currentListLoadTask = null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected void onPostExecute(ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> result) {
+            super.onPostExecute(result);
+            currentListLoadTask = null;
+            progressBar.setVisibility(View.GONE);
+            if (!result.isException()) {
+                userLists = result.getResult().first;
+                membership = result.getResult().second;
+                adapter = new UserListAdapter(getActivity(), userLists);
+                listView.setAdapter(adapter);
+            }
+        }
+    }
+
+    private class ListUpdateTask extends ThrowableTwitterAsyncTask<ListUpdateTask.Params, ListUpdateTask.Params> {
+        public static final int ADD = 0;
+        public static final int REMOVE = 1;
+
+        class Params {
+            int mode;
+            AuthUserRecord userRecord;
+            UserList list;
+
+            Params(int mode, AuthUserRecord userRecord, UserList list) {
+                this.mode = mode;
+                this.userRecord = userRecord;
+                this.list = list;
+            }
+        }
+
+        @Override
+        protected ThrowableResult<Params> doInBackground(Params... params) {
+            try {
+                Twitter twitter = delegate.getTwitterService().getTwitter();
+                twitter.setOAuthAccessToken(params[0].userRecord.getAccessToken());
+                switch (params[0].mode) {
+                    case ADD:
+                        twitter.createUserListMember(params[0].list.getId(), targetUser.getId());
+                        break;
+                    case REMOVE:
+                        twitter.destroyUserListMember(params[0].list.getId(), targetUser.getId());
+                        break;
+                }
+                return new ThrowableResult<>(params[0]);
+            } catch (TwitterException e) {
+                e.printStackTrace();
+                return new ThrowableResult<>(e);
+            }
+        }
+
+        @Override
+        protected void showToast(String message) {
+            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        protected void onPostExecute(ThrowableResult<Params> result) {
+            super.onPostExecute(result);
+            if (!result.isException() && !isCancelled() && updateTasks.containsKey(this)) {
+                Params params = result.getResult();
+                switch (params.mode) {
+                    case ADD:
+                        membership.add(params.list.getId());
+                        break;
+                    case REMOVE:
+                        membership.remove(params.list.getId());
+                        break;
+                }
+                updateTasks.remove(this);
+                adapter.notifyDataSetChanged();
             }
         }
     }
