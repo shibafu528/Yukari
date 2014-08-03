@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:padding="4dp">
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/list_icon"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\uFF20null/ListTitle"
+        android:id="@+id/list_name"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/list_icon"
+        android:layout_marginLeft="8dp"
+        android:textColor="#ff419b38"
+        android:layout_marginTop="-2dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="List Description"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:id="@+id/list_desc"
+        android:layout_below="@+id/list_name"
+        android:layout_alignLeft="@+id/list_name"
+        android:textColor="#000"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="0 Members, 0 Followers"
+        android:id="@+id/list_members"
+        android:textColor="#ff8b8b8b"
+        android:textSize="12sp"
+        android:layout_marginTop="2dp"
+        android:layout_below="@+id/list_desc"
+        android:layout_alignLeft="@+id/list_desc"
+        android:layout_alignStart="@+id/list_desc" />
+
+</RelativeLayout>
