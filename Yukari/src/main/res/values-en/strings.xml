@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mute_query">Keyword</string>
+    <string name="mute_target">TARGET</string>
+    <string name="mute_match">MATCH</string>
+    <string name="mute_erase">ERASE</string>
+    <string name="mute_expiration">EXPIRATION</string>
+</resources>

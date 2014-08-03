@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/etMuteTarget"
         android:layout_gravity="center_horizontal"
-        android:hint="キーワード"/>
+        android:hint="@string/mute_query"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -32,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="TARGET"
+                android:text="@string/mute_target"
                 android:layout_marginLeft="8dp" />
 
             <ImageView
@@ -61,7 +61,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="MATCH"
+                android:text="@string/mute_match"
                 android:layout_marginLeft="8dp" />
 
             <ImageView
@@ -85,7 +85,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="ERASE"
+        android:text="@string/mute_erase"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="16dp" />
 
@@ -109,7 +109,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="EXPIRATION"
+        android:text="@string/mute_expiration"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="16dp" />
 

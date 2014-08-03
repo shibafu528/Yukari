@@ -1,6 +1,5 @@
 package shibafu.yukari.fragment;
 
-import android.R;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -45,7 +44,8 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
     private static final String[] ITEMS = {
             "ブラウザで開く",
             "パーマリンクをコピー",
-            "ミュート",
+            "リストへ追加/削除",
+            "ミュートする",
             "ツイート削除"
     };
 
@@ -93,7 +93,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
             enableDelete = false;
         }
 
-        setListAdapter(new ArrayAdapter<>(getActivity(), R.layout.simple_list_item_1, menu));
+        setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, menu));
         getListView().setOnItemClickListener(this);
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -114,6 +114,14 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                 Toast.makeText(getActivity(), "リンクをコピーしました", Toast.LENGTH_SHORT).show();
                 break;
             case 2:
+            {
+                ListRegisterDialogFragment fragment = ListRegisterDialogFragment.newInstance(
+                        status.isRetweet() ? status.getRetweetedStatus().getUser() : status.getUser());
+                fragment.setTargetFragment(this, 0);
+                fragment.show(getChildFragmentManager(), "register");
+                break;
+            }
+            case 3:
                 MuteMenuDialogFragment.newInstance(status, this).show(getChildFragmentManager(), "mute");
                 break;
             default:
