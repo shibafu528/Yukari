@@ -42,7 +42,7 @@
         </activity>
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
-            android:label="@string/OAuthTitle"
+            android:label="@string/title_activity_oauth"
             android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
