@@ -6,20 +6,26 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import shibafu.yukari.R;
+import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -68,6 +74,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
             else if (mode == TabType.TABTYPE_LIST) {
                 listId = args.getLong(EXTRA_LIST_ID, -1);
+                setHasOptionsMenu(true);
             }
         }
     }
@@ -168,6 +175,54 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     @Override
     public boolean isCloseable() {
         return false;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        getActivity().getMenuInflater().inflate(R.menu.list, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_show_member:
+            {
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args = new Bundle();
+                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_MEMBER);
+                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
+                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, listId);
+                args.putString(TweetListFragment.EXTRA_TITLE, "Member: " + getTitle().replace("List: ", ""));
+                fragment.setArguments(args);
+                if (getActivity() instanceof ProfileActivity) {
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+                return true;
+            }
+            case R.id.action_show_subscriber:
+            {
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args = new Bundle();
+                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_SUBSCRIBER);
+                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
+                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, listId);
+                args.putString(TweetListFragment.EXTRA_TITLE, "Subscriber: " + getTitle().replace("List: ", ""));
+                fragment.setArguments(args);
+                if (getActivity() instanceof ProfileActivity) {
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+                return true;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {

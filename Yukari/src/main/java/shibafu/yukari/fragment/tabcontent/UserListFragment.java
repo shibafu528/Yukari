@@ -4,12 +4,20 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -37,6 +45,7 @@ public class UserListFragment extends TwitterListFragment<UserList> {
 
     private UserListAdapter adapter;
     private long loadCursor = -1;
+    private MenuItem addMenu;
 
     public UserListFragment() {
         setRetainInstance(true);
@@ -47,6 +56,7 @@ public class UserListFragment extends TwitterListFragment<UserList> {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -55,6 +65,8 @@ public class UserListFragment extends TwitterListFragment<UserList> {
 
         adapter = new UserListAdapter(getActivity().getApplicationContext(), elements);
         setListAdapter(adapter);
+
+        registerForContextMenu(getListView());
     }
 
     @Override
@@ -93,6 +105,9 @@ public class UserListFragment extends TwitterListFragment<UserList> {
     public void onServiceConnected() {
         super.onServiceConnected();
         executeLoader(LOADER_LOAD_INIT, getCurrentUser());
+        if (getMode() == MODE_FOLLOWING && targetUser.getId() == getCurrentUser().NumericId && addMenu != null) {
+            addMenu.setVisible(true);
+        }
     }
 
     @Override
@@ -106,6 +121,87 @@ public class UserListFragment extends TwitterListFragment<UserList> {
         if (loadCursor == -2) {
             removeFooter();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "新規作成")
+                .setIcon(R.drawable.ic_action_add)
+                .setVisible(false);
+        MenuItemCompat.setShowAsAction(addMenu, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_add:
+                Toast.makeText(getActivity(), "a", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        AdapterView.AdapterContextMenuInfo adapterinfo = (AdapterView.AdapterContextMenuInfo)menuInfo;
+        ListView listView = (ListView)v;
+        UserList userList = (UserList) listView.getItemAtPosition(adapterinfo.position);
+
+        if (userList != null) {
+            getActivity().getMenuInflater().inflate(R.menu.list, menu);
+            menu.setHeaderTitle(userList.getFullName());
+
+            if (userList.getUser().getId() == getCurrentUser().NumericId) {
+                menu.findItem(R.id.action_edit).setVisible(true);
+                menu.findItem(R.id.action_delete).setVisible(true);
+            }
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        UserList userList = (UserList) listView.getItemAtPosition(info.position);
+        switch (item.getItemId()) {
+            case R.id.action_show_member:
+            {
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args = new Bundle();
+                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_MEMBER);
+                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
+                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, userList.getId());
+                args.putString(TweetListFragment.EXTRA_TITLE, "Member: " + userList.getFullName());
+                fragment.setArguments(args);
+                if (getActivity() instanceof ProfileActivity) {
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+                return true;
+            }
+            case R.id.action_show_subscriber:
+            {
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args = new Bundle();
+                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_SUBSCRIBER);
+                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
+                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
+                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, userList.getId());
+                args.putString(TweetListFragment.EXTRA_TITLE, "Subscriber: " + userList.getFullName());
+                fragment.setArguments(args);
+                if (getActivity() instanceof ProfileActivity) {
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+                return true;
+            }
+        }
+        return super.onContextItemSelected(item);
     }
 
     private class ListLoadTask extends AsyncTask<Void, Void, ResponseList<UserList>> {

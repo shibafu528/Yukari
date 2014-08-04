@@ -30,13 +30,17 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
     public static final String EXTRA_SHOW_USER = "show_user";
     public static final String EXTRA_SEARCH_QUERY = "query";
+    public static final String EXTRA_TARGET_LIST_ID = "listid";
 
-    public static final int MODE_FRIEND   = 0;
-    public static final int MODE_FOLLOWER = 1;
-    public static final int MODE_BLOCKING = 2;
-    public static final int MODE_SEARCH   = 3;
+    public static final int MODE_FRIEND          = 0;
+    public static final int MODE_FOLLOWER        = 1;
+    public static final int MODE_BLOCKING        = 2;
+    public static final int MODE_SEARCH          = 3;
+    public static final int MODE_LIST_MEMBER     = 4;
+    public static final int MODE_LIST_SUBSCRIBER = 5;
 
     private User targetUser = null;
+    private long targetListId;
     private String query;
 
     private UserAdapter adapter;
@@ -52,6 +56,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         query = args.getString(EXTRA_SEARCH_QUERY);
+        targetListId = args.getLong(EXTRA_TARGET_LIST_ID);
     }
 
     @Override
@@ -115,6 +120,12 @@ public class FriendListFragment extends TwitterListFragment<User> {
                         break;
                     case MODE_SEARCH:
                         responseList = twitter.searchUsers(query, (int) loadCursor);
+                        break;
+                    case MODE_LIST_MEMBER:
+                        responseList = twitter.getUserListMembers(targetListId, loadCursor);
+                        break;
+                    case MODE_LIST_SUBSCRIBER:
+                        responseList = twitter.getUserListSubscribers(targetListId, loadCursor);
                         break;
                 }
                 if (responseList != null && !responseList.isEmpty()) {
