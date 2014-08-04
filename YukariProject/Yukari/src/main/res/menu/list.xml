@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yukari="http://schemas.android.com/apk/res-auto">
+    <item android:id="@+id/action_show_member"
+        android:title="登録されているユーザ"
+        yukari:showAsAction="never"/>
+    <item android:id="@+id/action_show_subscriber"
+        android:title="保存しているユーザ"
+        yukari:showAsAction="never"/>
+    <item android:id="@+id/action_edit"
+        android:title="リストの設定"
+        yukari:showAsAction="never"
+        android:visible="false"/>
+    <item android:id="@+id/action_delete"
+        android:title="リストを削除"
+        yukari:showAsAction="never"
+        android:visible="false"/>
+</menu>
