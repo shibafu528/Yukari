@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="25"
-    android:versionName="0.133alpha (prototype 140803)" >
+    android:versionName="0.134alpha (prototype 140804)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -123,8 +123,7 @@
         </activity>
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
-            android:label="@string/title_activity_profile"
-            android:theme="@style/AppThemeNoTitle" >
+            android:label="@string/title_activity_profile">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -89,6 +90,14 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         getListView().addFooterView(footerView);
 
         connection.connect(getActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!(getActivity() instanceof MainActivity)) {
+            getActivity().setTitle(title);
+        }
     }
 
     @Override

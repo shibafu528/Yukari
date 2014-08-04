@@ -5,10 +5,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import shibafu.yukari.R;
@@ -27,10 +26,9 @@ public class ProfileActivity extends ActionBarActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent);
-        getSupportActionBar().hide();
 
-        final LinearLayout llTitle = (LinearLayout) findViewById(R.id.llFrameTitle);
-        final TextView tvTitle = (TextView) findViewById(R.id.tvFrameTitle);
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
         final FragmentManager manager = getSupportFragmentManager();
         manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
@@ -38,16 +36,17 @@ public class ProfileActivity extends ActionBarActivity{
             public void onBackStackChanged() {
                 Fragment f = manager.findFragmentByTag("contain");
                 if (manager.getBackStackEntryCount() > 0 && f instanceof TwitterListFragment) {
-                    llTitle.setVisibility(View.VISIBLE);
-                    tvTitle.setText(((TwitterListFragment) f).getTitle());
+                    actionBar.show();
                 }
                 else {
-                    llTitle.setVisibility(View.GONE);
+                    actionBar.hide();
                 }
             }
         });
 
         if (savedInstanceState == null) {
+            actionBar.hide();
+
             Intent intent = getIntent();
             if (intent.getData() != null && intent.getData().getLastPathSegment() == null) {
                 Toast.makeText(this, "エラー: 無効なユーザ指定です", Toast.LENGTH_LONG).show();
@@ -65,5 +64,19 @@ public class ProfileActivity extends ActionBarActivity{
             FragmentTransaction ft = manager.beginTransaction();
             ft.replace(R.id.frame, fragment, "contain").commit();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager().popBackStackImmediate();
+                } else {
+                    finish();
+                }
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

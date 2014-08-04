@@ -518,6 +518,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     @Override
     public void onResume() {
         super.onResume();
+        getActivity().setTitle("プロフィール");
 
         if (currentDialog != null) {
             currentDialog.show();
