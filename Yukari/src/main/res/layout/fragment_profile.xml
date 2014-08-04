@@ -21,15 +21,14 @@
                 />
 
         <ImageButton
-                android:layout_width="wrap_content"
+                android:layout_width="54dp"
                 android:layout_height="48dp"
                 android:id="@+id/ibProfileMenu"
-                android:src="@drawable/ic_more_menu"
+                android:src="@drawable/ic_menu_dark"
                 android:layout_gravity="center"
                 android:layout_alignTop="@+id/ibProfileSearch"
                 android:layout_alignParentLeft="true"
-                android:layout_marginLeft="8dp"
-                />
+                android:layout_marginLeft="8dp" />
 
         <ImageButton
                 android:layout_width="wrap_content"
