@@ -1,5 +1,8 @@
 package shibafu.yukari.common.async;
 
+import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
@@ -7,6 +10,13 @@ import twitter4j.TwitterException;
  */
 public abstract class ThrowableTwitterAsyncTask<Params, Result> extends ThrowableAsyncTask<Params, Void, Result>{
     private boolean isErrored;
+    private TwitterServiceDelegate delegate;
+
+    public ThrowableTwitterAsyncTask() {}
+
+    public ThrowableTwitterAsyncTask(TwitterServiceDelegate delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     protected void onPostExecute(ThrowableResult<Result> result) {
@@ -36,6 +46,16 @@ public abstract class ThrowableTwitterAsyncTask<Params, Result> extends Throwabl
         else {
             isErrored = false;
         }
+    }
+
+    protected Twitter getTwitterInstance() {
+        return delegate.getTwitterService().getTwitter();
+    }
+
+    protected Twitter getTwitterInstance(AuthUserRecord userRecord) {
+        Twitter twitter = delegate.getTwitterService().getTwitter();
+        twitter.setOAuthAccessToken(userRecord.getAccessToken());
+        return twitter;
     }
 
     public final boolean isErrored() {

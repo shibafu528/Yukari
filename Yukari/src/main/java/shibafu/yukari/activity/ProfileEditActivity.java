@@ -29,6 +29,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.fragment.PostProgressDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -295,20 +296,4 @@ public class ProfileEditActivity extends ActionBarYukariBase {
         }
     }
 
-    public static class PostProgressDialogFragment extends DialogFragment {
-        public static PostProgressDialogFragment newInstance() {
-            PostProgressDialogFragment fragment = new PostProgressDialogFragment();
-            fragment.setCancelable(false);
-            return fragment;
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            ProgressDialog pd = new ProgressDialog(getActivity());
-            pd.setMessage("送信中...");
-            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            pd.setIndeterminate(true);
-            return pd;
-        }
-    }
 }

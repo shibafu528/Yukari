@@ -15,6 +15,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
@@ -25,7 +26,7 @@ import twitter4j.TwitterResponse;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment implements TwitterServiceConnection.ServiceConnectionCallback {
+public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate{
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -127,7 +128,17 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         return connection.getTwitterService();
     }
 
+    @Override
+    public TwitterService getTwitterService() {
+        return connection.getTwitterService();
+    }
+
     protected boolean isServiceBound() {
+        return connection.isServiceBound();
+    }
+
+    @Override
+    public boolean isTwitterServiceBound() {
         return connection.isServiceBound();
     }
 
