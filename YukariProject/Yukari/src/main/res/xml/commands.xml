@@ -27,6 +27,12 @@
         <Preference
             android:title="::grgr"
             android:summary="三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ"/>
+        <Preference
+            android:title="::burn"
+            android:summary="/burn \@ulicknormanowen"/>
+        <Preference
+            android:title="::burna"
+            android:summary="/burn \@ul1ckn0rman0w3n"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
