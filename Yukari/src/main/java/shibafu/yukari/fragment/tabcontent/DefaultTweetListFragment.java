@@ -59,6 +59,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private UserList targetList;
     private MenuItem miEditList;
     private MenuItem miDeleteList;
+    private MenuItem miSubscribeList;
+    private MenuItem miUnsubscriveList;
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
@@ -190,7 +192,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     Twitter twitter = getTwitterInstance(getCurrentUser());
                     try {
                         targetList = twitter.showUserList(listId);
-                        return new ThrowableResult<>(targetList.getUser().getId() == getCurrentUser().NumericId);
+                        return new ThrowableResult<>(true);
                     } catch (TwitterException e) {
                         e.printStackTrace();
                         return new ThrowableResult<>(e);
@@ -200,9 +202,15 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 @Override
                 protected void onPostExecute(ThrowableResult<Boolean> result) {
                     super.onPostExecute(result);
-                    if (!result.isException() && result.getResult()) {
-                        miEditList.setVisible(true);
-                        miDeleteList.setVisible(true);
+                    if (!result.isException()) {
+                        if (targetList.getUser().getId() == getCurrentUser().NumericId) {
+                            miEditList.setVisible(true);
+                            miDeleteList.setVisible(true);
+                        } else if (targetList.isFollowing()) {
+                            miUnsubscriveList.setVisible(true);
+                        } else {
+                            miSubscribeList.setVisible(true);
+                        }
                     }
                 }
             }.executeParallel();
@@ -224,6 +232,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         getActivity().getMenuInflater().inflate(R.menu.list, menu);
         miEditList = menu.findItem(R.id.action_edit);
         miDeleteList = menu.findItem(R.id.action_delete);
+        miSubscribeList = menu.findItem(R.id.action_subscribe);
+        miUnsubscriveList = menu.findItem(R.id.action_unsubscribe);
     }
 
     @Override
@@ -263,6 +273,72 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
+                return true;
+            }
+            case R.id.action_subscribe:
+            {
+                new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+
+                    @Override
+                    protected void showToast(String message) {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    protected ThrowableResult<Boolean> doInBackground(Long... params) {
+                        Twitter twitter = getTwitterInstance(getCurrentUser());
+                        try {
+                            twitter.createUserListSubscription(params[0]);
+                            return new ThrowableResult<>(true);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return new ThrowableResult<>(e);
+                        }
+                    }
+
+                    @Override
+                    protected void onPostExecute(ThrowableResult<Boolean> result) {
+                        super.onPostExecute(result);
+                        if (!result.isException()) {
+                            Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
+                            miSubscribeList.setVisible(false);
+                            miUnsubscriveList.setVisible(true);
+                        }
+                    }
+                }.executeParallel(listId);
+                return true;
+            }
+            case R.id.action_unsubscribe:
+            {
+                new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+
+                    @Override
+                    protected void showToast(String message) {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    protected ThrowableResult<Boolean> doInBackground(Long... params) {
+                        Twitter twitter = getTwitterInstance(getCurrentUser());
+                        try {
+                            twitter.destroyUserListSubscription(params[0]);
+                            return new ThrowableResult<>(true);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return new ThrowableResult<>(e);
+                        }
+                    }
+
+                    @Override
+                    protected void onPostExecute(ThrowableResult<Boolean> result) {
+                        super.onPostExecute(result);
+                        if (!result.isException()) {
+                            Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
+                            miSubscribeList.setVisible(true);
+                            miUnsubscriveList.setVisible(false);
+                        }
+                    }
+                }.executeParallel(listId);
                 return true;
             }
             case R.id.action_edit:

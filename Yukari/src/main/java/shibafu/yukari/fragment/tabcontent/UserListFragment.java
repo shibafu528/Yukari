@@ -20,7 +20,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -57,6 +60,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     private MenuItem addMenu;
 
     private UserList preDelete;
+    private Map<Long, Boolean> modifiedEntry = new HashMap<>();
 
     public UserListFragment() {
         setRetainInstance(true);
@@ -165,9 +169,15 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             getActivity().getMenuInflater().inflate(R.menu.list, menu);
             menu.setHeaderTitle(userList.getFullName());
 
+            boolean modified = modifiedEntry.containsKey(userList.getId());
+            boolean isFollowing = modified? modifiedEntry.get(userList.getId()) : userList.isFollowing();
             if (userList.getUser().getId() == getCurrentUser().NumericId) {
                 menu.findItem(R.id.action_edit).setVisible(true);
                 menu.findItem(R.id.action_delete).setVisible(true);
+            } else if (isFollowing) {
+                menu.findItem(R.id.action_unsubscribe).setVisible(true);
+            } else {
+                menu.findItem(R.id.action_subscribe).setVisible(true);
             }
         }
     }
@@ -211,6 +221,79 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
+                return true;
+            }
+            case R.id.action_subscribe:
+            {
+                new ThrowableTwitterAsyncTask<Long, Long>(this) {
+
+                    @Override
+                    protected void showToast(String message) {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    protected ThrowableResult<Long> doInBackground(Long... params) {
+                        Twitter twitter = getTwitterInstance(getCurrentUser());
+                        try {
+                            twitter.createUserListSubscription(params[0]);
+                            return new ThrowableResult<>(params[0]);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return new ThrowableResult<>(e);
+                        }
+                    }
+
+                    @Override
+                    protected void onPostExecute(ThrowableResult<Long> result) {
+                        super.onPostExecute(result);
+                        if (!result.isException()) {
+                            Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
+                            modifiedEntry.put(result.getResult(), true);
+                        }
+                    }
+                }.executeParallel(userList.getId());
+                return true;
+            }
+            case R.id.action_unsubscribe:
+            {
+                new ThrowableTwitterAsyncTask<Long, Long>(this) {
+
+                    @Override
+                    protected void showToast(String message) {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    protected ThrowableResult<Long> doInBackground(Long... params) {
+                        Twitter twitter = getTwitterInstance(getCurrentUser());
+                        try {
+                            twitter.destroyUserListSubscription(params[0]);
+                            return new ThrowableResult<>(params[0]);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return new ThrowableResult<>(e);
+                        }
+                    }
+
+                    @Override
+                    protected void onPostExecute(ThrowableResult<Long> result) {
+                        super.onPostExecute(result);
+                        if (!result.isException()) {
+                            Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
+                            if (targetUser.getId() == getCurrentUser().NumericId && getMode() == MODE_FOLLOWING) {
+                                for (Iterator<UserList> iterator = elements.iterator(); iterator.hasNext(); ) {
+                                    if (iterator.next().getId() == result.getResult()) {
+                                        iterator.remove();
+                                        break;
+                                    }
+                                }
+                                adapter.notifyDataSetChanged();
+                            }
+                            modifiedEntry.put(result.getResult(), false);
+                        }
+                    }
+                }.executeParallel(userList.getId());
                 return true;
             }
             case R.id.action_edit:
