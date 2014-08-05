@@ -1,6 +1,7 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -26,10 +27,14 @@ import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserList;
@@ -37,15 +42,21 @@ import twitter4j.UserList;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class UserListFragment extends TwitterListFragment<UserList> {
+public class UserListFragment extends TwitterListFragment<UserList> implements SimpleAlertDialogFragment.OnDialogChoseListener{
     public static final int MODE_FOLLOWING = 0;
     public static final int MODE_MEMBERSHIP = 1;
+
+    private static final int REQUEST_D_CREATE = 1;
+    private static final int REQUEST_D_EDIT = 2;
+    private static final int REQUEST_D_DELETE = 3;
 
     private User targetUser = null;
 
     private UserListAdapter adapter;
     private long loadCursor = -1;
     private MenuItem addMenu;
+
+    private UserList preDelete;
 
     public UserListFragment() {
         setRetainInstance(true);
@@ -135,8 +146,10 @@ public class UserListFragment extends TwitterListFragment<UserList> {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_add:
-                Toast.makeText(getActivity(), "a", Toast.LENGTH_SHORT).show();
-                break;
+                UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), REQUEST_D_CREATE);
+                fragment.setTargetFragment(this, 1);
+                fragment.show(getChildFragmentManager(), "new");
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -200,8 +213,69 @@ public class UserListFragment extends TwitterListFragment<UserList> {
                 }
                 return true;
             }
+            case R.id.action_edit:
+            {
+                UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), userList, REQUEST_D_EDIT);
+                fragment.setTargetFragment(this, 1);
+                fragment.show(getChildFragmentManager(), "edit");
+                return true;
+            }
+            case R.id.action_delete:
+            {
+                preDelete = userList;
+                SimpleAlertDialogFragment fragment = SimpleAlertDialogFragment.newInstance(
+                        REQUEST_D_DELETE,
+                        "確認",
+                        "リストを削除してもよろしいですか？",
+                        "OK",
+                        "キャンセル"
+                );
+                fragment.setTargetFragment(this, 1);
+                fragment.show(getChildFragmentManager(), "delete");
+                return true;
+            }
         }
         return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onDialogChose(final int requestCode, int which) {
+        if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
+            new ThrowableTwitterAsyncTask<Long, Void>(this) {
+
+                @Override
+                protected void showToast(String message) {
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                protected ThrowableResult<Void> doInBackground(Long... params) {
+                    Twitter twitter = getTwitterInstance(getCurrentUser());
+                    try {
+                        twitter.destroyUserList(params[0]);
+                        return new ThrowableResult<>((Void)null);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<Void> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException()) {
+                        Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_SHORT).show();
+                        elements.clear();
+                        adapter.notifyDataSetChanged();
+                        executeLoader(LOADER_LOAD_INIT, getCurrentUser());
+                    }
+                }
+            }.executeParallel(preDelete.getId());
+        } else if (which == DialogInterface.BUTTON_POSITIVE) {
+            elements.clear();
+            adapter.notifyDataSetChanged();
+            executeLoader(LOADER_LOAD_INIT, getCurrentUser());
+        }
     }
 
     private class ListLoadTask extends AsyncTask<Void, Void, ResponseList<UserList>> {

@@ -2,6 +2,7 @@ package shibafu.yukari.fragment.tabcontent;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
@@ -12,13 +13,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
@@ -30,20 +36,29 @@ import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+import twitter4j.UserList;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener {
+public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener, SimpleAlertDialogFragment.OnDialogChoseListener {
 
     public static final String EXTRA_LIST_ID = "listid";
     public static final String EXTRA_TRACE_START = "trace_start";
 
+    private static final int REQUEST_D_EDIT = 1;
+    private static final int REQUEST_D_DELETE = 2;
+
     private Status traceStart = null;
     private User targetUser = null;
     private long listId = -1;
+
+    private UserList targetList;
+    private MenuItem miEditList;
+    private MenuItem miDeleteList;
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
@@ -159,11 +174,38 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             };
             task.execute(traceStart);
             changeFooterProgress(true);
-        }
-        else if (elements.isEmpty()) {
+        } else if (elements.isEmpty()) {
             for (AuthUserRecord user : users) {
                 executeLoader(LOADER_LOAD_INIT, user);
             }
+        }
+
+        if (getMode() == TabType.TABTYPE_LIST && !(getActivity() instanceof MainActivity)) {
+            new ThrowableTwitterAsyncTask<Void, Boolean>(this) {
+                @Override
+                protected void showToast(String message) {}
+
+                @Override
+                protected ThrowableResult<Boolean> doInBackground(Void... params) {
+                    Twitter twitter = getTwitterInstance(getCurrentUser());
+                    try {
+                        targetList = twitter.showUserList(listId);
+                        return new ThrowableResult<>(targetList.getUser().getId() == getCurrentUser().NumericId);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<Boolean> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException() && result.getResult()) {
+                        miEditList.setVisible(true);
+                        miDeleteList.setVisible(true);
+                    }
+                }
+            }.executeParallel();
         }
 
         getStatusManager().addStatusListener(this);
@@ -180,6 +222,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.list, menu);
+        miEditList = menu.findItem(R.id.action_edit);
+        miDeleteList = menu.findItem(R.id.action_delete);
     }
 
     @Override
@@ -221,9 +265,72 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 }
                 return true;
             }
+            case R.id.action_edit:
+            {
+                if (targetList != null) {
+                    UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), targetList, REQUEST_D_EDIT);
+                    fragment.setTargetFragment(this, 1);
+                    fragment.show(getChildFragmentManager(), "edit");
+                }
+                return true;
+            }
+            case R.id.action_delete:
+            {
+                SimpleAlertDialogFragment fragment = SimpleAlertDialogFragment.newInstance(
+                        REQUEST_D_DELETE,
+                        "確認",
+                        "リストを削除してもよろしいですか？",
+                        "OK",
+                        "キャンセル"
+                );
+                fragment.setTargetFragment(this, 1);
+                fragment.show(getChildFragmentManager(), "delete");
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onDialogChose(int requestCode, int which) {
+        if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
+            new ThrowableTwitterAsyncTask<Long, Void>(this) {
+
+                @Override
+                protected void showToast(String message) {
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                protected ThrowableResult<Void> doInBackground(Long... params) {
+                    Twitter twitter = getTwitterInstance(getCurrentUser());
+                    try {
+                        twitter.destroyUserList(params[0]);
+                        return new ThrowableResult<>((Void)null);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<Void> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException()) {
+                        Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_SHORT).show();
+                        if (getActivity() instanceof ProfileActivity) {
+                            if (getFragmentManager().getBackStackEntryCount() > 0) {
+                                getFragmentManager().popBackStackImmediate();
+                            } else {
+                                getActivity().finish();
+                            }
+                        }
+                    }
+                }
+            }.executeParallel(listId);
+        }
+    }
+
 
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
         @Override
