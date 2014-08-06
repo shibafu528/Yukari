@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -169,7 +170,9 @@ public class UserSearchActivity extends ActionBarYukariBase {
             ViewHolder vh = new ViewHolder();
             vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
             vh.tvName = (TextView) v.findViewById(R.id.user_name);
+            vh.tvName.setTextColor(Color.WHITE);
             vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
+            vh.tvScreenName.setTextColor(Color.WHITE);
             v.setTag(vh);
             bindView(v, context, cursor);
             return v;

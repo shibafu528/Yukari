@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.util.Pair;
@@ -99,7 +100,14 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
 
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_list, null);
         ButterKnife.inject(this, v);

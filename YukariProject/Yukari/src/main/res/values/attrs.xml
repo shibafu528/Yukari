@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="tweetTextColor" format="color|reference"/>
+    <attr name="tweetNormal" format="reference"/>
+    <attr name="tweetRetweet" format="reference"/>
+    <attr name="tweetOwn" format="reference"/>
+    <attr name="tweetMention" format="reference"/>
+    <attr name="tabTitleColor" format="color|reference"/>
+    <attr name="tweetCountColor" format="color|reference"/>
+    <attr name="tweetCountOverColor" format="color|reference"/>
+    <attr name="selectorTextColor" format="color|reference"/>
+</resources>

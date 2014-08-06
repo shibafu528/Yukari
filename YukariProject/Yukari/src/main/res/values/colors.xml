@@ -12,7 +12,16 @@
     <drawable name="bg_mention">#EDB3DD</drawable>
     <color name="bg_own">#EFDCFF</color>
     <drawable name="bg_own">#EFDCFF</drawable>
+
+    <color name="bg_retweet_d">#ff363358</color>
+    <drawable name="bg_retweet_d">#ff363358</drawable>
+    <color name="bg_mention_d">#ff49003b</color>
+    <drawable name="bg_mention_d">#ff49003b</drawable>
+    <color name="bg_own_d">#ff00182c</color>
+    <drawable name="bg_own_d">#ff00182c</drawable>
+
     <drawable name="bg_press">#B394E0</drawable>
+    <drawable name="bg_press_d">#ff382852</drawable>
 
     <drawable name="focus_key_color">@drawable/key_color</drawable>
     <drawable name="press_key_color">#ff613fa3</drawable>
@@ -25,4 +34,10 @@
 
     <color name="key_color_2">#ff50307d</color>
     <color name="key_color_3">#ffa35af4</color>
+    <color name="key_color_4">#ffc080f4</color>
+
+    <color name="count_safe">#000</color>
+    <color name="count_safe_d">#fff</color>
+    <color name="count_error">#f00</color>
+    <color name="count_error_d">#f44</color>
 </resources>

@@ -72,8 +72,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        adapterWrap = new TweetAdapterWrap(
-                getActivity().getApplicationContext(), users, elements, PreformedStatus.class);
+        adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, PreformedStatus.class);
         setListAdapter(adapterWrap.getAdapter());
     }
 

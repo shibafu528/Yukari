@@ -56,8 +56,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        adapterWrap = new TweetAdapterWrap(
-                getActivity().getApplicationContext(), users, elements, DirectMessage.class);
+        adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, DirectMessage.class);
         setListAdapter(adapterWrap.getAdapter());
     }
 

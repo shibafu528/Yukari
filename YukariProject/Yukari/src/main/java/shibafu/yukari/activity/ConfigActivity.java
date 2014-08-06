@@ -23,10 +23,23 @@ public class ConfigActivity extends PreferenceActivity {
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            setTheme(android.R.style.Theme_Light);
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                    setTheme(android.R.style.Theme_Light);
+                } else {
+                    setTheme(R.style.YukariLightTheme);
+                }
+                break;
+            case "dark":
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                    setTheme(android.R.style.Theme_Black);
+                } else {
+                    setTheme(R.style.YukariDarkTheme);
+                }
+                break;
         }
-        else {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             getActionBar().setDisplayHomeAsUpEnabled(true);
         }
         super.onCreate(savedInstanceState);

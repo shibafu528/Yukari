@@ -1,7 +1,10 @@
 package shibafu.yukari.activity.base;
 
 import android.app.ListActivity;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 
+import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -11,6 +14,23 @@ import shibafu.yukari.service.TwitterServiceDelegate;
  */
 public abstract class ListYukariBase extends ListActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
     private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.YukariLightTheme);
+                break;
+            case "dark":
+                setTheme(R.style.YukariDarkTheme);
+                break;
+        }
+        super.onCreate(savedInstanceState);
+    }
+
+    protected void onCreate(Bundle savedInstanceState, boolean ignoreAutoTheme) {
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     protected void onStart() {

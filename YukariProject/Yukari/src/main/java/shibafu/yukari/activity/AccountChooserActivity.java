@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,7 +53,15 @@ public class AccountChooserActivity extends ListYukariBase {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.YukariLightDialogTheme);
+                break;
+            case "dark":
+                setTheme(R.style.YukariDarkDialogTheme);
+                break;
+        }
+        super.onCreate(savedInstanceState, true);
         Intent args = getIntent();
 
         String title = args.getStringExtra(Intent.EXTRA_TITLE);

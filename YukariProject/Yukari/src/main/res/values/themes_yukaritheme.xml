@@ -114,11 +114,4 @@
         <item name="android:textSize">22sp</item>
         <item name="android:textColor">@color/key_color</item>
     </style>
-
-    <style name="YukariDarkTheme" parent="Theme.AppCompat">
-        <item name="android:textColor">@android:color/white</item>
-        <item name="android:textColorHint">#aaa</item>
-        <item name="android:dropDownListViewStyle">@style/DropDownListViewYukariTheme</item>
-    </style>
-
 </resources>

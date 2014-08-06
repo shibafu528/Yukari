@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -55,7 +56,14 @@ public class MenuDialogFragment extends DialogFragment {
 
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
 
         dialog.setContentView(inflateView(getActivity().getLayoutInflater()));
 

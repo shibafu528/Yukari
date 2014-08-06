@@ -47,7 +47,7 @@
 
     </style>
 
-    <style name="YukariSearchTheme" parent="YukariTheme">
+    <style name="YukariSearchTheme" parent="YukariLightTheme">
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
 
@@ -86,6 +86,12 @@
 
         <item name="android:fastScrollThumbDrawable">@drawable/yukaritheme_fastscroll_thumb_holo
         </item>
+
+        <item name="tweetTextColor">#000</item>
+        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
+        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
+        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
+        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
 
     </style>
 

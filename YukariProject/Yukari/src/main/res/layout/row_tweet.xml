@@ -28,10 +28,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tweet Text"
+        android:textColor="?attr/tweetTextColor"
         android:id="@+id/tweet_text"
         android:layout_below="@+id/tweet_name"
         android:layout_alignLeft="@+id/tweet_name"
-        android:textColor="#000"
         android:layout_marginTop="2dp" />
 
     <TextView

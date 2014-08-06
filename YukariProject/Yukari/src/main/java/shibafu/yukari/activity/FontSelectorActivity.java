@@ -33,6 +33,14 @@ public class FontSelectorActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.YukariLightTheme);
+                break;
+            case "dark":
+                setTheme(R.style.YukariDarkTheme);
+                break;
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

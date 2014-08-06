@@ -28,6 +28,7 @@ import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.GeoLocation;
@@ -138,6 +139,10 @@ public class TweetAdapterWrap {
         private SharedPreferences preferences;
         private TweetCommonDelegate delegate;
 
+        private int bgDefaultResId;
+        private int bgMentionResId;
+        private int bgOwnResId;
+
         public static ViewConverter newInstance(
                 Context context,
                 List<AuthUserRecord> userRecords,
@@ -165,6 +170,10 @@ public class TweetAdapterWrap {
             this.userRecords = userRecords;
             this.preferences = preferences;
             this.delegate = delegate;
+
+            bgDefaultResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetNormal);
+            bgMentionResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetMention);
+            bgOwnResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetOwn);
         }
 
         protected Context getContext() {
@@ -249,13 +258,13 @@ public class TweetAdapterWrap {
             if (mode != MODE_PREVIEW) {
                 switch (statusRelation) {
                     case TweetCommonDelegate.REL_MENTION:
-                        v.setBackgroundResource(R.drawable.selector_tweet_mention_background);
+                        v.setBackgroundResource(bgMentionResId);
                         break;
                     case TweetCommonDelegate.REL_OWN:
-                        v.setBackgroundResource(R.drawable.selector_tweet_own_background);
+                        v.setBackgroundResource(bgOwnResId);
                         break;
                     default:
-                        v.setBackgroundResource(R.drawable.selector_tweet_normal_background);
+                        v.setBackgroundResource(bgDefaultResId);
                         break;
                 }
             }
@@ -286,11 +295,14 @@ public class TweetAdapterWrap {
 
         public static final LinearLayout.LayoutParams LP_THUMB = new LinearLayout.LayoutParams(140, 140, 1);
 
+        private int bgRetweetResId;
+
         protected StatusViewConverter(Context context,
                                       List<AuthUserRecord> userRecords,
                                       SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
             super(context, userRecords, preferences, TweetCommon.newInstance(PreformedStatus.class));
+            bgRetweetResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetRetweet);
         }
 
         @Override
@@ -378,7 +390,7 @@ public class TweetAdapterWrap {
                             StringUtil.formatDate(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                     viewHolder.tvTimestamp.setText(timestamp);
                     viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                    v.setBackgroundResource(R.drawable.selector_tweet_retweet_background);
+                    v.setBackgroundResource(bgRetweetResId);
 
                     if (st.getRetweetedStatus().getUser().isProtected()) {
                         viewHolder.ivProtected.setVisibility(View.VISIBLE);
