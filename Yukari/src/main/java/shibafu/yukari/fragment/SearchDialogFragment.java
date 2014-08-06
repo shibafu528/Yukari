@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -97,10 +98,18 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         Dialog dialog = new Dialog(getActivity());
 
-        dialog.getContext().setTheme(R.style.YukariDialogTheme);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                dialog.getContext().setTheme(R.style.YukariLightDialogTheme);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                dialog.getContext().setTheme(R.style.YukariDarkDialogTheme);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
 
         dialog.setContentView(R.layout.dialog_search);
         {

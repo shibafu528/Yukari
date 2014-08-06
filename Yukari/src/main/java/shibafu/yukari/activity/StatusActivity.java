@@ -2,6 +2,7 @@ package shibafu.yukari.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -28,6 +29,14 @@ public class StatusActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.YukariLightDialogTheme);
+                break;
+            case "dark":
+                setTheme(R.style.YukariDarkDialogTheme);
+                break;
+        }
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);

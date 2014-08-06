@@ -8,5 +8,5 @@
         android:state_focused="true"
         android:drawable="@drawable/bg_press"/>
     <item
-        android:drawable="@android:color/white"/>
+        android:drawable="@android:color/transparent"/>
 </selector>

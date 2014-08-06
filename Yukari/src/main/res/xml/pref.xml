@@ -21,6 +21,13 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
+        <ListPreference
+            android:key="pref_theme"
+            android:title="テーマ設定"
+            android:summary="アプリの外観を設定します(※要再起動)"
+            android:entries="@array/pref_theme_entries"
+            android:entryValues="@array/pref_theme_values"
+            android:defaultValue="light"/>
         <EditTextPreference
             android:key="pref_font_timeline"
             android:title="文字サイズの設定"

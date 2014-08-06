@@ -8,4 +8,6 @@
     <dimen name="mainfooter_height">36dp</dimen>
     <dimen name="mainfooter_button_width">90dp</dimen>
     <dimen name="mainfooter_tweet_button">8dp</dimen>
+
+    <dimen name="tab_host_default_height">48dp</dimen>
 </resources>

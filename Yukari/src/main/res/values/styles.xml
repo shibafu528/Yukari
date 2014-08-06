@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="YukariTheme">
+    <style name="AppBaseTheme" parent="YukariLightTheme">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -23,10 +23,6 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeNoTitle" parent="YukariTheme">
-        <item name="actionBarStyle">@style/TransparentActionBarYukariTheme</item>
-    </style>
-
     <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -38,7 +34,8 @@
         <item name="android:progressBarStyleHorizontal">@style/ProgressBarTranslucentBGTheme</item>
     </style>
 
-    <style name="AppDialogThemeWhenLarge" parent="AppThemeNoTitle"/>
+    <style name="AppDialogThemeWhenLarge" parent="YukariLightTheme"/>
+    <style name="AppDialogThemeWhenLarge.Dark" parent="YukariDarkTheme"/>
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">

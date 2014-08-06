@@ -13,7 +13,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -66,6 +65,7 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapResizer;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -154,12 +154,28 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private TextView tvTweetBy;
     private Button btnPost;
 
+    //解決済みリソース
+    private int tweetCountColor;
+    private int tweetCountOverColor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        switch (sp.getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.VertAnimationTheme);
+                break;
+            case "dark":
+                setTheme(R.style.VertAnimationTheme_Dark);
+                break;
+        }
+        super.onCreate(savedInstanceState, true);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
-        sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        //リソースIDを解決
+        tweetCountColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor));
+        tweetCountOverColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor));
 
         //Extraを取得
         final Intent args = getIntent();
@@ -826,10 +842,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
         tweetCount = 140 - count - reservedCount;
         tvCount.setText(String.valueOf(tweetCount));
-        if (count < 0) {
-            tvCount.setTextColor(Color.RED);
+        if (tweetCount < 0) {
+            tvCount.setTextColor(tweetCountOverColor);
         } else {
-            tvCount.setTextColor(Color.BLACK);
+            tvCount.setTextColor(tweetCountColor);
         }
         return count + reservedCount;
     }

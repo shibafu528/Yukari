@@ -63,7 +63,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        adapter = new UserAdapter(getActivity().getApplicationContext(), elements);
+        adapter = new UserAdapter(getActivity(), elements);
         setListAdapter(adapter);
     }
 
@@ -178,10 +178,8 @@ public class FriendListFragment extends TwitterListFragment<User> {
                 vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
                 vh.tvName = (TextView) v.findViewById(R.id.user_name);
                 vh.tvName.setTypeface(FontAsset.getInstance(getContext()).getFont());
-                vh.tvName.setTextColor(getResources().getColor(android.R.color.primary_text_light));
                 vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
                 vh.tvScreenName.setTypeface(FontAsset.getInstance(getContext()).getFont());
-                vh.tvScreenName.setTextColor(getResources().getColor(android.R.color.primary_text_light));
                 v.setTag(vh);
             }
             else {

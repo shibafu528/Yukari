@@ -1,6 +1,7 @@
 package shibafu.yukari.activity;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Window;
@@ -18,6 +19,14 @@ public class TraceActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            case "light":
+                setTheme(R.style.AppDialogThemeWhenLarge);
+                break;
+            case "dark":
+                setTheme(R.style.AppDialogThemeWhenLarge_Dark);
+                break;
+        }
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);

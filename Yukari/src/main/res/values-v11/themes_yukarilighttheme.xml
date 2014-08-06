@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="YukariLightTheme" parent="@style/_YukariLightTheme"/>
+
+  <style name="_YukariLightTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+
+      <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
+
+      <item name="android:actionBarTabStyle">@style/ActionBarTabYukariTheme</item>
+
+      <item name="android:actionModeBackground">@drawable/key_color</item>
+
+    <item name="android:editTextBackground">@drawable/yukarilighttheme_edit_text_holo_light</item>
+
+    <item name="android:textColorHighlight">#997849ba</item>
+    <item name="android:textSelectHandleLeft">@drawable/yukarilighttheme_text_select_handle_left</item>
+    <item name="android:textSelectHandleRight">@drawable/yukarilighttheme_text_select_handle_right</item>
+    <item name="android:textSelectHandle">@drawable/yukarilighttheme_text_select_handle_middle</item>
+
+    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariLightTheme</item>
+
+    <item name="android:listChoiceIndicatorMultiple">@drawable/yukarilighttheme_btn_check_holo_light</item>
+
+    <item name="android:listChoiceIndicatorSingle">@drawable/yukarilighttheme_btn_radio_holo_light</item>
+
+    <item name="android:buttonStyle">@style/ButtonYukariLightTheme</item>
+
+    <item name="android:imageButtonStyle">@style/ImageButtonYukariLightTheme</item>
+
+    <item name="android:dropDownSpinnerStyle">@style/SpinnerYukariLightTheme</item>
+
+    <item name="android:progressBarStyleHorizontal">@style/ProgressBarYukariLightTheme</item>
+
+    <item name="android:seekBarStyle">@style/SeekBarYukariLightTheme</item>
+
+    <item name="android:ratingBarStyle">@style/RatingBarYukariLightTheme</item>
+
+    <item name="android:buttonStyleToggle">@style/ToggleYukariLightTheme</item>
+
+    <item name="android:listChoiceBackgroundIndicator">@drawable/yukarilighttheme_list_selector_holo_light</item>
+
+    <item name="android:activatedBackgroundIndicator">@drawable/yukarilighttheme_activated_background_holo_light</item>
+
+    <item name="android:fastScrollThumbDrawable">@drawable/yukarilighttheme_fastscroll_thumb_holo</item>
+
+      <item name="tweetTextColor">#000</item>
+
+      <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
+      <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
+      <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
+      <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+
+      <item name="tabTitleColor">@color/key_color</item>
+
+  </style>
+
+    <style name="YukariLightDialogTheme" parent="android:Theme.Holo.Light.Dialog">
+
+        <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
+
+        <item name="android:actionBarTabStyle">@style/ActionBarTabYukariTheme</item>
+
+        <item name="android:actionModeBackground">@drawable/key_color</item>
+
+        <item name="android:editTextBackground">@drawable/yukarilighttheme_edit_text_holo_light</item>
+
+        <item name="android:textColorHighlight">#997849ba</item>
+        <item name="android:textSelectHandleLeft">@drawable/yukarilighttheme_text_select_handle_left</item>
+        <item name="android:textSelectHandleRight">@drawable/yukarilighttheme_text_select_handle_right</item>
+        <item name="android:textSelectHandle">@drawable/yukarilighttheme_text_select_handle_middle</item>
+
+        <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariLightTheme</item>
+
+        <item name="android:listChoiceIndicatorMultiple">@drawable/yukarilighttheme_btn_check_holo_light</item>
+
+        <item name="android:listChoiceIndicatorSingle">@drawable/yukarilighttheme_btn_radio_holo_light</item>
+
+        <item name="android:buttonStyle">@style/ButtonYukariLightTheme</item>
+
+        <item name="android:imageButtonStyle">@style/ImageButtonYukariLightTheme</item>
+
+        <item name="android:dropDownSpinnerStyle">@style/SpinnerYukariLightTheme</item>
+
+        <item name="android:progressBarStyleHorizontal">@style/ProgressBarYukariLightTheme</item>
+
+        <item name="android:seekBarStyle">@style/SeekBarYukariLightTheme</item>
+
+        <item name="android:ratingBarStyle">@style/RatingBarYukariLightTheme</item>
+
+        <item name="android:buttonStyleToggle">@style/ToggleYukariLightTheme</item>
+
+        <item name="android:listChoiceBackgroundIndicator">@drawable/yukarilighttheme_list_selector_holo_light</item>
+
+        <item name="android:activatedBackgroundIndicator">@drawable/yukarilighttheme_activated_background_holo_light</item>
+
+        <item name="android:fastScrollThumbDrawable">@drawable/yukarilighttheme_fastscroll_thumb_holo</item>
+
+        <item name="tweetTextColor">#000</item>
+
+        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
+        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
+        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
+        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+
+        <item name="tabTitleColor">@color/key_color</item>
+
+        <item name="tweetCountColor">@color/count_safe</item>
+        <item name="tweetCountOverColor">@color/count_error</item>
+
+        <item name="selectorTextColor">@color/selector_key_light_textcolor</item>
+    </style>
+
+</resources>

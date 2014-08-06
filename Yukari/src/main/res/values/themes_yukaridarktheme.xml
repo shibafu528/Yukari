@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <style name="YukariDarkTheme" parent="Theme.AppCompat">
+
+      <item name="actionBarStyle">@style/ActionBarYukariTheme</item>
+
+      <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
+
+      <item name="actionBarTabStyle">@style/ActionBarTabYukariTheme</item>
+
+      <item name="actionModeBackground">@drawable/key_color</item>
+
+    <item name="android:editTextStyle">@style/EditTextYukariDarkTheme</item>
+
+    <item name="android:textColorHighlight">#997849ba</item>
+
+    <item name="android:autoCompleteTextViewStyle">@style/AutoCompleteTextViewYukariDarkTheme</item>
+
+    <item name="android:checkboxStyle">@style/CheckBoxYukariDarkTheme</item>
+
+    <item name="android:radioButtonStyle">@style/RadioButtonYukariDarkTheme</item>
+
+    <item name="android:buttonStyle">@style/ButtonYukariDarkTheme</item>
+
+    <item name="android:imageButtonStyle">@style/ImageButtonYukariDarkTheme</item>
+
+    <item name="android:spinnerStyle">@style/SpinnerYukariDarkTheme</item>
+
+    <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemYukariDarkTheme</item>
+
+    <item name="android:progressBarStyleHorizontal">@style/ProgressBarYukariDarkTheme</item>
+
+    <item name="android:seekBarStyle">@style/SeekBarYukariDarkTheme</item>
+
+    <item name="android:ratingBarStyle">@style/RatingBarYukariDarkTheme</item>
+
+    <item name="android:buttonStyleToggle">@style/ToggleYukariDarkTheme</item>
+
+    <item name="android:listViewStyle">@style/ListViewYukariDarkTheme</item>
+
+    <item name="android:listViewWhiteStyle">@style/ListViewYukariDarkTheme.White</item>
+
+    <item name="android:spinnerItemStyle">@style/SpinnerItemYukariDarkTheme</item>
+
+
+
+  </style>
+
+</resources>

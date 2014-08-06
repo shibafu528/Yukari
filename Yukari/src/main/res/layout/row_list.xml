@@ -32,7 +32,6 @@
         android:id="@+id/list_desc"
         android:layout_below="@+id/list_name"
         android:layout_alignLeft="@+id/list_name"
-        android:textColor="#000"
         android:layout_marginTop="2dp" />
 
     <TextView

@@ -39,6 +39,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:text="▶"
+                    android:textColor="@android:color/primary_text_light"
                     android:id="@+id/tvStreamStates"
                     android:layout_gravity="center_vertical"
                     android:paddingLeft="4dp" />
@@ -48,6 +49,7 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:id="@+id/tvMainTab"
+                    android:textColor="@android:color/primary_text_light"
                     android:scrollHorizontally="true"
                     android:ellipsize="end"
                     android:maxLines="1"
@@ -189,6 +191,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="紫のバーを上に向かってスライドするとツイート画面が開きます。"
+            android:textColor="#000"
             android:layout_marginTop="2dp"
             android:layout_marginLeft="2dp" />
     </LinearLayout>

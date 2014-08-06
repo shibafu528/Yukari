@@ -42,6 +42,7 @@
         android:layout_below="@+id/ivProfileHeader"
         android:layout_marginTop="8dp"
         android:text="140"
+        android:textColor="?attr/tweetCountColor"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -58,7 +59,7 @@
         android:paddingLeft="4dp"
         android:text=">> SELECT ACCOUNT(S)"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/selector_key_light_textcolor" />
+        android:textColor="?attr/selectorTextColor" />
 
     <TableLayout
         android:id="@+id/tlTweetAction"
