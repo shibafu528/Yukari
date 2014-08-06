@@ -425,11 +425,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     } else if (input.startsWith("::grgr")) {
                         inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
                     } else if (input.startsWith("::burn")) {
-                        if (input.contains("::burna")) {
-                            inputText = "/burn @ul1ckn0rman0w3n";
-                        } else {
-                            inputText = "/burn @ulicknormanowen";
-                        }
+                        Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
                 }
 
