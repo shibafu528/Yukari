@@ -69,7 +69,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
 
     public void addTab(int type) {
         if (type < 0) return;
-        if (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM) {
+        boolean requireBind = (type & 0x80) == 0x80;
+        type &= 0x7f;
+        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM)) {
             findInnerFragment().addTab(type, null);
         }
         else {
@@ -82,6 +84,8 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         if (type == TabType.TABTYPE_LIST) {
             ListChooseDialogFragment dialogFragment = ListChooseDialogFragment.newInstance(userRecord);
             dialogFragment.show(getSupportFragmentManager(), "list");
+        } else {
+            findInnerFragment().addTab(type, userRecord);
         }
     }
 
@@ -160,12 +164,12 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 case TabType.TABTYPE_MENTION:
                 case TabType.TABTYPE_DM:
                     for (TabInfo info : tabs) {
-                        if (info.getType() == type) {
+                        if (info.getType() == type && info.getBindAccount() == userRecord) {
                             return;
                         }
                     }
                     ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateTab(new TabInfo(type, tabs.size() + 1, null));
+                            .updateTab(new TabInfo(type, tabs.size() + 1, userRecord));
                     reloadList();
                     break;
                 case TabType.TABTYPE_LIST:
@@ -225,8 +229,11 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             String[] items = {
                     "Home",
+                    "Home (Single Account)",
                     "Mentions",
+                    "Mentions (Single Account)",
                     "DM",
+                    "DM (Single Account)",
                     "List"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
@@ -234,19 +241,25 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                     .setItems(items, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            int type;
+                            int type = 0;
+                            if (which % 2 == 1) {
+                                type = 0x80;
+                            }
                             switch (which) {
                                 case 0:
-                                    type = TabType.TABTYPE_HOME;
-                                    break;
                                 case 1:
-                                    type = TabType.TABTYPE_MENTION;
+                                    type |= TabType.TABTYPE_HOME;
                                     break;
                                 case 2:
-                                    type = TabType.TABTYPE_DM;
-                                    break;
                                 case 3:
-                                    type = TabType.TABTYPE_LIST;
+                                    type |= TabType.TABTYPE_MENTION;
+                                    break;
+                                case 4:
+                                case 5:
+                                    type |= TabType.TABTYPE_DM;
+                                    break;
+                                case 6:
+                                    type |= TabType.TABTYPE_LIST;
                                     break;
                                 default:
                                     type = -1;

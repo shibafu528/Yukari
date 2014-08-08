@@ -132,7 +132,7 @@ public class TweetAdapterWrap {
         public static final int MODE_DEFAULT = 0;
         public static final int MODE_DETAIL  = 1; //サムネイル表示強制
         public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
-        public static final int MODE_INCLUDE = 3;
+        public static final int MODE_INCLUDE = 128;
 
         private Context context;
         private List<AuthUserRecord> userRecords;
@@ -349,7 +349,7 @@ public class TweetAdapterWrap {
                             iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                             ImageLoaderTask.loadBitmap(getContext(), iv, media.getThumbURL());
 
-                            if (mode == MODE_DETAIL && media.canPreview()) {
+                            if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview()) {
                                 iv.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -444,7 +444,7 @@ public class TweetAdapterWrap {
                             if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
                                 View tv = View.inflate(getContext(), R.layout.row_tweet, null);
                                 ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getPreferences(), PreformedStatus.class);
-                                vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), MODE_INCLUDE);
+                                vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), mode | MODE_INCLUDE);
                                 viewHolder.flInclude.addView(tv);
                             }
                         }
