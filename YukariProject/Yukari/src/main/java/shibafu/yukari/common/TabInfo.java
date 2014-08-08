@@ -154,11 +154,11 @@ public class TabInfo implements DBRecord, Serializable {
     public String getTitle() {
         switch (getType()) {
             case TabType.TABTYPE_HOME:
-                return "Home";
+                return "Home" + (getBindAccount() != null ? ": @" + getBindAccount().ScreenName : "");
             case TabType.TABTYPE_MENTION:
-                return "Mentions";
+                return "Mentions" + (getBindAccount() != null ? ": @" + getBindAccount().ScreenName : "");
             case TabType.TABTYPE_DM:
-                return "DM";
+                return "DM" + (getBindAccount() != null ? ": @" + getBindAccount().ScreenName : "");
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACE:
                 return "Search: " + getSearchKeyword();
