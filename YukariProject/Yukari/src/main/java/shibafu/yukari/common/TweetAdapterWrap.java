@@ -32,6 +32,7 @@ import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.GeoLocation;
+import twitter4j.Status;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 
@@ -49,7 +50,7 @@ public class TweetAdapterWrap {
                             List<? extends TwitterResponse> statuses,
                             Class<? extends TwitterResponse> contentClass) {
         this.statuses = statuses;
-        adapter = new TweetAdapter();
+        adapter = new TweetAdapter(contentClass);
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         converter = ViewConverter.newInstance(
                 context,
@@ -67,6 +68,21 @@ public class TweetAdapterWrap {
     }
 
     private class TweetAdapter extends BaseAdapter {
+        private int clsType;
+        private static final int CLS_STATUS = 0;
+        private static final int CLS_DM = 1;
+        private static final int CLS_UNKNOWN = 2;
+
+        public TweetAdapter(Class<? extends TwitterResponse> clz) {
+            if (Status.class.isAssignableFrom(clz)) {
+                clsType = CLS_STATUS;
+            } else if (DirectMessage.class.isAssignableFrom(clz)) {
+                clsType = CLS_DM;
+            } else {
+                clsType = CLS_UNKNOWN;
+            }
+        }
+
         @Override
         public int getCount() {
             return statuses.size();
@@ -79,7 +95,14 @@ public class TweetAdapterWrap {
 
         @Override
         public long getItemId(int position) {
-            return position;
+            switch (clsType) {
+                case CLS_STATUS:
+                    return ((Status)statuses.get(position)).getId();
+                case CLS_DM:
+                    return ((DirectMessage)statuses.get(position)).getId();
+                default:
+                    return position;
+            }
         }
 
         @Override

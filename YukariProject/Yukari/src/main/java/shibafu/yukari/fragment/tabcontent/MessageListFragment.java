@@ -169,11 +169,13 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                                 if (elements.get(position).getId() == directMessage.getId()) return;
                             }
                             elements.add(position, directMessage);
+                            int firstPos = listView.getFirstVisiblePosition();
+                            int y = listView.getChildAt(0).getTop();
                             adapterWrap.notifyDataSetChanged();
-                            if (elements.size() == 1 || listView.getFirstVisiblePosition() < 2) {
+                            if (elements.size() == 1 || firstPos == 0 && y > -1) {
                                 listView.setSelection(0);
                             } else {
-                                listView.setSelection(listView.getFirstVisiblePosition() + 1);
+                                listView.setSelectionFromTop(firstPos + 1, y);
                             }
                         }
                     }
@@ -191,8 +193,16 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     Iterator<DirectMessage> iterator = elements.iterator();
                     while (iterator.hasNext()) {
                         if (iterator.next().getId() == status.getId()) {
+                            int firstPos = listView.getFirstVisiblePosition();
+                            long firstId = listView.getItemIdAtPosition(firstPos);
+                            int y = listView.getChildAt(0).getTop();
                             iterator.remove();
                             adapterWrap.notifyDataSetChanged();
+                            if (elements.size() == 1 || firstPos == 0) {
+                                listView.setSelection(0);
+                            } else {
+                                listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
+                            }
                             break;
                         }
                     }
