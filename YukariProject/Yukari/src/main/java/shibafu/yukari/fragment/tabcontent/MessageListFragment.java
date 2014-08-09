@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -24,14 +23,13 @@ import java.util.List;
 
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -52,30 +50,15 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
 
+    private long lastShowedFirstItemId = -1;
+    private int lastShowedFirstItemY = 0;
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, DirectMessage.class);
         setListAdapter(adapterWrap.getAdapter());
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (getMode() == TabType.TABTYPE_HOME) {
-            getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
-            getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (getMode() == TabType.TABTYPE_HOME) {
-            getActivity().unregisterReceiver(onReloadReceiver);
-            getActivity().unregisterReceiver(onActiveChangedReceiver);
-        }
     }
 
     @Override
@@ -132,6 +115,29 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 loader.execute(loader.new Params(userRecord, true));
                 break;
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (lastShowedFirstItemId > -1) {
+            int position;
+            int length = elements.size();
+            for (position = 0; position < length; ++position) {
+                if (elements.get(position).getId() == lastShowedFirstItemId) break;
+            }
+            if (position < length) {
+                listView.setSelectionFromTop(position, lastShowedFirstItemY);
+            }
+            lastShowedFirstItemId = -1;
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
+        lastShowedFirstItemY = listView.getChildAt(0).getTop();
     }
 
     @Override

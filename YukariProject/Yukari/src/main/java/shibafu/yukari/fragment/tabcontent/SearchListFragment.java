@@ -28,6 +28,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     private Query nextQuery;
     private boolean streaming;
 
+    private long lastShowedFirstItemId = -1;
+    private int lastShowedFirstItemY = 0;
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -97,6 +100,29 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     @Override
     public String getStreamFilter() {
         return searchQuery;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (lastShowedFirstItemId > -1) {
+            int position;
+            int length = elements.size();
+            for (position = 0; position < length; ++position) {
+                if (elements.get(position).getId() == lastShowedFirstItemId) break;
+            }
+            if (position < length) {
+                listView.setSelectionFromTop(position, lastShowedFirstItemY);
+            }
+            lastShowedFirstItemId = -1;
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
+        lastShowedFirstItemY = listView.getChildAt(0).getTop();
     }
 
     @Override
