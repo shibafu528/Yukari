@@ -56,6 +56,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private User targetUser = null;
     private long listId = -1;
 
+    private long lastShowedFirstItemId = -1;
+    private int lastShowedFirstItemY = 0;
+
     private UserList targetList;
     private MenuItem miEditList;
     private MenuItem miDeleteList;
@@ -103,6 +106,17 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
             getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
         }
+        if (lastShowedFirstItemId > -1) {
+            int position;
+            int length = elements.size();
+            for (position = 0; position < length; ++position) {
+                if (elements.get(position).getId() == lastShowedFirstItemId) break;
+            }
+            if (position < length) {
+                listView.setSelectionFromTop(position, lastShowedFirstItemY);
+            }
+            lastShowedFirstItemId = -1;
+        }
     }
 
     @Override
@@ -112,6 +126,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             getActivity().unregisterReceiver(onReloadReceiver);
             getActivity().unregisterReceiver(onActiveChangedReceiver);
         }
+        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
+        lastShowedFirstItemY = listView.getChildAt(0).getTop();
     }
 
     @Override
