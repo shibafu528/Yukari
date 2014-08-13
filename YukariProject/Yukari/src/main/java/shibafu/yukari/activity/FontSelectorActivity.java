@@ -86,10 +86,16 @@ public class FontSelectorActivity extends ActionBarActivity {
             });
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
-                Typeface typeface = Typeface.createFromFile(file);
-                fonts.add(new Pair<>(file.getName(), typeface));
-                if (file.getName().equals(currentFile)) {
-                    selectedIndex = i+1;
+                try {
+                    Typeface typeface = Typeface.createFromFile(file);
+                    fonts.add(new Pair<>(file.getName(), typeface));
+                    if (file.getName().equals(currentFile)) {
+                        selectedIndex = i + 1;
+                    }
+                } catch (RuntimeException e) {
+                    //native typeface cannot be made
+                    e.printStackTrace();
+                    fonts.add(new Pair<String, Typeface>(file.getName(), null));
                 }
             }
 
@@ -156,9 +162,15 @@ public class FontSelectorActivity extends ActionBarActivity {
                 Pair<String, Typeface> item = getItem(position);
                 vh.radio.setText(FontAsset.SYSTEM_FONT_ID.equals(item.first)? "System Font" : item.first);
                 Typeface tf = item.second;
-                vh.name.setTypeface(tf);
-                vh.text.setTypeface(tf);
-                vh.timestamp.setTypeface(tf);
+                if (tf != null) {
+                    vh.radio.setEnabled(true);
+                    vh.name.setTypeface(tf);
+                    vh.text.setTypeface(tf);
+                    vh.timestamp.setTypeface(tf);
+                } else {
+                    vh.radio.setEnabled(false);
+                    vh.radio.setText("*Broken* " + vh.radio.getText());
+                }
 
                 return convertView;
             }
