@@ -55,6 +55,6 @@
         android:layout_height="wrap_content"
         android:id="@+id/ibMenu"
         android:layout_gravity="center_vertical"
-        android:src="@drawable/ic_menu_dark" />
+        android:src="?attr/menuButtonDrawable" />
 
 </LinearLayout>

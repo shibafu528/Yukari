@@ -59,7 +59,7 @@
                 android:layout_marginRight="4dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_action_overflow"
+                android:src="?attr/menuButtonDrawable"
                 android:scaleType="centerInside"
                 android:focusable="false"
                 android:clickable="false"/>

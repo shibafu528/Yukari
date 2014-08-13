@@ -31,6 +31,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.util.AttrUtil;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -167,7 +168,7 @@ public class MenuDialogFragment extends DialogFragment {
                 MainActivity activity = ((MainActivity)getActivity());
                 if (activity.isKeepScreenOn()) {
                     activity.setKeepScreenOn(false);
-                    keepScreenOnImage.setImageResource(R.drawable.ic_always_light_off);
+                    keepScreenOnImage.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
                 }
                 else {
                     activity.setKeepScreenOn(true);
