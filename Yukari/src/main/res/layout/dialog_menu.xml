@@ -39,6 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:paddingLeft="8dp"
+                android:paddingRight="8dp"
                 android:id="@+id/llMenuAccounts" />
         </LinearLayout>
 
@@ -48,7 +49,7 @@
             android:id="@+id/ibMenuReconnect"
             android:layout_gravity="center_vertical"
             android:background="@drawable/selector_key_light_background"
-            android:src="@drawable/ic_navigation_refresh"
+            android:src="?attr/menuReloadDrawable"
             android:layout_marginLeft="2dp" />
     </LinearLayout>
 
@@ -83,7 +84,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_profile"
+                android:src="?attr/menuProfileDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -111,7 +112,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_twilog"
+                android:src="?attr/menuTwilogDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -139,7 +140,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_favorite_m"
+                android:src="?attr/menuFavstarDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -166,7 +167,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_aclog"
+                android:src="?attr/menuAclogDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -204,7 +205,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_always_light_off"
+                android:src="?attr/menuBacklightDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -232,7 +233,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="8dp"
-                android:src="@drawable/ic_feedback"
+                android:src="?attr/menuReportDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -261,7 +262,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="@drawable/ic_settings"
+                android:src="?attr/menuSettingDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -287,7 +288,7 @@
             <ImageView
                 android:layout_width="64dp"
                 android:layout_height="64dp"
-                android:src="@drawable/ic_quit"
+                android:src="?attr/menuQuitDrawable"
                 android:layout_gravity="center_horizontal"
                 android:paddingBottom="14dp"
                 android:paddingLeft="8dp"
