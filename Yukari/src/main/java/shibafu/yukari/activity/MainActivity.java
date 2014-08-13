@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 import shibafu.yukari.R;
@@ -127,11 +129,20 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             finish();
             return;
         }
-        else if (!FontAsset.checkFontFileExt(this, FontAsset.FONT_NAME)) {
-            Intent intent = new Intent(this, AssetExtractActivity.class);
-            startActivity(intent);
-            finish();
-            return;
+        else {
+            try {
+                if (FontAsset.checkFontFileExist(this, FontAsset.FONT_NAME)) {
+                    Typeface.createFromFile(FontAsset.getFontFileExtPath(this, FontAsset.FONT_NAME));
+                } else throw new FileNotFoundException("Font asset not found.");
+            } catch (FileNotFoundException | RuntimeException e) {
+                if (e instanceof RuntimeException) {
+                    Toast.makeText(this, "[Yukari データチェック]\nフォントファイルが壊れています\n再展開を行います", Toast.LENGTH_LONG).show();
+                }
+                Intent intent = new Intent(this, AssetExtractActivity.class);
+                startActivity(intent);
+                finish();
+                return;
+            }
         }
 
         findViews();

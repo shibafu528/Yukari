@@ -35,7 +35,7 @@ public class FontAsset {
                     Log.d("FontAsset", "システムフォントを使用します");
                     instance = new FontAsset(Typeface.DEFAULT);
                 }
-                else if (checkFontFileExt(context, fileName)) {
+                else if (checkFontFileExist(context, fileName)) {
                     Log.d("FontAsset", fileName + "を使用します");
                     instance = new FontAsset(Typeface.createFromFile(getFontFileExtPath(context, fileName)));
                 }
@@ -56,7 +56,7 @@ public class FontAsset {
         getInstance(context);
     }
 
-    public static boolean checkFontFileExt(Context context, String filename) {
+    public static boolean checkFontFileExist(Context context, String filename) {
         File dir = new File(context.getExternalFilesDir(null), "font");
         if (!dir.exists()) {
             dir.mkdirs();
