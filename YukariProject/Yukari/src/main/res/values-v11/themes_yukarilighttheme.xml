@@ -165,6 +165,17 @@
 
         <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
         <item name="searchButtonDrawable">@drawable/ic_search</item>
+
+        <item name="tweetAttachDrawable">@drawable/ic_content_picture</item>
+        <item name="tweetShotDrawable">@drawable/ic_access_camera</item>
+        <item name="tweetTagDrawable">@drawable/ic_hashtag</item>
+        <item name="tweetGrassDrawable">@drawable/ic_grass</item>
+        <item name="tweetPointDrawable">@drawable/ic_santen</item>
+        <item name="tweetDraftDrawable">@drawable/ic_list</item>
+        <item name="tweetReplyDrawable">@drawable/ic_reply_b</item>
+        <item name="tweetVoiceDrawable">@drawable/ic_voice_input</item>
+        <item name="tweetMorseDrawable">@drawable/ic_morse</item>
+        <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music</item>
     </style>
 
 </resources>
