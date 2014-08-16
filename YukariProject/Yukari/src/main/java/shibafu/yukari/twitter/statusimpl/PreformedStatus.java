@@ -29,7 +29,7 @@ import twitter4j.UserMentionEntity;
  */
 public class PreformedStatus implements Status{
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
-    private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
+    private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
 
     //基本ステータスデータ
     private Status status;
