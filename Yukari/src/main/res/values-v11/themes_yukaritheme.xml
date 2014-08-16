@@ -47,9 +47,7 @@
 
     </style>
 
-    <style name="YukariSearchTheme" parent="YukariLightTheme">
-        <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
-    </style>
+
 
     <style name="YukariDialogTheme" parent="android:Theme.Holo.Light.Dialog">
 

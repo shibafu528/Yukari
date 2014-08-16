@@ -3,6 +3,7 @@ package shibafu.yukari.fragment.tabcontent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.ActionBarActivity;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -97,7 +98,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public void onResume() {
         super.onResume();
         if (!(getActivity() instanceof MainActivity)) {
-            getActivity().setTitle(title);
+            if (getActivity() instanceof ActionBarActivity) {
+                ((ActionBarActivity) getActivity()).getSupportActionBar().setTitle(title);
+            } else {
+                getActivity().setTitle(title);
+            }
         }
     }
 

@@ -3,7 +3,9 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <style name="YukariDarkTheme" parent="Theme.AppCompat">
+    <style name="YukariDarkTheme" parent="@style/_YukariDarkTheme" />
+
+    <style name="_YukariDarkTheme" parent="Theme.AppCompat">
 
         <item name="android:actionBarStyle">@style/ActionBarYukariTheme.Dark</item>
 
