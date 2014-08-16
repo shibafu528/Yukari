@@ -12,7 +12,10 @@
         -->
     </style>
 
-    <style name="VertAnimationTheme" parent="YukariDialogTheme">
+    <style name="VertAnimationTheme" parent="YukariLightDialogTheme">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+    <style name="VertAnimationTheme.Dark" parent="YukariDarkDialogTheme">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <style name="Animation" parent="android:Animation" />
