@@ -24,4 +24,14 @@
     <attr name="menuReloadDrawable" format="reference"/>
     <attr name="menuButtonDrawable" format="reference"/>
     <attr name="searchButtonDrawable" format="reference"/>
+    <attr name="tweetAttachDrawable" format="reference"/>
+    <attr name="tweetShotDrawable" format="reference"/>
+    <attr name="tweetTagDrawable" format="reference"/>
+    <attr name="tweetGrassDrawable" format="reference"/>
+    <attr name="tweetPointDrawable" format="reference"/>
+    <attr name="tweetDraftDrawable" format="reference"/>
+    <attr name="tweetReplyDrawable" format="reference"/>
+    <attr name="tweetVoiceDrawable" format="reference"/>
+    <attr name="tweetMorseDrawable" format="reference"/>
+    <attr name="tweetNowPlayingDrawable" format="reference"/>
 </resources>
