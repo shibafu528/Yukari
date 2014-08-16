@@ -41,11 +41,12 @@ import twitter4j.UserMentionEntity;
  */
 public class StatusMainFragment extends TwitterFragment{
 
-    private static final int REQUEST_REPLY    = 0x00;
-    private static final int REQUEST_RETWEET  = 0x01;
-    private static final int REQUEST_FAVORITE = 0x02;
-    private static final int REQUEST_FAV_RT   = 0x03;
-    private static final int REQUEST_RT_QUOTE = 0x04;
+    private static final int REQUEST_REPLY     = 0x00;
+    private static final int REQUEST_RETWEET   = 0x01;
+    private static final int REQUEST_FAVORITE  = 0x02;
+    private static final int REQUEST_FAV_RT    = 0x03;
+    private static final int REQUEST_RT_QUOTE  = 0x04;
+    private static final int REQUEST_FRT_QUOTE = 0x05;
 
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
@@ -396,7 +397,8 @@ public class StatusMainFragment extends TwitterFragment{
                                 "QT ( QT @id: ... )",
                                 "公式アプリ風 ( \"@id: ...\" )",
                                 "URLのみ ( http://... )",
-                                "RTしてから言及する ( ...＞RT )"},
+                                "RTしてから言及する ( ...＞RT )",
+                                "FavRTしてから言及する ( ...＞RT )"},
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -431,12 +433,21 @@ public class StatusMainFragment extends TwitterFragment{
                                                 Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
                                                 return;
                                             }
-                                            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, " ＞RT");
                                             request = REQUEST_RT_QUOTE;
                                             break;
+                                        case 5:
+                                            if (!ibFavRt.isEnabled()) {
+                                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                                return;
+                                            }
+                                            request = REQUEST_FRT_QUOTE;
+                                            break;
                                     }
-                                    startActivityForResult(intent, request);
+                                    if (request > -1) {
+                                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, " ＞RT");
+                                        startActivityForResult(intent, request);
+                                    }
                                 }
                             }
                         });
@@ -522,6 +533,19 @@ public class StatusMainFragment extends TwitterFragment{
                     @Override
                     protected Void doInBackground(TweetDraft... params) {
                         //これ、RT失敗してもツイートしちゃうんですよねえ
+                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                        getActivity().startService(PostService.newIntent(getActivity(), params[0]));
+                        return null;
+                    }
+                }.executeParallel(draft);
+            }
+            else if (requestCode == REQUEST_FRT_QUOTE) {
+                TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
+                new ParallelAsyncTask<TweetDraft, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(TweetDraft... params) {
+                        //これ、FRT失敗してもツイートしちゃうんですよねえ
+                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
                         getActivity().startService(PostService.newIntent(getActivity(), params[0]));
                         return null;
