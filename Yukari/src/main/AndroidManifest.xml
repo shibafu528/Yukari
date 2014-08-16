@@ -98,22 +98,22 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="twitter.com"
-                    android:scheme="http" />
-                <data
-                    android:host="twitter.com"
-                    android:scheme="https" />
+                <data android:scheme="http" android:host="twitter.com" />
+                <data android:scheme="https" android:host="twitter.com" />
+                <data android:scheme="http" android:host="www.twitter.com" />
+                <data android:scheme="https" android:host="www.twitter.com" />
+                <data android:scheme="http" android:host="mobile.twitter.com" />
+                <data android:scheme="https" android:host="mobile.twitter.com" />
             </intent-filter>
             <intent-filter android:label="Open Tweet" android:icon="@drawable/ic_prof_tweets">
                 <action android:name="shibafu.yukari.ACTION_LINK_ACCEL"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <data
-                    android:host="twitter.com"
-                    android:scheme="http" />
-                <data
-                    android:host="twitter.com"
-                    android:scheme="https" />
+                <data android:scheme="http" android:host="twitter.com" />
+                <data android:scheme="https" android:host="twitter.com" />
+                <data android:scheme="http" android:host="www.twitter.com" />
+                <data android:scheme="https" android:host="www.twitter.com" />
+                <data android:scheme="http" android:host="mobile.twitter.com" />
+                <data android:scheme="https" android:host="mobile.twitter.com" />
             </intent-filter>
         </activity>
         <activity
