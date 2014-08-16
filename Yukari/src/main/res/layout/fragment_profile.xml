@@ -10,7 +10,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        <com.loopj.android.image.SmartImageView
+        <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
                 android:id="@+id/ivProfileHeader"
@@ -24,7 +24,7 @@
                 android:layout_width="54dp"
                 android:layout_height="48dp"
                 android:id="@+id/ibProfileMenu"
-                android:src="@drawable/ic_menu_dark"
+                android:src="?attr/menuButtonDrawable"
                 android:layout_gravity="center"
                 android:layout_alignTop="@+id/ibProfileSearch"
                 android:layout_alignParentLeft="true"

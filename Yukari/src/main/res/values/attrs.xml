@@ -9,4 +9,29 @@
     <attr name="tweetCountColor" format="color|reference"/>
     <attr name="tweetCountOverColor" format="color|reference"/>
     <attr name="selectorTextColor" format="color|reference"/>
+    <attr name="profileTweetsDrawable" format="reference"/>
+    <attr name="profileFavoritesDrawable" format="reference"/>
+    <attr name="profileFollowsDrawable" format="reference"/>
+    <attr name="profileFollowersDrawable" format="reference"/>
+    <attr name="menuProfileDrawable" format="reference"/>
+    <attr name="menuTwilogDrawable" format="reference"/>
+    <attr name="menuFavstarDrawable" format="reference"/>
+    <attr name="menuAclogDrawable" format="reference"/>
+    <attr name="menuBacklightDrawable" format="reference"/>
+    <attr name="menuReportDrawable" format="reference"/>
+    <attr name="menuSettingDrawable" format="reference"/>
+    <attr name="menuQuitDrawable" format="reference"/>
+    <attr name="menuReloadDrawable" format="reference"/>
+    <attr name="menuButtonDrawable" format="reference"/>
+    <attr name="searchButtonDrawable" format="reference"/>
+    <attr name="tweetAttachDrawable" format="reference"/>
+    <attr name="tweetShotDrawable" format="reference"/>
+    <attr name="tweetTagDrawable" format="reference"/>
+    <attr name="tweetGrassDrawable" format="reference"/>
+    <attr name="tweetPointDrawable" format="reference"/>
+    <attr name="tweetDraftDrawable" format="reference"/>
+    <attr name="tweetReplyDrawable" format="reference"/>
+    <attr name="tweetVoiceDrawable" format="reference"/>
+    <attr name="tweetMorseDrawable" format="reference"/>
+    <attr name="tweetNowPlayingDrawable" format="reference"/>
 </resources>
