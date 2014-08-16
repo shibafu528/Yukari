@@ -29,7 +29,7 @@
             android:layout_width="42dp"
             android:layout_height="match_parent"
             android:id="@+id/ibSearch"
-            android:src="@drawable/ic_search"
+            android:src="?attr/searchButtonDrawable"
             android:background="@drawable/selector_key_light_background" />
     </LinearLayout>
 

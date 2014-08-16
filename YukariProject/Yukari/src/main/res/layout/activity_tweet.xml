@@ -14,6 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/tvTweetCount"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/tvTweetBy"
         android:gravity="left|top"
         android:inputType="textMultiLine"
@@ -57,6 +58,7 @@
         android:focusable="true"
         android:gravity="right"
         android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text=">> SELECT ACCOUNT(S)"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="?attr/selectorTextColor" />
@@ -77,21 +79,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="0"
-                android:src="@drawable/ic_content_picture" />
+                android:src="?attr/tweetAttachDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetTakePic"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="1"
-                android:src="@drawable/ic_access_camera" />
+                android:src="?attr/tweetShotDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetSetHash"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="2"
-                android:src="@drawable/ic_hashtag" />
+                android:src="?attr/tweetTagDrawable" />
 
         </TableRow>
 
@@ -104,21 +106,21 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="0"
-                android:src="@drawable/ic_grass" />
+                android:src="?attr/tweetGrassDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetSanten"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:layout_column="1"
-                android:src="@drawable/ic_santen" />
+                android:src="?attr/tweetPointDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetDraft"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_column="2"
-                android:src="@drawable/ic_list" />
+                android:src="?attr/tweetDraftDrawable" />
 
         </TableRow>
 
@@ -141,26 +143,26 @@
                 android:id="@+id/ibTweetSNPicker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_reply_b"
+                android:src="?attr/tweetReplyDrawable"
                 android:visibility="gone" />
 
             <ImageButton
                 android:id="@+id/ibTweetVoiceInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_voice_input" />
+                android:src="?attr/tweetVoiceDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetMorseInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_morse" />
+                android:src="?attr/tweetMorseDrawable" />
 
             <ImageButton
                 android:id="@+id/ibTweetNowPlaying"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_playing_music"
+                android:src="?attr/tweetNowPlayingDrawable"
                 android:visibility="gone" />
 
         </LinearLayout>

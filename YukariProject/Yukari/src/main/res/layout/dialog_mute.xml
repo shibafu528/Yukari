@@ -184,7 +184,7 @@
             style="?android:attr/buttonStyleSmall"
             android:layout_width="64dp"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu_dark"
+            android:src="?attr/menuButtonDrawable"
             android:id="@+id/btnMuteExpr" />
     </LinearLayout>
 </LinearLayout>

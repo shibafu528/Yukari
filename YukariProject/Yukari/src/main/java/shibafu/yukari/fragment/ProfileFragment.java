@@ -54,6 +54,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -90,7 +91,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private CommandAdapter commandAdapter;
 
     private ProgressBar progressBar;
-    private AsyncTask<Void, Void, LoadHolder> profileLoadTask = null;
+    private AsyncTask<Void, Void, LoadHolder> initialLoadTask = null;
+    private ProfileLoader profileLoadTask;
 
     private LoadDialogFragment currentProgress;
     private AlertDialog currentDialog;
@@ -337,10 +339,14 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         super.onActivityCreated(savedInstanceState);
 
         List<Command> commands = new ArrayList<>();
-        commands.add(new Command(R.drawable.ic_prof_tweets, "Tweets", "0"));
-        commands.add(new Command(R.drawable.ic_prof_favorite, "Favorites", "0"));
-        commands.add(new Command(R.drawable.ic_prof_follow, "Follows", "0"));
-        commands.add(new Command(R.drawable.ic_prof_follower, "Followers", "0"));
+        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
+                R.attr.profileTweetsDrawable), "Tweets", "0"));
+        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
+                R.attr.profileFavoritesDrawable), "Favorites", "0"));
+        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
+                R.attr.profileFollowsDrawable), "Follows", "0"));
+        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
+                R.attr.profileFollowersDrawable), "Followers", "0"));
 
         commandAdapter = new CommandAdapter(getActivity(), commands);
         gridCommands.setAdapter(commandAdapter);
@@ -390,7 +396,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
                 @Override
                 protected void onPostExecute(LoadHolder holder) {
-                    new ProfileLoader(getActivity().getApplicationContext()).execute();
+                    profileLoadTask = new ProfileLoader(getActivity().getApplicationContext());
+                    profileLoadTask.execute();
                     if (holder != null) {
                         if (currentProgress != null) {
                             currentProgress.dismiss();
@@ -398,7 +405,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         }
                         showProfile(holder);
                     }
-                    profileLoadTask = null;
+                    initialLoadTask = null;
                 }
             };
 
@@ -406,7 +413,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             currentProgress.setTargetFragment(ProfileFragment.this, 0);
             currentProgress.show(getFragmentManager(), "Loading");
 
-            profileLoadTask = task;
+            initialLoadTask = task;
             task.executeParallel();
 
             btnFollowManage.setEnabled(false);
@@ -525,9 +532,20 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         }
     }
 
-    public void onCancelledLoading() {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (initialLoadTask != null) {
+            initialLoadTask.cancel(true);
+        }
         if (profileLoadTask != null) {
             profileLoadTask.cancel(true);
+        }
+    }
+
+    public void onCancelledLoading() {
+        if (initialLoadTask != null) {
+            initialLoadTask.cancel(true);
         }
         getActivity().finish();
     }
@@ -898,6 +916,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             if (loadHolder != null) {
                 new RelationLoader().executeParallel();
             }
+
+            profileLoadTask = null;
         }
     }
 
