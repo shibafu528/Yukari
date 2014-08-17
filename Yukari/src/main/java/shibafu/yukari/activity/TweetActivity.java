@@ -270,7 +270,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             if (paramHashtags != null) {
                 String[] tags = paramHashtags.split(",");
                 for (String t : tags) {
-                    sb.append(" ");
+                    sb.append(" #");
                     sb.append(t);
                 }
             }
@@ -362,71 +362,79 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 String inputText = etInput.getText().toString();
                 if (etInput.getText().toString().startsWith("::")) {
                     String input = etInput.getText().toString();
-                    if (input.startsWith("::cmd")) {
-                        startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
-                        return;
-                    } else if (input.equals("::main")) {
-                        startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
-                        return;
-                    } else if (input.equals("::sb")) {
-                        inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
-                    } else if (input.equals("::jb")) {
-                        inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
-                    } else if (input.startsWith("::bb")) {
-                        inputText = input.replace("::bb", "@la0c bbop");
-                    } else if (input.startsWith("::cn") && sp.getBoolean("cmd_cn", false)) {
-                        String name = inputText.replace("::cn ", "");
-                        new ThrowableTwitterAsyncTask<String, Void>() {
-                            @Override
-                            protected ThrowableResult<Void> doInBackground(String... params) {
-                                try {
-                                    Twitter twitter = getTwitterService().getTwitter();
-                                    for (AuthUserRecord user : writers) {
-                                        twitter.setOAuthAccessToken(user.getAccessToken());
-                                        twitter.updateProfile(params[0], null, null, null);
+                    String command = input.split(" ")[0];
+                    switch (command) {
+                        case "::cmd":
+                            startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
+                            return;
+                        case "::main":
+                            startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
+                            return;
+                        case "::sb":
+                            inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
+                            break;
+                        case "::jb":
+                            inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
+                            break;
+                        case "::bb":
+                            inputText = input.replace("::bb", "@la0c bbop");
+                            break;
+                        case "::cn": {
+                            String name = inputText.replace("::cn ", "");
+                            new ThrowableTwitterAsyncTask<String, Void>() {
+                                @Override
+                                protected ThrowableResult<Void> doInBackground(String... params) {
+                                    try {
+                                        Twitter twitter = getTwitterService().getTwitter();
+                                        for (AuthUserRecord user : writers) {
+                                            twitter.setOAuthAccessToken(user.getAccessToken());
+                                            twitter.updateProfile(params[0], null, null, null);
+                                        }
+                                        return new ThrowableResult<>((Void) null);
+                                    } catch (TwitterException e) {
+                                        e.printStackTrace();
+                                        return new ThrowableResult<>(e);
                                     }
-                                    return new ThrowableResult<>((Void) null);
-                                } catch (TwitterException e) {
-                                    e.printStackTrace();
-                                    return new ThrowableResult<>(e);
                                 }
-                            }
 
-                            @Override
-                            protected void onPreExecute() {
-                                super.onPreExecute();
-                                showToast("Updating your name...");
-                            }
-
-                            @Override
-                            protected void onPostExecute(ThrowableResult<Void> result) {
-                                super.onPostExecute(result);
-                                if (!result.isException()) {
-                                    showToast("Updated your name!");
+                                @Override
+                                protected void onPreExecute() {
+                                    super.onPreExecute();
+                                    showToast("Updating your name...");
                                 }
-                            }
 
-                            @Override
-                            protected void showToast(String message) {
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                                @Override
+                                protected void onPostExecute(ThrowableResult<Void> result) {
+                                    super.onPostExecute(result);
+                                    if (!result.isException()) {
+                                        showToast("Updated your name!");
+                                    }
+                                }
+
+                                @Override
+                                protected void showToast(String message) {
+                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                                }
+                            }.execute(name);
+                            setResult(RESULT_OK);
+                            finish();
+                            return;
+                        }
+                        case "::d250g2":
+                            if (inputText.split(" ").length > 1) {
+                                String comment = inputText.replace("::d250g2 ", "");
+                                inputText = comment + " http://twitpic.com/d250g2";
                             }
-                        }.execute(name);
-                        setResult(RESULT_OK);
-                        finish();
-                        return;
-                    } else if (input.startsWith("::d250g2")) {
-                        if (inputText.split(" ").length > 1) {
-                            String comment = inputText.replace("::d250g2 ", "");
-                            inputText = comment + " http://twitpic.com/d250g2";
-                        }
-                        else {
-                            inputText = "http://twitpic.com/d250g2";
-                        }
-                    } else if (input.startsWith("::grgr")) {
-                        inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
-                    } else if (input.startsWith("::burn")) {
-                        Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
-                        return;
+                            else {
+                                inputText = "http://twitpic.com/d250g2";
+                            }
+                            break;
+                        case "::grgr":
+                            inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
+                            break;
+                        case "::burn":
+                            Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
+                            return;
                     }
                 }
 

@@ -14,8 +14,7 @@
         <Preference
             android:title="::bb"
             android:summary="\@la0c bbop" />
-        <CheckBoxPreference
-            android:key="cmd_cn"
+        <Preference
             android:title="::cn &lt;NAME&gt;"
             android:summary="発言者の名前を&lt;NAME&gt;に変更する" />
         <Preference
