@@ -2,6 +2,10 @@ package shibafu.yukari.common;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +19,17 @@ import twitter4j.User;
  */
 public class Suppressor {
     private List<MuteConfig> configs;
+    private List<Long> denialIDs = new ArrayList<>();
+    private List<Long> noRetweetIDs = new ArrayList<>();
+
+    private Comparator<Long> comparator = new Comparator<Long>() {
+        @Override
+        public int compare(Long lhs, Long rhs) {
+            if (lhs.equals(rhs)) return 0;
+            else if (lhs > rhs) return 1;
+            else return -1;
+        }
+    };
 
     public void setConfigs(List<MuteConfig> configs) {
         this.configs = configs;
@@ -25,8 +40,32 @@ public class Suppressor {
         return configs;
     }
 
+    public void addDenialIDs(Collection<Long> ids) {
+        denialIDs.addAll(ids);
+        Collections.sort(denialIDs, comparator);
+    }
+
+    public void addNoRetweetIDs(Collection<Long> ids) {
+        noRetweetIDs.addAll(ids);
+        Collections.sort(noRetweetIDs, comparator);
+    }
+
+    public void addNoRetweetIDs(long[] ids) {
+        for (long id : ids) {
+            noRetweetIDs.add(id);
+        }
+        Collections.sort(noRetweetIDs, comparator);
+    }
+
     public boolean[] decision(PreformedStatus status) {
         boolean[] result = new boolean[7];
+        if (Collections.binarySearch(denialIDs, status.getSourceUser().getId(), comparator) > -1) {
+            result[MuteConfig.MUTE_TWEET_RTED] = true;
+            return result;
+        } else if (Collections.binarySearch(noRetweetIDs, status.getSourceUser().getId(), comparator) > -1) {
+            result[MuteConfig.MUTE_RETWEET] = true;
+            return result;
+        }
         for (MuteConfig config : configs) {
             if (config.expired()) continue;
 
@@ -81,6 +120,13 @@ public class Suppressor {
 
     public boolean[] decisionUser(User user) {
         boolean[] result = new boolean[7];
+        if (Collections.binarySearch(denialIDs, user.getId(), comparator) > -1) {
+            result[MuteConfig.MUTE_TWEET_RTED] = true;
+            return result;
+        } else if (Collections.binarySearch(noRetweetIDs, user.getId(), comparator) > -1) {
+            result[MuteConfig.MUTE_RETWEET] = true;
+            return result;
+        }
         for (MuteConfig config : configs) {
             String source;
             switch (config.getScope()) {
