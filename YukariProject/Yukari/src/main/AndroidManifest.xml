@@ -159,7 +159,7 @@
         <activity
             android:name=".activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
-            android:theme="@style/YukariDialogTheme">
+            android:theme="@style/YukariLightDialogTheme">
         </activity>
 
         <receiver android:name=".receiver.StubReceiver"/>
