@@ -283,6 +283,10 @@ public class PreformedStatus implements Status{
         return status.getUser();
     }
 
+    public User getSourceUser() {
+        return status.isRetweet()? retweetedStatus.getUser() : status.getUser();
+    }
+
     @Override
     public boolean isRetweet() {
         return status.isRetweet();

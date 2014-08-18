@@ -32,6 +32,7 @@ import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.streaming.Stream;
 import twitter4j.DirectMessage;
+import twitter4j.IDs;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
@@ -131,13 +132,46 @@ public class TwitterService extends Service{
         //Twitterインスタンスの生成
         twitter = TwitterUtil.getTwitterInstance(this);
 
-        //Configurationの取得
         if (!users.isEmpty() && getPrimaryUser() != null) {
+            //Configuration, Blocks, Mutes, No-Retweetsの取得
             new TwitterAsyncTask<Void>(getApplicationContext()) {
                 @Override
                 protected TwitterException doInBackground(Void... params) {
                     try {
-                        apiConfiguration = getTwitter().getAPIConfiguration();
+                        Twitter twitter = getTwitter();
+                        apiConfiguration = twitter.getAPIConfiguration();
+
+                        List<Long> denialIDs = new ArrayList<>();
+                        for (AuthUserRecord userRecord : users) {
+                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
+
+                            IDs ids = null;
+                            try {
+                                do {
+                                    ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
+                                    for (long id : ids.getIDs()) {
+                                        denialIDs.add(id);
+                                    }
+                                } while (ids.hasNext());
+                            } catch (TwitterException ignored){}
+
+                            try {
+                                long cursor = -1;
+                                do {
+                                    ids = twitter.getMutesIDs(cursor);
+                                    for (long id : ids.getIDs()) {
+                                        denialIDs.add(id);
+                                    }
+                                    cursor = ids.getNextCursor();
+                                } while (ids.hasNext());
+                            } catch (TwitterException ignored){}
+
+                            try {
+                                ids = twitter.getNoRetweetsFriendships();
+                                suppressor.addNoRetweetIDs(ids.getIDs());
+                            } catch (TwitterException ignored){}
+                        }
+                        suppressor.addDenialIDs(denialIDs);
                     } catch (TwitterException e) {
                         e.printStackTrace();
                         return e;
