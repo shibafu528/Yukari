@@ -3,7 +3,6 @@ package shibafu.yukari.common;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -19,10 +18,11 @@ import twitter4j.User;
  */
 public class Suppressor {
     private List<MuteConfig> configs;
-    private List<Long> denialIDs = new ArrayList<>();
-    private List<Long> noRetweetIDs = new ArrayList<>();
+    private LongList blockedIDs = new LongList();
+    private LongList mutedIDs = new LongList();
+    private LongList noRetweetIDs = new LongList();
 
-    private Comparator<Long> comparator = new Comparator<Long>() {
+    private static final Comparator<Long> COMPARATOR = new Comparator<Long>() {
         @Override
         public int compare(Long lhs, Long rhs) {
             if (lhs.equals(rhs)) return 0;
@@ -40,29 +40,33 @@ public class Suppressor {
         return configs;
     }
 
-    public void addDenialIDs(Collection<Long> ids) {
-        denialIDs.addAll(ids);
-        Collections.sort(denialIDs, comparator);
+    public void addBlockedIDs(long[] ids) {
+        blockedIDs.addAll(ids);
+        Collections.sort(blockedIDs, COMPARATOR);
     }
 
-    public void addNoRetweetIDs(Collection<Long> ids) {
-        noRetweetIDs.addAll(ids);
-        Collections.sort(noRetweetIDs, comparator);
+    public void removeBlockedID(long id) {
+        blockedIDs.remove(id);
+        Collections.sort(blockedIDs, COMPARATOR);
+    }
+
+    public void addMutedIDs(long[] ids) {
+        mutedIDs.addAll(ids);
+        Collections.sort(mutedIDs, COMPARATOR);
     }
 
     public void addNoRetweetIDs(long[] ids) {
-        for (long id : ids) {
-            noRetweetIDs.add(id);
-        }
-        Collections.sort(noRetweetIDs, comparator);
+        noRetweetIDs.addAll(ids);
+        Collections.sort(noRetweetIDs, COMPARATOR);
     }
 
     public boolean[] decision(PreformedStatus status) {
         boolean[] result = new boolean[7];
-        if (Collections.binarySearch(denialIDs, status.getSourceUser().getId(), comparator) > -1) {
+        if (blockedIDs.binarySearch(status.getSourceUser().getId()) ||
+                mutedIDs.binarySearch(status.getSourceUser().getId())) {
             result[MuteConfig.MUTE_TWEET_RTED] = true;
             return result;
-        } else if (Collections.binarySearch(noRetweetIDs, status.getSourceUser().getId(), comparator) > -1) {
+        } else if (noRetweetIDs.binarySearch(status.getSourceUser().getId())) {
             result[MuteConfig.MUTE_RETWEET] = true;
             return result;
         }
@@ -120,10 +124,11 @@ public class Suppressor {
 
     public boolean[] decisionUser(User user) {
         boolean[] result = new boolean[7];
-        if (Collections.binarySearch(denialIDs, user.getId(), comparator) > -1) {
+        if (blockedIDs.binarySearch(user.getId()) ||
+                mutedIDs.binarySearch(user.getId())) {
             result[MuteConfig.MUTE_TWEET_RTED] = true;
             return result;
-        } else if (Collections.binarySearch(noRetweetIDs, user.getId(), comparator) > -1) {
+        } else if (noRetweetIDs.binarySearch(user.getId())) {
             result[MuteConfig.MUTE_RETWEET] = true;
             return result;
         }
@@ -161,5 +166,18 @@ public class Suppressor {
             }
         }
         return result;
+    }
+
+    private class LongList extends ArrayList<Long> {
+        public boolean addAll(long[] array) {
+            for (long l : array) {
+                add(l);
+            }
+            return true;
+        }
+
+        public boolean binarySearch(long l) {
+            return Collections.binarySearch(this, l, COMPARATOR) > -1;
+        }
     }
 }

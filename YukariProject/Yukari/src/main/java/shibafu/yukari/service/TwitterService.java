@@ -1,17 +1,14 @@
 package shibafu.yukari.service;
 
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -69,12 +66,6 @@ public class TwitterService extends Service{
     //ミュート判定
     private Suppressor suppressor;
 
-    //Preference
-    private SharedPreferences sharedPreferences;
-
-    //システムサービス系
-    private NotificationManager notificationManager;
-
     //ネットワーク管理
 
     //Twitter通信系
@@ -120,9 +111,6 @@ public class TwitterService extends Service{
         suppressor = new Suppressor();
         suppressor.setConfigs(database.getMuteConfig());
 
-        //SharedPreferenceの取得
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
         //ステータスマネージャのセットアップ
         statusManager = new StatusManager(this);
 
@@ -141,7 +129,6 @@ public class TwitterService extends Service{
                         Twitter twitter = getTwitter();
                         apiConfiguration = twitter.getAPIConfiguration();
 
-                        List<Long> denialIDs = new ArrayList<>();
                         for (AuthUserRecord userRecord : users) {
                             twitter.setOAuthAccessToken(userRecord.getAccessToken());
 
@@ -149,9 +136,7 @@ public class TwitterService extends Service{
                             try {
                                 do {
                                     ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
-                                    for (long id : ids.getIDs()) {
-                                        denialIDs.add(id);
-                                    }
+                                    suppressor.addBlockedIDs(ids.getIDs());
                                 } while (ids.hasNext());
                             } catch (TwitterException ignored){}
 
@@ -159,9 +144,7 @@ public class TwitterService extends Service{
                                 long cursor = -1;
                                 do {
                                     ids = twitter.getMutesIDs(cursor);
-                                    for (long id : ids.getIDs()) {
-                                        denialIDs.add(id);
-                                    }
+                                    suppressor.addMutedIDs(ids.getIDs());
                                     cursor = ids.getNextCursor();
                                 } while (ids.hasNext());
                             } catch (TwitterException ignored){}
@@ -171,7 +154,6 @@ public class TwitterService extends Service{
                                 suppressor.addNoRetweetIDs(ids.getIDs());
                             } catch (TwitterException ignored){}
                         }
-                        suppressor.addDenialIDs(denialIDs);
                     } catch (TwitterException e) {
                         e.printStackTrace();
                         return e;
@@ -180,9 +162,6 @@ public class TwitterService extends Service{
                 }
             }.executeParallel();
         }
-
-        //システムサービスの取得
-        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         //ネットワーク状態の監視
         registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
