@@ -5,10 +5,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -125,34 +127,38 @@ public class TwitterService extends Service{
             new TwitterAsyncTask<Void>(getApplicationContext()) {
                 @Override
                 protected TwitterException doInBackground(Void... params) {
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
                     try {
                         Twitter twitter = getTwitter();
                         apiConfiguration = twitter.getAPIConfiguration();
 
-                        for (AuthUserRecord userRecord : users) {
-                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                        if (sp.getBoolean("pref_filter_official", true)) {
+                            for (AuthUserRecord userRecord : users) {
+                                twitter.setOAuthAccessToken(userRecord.getAccessToken());
 
-                            IDs ids = null;
-                            try {
-                                do {
-                                    ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
-                                    suppressor.addBlockedIDs(ids.getIDs());
-                                } while (ids.hasNext());
-                            } catch (TwitterException ignored){}
+                                IDs ids = null;
+                                try {
+                                    do {
+                                        ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
+                                        suppressor.addBlockedIDs(ids.getIDs());
+                                    } while (ids.hasNext());
+                                } catch (TwitterException ignored) {}
 
-                            try {
-                                long cursor = -1;
-                                do {
-                                    ids = twitter.getMutesIDs(cursor);
-                                    suppressor.addMutedIDs(ids.getIDs());
-                                    cursor = ids.getNextCursor();
-                                } while (ids.hasNext());
-                            } catch (TwitterException ignored){}
+                                try {
+                                    long cursor = -1;
+                                    do {
+                                        ids = twitter.getMutesIDs(cursor);
+                                        suppressor.addMutedIDs(ids.getIDs());
+                                        cursor = ids.getNextCursor();
+                                    } while (ids.hasNext());
+                                } catch (TwitterException ignored) {}
 
-                            try {
-                                ids = twitter.getNoRetweetsFriendships();
-                                suppressor.addNoRetweetIDs(ids.getIDs());
-                            } catch (TwitterException ignored){}
+                                try {
+                                    ids = twitter.getNoRetweetsFriendships();
+                                    suppressor.addNoRetweetIDs(ids.getIDs());
+                                } catch (TwitterException ignored) {}
+                            }
                         }
                     } catch (TwitterException e) {
                         e.printStackTrace();

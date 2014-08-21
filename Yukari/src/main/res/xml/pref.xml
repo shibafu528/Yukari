@@ -41,10 +41,6 @@
             android:inputType="number"
             android:defaultValue="14"
             android:maxLength="2"/>
-        <Preference
-            android:key="pref_mute"
-            android:title="ミュート設定"
-            android:summary="条件を指定してツイートや通知などを非表示にします"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
@@ -56,6 +52,18 @@
             android:key="pref_font"
             android:title="フォント設定"
             android:summary="タイムラインのフォントを選択します"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="フィルタ設定">
+        <Preference
+            android:key="pref_mute"
+            android:title="ミュート設定"
+            android:summary="条件を指定してツイートや通知などを非表示にします"/>
+        <CheckBoxPreference
+            android:key="pref_filter_official"
+            android:defaultValue="true"
+            android:title="非表示ユーザをフィルタ"
+            android:summary="ブロック済みユーザや、公式アプリのミュート・リツイート非表示設定を反映します(※要再起動)"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="サムネイル設定">
