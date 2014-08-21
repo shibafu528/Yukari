@@ -41,6 +41,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -583,6 +584,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         }
                     }
 
+                    Suppressor suppressor = getTwitterService().getSuppressor();
+
                     Twitter twitter = getTwitterService().getTwitter();
                     twitter.setOAuthAccessToken(claim.getSourceAccount().getAccessToken());
 
@@ -617,6 +620,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         case FollowDialogFragment.RELATION_BLOCK:
                             try {
                                 twitter.createBlock(claim.getTargetUser());
+                                suppressor.addBlockedIDs(new long[]{claim.getTargetUser()});
                                 sb.append("ブロックしました");
                             } catch (TwitterException e) {
                                 e.printStackTrace();
@@ -626,6 +630,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         case FollowDialogFragment.RELATION_UNBLOCK:
                             try {
                                 twitter.destroyBlock(claim.getTargetUser());
+                                suppressor.removeBlockedID(claim.getTargetUser());
                                 sb.append("ブロック解除しました");
                             } catch (TwitterException e) {
                                 e.printStackTrace();
