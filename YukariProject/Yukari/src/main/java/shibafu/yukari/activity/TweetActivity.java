@@ -1008,6 +1008,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             pic.imageView = createAttachThumb(bmp);
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(getApplicationContext(), "画像添付エラー", Toast.LENGTH_SHORT).show();
+            return;
         }
         if (maxMediaPerUpload == 1 && attachPictures.size() >= 1) {
             llTweetAttachInner.removeView(attachPictures.get(0).imageView);
