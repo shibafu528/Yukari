@@ -470,7 +470,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 }
                                 elements.add(position, status);
                                 int firstPos = listView.getFirstVisiblePosition();
-                                int y = listView.getChildAt(0).getTop();
+                                View firstView = listView.getChildAt(0);
+                                int y = firstView != null? firstView.getTop() : 0;
                                 adapterWrap.notifyDataSetChanged();
                                 if (elements.size() == 1 || firstPos == 0 && y > -1) {
                                     listView.setSelection(0);
