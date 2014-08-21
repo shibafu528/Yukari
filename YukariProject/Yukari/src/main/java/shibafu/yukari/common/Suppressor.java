@@ -66,7 +66,7 @@ public class Suppressor {
                 mutedIDs.binarySearch(status.getSourceUser().getId())) {
             result[MuteConfig.MUTE_TWEET_RTED] = true;
             return result;
-        } else if (noRetweetIDs.binarySearch(status.getSourceUser().getId())) {
+        } else if (noRetweetIDs.binarySearch(status.getUser().getId())) {
             result[MuteConfig.MUTE_RETWEET] = true;
             return result;
         }
