@@ -7,16 +7,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
@@ -58,6 +63,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     private long lastShowedFirstItemId = -1;
     private int lastShowedFirstItemY = 0;
+    private View unreadNotifierView;
+    private Set<Long> unreadSet = new HashSet<>();
 
     private UserList targetList;
     private MenuItem miEditList;
@@ -97,6 +104,32 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 setHasOptionsMenu(true);
             }
         }
+
+        unreadNotifierView = view.findViewById(R.id.unreadNotifier);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
+
+        getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
+                    PreformedStatus status = elements.get(firstVisibleItem);
+                    if (status != null && unreadSet.contains(status.getId())) {
+                        unreadSet.remove(status.getId());
+                    }
+                }
+                updateUnreadNotifier();
+            }
+        });
     }
 
     @Override
@@ -115,8 +148,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             if (position < length) {
                 listView.setSelectionFromTop(position, lastShowedFirstItemY);
             }
-            lastShowedFirstItemId = -1;
         }
+        updateUnreadNotifier();
     }
 
     @Override
@@ -149,6 +182,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
+                unreadSet.clear();
                 loader.execute(loader.new Params(userRecord, true));
                 break;
         }
@@ -423,6 +457,16 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         }
     }
 
+    private void updateUnreadNotifier() {
+        if (unreadSet.size() < 1) {
+            unreadNotifierView.setVisibility(View.INVISIBLE);
+            return;
+        }
+        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
+        tv.setText(String.format("未読 %d件", unreadSet.size()));
+
+        unreadNotifierView.setVisibility(View.VISIBLE);
+    }
 
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
         @Override
@@ -476,8 +520,10 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 if (elements.size() == 1 || firstPos == 0 && y > -1) {
                                     listView.setSelection(0);
                                 } else {
+                                    unreadSet.add(status.getId());
                                     listView.setSelectionFromTop(firstPos + 1, y);
                                 }
+                                updateUnreadNotifier();
                             }
                         }
                     });
@@ -508,6 +554,10 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                     listView.setSelection(0);
                                 } else {
                                     listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
+                                }
+                                if (unreadSet.contains(status.getId())) {
+                                    unreadSet.remove(status.getId());
+                                    updateUnreadNotifier();
                                 }
                                 break;
                             }
