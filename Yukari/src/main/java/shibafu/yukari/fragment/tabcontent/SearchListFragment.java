@@ -1,10 +1,16 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.TextView;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
+import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
@@ -30,6 +36,8 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
     private long lastShowedFirstItemId = -1;
     private int lastShowedFirstItemY = 0;
+    private View unreadNotifierView;
+    private Set<Long> unreadSet = new HashSet<>();
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -46,6 +54,32 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
         if (getMode() == TabType.TABTYPE_TRACK) {
             streaming = true;
         }
+
+        unreadNotifierView = view.findViewById(R.id.unreadNotifier);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
+
+        getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
+                    PreformedStatus status = elements.get(firstVisibleItem);
+                    if (status != null && unreadSet.contains(status.getId())) {
+                        unreadSet.remove(status.getId());
+                    }
+                }
+                updateUnreadNotifier();
+            }
+        });
     }
 
     @Override
@@ -54,6 +88,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
         switch (requestMode) {
             case LOADER_LOAD_INIT:
             case LOADER_LOAD_UPDATE:
+                unreadSet.clear();
                 restLoader.execute(restLoader.new Params(userRecord, searchQuery));
                 break;
             case LOADER_LOAD_MORE:
@@ -62,6 +97,17 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 }
                 break;
         }
+    }
+
+    private void updateUnreadNotifier() {
+        if (unreadSet.size() < 1) {
+            unreadNotifierView.setVisibility(View.INVISIBLE);
+            return;
+        }
+        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
+        tv.setText(String.format("未読 %d件", unreadSet.size()));
+
+        unreadNotifierView.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -114,8 +160,8 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             if (position < length) {
                 listView.setSelectionFromTop(position, lastShowedFirstItemY);
             }
-            lastShowedFirstItemId = -1;
         }
+        updateUnreadNotifier();
     }
 
     @Override
@@ -151,8 +197,10 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                                 if (elements.size() == 1 || firstPos == 0 && y > -1) {
                                     listView.setSelection(0);
                                 } else {
+                                    unreadSet.add(status.getId());
                                     listView.setSelectionFromTop(firstPos + 1, y);
                                 }
+                                updateUnreadNotifier();
                             }
                         }
                     });
@@ -183,6 +231,10 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                                     listView.setSelection(0);
                                 } else {
                                     listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
+                                }
+                                if (unreadSet.contains(status.getId())) {
+                                    unreadSet.remove(status.getId());
+                                    updateUnreadNotifier();
                                 }
                                 break;
                             }
