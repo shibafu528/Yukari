@@ -219,7 +219,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             return;
         }
         TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
-        tv.setText(String.format("未読 %d件", unreadSet.size()));
+        tv.setText(String.format("新着 %d件", unreadSet.size()));
 
         unreadNotifierView.setVisibility(View.VISIBLE);
     }
