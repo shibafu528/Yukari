@@ -9,18 +9,28 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -47,11 +57,17 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     //ListView Adapter Wrapper
     private TweetAdapterWrap adapterWrap;
 
+    //SwipeRefreshLayout
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private int refreshCounter;
+
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
 
     private long lastShowedFirstItemId = -1;
     private int lastShowedFirstItemY = 0;
+    private View unreadNotifierView;
+    private Set<Long> unreadSet = new HashSet<>();
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -59,6 +75,61 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
         adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, DirectMessage.class);
         setListAdapter(adapterWrap.getAdapter());
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setColorScheme(
+                R.color.key_color,
+                R.color.key_color_2,
+                R.color.key_color,
+                R.color.key_color_2
+        );
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                for (AuthUserRecord user : users) {
+                    executeLoader(LOADER_LOAD_UPDATE, user);
+                    ++refreshCounter;
+                }
+            }
+        });
+
+        return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        unreadNotifierView = view.findViewById(R.id.unreadNotifier);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
+
+        getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
+                    DirectMessage message = elements.get(firstVisibleItem);
+                    if (message != null && unreadSet.contains(message.getId())) {
+                        unreadSet.remove(message.getId());
+                    }
+                }
+                updateUnreadNotifier();
+            }
+        });
     }
 
     @Override
@@ -112,6 +183,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
+                unreadSet.clear();
+                unreadSet.clear();
                 loader.execute(loader.new Params(userRecord, true));
                 break;
         }
@@ -129,8 +202,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             if (position < length) {
                 listView.setSelectionFromTop(position, lastShowedFirstItemY);
             }
-            lastShowedFirstItemId = -1;
         }
+        updateUnreadNotifier();
     }
 
     @Override
@@ -138,6 +211,23 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         super.onStop();
         lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
         lastShowedFirstItemY = listView.getChildAt(0).getTop();
+    }
+
+    private void updateUnreadNotifier() {
+        if (unreadSet.size() < 1) {
+            unreadNotifierView.setVisibility(View.INVISIBLE);
+            return;
+        }
+        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
+        tv.setText(String.format("未読 %d件", unreadSet.size()));
+
+        unreadNotifierView.setVisibility(View.VISIBLE);
+    }
+
+    protected void setRefreshComplete() {
+        if (--refreshCounter < 1 && swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
     }
 
     @Override
@@ -181,8 +271,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                             if (elements.size() == 1 || firstPos == 0 && y > -1) {
                                 listView.setSelection(0);
                             } else {
+                                unreadSet.add(directMessage.getId());
                                 listView.setSelectionFromTop(firstPos + 1, y);
                             }
+                            updateUnreadNotifier();
                         }
                     }
                 });
@@ -208,6 +300,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                                 listView.setSelection(0);
                             } else {
                                 listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
+                            }
+                            if (unreadSet.contains(status.getId())) {
+                                unreadSet.remove(status.getId());
+                                updateUnreadNotifier();
                             }
                             break;
                         }
@@ -407,6 +503,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 adapterWrap.notifyDataSetChanged();
             }
             changeFooterProgress(false);
+            setRefreshComplete();
         }
     }
 
