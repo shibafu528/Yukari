@@ -45,4 +45,8 @@
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
+    <style name="YukariSearchTheme" parent="YukariLightTheme">
+        <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
+    </style>
+
 </resources>
