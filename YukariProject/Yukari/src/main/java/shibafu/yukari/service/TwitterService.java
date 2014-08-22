@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Binder;
@@ -170,8 +169,8 @@ public class TwitterService extends Service{
         }
 
         //ネットワーク状態の監視
-        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
-        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
+        //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
+        //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
 
         Log.d(LOG_TAG, "onCreate completed.");
     }
@@ -183,7 +182,7 @@ public class TwitterService extends Service{
 
         statusManager.getHashCache().save(this);
 
-        unregisterReceiver(streamConnectivityListener);
+        //unregisterReceiver(streamConnectivityListener);
         statusManager.shutdownAll();
         statusManager = null;
 
