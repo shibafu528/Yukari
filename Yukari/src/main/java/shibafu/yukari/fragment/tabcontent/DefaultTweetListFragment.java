@@ -106,30 +106,33 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         }
 
         unreadNotifierView = view.findViewById(R.id.unreadNotifier);
-        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
-                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
-                break;
-            case "dark":
-                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
-                break;
-        }
-
-        getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {}
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
-                    PreformedStatus status = elements.get(firstVisibleItem);
-                    if (status != null && unreadSet.contains(status.getId())) {
-                        unreadSet.remove(status.getId());
-                    }
-                }
-                updateUnreadNotifier();
+        if (unreadNotifierView != null) {
+            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+                case "light":
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                    break;
+                case "dark":
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                    break;
             }
-        });
+
+            getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                }
+
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
+                        PreformedStatus status = elements.get(firstVisibleItem);
+                        if (status != null && unreadSet.contains(status.getId())) {
+                            unreadSet.remove(status.getId());
+                        }
+                    }
+                    updateUnreadNotifier();
+                }
+            });
+        }
     }
 
     @Override
@@ -458,6 +461,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     private void updateUnreadNotifier() {
+        if (unreadNotifierView == null) return;
         if (unreadSet.size() < 1) {
             unreadNotifierView.setVisibility(View.INVISIBLE);
             return;
