@@ -438,10 +438,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     }
                 }
 
-                if (attachPictures.size() > 1 && sp.getBoolean("pref_append_multipic", false)) {
-                    inputText += " #multipic";
-                }
-
                 //ドラフトを作成
                 TweetDraft draft = getTweetDraft();
                 draft.setText(inputText);
@@ -839,9 +835,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
         if (attachPictures.size() > 0) {
             reservedCount = shortUrlLength + 1;
-            if (attachPictures.size() > 1 && sp.getBoolean("pref_append_multipic", false)) {
-                reservedCount += " #multipic".length();
-            }
         } else {
             reservedCount = 0;
         }
