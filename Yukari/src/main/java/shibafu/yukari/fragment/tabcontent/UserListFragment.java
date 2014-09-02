@@ -1,7 +1,9 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -20,14 +22,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
@@ -53,6 +54,9 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     private static final int REQUEST_D_EDIT = 2;
     private static final int REQUEST_D_DELETE = 3;
 
+    private static final int REQUEST_SUBSCRIBE = 4;
+    private static final int REQUEST_UNSUBSCRIBE = 5;
+
     private User targetUser = null;
 
     private UserListAdapter adapter;
@@ -60,7 +64,6 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     private MenuItem addMenu;
 
     private UserList preDelete;
-    private Map<Long, Boolean> modifiedEntry = new HashMap<>();
 
     public UserListFragment() {
         setRetainInstance(true);
@@ -169,14 +172,11 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             getActivity().getMenuInflater().inflate(R.menu.list, menu);
             menu.setHeaderTitle(userList.getFullName());
 
-            boolean modified = modifiedEntry.containsKey(userList.getId());
-            boolean isFollowing = modified? modifiedEntry.get(userList.getId()) : userList.isFollowing();
             if (userList.getUser().getId() == getCurrentUser().NumericId) {
                 menu.findItem(R.id.action_edit).setVisible(true);
                 menu.findItem(R.id.action_delete).setVisible(true);
-            } else if (isFollowing) {
-                menu.findItem(R.id.action_unsubscribe).setVisible(true);
             } else {
+                menu.findItem(R.id.action_unsubscribe).setVisible(true);
                 menu.findItem(R.id.action_subscribe).setVisible(true);
             }
         }
@@ -225,75 +225,16 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             }
             case R.id.action_subscribe:
             {
-                new ThrowableTwitterAsyncTask<Long, Long>(this) {
-
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    protected ThrowableResult<Long> doInBackground(Long... params) {
-                        Twitter twitter = getTwitterInstance(getCurrentUser());
-                        try {
-                            twitter.createUserListSubscription(params[0]);
-                            return new ThrowableResult<>(params[0]);
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Long> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException()) {
-                            Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
-                            modifiedEntry.put(result.getResult(), true);
-                        }
-                    }
-                }.executeParallel(userList.getId());
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(userList.getId()));
+                startActivityForResult(intent, REQUEST_SUBSCRIBE);
                 return true;
             }
             case R.id.action_unsubscribe:
             {
-                new ThrowableTwitterAsyncTask<Long, Long>(this) {
-
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    protected ThrowableResult<Long> doInBackground(Long... params) {
-                        Twitter twitter = getTwitterInstance(getCurrentUser());
-                        try {
-                            twitter.destroyUserListSubscription(params[0]);
-                            return new ThrowableResult<>(params[0]);
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Long> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException()) {
-                            Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
-                            if (targetUser.getId() == getCurrentUser().NumericId && getMode() == MODE_FOLLOWING) {
-                                for (Iterator<UserList> iterator = elements.iterator(); iterator.hasNext(); ) {
-                                    if (iterator.next().getId() == result.getResult()) {
-                                        iterator.remove();
-                                        break;
-                                    }
-                                }
-                                adapter.notifyDataSetChanged();
-                            }
-                            modifiedEntry.put(result.getResult(), false);
-                        }
-                    }
-                }.executeParallel(userList.getId());
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(userList.getId()));
+                startActivityForResult(intent, REQUEST_UNSUBSCRIBE);
                 return true;
             }
             case R.id.action_edit:
@@ -319,6 +260,85 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             }
         }
         return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_SUBSCRIBE: {
+                    new ThrowableTwitterAsyncTask<Long, Long>(this) {
+
+                        @Override
+                        protected void showToast(String message) {
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        protected ThrowableResult<Long> doInBackground(Long... params) {
+                            Twitter twitter = getTwitterInstance(getCurrentUser());
+                            try {
+                                twitter.createUserListSubscription(params[0]);
+                                return new ThrowableResult<>(params[0]);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return new ThrowableResult<>(e);
+                            }
+                        }
+
+                        @Override
+                        protected void onPostExecute(ThrowableResult<Long> result) {
+                            super.onPostExecute(result);
+                            if (!result.isException()) {
+                                Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
+                    break;
+                }
+                case REQUEST_UNSUBSCRIBE: {
+                    new ThrowableTwitterAsyncTask<Long, Long>(this) {
+
+                        @Override
+                        protected void showToast(String message) {
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        protected ThrowableResult<Long> doInBackground(Long... params) {
+                            Twitter twitter = getTwitterInstance(getCurrentUser());
+                            try {
+                                twitter.destroyUserListSubscription(params[0]);
+                                return new ThrowableResult<>(params[0]);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return new ThrowableResult<>(e);
+                            }
+                        }
+
+                        @Override
+                        protected void onPostExecute(ThrowableResult<Long> result) {
+                            super.onPostExecute(result);
+                            if (!result.isException()) {
+                                Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
+                                if (targetUser.getId() == data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1)
+                                        && getMode() == MODE_FOLLOWING) {
+                                    for (Iterator<UserList> iterator = elements.iterator(); iterator.hasNext(); ) {
+                                        if (iterator.next().getId() == result.getResult()) {
+                                            iterator.remove();
+                                            break;
+                                        }
+                                    }
+                                    adapter.notifyDataSetChanged();
+                                }
+                            }
+                        }
+                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
+                    break;
+                }
+            }
+        }
     }
 
     @Override
