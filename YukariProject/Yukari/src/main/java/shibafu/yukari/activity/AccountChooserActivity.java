@@ -44,6 +44,8 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_SELECTED_RECORD = "selected_record";
     public static final String EXTRA_SELECTED_RECORDS = "selected_records";
 
+    public static final String EXTRA_METADATA = "meta";
+
     private boolean isMultipleChoose = false;
     private List<Long> defaultSelectedUserIds = new ArrayList<>();
 
@@ -118,6 +120,7 @@ public class AccountChooserActivity extends ListYukariBase {
             }
             Log.d("AccountChooserActivity", "Return " + userRecords.size() + " account(s)");
             result.putExtra(EXTRA_SELECTED_RECORDS, userRecords);
+            result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
         }
         else {
@@ -152,6 +155,7 @@ public class AccountChooserActivity extends ListYukariBase {
             result.putExtra(EXTRA_SELECTED_USERID, user.id);
             result.putExtra(EXTRA_SELECTED_USERSN, user.sn);
             result.putExtra(EXTRA_SELECTED_RECORD, user.record);
+            result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
         }
@@ -166,6 +170,7 @@ public class AccountChooserActivity extends ListYukariBase {
             result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
             result.putExtra(EXTRA_SELECTED_USERSN, user.ScreenName);
             result.putExtra(EXTRA_SELECTED_RECORD, user);
+            result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
         }

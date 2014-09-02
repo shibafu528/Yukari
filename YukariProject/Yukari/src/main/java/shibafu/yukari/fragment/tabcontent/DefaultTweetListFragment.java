@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
@@ -56,6 +58,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     private static final int REQUEST_D_EDIT = 1;
     private static final int REQUEST_D_DELETE = 2;
+
+    private static final int REQUEST_SUBSCRIBE = 4;
+    private static final int REQUEST_UNSUBSCRIBE = 5;
 
     private Status traceStart = null;
     private User targetUser = null;
@@ -259,9 +264,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         if (targetList.getUser().getId() == getCurrentUser().NumericId) {
                             miEditList.setVisible(true);
                             miDeleteList.setVisible(true);
-                        } else if (targetList.isFollowing()) {
-                            miUnsubscriveList.setVisible(true);
                         } else {
+                            miUnsubscriveList.setVisible(true);
                             miSubscribeList.setVisible(true);
                         }
                     }
@@ -330,68 +334,16 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
             case R.id.action_subscribe:
             {
-                new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
-
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    protected ThrowableResult<Boolean> doInBackground(Long... params) {
-                        Twitter twitter = getTwitterInstance(getCurrentUser());
-                        try {
-                            twitter.createUserListSubscription(params[0]);
-                            return new ThrowableResult<>(true);
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Boolean> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException()) {
-                            Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
-                            miSubscribeList.setVisible(false);
-                            miUnsubscriveList.setVisible(true);
-                        }
-                    }
-                }.executeParallel(listId);
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(listId));
+                startActivityForResult(intent, REQUEST_SUBSCRIBE);
                 return true;
             }
             case R.id.action_unsubscribe:
             {
-                new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
-
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    protected ThrowableResult<Boolean> doInBackground(Long... params) {
-                        Twitter twitter = getTwitterInstance(getCurrentUser());
-                        try {
-                            twitter.destroyUserListSubscription(params[0]);
-                            return new ThrowableResult<>(true);
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Boolean> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException()) {
-                            Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
-                            miSubscribeList.setVisible(true);
-                            miUnsubscriveList.setVisible(false);
-                        }
-                    }
-                }.executeParallel(listId);
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(listId));
+                startActivityForResult(intent, REQUEST_UNSUBSCRIBE);
                 return true;
             }
             case R.id.action_edit:
@@ -418,6 +370,75 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_SUBSCRIBE: {
+                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+
+                        @Override
+                        protected void showToast(String message) {
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        protected ThrowableResult<Boolean> doInBackground(Long... params) {
+                            Twitter twitter = getTwitterInstance(getCurrentUser());
+                            try {
+                                twitter.createUserListSubscription(params[0]);
+                                return new ThrowableResult<>(true);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return new ThrowableResult<>(e);
+                            }
+                        }
+
+                        @Override
+                        protected void onPostExecute(ThrowableResult<Boolean> result) {
+                            super.onPostExecute(result);
+                            if (!result.isException()) {
+                                Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
+                    break;
+                }
+                case REQUEST_UNSUBSCRIBE: {
+                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+
+                        @Override
+                        protected void showToast(String message) {
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                        }
+
+                        @Override
+                        protected ThrowableResult<Boolean> doInBackground(Long... params) {
+                            Twitter twitter = getTwitterInstance(getCurrentUser());
+                            try {
+                                twitter.destroyUserListSubscription(params[0]);
+                                return new ThrowableResult<>(true);
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return new ThrowableResult<>(e);
+                            }
+                        }
+
+                        @Override
+                        protected void onPostExecute(ThrowableResult<Boolean> result) {
+                            super.onPostExecute(result);
+                            if (!result.isException()) {
+                                Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
+                    break;
+                }
+            }
+        }
     }
 
     @Override
