@@ -20,8 +20,6 @@ public class LinkMediaFactory {
         if (linkMedia == null) {
             if (mediaURL.contains("twimg.com")) {
                 linkMedia = new Twimg(mediaURL);
-            } else if (mediaURL.contains("twitpic.com")) {
-                linkMedia = new Twitpic(mediaURL);
             } else if (mediaURL.contains("/yfrog.com")) {
                 linkMedia = new YFrog(mediaURL);
             } else if (mediaURL.contains("p.twipple.jp")) {
@@ -45,6 +43,8 @@ public class LinkMediaFactory {
                 linkMedia = new Meshi(mediaURL);
             } else if (mediaURL.contains("/vine.co/v/")) {
                 linkMedia = new Vine(mediaURL);
+            } else if (mediaURL.contains("pixiv.net/member_illust.php")) {
+                linkMedia = new Pixiv(mediaURL);
             } else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
                 linkMedia = new SimplePicture(mediaURL);
             }
