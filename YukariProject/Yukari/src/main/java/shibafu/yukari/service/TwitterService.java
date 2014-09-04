@@ -25,6 +25,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -66,6 +67,9 @@ public class TwitterService extends Service{
 
     //ミュート判定
     private Suppressor suppressor;
+
+    //Proxy Server
+    private Pixiv.PixivProxy pixivProxy;
 
     //ネットワーク管理
 
@@ -172,6 +176,13 @@ public class TwitterService extends Service{
         //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
         //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
 
+        //Proxy Serverの起動
+        try {
+            pixivProxy = new Pixiv.PixivProxy();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         Log.d(LOG_TAG, "onCreate completed.");
     }
 
@@ -195,6 +206,8 @@ public class TwitterService extends Service{
 
         database.close();
         database = null;
+
+        pixivProxy.stop();
 
         startService(new Intent(this, CacheCleanerService.class));
 
