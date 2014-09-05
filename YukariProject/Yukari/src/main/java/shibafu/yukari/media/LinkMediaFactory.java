@@ -45,6 +45,8 @@ public class LinkMediaFactory {
                 linkMedia = new Vine(mediaURL);
             } else if (mediaURL.contains("pixiv.net/member_illust.php")) {
                 linkMedia = new Pixiv(mediaURL);
+            } else if (mediaURL.contains("twitpic.com") && System.currentTimeMillis() < 1411603200000L) {
+                linkMedia = new Twitpic(mediaURL);
             } else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
                 linkMedia = new SimplePicture(mediaURL);
             }
