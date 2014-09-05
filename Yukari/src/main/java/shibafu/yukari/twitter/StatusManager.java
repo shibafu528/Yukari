@@ -38,6 +38,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
+import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -193,12 +194,12 @@ public class StatusManager {
                     (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
             for (StatusListener sl : statusListeners) {
                 if (deliver(sl, from)) {
-                    sl.onStatus(user, preformedStatus, muted);
+                    sl.onStatus(user, new MetaStatus(preformedStatus, "realtime"), muted);
                 }
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 if (deliver(e.getKey(), from)) {
-                    e.getValue().offer(new EventBuffer(user, preformedStatus, muted));
+                    e.getValue().offer(new EventBuffer(user, new MetaStatus(preformedStatus, "queued"), muted));
                 }
             }
 
