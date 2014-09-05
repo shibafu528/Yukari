@@ -2,18 +2,30 @@ package shibafu.yukari.fragment.tabcontent;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -21,6 +33,8 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.MetaStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
 
@@ -39,8 +53,16 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public static final int LOADER_LOAD_UPDATE = 2;
 
     //Elements List
+    private Class<T> elementClass;
     protected ArrayList<T> elements = new ArrayList<>();
     protected ListView listView;
+    protected TweetAdapterWrap adapterWrap;
+
+    //Unread Set
+    private long lastShowedFirstItemId = -1;
+    private int lastShowedFirstItemY = 0;
+    private View unreadNotifierView;
+    private Set<Long> unreadSet = new HashSet<>();
 
     //Binding Accounts
     protected List<AuthUserRecord> users = new ArrayList<>();
@@ -48,6 +70,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     //Fragment States
     private String title;
     private int mode;
+
+    //SwipeRefreshLayout
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private int refreshCounter;
 
     //Footer View
     private View footerView;
@@ -68,6 +94,13 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         setRetainInstance(true);
     }
 
+    public TwitterListFragment(Class<T> elementClass) {
+        setRetainInstance(true);
+
+        this.elementClass = elementClass;
+        commonDelegate = TweetCommon.newInstance(elementClass);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +114,38 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        switch (getMode()) {
+            case TabType.TABTYPE_TRACE:
+            case TabType.TABTYPE_DM:
+                return super.onCreateView(inflater, container, savedInstanceState);
+        }
+
+        View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
+
+        swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setColorScheme(
+                R.color.key_color,
+                R.color.key_color_2,
+                R.color.key_color,
+                R.color.key_color_2
+        );
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                for (AuthUserRecord user : users) {
+                    executeLoader(LOADER_LOAD_UPDATE, user);
+                    ++refreshCounter;
+                }
+            }
+        });
+
+        unreadNotifierView = v.findViewById(R.id.unreadNotifier);
+
+        return v;
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
@@ -91,7 +156,67 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         footerText = (TextView) footerView.findViewById(R.id.tvLoading);
         getListView().addFooterView(footerView);
 
+        if (elementClass != null) {
+            adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, elementClass);
+            setListAdapter(adapterWrap.getAdapter());
+        }
+
         connection.connect(getActivity());
+
+        if (unreadNotifierView != null) {
+            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+                case "light":
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                    break;
+                case "dark":
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                    break;
+            }
+
+            getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                }
+
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    if (elementClass != null) {
+                        for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
+                            T element = elements.get(firstVisibleItem);
+                            if (element != null && unreadSet.contains(commonDelegate.getId(element))) {
+                                unreadSet.remove(commonDelegate.getId(element));
+                            }
+                        }
+                        updateUnreadNotifier();
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (elementClass != null && lastShowedFirstItemId > -1) {
+            final Long[] copyOfUnreadSet = unreadSet.toArray(new Long[unreadSet.size()]);
+            getHandler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    int position;
+                    int length = elements.size();
+                    for (position = 0; position < length; ++position) {
+                        if (commonDelegate.getId(elements.get(position)) == lastShowedFirstItemId) break;
+                    }
+                    if (position < length) {
+                        listView.setSelectionFromTop(position, lastShowedFirstItemY);
+                    }
+                    Collections.addAll(unreadSet, copyOfUnreadSet);
+                    updateUnreadNotifier();
+                }
+            }, 100);
+        }
+        Log.d("Tab:" + getTitle(), "onStart.");
+        Log.d("Tab:" + getTitle(), "Start, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -104,6 +229,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 getActivity().setTitle(title);
             }
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
+        lastShowedFirstItemY = listView.getChildAt(0).getTop();
+        Log.d("Tab:" + getTitle(), "onStop.");
+        Log.d("Tab:" + getTitle(), "Stop, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -205,9 +339,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     protected int prepareInsertStatus(T status) {
-        if (commonDelegate == null) {
-            commonDelegate = TweetCommon.newInstance(status.getClass());
-        }
         //挿入位置の探索と追加
         T storedStatus;
         for (int i = 0; i < elements.size(); ++i) {
@@ -220,6 +351,89 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             }
         }
         return elements.size();
+    }
+
+    protected void insertElement(T element, int position) {
+        if (element instanceof MetaStatus) {
+            Log.d("onStatus/Meta", element.toString());
+        } else if (element instanceof PreformedStatus) {
+            Log.d("onStatus", "@" + ((PreformedStatus)element).getUser().getScreenName() + ": " + ((PreformedStatus)element).getText());
+        }
+
+        if (!elements.contains(element)) {
+            if (position < elements.size()) {
+                if (commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                    return;
+            }
+            elements.add(position, element);
+            int firstPos = listView.getFirstVisiblePosition();
+            View firstView = listView.getChildAt(0);
+            int y = firstView != null? firstView.getTop() : 0;
+            adapterWrap.notifyDataSetChanged();
+            if (elements.size() == 1 || firstPos == 0 && y > -1) {
+                listView.setSelection(0);
+                Log.d("Tab:" + getTitle(), "Status added, Unread:" + unreadSet.size());
+            } else {
+                unreadSet.add(commonDelegate.getId(element));
+                Log.d("Tab:" + getTitle(), "Status added (*Unread), Unread:" + unreadSet.size());
+                listView.setSelectionFromTop(firstPos + 1, y);
+            }
+            updateUnreadNotifier();
+        }
+    }
+
+    protected void deleteElement(TwitterResponse element) {
+        long id = TweetCommon.newInstance(element.getClass()).getId(element);
+        Iterator<T> iterator = elements.iterator();
+        while (iterator.hasNext()) {
+            if (commonDelegate.getId(iterator.next()) == id) {
+                int firstPos = listView.getFirstVisiblePosition();
+                long firstId = listView.getItemIdAtPosition(firstPos);
+                int y = listView.getChildAt(0).getTop();
+                iterator.remove();
+                adapterWrap.notifyDataSetChanged();
+                if (elements.size() == 1 || firstPos == 0) {
+                    listView.setSelection(0);
+                } else {
+                    listView.setSelectionFromTop(firstPos - (firstId < id? 1 : 0), y);
+                }
+                if (unreadSet.contains(id)) {
+                    unreadSet.remove(id);
+                    updateUnreadNotifier();
+                }
+                break;
+            }
+        }
+    }
+
+    protected void setRefreshComplete() {
+        if (--refreshCounter < 1 && swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(false);
+        }
+    }
+
+    protected void clearUnreadNotifier() {
+        unreadSet.clear();
+        updateUnreadNotifier();
+    }
+
+    protected void updateUnreadNotifier() {
+        if (unreadNotifierView == null) return;
+        Log.d("Tab:" + getTitle(), "Notifier update, Unread:" + unreadSet.size());
+        if (unreadSet.size() < 1) {
+            unreadNotifierView.setVisibility(View.INVISIBLE);
+            return;
+        }
+        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
+        tv.setText(String.format("新着 %d件", unreadSet.size()));
+
+        unreadNotifierView.setVisibility(View.VISIBLE);
+    }
+
+    protected void disableReload() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setEnabled(false);
+        }
     }
 
 }

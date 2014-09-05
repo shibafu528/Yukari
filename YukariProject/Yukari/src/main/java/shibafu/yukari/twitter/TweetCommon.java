@@ -5,6 +5,7 @@ import java.util.List;
 
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
+import twitter4j.Status;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -17,7 +18,7 @@ public class TweetCommon {
     private TweetCommon() {}
 
     public static TweetCommonDelegate newInstance(Class<? extends TwitterResponse> clz) {
-        if (PreformedStatus.class.isAssignableFrom(clz)) {
+        if (Status.class.isAssignableFrom(clz)) {
             return new StatusCommonDelegate();
         }
         else if (DirectMessage.class.isAssignableFrom(clz)) {
@@ -29,49 +30,53 @@ public class TweetCommon {
     public static class StatusCommonDelegate implements TweetCommonDelegate {
         @Override
         public long getId(TwitterResponse object) {
-            return ((PreformedStatus) object).getId();
+            return ((Status) object).getId();
         }
 
         @Override
         public User getUser(TwitterResponse object) {
-            return ((PreformedStatus) object).isRetweet() ?
-                    ((PreformedStatus) object).getRetweetedStatus().getUser()
+            return ((Status) object).isRetweet() ?
+                    ((Status) object).getRetweetedStatus().getUser()
                     :
-                    ((PreformedStatus) object).getUser();
+                    ((Status) object).getUser();
         }
 
         @Override
         public String getRecipientScreenName(TwitterResponse object) {
-            return ((PreformedStatus) object).getRepresentUser().ScreenName;
+            if (object instanceof PreformedStatus) {
+                return ((PreformedStatus) object).getRepresentUser().ScreenName;
+            } else {
+                return "";
+            }
         }
 
         @Override
         public String getText(TwitterResponse object) {
-            return ((PreformedStatus) object).isRetweet() ?
-                    ((PreformedStatus) object).getRetweetedStatus().getText()
+            return ((Status) object).isRetweet() ?
+                    ((Status) object).getRetweetedStatus().getText()
                     :
-                    ((PreformedStatus) object).getText();
+                    ((Status) object).getText();
         }
 
         @Override
         public Date getCreatedAt(TwitterResponse object) {
-            return ((PreformedStatus) object).getCreatedAt();
+            return ((Status) object).getCreatedAt();
         }
 
         @Override
         public String getSource(TwitterResponse object) {
-            return ((PreformedStatus) object).getSource();
+            return ((Status) object).getSource();
         }
 
         @Override
         public int getStatusRelation(List<AuthUserRecord> userRecords, TwitterResponse object) {
             for (AuthUserRecord aur : userRecords) {
-                for (UserMentionEntity entity : ((PreformedStatus) object).getUserMentionEntities()) {
+                for (UserMentionEntity entity : ((Status) object).getUserMentionEntities()) {
                     if (aur.ScreenName.equals(entity.getScreenName())) {
                         return REL_MENTION;
                     }
                 }
-                if (aur.ScreenName.equals(((PreformedStatus) object).getInReplyToScreenName())) {
+                if (aur.ScreenName.equals(((Status) object).getInReplyToScreenName())) {
                     return REL_MENTION;
                 }
                 if (aur.ScreenName.equals(getUser(object).getScreenName())) {

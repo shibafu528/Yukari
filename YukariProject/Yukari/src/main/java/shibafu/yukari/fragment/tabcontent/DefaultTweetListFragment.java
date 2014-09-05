@@ -8,23 +8,16 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -40,7 +33,6 @@ import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.StatusManager;
-import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
@@ -68,11 +60,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private Status traceStart = null;
     private User targetUser = null;
     private long listId = -1;
-
-    private long lastShowedFirstItemId = -1;
-    private int lastShowedFirstItemY = 0;
-    private View unreadNotifierView;
-    private Set<Long> unreadSet = new HashSet<>();
 
     private UserList targetList;
     private MenuItem miEditList;
@@ -112,35 +99,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 setHasOptionsMenu(true);
             }
         }
-
-        unreadNotifierView = view.findViewById(R.id.unreadNotifier);
-        if (unreadNotifierView != null) {
-            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
-                    break;
-                case "dark":
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
-                    break;
-            }
-
-            getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) {
-                }
-
-                @Override
-                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                    for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
-                        PreformedStatus status = elements.get(firstVisibleItem);
-                        if (status != null && unreadSet.contains(status.getId())) {
-                            unreadSet.remove(status.getId());
-                        }
-                    }
-                    updateUnreadNotifier();
-                }
-            });
-        }
     }
 
     @Override
@@ -150,26 +108,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
             getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
         }
-        if (lastShowedFirstItemId > -1) {
-            final Long[] copyOfUnreadSet = unreadSet.toArray(new Long[unreadSet.size()]);
-            getHandler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    int position;
-                    int length = elements.size();
-                    for (position = 0; position < length; ++position) {
-                        if (elements.get(position).getId() == lastShowedFirstItemId) break;
-                    }
-                    if (position < length) {
-                        listView.setSelectionFromTop(position, lastShowedFirstItemY);
-                    }
-                    Collections.addAll(unreadSet, copyOfUnreadSet);
-                    updateUnreadNotifier();
-                }
-            }, 100);
-        }
-        Log.d("Tab:" + getTitle(), "onStart.");
-        Log.d("Tab:" + getTitle(), "Start, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -179,17 +117,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             getActivity().unregisterReceiver(onReloadReceiver);
             getActivity().unregisterReceiver(onActiveChangedReceiver);
         }
-        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
-        lastShowedFirstItemY = listView.getChildAt(0).getTop();
-        Log.d("Tab:" + getTitle(), "onStop.");
-        Log.d("Tab:" + getTitle(), "Stop, Unread:" + unreadSet.size());
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        Log.d("Tab:" + getTitle(), "onAttach.");
-        Log.d("Tab:" + getTitle(), "Attach, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -198,8 +125,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
-        Log.d("Tab:" + getTitle(), "onDetach.");
-        Log.d("Tab:" + getTitle(), "Detach, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -213,7 +138,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
-                unreadSet.clear();
+                clearUnreadNotifier();
                 loader.execute(loader.new Params(userRecord, true));
                 break;
         }
@@ -504,19 +429,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
         }
     }
 
-    private void updateUnreadNotifier() {
-        if (unreadNotifierView == null) return;
-        Log.d("Tab:" + getTitle(), "Notifier update, Unread:" + unreadSet.size());
-        if (unreadSet.size() < 1) {
-            unreadNotifierView.setVisibility(View.INVISIBLE);
-            return;
-        }
-        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
-        tv.setText(String.format("新着 %d件", unreadSet.size()));
-
-        unreadNotifierView.setVisibility(View.VISIBLE);
-    }
-
     private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -556,31 +468,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     getHandler().post(new Runnable() {
                         @Override
                         public void run() {
-                            if (status instanceof MetaStatus) {
-                                Log.d("onStatus/Meta", ((MetaStatus)status).toString());
-                            } else {
-                                Log.d("onStatus", "@" + status.getUser().getScreenName() + ": " + status.getText());
-                            }
-                            if (!elements.contains(status)) {
-                                if (position < elements.size()) {
-                                    if (elements.get(position).getId() == status.getId())
-                                        return;
-                                }
-                                elements.add(position, status);
-                                int firstPos = listView.getFirstVisiblePosition();
-                                View firstView = listView.getChildAt(0);
-                                int y = firstView != null? firstView.getTop() : 0;
-                                adapterWrap.notifyDataSetChanged();
-                                if (elements.size() == 1 || firstPos == 0 && y > -1) {
-                                    listView.setSelection(0);
-                                    Log.d("Tab:" + getTitle(), "Status added, Unread:" + unreadSet.size());
-                                } else {
-                                    unreadSet.add(status.getId());
-                                    Log.d("Tab:" + getTitle(), "Status added (*Unread), Unread:" + unreadSet.size());
-                                    listView.setSelectionFromTop(firstPos + 1, y);
-                                }
-                                updateUnreadNotifier();
-                            }
+                            insertElement(status, position);
                         }
                     });
                 }
@@ -598,26 +486,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 getHandler().post(new Runnable() {
                     @Override
                     public void run() {
-                        Iterator<PreformedStatus> iterator = elements.iterator();
-                        while (iterator.hasNext()) {
-                            if (iterator.next().getId() == status.getId()) {
-                                int firstPos = listView.getFirstVisiblePosition();
-                                long firstId = listView.getItemIdAtPosition(firstPos);
-                                int y = listView.getChildAt(0).getTop();
-                                iterator.remove();
-                                adapterWrap.notifyDataSetChanged();
-                                if (elements.size() == 1 || firstPos == 0) {
-                                    listView.setSelection(0);
-                                } else {
-                                    listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
-                                }
-                                if (unreadSet.contains(status.getId())) {
-                                    unreadSet.remove(status.getId());
-                                    updateUnreadNotifier();
-                                }
-                                break;
-                            }
-                        }
+                        deleteElement(status);
                     }
                 });
                 for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {

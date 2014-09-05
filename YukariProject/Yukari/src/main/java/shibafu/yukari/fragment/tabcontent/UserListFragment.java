@@ -65,16 +65,13 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
 
     private UserList preDelete;
 
-    public UserListFragment() {
-        setRetainInstance(true);
-    }
-
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         setHasOptionsMenu(true);
+        disableReload();
     }
 
     @Override

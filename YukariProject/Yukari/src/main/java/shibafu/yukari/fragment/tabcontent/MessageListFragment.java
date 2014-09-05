@@ -3,40 +3,25 @@ package shibafu.yukari.fragment.tabcontent;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
-import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -54,82 +39,11 @@ import twitter4j.User;
 public class MessageListFragment extends TwitterListFragment<DirectMessage>
         implements StatusManager.StatusListener, DialogInterface.OnClickListener {
 
-    //ListView Adapter Wrapper
-    private TweetAdapterWrap adapterWrap;
-
-    //SwipeRefreshLayout
-    private SwipeRefreshLayout swipeRefreshLayout;
-    private int refreshCounter;
-
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
 
-    private long lastShowedFirstItemId = -1;
-    private int lastShowedFirstItemY = 0;
-    private View unreadNotifierView;
-    private Set<Long> unreadSet = new HashSet<>();
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, DirectMessage.class);
-        setListAdapter(adapterWrap.getAdapter());
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
-
-        swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorScheme(
-                R.color.key_color,
-                R.color.key_color_2,
-                R.color.key_color,
-                R.color.key_color_2
-        );
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                for (AuthUserRecord user : users) {
-                    executeLoader(LOADER_LOAD_UPDATE, user);
-                    ++refreshCounter;
-                }
-            }
-        });
-
-        return v;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        unreadNotifierView = view.findViewById(R.id.unreadNotifier);
-        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
-                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
-                break;
-            case "dark":
-                unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
-                break;
-        }
-
-        getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(AbsListView view, int scrollState) {}
-
-            @Override
-            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
-                    DirectMessage message = elements.get(firstVisibleItem);
-                    if (message != null && unreadSet.contains(message.getId())) {
-                        unreadSet.remove(message.getId());
-                    }
-                }
-                updateUnreadNotifier();
-            }
-        });
+    public MessageListFragment() {
+        super(DirectMessage.class);
     }
 
     @Override
@@ -140,24 +54,6 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         super.onDetach();
     }
 
-    private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-        }
-    };
-
-    private BroadcastReceiver onActiveChangedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ArrayList<AuthUserRecord> inactiveList = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(TwitterService.EXTRA_CHANGED_INACTIVE);
-            for (AuthUserRecord inactive : inactiveList) {
-                if (users.contains(inactive)) {
-                    users.remove(inactive);
-                }
-            }
-        }
-    };
 
     @Override
     public boolean isCloseable() {
@@ -183,50 +79,9 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
-                unreadSet.clear();
-                unreadSet.clear();
+                clearUnreadNotifier();
                 loader.execute(loader.new Params(userRecord, true));
                 break;
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (lastShowedFirstItemId > -1) {
-            int position;
-            int length = elements.size();
-            for (position = 0; position < length; ++position) {
-                if (elements.get(position).getId() == lastShowedFirstItemId) break;
-            }
-            if (position < length) {
-                listView.setSelectionFromTop(position, lastShowedFirstItemY);
-            }
-        }
-        updateUnreadNotifier();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
-        lastShowedFirstItemY = listView.getChildAt(0).getTop();
-    }
-
-    private void updateUnreadNotifier() {
-        if (unreadSet.size() < 1) {
-            unreadNotifierView.setVisibility(View.INVISIBLE);
-            return;
-        }
-        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
-        tv.setText(String.format("新着 %d件", unreadSet.size()));
-
-        unreadNotifierView.setVisibility(View.VISIBLE);
-    }
-
-    protected void setRefreshComplete() {
-        if (--refreshCounter < 1 && swipeRefreshLayout != null) {
-            swipeRefreshLayout.setRefreshing(false);
         }
     }
 
@@ -260,22 +115,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 getHandler().post(new Runnable() {
                     @Override
                     public void run() {
-                        if (!elements.contains(directMessage)) {
-                            if (position < elements.size())  {
-                                if (elements.get(position).getId() == directMessage.getId()) return;
-                            }
-                            elements.add(position, directMessage);
-                            int firstPos = listView.getFirstVisiblePosition();
-                            int y = listView.getChildAt(0).getTop();
-                            adapterWrap.notifyDataSetChanged();
-                            if (elements.size() == 1 || firstPos == 0 && y > -1) {
-                                listView.setSelection(0);
-                            } else {
-                                unreadSet.add(directMessage.getId());
-                                listView.setSelectionFromTop(firstPos + 1, y);
-                            }
-                            updateUnreadNotifier();
-                        }
+                        insertElement(directMessage, position);
                     }
                 });
             }
@@ -288,26 +128,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             getHandler().post(new Runnable() {
                 @Override
                 public void run() {
-                    Iterator<DirectMessage> iterator = elements.iterator();
-                    while (iterator.hasNext()) {
-                        if (iterator.next().getId() == status.getId()) {
-                            int firstPos = listView.getFirstVisiblePosition();
-                            long firstId = listView.getItemIdAtPosition(firstPos);
-                            int y = listView.getChildAt(0).getTop();
-                            iterator.remove();
-                            adapterWrap.notifyDataSetChanged();
-                            if (elements.size() == 1 || firstPos == 0) {
-                                listView.setSelection(0);
-                            } else {
-                                listView.setSelectionFromTop(firstPos - (firstId < status.getId()? 1 : 0), y);
-                            }
-                            if (unreadSet.contains(status.getId())) {
-                                unreadSet.remove(status.getId());
-                                updateUnreadNotifier();
-                            }
-                            break;
-                        }
-                    }
+                    deleteElement(status);
                 }
             });
         }

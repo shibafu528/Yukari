@@ -46,10 +46,6 @@ public class FriendListFragment extends TwitterListFragment<User> {
     private UserAdapter adapter;
     private long loadCursor = -1;
 
-    public FriendListFragment() {
-        setRetainInstance(true);
-    }
-
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -57,6 +53,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
         targetUser = (User) args.getSerializable(EXTRA_SHOW_USER);
         query = args.getString(EXTRA_SEARCH_QUERY);
         targetListId = args.getLong(EXTRA_TARGET_LIST_ID);
+        disableReload();
     }
 
     @Override
