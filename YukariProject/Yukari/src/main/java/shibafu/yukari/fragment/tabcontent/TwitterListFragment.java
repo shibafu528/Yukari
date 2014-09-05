@@ -6,7 +6,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,8 +32,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
-import shibafu.yukari.twitter.statusimpl.MetaStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
 
@@ -213,10 +210,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                     Collections.addAll(unreadSet, copyOfUnreadSet);
                     updateUnreadNotifier();
                 }
-            }, 100);
+            }, 150);
         }
-        Log.d("Tab:" + getTitle(), "onStart.");
-        Log.d("Tab:" + getTitle(), "Start, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -236,8 +231,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         super.onStop();
         lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
         lastShowedFirstItemY = listView.getChildAt(0).getTop();
-        Log.d("Tab:" + getTitle(), "onStop.");
-        Log.d("Tab:" + getTitle(), "Stop, Unread:" + unreadSet.size());
     }
 
     @Override
@@ -354,12 +347,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     protected void insertElement(T element, int position) {
-        if (element instanceof MetaStatus) {
-            Log.d("onStatus/Meta", element.toString());
-        } else if (element instanceof PreformedStatus) {
-            Log.d("onStatus", "@" + ((PreformedStatus)element).getUser().getScreenName() + ": " + ((PreformedStatus)element).getText());
-        }
-
         if (!elements.contains(element)) {
             if (position < elements.size()) {
                 if (commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
@@ -372,10 +359,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             adapterWrap.notifyDataSetChanged();
             if (elements.size() == 1 || firstPos == 0 && y > -1) {
                 listView.setSelection(0);
-                Log.d("Tab:" + getTitle(), "Status added, Unread:" + unreadSet.size());
             } else {
                 unreadSet.add(commonDelegate.getId(element));
-                Log.d("Tab:" + getTitle(), "Status added (*Unread), Unread:" + unreadSet.size());
                 listView.setSelectionFromTop(firstPos + 1, y);
             }
             updateUnreadNotifier();
@@ -419,7 +404,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
     protected void updateUnreadNotifier() {
         if (unreadNotifierView == null) return;
-        Log.d("Tab:" + getTitle(), "Notifier update, Unread:" + unreadSet.size());
         if (unreadSet.size() < 1) {
             unreadNotifierView.setVisibility(View.INVISIBLE);
             return;
