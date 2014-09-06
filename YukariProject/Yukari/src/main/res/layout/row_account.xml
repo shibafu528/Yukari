@@ -50,4 +50,14 @@
         android:focusable="false"
         android:clickable="false" />
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="4dp"
+        android:id="@+id/user_color"
+        android:layout_below="@+id/user_icon"
+        android:layout_alignLeft="@+id/user_icon"
+        android:layout_alignStart="@+id/user_icon"
+        android:layout_alignRight="@+id/user_icon"
+        android:layout_alignEnd="@+id/user_icon" />
+
 </RelativeLayout>

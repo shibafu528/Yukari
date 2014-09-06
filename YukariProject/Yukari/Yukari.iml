@@ -85,6 +85,7 @@
     <orderEntry type="library" exported="" name="gson-2.3" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-async-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.2" level="project" />
+    <orderEntry type="library" exported="" name="HoloColorPicker-1.4" level="project" />
     <orderEntry type="library" exported="" name="butterknife-5.1.2" level="project" />
     <orderEntry type="library" exported="" name="support-v4-19.1.0" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-stream-4.0.2" level="project" />

@@ -129,6 +129,7 @@ public class TweetAdapterWrap {
         LinearLayout llAttach;
         TextView tvReceived;
         LinearLayout flInclude;
+        ImageView ivAccountColor;
 
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
@@ -141,6 +142,7 @@ public class TweetAdapterWrap {
             llAttach = (LinearLayout) v.findViewById(R.id.tweet_attach);
             tvReceived = (TextView) v.findViewById(R.id.tweet_receive);
             flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
+            ivAccountColor = (ImageView) v.findViewById(R.id.tweet_accountcolor);
         }
     }
 
@@ -273,7 +275,7 @@ public class TweetAdapterWrap {
                 viewHolder.ivProtected.setVisibility(View.VISIBLE);
             }
             else {
-                viewHolder.ivProtected.setVisibility(View.INVISIBLE);
+                viewHolder.ivProtected.setVisibility(View.GONE);
             }
 
             int statusRelation = (userRecords != null) ?
@@ -331,6 +333,8 @@ public class TweetAdapterWrap {
         @Override
         protected View convertViewAbs(View v, TweetViewHolder viewHolder, final TwitterResponse content, int mode) {
             final PreformedStatus st = (PreformedStatus) content;
+
+            viewHolder.ivAccountColor.setBackgroundColor(st.getRepresentUser().AccountColor);
 
             if ((getPreferences().getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
                 boolean hidden = false;
@@ -448,7 +452,7 @@ public class TweetAdapterWrap {
                 viewHolder.ivFavorited.setVisibility(View.VISIBLE);
             }
             else {
-                viewHolder.ivFavorited.setVisibility(View.INVISIBLE);
+                viewHolder.ivFavorited.setVisibility(View.GONE);
             }
 
             switch (mode) {
@@ -493,6 +497,16 @@ public class TweetAdapterWrap {
 
         @Override
         protected View convertViewAbs(View v, TweetViewHolder viewHolder, TwitterResponse content, int mode) {
+            final DirectMessage message = (DirectMessage) content;
+            viewHolder.ivAccountColor.setBackgroundColor(Color.TRANSPARENT);
+            for (AuthUserRecord authUserRecord : getUserRecords()) {
+                if (authUserRecord.NumericId == message.getRecipientId()) {
+                    viewHolder.ivAccountColor.setBackgroundColor(authUserRecord.AccountColor);
+                    break;
+                } else if (authUserRecord.NumericId == message.getSenderId()) {
+                    viewHolder.ivAccountColor.setBackgroundColor(authUserRecord.AccountColor);
+                }
+            }
             return v;
         }
     }

@@ -22,7 +22,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 7;
+    public static final int DB_VER = 8;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -33,6 +33,7 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_IS_ACTIVE  = "IsActive"; //タイムラインのアクティブアカウント
     public static final String COL_ACCOUNTS_IS_WRITER  = "IsWriter"; //ツイートのカレントアカウント、オープン毎にIsPrimaryで初期化する
     public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
+    public static final String COL_ACCOUNTS_COLOR = "AccountColor";
 
     //Userテーブル
     public static final String TABLE_USER = "User";
@@ -123,7 +124,8 @@ public class CentralDatabase {
                     COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
                     COL_ACCOUNTS_IS_ACTIVE + " INTEGER, " +
                     COL_ACCOUNTS_IS_WRITER + " INTEGER, " +
-                    COL_ACCOUNTS_FALLBACK_TO + " INTEGER)"
+                    COL_ACCOUNTS_FALLBACK_TO + " INTEGER, " +
+                    COL_ACCOUNTS_COLOR + " INTEGER)"
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_USER + " (" +
@@ -270,6 +272,10 @@ public class CentralDatabase {
                 db.execSQL("DROP TABLE tmp_Mute");
                 ++oldVersion;
             }
+            if (oldVersion == 7) {
+                db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_COLOR + " INTEGER DEFAULT 0");
+                ++oldVersion;
+            }
         }
     }
 
@@ -372,6 +378,7 @@ public class CentralDatabase {
                         COL_ACCOUNTS_IS_PRIMARY,
                         COL_ACCOUNTS_IS_ACTIVE,
                         COL_ACCOUNTS_IS_WRITER,
+                        COL_ACCOUNTS_COLOR,
                         COL_USER_SCREEN_NAME,
                         COL_USER_NAME,
                         COL_USER_PROFILE_IMAGE_URL},
@@ -400,6 +407,7 @@ public class CentralDatabase {
                         COL_ACCOUNTS_IS_PRIMARY,
                         COL_ACCOUNTS_IS_ACTIVE,
                         COL_ACCOUNTS_IS_WRITER,
+                        COL_ACCOUNTS_COLOR,
                         COL_USER_SCREEN_NAME,
                         COL_USER_NAME,
                         COL_USER_PROFILE_IMAGE_URL},

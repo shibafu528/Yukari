@@ -2,6 +2,7 @@ package shibafu.yukari.twitter;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.graphics.Color;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,12 +23,14 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public boolean isActive;
     public boolean isWriter;
 	public AccessToken Token;
+    public int AccountColor;
 
     public AuthUserRecord(AccessToken token) {
         Token = token;
         NumericId = token.getUserId();
         ScreenName = token.getScreenName();
         isActive = true;
+        AccountColor = Color.TRANSPARENT;
     }
 
     public AuthUserRecord(Cursor cursor) {
@@ -41,6 +44,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         String accessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
         String accessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
         Token = new AccessToken(accessToken, accessTokenSecret, NumericId);
+        AccountColor = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_COLOR));
     }
 
     public AccessToken getAccessToken() {
@@ -91,6 +95,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
+        values.put(CentralDatabase.COL_ACCOUNTS_COLOR, AccountColor);
         return values;
     }
 
