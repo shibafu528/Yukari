@@ -329,6 +329,16 @@ public class TwitterService extends Service{
         storeUsers();
     }
 
+    public void setUserColor(long id, int color) {
+        for (AuthUserRecord user : users) {
+            if (user.NumericId == id) {
+                user.AccountColor = color;
+                break;
+            }
+        }
+        storeUsers();
+    }
+
     public void storeUsers() {
         database.beginTransaction();
         try {

@@ -56,6 +56,16 @@
         android:id="@+id/tweet_attach" />
 
     <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="4dp"
+        android:id="@+id/tweet_accountcolor"
+        android:layout_below="@+id/tweet_icon"
+        android:layout_alignLeft="@+id/tweet_icon"
+        android:layout_alignRight="@+id/tweet_icon"
+        android:layout_alignStart="@+id/tweet_icon"
+        android:layout_alignEnd="@+id/tweet_icon"/>
+
+    <ImageView
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:id="@+id/tweet_retweeter"
@@ -70,9 +80,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/tweet_protected"
         android:src="@drawable/ic_secure"
-        android:layout_alignBottom="@+id/tweet_timestamp"
+        android:layout_below="@+id/tweet_accountcolor"
         android:layout_alignParentLeft="true"
-        android:visibility="invisible"
+        android:visibility="gone"
         android:layout_marginLeft="-4dp"
         android:layout_marginBottom="-2dp" />
 
@@ -94,9 +104,9 @@
         android:layout_height="wrap_content"
         android:id="@+id/tweet_faved"
         android:src="@drawable/ic_favorited"
-        android:layout_alignBottom="@+id/tweet_timestamp"
+        android:layout_below="@+id/tweet_accountcolor"
         android:layout_toRightOf="@+id/tweet_protected"
-        android:visibility="invisible"/>
+        android:visibility="gone"/>
 
     <LinearLayout
         android:layout_width="match_parent"
