@@ -15,7 +15,7 @@ public class MetaStatus extends PreformedStatus {
     }
 
     public MetaStatus(PreformedStatus status, Object metadata) {
-        super(status, status.getRepresentUser());
+        super(status);
         this.metadata = metadata;
     }
 

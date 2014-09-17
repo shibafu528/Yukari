@@ -112,6 +112,27 @@ public class PreformedStatus implements Status{
         merge(status, receivedUser);
     }
 
+    public PreformedStatus(PreformedStatus other) {
+        this.status = other.status;
+        this.retweetedStatus = other.retweetedStatus;
+        this.text = other.text;
+        this.plainSource = other.plainSource;
+        this.mediaLinkList = other.mediaLinkList;
+        this.urlEntities = other.urlEntities;
+        this.quoteEntities = other.quoteEntities;
+        this.isMentionedToMe = other.isMentionedToMe;
+        this.censoredThumbs = other.censoredThumbs;
+        this.favoriteCount = other.favoriteCount;
+        this.retweetCount = other.retweetCount;
+        this.rateLimitStatus = other.rateLimitStatus;
+        this.isFavorited = other.isFavorited;
+        this.isRetweeted = other.isRetweeted;
+        this.isMentioned = other.isMentioned;
+        this.representUser = other.representUser;
+        this.receivedUsers = other.receivedUsers;
+        this.receivedIds = other.receivedIds;
+    }
+
     public void merge(Status status, AuthUserRecord receivedUser) {
         if (status instanceof FakeStatus) {
             merge((FakeStatus) status, receivedUser);
