@@ -31,10 +31,9 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
         tag = imageView.getTag().toString();
     }
 
-    @Override
-    protected Bitmap doInBackground(Params... params) {
+    static Bitmap loadBitmapInternal(Context context, String uri, String mode) {
+        if (context == null) return null;
         try {
-            String uri = params[0].getUri();
             Bitmap image = BitmapCache.getImageFromDisk(uri, BitmapCache.IMAGE_CACHE, context);
             //無かったらWebから取得だ！
             if (image == null) {
@@ -63,13 +62,18 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     tempFile.delete();
                 }
                 //キャッシュに保存
-                BitmapCache.putImage(uri, image, context, params[0].getMode());
+                BitmapCache.putImage(uri, image, context, mode);
             }
             return image;
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    protected Bitmap doInBackground(Params... params) {
+        return loadBitmapInternal(context, params[0].getUri(), params[0].getMode());
     }
 
     private ImageView getImageViewInstance() {
@@ -96,7 +100,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     }
 
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
-        loadBitmap(context, imageView, uri, BitmapCache.PROFILE_ICON_CACHE);
+        IconLoader.loadBitmap(context, imageView, uri);
     }
 
     public static void loadBitmap(Context context, ImageView imageView, String uri) {
