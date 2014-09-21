@@ -8,6 +8,7 @@ import java.util.Date;
  */
 public class StringUtil {
     public static String generateKey(String key) {
+        if (key == null) return "null";
         char[] array = key.toCharArray();
         int length = array.length;
         for (int i = 0; i < length; ++i) {
