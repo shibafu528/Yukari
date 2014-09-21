@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -110,9 +111,11 @@ public class Suppressor {
                     match = source.contains(config.getQuery());
                     break;
                 case MuteConfig.MATCH_REGEX:
-                    Pattern pattern = Pattern.compile(config.getQuery());
-                    Matcher matcher = pattern.matcher(source);
-                    match = matcher.find();
+                    try {
+                        Pattern pattern = Pattern.compile(config.getQuery());
+                        Matcher matcher = pattern.matcher(source);
+                        match = matcher.find();
+                    } catch (PatternSyntaxException ignore) {}
                     break;
             }
             if (match) {
@@ -156,9 +159,11 @@ public class Suppressor {
                     match = source.contains(config.getQuery());
                     break;
                 case MuteConfig.MATCH_REGEX:
-                    Pattern pattern = Pattern.compile(config.getQuery());
-                    Matcher matcher = pattern.matcher(source);
-                    match = matcher.find();
+                    try {
+                        Pattern pattern = Pattern.compile(config.getQuery());
+                        Matcher matcher = pattern.matcher(source);
+                        match = matcher.find();
+                    } catch (PatternSyntaxException ignore) {}
                     break;
             }
             if (match) {
