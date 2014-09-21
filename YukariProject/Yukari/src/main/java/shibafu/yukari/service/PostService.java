@@ -118,9 +118,11 @@ public class PostService extends IntentService{
                             Uri u = attachedPictures.get(j);
                             InputStream is;
                             int[] size = new int[2];
-                            {
+                            try {
                                 Bitmap thumb = BitmapResizer.resizeBitmap(this, u, 128, 128, size);
                                 thumb.recycle();
+                            } catch (IOException | NullPointerException e) {
+                                throw new IOException(e);
                             }
                             if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
                                 Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");

@@ -999,7 +999,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             pic.width = size[0];
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "画像添付エラー", Toast.LENGTH_SHORT).show();
             return;
