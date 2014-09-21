@@ -136,7 +136,7 @@ public class TwitterService extends Service{
                         Twitter twitter = getTwitter();
                         apiConfiguration = twitter.getAPIConfiguration();
 
-                        if (sp.getBoolean("pref_filter_official", true)) {
+                        if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
                                 twitter.setOAuthAccessToken(userRecord.getAccessToken());
 
