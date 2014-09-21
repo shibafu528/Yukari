@@ -230,7 +230,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public void onStop() {
         super.onStop();
         lastShowedFirstItemId = listView.getItemIdAtPosition(listView.getFirstVisiblePosition());
-        lastShowedFirstItemY = listView.getChildAt(0).getTop();
+        View topView = listView.getChildAt(0);
+        if (topView != null) {
+            lastShowedFirstItemY = topView.getTop();
+        } else {
+            lastShowedFirstItemY = 0;
+        }
     }
 
     @Override
