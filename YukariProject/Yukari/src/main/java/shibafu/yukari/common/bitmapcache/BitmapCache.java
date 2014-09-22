@@ -23,7 +23,7 @@ public class BitmapCache {
     public static final String IMAGE_CACHE = "picture";
 
     private static final int PROFILE_ICON_CACHE_SIZE = 8 * 1024 * 1024;
-    private static final int IMAGE_CACHE_SIZE = 12 * 1024 * 1024;
+    private static final int IMAGE_CACHE_SIZE = 8 * 1024 * 1024;
 
     private static Map<String, BitmapLruCache> cacheMap = new HashMap<>();
     private static Map<String, Map<String, File>> existFileCache = new HashMap<>();

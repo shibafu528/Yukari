@@ -57,6 +57,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                     options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
+                    options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE)? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();

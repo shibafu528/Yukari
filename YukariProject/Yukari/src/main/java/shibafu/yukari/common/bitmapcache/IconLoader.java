@@ -8,7 +8,7 @@ import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import shibafu.yukari.R;
 
@@ -25,7 +25,7 @@ public class IconLoader {
     private static Handler handler;
 
     static {
-        queue = new LinkedBlockingDeque<>();
+        queue = new LinkedBlockingQueue<>();
 
         for (int i = 0; i < THREADS_NUM; ++i) {
             new Thread(new Worker()).start();
