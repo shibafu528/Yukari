@@ -236,8 +236,8 @@ public class StatusMainFragment extends TwitterFragment{
                                     dialog.dismiss();
                                     currentDialog = null;
                                     Intent intent = new Intent(getActivity(), MainActivity.class);
-                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD,
-                                            status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                                    String query = String.format("\"%s\" -RT", status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query);
                                     startActivity(intent);
                                 }
                             })
