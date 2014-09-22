@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
+import android.util.Pair;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
@@ -162,68 +165,7 @@ public class StatusManager {
 
         @Override
         public void onStatus(final Stream from, Status status) {
-            if (from == null || status == null || status.getUser() == null || statusListeners == null) {
-                if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
-                return;
-            }
-            if (PUT_STREAM_LOG) Log.d(LOG_TAG,
-                    String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
-                            statusListeners.size(),
-                            StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
-                            status.getUser().getScreenName(), status.getText()));
-            getDatabase().updateUser(new DBUser(status.getUser()));
-            AuthUserRecord user = from.getUserRecord();
-
-            //自分のツイートかどうかマッチングを行う
-            AuthUserRecord checkOwn = service.isMyTweet(status);
-            if (checkOwn != null) {
-                //自分のツイートであれば受信元は発信元アカウントということにする
-                user = checkOwn;
-            }
-
-            PreformedStatus preformedStatus = new PreformedStatus(status, user);
-
-            //ミュートチェックを行う
-            boolean[] mute = suppressor.decision(preformedStatus);
-            if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
-                preformedStatus.setCensoredThumbs(true);
-            }
-
-            boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
-                    (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                    (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
-            for (StatusListener sl : statusListeners) {
-                if (deliver(sl, from)) {
-                    sl.onStatus(user, new MetaStatus(preformedStatus, "realtime"), muted);
-                }
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                if (deliver(e.getKey(), from)) {
-                    e.getValue().offer(new EventBuffer(user, new MetaStatus(preformedStatus, "queued"), muted));
-                }
-            }
-
-            if (status.isRetweet() &&
-                    !mute[MuteConfig.MUTE_NOTIF_RT] &&
-                    status.getRetweetedStatus().getUser().getId() == user.NumericId &&
-                    checkOwn == null) {
-                showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-            }
-            else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
-                UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-                for (UserMentionEntity ume : userMentionEntities) {
-                    if (ume.getId() == user.NumericId) {
-                        showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
-                    }
-                }
-            }
-
-            HashtagEntity[] hashtagEntities = status.getHashtagEntities();
-            for (HashtagEntity he : hashtagEntities) {
-                hashCache.put("#" + he.getText());
-            }
-
-            receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+            statusQueue.enqueue(from, status);
         }
 
         @Override
@@ -416,9 +358,99 @@ public class StatusManager {
             return null;
         }
 
-        class ReloadedStatus extends PreformedStatus {
-            public ReloadedStatus(Status status, AuthUserRecord receivedUser) {
-                super(status, receivedUser);
+        private StatusQueue statusQueue = new StatusQueue();
+        class StatusQueue {
+            private BlockingQueue<Pair<Stream, Status>> queue = new LinkedBlockingQueue<>();
+
+            public StatusQueue() {
+                new Thread(new Worker()).start();
+            }
+
+            public void enqueue(Stream from, Status status) {
+                queue.offer(new Pair<>(from, status));
+            }
+
+            class Worker implements Runnable {
+
+                private void onStatus(final Stream from, Status status) {
+                    if (from == null || status == null || status.getUser() == null || statusListeners == null) {
+                        if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
+                        return;
+                    }
+                    if (PUT_STREAM_LOG) Log.d(LOG_TAG,
+                            String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
+                                    statusListeners.size(),
+                                    StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
+                                    status.getUser().getScreenName(), status.getText()));
+                    getDatabase().updateUser(new DBUser(status.getUser()));
+                    AuthUserRecord user = from.getUserRecord();
+
+                    //自分のツイートかどうかマッチングを行う
+                    AuthUserRecord checkOwn = service.isMyTweet(status);
+                    if (checkOwn != null) {
+                        //自分のツイートであれば受信元は発信元アカウントということにする
+                        user = checkOwn;
+                    }
+
+                    PreformedStatus preformedStatus = new PreformedStatus(status, user);
+
+                    //ミュートチェックを行う
+                    boolean[] mute = suppressor.decision(preformedStatus);
+                    if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
+                        preformedStatus.setCensoredThumbs(true);
+                    }
+
+                    boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
+                            (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
+                            (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
+                    for (StatusListener sl : statusListeners) {
+                        if (deliver(sl, from)) {
+                            sl.onStatus(user, new MetaStatus(preformedStatus, "realtime"), muted);
+                        }
+                    }
+                    for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                        if (deliver(e.getKey(), from)) {
+                            e.getValue().offer(new EventBuffer(user, new MetaStatus(preformedStatus, "queued"), muted));
+                        }
+                    }
+
+                    if (status.isRetweet() &&
+                            !mute[MuteConfig.MUTE_NOTIF_RT] &&
+                            status.getRetweetedStatus().getUser().getId() == user.NumericId &&
+                            checkOwn == null) {
+                        showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+                    }
+                    else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
+                        UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+                        for (UserMentionEntity ume : userMentionEntities) {
+                            if (ume.getId() == user.NumericId) {
+                                showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
+                            }
+                        }
+                    }
+
+                    HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+                    for (HashtagEntity he : hashtagEntities) {
+                        hashCache.put("#" + he.getText());
+                    }
+
+                    receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+                }
+
+                @Override
+                public void run() {
+                    while (true) {
+                        Pair<Stream, Status> p;
+                        try {
+                            p = queue.take();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+
+                        onStatus(p.first, p.second);
+                    }
+                }
             }
         }
     };
