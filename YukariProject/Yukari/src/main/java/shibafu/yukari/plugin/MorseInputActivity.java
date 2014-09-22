@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -31,6 +32,16 @@ public class MorseInputActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+                case "light":
+                    setTheme(R.style.AppThemeTranslucent);
+                    break;
+                case "dark":
+                    setTheme(R.style.AppThemeTranslucent_Dark);
+                    break;
+            }
+        }
         super.onCreate(savedInstanceState);
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
