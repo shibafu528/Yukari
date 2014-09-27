@@ -16,9 +16,14 @@
         </item>
         <item name="titleTextStyle" tools:ignore="NewApi">@style/ActionBarYukariTheme.TitleText
         </item>
+        <item name="subtitleTextStyle">@style/ActionBarYukariTheme.SubTitleText</item>
     </style>
 
     <style name="ActionBarYukariTheme.TitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="ActionBarYukariTheme.SubTitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Subtitle">
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
