@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
@@ -516,8 +517,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Intent intent = new Intent(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? Intent.ACTION_PICK : Intent.ACTION_GET_CONTENT);
-                intent.setType("image/*");
+                Intent intent = new Intent(TweetActivity.this, PictureChooserActivity.class);
+                intent.putExtra(PictureChooserActivity.EXTRA_CHOOSE_LIMIT, maxMediaPerUpload - attachPictures.size());
                 startActivityForResult(intent, REQUEST_GALLERY);
             }
         });
@@ -854,7 +855,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_GALLERY:
-                    attachPicture(data.getData());
+                    for (Parcelable uri : data.getParcelableArrayExtra(PictureChooserActivity.EXTRA_URIS)) {
+                        attachPicture((Uri) uri);
+                    }
                     break;
                 case REQUEST_CAMERA:
                 {

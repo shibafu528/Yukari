@@ -19,6 +19,7 @@
     <string name="title_activity_accountmanage">アカウント管理</string>
     <string name="title_activity_config">設定</string>
     <string name="title_activity_about">About</string>
+    <string name="title_activity_picture_chooser">画像を追加</string>
 
     <string name="key_viewholder">viewholder</string>
     <string name="title_activity_profile_edit">プロフィール編集</string>

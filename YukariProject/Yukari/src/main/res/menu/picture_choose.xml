@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:yukari="http://schemas.android.com/apk/res-auto"
+    tools:context=".activity.PictureChooserActivity">
+    <item android:id="@+id/action_gallery"
+        android:title="ギャラリーから開く"
+        android:icon="@drawable/ic_action_gallery"
+        yukari:showAsAction="always"/>
+    <item android:id="@+id/action_take_shot"
+        android:title="カメラで撮影"
+        android:icon="@drawable/ic_action_take_shot"
+        yukari:showAsAction="always"/>
+    <item android:id="@+id/action_accept"
+        android:title="完了"
+        yukari:showAsAction="always"/>
+</menu>
