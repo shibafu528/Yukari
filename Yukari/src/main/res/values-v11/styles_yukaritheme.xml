@@ -7,15 +7,21 @@
         <item name="android:background">@drawable/key_color</item>
         <item name="backgroundSplit">@drawable/key_color</item>
         <item name="android:titleTextStyle">@style/ActionBarYukariTheme.TitleText</item>
+        <item name="android:subtitleTextStyle">@style/ActionBarYukariTheme.SubTitleText</item>
     </style>
 
     <style name="ActionBarYukariTheme.Dark" parent="Widget.AppCompat.ActionBar">
         <item name="android:background">@color/key_color_2</item>
         <item name="backgroundSplit">@color/key_color_2</item>
         <item name="android:titleTextStyle">@style/ActionBarYukariTheme.TitleText</item>
+        <item name="android:subtitleTextStyle">@style/ActionBarYukariTheme.SubTitleText</item>
     </style>
 
     <style name="ActionBarYukariTheme.TitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">#FFFFFF</item>
+    </style>
+
+    <style name="ActionBarYukariTheme.SubTitleText" parent="TextAppearance.AppCompat.Widget.ActionBar.Subtitle">
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
