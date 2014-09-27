@@ -197,27 +197,31 @@ public class StatusLinkFragment extends ListFragment{
                         case TYPE_URL: {
                                 final Uri uri = Uri.parse(lr.text);
                                 final BrowserExecutor executor = new BrowserExecutor();
-                                if (lr.type == TYPE_URL &&
-                                        uri.getHost().contains("www.google") && uri.getLastPathSegment().equals("search")) {
-                                    String query = uri.getQueryParameter("q");
-                                    AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                            .setTitle("検索URL")
-                                            .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
-                                            .setPositiveButton("続行", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                    executor.executeIntent(uri);
-                                                }
-                                            })
-                                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    dialog.dismiss();
-                                                }
-                                            })
-                                            .create();
-                                    ad.show();
+                                if (lr.type == TYPE_URL && uri.getHost().contains("www.google")) {
+                                    String lastPathSegment = uri.getLastPathSegment();
+                                    if (lastPathSegment != null && lastPathSegment.equals("search")) {
+                                        String query = uri.getQueryParameter("q");
+                                        AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                                .setTitle("検索URL")
+                                                .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
+                                                .setPositiveButton("続行", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        executor.executeIntent(uri);
+                                                    }
+                                                })
+                                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                    }
+                                                })
+                                                .create();
+                                        ad.show();
+                                    } else {
+                                        executor.executeIntent(uri);
+                                    }
                                 } else {
                                     executor.executeIntent(uri);
                                 }
