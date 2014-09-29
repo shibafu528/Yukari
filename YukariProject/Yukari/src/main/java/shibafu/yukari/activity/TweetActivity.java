@@ -520,6 +520,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 Intent intent = new Intent(TweetActivity.this, PictureChooserActivity.class);
                 intent.putExtra(PictureChooserActivity.EXTRA_CHOOSE_LIMIT, maxMediaPerUpload - attachPictures.size());
                 startActivityForResult(intent, REQUEST_GALLERY);
+                overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
             }
         });
         ibAttach.setOnLongClickListener(new View.OnLongClickListener() {

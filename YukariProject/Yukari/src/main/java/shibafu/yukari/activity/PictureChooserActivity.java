@@ -6,12 +6,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.util.LruCache;
 import android.util.Pair;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -168,6 +170,12 @@ public class PictureChooserActivity extends ActionBarYukariBase {
         }
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(R.anim.activity_tweet_close_enter, R.anim.activity_tweet_close_exit);
+    }
+
     private void accept(Uri... uri) {
         Intent result = new Intent();
         result.putExtra(EXTRA_URIS, uri);
@@ -313,9 +321,22 @@ public class PictureChooserActivity extends ActionBarYukariBase {
             }
         }
 
-        private class ThumbnailLoader extends ParallelAsyncTask<Pair<ContentResolver, Long>, Void, Bitmap> {
+        private static class ThumbnailLoader extends ParallelAsyncTask<Pair<ContentResolver, Long>, Void, Bitmap> {
+            private static LruCache<Long, Bitmap> cache = new LruCache<Long, Bitmap>(16*1024*1024) {
+                @Override
+                protected int sizeOf(Long key, Bitmap value) {
+                    return value.getRowBytes() * value.getHeight();
+                }
+            };
+            private static BitmapFactory.Options options = new BitmapFactory.Options();
+
             private WeakReference<ImageView> imageView;
             private String tag;
+
+            static {
+                options.inPreferredConfig = Bitmap.Config.RGB_565;
+                options.inPurgeable = true;
+            }
 
             private ThumbnailLoader(ImageView imageView) {
                 this.imageView = new WeakReference<>(imageView);
@@ -324,7 +345,14 @@ public class PictureChooserActivity extends ActionBarYukariBase {
 
             @Override
             protected Bitmap doInBackground(Pair<ContentResolver, Long>... params) {
-                return MediaStore.Images.Thumbnails.getThumbnail(params[0].first, params[0].second, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                Bitmap bitmap = cache.get(params[0].second);
+                if (bitmap == null) {
+                    bitmap = MediaStore.Images.Thumbnails.getThumbnail(params[0].first, params[0].second, MediaStore.Images.Thumbnails.MINI_KIND, options);
+                    if (bitmap != null) {
+                        cache.put(params[0].second, bitmap);
+                    }
+                }
+                return bitmap;
             }
 
             @Override
