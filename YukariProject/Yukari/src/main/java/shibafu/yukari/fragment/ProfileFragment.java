@@ -23,6 +23,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -49,6 +50,7 @@ import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
@@ -66,7 +68,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback{
+public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback, ColorPickerDialogFragment.ColorPickerCallback{
 
     // TODO:画面回転とかが加わるとたまに「ユーザー情報の取得に失敗」メッセージを出力して復帰に失敗するみたい
 
@@ -88,6 +90,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage;
     private ImageButton ibMenu, ibSearch;
+    private FrameLayout flIconBack;
 
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
@@ -141,6 +144,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         });
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
+        flIconBack = (FrameLayout) v.findViewById(R.id.frameLayout);
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
         tvScreenName = (TextView) v.findViewById(R.id.tvProfileScreenName);
@@ -177,6 +181,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 menuList.add("追加されているリスト");
                 menuList.add("リストへ追加/削除");
                 menuList.add("ミュートする");
+                menuList.add("カラーラベルを設定");
 
                 if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
                         (targetId >= 0 && targetId == user.NumericId) ||
@@ -264,12 +269,22 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             }
                             case 7:
                             {
+                                ColorPickerDialogFragment dialogFragment =
+                                        ColorPickerDialogFragment.newInstance(
+                                                getTargetUserColor(), "colorLabel"
+                                        );
+                                dialogFragment.setTargetFragment(ProfileFragment.this, 2);
+                                dialogFragment.show(getChildFragmentManager(), "colorLabel");
+                                break;
+                            }
+                            case 8:
+                            {
                                 Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
                                 intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
                                 startActivity(intent);
                                 break;
                             }
-                            case 8:
+                            case 9:
                             {
                                 FriendListFragment fragment = new FriendListFragment();
                                 Bundle args = new Bundle();
@@ -540,6 +555,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         commandAdapter.getItem(2).strBottom = String.valueOf(holder.targetUser.getFriendsCount());
         commandAdapter.getItem(3).strBottom = String.valueOf(holder.targetUser.getFollowersCount());
         commandAdapter.notifyDataSetChanged();
+
+        flIconBack.setBackgroundColor(getTargetUserColor());
     }
 
     @Override
@@ -574,6 +591,17 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             initialLoadTask.cancel(true);
         }
         getActivity().finish();
+    }
+
+    private int getTargetUserColor() {
+        if (isTwitterServiceBound() && getTwitterService() != null) {
+            for (UserExtras userExtra : getTwitterService().getUserExtras()) {
+                if (userExtra.getId() == loadHolder.targetUser.getId()) {
+                    return userExtra.getColor();
+                }
+            }
+        }
+        return 0;
     }
 
     @Override
@@ -724,6 +752,17 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     @Override
     public void onServiceDisconnected() {
 
+    }
+
+    @Override
+    public void onColorPicked(int color, String tag) {
+        if (isTwitterServiceBound()) {
+            getTwitterService().setColor(loadHolder.targetUser.getId(), color);
+            showProfile(loadHolder);
+        } else {
+            //TODO: 遅延処理にすべきかなあ
+            Toast.makeText(getActivity().getApplicationContext(), "カラーラベル設定に失敗しました", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private class Command {

@@ -167,7 +167,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         getListView().addFooterView(footerView);
 
         if (elementClass != null) {
-            adapterWrap = new TweetAdapterWrap(getActivity(), users, elements, elementClass);
+            adapterWrap = new TweetAdapterWrap(getActivity(), users, null, elements, elementClass);
             setListAdapter(adapterWrap.getAdapter());
         }
 
@@ -351,6 +351,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         if (users.isEmpty()) {
             users.addAll(getService().getUsers());
         }
+        adapterWrap.setUserExtras(getService().getUserExtras());
     }
 
     protected int prepareInsertStatus(T status) {

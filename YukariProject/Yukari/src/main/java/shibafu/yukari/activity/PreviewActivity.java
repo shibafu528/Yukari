@@ -471,6 +471,7 @@ public class PreviewActivity extends FragmentActivity {
         viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
                 this,
                 null,
+                null,
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
     }

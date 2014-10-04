@@ -15,12 +15,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -47,6 +49,7 @@ public class TweetAdapterWrap {
 
     public TweetAdapterWrap(Context context,
                             List<AuthUserRecord> userRecords,
+                            List<UserExtras> userExtras,
                             List<? extends TwitterResponse> statuses,
                             Class<? extends TwitterResponse> contentClass) {
         this.statuses = statuses;
@@ -55,6 +58,7 @@ public class TweetAdapterWrap {
         converter = ViewConverter.newInstance(
                 context,
                 userRecords,
+                userExtras,
                 PreferenceManager.getDefaultSharedPreferences(context),
                 contentClass);
     }
@@ -65,6 +69,11 @@ public class TweetAdapterWrap {
 
     public void notifyDataSetChanged() {
         adapter.notifyDataSetChanged();
+    }
+
+    public void setUserExtras(List<UserExtras> userExtras) {
+        converter.setUserExtras(userExtras);
+        notifyDataSetChanged();
     }
 
     private class TweetAdapter extends BaseAdapter {
@@ -130,6 +139,7 @@ public class TweetAdapterWrap {
         TextView tvReceived;
         LinearLayout flInclude;
         ImageView ivAccountColor;
+        ImageView ivUserColor;
 
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
@@ -143,6 +153,7 @@ public class TweetAdapterWrap {
             tvReceived = (TextView) v.findViewById(R.id.tweet_receive);
             flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
             ivAccountColor = (ImageView) v.findViewById(R.id.tweet_accountcolor);
+            ivUserColor = (ImageView) v.findViewById(R.id.tweet_color);
         }
     }
 
@@ -161,6 +172,7 @@ public class TweetAdapterWrap {
 
         private Context context;
         private List<AuthUserRecord> userRecords;
+        private List<UserExtras> userExtras;
         private SharedPreferences preferences;
         private TweetCommonDelegate delegate;
 
@@ -171,14 +183,15 @@ public class TweetAdapterWrap {
         public static ViewConverter newInstance(
                 Context context,
                 List<AuthUserRecord> userRecords,
+                List<UserExtras> userExtras,
                 SharedPreferences sharedPreferences,
                 Class<? extends TwitterResponse> cls) {
             try {
                 if (PreformedStatus.class.isAssignableFrom(cls)) {
-                    return new StatusViewConverter(context, userRecords, sharedPreferences);
+                    return new StatusViewConverter(context, userRecords, userExtras, sharedPreferences);
                 }
                 else if (DirectMessage.class.isAssignableFrom(cls)) {
-                    return new MessageViewConverter(context, userRecords, sharedPreferences);
+                    return new MessageViewConverter(context, userRecords, userExtras, sharedPreferences);
                 }
             } catch (IllegalAccessException | InstantiationException e) {
                 throw new RuntimeException(e);
@@ -188,11 +201,13 @@ public class TweetAdapterWrap {
 
         protected ViewConverter(Context context,
                                 List<AuthUserRecord> userRecords,
+                                List<UserExtras> userExtras,
                                 SharedPreferences preferences,
                                 TweetCommonDelegate delegate)
                 throws IllegalAccessException, InstantiationException {
             this.context = context;
             this.userRecords = userRecords;
+            this.userExtras = userExtras != null ? userExtras : new ArrayList<UserExtras>();
             this.preferences = preferences;
             this.delegate = delegate;
 
@@ -207,6 +222,14 @@ public class TweetAdapterWrap {
 
         protected List<AuthUserRecord> getUserRecords() {
             return userRecords;
+        }
+
+        protected List<UserExtras> getUserExtras() {
+            return userExtras;
+        }
+
+        public void setUserExtras(List<UserExtras> userExtras) {
+            this.userExtras = userExtras;
         }
 
         protected SharedPreferences getPreferences() {
@@ -324,9 +347,10 @@ public class TweetAdapterWrap {
 
         protected StatusViewConverter(Context context,
                                       List<AuthUserRecord> userRecords,
+                                      List<UserExtras> userExtras,
                                       SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
-            super(context, userRecords, preferences, TweetCommon.newInstance(PreformedStatus.class));
+            super(context, userRecords, userExtras, preferences, TweetCommon.newInstance(PreformedStatus.class));
             bgRetweetResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetRetweet);
         }
 
@@ -335,6 +359,16 @@ public class TweetAdapterWrap {
             final PreformedStatus st = (PreformedStatus) content;
 
             viewHolder.ivAccountColor.setBackgroundColor(st.getRepresentUser().AccountColor);
+            {
+                int color = Color.TRANSPARENT;
+                for (UserExtras userExtra : getUserExtras()) {
+                    if (userExtra.getId() == st.getSourceUser().getId()) {
+                        color = userExtra.getColor();
+                        break;
+                    }
+                }
+                viewHolder.ivUserColor.setBackgroundColor(color);
+            }
 
             if ((getPreferences().getBoolean("pref_prev_enable", true) && mode != MODE_PREVIEW) || mode == MODE_DETAIL) {
                 boolean hidden = false;
@@ -470,7 +504,7 @@ public class TweetAdapterWrap {
                             Long quoteId = quoteEntities.get(i);
                             if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
                                 View tv = View.inflate(getContext(), R.layout.row_tweet, null);
-                                ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getPreferences(), PreformedStatus.class);
+                                ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getUserExtras(), getPreferences(), PreformedStatus.class);
                                 vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), mode | MODE_INCLUDE);
                                 viewHolder.flInclude.addView(tv);
                             }
@@ -490,9 +524,10 @@ public class TweetAdapterWrap {
 
         protected MessageViewConverter(Context context,
                                        List<AuthUserRecord> userRecords,
+                                       List<UserExtras> userExtras,
                                        SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
-            super(context, userRecords, preferences, TweetCommon.newInstance(DirectMessage.class));
+            super(context, userRecords, userExtras, preferences, TweetCommon.newInstance(DirectMessage.class));
         }
 
         @Override
