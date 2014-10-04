@@ -45,6 +45,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
+import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -104,6 +105,19 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 case MotionEvent.ACTION_UP:
                     if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
                         Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                        if (sharedPreferences.getBoolean("pref_use_binded_user", false)
+                                && currentPage != null
+                                && currentPage instanceof DefaultTweetListFragment
+                                && currentPage.getBoundUsers().size() == 1) {
+                            switch (currentPage.getMode()) {
+                                case TabType.TABTYPE_HOME:
+                                case TabType.TABTYPE_MENTION:
+                                case TabType.TABTYPE_DM:
+                                case TabType.TABTYPE_LIST:
+                                    intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
+                                    break;
+                            }
+                        }
                         startActivity(intent);
                         return true;
                     }
