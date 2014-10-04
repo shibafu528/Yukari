@@ -436,6 +436,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::burn":
                             Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
                             return;
+                        case "::sy":
+                            inputText = "( ˘ω˘)ｽﾔｧ…";
+                            break;
+                        case "::balus":
+                            sendBroadcast(new Intent("shibafu.yukari.BALUS"));
+                            setResult(RESULT_OK);
+                            finish();
+                            return;
                     }
                 }
 

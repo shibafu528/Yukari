@@ -131,6 +131,14 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     deleteElement(status);
                 }
             });
+        } else if (kind == StatusManager.UPDATE_WIPE_TWEETS) {
+            getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    elements.clear();
+                    adapterWrap.notifyDataSetChanged();
+                }
+            });
         }
     }
 

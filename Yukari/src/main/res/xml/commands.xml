@@ -26,6 +26,12 @@
         <Preference
             android:title="::grgr"
             android:summary="三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ"/>
+        <Preference
+            android:title="::sy"
+            android:summary="( ˘ω˘)ｽﾔｧ…" />
+        <Preference
+            android:title="::balus"
+            android:summary="あの地平線輝くのは どこかに君を隠しているから"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference

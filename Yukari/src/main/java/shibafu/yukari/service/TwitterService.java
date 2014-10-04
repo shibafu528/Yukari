@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Binder;
@@ -93,6 +94,14 @@ public class TwitterService extends Service{
             }
         }
     };
+    private BroadcastReceiver balusListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
+            StatusManager.getReceivedStatuses().clear();
+            statusManager.sendFakeBroadcast("onWipe", new Class[]{});
+        }
+    };
 
     private Handler handler;
 
@@ -180,6 +189,7 @@ public class TwitterService extends Service{
         //ネットワーク状態の監視
         //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
         //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
+        registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
 
         //Proxy Serverの起動
         try {
@@ -199,6 +209,8 @@ public class TwitterService extends Service{
         statusManager.getHashCache().save(this);
 
         //unregisterReceiver(streamConnectivityListener);
+        unregisterReceiver(balusListener);
+
         statusManager.shutdownAll();
         statusManager = null;
 
