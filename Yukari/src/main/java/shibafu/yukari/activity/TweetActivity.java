@@ -994,7 +994,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         return ivAttach;
     }
 
-    private void attachPicture(Uri uri) {
+    private void attachPicture(final Uri uri) {
         AttachPicture pic = new AttachPicture();
         pic.uri = uri;
         try {
@@ -1003,6 +1003,13 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             pic.width = size[0];
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);
+            pic.imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, uri, getApplicationContext(), PreviewActivity.class));
+                    return true;
+                }
+            });
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             Toast.makeText(getApplicationContext(), "画像添付エラー", Toast.LENGTH_SHORT).show();
