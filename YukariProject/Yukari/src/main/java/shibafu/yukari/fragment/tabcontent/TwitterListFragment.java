@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -62,7 +63,19 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     private Set<Long> unreadSet = new HashSet<>();
 
     //Binding Accounts
-    protected List<AuthUserRecord> users = new ArrayList<>();
+    protected List<AuthUserRecord> users = new ArrayList<AuthUserRecord>() {
+        @Override
+        public boolean add(AuthUserRecord object) {
+            return !users.contains(object) && super.add(object);
+        }
+
+        @Override
+        public boolean addAll(Collection<? extends AuthUserRecord> collection) {
+            ArrayList<AuthUserRecord> dup = new ArrayList<>(collection);
+            dup.removeAll(users);
+            return super.addAll(collection);
+        }
+    };
 
     //Fragment States
     private String title;
@@ -253,6 +266,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             return users.get(0);
         }
         else return null;
+    }
+
+    public List<AuthUserRecord> getBoundUsers() {
+        return users != null ? users : new ArrayList<AuthUserRecord>();
     }
 
     public int getMode() {
