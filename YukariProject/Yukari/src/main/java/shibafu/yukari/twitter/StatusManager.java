@@ -17,6 +17,8 @@ import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -68,6 +70,7 @@ public class StatusManager {
     public static final int UPDATE_UNFAVED = 2;
     public static final int UPDATE_DELETED = 3;
     public static final int UPDATE_DELETED_DM = 4;
+    public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
 
@@ -175,6 +178,15 @@ public class StatusManager {
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
+            }
+        }
+
+        public void onWipe(Stream from) {
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0));
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
             }
         }
 
@@ -710,5 +722,26 @@ public class StatusManager {
 
     public static LongSparseArray<PreformedStatus> getReceivedStatuses() {
         return receivedStatuses;
+    }
+
+    public void sendFakeBroadcast(String methodName, Class[] argTypes, Object... args) {
+        try {
+            Class[] newArgTypes = new Class[argTypes.length+1];
+            newArgTypes[0] = Stream.class;
+            System.arraycopy(argTypes, 0, newArgTypes, 1, argTypes.length);
+            Method m = listener.getClass().getMethod(methodName, newArgTypes);
+            Object[] newArgs = new Object[args.length+1];
+            System.arraycopy(args, 0, newArgs, 1, args.length);
+            for (StreamUser streamUser : streamUsers) {
+                newArgs[0] = streamUser;
+                m.invoke(listener, newArgs);
+            }
+            for (Map.Entry<String, FilterStream> entry : filterMap.entrySet()) {
+                newArgs[0] = entry.getValue();
+                m.invoke(listener, newArgs);
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 }

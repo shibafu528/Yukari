@@ -129,6 +129,16 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     @Override
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
+            case StatusManager.UPDATE_WIPE_TWEETS:
+                getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        elements.clear();
+                        adapterWrap.notifyDataSetChanged();
+                    }
+                });
+                stash.clear();
+                break;
             case StatusManager.UPDATE_DELETED:
                 getHandler().post(new Runnable() {
                     @Override
