@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MuteActivity;
+import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
@@ -114,7 +115,31 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
         ivProfileIcon = (ImageView)v.findViewById(R.id.ivProfileIcon);
+        ivProfileIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (loadHolder != null && loadHolder.targetUser != null) {
+                    startActivity(new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(loadHolder.targetUser.getOriginalProfileImageURLHttps()),
+                            getActivity(),
+                            PreviewActivity.class));
+                }
+            }
+        });
         ivHeader = (ImageView) v.findViewById(R.id.ivProfileHeader);
+        ivHeader.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (loadHolder != null && loadHolder.targetUser != null) {
+                    startActivity(new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL()),
+                            getActivity(),
+                            PreviewActivity.class));
+                }
+            }
+        });
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);

@@ -18,7 +18,7 @@ public class LinkMediaFactory {
         LinkMedia linkMedia = instanceQueue.get(mediaURL);
 
         if (linkMedia == null) {
-            if (mediaURL.contains("twimg.com")) {
+            if (mediaURL.contains("pbs.twimg.com/media/")) {
                 linkMedia = new Twimg(mediaURL);
             } else if (mediaURL.contains("/yfrog.com")) {
                 linkMedia = new YFrog(mediaURL);
