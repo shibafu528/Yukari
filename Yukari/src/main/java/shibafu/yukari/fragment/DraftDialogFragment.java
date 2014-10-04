@@ -198,7 +198,7 @@ public class DraftDialogFragment extends DialogFragment {
                 if (d.isFailedDelivery()) {
                     info += "送信に失敗したツイート\n";
                 }
-                if (d.getAttachedPictures() != null) {
+                if (!d.getAttachedPictures().isEmpty()) {
                     info += "添付画像あり\n";
                 }
                 if (d.isUseGeoLocation()) {
