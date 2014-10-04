@@ -25,6 +25,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
@@ -76,6 +77,7 @@ public class TwitterService extends Service{
     //Twitter通信系
     private Twitter twitter;
     private List<AuthUserRecord> users = new ArrayList<>();
+    private List<UserExtras> userExtras = new ArrayList<>();
     private StatusManager statusManager;
 
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
@@ -121,6 +123,9 @@ public class TwitterService extends Service{
 
         //ユーザデータのロード
         reloadUsers();
+
+        //ユーザー設定の読み込み
+        userExtras = database.getUserExtras(users);
 
         //Twitterインスタンスの生成
         twitter = TwitterUtil.getTwitterInstance(this);
@@ -201,6 +206,7 @@ public class TwitterService extends Service{
 
         storeUsers();
         users = null;
+        userExtras = null;
 
         BitmapCache.dispose();
 
@@ -368,6 +374,46 @@ public class TwitterService extends Service{
         database.deleteAccount(id);
         //データベースからアカウントをリロードする
         reloadUsers();
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="UserExtras">
+    public void setColor(long id, int color) {
+        UserExtras extras = null;
+        for (UserExtras userExtra : userExtras) {
+            if (userExtra.getId() == id) {
+                userExtra.setColor(color);
+                extras = userExtra;
+                break;
+            }
+        }
+        if (extras == null) {
+            extras = new UserExtras(id);
+            extras.setColor(color);
+            userExtras.add(extras);
+        }
+        database.updateUserExtras(extras);
+    }
+
+    public void setPriority(long id, AuthUserRecord userRecord) {
+        UserExtras extras = null;
+        for (UserExtras userExtra : userExtras) {
+            if (userExtra.getId() == id) {
+                userExtra.setPriorityAccount(userRecord);
+                extras = userExtra;
+                break;
+            }
+        }
+        if (extras == null) {
+            extras = new UserExtras(id);
+            extras.setPriorityAccount(userRecord);
+            userExtras.add(extras);
+        }
+        database.updateUserExtras(extras);
+    }
+
+    public List<UserExtras> getUserExtras() {
+        return userExtras;
     }
     //</editor-fold>
 

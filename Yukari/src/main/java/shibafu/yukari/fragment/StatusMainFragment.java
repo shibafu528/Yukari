@@ -513,6 +513,7 @@ public class StatusMainFragment extends TwitterFragment{
         viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
                 getActivity(),
                 (user != null)? user.toSingleList() : null,
+                null,
                 PreferenceManager.getDefaultSharedPreferences(getActivity()),
                 PreformedStatus.class);
     }
@@ -612,6 +613,7 @@ public class StatusMainFragment extends TwitterFragment{
             ibShare.setEnabled(false);
             ibQuote.setEnabled(false);
         }
+        viewConverter.setUserExtras(getTwitterService().getUserExtras());
     }
 
     @Override

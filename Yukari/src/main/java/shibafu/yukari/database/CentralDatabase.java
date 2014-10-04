@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 8;
+    public static final int DB_VER = 9;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -58,6 +59,12 @@ public class CentralDatabase {
     public static final String COL_USER_LISTED_COUNT = "ListedCount";
     public static final String COL_USER_LANGUAGE = "Language";
     public static final String COL_USER_CREATED_AT = "CreatedAt";
+
+    //UserExtrasテーブル
+    public static final String TABLE_USER_EXTRAS = "UserExtras";
+    public static final String COL_UEXTRAS_ID = "_id";
+    public static final String COL_UEXTRAS_COLOR = "UserColor";
+    public static final String COL_UEXTRAS_PRIORITY_ID = "PriorityAccountId";
 
     //Draftsテーブル
     public static final String TABLE_DRAFTS = "Drafts";
@@ -150,6 +157,12 @@ public class CentralDatabase {
                     COL_USER_LISTED_COUNT + " INTEGER, " +
                     COL_USER_LANGUAGE + " TEXT, " +
                     COL_USER_CREATED_AT + " INTEGER)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_USER_EXTRAS + " (" +
+                    COL_UEXTRAS_ID + " INTEGER PRIMARY KEY, " +
+                    COL_UEXTRAS_COLOR + " INTEGER, " +
+                    COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_DRAFTS + " (" +
@@ -274,6 +287,15 @@ public class CentralDatabase {
             }
             if (oldVersion == 7) {
                 db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_COLOR + " INTEGER DEFAULT 0");
+                ++oldVersion;
+            }
+            if (oldVersion == 8) {
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_USER_EXTRAS + " (" +
+                        COL_UEXTRAS_ID + " INTEGER PRIMARY KEY, " +
+                        COL_UEXTRAS_COLOR + " INTEGER, " +
+                        COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
+                );
                 ++oldVersion;
             }
         }
@@ -579,6 +601,25 @@ public class CentralDatabase {
         } finally {
             endTransaction();
         }
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="UserExtras">
+    public List<UserExtras> getUserExtras(Collection<AuthUserRecord> userRecords) {
+        List<UserExtras> userExtras = new ArrayList<>();
+        Cursor cursor = db.query(TABLE_USER_EXTRAS, null, null, null, null, null, null);
+        try {
+            if (cursor.moveToFirst()) do {
+                userExtras.add(new UserExtras(cursor, userRecords));
+            } while (cursor.moveToNext());
+        } finally {
+            cursor.close();
+        }
+        return userExtras;
+    }
+
+    public void updateUserExtras(UserExtras userExtras) {
+        db.replace(TABLE_USER_EXTRAS, null, userExtras.getContentValues());
     }
     //</editor-fold>
 

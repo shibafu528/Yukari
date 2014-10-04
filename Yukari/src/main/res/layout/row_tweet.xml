@@ -3,121 +3,137 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:baselineAligned="false"
-    android:padding="4dp">
+    android:baselineAligned="false">
 
     <ImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:id="@+id/tweet_icon"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="\uFF20null / Name"
-        android:id="@+id/tweet_name"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/tweet_icon"
-        android:layout_marginLeft="8dp"
-        android:textColor="#ff419b38"
-        android:layout_marginTop="-2dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tweet Text"
-        android:textColor="?attr/tweetTextColor"
-        android:id="@+id/tweet_text"
-        android:layout_below="@+id/tweet_name"
-        android:layout_alignLeft="@+id/tweet_name"
-        android:layout_marginTop="2dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="2013/01/01 00:00:00 via Yukari for Android"
-        android:id="@+id/tweet_timestamp"
-        android:textColor="#ff8b8b8b"
-        android:textSize="11sp"
-        android:layout_below="@+id/tweet_attach"
-        android:layout_alignLeft="@+id/tweet_attach" />
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/tweet_text"
-        android:layout_below="@+id/tweet_text"
-        android:layout_alignParentRight="true"
-        android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        android:id="@+id/tweet_attach" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="4dp"
-        android:id="@+id/tweet_accountcolor"
-        android:layout_below="@+id/tweet_icon"
-        android:layout_alignLeft="@+id/tweet_icon"
-        android:layout_alignRight="@+id/tweet_icon"
-        android:layout_alignStart="@+id/tweet_icon"
-        android:layout_alignEnd="@+id/tweet_icon"/>
-
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:id="@+id/tweet_retweeter"
-        android:layout_alignBottom="@+id/tweet_icon"
-        android:layout_alignRight="@+id/tweet_icon"
-        android:layout_marginRight="-4dp"
-        android:layout_marginBottom="-4dp"
-        android:visibility="invisible" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/tweet_protected"
-        android:src="@drawable/ic_secure"
-        android:layout_below="@+id/tweet_accountcolor"
+        android:id="@+id/tweet_color"
+        android:layout_width="4dp"
+        android:layout_height="64dp"
         android:layout_alignParentLeft="true"
-        android:visibility="gone"
-        android:layout_marginLeft="-4dp"
-        android:layout_marginBottom="-2dp" />
+        android:layout_alignBottom="@+id/frame"
+        android:layout_alignParentTop="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Received from \@"
-        android:textColor="#ff8b8b8b"
-        android:textSize="11sp"
-        android:id="@+id/tweet_receive"
-        android:layout_below="@+id/tweet_timestamp"
-        android:layout_alignLeft="@+id/tweet_timestamp"
-        android:layout_alignStart="@+id/tweet_timestamp"
-        android:visibility="gone"/>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/tweet_faved"
-        android:src="@drawable/ic_favorited"
-        android:layout_below="@+id/tweet_accountcolor"
-        android:layout_toRightOf="@+id/tweet_protected"
-        android:visibility="gone"/>
-
-    <LinearLayout
+    <RelativeLayout
+        android:id="@+id/frame"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tweet_timestamp"
-        android:layout_alignLeft="@+id/tweet_timestamp"
-        android:layout_alignStart="@+id/tweet_timestamp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:visibility="gone"
-        android:orientation="vertical"
-        android:id="@+id/tweet_include"/>
+        android:padding="4dp">
+
+        <ImageView
+            android:id="@+id/tweet_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="2dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true" />
+
+        <TextView
+            android:id="@+id/tweet_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="-2dp"
+            android:layout_toRightOf="@+id/tweet_icon"
+            android:text="\uFF20null / Name"
+            android:textColor="#ff419b38" />
+
+        <TextView
+            android:id="@+id/tweet_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tweet_name"
+            android:layout_below="@+id/tweet_name"
+            android:layout_marginTop="2dp"
+            android:text="Tweet Text"
+            android:textColor="?attr/tweetTextColor" />
+
+        <TextView
+            android:id="@+id/tweet_timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tweet_attach"
+            android:layout_below="@+id/tweet_attach"
+            android:text="2013/01/01 00:00:00 via Yukari for Android"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#ff8b8b8b"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:id="@+id/tweet_attach"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tweet_text"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/tweet_text"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal" />
+
+        <ImageView
+            android:id="@+id/tweet_accountcolor"
+            android:layout_width="wrap_content"
+            android:layout_height="4dp"
+            android:layout_alignEnd="@+id/tweet_icon"
+            android:layout_alignLeft="@+id/tweet_icon"
+            android:layout_alignRight="@+id/tweet_icon"
+            android:layout_alignStart="@+id/tweet_icon"
+            android:layout_below="@+id/tweet_icon" />
+
+        <ImageView
+            android:id="@+id/tweet_retweeter"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignBottom="@+id/tweet_icon"
+            android:layout_alignRight="@+id/tweet_icon"
+            android:layout_marginBottom="-4dp"
+            android:layout_marginRight="-4dp"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/tweet_protected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_below="@+id/tweet_accountcolor"
+            android:layout_marginBottom="-2dp"
+            android:layout_marginLeft="-2dp"
+            android:src="@drawable/ic_secure"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tweet_receive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tweet_timestamp"
+            android:layout_alignStart="@+id/tweet_timestamp"
+            android:layout_below="@+id/tweet_timestamp"
+            android:text="Received from \@"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#ff8b8b8b"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/tweet_faved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tweet_accountcolor"
+            android:layout_toRightOf="@+id/tweet_protected"
+            android:src="@drawable/ic_favorited"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/tweet_include"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tweet_timestamp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignStart="@+id/tweet_timestamp"
+            android:layout_below="@+id/tweet_timestamp"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+    </RelativeLayout>
 
 </RelativeLayout>
