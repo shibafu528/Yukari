@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -247,13 +248,31 @@ public class PreviewActivity extends FragmentActivity {
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
                 if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - 86400000) {
+                    InputStream input;
+                    Callback callback = new Callback();
+                    HttpURLConnection connection = null;
+                    if (url.startsWith("content://")) {
+                        try {
+                            input = getContentResolver().openInputStream(Uri.parse(url));
+                            callback.contentLength = -1;
+                            callback.beginTime = System.currentTimeMillis();
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    } else {
+                        try {
+                            connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                            connection.connect();
+                            callback.contentLength = connection.getContentLength();
+                            callback.beginTime = System.currentTimeMillis();
+                            input = connection.getInputStream();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }
                     try {
-                        HttpURLConnection connection = (HttpURLConnection) new URL(params[0]).openConnection();
-                        connection.connect();
-                        Callback callback = new Callback();
-                        callback.contentLength = connection.getContentLength();
-                        callback.beginTime = System.currentTimeMillis();
-                        InputStream input = connection.getInputStream();
                         FileOutputStream output = new FileOutputStream(cacheFile);
                         byte[] buf = new byte[4096];
                         int length;
@@ -263,7 +282,6 @@ public class PreviewActivity extends FragmentActivity {
                             callback.currentTime = System.currentTimeMillis();
                             if (isCancelled()) {
                                 output.close();
-                                connection.disconnect();
                                 cacheFile.delete();
                                 return null;
                             } else {
@@ -271,11 +289,17 @@ public class PreviewActivity extends FragmentActivity {
                             }
                         }
                         output.close();
-                        connection.disconnect();
                         System.gc();
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
+                    } finally {
+                        try {
+                            input.close();
+                        } catch (IOException ignore) {}
+                        if (connection != null) {
+                            connection.disconnect();
+                        }
                     }
                 }
                 try {
@@ -437,6 +461,13 @@ public class PreviewActivity extends FragmentActivity {
             }
         });
 
+        if (!mediaUrl.startsWith("http")) {
+            ibBrowser.setEnabled(false);
+            ibBrowser.setVisibility(View.GONE);
+            ibSave.setEnabled(false);
+            ibSave.setVisibility(View.GONE);
+        }
+
         viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
                 this,
                 null,
@@ -449,12 +480,15 @@ public class PreviewActivity extends FragmentActivity {
         super.onResume();
 
         if (status != null) {
+            tweetView.setVisibility(View.VISIBLE);
             new android.os.Handler().post(new Runnable() {
                 @Override
                 public void run() {
                     viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW);
                 }
             });
+        } else {
+            tweetView.setVisibility(View.GONE);
         }
     }
 
