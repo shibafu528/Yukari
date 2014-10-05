@@ -134,7 +134,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         ivHeader.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (loadHolder != null && loadHolder.targetUser != null) {
+                if (loadHolder != null
+                        && loadHolder.targetUser != null
+                        && loadHolder.targetUser.getProfileBannerRetinaURL() != null) {
                     startActivity(new Intent(
                             Intent.ACTION_VIEW,
                             Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL()),
