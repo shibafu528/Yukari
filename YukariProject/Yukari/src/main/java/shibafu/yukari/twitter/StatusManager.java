@@ -375,7 +375,7 @@ public class StatusManager {
             private BlockingQueue<Pair<Stream, Status>> queue = new LinkedBlockingQueue<>();
 
             public StatusQueue() {
-                new Thread(new Worker()).start();
+                new Thread(new Worker(), "StatusQueue").start();
             }
 
             public void enqueue(Stream from, Status status) {
@@ -394,7 +394,10 @@ public class StatusManager {
                                     statusListeners.size(),
                                     StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
                                     status.getUser().getScreenName(), status.getText()));
-                    getDatabase().updateUser(new DBUser(status.getUser()));
+                    userUpdateDelayer.enqueue(status.getUser());
+                    if (status.isRetweet()) {
+                        userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
+                    }
                     AuthUserRecord user = from.getUserRecord();
 
                     //自分のツイートかどうかマッチングを行う
@@ -522,6 +525,66 @@ public class StatusManager {
     private List<StatusListener> statusListeners = new ArrayList<>();
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
 
+    private class UserUpdateDelayer {
+        private Thread thread;
+        private Queue<User> queue = new LinkedList<>();
+        private final Object queueLock = new Object();
+        private volatile boolean shutdown;
+
+        private UserUpdateDelayer() {
+            thread = new Thread(new Worker(), "UserUpdateDelayer");
+            thread.start();
+        }
+
+        public void enqueue(User user) {
+            synchronized (queueLock) {
+                queue.offer(user);
+            }
+        }
+
+        public void shutdown() {
+            shutdown = true;
+        }
+
+        private class Worker implements Runnable {
+            @Override
+            public void run() {
+                while (!shutdown) {
+                    List<User> work;
+                    synchronized (queueLock) {
+                        work = new ArrayList<>(queue);
+                        queue.clear();
+                    }
+
+                    if (!work.isEmpty()) {
+                        getDatabase().beginTransaction();
+                        try {
+                            for (User user : work) {
+                                getDatabase().updateUser(new DBUser(user));
+                            }
+                            getDatabase().setTransactionSuccessful();
+                        } finally {
+                            getDatabase().endTransaction();
+                        }
+                    }
+
+                    try {
+                        int time = work.size() * 4 + 100;
+                        Thread.sleep(time);
+                        if (time >= 110) {
+                            Log.d("UserUpdateDelayer", "Next update is " + time + "ms later");
+                        }
+
+                        while (getDatabase() == null) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException ignore) {}
+                }
+            }
+        }
+    }
+    private UserUpdateDelayer userUpdateDelayer;
+
     public StatusManager(TwitterService service) {
         this.context = this.service = service;
 
@@ -536,6 +599,9 @@ public class StatusManager {
 
         //ハッシュタグキャッシュのロード
         hashCache = new HashCache(context);
+
+        //遅延処理スレッドの開始
+        userUpdateDelayer = new UserUpdateDelayer();
     }
 
     private CentralDatabase getDatabase() {
@@ -623,6 +689,8 @@ public class StatusManager {
         statusBuffer.clear();
 
         receivedStatuses.clear();
+
+        userUpdateDelayer.shutdown();
     }
 
     public void addStatusListener(StatusListener l) {
