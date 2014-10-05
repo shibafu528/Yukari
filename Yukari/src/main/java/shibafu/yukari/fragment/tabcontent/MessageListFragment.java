@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -16,8 +17,12 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
+import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
@@ -26,12 +31,17 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
+import twitter4j.TweetEntity;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.URLEntity;
 import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 /**
  * Created by shibafu on 14/03/25.
@@ -41,6 +51,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
+    private ArrayList<TweetEntity> lastClickedEntities;
 
     public MessageListFragment() {
         super(DirectMessage.class);
@@ -63,7 +74,25 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     @Override
     public void onListItemClick(DirectMessage clickedElement) {
         lastClicked = clickedElement;
-        MessageMenuDialogFragment dialogFragment = MessageMenuDialogFragment.newInstance(clickedElement);
+        lastClickedEntities = new ArrayList<TweetEntity>() {
+            @Override
+            public boolean add(TweetEntity object) {
+                for (Iterator<TweetEntity> iterator = this.iterator(); iterator.hasNext(); ) {
+                    TweetEntity entity = iterator.next();
+                    if (entity.getText().equals(object.getText())) {
+                        iterator.remove();
+                        break;
+                    }
+                }
+                return super.add(object);
+            }
+        };
+        Collections.addAll(lastClickedEntities, clickedElement.getUserMentionEntities());
+        Collections.addAll(lastClickedEntities, clickedElement.getURLEntities());
+        Collections.addAll(lastClickedEntities, clickedElement.getMediaEntities());
+        Collections.addAll(lastClickedEntities, clickedElement.getExtendedMediaEntities());
+        Collections.addAll(lastClickedEntities, clickedElement.getHashtagEntities());
+        MessageMenuDialogFragment dialogFragment = MessageMenuDialogFragment.newInstance(clickedElement, lastClickedEntities);
         dialogFragment.setTargetFragment(this, 1);
         dialogFragment.show(getFragmentManager(), "menu");
     }
@@ -173,6 +202,35 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     intent.putExtra(ProfileActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
                     intent.putExtra(ProfileActivity.EXTRA_TARGET, lastClicked.getSenderId());
                     startActivity(intent);
+                    break;
+                }
+                default:
+                {
+                    TweetEntity entity = lastClickedEntities.get(which - 3);
+                    if (entity instanceof MediaEntity) {
+                        Intent intent = new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(((MediaEntity) entity).getMediaURLHttps()),
+                                getActivity().getApplicationContext(),
+                                PreviewActivity.class);
+                        intent.putExtra(PreviewActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                        startActivity(intent);
+                    } else if (entity instanceof URLEntity) {
+                        Intent intent = new Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(((URLEntity) entity).getExpandedURL()));
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    } else if (entity instanceof HashtagEntity) {
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, entity.getText());
+                        startActivity(intent);
+                    } else if (entity instanceof UserMentionEntity) {
+                        Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                        intent.putExtra(ProfileActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                        intent.putExtra(ProfileActivity.EXTRA_TARGET, ((UserMentionEntity) entity).getId());
+                        startActivity(intent);
+                    }
                     break;
                 }
             }
@@ -338,12 +396,13 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     public static class MessageMenuDialogFragment extends DialogFragment implements DialogInterface.OnClickListener{
 
-        public static MessageMenuDialogFragment newInstance(DirectMessage message) {
+        public static MessageMenuDialogFragment newInstance(DirectMessage message, ArrayList<TweetEntity> entities) {
             MessageMenuDialogFragment fragment = new MessageMenuDialogFragment();
             Bundle args = new Bundle();
             String screenName = message.getSenderScreenName();
             args.putString("text", "@" + screenName + ":" + message.getText());
             args.putString("sender", screenName);
+            args.putSerializable("entities", entities);
             fragment.setArguments(args);
             return fragment;
         }
@@ -356,6 +415,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     "削除",
                     "@" + args.getString("sender")
             }));
+            ArrayList<TweetEntity> entities = (ArrayList<TweetEntity>) args.getSerializable("entities");
+            for (TweetEntity entity : entities) {
+                items.add(entity.getText());
+            }
             return new AlertDialog.Builder(getActivity())
                     .setTitle(args.getString("text"))
                     .setItems(items.toArray(new String[items.size()]), this)

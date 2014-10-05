@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
 import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -36,19 +35,24 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.StringUtil;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 
 /**
  * Created by Shibafu on 13/09/22.
  */
-public class PreviewActivity extends FragmentActivity {
+public class PreviewActivity extends FragmentYukariBase {
 
     public static final String EXTRA_STATUS = "status";
+    public static final String EXTRA_USER = "user";
 
     private Bitmap image;
     private Matrix matrix;
@@ -59,6 +63,7 @@ public class PreviewActivity extends FragmentActivity {
     private ImageView imageView;
     private View tweetView;
     private PreformedStatus status;
+    private AuthUserRecord user;
 
     private Animation animFadeIn, animFadeOut;
     private boolean isShowPanel = true;
@@ -71,7 +76,7 @@ public class PreviewActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState, true);
         setContentView(R.layout.activity_imagepreview);
 
         final Uri data = getIntent().getData();
@@ -87,6 +92,8 @@ public class PreviewActivity extends FragmentActivity {
             finish();
             return;
         }
+
+        user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
         loadProgress = (ProgressBar) findViewById(R.id.pbPreview);
         loadProgressText = (TextView) findViewById(R.id.tvPreviewProgress);
@@ -223,7 +230,7 @@ public class PreviewActivity extends FragmentActivity {
 
         loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
-                public int received, contentLength;
+                public int received, contentLength = -1;
                 public long beginTime, currentTime;
             }
 
@@ -254,12 +261,26 @@ public class PreviewActivity extends FragmentActivity {
                     if (url.startsWith("content://")) {
                         try {
                             input = getContentResolver().openInputStream(Uri.parse(url));
-                            callback.contentLength = -1;
                             callback.beginTime = System.currentTimeMillis();
                         } catch (FileNotFoundException e) {
                             e.printStackTrace();
                             return null;
                         }
+                    } else if (url.startsWith("https://ton.twitter.com/") || url.contains("twitter.com/messages/media/")) {
+                        while (!isTwitterServiceBound() || getTwitterService() == null) {
+                            try {
+                                Thread.sleep(100);
+                            } catch (InterruptedException ignore) {}
+                        }
+                        Twitter twitter = getTwitterService().getTwitter();
+                        twitter.setOAuthAccessToken(user.getAccessToken());
+                        try {
+                            input = twitter.getDMImageAsStream(url);
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                        callback.beginTime = System.currentTimeMillis();
                     } else {
                         try {
                             connection = (HttpURLConnection) new URL(params[0]).openConnection();
@@ -505,4 +526,10 @@ public class PreviewActivity extends FragmentActivity {
         imageView.setImageMatrix(matrix);
         imageView.invalidate();
     }
+
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
 }
