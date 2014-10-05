@@ -39,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
@@ -318,6 +319,16 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         });
         ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
+        ibSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (loadHolder != null && loadHolder.targetUser != null) {
+                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "@" + loadHolder.targetUser.getScreenName());
+                    startActivity(intent);
+                }
+            }
+        });
 
         gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
         gridCommands.setOnItemClickListener(new AdapterView.OnItemClickListener() {
