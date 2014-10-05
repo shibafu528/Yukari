@@ -36,8 +36,7 @@
             android:layout_below="@+id/progressBar"
             android:layout_gravity="center"
             android:layout_toRightOf="@+id/ibProfileMenu"
-            android:src="@drawable/ic_search"
-            android:visibility="invisible" />
+            android:src="?attr/searchButtonDrawable"/>
 
         <Button
             android:id="@+id/btnProfileFollow"

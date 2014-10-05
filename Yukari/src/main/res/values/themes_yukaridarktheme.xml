@@ -74,6 +74,7 @@
         <item name="menuReloadDrawable">@drawable/ic_navigation_refresh_d</item>
 
         <item name="menuButtonDrawable">@drawable/ic_menu_dark_d</item>
+        <item name="searchButtonDrawable">@drawable/ic_search_d</item>
     </style>
 
     <style name="YukariDarkDialogTheme" parent="android:Theme.Dialog">
