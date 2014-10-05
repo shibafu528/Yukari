@@ -577,7 +577,8 @@ public class TwitterService extends Service{
 
     public AuthUserRecord isMyTweet(Status status) {
         if (users == null) return null;
-        for (AuthUserRecord aur : users) {
+        for (int i = 0; i < users.size(); ++i) {
+            AuthUserRecord aur = users.get(i);
             if (status.getUser().getId() == aur.NumericId) {
                 return aur;
             }
@@ -587,7 +588,8 @@ public class TwitterService extends Service{
 
     public AuthUserRecord isMyTweet(DirectMessage message) {
         if (users == null) return null;
-        for (AuthUserRecord aur : users) {
+        for (int i = 0; i < users.size(); ++i) {
+            AuthUserRecord aur = users.get(i);
             if (message.getSenderId() == aur.NumericId) {
                 return aur;
             }
