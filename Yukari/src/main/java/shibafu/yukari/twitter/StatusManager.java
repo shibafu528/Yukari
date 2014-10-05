@@ -274,7 +274,7 @@ public class StatusManager {
                             Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                             intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
                             PendingIntent pendingIntent = PendingIntent.getActivity(
-                                    context.getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                                    context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
                             {
@@ -287,7 +287,7 @@ public class StatusManager {
                                         ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
                                                 : ps.getUser().getScreenName()) + " ");
                                 builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
-                                                context.getApplicationContext(), 1, replyIntent, PendingIntent.FLAG_ONE_SHOT)
+                                                context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
                             }
                             break;
@@ -297,18 +297,18 @@ public class StatusManager {
                             Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                             intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_DM);
                             PendingIntent pendingIntent = PendingIntent.getActivity(
-                                    context.getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                                    context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
                             {
                                 DirectMessage dm = (DirectMessage) status;
                                 Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
-                                intent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                                replyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
+                                replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
+                                replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
                                 builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
-                                                context.getApplicationContext(), 1, replyIntent, PendingIntent.FLAG_ONE_SHOT)
+                                                context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
                             }
                             break;
