@@ -50,6 +50,10 @@ import twitter4j.TwitterException;
  * Created by Shibafu on 13/09/22.
  */
 public class PreviewActivity extends FragmentYukariBase {
+    //TODO: DMの添付画像をダウンロードできるようにする
+    //OAuthが必要なためにOSのダウンロードキューに直接ぶち込むことが出来ない
+    //アプリ独自で保存処理を行う必要がある
+    //キャッシュに既にいるのでそいつを使うという手はある
 
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
@@ -266,7 +270,7 @@ public class PreviewActivity extends FragmentYukariBase {
                             e.printStackTrace();
                             return null;
                         }
-                    } else if (url.startsWith("https://ton.twitter.com/") || url.contains("twitter.com/messages/media/")) {
+                    } else if (isDMImage(url)) {
                         while (!isTwitterServiceBound() || getTwitterService() == null) {
                             try {
                                 Thread.sleep(100);
@@ -482,7 +486,7 @@ public class PreviewActivity extends FragmentYukariBase {
             }
         });
 
-        if (!mediaUrl.startsWith("http")) {
+        if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
             ibBrowser.setEnabled(false);
             ibBrowser.setVisibility(View.GONE);
             ibSave.setEnabled(false);
@@ -495,6 +499,10 @@ public class PreviewActivity extends FragmentYukariBase {
                 null,
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
+    }
+
+    private boolean isDMImage(String url) {
+        return url.startsWith("https://ton.twitter.com/") || url.contains("twitter.com/messages/media/");
     }
 
     @Override
