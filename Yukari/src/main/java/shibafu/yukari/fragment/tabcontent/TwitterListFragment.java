@@ -351,7 +351,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         if (users.isEmpty()) {
             users.addAll(getService().getUsers());
         }
-        adapterWrap.setUserExtras(getService().getUserExtras());
+        if (adapterWrap != null) {
+            adapterWrap.setUserExtras(getService().getUserExtras());
+        }
     }
 
     protected int prepareInsertStatus(T status) {
