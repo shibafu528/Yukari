@@ -50,4 +50,26 @@
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
 
+    <style name="RedmondTheme" parent="android:Theme.Light">
+        <item name="android:windowTitleBackgroundStyle">@style/RedmondTheme.TitleBg</item>
+        <item name="android:windowTitleStyle">@style/RedmondTheme.Title</item>
+    </style>
+
+    <style name="RedmondTheme.TitleBg">
+        <item name="android:background">#00007b</item>
+    </style>
+
+    <style name="RedmondTheme.Title">
+        <item name="android:textAppearance">@style/RedmondTheme.TitleText</item>
+        <item name="android:shadowColor">#BB000000</item>
+        <item name="android:shadowRadius">2.75</item>
+        <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="RedmondTheme.TitleText">
+        <item name="android:textColor">#fff</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 </resources>

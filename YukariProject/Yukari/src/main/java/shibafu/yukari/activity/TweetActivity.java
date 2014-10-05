@@ -444,6 +444,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             setResult(RESULT_OK);
                             finish();
                             return;
+                        case "::notepad":
+                            startActivity(new Intent(getApplicationContext(), NotepadActivity.class));
+                            setResult(RESULT_OK);
+                            finish();
+                            return;
                     }
                 }
 

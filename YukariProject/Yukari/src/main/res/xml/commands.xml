@@ -32,6 +32,9 @@
         <Preference
             android:title="::balus"
             android:summary="あの地平線輝くのは どこかに君を隠しているから"/>
+        <Preference
+            android:title="::notepad"
+            android:summary="椅子から転げ落ちる" />
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference

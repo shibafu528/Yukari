@@ -243,6 +243,11 @@
                 android:name="android.support.UI_OPTIONS"
                 android:value="splitActionBarWhenNarrow" />
         </activity>
+
+        <activity
+            android:name=".activity.NotepadActivity"
+            android:label="無題 - メモ帳"
+            android:theme="@style/RedmondTheme"/>
     </application>
 
 </manifest>
