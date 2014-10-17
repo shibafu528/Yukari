@@ -1,6 +1,5 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
@@ -22,8 +21,6 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
@@ -74,7 +71,7 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener{
+public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener{
 
     public static final int MODE_TWEET   = 0;
     public static final int MODE_REPLY   = 1;
@@ -101,6 +98,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int REQUEST_SNPICKER = 0x23;
     private static final int REQUEST_TWICCA_PLUGIN = 0x41;
     private static final int REQUEST_ACCOUTS = 0x81;
+
+    private static final int REQUEST_DIALOG_CLEAR = 0x01;
+    private static final int REQUEST_DIALOG_YUKARIN = 0x02;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -473,8 +473,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         btnPost.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                YukarinFragment fragment = new YukarinFragment();
-                getSupportFragmentManager().beginTransaction().add(fragment, "yukarin").commit();
+                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                        REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
+                );
+                dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
                 return true;
             }
         });
@@ -615,15 +617,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                 currentDialog = null;
                             }
                         })
-                        .setItems(new String[] {"下書きを保存", "下書きを開く"}, new DialogInterface.OnClickListener() {
+                        .setItems(new String[] {"下書きを保存", "下書きを開く", "入力欄をクリア"}, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
                                 currentDialog = null;
 
                                 switch (which) {
-                                    case 0:
-                                    {
+                                    case 0: {
                                         if (tweetCount >= 140 && attachPictures.isEmpty()) {
                                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                         }
@@ -633,10 +634,19 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                         }
                                         break;
                                     }
-                                    case 1:
-                                    {
+                                    case 1: {
                                         DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
                                         draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
+                                        break;
+                                    }
+                                    case 2: {
+                                        SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                                                REQUEST_DIALOG_CLEAR,
+                                                "確認",
+                                                "入力中の文章をすべて削除してもよろしいですか？",
+                                                "OK",
+                                                "キャンセル");
+                                        dialogFragment.show(getSupportFragmentManager(), "dialog");
                                         break;
                                     }
                                 }
@@ -1127,8 +1137,23 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     @Override
-    public void onServiceDisconnected() {
+    public void onServiceDisconnected() {}
 
+    @Override
+    public void onDialogChose(int requestCode, int which) {
+        switch (requestCode) {
+            case REQUEST_DIALOG_CLEAR:
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    etInput.setText("");
+                }
+                break;
+            case REQUEST_DIALOG_YUKARIN:
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    etInput.setText("＼ﾕｯｶﾘｰﾝ／");
+                    btnPost.performClick();
+                }
+                break;
+        }
     }
 
     private static class AttachPicture {
@@ -1143,37 +1168,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 list.add(ap.uri);
             }
             return list;
-        }
-    }
-
-    public void onYukarin(boolean cancelled) {
-        FragmentManager manager = getSupportFragmentManager();
-        Fragment fragment = manager.findFragmentByTag("yukarin");
-        manager.beginTransaction().remove(fragment).commit();
-        if (!cancelled) {
-            etInput.setText("＼ﾕｯｶﾘｰﾝ／");
-            btnPost.performClick();
-        }
-    }
-
-    public static class YukarinFragment extends Fragment implements DialogInterface.OnClickListener{
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
-            );
-            dialogFragment.setTargetFragment(this, 0);
-            dialogFragment.show(getFragmentManager(), "yukarindlg");
-        }
-
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-            TweetActivity activity = (TweetActivity)getActivity();
-            if (activity != null && !isDetached()) {
-                activity.onYukarin(which != DialogInterface.BUTTON_POSITIVE);
-            }
         }
     }
 }
