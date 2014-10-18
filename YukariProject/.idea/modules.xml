@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Yukari/Yukari.iml" filepath="$PROJECT_DIR$/Yukari/Yukari.iml" />
       <module fileurl="file://$PROJECT_DIR$/YukariProject.iml" filepath="$PROJECT_DIR$/YukariProject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/betterpickers/betterpickers.iml" filepath="$PROJECT_DIR$/betterpickers/betterpickers.iml" />
     </modules>
   </component>
 </project>

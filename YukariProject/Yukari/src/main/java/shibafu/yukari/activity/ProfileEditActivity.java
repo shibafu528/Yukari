@@ -137,9 +137,9 @@ public class ProfileEditActivity extends ActionBarYukariBase {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.profile_edit, menu);
-        if (!getResources().getBoolean(R.bool.abc_split_action_bar_is_narrow)) {
-            menu.removeItem(R.id.action_cancel);
-        }
+//        if (!getResources().getBoolean(R.bool.abc_split_action_bar_is_narrow)) {
+//            menu.removeItem(R.id.action_cancel);
+//        }
         return super.onCreateOptionsMenu(menu);
     }
 

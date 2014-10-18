@@ -9,6 +9,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Yukari" />
+            <option value="$PROJECT_DIR$/betterpickers" />
           </set>
         </option>
       </GradleProjectSettings>
