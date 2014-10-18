@@ -32,7 +32,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.doomonafireball.betterpickers.calendardatepicker.CalendarDatePickerDialog;
-import com.doomonafireball.betterpickers.radialtimepicker.RadialPickerLayout;
 import com.doomonafireball.betterpickers.radialtimepicker.RadialTimePickerDialog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -474,11 +473,11 @@ public class MuteActivity extends ActionBarYukariBase{
             RadialTimePickerDialog dialog = RadialTimePickerDialog.newInstance(
                     new RadialTimePickerDialog.OnTimeSetListener() {
                         @Override
-                        public void onTimeSet(RadialPickerLayout radialPickerLayout, int i, int i2) {
+                        public void onTimeSet(RadialTimePickerDialog dialog, int hourOfDay, int minute) {
                             Calendar c = Calendar.getInstance();
                             c.setTimeInMillis(expirationTimeMillis);
-                            c.set(Calendar.HOUR_OF_DAY, i);
-                            c.set(Calendar.MINUTE, i2);
+                            c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                            c.set(Calendar.MINUTE, minute);
                             expirationTimeMillis = c.getTimeInMillis();
                             updateExpire();
                         }
