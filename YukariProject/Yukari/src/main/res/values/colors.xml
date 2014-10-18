@@ -40,4 +40,5 @@
     <color name="count_safe_d">#fff</color>
     <color name="count_error">#f00</color>
     <color name="count_error_d">#f44</color>
+    <color name="key_color_accent">#ea80fc</color>
 </resources>
