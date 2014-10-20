@@ -47,6 +47,8 @@ public class LinkMediaFactory {
                 linkMedia = new Pixiv(mediaURL);
             } else if (mediaURL.contains("img.esx.asia/")) {
                 linkMedia = new Esx(mediaURL);
+            } else if (mediaURL.contains("twitpic.com/d250g2") || mediaURL.contains("d250g2.com")) {
+                linkMedia = new D250g2(mediaURL);
             } else if (mediaURL.contains("twitpic.com") && System.currentTimeMillis() < 1414195200000L) {
                 //TODO: 10/25にtwitpic終了
                 linkMedia = new Twitpic(mediaURL);
