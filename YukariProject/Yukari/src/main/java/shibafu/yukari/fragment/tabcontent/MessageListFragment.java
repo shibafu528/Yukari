@@ -39,6 +39,7 @@ import twitter4j.Status;
 import twitter4j.TweetEntity;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterResponse;
 import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -332,6 +333,9 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             }
         }
 
+        private TwitterException causedException;
+        private AuthUserRecord exceptionUser;
+
         @Override
         protected List<DirectMessage> doInBackground(Params... params) {
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
@@ -368,6 +372,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 return response;
             } catch (TwitterException e) {
                 e.printStackTrace();
+                causedException = e;
+                exceptionUser = params[0].getUserRecord();
             }
             return null;
         }
@@ -388,6 +394,27 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     }
                 }
                 adapterWrap.notifyDataSetChanged();
+            } else if (causedException != null &&
+                    exceptionUser != null &&
+                    causedException.getStatusCode() == 403 &&
+                    causedException.getErrorCode() == 93) {
+                String permissionText = String.valueOf(causedException.getAccessLevel());
+                switch (causedException.getAccessLevel()) {
+                    case TwitterResponse.READ:
+                        permissionText = "TLやプロフィールなどの読み取り";
+                        break;
+                    case TwitterResponse.READ_WRITE:
+                        permissionText = "DM以外の情報の取得、更新";
+                        break;
+                    case TwitterResponse.READ_WRITE_DIRECTMESSAGES:
+                        permissionText = "DMを含む情報の取得、更新";
+                        break;
+                }
+                Toast.makeText(getActivity(),
+                        String.format("[403:93] Permission denined\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
+                                exceptionUser.ScreenName,
+                                permissionText),
+                        Toast.LENGTH_LONG).show();
             }
             changeFooterProgress(false);
             setRefreshComplete();
