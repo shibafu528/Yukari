@@ -49,8 +49,8 @@ public class LinkMediaFactory {
                 linkMedia = new Esx(mediaURL);
             } else if (mediaURL.contains("twitpic.com/d250g2") || mediaURL.contains("d250g2.com")) {
                 linkMedia = new D250g2(mediaURL);
-            } else if (mediaURL.contains("twitpic.com") && System.currentTimeMillis() < 1414195200000L) {
-                //TODO: 10/25にtwitpic終了
+            } else if (mediaURL.contains("twitpic.com")) {
+                //f*ck!!!!!!!!!!!!!!!!!!!
                 linkMedia = new Twitpic(mediaURL);
             } else if (mediaURL.endsWith(".jpg") || mediaURL.endsWith(".jpeg") || mediaURL.endsWith(".png")) {
                 linkMedia = new SimplePicture(mediaURL);
