@@ -54,6 +54,9 @@ public class ConfigActivity extends PreferenceActivity {
             }
         });
 
+        Preference immersivePref = findPreference("pref_boot_immersive");
+        immersivePref.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
+
         Preference aboutVersionPref = findPreference("pref_about_version");
         {
             String summaryText = "";

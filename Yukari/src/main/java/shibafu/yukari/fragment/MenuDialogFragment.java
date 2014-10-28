@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
@@ -141,7 +142,7 @@ public class MenuDialogFragment extends DialogFragment {
             }
         });
 
-        View aclogMenu = v.findViewById(R.id.llMenuAclog);
+        final View aclogMenu = v.findViewById(R.id.llMenuAclog);
         aclogMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -165,15 +166,26 @@ public class MenuDialogFragment extends DialogFragment {
         keepScreenOnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MainActivity activity = ((MainActivity)getActivity());
+                MainActivity activity = ((MainActivity) getActivity());
                 if (activity.isKeepScreenOn()) {
                     activity.setKeepScreenOn(false);
                     keepScreenOnImage.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
-                }
-                else {
+                } else {
                     activity.setKeepScreenOn(true);
                     keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
                 }
+            }
+        });
+        keepScreenOnMenu.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    MainActivity activity = ((MainActivity) getActivity());
+                    activity.setImmersive(!activity.isImmersive());
+                    Toast.makeText(getActivity(), "表示域拡張を" + ((activity.isImmersive()) ? "有効" : "無効") + "にしました", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                return false;
             }
         });
 
