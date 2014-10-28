@@ -11,6 +11,10 @@
             android:title="デフォルトでスリープ防止"
             android:summary="アプリ起動時にスリープ防止をオンにします"/>
         <CheckBoxPreference
+            android:key="pref_boot_immersive"
+            android:title="デフォルトで表示域拡張"
+            android:summary="アプリ起動時に表示域拡張をオンにします(※Android 4.4以上でのみ有効)"/>
+        <CheckBoxPreference
             android:key="pref_show_tweetbutton"
             android:title="投稿ボタンを表示"
             android:summary="投稿画面を呼び出すボタンを表示します"/>

@@ -69,6 +69,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private SharedPreferences sharedPreferences;
 
     private boolean keepScreenOn = false;
+    private boolean immersive = false;
 
     private boolean isTouchTweet = false;
     private float tweetGestureYStart = 0;
@@ -164,6 +165,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         //スリープ防止設定
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
+
+        //表示域拡張設定
+        setImmersive(sharedPreferences.getBoolean("pref_boot_immersive", false));
     }
 
     private void findViews() {
@@ -541,6 +545,26 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
         else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    @Override
+    public boolean isImmersive() {
+        return immersive;
+    }
+
+    @Override
+    public void setImmersive(boolean immersive) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            this.immersive = immersive;
+            View decor = getWindow().getDecorView();
+            if (immersive) {
+                decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            } else {
+                decor.setSystemUiVisibility(0);
+            }
+        } else {
+            this.immersive = false;
         }
     }
 
