@@ -69,7 +69,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private SharedPreferences sharedPreferences;
 
     private boolean keepScreenOn = false;
+
     private boolean immersive = false;
+    private View decorView;
 
     private boolean isTouchTweet = false;
     private float tweetGestureYStart = 0;
@@ -171,6 +173,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     private void findViews() {
+        decorView = getWindow().getDecorView();
+
         TextView tvStreamStates = (TextView) findViewById(R.id.tvStreamStates);
         tvStreamStates.setOnTouchListener(tweetGestureListener);
         tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
@@ -557,14 +561,20 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public void setImmersive(boolean immersive) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             this.immersive = immersive;
-            View decor = getWindow().getDecorView();
             if (immersive) {
-                decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             } else {
-                decor.setSystemUiVisibility(0);
+                decorView.setSystemUiVisibility(0);
             }
         } else {
             this.immersive = false;
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus) {
+            setImmersive(isImmersive());
         }
     }
 
