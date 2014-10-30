@@ -950,7 +950,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     @Override
     protected void onStop() {
-        if (useStoredWriters) {
+        if (useStoredWriters && isTwitterServiceBound() && getTwitterService() != null) {
             getTwitterService().setWriterUsers(writers);
         }
         super.onStop();
