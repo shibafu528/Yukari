@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -336,12 +338,19 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         private TwitterException causedException;
         private AuthUserRecord exceptionUser;
 
+        private boolean isNarrowMode;
+
+        public MessageRESTLoader() {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            isNarrowMode = sp.getBoolean("pref_narrow", false);
+        }
+
         @Override
         protected List<DirectMessage> doInBackground(Params... params) {
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
                 Paging paging = params[0].getPaging();
-                paging.setCount(60);
+                if (!isNarrowMode) paging.setCount(60);
                 ResponseList<DirectMessage> inBoxResponse = twitter.getDirectMessages(paging);
                 ResponseList<DirectMessage> sentBoxResponse = twitter.getSentDirectMessages(paging);
                 if (!params[0].isSaveLastPaging()) {

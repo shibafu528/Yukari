@@ -1,6 +1,8 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 
 import java.util.Iterator;
@@ -205,15 +207,21 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             }
         }
 
+        private boolean isNarrowMode;
+
         protected SearchRESTLoader(RESTLoaderInterface loaderInterface) {
             super(loaderInterface);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            isNarrowMode = sp.getBoolean("pref_narrow", false);
         }
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
             twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
-                QueryResult result = twitter.search(params[0].getQuery());
+                Query query = params[0].getQuery();
+                query.setCount(isNarrowMode ? 20 : 100);
+                QueryResult result = twitter.search(query);
                 nextQuery = result.nextQuery();
                 return PRListFactory.create(result, params[0].getUserRecord());
             } catch (TwitterException e) {
