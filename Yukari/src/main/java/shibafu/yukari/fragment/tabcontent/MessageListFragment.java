@@ -410,11 +410,18 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                         permissionText = "DMを含む情報の取得、更新";
                         break;
                 }
-                Toast.makeText(getActivity(),
-                        String.format("[403:93] Permission denined\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
-                                exceptionUser.ScreenName,
-                                permissionText),
-                        Toast.LENGTH_LONG).show();
+                final String message = String.format(
+                        "[403:93] Permission denined\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
+                        exceptionUser.ScreenName,
+                        permissionText);
+                getHandler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                        } catch (NullPointerException ignore) {}
+                    }
+                }, 100);
             }
             changeFooterProgress(false);
             setRefreshComplete();
