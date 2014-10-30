@@ -6,8 +6,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.view.Menu;
@@ -570,8 +572,12 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             }
         }
 
+        private boolean isNarrowMode;
+
         protected DefaultRESTLoader(RESTLoaderInterface loaderInterface) {
             super(loaderInterface);
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            isNarrowMode = sp.getBoolean("pref_narrow", false);
         }
 
         @Override
@@ -580,7 +586,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             try {
                 ResponseList<twitter4j.Status> responseList = null;
                 Paging paging = params[0].getPaging();
-                paging.setCount(60);
+                if (!isNarrowMode) paging.setCount(60);
                 switch (getMode()) {
                     case TabType.TABTYPE_HOME:
                         responseList = twitter.getHomeTimeline(paging);

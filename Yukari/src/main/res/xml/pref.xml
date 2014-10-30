@@ -160,6 +160,11 @@
             android:title="受信アカウントの表示"
             android:summary="ツイートを受信したアカウントを表示します"
             android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="pref_narrow"
+            android:title="ナローモード(仮)"
+            android:summary="TLのアイコン品質とREST APIでの受信件数を落とします"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
