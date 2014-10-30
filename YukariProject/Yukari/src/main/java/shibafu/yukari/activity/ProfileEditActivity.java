@@ -127,7 +127,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                 InputStream is = new FileInputStream(tempFile);
                 trimmedIcon = BitmapFactory.decodeStream(is);
                 ivIcon.setImageBitmap(trimmedIcon);
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException | NullPointerException e) {
                 e.printStackTrace();
                 Toast.makeText(this, "画像のロードに失敗しました", Toast.LENGTH_SHORT).show();
             }
