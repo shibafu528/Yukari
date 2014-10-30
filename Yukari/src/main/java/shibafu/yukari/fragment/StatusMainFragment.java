@@ -550,8 +550,9 @@ public class StatusMainFragment extends TwitterFragment{
                     @Override
                     protected Void doInBackground(TweetDraft... params) {
                         //これ、RT失敗してもツイートしちゃうんですよねえ
-                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        getActivity().startService(PostService.newIntent(getActivity(), params[0]));
+                        getActivity().startService(PostService.newIntent(getActivity(), params[0],
+                                PostService.FLAG_RETWEET,
+                                status.getId()));
                         return null;
                     }
                 }.executeParallel(draft);
@@ -562,9 +563,10 @@ public class StatusMainFragment extends TwitterFragment{
                     @Override
                     protected Void doInBackground(TweetDraft... params) {
                         //これ、FRT失敗してもツイートしちゃうんですよねえ
-                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        getActivity().startService(PostService.newIntent(getActivity(), params[0]));
+                        getActivity().startService(PostService.newIntent(
+                                getActivity(), params[0],
+                                PostService.FLAG_FAVORITE | PostService.FLAG_RETWEET,
+                                status.getId()));
                         return null;
                     }
                 }.executeParallel(draft);

@@ -35,6 +35,10 @@ import twitter4j.TwitterException;
  */
 public class PostService extends IntentService{
     public static final String EXTRA_DRAFT = "draft";
+    public static final String EXTRA_FLAGS = "flags";
+    public static final String EXTRA_FLAGS_TARGET_ID = "targetId";
+    public static final int FLAG_FAVORITE  = 0x01;
+    public static final int FLAG_RETWEET   = 0x02;
 
     private NotificationManager nm;
     private Bitmap icon;
@@ -52,6 +56,14 @@ public class PostService extends IntentService{
         return intent;
     }
 
+    public static Intent newIntent(Context context, TweetDraft draft, int flags, long tweetId) {
+        Intent intent = new Intent(context, PostService.class);
+        intent.putExtra(EXTRA_DRAFT, draft);
+        intent.putExtra(EXTRA_FLAGS, flags);
+        intent.putExtra(EXTRA_FLAGS_TARGET_ID, tweetId);
+        return intent;
+    }
+
     @Override
     protected void onHandleIntent(Intent intent) {
         nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -59,6 +71,8 @@ public class PostService extends IntentService{
         int imageResizeLength = Integer.valueOf(sp.getString("pref_upload_size", "960"));
         Log.d("PostService", "Upload Limit : " + imageResizeLength + "px");
 
+        int flags = intent.getIntExtra(EXTRA_FLAGS, 0);
+        long targetTweetId = intent.getLongExtra(EXTRA_FLAGS_TARGET_ID, 0);
         TweetDraft draft = (TweetDraft) intent.getSerializableExtra(EXTRA_DRAFT);
         if (draft == null) {
             nm.cancel(0);
@@ -106,6 +120,15 @@ public class PostService extends IntentService{
                 if (draft.isDirectMessage()) {
                     service.sendDirectMessage(draft.getMessageTarget(), userRecord, draft.getText());
                 } else {
+                    //事前処理Flagがある場合はそれらを実行する
+                    if (targetTweetId > -1) {
+                        if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
+                            service.createFavorite(userRecord, targetTweetId);
+                        }
+                        if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
+                            service.retweetStatus(userRecord, targetTweetId);
+                        }
+                    }
                     //statusが引数に付加されている場合はin-reply-toとして設定する
                     if (draft.getInReplyTo() > -1) {
                         update.setInReplyToStatusId(draft.getInReplyTo());
