@@ -27,6 +27,10 @@
             android:title="流星プロテクト"
             android:summary="お気に入り登録前に発言元クライアント次第で確認をとります"
             android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_narcist"
+            android:title="ナルシストオプション"
+            android:summary="自分のツイートをお気に入り登録できるようにします"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">

@@ -602,7 +602,8 @@ public class StatusMainFragment extends TwitterFragment{
 
     @Override
     public void onServiceConnected() {
-        if (getTwitterService().isMyTweet(status) != null && !status.isRetweet()) {
+        if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
+                !PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_narcist", false)) {
             //自分のツイートの場合
             ibFavorite.setEnabled(false);
             ibFavRt.setEnabled(false);
