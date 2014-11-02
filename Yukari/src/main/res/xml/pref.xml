@@ -132,6 +132,15 @@
             android:entries="@array/pref_upload_size_entries"
             android:entryValues="@array/pref_upload_size_values"
             android:defaultValue="960"/>
+        <EditTextPreference
+            android:key="pref_tweet_footer"
+            android:title="フッター設定"
+            android:summary="ツイート末尾に自動挿入する文字列を設定します"/>
+        <EditTextPreference
+            android:key="pref_quote_comment_footer"
+            android:title="RTしてから言及のフッター"
+            android:summary="「RTしてから言及」使用時に入力欄に自動挿入する文字列を設定します"
+            android:defaultValue=" ＞RT"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="キャッシュ設定">

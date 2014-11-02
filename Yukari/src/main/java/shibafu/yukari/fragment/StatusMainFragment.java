@@ -460,8 +460,9 @@ public class StatusMainFragment extends TwitterFragment{
                                             break;
                                     }
                                     if (request > -1) {
+                                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                                         intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, " ＞RT");
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, sp.getString("pref_quote_comment_footer", " ＞RT"));
                                         startActivityForResult(intent, request);
                                     }
                                 }
