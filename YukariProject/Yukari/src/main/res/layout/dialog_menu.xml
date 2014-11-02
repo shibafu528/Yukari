@@ -233,7 +233,7 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="8dp"
-                android:src="?attr/menuReportDrawable"
+                android:src="?attr/menuBookmarkDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -241,7 +241,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
-                android:text="作者に連絡"
+                android:text="ブックマーク"
                 android:textSize="@dimen/menudialog_textsize"
                 android:layout_gravity="center_horizontal"
                 android:singleLine="false" />

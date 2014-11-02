@@ -17,6 +17,8 @@ public class TweetListFragmentFactory {
                 return new SearchListFragment();
             case TabType.TABTYPE_DM:
                 return new MessageListFragment();
+            case TabType.TABTYPE_BOOKMARK:
+                return new BookmarkListFragment();
             default:
                 return new DefaultTweetListFragment();
         }

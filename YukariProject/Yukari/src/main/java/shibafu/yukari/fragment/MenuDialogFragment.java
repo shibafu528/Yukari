@@ -3,8 +3,6 @@ package shibafu.yukari.fragment;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,7 +25,7 @@ import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -194,19 +192,8 @@ public class MenuDialogFragment extends DialogFragment {
             @Override
             public void onClick(View view) {
                 dismiss();
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                String text = " #yukari4a @yukari4a";
-                PackageManager pm = getActivity().getPackageManager();
-                try {
-                    PackageInfo packageInfo = pm.getPackageInfo(getActivity().getPackageName(), 0);
-                    String[] versionText = packageInfo.versionName.split(" ");
-                    if (versionText != null && versionText.length > 1) {
-                        text += " //ver." + versionText[0];
-                    }
-                } catch (PackageManager.NameNotFoundException e){
-                    e.printStackTrace();
-                }
-                intent.putExtra(TweetActivity.EXTRA_TEXT, text);
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_BOOKMARK);
                 startActivity(intent);
             }
         });

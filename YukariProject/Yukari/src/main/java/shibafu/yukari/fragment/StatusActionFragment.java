@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.fragment.base.ListTwitterFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -44,6 +45,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
     private static final String[] ITEMS = {
             "ブラウザで開く",
             "パーマリンクをコピー",
+            "ブックマークに追加",
             "リストへ追加/削除",
             "ミュートする",
             "ツイート削除"
@@ -88,7 +90,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
         menu.addAll(Arrays.asList(ITEMS));
         menu.addAll(pluginNames);
 
-        if (user == null || status.getUser().getId() != user.NumericId) {
+        if (!(status instanceof Bookmark) && (user == null || status.getUser().getId() != user.NumericId)) {
             menu.remove(ITEMS.length - 1);
             enableDelete = false;
         }
@@ -114,6 +116,10 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                 Toast.makeText(getActivity(), "リンクをコピーしました", Toast.LENGTH_SHORT).show();
                 break;
             case 2:
+                getTwitterService().getDatabase().updateBookmark(new Bookmark(status));
+                Toast.makeText(getActivity(), "ブックマークしました", Toast.LENGTH_SHORT).show();
+                break;
+            case 3:
             {
                 ListRegisterDialogFragment fragment = ListRegisterDialogFragment.newInstance(
                         status.isRetweet() ? status.getRetweetedStatus().getUser() : status.getUser());
@@ -121,7 +127,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                 fragment.show(getChildFragmentManager(), "register");
                 break;
             }
-            case 3:
+            case 4:
                 MuteMenuDialogFragment.newInstance(status, this).show(getChildFragmentManager(), "mute");
                 break;
             default:
@@ -139,7 +145,11 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                                     AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                                         @Override
                                         protected Void doInBackground(Void... params) {
-                                            getTwitterService().destroyStatus(user, status.getId());
+                                            if (status instanceof Bookmark) {
+                                                getTwitterService().getDatabase().deleteBookmark(status.getId());
+                                            } else {
+                                                getTwitterService().destroyStatus(user, status.getId());
+                                            }
                                             return null;
                                         }
                                     };

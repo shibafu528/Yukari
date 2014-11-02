@@ -236,6 +236,10 @@ public class PreformedStatus implements Status{
         return text;
     }
 
+    protected Status getStatus() {
+        return status;
+    }
+
     @Override
     public Date getCreatedAt() {
         return status.getCreatedAt();

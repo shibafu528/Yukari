@@ -453,8 +453,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 for (TabInfo info : pageList) {
                     if (info.getType() == tabType) {
                         viewPager.setCurrentItem(pageList.indexOf(info));
-                        break;
+                        return;
                     }
+                }
+                // If not exist...
+                if (tabType == TabType.TABTYPE_BOOKMARK) {
+                    TabInfo tabInfo = new TabInfo(tabType, pageList.size(), getTwitterService().getPrimaryUser());
+                    addTab(tabInfo);
+                    viewPager.getAdapter().notifyDataSetChanged();
+                    viewPager.setCurrentItem(tabInfo.getOrder());
                 }
             }
         }

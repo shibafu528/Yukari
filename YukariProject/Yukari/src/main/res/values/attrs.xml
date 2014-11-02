@@ -22,6 +22,7 @@
     <attr name="menuSettingDrawable" format="reference"/>
     <attr name="menuQuitDrawable" format="reference"/>
     <attr name="menuReloadDrawable" format="reference"/>
+    <attr name="menuBookmarkDrawable" format="reference"/>
     <attr name="menuButtonDrawable" format="reference"/>
     <attr name="searchButtonDrawable" format="reference"/>
     <attr name="tweetAttachDrawable" format="reference"/>
