@@ -209,6 +209,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 }
                 default:
                 {
+                    AuthUserRecord attachRecord = findUserRecord(lastClicked.getRecipient());
+                    if (attachRecord == null) {
+                        attachRecord = findUserRecord(lastClicked.getSender());
+                    }
                     TweetEntity entity = lastClickedEntities.get(which - 3);
                     if (entity instanceof MediaEntity) {
                         Intent intent = new Intent(
@@ -216,7 +220,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                                 Uri.parse(((MediaEntity) entity).getMediaURLHttps()),
                                 getActivity().getApplicationContext(),
                                 PreviewActivity.class);
-                        intent.putExtra(PreviewActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                        intent.putExtra(PreviewActivity.EXTRA_USER, attachRecord);
                         startActivity(intent);
                     } else if (entity instanceof URLEntity) {
                         Intent intent = new Intent(
@@ -230,7 +234,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                         startActivity(intent);
                     } else if (entity instanceof UserMentionEntity) {
                         Intent intent = new Intent(getActivity(), ProfileActivity.class);
-                        intent.putExtra(ProfileActivity.EXTRA_USER, findUserRecord(lastClicked.getRecipient()));
+                        intent.putExtra(ProfileActivity.EXTRA_USER, attachRecord);
                         intent.putExtra(ProfileActivity.EXTRA_TARGET, ((UserMentionEntity) entity).getId());
                         startActivity(intent);
                     }
