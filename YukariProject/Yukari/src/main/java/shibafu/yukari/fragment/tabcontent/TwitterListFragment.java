@@ -183,6 +183,20 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                     break;
             }
 
+            unreadNotifierView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Long lastUnreadId = Collections.min(unreadSet);
+                    int position;
+                    for (position = 0; position < elements.size(); ++position) {
+                        if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+                    }
+                    if (position < elements.size()) {
+                        listView.setSelection(position);
+                    }
+                }
+            });
+
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView view, int scrollState) {
