@@ -543,6 +543,9 @@ public class TweetAdapterWrap {
                     viewHolder.ivAccountColor.setBackgroundColor(authUserRecord.AccountColor);
                 }
             }
+            viewHolder.tvTimestamp.setText(String.format("%s to @%s / %s",
+                    viewHolder.tvTimestamp.getText(),
+                    message.getRecipientScreenName(), message.getRecipient().getName()));
             return v;
         }
     }
