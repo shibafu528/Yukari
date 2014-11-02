@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.common.Suppressor;
@@ -54,6 +55,7 @@ public class BookmarkListFragment extends TweetListFragment {
 
         @Override
         protected List<Bookmark> doInBackground(Void... params) {
+            if (!isServiceBound()) return new ArrayList<>();
             return getTwitterService().getDatabase().getBookmarks();
         }
 

@@ -173,5 +173,7 @@
 
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
+        <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>
+        <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>
     </PreferenceCategory>
 </PreferenceScreen>
