@@ -23,7 +23,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 9;
+    public static final int DB_VER = 10;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -84,7 +84,11 @@ public class CentralDatabase {
     public static final String COL_DRAFTS_MESSAGE_TARGET = "MessageTarget";
 
     //Bookmarksテーブル
-    //一旦あきらめた!! ✌(('ω'✌ ))三✌(('ω'))✌三(( ✌'ω'))✌
+    public static final String TABLE_BOOKMARKS = "Bookmarks";
+    public static final String COL_BOOKMARKS_ID = "_id";
+    public static final String COL_BOOKMARKS_RECEIVER_ID = "ReceiverId";
+    public static final String COL_BOOKMARKS_SAVE_DATE = "SaveDate";
+    public static final String COL_BOOKMARKS_BLOB = "Blob";
 
     //Tabsテーブル
     public static final String TABLE_TABS = "Tabs";
@@ -214,6 +218,13 @@ public class CentralDatabase {
                             COL_MUTE_QUERY + " TEXT, " +
                             COL_MUTE_EXPIRATION_TIME_MILLIS + " INTEGER DEFAULT -1)"
             );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_BOOKMARKS + " (" +
+                            COL_BOOKMARKS_ID + " INTEGER PRIMARY KEY, " +
+                            COL_BOOKMARKS_RECEIVER_ID + " INTEGER, " +
+                            COL_BOOKMARKS_SAVE_DATE + " INTEGER, " +
+                            COL_BOOKMARKS_BLOB + " BLOB NOT NULL)"
+            );
         }
 
         @Override
@@ -297,6 +308,23 @@ public class CentralDatabase {
                         COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
                 );
                 ++oldVersion;
+            }
+            if (oldVersion == 9) {
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_BOOKMARKS + " (" +
+                                COL_BOOKMARKS_ID + " INTEGER PRIMARY KEY, " +
+                                COL_BOOKMARKS_RECEIVER_ID + " INTEGER, " +
+                                COL_BOOKMARKS_SAVE_DATE + " INTEGER, " +
+                                COL_BOOKMARKS_BLOB + " BLOB NOT NULL)"
+                );
+                ++oldVersion;
+            }
+        }
+
+        @Override
+        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            if (oldVersion == 10) {
+                db.execSQL("drop table " + TABLE_BOOKMARKS);
             }
         }
     }
@@ -620,6 +648,36 @@ public class CentralDatabase {
 
     public void updateUserExtras(UserExtras userExtras) {
         db.replace(TABLE_USER_EXTRAS, null, userExtras.getContentValues());
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Bookmarks">
+    public void updateBookmark(Bookmark bookmark) {
+        ContentValues values = bookmark.getContentValues();
+        db.replace(TABLE_BOOKMARKS, null, values);
+    }
+
+    public void deleteBookmark(long id) {
+        db.delete(TABLE_BOOKMARKS, COL_BOOKMARKS_ID + "=" + id, null);
+    }
+
+    public ArrayList<Bookmark> getBookmarks() {
+        Cursor cursor = db.rawQuery("SELECT " + joinColumnName(TABLE_BOOKMARKS, COL_BOOKMARKS_ID) + " AS _id_b, * FROM " +
+                        TABLE_BOOKMARKS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
+                        TABLE_BOOKMARKS + "." + COL_BOOKMARKS_RECEIVER_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                        " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
+                        " ORDER BY " + joinColumnName(TABLE_BOOKMARKS, COL_BOOKMARKS_SAVE_DATE) + " DESC", null
+        );
+        ArrayList<Bookmark> bookmarks = new ArrayList<>();
+        try {
+            if (cursor.moveToFirst()) {
+                do bookmarks.add(new Bookmark(cursor));
+                while (cursor.moveToNext());
+            }
+        } finally {
+            cursor.close();
+        }
+        return bookmarks;
     }
     //</editor-fold>
 

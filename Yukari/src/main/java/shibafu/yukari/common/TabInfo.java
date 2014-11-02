@@ -174,6 +174,8 @@ public class TabInfo implements DBRecord, Serializable {
                 return "List: " + getListSlug();
             case TabType.TABTYPE_USER:
                 return "User";
+            case TabType.TABTYPE_BOOKMARK:
+                return "Bookmark";
             default:
                 return "?Unknown Tab";
         }
