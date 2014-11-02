@@ -67,13 +67,33 @@ public class ConfigActivity extends PreferenceActivity {
             }catch(PackageManager.NameNotFoundException e){
                 e.printStackTrace();
             }
-            summaryText += "\nDeveloped by @shibafu528\n\n>> License Information";
+            summaryText += "\nDeveloped by @shibafu528";
             aboutVersionPref.setSummary(summaryText);
         }
-        aboutVersionPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        findPreference("pref_about_licenses").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
                 startActivity(new Intent(ConfigActivity.this, LicenseActivity.class));
+                return true;
+            }
+        });
+        findPreference("pref_about_feedback").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                Intent intent = new Intent(ConfigActivity.this, TweetActivity.class);
+                String text = " #yukari4a @yukari4a";
+                PackageManager pm = getPackageManager();
+                try {
+                    PackageInfo packageInfo = pm.getPackageInfo(getPackageName(), 0);
+                    String[] versionText = packageInfo.versionName.split(" ");
+                    if (versionText != null && versionText.length > 1) {
+                        text += " //ver." + versionText[0];
+                    }
+                } catch (PackageManager.NameNotFoundException e){
+                    e.printStackTrace();
+                }
+                intent.putExtra(TweetActivity.EXTRA_TEXT, text);
+                startActivity(intent);
                 return true;
             }
         });
