@@ -293,7 +293,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
-        etInput.setText((defaultText != null)?defaultText : "");
+        etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
         int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
         if (mode == MODE_REPLY || mode == MODE_QUOTE) {
             if (mode == MODE_REPLY) {
