@@ -299,12 +299,19 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             if (mode == MODE_REPLY) {
                 etInput.setSelection(etInput.getText().length());
             }
-            final long inReplyTo = args.getIntExtra(EXTRA_IN_REPLY_TO, -1);
+            final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
             if (status == null && inReplyTo > -1) {
+                TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
+                tvTitle.setText("Reply >> loading...");
                 new SimpleAsyncTask() {
                     @Override
                     protected Void doInBackground(Void... params) {
                         try {
+                            while (!isTwitterServiceBound()) {
+                                try {
+                                    Thread.sleep(100);
+                                } catch (InterruptedException ignore) {}
+                            }
                             status = getTwitterService().getTwitter().showStatus(inReplyTo);
                         } catch (TwitterException e) {
                             e.printStackTrace();
