@@ -2,10 +2,13 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -158,6 +161,17 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     //解決済みリソース
     private int tweetCountColor;
     private int tweetCountOverColor;
+
+    //::batt
+    private String batteryTweet;
+    private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int percent = intent.getIntExtra("level", 0) * 100 / intent.getIntExtra("scale", -1);
+            boolean charging = intent.getIntExtra("plugged", 0) > 0;
+            batteryTweet = String.format("%s のバッテリー残量: %s%d%%", Build.MODEL, charging ? "🔌" : "🔋", percent);
+        }
+    };;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -451,6 +465,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             setResult(RESULT_OK);
                             finish();
                             return;
+                        case "::batt":
+                            inputText = batteryTweet;
+                            break;
                     }
                 }
 
@@ -953,6 +970,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (currentDialog != null) {
             currentDialog.show();
         }
+
+        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(batteryReceiver);
     }
 
     @Override

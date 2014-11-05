@@ -32,6 +32,9 @@
         <Preference
             android:title="::balus"
             android:summary="あの地平線輝くのは どこかに君を隠しているから"/>
+        <Preference
+            android:title="::batt"
+            android:summary="バッテリー残量ツイート"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
