@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <GridView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@android:id/list"
+        android:layout_gravity="center"
+        android:numColumns="@integer/info_shibafu528_gallerymultipicker_grid_columns_num"
+        android:stretchMode="columnWidth"
+        android:smoothScrollbar="false"
+        android:fastScrollEnabled="true" />
+</FrameLayout>

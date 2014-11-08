@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="info_shibafu528_gallerymultipicker_title">画像を選択</string>
+    <string name="info_shibafu528_gallerymultipicker_subtitle">あと %1$d 枚選択可能</string>
+    <string name="info_shibafu528_gallerymultipicker_all_picture">全ての画像</string>
+    <string name="info_shibafu528_gallerymultipicker_action_accept">完了</string>
+    <string name="info_shibafu528_gallerymultipicker_action_gallery">ギャラリーから開く</string>
+    <string name="info_shibafu528_gallerymultipicker_action_take_shot">カメラで撮影</string>
+    <string name="info_shibafu528_gallerymultipicker_storage_error">ストレージが使用できないため、カメラを起動できません</string>
+    <string name="info_shibafu528_gallerymultipicker_gallery_error">ギャラリーからの取得に失敗しました</string>
+    <string name="info_shibafu528_gallerymultipicker_camera_error">カメラとの連携に失敗しました。使用したカメラアプリとの相性かもしれません。</string>
+</resources>

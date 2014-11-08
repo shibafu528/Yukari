@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="31"
-    android:versionName="0.165alpha (prototype 141105)" >
+    android:versionName="0.166alpha (prototype 141108)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -237,12 +237,15 @@
             android:label="Maintenance Mode" />
 
         <activity
-            android:name=".activity.PictureChooserActivity"
+            android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
             android:label="@string/title_activity_picture_chooser"
             android:uiOptions="splitActionBarWhenNarrow">
             <meta-data
                 android:name="android.support.UI_OPTIONS"
                 android:value="splitActionBarWhenNarrow" />
+            <meta-data
+                android:name="info.shibafu528.gallerymultipicker.ICON_THEME"
+                android:value="dark"/>
         </activity>
     </application>
 
