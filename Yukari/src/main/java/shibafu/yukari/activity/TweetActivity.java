@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
@@ -176,7 +177,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        switch (sp.getString("pref_theme", "light")) {
+        final String theme = sp.getString("pref_theme", "light");
+        switch (theme) {
             case "light":
                 setTheme(R.style.VertAnimationTheme);
                 break;
@@ -551,8 +553,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Intent intent = new Intent(TweetActivity.this, PictureChooserActivity.class);
-                intent.putExtra(PictureChooserActivity.EXTRA_CHOOSE_LIMIT, maxMediaPerUpload - attachPictures.size());
+                Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
+                intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
+                intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+                intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
+                intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
                 startActivityForResult(intent, REQUEST_GALLERY);
                 overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
             }
@@ -898,7 +903,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_GALLERY:
-                    for (Parcelable uri : data.getParcelableArrayExtra(PictureChooserActivity.EXTRA_URIS)) {
+                    for (Parcelable uri : data.getParcelableArrayExtra(MultiPickerActivity.EXTRA_URIS)) {
                         attachPicture((Uri) uri);
                     }
                     break;
