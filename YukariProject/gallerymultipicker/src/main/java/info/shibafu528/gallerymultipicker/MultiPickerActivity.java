@@ -263,15 +263,6 @@ public class MultiPickerActivity extends ActionBarActivity{
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
             ContentResolver resolver = getActivity().getContentResolver();
-            setListAdapter(new AlbumAdapter(getActivity(),
-                    resolver.query(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            SELECT_BUCKET,
-                            "1) GROUP BY (2",
-                            null,
-                            "MAX(datetaken) DESC"),
-                    resolver));
-            getListView().setFastScrollEnabled(true);
 
             Cursor cursor = resolver.query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null,
@@ -291,6 +282,22 @@ public class MultiPickerActivity extends ActionBarActivity{
             vh.count.setText(String.valueOf(cursor.getCount()));
             cursor.close();
             getListView().addHeaderView(view);
+
+            setListAdapter(new AlbumAdapter(getActivity(),
+                    resolver.query(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            SELECT_BUCKET,
+                            "1) GROUP BY (2",
+                            null,
+                            "MAX(datetaken) DESC"),
+                    resolver));
+            getListView().setFastScrollEnabled(true);
+        }
+
+        @Override
+        public void onDestroyView() {
+            setListAdapter(null);
+            super.onDestroyView();
         }
 
         @Override
