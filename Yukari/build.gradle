@@ -21,7 +21,7 @@ dependencies {
 
     compile 'com.larswerkman:HoloColorPicker:1.4'
 
-    compile project(':gallerymultipicker')
+    compile project(':GalleryMultiPicker:library')
 
     compile fileTree(dir: './libs', includes: ['*.jar'])
 }
