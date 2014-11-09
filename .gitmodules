@@ -1,0 +1,3 @@
+[submodule "YukariProject/GalleryMultiPicker"]
+	path = YukariProject/GalleryMultiPicker
+	url = git@github.com:shibafu528/GalleryMultiPicker.git

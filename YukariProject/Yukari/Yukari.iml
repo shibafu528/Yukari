@@ -100,7 +100,7 @@
     <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="gson-2.3" level="project" />
     <orderEntry type="library" exported="" name="butterknife-5.1.2" level="project" />
-    <orderEntry type="module" module-name="gallerymultipicker" exported="" />
+    <orderEntry type="module" module-name="library" exported="" />
     <orderEntry type="module" module-name="betterpickers" exported="" />
   </component>
 </module>

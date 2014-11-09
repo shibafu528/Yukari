@@ -1,2 +1,3 @@
-include ':Yukari', ':gallerymultipicker'
+include ':Yukari'
+include ':GalleryMultiPicker:library'
 include ':betterpickers'

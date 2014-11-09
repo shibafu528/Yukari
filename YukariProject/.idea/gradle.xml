@@ -8,9 +8,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/GalleryMultiPicker" />
+            <option value="$PROJECT_DIR$/GalleryMultiPicker/library" />
             <option value="$PROJECT_DIR$/Yukari" />
             <option value="$PROJECT_DIR$/betterpickers" />
-            <option value="$PROJECT_DIR$/gallerymultipicker" />
           </set>
         </option>
       </GradleProjectSettings>
