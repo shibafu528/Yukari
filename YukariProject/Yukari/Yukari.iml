@@ -81,7 +81,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
-    <orderEntry type="jdk" jdkName="Android API 21 Platform" jdkType="Android SDK" />
+    <orderEntry type="jdk" jdkName="Android 4.4.2 Sony Add-on SDK 3.0" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="twitter4j-async-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="twitter4j-stream-4.0.2" level="project" />

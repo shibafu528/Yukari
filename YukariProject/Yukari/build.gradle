@@ -27,7 +27,7 @@ dependencies {
 }
 
 android {
-    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
+    compileSdkVersion 'Sony:Sony Add-on SDK 3.0:19'
     buildToolsVersion BUILD_TOOLS_VERSION
 
     defaultConfig {

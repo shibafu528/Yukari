@@ -10,4 +10,7 @@
     <dimen name="mainfooter_tweet_button">8dp</dimen>
 
     <dimen name="tab_host_default_height">48dp</dimen>
+
+    <dimen name="small_app_width">480dp</dimen>
+    <dimen name="small_app_height">64dp</dimen>
 </resources>
