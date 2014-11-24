@@ -8,6 +8,8 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -177,6 +179,21 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         TextView tvStreamStates = (TextView) findViewById(R.id.tvStreamStates);
         tvStreamStates.setOnTouchListener(tweetGestureListener);
+        tvStreamStates.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isImmersive()) {
+                    setImmersive(false);
+                    Handler h = new Handler(Looper.getMainLooper());
+                    h.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            setImmersive(true);
+                        }
+                    }, 3000);
+                }
+            }
+        });
         tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
