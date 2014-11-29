@@ -470,6 +470,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::batt":
                             inputText = batteryTweet;
                             break;
+                        case "::ay":
+                            inputText = "#あひる焼き";
+                            break;
                     }
                 }
 
