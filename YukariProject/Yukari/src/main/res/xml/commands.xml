@@ -35,6 +35,9 @@
         <Preference
             android:title="::batt"
             android:summary="バッテリー残量ツイート"/>
+        <Preference
+            android:title="::ay"
+            android:summary="あひる焼き"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
