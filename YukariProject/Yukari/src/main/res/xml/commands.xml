@@ -41,6 +41,9 @@
         <Preference
             android:title="::mh"
             android:summary="もひょ"/>
+        <Preference
+            android:title="::ma"
+            android:summary="http://wiki.famitsu.com/kairi/ を開く"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
