@@ -499,6 +499,12 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             inputText = MOHYO[new Random().nextInt(MOHYO.length)];
                             break;
                         }
+                        case "::ma":
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://wiki.famitsu.com/kairi/"))
+                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                            setResult(RESULT_OK);
+                            finish();
+                            return;
                     }
                 }
 
