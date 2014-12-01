@@ -28,13 +28,13 @@ public class Pixiv extends LinkMedia {
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
+        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.|touch\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
+        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.|touch\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
@@ -57,7 +57,7 @@ public class Pixiv extends LinkMedia {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 try {
                     String s;
-                    Pattern pattern = Pattern.compile("(http://i[0-9]\\.pixiv\\.net/(?:img[0-9]{2,3}/img/[a-zA-Z0-9\\-_]+/|c/600x600/img-master/img/\\d{4}/(?:\\d{2}/){5})"+illustId+"(?:_m|_p0_master1200)\\.(?:jpg|png))");
+                    Pattern pattern = Pattern.compile("(http://i[0-9]\\.pixiv\\.net/(?:img[0-9]{2,3}/img/[a-zA-Z0-9\\-_]+/|c/(?:600x600|64x64)/img-master/img/\\d{4}/(?:\\d{2}/){5})"+illustId+"(?:_m|_p0_master1200|_p0_square1200)\\.(?:jpg|png))");
                     while ((s = br.readLine()) != null) {
                         Matcher m = pattern.matcher(s);
                         if (m.find()) {
