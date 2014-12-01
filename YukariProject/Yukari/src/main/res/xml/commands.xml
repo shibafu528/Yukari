@@ -38,6 +38,9 @@
         <Preference
             android:title="::ay"
             android:summary="あひる焼き"/>
+        <Preference
+            android:title="::mh"
+            android:summary="もひょ"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
