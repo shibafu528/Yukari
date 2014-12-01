@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -473,6 +474,31 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::ay":
                             inputText = "#あひる焼き";
                             break;
+                        case "::mh": {
+                            // Quote from https://github.com/0V/MohyoButton/blob/master/MohyoButton/Models/MohyoTweet.cs
+                            final String[] MOHYO = {
+                                    "もひょ",
+                                    "もひょっ",
+                                    "もひょぉ",
+                                    "もひょもひょ",
+                                    "もひょもひょっ",
+                                    "もひょもひょぉ",
+                                    "もひょもひょもひょもひょ",
+                                    "＞ω＜もひょ",
+                                    "(~´ω`)~もひょ",
+                                    "~(´ω`~)もひょ",
+                                    "(～＞ω＜)～もひょ",
+                                    "～(＞ω＜～)もひょ",
+                                    "～(＞ω＜)～もひょ",
+                                    "進捗もひょです",
+                                    "Mohyo",
+                                    "mohyo",
+                                    "むいっ",
+                            };
+                            // End of quote
+                            inputText = MOHYO[new Random().nextInt(MOHYO.length)];
+                            break;
+                        }
                     }
                 }
 
