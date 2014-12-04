@@ -86,7 +86,7 @@
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
             android:label="@string/title_activity_status"
-            android:theme="@style/YukariDialogTheme" >
+            android:theme="@style/YukariLightTheme.Translucent" >
         </activity>
         <activity
             android:name=".activity.IntentActivity"

@@ -1,22 +1,64 @@
-<android.support.v4.view.ViewPager xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/pager"
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".StatusActivity">
+    android:orientation="vertical">
 
-    <!--
-    This title strip will display the currently visible page title, as well as the page
-    titles for adjacent pages.
-    -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="3"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:paddingBottom="8dp"
+        android:fillViewport="false">
 
-    <android.support.v4.view.PagerTabStrip
-        android:id="@+id/pager_title_strip"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/dialogStyle"
+            android:orientation="vertical"
+            android:paddingBottom="12dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="12dp">
+
+            <include
+                android:id="@+id/status_tweet"
+                layout="@layout/row_tweet"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/tv_state_counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginRight="6dp"
+                android:text="0RT 0Fav"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#ff8b8b8b"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp"
-        android:textColor="?attr/tabTitleColor" />
+        android:layout_weight="2"
+        android:minHeight="240dp">
 
-</android.support.v4.view.ViewPager>
+        <android.support.v4.view.ViewPager
+            android:id="@+id/pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </android.support.v4.view.ViewPager>
+
+    </FrameLayout>
+
+</LinearLayout>

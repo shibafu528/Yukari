@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -22,15 +21,11 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
-import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -60,13 +55,10 @@ public class StatusMainFragment extends TwitterFragment{
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
-    private TweetAdapterWrap.ViewConverter viewConverter;
-
     private AlertDialog currentDialog = null;
     private ImageButton ibFavorite;
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
-    private View tweetView;
     private ImageButton ibShare;
     private ImageButton ibQuote;
 
@@ -76,21 +68,6 @@ public class StatusMainFragment extends TwitterFragment{
         Bundle b = getArguments();
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
-        tweetView = v.findViewById(R.id.status_tweet);
-        if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
-                || status.getInReplyToStatusId() > 0) {
-            tweetView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(getActivity(), TraceActivity.class);
-                    intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
-                            status.isRetweet()? status.getRetweetedStatus() : status);
-                    startActivity(intent);
-                }
-            });
-        }
 
         ImageButton ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
@@ -487,36 +464,7 @@ public class StatusMainFragment extends TwitterFragment{
             }
         });
 
-        TextView tvCounter = (TextView) v.findViewById(R.id.tv_state_counter);
-        int retweeted = status.isRetweet()? status.getRetweetedStatus().getRetweetCount() : status.getRetweetCount();
-        int faved = status.isRetweet()? status.getRetweetedStatus().getFavoriteCount() : status.getFavoriteCount();
-        String countRT = retweeted + "RT";
-        String countFav = faved + "Fav";
-        if (retweeted > 0 && faved > 0) {
-            tvCounter.setText(countRT + " " + countFav);
-            tvCounter.setVisibility(View.VISIBLE);
-        }
-        else if (retweeted > 0) {
-            tvCounter.setText(countRT);
-            tvCounter.setVisibility(View.VISIBLE);
-        }
-        else if (faved > 0) {
-            tvCounter.setText(countFav);
-            tvCounter.setVisibility(View.VISIBLE);
-        }
-
         return v;
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                getActivity(),
-                (user != null)? user.toSingleList() : null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                PreformedStatus.class);
     }
 
     @Override
@@ -525,15 +473,6 @@ public class StatusMainFragment extends TwitterFragment{
 
         if (currentDialog != null) {
             currentDialog.show();
-        }
-
-        if (status != null) {
-            getView().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL);
-                }
-            });
         }
     }
 
@@ -617,7 +556,6 @@ public class StatusMainFragment extends TwitterFragment{
             ibShare.setEnabled(false);
             ibQuote.setEnabled(false);
         }
-        viewConverter.setUserExtras(getTwitterService().getUserExtras());
     }
 
     @Override
