@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import shibafu.yukari.R;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.database.Bookmark;
@@ -79,6 +80,15 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
             for (ResolveInfo ri : plugins) {
                 pluginNames.add(ri.activityInfo.loadLabel(pm).toString());
             }
+        }
+
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                view.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                view.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                break;
         }
     }
 

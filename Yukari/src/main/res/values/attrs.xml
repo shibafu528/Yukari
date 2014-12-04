@@ -35,4 +35,5 @@
     <attr name="tweetVoiceDrawable" format="reference"/>
     <attr name="tweetMorseDrawable" format="reference"/>
     <attr name="tweetNowPlayingDrawable" format="reference"/>
+    <attr name="dialogStyle" format="reference"/>
 </resources>
