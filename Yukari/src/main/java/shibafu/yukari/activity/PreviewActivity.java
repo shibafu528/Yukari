@@ -288,7 +288,17 @@ public class PreviewActivity extends FragmentYukariBase {
                     } else {
                         try {
                             connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                            connection.setInstanceFollowRedirects(true);
                             connection.connect();
+                            while (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
+                                    connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+                                String redirectUrl = connection.getHeaderField("Location");
+                                connection.disconnect();
+
+                                connection = (HttpURLConnection) new URL(redirectUrl).openConnection();
+                                connection.setInstanceFollowRedirects(true);
+                                connection.connect();
+                            }
                             callback.contentLength = connection.getContentLength();
                             callback.beginTime = System.currentTimeMillis();
                             input = connection.getInputStream();
