@@ -51,6 +51,8 @@ public class LinkMediaFactory {
                 linkMedia = new D250g2(mediaURL);
             } else if (mediaURL.contains("totori.dip.jp")) {
                 linkMedia = new Totori(mediaURL);
+            } else if (mediaURL.contains("gyazo.com")) {
+                linkMedia = new Gyazo(mediaURL);
             } else if (mediaURL.contains("twitpic.com")) {
                 //f*ck!!!!!!!!!!!!!!!!!!!
                 linkMedia = new Twitpic(mediaURL);
