@@ -11,12 +11,22 @@ public class Twimg extends LinkMedia{
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        return browseURL + ":orig";
+        String[] split = browseURL.split(":");
+        if (split.length > 2) {
+            return browseURL.replace(":" + split[2], ":orig");
+        } else {
+            return browseURL + ":orig";
+        }
     }
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        return browseURL + ":thumb";
+        String[] split = browseURL.split(":");
+        if (split.length > 2) {
+            return browseURL.replace(":" + split[2], ":thumb");
+        } else {
+            return browseURL + ":thumb";
+        }
     }
 
     @Override
