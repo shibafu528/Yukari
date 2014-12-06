@@ -11,6 +11,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -80,17 +81,22 @@ public class TwitterService extends Service{
     private List<AuthUserRecord> users = new ArrayList<>();
     private List<UserExtras> userExtras = new ArrayList<>();
     private StatusManager statusManager;
+    private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
 
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(Stream.CONNECTED_STREAM)) {
                 AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
+                if (connectivityFlags.get(userRecord.NumericId) != null) {
+                    showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
+                    connectivityFlags.put(userRecord.NumericId, true);
+                }
             }
             else if (intent.getAction().equals(Stream.DISCONNECTED_STREAM)) {
                 AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
                 showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
+                connectivityFlags.put(userRecord.NumericId, false);
             }
         }
     };
@@ -187,8 +193,8 @@ public class TwitterService extends Service{
         }
 
         //ネットワーク状態の監視
-        //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
-        //registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
+        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
+        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
         registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
 
         //Proxy Serverの起動
@@ -208,7 +214,7 @@ public class TwitterService extends Service{
 
         statusManager.getHashCache().save(this);
 
-        //unregisterReceiver(streamConnectivityListener);
+        unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
 
         statusManager.shutdownAll();
