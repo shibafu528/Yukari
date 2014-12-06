@@ -26,6 +26,7 @@ import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -83,8 +84,35 @@ public class MenuDialogFragment extends DialogFragment {
         if (activity.isKeepScreenOn()) {
             keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
         }
-        activeAccounts = activity.getTwitterService().getActiveUsers();
-        createAccountIconView();
+        if (activity.isTwitterServiceBound()) {
+            activeAccounts = activity.getTwitterService().getActiveUsers();
+            createAccountIconView();
+        } else {
+            class AccountsLoader extends SimpleAsyncTask {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {}
+                    MainActivity activity = (MainActivity) getActivity();
+                    if (activity.isTwitterServiceBound()) {
+                        activeAccounts = activity.getTwitterService().getActiveUsers();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Void aVoid) {
+                    super.onPostExecute(aVoid);
+                    if (activeAccounts != null) {
+                        createAccountIconView();
+                    } else {
+                        new AccountsLoader().executeParallel();
+                    }
+                }
+            }
+            new AccountsLoader().executeParallel();
+        }
     }
 
     private void createAccountIconView() {
