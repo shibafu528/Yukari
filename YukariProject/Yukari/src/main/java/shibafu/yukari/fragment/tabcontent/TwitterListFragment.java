@@ -413,7 +413,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             if (commonDelegate.getId(iterator.next()) == id) {
                 int firstPos = listView.getFirstVisiblePosition();
                 long firstId = listView.getItemIdAtPosition(firstPos);
-                int y = listView.getChildAt(0).getTop();
+                View firstView = listView.getChildAt(0);
+                int y = firstView != null? firstView.getTop() : 0;
                 iterator.remove();
                 adapterWrap.notifyDataSetChanged();
                 if (elements.size() == 1 || firstPos == 0) {
