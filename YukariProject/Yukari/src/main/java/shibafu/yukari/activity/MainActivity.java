@@ -49,7 +49,6 @@ import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
@@ -524,7 +523,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         Log.d("MainActivity", "call onRestoreInstanceState");
 
         keepScreenOn = savedInstanceState.getBoolean("screen");
-        currentPage = (TweetListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
+        currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         int currentId = savedInstanceState.getInt("currentId", -1);
         for (int i = 0; i < pageList.size(); i++) {
