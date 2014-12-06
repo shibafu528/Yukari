@@ -16,7 +16,7 @@ public class YouTube extends LinkMedia {
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("^http://(?:www\\.youtube\\.com/watch\\?.*v=|youtu\\.be/)([\\w-]+)", "http://i.ytimg.com/vi/%1/default.jpg");
+        ImageMatch matcher = new ImageMatch("^https?://(?:www\\.youtube\\.com/watch\\?.*v=|youtu\\.be/)([\\w-]+)", "http://i.ytimg.com/vi/%1/default.jpg");
         return matcher.getFullPageUrl(browseURL);
     }
 
