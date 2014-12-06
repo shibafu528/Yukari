@@ -78,7 +78,7 @@ public class OAuthActivity extends YukariBase {
                             finish();
                         }
                     })
-                    .setItems(new String[]{"ブラウザを起動...", "Twitter公式アプリ"}, new DialogInterface.OnClickListener() {
+                    .setItems(new String[]{"ブラウザを起動...", "[非推奨] Twitter公式アプリ"}, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
@@ -92,7 +92,13 @@ public class OAuthActivity extends YukariBase {
                                     Intent intent = new Intent().setComponent(TWITTER_AUTH_ACTIVITY);
                                     intent.putExtra("ck", getString(R.string.twitter_consumer_key));
                                     intent.putExtra("cs", getString(R.string.twitter_consumer_secret));
-                                    startActivityForResult(intent, TWITTER_REQUEST_CODE);
+                                    try {
+                                        startActivityForResult(intent, TWITTER_REQUEST_CODE);
+                                    } catch (SecurityException e) {
+                                        e.printStackTrace();
+                                        Toast.makeText(getApplicationContext(), "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show();
+                                        startOAuth();
+                                    }
                                     break;
                                 }
                             }
