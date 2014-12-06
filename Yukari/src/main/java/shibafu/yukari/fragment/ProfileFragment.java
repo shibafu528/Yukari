@@ -1018,9 +1018,14 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 }
             }
 
-            LinkedHashMap<AuthUserRecord, Relationship> relationships =
-                    new LinkedHashMap<>();
-            for (AuthUserRecord userRecord : getTwitterService().getUsers()) {
+            LinkedHashMap<AuthUserRecord, Relationship> relationships = new LinkedHashMap<>();
+            List<AuthUserRecord> users =
+                    getTwitterService() != null ?
+                            getTwitterService().getUsers() != null ?
+                                    getTwitterService().getUsers()
+                                    : new ArrayList<AuthUserRecord>()
+                            : new ArrayList<AuthUserRecord>();
+            for (AuthUserRecord userRecord : users) {
                 try {
                     relationships.put(userRecord,
                             getTwitterService().getTwitter().showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
