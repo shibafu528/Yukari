@@ -231,7 +231,9 @@ public class TwitterService extends Service{
         database.close();
         database = null;
 
-        pixivProxy.stop();
+        if (pixivProxy != null) {
+            pixivProxy.stop();
+        }
 
         startService(new Intent(this, CacheCleanerService.class));
 
