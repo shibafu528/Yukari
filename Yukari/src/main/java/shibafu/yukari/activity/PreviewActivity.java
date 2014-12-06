@@ -42,6 +42,7 @@ import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.util.BitmapResizer;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -241,6 +242,14 @@ public class PreviewActivity extends FragmentYukariBase {
             @Override
             protected Bitmap doInBackground(String... params) {
                 String url = params[0];
+                int exifRotate = 0;
+                if (url.startsWith("content://")) {
+                    try {
+                        exifRotate = BitmapResizer.getExifRotate(getApplicationContext(), Uri.parse(url));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
                 //キャッシュディレクトリを取得
                 File cacheDir;
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -359,6 +368,13 @@ public class PreviewActivity extends FragmentYukariBase {
                     }
                     Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
                     fis.close();
+                    if (exifRotate > 0) {
+                        int width = bitmap.getWidth();
+                        int height = bitmap.getHeight();
+                        Matrix matrix = new Matrix();
+                        matrix.postRotate(exifRotate, width / 2, height / 2);
+                        bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+                    }
                     return bitmap;
                 } catch (IOException e) {
                     e.printStackTrace();

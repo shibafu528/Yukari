@@ -69,7 +69,7 @@ public class BitmapResizer {
      * @param uri 画像ファイルUri
      * @return
      */
-    private static int getExifRotate(Context context, Uri uri) {
+    public static int getExifRotate(Context context, Uri uri) {
         //Storage Access Framework経由のUriの場合は対処する
         if (uri.toString().startsWith("content://com.android.providers.media.documents/document/")) {
             Cursor c = context.getContentResolver().query(uri, null, null, null, null);
