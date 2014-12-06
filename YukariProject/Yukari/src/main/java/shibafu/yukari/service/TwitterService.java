@@ -283,7 +283,7 @@ public class TwitterService extends Service{
     }
 
     public List<AuthUserRecord> getUsers() {
-        return users;
+        return users != null ? users : new ArrayList<AuthUserRecord>();
     }
 
     public AuthUserRecord getPrimaryUser() {
