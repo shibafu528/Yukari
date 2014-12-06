@@ -505,6 +505,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             setResult(RESULT_OK);
                             finish();
                             return;
+                        case "::meu":
+                            inputText = "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)";
+                            break;
                     }
                 }
 
