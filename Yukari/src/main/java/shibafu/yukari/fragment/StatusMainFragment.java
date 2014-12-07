@@ -48,6 +48,7 @@ public class StatusMainFragment extends TwitterFragment{
     private static final int REQUEST_FAV_RT    = 0x03;
     private static final int REQUEST_RT_QUOTE  = 0x04;
     private static final int REQUEST_FRT_QUOTE = 0x05;
+    private static final int REQUEST_CHANGE    = 0x06;
 
     private static final int BUTTON_SHOW_DURATION = 260;
 
@@ -475,6 +476,14 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
         ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, user.ProfileImageUrl);
+        ibAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え");
+                startActivityForResult(intent, REQUEST_CHANGE);
+            }
+        });
 
         return v;
     }
@@ -536,8 +545,7 @@ public class StatusMainFragment extends TwitterFragment{
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_REPLY) {
                 getActivity().finish();
-            }
-            else if (requestCode == REQUEST_RT_QUOTE) {
+            } else if (requestCode == REQUEST_RT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 new ParallelAsyncTask<TweetDraft, Void, Void>() {
                     @Override
@@ -549,8 +557,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel(draft);
-            }
-            else if (requestCode == REQUEST_FRT_QUOTE) {
+            } else if (requestCode == REQUEST_FRT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 new ParallelAsyncTask<TweetDraft, Void, Void>() {
                     @Override
@@ -563,8 +570,10 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel(draft);
-            }
-            else {
+            } else if (requestCode == REQUEST_CHANGE) {
+                user = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, user.ProfileImageUrl);
+            } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                 if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {

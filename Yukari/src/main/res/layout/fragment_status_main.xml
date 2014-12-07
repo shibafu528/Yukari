@@ -40,6 +40,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_share"
         android:layout_gravity="center" />
@@ -49,6 +50,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_favrt"
         android:layout_gravity="center" />
@@ -58,6 +60,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_quote"
         android:layout_gravity="center" />
@@ -67,6 +70,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_favorite"
         android:layout_gravity="center" />
@@ -76,6 +80,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_retweet"
         android:layout_gravity="center" />
@@ -85,6 +90,7 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_reply"
         android:layout_gravity="center" />
