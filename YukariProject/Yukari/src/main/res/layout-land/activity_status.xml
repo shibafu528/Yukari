@@ -3,17 +3,17 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="horizontal">
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_weight="3"
-        android:layout_marginTop="16dp"
+        android:layout_weight="8"
+        android:layout_marginTop="8dp"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:paddingBottom="8dp"
+        android:layout_marginBottom="8dp"
         android:fillViewport="false">
 
         <LinearLayout
@@ -49,8 +49,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:minHeight="240dp">
+        android:layout_weight="7">
 
         <android.support.v4.view.ViewPager
             android:id="@+id/pager"
