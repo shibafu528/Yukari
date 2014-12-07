@@ -12,5 +12,7 @@
     <dimen name="tab_host_default_height">48dp</dimen>
 
     <dimen name="status_fragments_margin">32dp</dimen>
+    <dimen name="status_button_size">76dp</dimen>
     <dimen name="status_button_padding">12dp</dimen>
+    <dimen name="status_button_delta">100dp</dimen>
 </resources>
