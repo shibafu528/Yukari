@@ -29,12 +29,14 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -475,7 +477,9 @@ public class StatusMainFragment extends TwitterFragment{
         });
 
         ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
-        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, user.ProfileImageUrl);
+        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
+        }
         ibAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -572,7 +576,7 @@ public class StatusMainFragment extends TwitterFragment{
                 }.executeParallel(draft);
             } else if (requestCode == REQUEST_CHANGE) {
                 user = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, user.ProfileImageUrl);
+                loadProfileImage();
             } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
@@ -602,6 +606,39 @@ public class StatusMainFragment extends TwitterFragment{
         }
     }
 
+    private void loadProfileImage() {
+        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
+        } else {
+            new ThrowableTwitterAsyncTask<Long, String>(this) {
+                @Override
+                protected ThrowableResult<String> doInBackground(Long... params) {
+                    try {
+                        String url = getTwitterService().getTwitter().showUser(params[0]).getOriginalProfileImageURLHttps();
+                        return new ThrowableResult<>(url);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<String> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException() && !isCancelled()) {
+                        user.putSessionTemporary("OriginalProfileImageUrl", result.getResult());
+                        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, result.getResult());
+                    }
+                }
+
+                @Override
+                protected void showToast(String message) {
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                }
+            }.executeParallel(user.NumericId);
+        }
+    }
+
     @Override
     public void onServiceConnected() {
         if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
@@ -618,6 +655,7 @@ public class StatusMainFragment extends TwitterFragment{
             ibShare.setEnabled(false);
             ibQuote.setEnabled(false);
         }
+        loadProfileImage();
     }
 
     @Override
