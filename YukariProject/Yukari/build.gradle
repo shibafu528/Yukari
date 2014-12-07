@@ -7,6 +7,7 @@ dependencies {
 
     compile 'com.google.code.gson:gson:2.3'
     compile 'com.jakewharton:butterknife:5.1.2'
+    compile 'com.nineoldandroids:library:2.4.0'
 
     //appcompat-v7:21に非対応のため、しばらくは対応パッチの当たった版を使う
     //compile 'com.doomonafireball.betterpickers:library:1.5.+'

@@ -8,11 +8,15 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.nineoldandroids.animation.ObjectAnimator;
+import com.nineoldandroids.animation.PropertyValuesHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +29,7 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -44,6 +49,8 @@ public class StatusMainFragment extends TwitterFragment{
     private static final int REQUEST_RT_QUOTE  = 0x04;
     private static final int REQUEST_FRT_QUOTE = 0x05;
 
+    private static final int BUTTON_SHOW_DURATION = 260;
+
     private static final String[] NUISANCES = {
             "ShootingStar",
             "TheWorld",
@@ -56,11 +63,13 @@ public class StatusMainFragment extends TwitterFragment{
     private AuthUserRecord user = null;
 
     private AlertDialog currentDialog = null;
+    private ImageButton ibReply;
     private ImageButton ibFavorite;
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
     private ImageButton ibShare;
     private ImageButton ibQuote;
+    private ImageButton ibAccount;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -69,16 +78,16 @@ public class StatusMainFragment extends TwitterFragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
-        ImageButton ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
+        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
+                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                        ((status.isRetweet())?status.getRetweetedStatus().getUser().getScreenName()
+                        ((status.isRetweet()) ? status.getRetweetedStatus().getUser().getScreenName()
                                 : status.getUser().getScreenName()) + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
@@ -88,7 +97,7 @@ public class StatusMainFragment extends TwitterFragment{
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
+                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 {
                     StringBuilder ids = new StringBuilder(
@@ -464,7 +473,51 @@ public class StatusMainFragment extends TwitterFragment{
             }
         });
 
+        ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
+        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, user.ProfileImageUrl);
+
         return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
+
+        ObjectAnimator.ofPropertyValuesHolder(ibReply,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta/2),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibQuote,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibShare,
+                PropertyValuesHolder.ofFloat("translationX", 0f, (delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
     }
 
     @Override
