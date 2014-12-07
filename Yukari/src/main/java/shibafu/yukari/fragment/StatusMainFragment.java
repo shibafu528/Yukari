@@ -8,12 +8,15 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import com.nineoldandroids.animation.ObjectAnimator;
+import com.nineoldandroids.animation.PropertyValuesHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,19 +25,18 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
-import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
 
 /**
@@ -48,6 +50,9 @@ public class StatusMainFragment extends TwitterFragment{
     private static final int REQUEST_FAV_RT    = 0x03;
     private static final int REQUEST_RT_QUOTE  = 0x04;
     private static final int REQUEST_FRT_QUOTE = 0x05;
+    private static final int REQUEST_CHANGE    = 0x06;
+
+    private static final int BUTTON_SHOW_DURATION = 260;
 
     private static final String[] NUISANCES = {
             "ShootingStar",
@@ -60,15 +65,14 @@ public class StatusMainFragment extends TwitterFragment{
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
-    private TweetAdapterWrap.ViewConverter viewConverter;
-
     private AlertDialog currentDialog = null;
+    private ImageButton ibReply;
     private ImageButton ibFavorite;
     private ImageButton ibFavRt;
     private ImageButton ibRetweet;
-    private View tweetView;
     private ImageButton ibShare;
     private ImageButton ibQuote;
+    private ImageButton ibAccount;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -76,32 +80,17 @@ public class StatusMainFragment extends TwitterFragment{
         Bundle b = getArguments();
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
-        tweetView = v.findViewById(R.id.status_tweet);
-        if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
-                || status.getInReplyToStatusId() > 0) {
-            tweetView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(getActivity(), TraceActivity.class);
-                    intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
-                            status.isRetweet()? status.getRetweetedStatus() : status);
-                    startActivity(intent);
-                }
-            });
-        }
 
-        ImageButton ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
+        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
+                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                        ((status.isRetweet())?status.getRetweetedStatus().getUser().getScreenName()
+                        ((status.isRetweet()) ? status.getRetweetedStatus().getUser().getScreenName()
                                 : status.getUser().getScreenName()) + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
@@ -111,7 +100,7 @@ public class StatusMainFragment extends TwitterFragment{
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet())?status.getRetweetedStatus() : status));
+                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 {
                     StringBuilder ids = new StringBuilder(
@@ -487,36 +476,61 @@ public class StatusMainFragment extends TwitterFragment{
             }
         });
 
-        TextView tvCounter = (TextView) v.findViewById(R.id.tv_state_counter);
-        int retweeted = status.isRetweet()? status.getRetweetedStatus().getRetweetCount() : status.getRetweetCount();
-        int faved = status.isRetweet()? status.getRetweetedStatus().getFavoriteCount() : status.getFavoriteCount();
-        String countRT = retweeted + "RT";
-        String countFav = faved + "Fav";
-        if (retweeted > 0 && faved > 0) {
-            tvCounter.setText(countRT + " " + countFav);
-            tvCounter.setVisibility(View.VISIBLE);
+        ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
+        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
         }
-        else if (retweeted > 0) {
-            tvCounter.setText(countRT);
-            tvCounter.setVisibility(View.VISIBLE);
-        }
-        else if (faved > 0) {
-            tvCounter.setText(countFav);
-            tvCounter.setVisibility(View.VISIBLE);
-        }
+        ibAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え");
+                startActivityForResult(intent, REQUEST_CHANGE);
+            }
+        });
 
         return v;
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                getActivity(),
-                (user != null)? user.toSingleList() : null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                PreformedStatus.class);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
+
+        ObjectAnimator.ofPropertyValuesHolder(ibReply,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta/2),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibQuote,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibShare,
+                PropertyValuesHolder.ofFloat("translationX", 0f, (delta/2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
     }
 
     @Override
@@ -525,15 +539,6 @@ public class StatusMainFragment extends TwitterFragment{
 
         if (currentDialog != null) {
             currentDialog.show();
-        }
-
-        if (status != null) {
-            getView().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL);
-                }
-            });
         }
     }
 
@@ -544,8 +549,7 @@ public class StatusMainFragment extends TwitterFragment{
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == REQUEST_REPLY) {
                 getActivity().finish();
-            }
-            else if (requestCode == REQUEST_RT_QUOTE) {
+            } else if (requestCode == REQUEST_RT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 new ParallelAsyncTask<TweetDraft, Void, Void>() {
                     @Override
@@ -557,8 +561,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel(draft);
-            }
-            else if (requestCode == REQUEST_FRT_QUOTE) {
+            } else if (requestCode == REQUEST_FRT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 new ParallelAsyncTask<TweetDraft, Void, Void>() {
                     @Override
@@ -571,8 +574,10 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel(draft);
-            }
-            else {
+            } else if (requestCode == REQUEST_CHANGE) {
+                user = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                loadProfileImage();
+            } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                 if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {
@@ -601,6 +606,39 @@ public class StatusMainFragment extends TwitterFragment{
         }
     }
 
+    private void loadProfileImage() {
+        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
+        } else {
+            new ThrowableTwitterAsyncTask<Long, String>(this) {
+                @Override
+                protected ThrowableResult<String> doInBackground(Long... params) {
+                    try {
+                        String url = getTwitterService().getTwitter().showUser(params[0]).getOriginalProfileImageURLHttps();
+                        return new ThrowableResult<>(url);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<String> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException() && !isCancelled()) {
+                        user.putSessionTemporary("OriginalProfileImageUrl", result.getResult());
+                        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, result.getResult());
+                    }
+                }
+
+                @Override
+                protected void showToast(String message) {
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                }
+            }.executeParallel(user.NumericId);
+        }
+    }
+
     @Override
     public void onServiceConnected() {
         if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
@@ -617,7 +655,7 @@ public class StatusMainFragment extends TwitterFragment{
             ibShare.setEnabled(false);
             ibQuote.setEnabled(false);
         }
-        viewConverter.setUserExtras(getTwitterService().getUserExtras());
+        loadProfileImage();
     }
 
     @Override

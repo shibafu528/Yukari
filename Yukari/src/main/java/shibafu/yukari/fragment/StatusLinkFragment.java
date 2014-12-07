@@ -73,6 +73,19 @@ public class StatusLinkFragment extends ListFragment{
     private List<LinkRow> list;
 
     @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+            case "light":
+                view.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "dark":
+                view.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                break;
+        }
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 

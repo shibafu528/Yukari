@@ -180,4 +180,10 @@
         <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music</item>
     </style>
 
+    <style name="YukariLightTheme.Translucent" parent="YukariLightTheme">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
 </resources>

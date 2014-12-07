@@ -3,9 +3,11 @@ package shibafu.yukari.twitter;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.support.v4.util.LongSparseArray;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import shibafu.yukari.database.CentralDatabase;
@@ -24,6 +26,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public boolean isWriter;
 	public AccessToken Token;
     public int AccountColor;
+
+    private static LongSparseArray<HashMap<String, Object>> sessionTemporary = new LongSparseArray<>();
 
     public AuthUserRecord(AccessToken token) {
         Token = token;
@@ -108,5 +112,27 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isActive = aur.isActive;
         isWriter = aur.isWriter;
         Token = aur.Token;
+    }
+
+    public Object getSessionTemporary(String key) {
+        if (sessionTemporary.indexOfKey(NumericId) < 0) {
+            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+        }
+        return sessionTemporary.get(NumericId).get(key);
+    }
+
+    public Object getSessionTemporary(String key, Object ifNull) {
+        if (sessionTemporary.indexOfKey(NumericId) < 0) {
+            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+        }
+        Object value = sessionTemporary.get(NumericId).get(key);
+        return value != null ? value : ifNull;
+    }
+
+    public void putSessionTemporary(String key, Object value) {
+        if (sessionTemporary.indexOfKey(NumericId) < 0) {
+            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+        }
+        sessionTemporary.get(NumericId).put(key, value);
     }
 }
