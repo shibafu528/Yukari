@@ -8,6 +8,23 @@
     android:layout_marginBottom="16dp"
     android:minHeight="240dp">
 
+    <TextView
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:text="&lt; Link"
+        android:layout_gravity="left|bottom"
+        android:background="@drawable/bg_tips"
+        android:textColor="#999" />
+
+    <TextView
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:text="Action &gt;"
+        android:layout_gravity="right|bottom"
+        android:background="@drawable/bg_tips"
+        android:textColor="#999"
+        android:gravity="right" />
+
     <ImageButton
         android:id="@+id/ib_state_account"
         android:layout_width="@dimen/status_button_size"
