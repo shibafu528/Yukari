@@ -126,7 +126,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                 Toast.makeText(getActivity(), "リンクをコピーしました", Toast.LENGTH_SHORT).show();
                 break;
             case 2:
-                getTwitterService().getDatabase().updateBookmark(new Bookmark(status));
+                getTwitterService().getDatabase().updateRecord(new Bookmark(status));
                 Toast.makeText(getActivity(), "ブックマークしました", Toast.LENGTH_SHORT).show();
                 break;
             case 3:
@@ -156,7 +156,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                                         @Override
                                         protected Void doInBackground(Void... params) {
                                             if (status instanceof Bookmark) {
-                                                getTwitterService().getDatabase().deleteBookmark(status.getId());
+                                                getTwitterService().getDatabase().deleteRecord((Bookmark) status);
                                             } else {
                                                 getTwitterService().destroyStatus(user, status.getId());
                                             }

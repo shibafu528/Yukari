@@ -169,12 +169,12 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                         }
                     }
                     ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateTab(new TabInfo(type, tabs.size() + 1, userRecord));
+                            .updateRecord(new TabInfo(type, tabs.size() + 1, userRecord));
                     reloadList();
                     break;
                 case TabType.TABTYPE_LIST:
                     ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateTab(new TabInfo(
+                            .updateRecord(new TabInfo(
                                     type,
                                     tabs.size() + 1,
                                     userRecord,
@@ -194,7 +194,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         public void onClick(DialogInterface dialog, int which) {
             if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
                 ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                        .deleteTab(deleteReserve.getId());
+                        .deleteRecord(deleteReserve);
                 reloadList();
                 Toast.makeText(getActivity(), "タブを削除しました", Toast.LENGTH_LONG).show();
             }

@@ -8,6 +8,7 @@ import java.util.Date;
 /**
  * Created by shibafu on 14/03/10.
  */
+@DBTable(CentralDatabase.TABLE_SEARCH_HISTORY)
 public class SearchHistory implements DBRecord{
     private long id = -1;
     private String query;

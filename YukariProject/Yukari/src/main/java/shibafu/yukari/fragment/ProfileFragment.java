@@ -963,7 +963,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 }
 
                 if (user != null) {
-                    getTwitterService().getDatabase().updateUser(new DBUser(user));
+                    getTwitterService().getDatabase().updateRecord(new DBUser(user));
                     if (loadHolder == null) {
                         loadHolder = new LoadHolder(user, null);
                     }

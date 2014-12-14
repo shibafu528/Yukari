@@ -385,7 +385,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         //DialogInterface.OnClickListener
         public void onClick(DialogInterface dialog, int which) {
             if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
-                getService().getDatabase().deleteSearchHistory(selected.getId());
+                getService().getDatabase().deleteRecord(selected);
                 Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
                 reloadHistory();
             }

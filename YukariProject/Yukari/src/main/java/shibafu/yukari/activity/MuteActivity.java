@@ -205,14 +205,14 @@ public class MuteActivity extends ActionBarYukariBase{
 
         public void updateMuteConfig(MuteConfig config) {
             TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
-            twitterService.getDatabase().updateMuteConfig(config);
+            twitterService.getDatabase().updateRecord(config);
             twitterService.updateMuteConfig();
 
             reloadList();
         }
 
         public void reloadList() {
-            configs = ((MuteActivity) getActivity()).getTwitterService().getDatabase().getMuteConfig();
+            configs = ((MuteActivity) getActivity()).getTwitterService().getDatabase().getRecords(MuteConfig.class);
             setListAdapter(new Adapter(getActivity(), configs));
         }
 
@@ -223,7 +223,7 @@ public class MuteActivity extends ActionBarYukariBase{
                     case DIALOG_DELETE:
                         if (deleteReserve != null) {
                             TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
-                            twitterService.getDatabase().deleteMuteConfig(deleteReserve.getId());
+                            twitterService.getDatabase().deleteRecord(deleteReserve);
                             twitterService.updateMuteConfig();
                             reloadList();
                             Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();

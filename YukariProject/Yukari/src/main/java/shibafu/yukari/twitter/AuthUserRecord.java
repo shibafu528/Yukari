@@ -12,8 +12,10 @@ import java.util.List;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
+import shibafu.yukari.database.DBTable;
 import twitter4j.auth.AccessToken;
 
+@DBTable(CentralDatabase.TABLE_ACCOUNTS)
 public class AuthUserRecord implements Serializable, DBRecord{
 	private static final long serialVersionUID = 1L;
 

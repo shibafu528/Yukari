@@ -110,9 +110,9 @@ public class StatusManager {
                 e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
             }
 
-            getDatabase().updateUser(new DBUser(status.getUser()));
-            getDatabase().updateUser(new DBUser(user));
-            getDatabase().updateUser(new DBUser(user2));
+            userUpdateDelayer.enqueue(status.getUser());
+            userUpdateDelayer.enqueue(user);
+            userUpdateDelayer.enqueue(user2);
 
             if (from.getUserRecord().NumericId == user.getId()) return;
 
@@ -142,7 +142,7 @@ public class StatusManager {
 
         @Override
         public void onDirectMessage(Stream from, DirectMessage directMessage) {
-            getDatabase().updateUser(new DBUser(directMessage.getSender()));
+            userUpdateDelayer.enqueue(directMessage.getSender());
             for (StatusListener sl : statusListeners) {
                 sl.onDirectMessage(from.getUserRecord(), directMessage);
             }
@@ -560,7 +560,7 @@ public class StatusManager {
                         getDatabase().beginTransaction();
                         try {
                             for (User user : work) {
-                                getDatabase().updateUser(new DBUser(user));
+                                getDatabase().updateRecord(new DBUser(user));
                             }
                             getDatabase().setTransactionSuccessful();
                         } finally {
