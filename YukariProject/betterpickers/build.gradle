@@ -10,7 +10,6 @@ android {
     buildToolsVersion "19.1.0"
 
     defaultConfig {
-        applicationId "com.doomonafireball.betterpickers"
         minSdkVersion 9
         targetSdkVersion 9
     }
