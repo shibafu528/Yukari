@@ -16,7 +16,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
  */
 @DBTable(CentralDatabase.TABLE_TABS)
 public class TabInfo implements DBRecord, Serializable {
-    private int id = -1;
+    private long id = -1;
     private int type;
     private int order;
     private AuthUserRecord bindAccount;
@@ -56,7 +56,7 @@ public class TabInfo implements DBRecord, Serializable {
     }
 
     public TabInfo(Cursor cursor) {
-        this.id = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_ID + "_t"));
+        this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_ID + "_t"));
         this.type = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TYPE));
         this.order = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TAB_ORDER));
         long accountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID));
@@ -90,7 +90,7 @@ public class TabInfo implements DBRecord, Serializable {
         return values;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
