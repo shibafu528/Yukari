@@ -17,6 +17,7 @@ import twitter4j.Status;
 /**
  * Created by shibafu on 14/11/02.
  */
+@DBTable(CentralDatabase.TABLE_BOOKMARKS)
 public class Bookmark extends PreformedStatus implements DBRecord{
     private Date saveDate;
 

@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import shibafu.yukari.R;
@@ -27,6 +28,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -131,7 +133,7 @@ public class TwitterService extends Service{
 
         //ミュート設定の読み込み
         suppressor = new Suppressor();
-        suppressor.setConfigs(database.getMuteConfig());
+        suppressor.setConfigs(database.getRecords(MuteConfig.class));
 
         //ステータスマネージャのセットアップ
         statusManager = new StatusManager(this);
@@ -140,7 +142,7 @@ public class TwitterService extends Service{
         reloadUsers();
 
         //ユーザー設定の読み込み
-        userExtras = database.getUserExtras(users);
+        userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
 
         //Twitterインスタンスの生成
         twitter = TwitterUtil.getTwitterInstance(this);
@@ -369,7 +371,7 @@ public class TwitterService extends Service{
         database.beginTransaction();
         try {
             for (AuthUserRecord aur : users) {
-                database.updateAccount(aur);
+                database.updateRecord(aur);
             }
             database.setTransactionSuccessful();
         } finally {
@@ -391,7 +393,7 @@ public class TwitterService extends Service{
         //削除以外のこれまでの変更を保存しておく
         storeUsers();
         //実際の削除を行う
-        database.deleteAccount(id);
+        database.deleteRecord(AuthUserRecord.class, id);
         //データベースからアカウントをリロードする
         reloadUsers();
     }
@@ -412,7 +414,7 @@ public class TwitterService extends Service{
             extras.setColor(color);
             userExtras.add(extras);
         }
-        database.updateUserExtras(extras);
+        database.updateRecord(extras);
     }
 
     public void setPriority(long id, AuthUserRecord userRecord) {
@@ -429,7 +431,7 @@ public class TwitterService extends Service{
             extras.setPriorityAccount(userRecord);
             userExtras.add(extras);
         }
-        database.updateUserExtras(extras);
+        database.updateRecord(extras);
     }
 
     public List<UserExtras> getUserExtras() {
@@ -483,7 +485,7 @@ public class TwitterService extends Service{
     }
 
     public void updateMuteConfig() {
-        suppressor.setConfigs(database.getMuteConfig());
+        suppressor.setConfigs(database.getRecords(MuteConfig.class));
     }
 
     //<editor-fold desc="投稿操作系">

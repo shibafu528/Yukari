@@ -7,12 +7,14 @@ import java.io.Serializable;
 
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
+import shibafu.yukari.database.DBTable;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by Shibafu on 13/12/30.
  */
+@DBTable(CentralDatabase.TABLE_TABS)
 public class TabInfo implements DBRecord, Serializable {
     private int id = -1;
     private int type;

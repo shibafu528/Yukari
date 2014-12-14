@@ -8,16 +8,13 @@ import java.io.Serializable;
 /**
  * Created by shibafu on 14/04/22.
  */
-public class MuteConfig implements DBRecord, Serializable {
+@DBTable(CentralDatabase.TABLE_MUTE)
+public class MuteConfig implements DBRecord, Serializable, MuteMatch {
     public static final int SCOPE_TEXT = 0;
     public static final int SCOPE_USER_NAME = 1;
     public static final int SCOPE_USER_SN = 2;
     public static final int SCOPE_USER_ID = 3;
     public static final int SCOPE_VIA = 4;
-
-    public static final int MATCH_EXACT = 0;
-    public static final int MATCH_PARTIAL = 1;
-    public static final int MATCH_REGEX = 2;
 
     public static final int MUTE_TWEET = 0;
     public static final int MUTE_TWEET_RTED = 1;

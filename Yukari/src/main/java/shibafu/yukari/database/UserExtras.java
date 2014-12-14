@@ -10,6 +10,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 /**
  * Created by shibafu on 14/10/04.
  */
+@DBTable(CentralDatabase.TABLE_USER_EXTRAS)
 public class UserExtras implements DBRecord {
     private long id;
     private int color;

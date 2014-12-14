@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 10;
+    public static final int DB_VER = 11;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -114,6 +116,13 @@ public class CentralDatabase {
     public static final String COL_MUTE_MUTE = "Mute";
     public static final String COL_MUTE_QUERY = "Query";
     public static final String COL_MUTE_EXPIRATION_TIME_MILLIS = "ExpirationTimeMillis"; //"ExpirationDate";
+
+    //AutoMuteテーブル
+    public static final String TABLE_AUTO_MUTE = "AutoMute";
+    public static final String COL_AUTO_MUTE_ID = "_id";
+    public static final String COL_AUTO_MUTE_MATCH = "Match";
+    public static final String COL_AUTO_MUTE_QUERY = "Query";
+    public static final String COL_AUTO_MUTE_TARGET_SN = "TargetScreenName";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -225,6 +234,13 @@ public class CentralDatabase {
                             COL_BOOKMARKS_SAVE_DATE + " INTEGER, " +
                             COL_BOOKMARKS_BLOB + " BLOB NOT NULL)"
             );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_AUTO_MUTE + " (" +
+                            COL_AUTO_MUTE_ID + " INTEGER PRIMARY KEY, " +
+                            COL_AUTO_MUTE_MATCH + " INTEGER, " +
+                            COL_AUTO_MUTE_QUERY + " TEXT, " +
+                            COL_AUTO_MUTE_TARGET_SN + " TEXT)"
+            );
         }
 
         @Override
@@ -319,12 +335,14 @@ public class CentralDatabase {
                 );
                 ++oldVersion;
             }
-        }
-
-        @Override
-        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (oldVersion == 10) {
-                db.execSQL("drop table " + TABLE_BOOKMARKS);
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_AUTO_MUTE + " (" +
+                                COL_AUTO_MUTE_ID + " INTEGER PRIMARY KEY, " +
+                                COL_AUTO_MUTE_MATCH + " INTEGER, " +
+                                COL_AUTO_MUTE_QUERY + " TEXT, " +
+                                COL_AUTO_MUTE_TARGET_SN + " TEXT)"
+                );
             }
         }
     }
@@ -368,10 +386,6 @@ public class CentralDatabase {
     }
 
     //<editor-fold desc="Users">
-    public void updateUser(DBUser user) {
-        db.replace(TABLE_USER, null, user.getContentValues());
-    }
-
     public DBUser getUser(long id) {
         Cursor c = db.query(TABLE_USER, null, COL_USER_ID + "=" + id, null, null, null, null);
         DBUser user = null;
@@ -470,14 +484,6 @@ public class CentralDatabase {
         }
         return primaryUser;
     }
-
-    public void updateAccount(AuthUserRecord aur) {
-        db.replace(TABLE_ACCOUNTS, null, aur.getContentValues());
-    }
-
-    public void deleteAccount(long id) {
-        db.delete(TABLE_ACCOUNTS, COL_ACCOUNTS_ID + "=" + id, null);
-    }
     //</editor-fold>
 
     //<editor-fold desc="Drafts">
@@ -531,21 +537,6 @@ public class CentralDatabase {
     }
     //</editor-fold>
 
-    //<editor-fold desc="Tabs">
-    public void updateTab(TabInfo tabInfo) {
-        ContentValues values = tabInfo.getContentValues();
-        if (values.containsKey(COL_TABS_ID)) {
-            db.replace(TABLE_TABS, null, values);
-        }
-        else {
-            db.insert(TABLE_TABS, null, values);
-        }
-    }
-
-    public void deleteTab(int id) {
-        db.delete(TABLE_TABS, COL_TABS_ID + "=" + id, null);
-    }
-
     public ArrayList<TabInfo> getTabs() {
         Cursor cursor = db.rawQuery("SELECT " + joinColumnName(TABLE_TABS, COL_TABS_ID) + " AS _id_t, * FROM " +
                 TABLE_TABS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
@@ -566,7 +557,6 @@ public class CentralDatabase {
         }
         return tabs;
     }
-    //</editor-fold>
 
     //<editor-fold desc="SearchHistory">
     public List<SearchHistory> getSearchHistories() {
@@ -590,33 +580,7 @@ public class CentralDatabase {
                         " ORDER BY " + COL_SHISTORY_DATE + " DESC LIMIT -1 OFFSET 10)"
         );
     }
-
-    public void deleteSearchHistory(long id) {
-        db.delete(TABLE_SEARCH_HISTORY, COL_SHISTORY_ID + "=" + id, null);
-    }
     //</editor-fold>
-
-    //<editor-fold desc="Mute">
-    public List<MuteConfig> getMuteConfig() {
-        List<MuteConfig> muteConfigs = new ArrayList<>();
-        Cursor cursor = db.query(TABLE_MUTE, null, null, null, null, null, null);
-        try {
-            if (cursor.moveToFirst()) do {
-                muteConfigs.add(new MuteConfig(cursor));
-            } while (cursor.moveToNext());
-        } finally {
-            cursor.close();
-        }
-        return muteConfigs;
-    }
-
-    public void updateMuteConfig(MuteConfig muteConfig) {
-        db.replace(TABLE_MUTE, null, muteConfig.getContentValues());
-    }
-
-    public void deleteMuteConfig(long id) {
-        db.delete(TABLE_MUTE, COL_MUTE_ID + "=" + id, null);
-    }
 
     public void importMuteConfigs(List<MuteConfig> muteConfigs) {
         beginTransaction();
@@ -629,36 +593,6 @@ public class CentralDatabase {
         } finally {
             endTransaction();
         }
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="UserExtras">
-    public List<UserExtras> getUserExtras(Collection<AuthUserRecord> userRecords) {
-        List<UserExtras> userExtras = new ArrayList<>();
-        Cursor cursor = db.query(TABLE_USER_EXTRAS, null, null, null, null, null, null);
-        try {
-            if (cursor.moveToFirst()) do {
-                userExtras.add(new UserExtras(cursor, userRecords));
-            } while (cursor.moveToNext());
-        } finally {
-            cursor.close();
-        }
-        return userExtras;
-    }
-
-    public void updateUserExtras(UserExtras userExtras) {
-        db.replace(TABLE_USER_EXTRAS, null, userExtras.getContentValues());
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="Bookmarks">
-    public void updateBookmark(Bookmark bookmark) {
-        ContentValues values = bookmark.getContentValues();
-        db.replace(TABLE_BOOKMARKS, null, values);
-    }
-
-    public void deleteBookmark(long id) {
-        db.delete(TABLE_BOOKMARKS, COL_BOOKMARKS_ID + "=" + id, null);
     }
 
     public ArrayList<Bookmark> getBookmarks() {
@@ -678,6 +612,92 @@ public class CentralDatabase {
             cursor.close();
         }
         return bookmarks;
+    }
+
+    //<editor-fold desc="Common Interface">
+    public <T extends DBRecord> List<T> getRecords(Class<T> tableClass) {
+        List<T> records = new ArrayList<>();
+        DBTable annotation = tableClass.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(tableClass.getName() + " is not annotated DBTable.");
+        }
+        Cursor cursor = db.query(annotation.value(), null, null, null, null, null, null);
+        try {
+            Constructor<T> constructor = tableClass.getConstructor(Cursor.class);
+            if (cursor.moveToFirst()) do {
+                records.add(constructor.newInstance(cursor));
+            } while (cursor.moveToNext());
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            cursor.close();
+        }
+        return records;
+    }
+
+    public <T extends DBRecord> List<T> getRecords(final Class<T> tableClass, final Class<?>[] constructorClasses, final Object... constructorArguments) {
+        final List<T> records = new ArrayList<>();
+        DBTable annotation = tableClass.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(tableClass.getName() + " is not annotated DBTable.");
+        }
+        if (constructorClasses == null) {
+            throw new IllegalArgumentException("constructorClasses == 0");
+        }
+        final Cursor cursor = db.query(annotation.value(), null, null, null, null, null, null);
+        try {
+            Object[] args = new ArrayList<Object>(constructorArguments.length + 1) {{
+                add(cursor);
+                addAll(Arrays.asList(constructorArguments));
+            }}.toArray(new Object[constructorArguments.length + 1]);
+            Class<?>[] classes = new ArrayList<Class<?>>(constructorClasses.length + 1) {{
+                add(Cursor.class);
+                addAll(Arrays.asList(constructorClasses));
+            }}.toArray(new Class<?>[constructorClasses.length + 1]);
+            Constructor<T> constructor = tableClass.getConstructor(classes);
+            if (cursor.moveToFirst()) do {
+                records.add(constructor.newInstance(args));
+            } while (cursor.moveToNext());
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            cursor.close();
+        }
+        return records;
+    }
+
+    public void updateRecord(DBRecord record) {
+        Class<? extends DBRecord> clz = record.getClass();
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        db.replace(annotation.value(), null, record.getContentValues());
+    }
+
+    public void deleteRecord(DBRecord record) {
+        Class<? extends DBRecord> clz = record.getClass();
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        try {
+            Long id = (Long) clz.getMethod(annotation.deleteKeyMethodName()).invoke(record);
+            db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void deleteRecord(Class<? extends DBRecord> clz, long id) {
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
     }
     //</editor-fold>
 

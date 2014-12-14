@@ -268,7 +268,7 @@ public class OAuthActivity extends YukariBase {
                     CentralDatabase database = getTwitterService().getDatabase();
                     database.addAccount(userRecord);
                     User user = twitter.showUser(accessToken.getUserId());
-                    database.updateUser(new DBUser(user));
+                    database.updateRecord(new DBUser(user));
 
                     getTwitterService().reloadUsers();
                     return true;

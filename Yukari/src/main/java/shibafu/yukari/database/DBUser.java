@@ -18,6 +18,7 @@ import twitter4j.User;
 /**
  * Created by Shibafu on 13/12/20.
  */
+@DBTable(CentralDatabase.TABLE_USER)
 public class DBUser implements User, DBRecord {
     private long id;
     private String screenName;
