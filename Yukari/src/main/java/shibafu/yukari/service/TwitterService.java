@@ -27,6 +27,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
@@ -133,10 +134,13 @@ public class TwitterService extends Service{
 
         //ミュート設定の読み込み
         suppressor = new Suppressor();
-        suppressor.setConfigs(database.getRecords(MuteConfig.class));
+        updateMuteConfig();
 
         //ステータスマネージャのセットアップ
         statusManager = new StatusManager(this);
+
+        //オートミュート設定の読み込み
+        updateAutoMuteConfig();
 
         //ユーザデータのロード
         reloadUsers();
@@ -486,6 +490,10 @@ public class TwitterService extends Service{
 
     public void updateMuteConfig() {
         suppressor.setConfigs(database.getRecords(MuteConfig.class));
+    }
+
+    public void updateAutoMuteConfig() {
+        statusManager.setAutoMuteConfigs(database.getRecords(AutoMuteConfig.class));
     }
 
     //<editor-fold desc="投稿操作系">

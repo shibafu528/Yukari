@@ -146,6 +146,14 @@ public class ConfigActivity extends PreferenceActivity {
             }
         });
 
+        findPreference("pref_auto_mute").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                startActivity(new Intent(ConfigActivity.this, AutoMuteActivity.class));
+                return true;
+            }
+        });
+
         findPreference("pref_font").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {

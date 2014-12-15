@@ -3,27 +3,26 @@ package shibafu.yukari.database;
 import android.content.ContentValues;
 import android.database.Cursor;
 
+import java.io.Serializable;
+
 /**
  * Created by shibafu on 14/12/14.
  */
 @DBTable(CentralDatabase.TABLE_AUTO_MUTE)
-public class AutoMuteConfig implements DBRecord, MuteMatch {
+public class AutoMuteConfig implements DBRecord, Serializable, MuteMatch {
     private long id = -1;
     private int match; //マッチング方法
     private String query; //検査クエリ
-    private String targetScreenName; //ターゲットSN
 
-    public AutoMuteConfig(int match, String query, String targetScreenName) {
+    public AutoMuteConfig(int match, String query) {
         this.match = match;
         this.query = query;
-        this.targetScreenName = targetScreenName;
     }
 
     public AutoMuteConfig(Cursor cursor) {
         id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_AUTO_MUTE_ID));
         match = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_AUTO_MUTE_MATCH));
         query = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_AUTO_MUTE_QUERY));
-        targetScreenName = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_AUTO_MUTE_TARGET_SN));
     }
 
     public long getId() {
@@ -46,15 +45,7 @@ public class AutoMuteConfig implements DBRecord, MuteMatch {
         this.query = query;
     }
 
-    public String getTargetScreenName() {
-        return targetScreenName;
-    }
-
-    public void setTargetScreenName(String targetScreenName) {
-        this.targetScreenName = targetScreenName;
-    }
-
-    public MuteConfig getMuteConfig(long expirationTimeMillis) {
+    public MuteConfig getMuteConfig(String targetScreenName, long expirationTimeMillis) {
         return new MuteConfig(MuteConfig.SCOPE_USER_SN,
                 MuteConfig.MATCH_EXACT,
                 MuteConfig.MUTE_TWEET,
@@ -70,7 +61,6 @@ public class AutoMuteConfig implements DBRecord, MuteMatch {
         }
         values.put(CentralDatabase.COL_AUTO_MUTE_MATCH, match);
         values.put(CentralDatabase.COL_AUTO_MUTE_QUERY, query);
-        values.put(CentralDatabase.COL_AUTO_MUTE_TARGET_SN, targetScreenName);
         return values;
     }
 }

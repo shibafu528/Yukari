@@ -122,7 +122,6 @@ public class CentralDatabase {
     public static final String COL_AUTO_MUTE_ID = "_id";
     public static final String COL_AUTO_MUTE_MATCH = "Match";
     public static final String COL_AUTO_MUTE_QUERY = "Query";
-    public static final String COL_AUTO_MUTE_TARGET_SN = "TargetScreenName";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -238,8 +237,7 @@ public class CentralDatabase {
                     "CREATE TABLE " + TABLE_AUTO_MUTE + " (" +
                             COL_AUTO_MUTE_ID + " INTEGER PRIMARY KEY, " +
                             COL_AUTO_MUTE_MATCH + " INTEGER, " +
-                            COL_AUTO_MUTE_QUERY + " TEXT, " +
-                            COL_AUTO_MUTE_TARGET_SN + " TEXT)"
+                            COL_AUTO_MUTE_QUERY + " TEXT)"
             );
         }
 
@@ -340,8 +338,7 @@ public class CentralDatabase {
                         "CREATE TABLE " + TABLE_AUTO_MUTE + " (" +
                                 COL_AUTO_MUTE_ID + " INTEGER PRIMARY KEY, " +
                                 COL_AUTO_MUTE_MATCH + " INTEGER, " +
-                                COL_AUTO_MUTE_QUERY + " TEXT, " +
-                                COL_AUTO_MUTE_TARGET_SN + " TEXT)"
+                                COL_AUTO_MUTE_QUERY + " TEXT)"
                 );
             }
         }
@@ -675,6 +672,67 @@ public class CentralDatabase {
             throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
         }
         db.replace(annotation.value(), null, record.getContentValues());
+    }
+
+    public <T extends DBRecord> void updateRecord(List<T> records) {
+        if (records.isEmpty()) {
+            return;
+        }
+        Class<? extends DBRecord> clz = records.get(0).getClass();
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        beginTransaction();
+        try {
+            for (DBRecord record : records) {
+                db.replace(annotation.value(), null, record.getContentValues());
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
+    }
+
+    public <T extends DBRecord> void updateRecord(T[] records) {
+        if (records.length < 1) {
+            return;
+        }
+        Class<? extends DBRecord> clz = records[0].getClass();
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        beginTransaction();
+        try {
+            for (DBRecord record : records) {
+                db.replace(annotation.value(), null, record.getContentValues());
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
+    }
+
+    public <T extends DBRecord> void importRecords(List<T> records) {
+        if (records.isEmpty()) {
+            return;
+        }
+        Class<? extends DBRecord> clz = records.get(0).getClass();
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        beginTransaction();
+        try {
+            db.delete(annotation.value(), null, null);
+            for (DBRecord record : records) {
+                db.insert(annotation.value(), null, record.getContentValues());
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
     }
 
     public void deleteRecord(DBRecord record) {

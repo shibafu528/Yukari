@@ -67,6 +67,10 @@
             android:key="pref_mute"
             android:title="ミュート設定"
             android:summary="条件を指定してツイートや通知などを非表示にします"/>
+        <Preference
+            android:key="pref_auto_mute"
+            android:title="オートミュート設定"
+            android:summary="指定した条件にヒットする発言をしたユーザを1時間ミュートする設定を行います"/>
         <CheckBoxPreference
             android:key="pref_filter_official"
             android:defaultValue="true"
