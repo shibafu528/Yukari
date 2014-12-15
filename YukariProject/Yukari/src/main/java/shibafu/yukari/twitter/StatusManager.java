@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
@@ -37,6 +40,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
@@ -81,6 +85,7 @@ public class StatusManager {
 
     private TwitterService service;
     private Suppressor suppressor;
+    private List<AutoMuteConfig> autoMuteConfigs;
 
     private Context context;
     private NotificationManager notificationManager;
@@ -408,6 +413,35 @@ public class StatusManager {
                     }
 
                     PreformedStatus preformedStatus = new PreformedStatus(status, user);
+
+                    //オートミュート判定を行う
+                    AutoMuteConfig autoMute = null;
+                    for (AutoMuteConfig config : autoMuteConfigs) {
+                        boolean match = false;
+                        switch (config.getMatch()) {
+                            case AutoMuteConfig.MATCH_EXACT:
+                                match = preformedStatus.getText().equals(config.getQuery());
+                                break;
+                            case AutoMuteConfig.MATCH_PARTIAL:
+                                match = preformedStatus.getText().contains(config.getQuery());
+                                break;
+                            case AutoMuteConfig.MATCH_REGEX:
+                                try {
+                                    Pattern pattern = Pattern.compile(config.getQuery());
+                                    Matcher matcher = pattern.matcher(preformedStatus.getText());
+                                    match = matcher.find();
+                                } catch (PatternSyntaxException ignore) {}
+                                break;
+                        }
+                        if (match) {
+                            autoMute = config;
+                        }
+                    }
+                    if (autoMute != null) {
+                        Log.d(LOG_TAG, "AutoMute! : @" + preformedStatus.getSourceUser().getScreenName());
+                        getDatabase().updateRecord(autoMute.getMuteConfig(preformedStatus.getSourceUser().getScreenName(), System.currentTimeMillis() + 3600000));
+                        service.updateMuteConfig();
+                    }
 
                     //ミュートチェックを行う
                     boolean[] mute = suppressor.decision(preformedStatus);
@@ -811,5 +845,9 @@ public class StatusManager {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
+        this.autoMuteConfigs = autoMuteConfigs;
     }
 }

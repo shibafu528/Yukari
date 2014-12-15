@@ -26,6 +26,7 @@
     <string name="title_activity_column_edit">タブの編集</string>
     <string name="title_activity_open_aclog">このツイートのaclogを開く</string>
     <string name="title_activity_mute">ミュート設定</string>
+    <string name="title_activity_auto_mute">オートミュート設定</string>
     <string name="title_activity_user_search">ユーザー検索</string>
     <string name="title_activity_font_selector">フォント設定</string>
 
