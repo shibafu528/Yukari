@@ -23,6 +23,7 @@ dependencies {
     compile 'com.larswerkman:HoloColorPicker:1.4'
 
     compile project(':GalleryMultiPicker:library')
+    compile project(':twpfparser')
 
     compile fileTree(dir: './libs', includes: ['*.jar'])
 }
