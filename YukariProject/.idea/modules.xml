@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/YukariProject.iml" filepath="$PROJECT_DIR$/YukariProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/betterpickers/betterpickers.iml" filepath="$PROJECT_DIR$/betterpickers/betterpickers.iml" />
       <module fileurl="file://$PROJECT_DIR$/GalleryMultiPicker/library/library.iml" filepath="$PROJECT_DIR$/GalleryMultiPicker/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/twpfparser/twpfparser.iml" filepath="$PROJECT_DIR$/twpfparser/twpfparser.iml" />
     </modules>
   </component>
 </project>

@@ -1,3 +1,6 @@
 [submodule "YukariProject/GalleryMultiPicker"]
 	path = YukariProject/GalleryMultiPicker
 	url = git@github.com:shibafu528/GalleryMultiPicker.git
+[submodule "YukariProject/twpfparser"]
+	path = YukariProject/twpfparser
+	url = https://github.com/shibafu528/twpfparser.git
