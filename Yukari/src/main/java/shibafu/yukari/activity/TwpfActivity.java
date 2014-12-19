@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -140,8 +142,10 @@ public class TwpfActivity extends ActionBarYukariBase {
             ImageLoaderTask.loadProfileIcon(getActivity(), ivProfileIcon, profile.getProfileImageUrl());
             tvName.setText(profile.getName());
             tvScreenName.setText(profile.getScreenName());
-            tvDescription.setText(profile.getBiography());
-            tvLongDescription.setText(profile.getMoreBiography());
+            tvDescription.setMovementMethod(LinkMovementMethod.getInstance());
+            tvDescription.setText(Html.fromHtml(profile.getBiographyHtml()));
+            tvLongDescription.setMovementMethod(LinkMovementMethod.getInstance());
+            tvLongDescription.setText(Html.fromHtml(profile.getMoreBiographyHtml()));
             tvLocation.setText(profile.getLocation());
             tvWeb.setText(profile.getWeb());
             setTags(tvPersonalTags, profile.getPersonalTags(), TAG_TARGET_PERSONAL);
@@ -160,7 +164,7 @@ public class TwpfActivity extends ActionBarYukariBase {
             }
             textView.setText(sb);
             for (String tag : tags) {
-                Linkify.addLinks(textView, Pattern.compile(tag), "http://twpf.jp/search/profile?target=" + target + "&keyword=");
+                Linkify.addLinks(textView, Pattern.compile(Pattern.quote(tag)), "http://twpf.jp/search/profile?target=" + target + "&keyword=");
             }
         }
     }
