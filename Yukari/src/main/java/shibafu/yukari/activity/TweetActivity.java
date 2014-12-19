@@ -69,7 +69,7 @@ import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
-import shibafu.yukari.util.BitmapResizer;
+import shibafu.yukari.util.BitmapUtil;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
@@ -1092,7 +1092,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         pic.uri = uri;
         try {
             int[] size = new int[2];
-            Bitmap bmp = BitmapResizer.resizeBitmap(this, uri, 256, 256, size);
+            Bitmap bmp = BitmapUtil.resizeBitmap(this, uri, 256, 256, size);
             pic.width = size[0];
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);

@@ -21,6 +21,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
+import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
@@ -386,7 +387,7 @@ public class TweetAdapterWrap {
                 }
                 hidden |= st.isCensoredThumbs();
 
-                if (!hidden) {
+                if (!hidden || getPreferences().getBoolean("pref_prev_mosaic", false)) {
                     List<LinkMedia> mediaList = st.getMediaLinkList();
                     int mlSize = mediaList.size();
                     if (mlSize > 0) {
@@ -409,7 +410,11 @@ public class TweetAdapterWrap {
                                 iv.setVisibility(View.VISIBLE);
                             }
                             iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                            ImageLoaderTask.loadBitmap(getContext(), iv, media.getThumbURL());
+                            ImageLoaderTask.loadBitmap(getContext(),
+                                    iv,
+                                    media.getThumbURL(),
+                                    BitmapCache.IMAGE_CACHE,
+                                    hidden && getPreferences().getBoolean("pref_prev_mosaic", false));
 
                             if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview()) {
                                 iv.setOnClickListener(new View.OnClickListener() {
