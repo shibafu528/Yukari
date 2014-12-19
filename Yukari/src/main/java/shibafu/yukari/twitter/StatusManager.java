@@ -49,6 +49,7 @@ import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
@@ -93,6 +94,9 @@ public class StatusManager {
     private AudioManager audioManager;
     private SharedPreferences sharedPreferences;
     private Handler handler;
+
+    //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
+    private LongSparseArray<PreformedStatus> retweetResponseStandBy = new LongSparseArray<>();
 
     //キャッシュ
     private HashCache hashCache;
@@ -222,6 +226,9 @@ public class StatusManager {
                 case R.integer.notification_message:
                     prefValue = sharedPreferences.getInt("pref_notif_dm", 5);
                     break;
+                case R.integer.notification_respond:
+                    prefValue = sharedPreferences.getInt("pref_notif_respond", 0);
+                    break;
             }
             NotificationType notificationType = new NotificationType(prefValue);
 
@@ -256,6 +263,13 @@ public class StatusManager {
                         icon = R.drawable.ic_stat_message;
                         titleHeader = "Message from @";
                         tickerHeader = "DM : @";
+                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+                        pattern = VIB_REPLY;
+                        break;
+                    case R.integer.notification_respond:
+                        icon = R.drawable.ic_stat_reply;
+                        titleHeader = "RT-Respond from @";
+                        tickerHeader = "RTレスポンス : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                         pattern = VIB_REPLY;
                         break;
@@ -295,6 +309,15 @@ public class StatusManager {
                                                 context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
                             }
+                            break;
+                        }
+                        case R.integer.notification_respond:
+                        {
+                            Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
+                            intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(
+                                    context.getApplicationContext(), R.integer.notification_respond, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                            builder.setContentIntent(pendingIntent);
                             break;
                         }
                         case R.integer.notification_message:
@@ -452,14 +475,25 @@ public class StatusManager {
                     boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
                             (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                             (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
+                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, "realtime");
+                    PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
+                    if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
+                            !preformedStatus.isRetweet() &&
+                            standByStatus != null && !preformedStatus.getText().startsWith("@")) {
+                        //Status is RT-Respond
+                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
+                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
+                        showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
+                    }
                     for (StatusListener sl : statusListeners) {
                         if (deliver(sl, from)) {
-                            sl.onStatus(user, new MetaStatus(preformedStatus, "realtime"), muted);
+                            sl.onStatus(user, deliverStatus, muted);
                         }
                     }
+                    deliverStatus = (deliverStatus instanceof MetaStatus)? new MetaStatus(preformedStatus, "queued") : deliverStatus;
                     for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                         if (deliver(e.getKey(), from)) {
-                            e.getValue().offer(new EventBuffer(user, new MetaStatus(preformedStatus, "queued"), muted));
+                            e.getValue().offer(new EventBuffer(user, deliverStatus, muted));
                         }
                     }
 
@@ -468,6 +502,9 @@ public class StatusManager {
                             status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                             checkOwn == null) {
                         showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+
+                        //Put Response Stand-By
+                        retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
                     }
                     else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
                         UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
