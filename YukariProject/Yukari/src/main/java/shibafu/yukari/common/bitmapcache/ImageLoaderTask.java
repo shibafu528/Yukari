@@ -16,6 +16,7 @@ import java.net.URL;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.util.BitmapUtil;
 
 /**
  * Created by Shibafu on 13/10/28.
@@ -31,7 +32,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
         tag = imageView.getTag().toString();
     }
 
-    static Bitmap loadBitmapInternal(Context context, String uri, String mode) {
+    static Bitmap loadBitmapInternal(Context context, String uri, String mode, boolean mosaic) {
         if (context == null) return null;
         try {
             Bitmap image = BitmapCache.getImageFromDisk(uri, BitmapCache.IMAGE_CACHE, context);
@@ -65,6 +66,11 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 //キャッシュに保存
                 BitmapCache.putImage(uri, image, context, mode);
             }
+            if (mosaic) {
+                Bitmap mosaicBitmap = BitmapUtil.createMosaic(image);
+                image.recycle();
+                image = mosaicBitmap;
+            }
             return image;
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,7 +80,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
 
     @Override
     protected Bitmap doInBackground(Params... params) {
-        return loadBitmapInternal(context, params[0].getUri(), params[0].getMode());
+        return loadBitmapInternal(context, params[0].getUri(), params[0].getMode(), params[0].getMosaic());
     }
 
     private ImageView getImageViewInstance() {
@@ -105,10 +111,10 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     }
 
     public static void loadBitmap(Context context, ImageView imageView, String uri) {
-        loadBitmap(context, imageView, uri, BitmapCache.IMAGE_CACHE);
+        loadBitmap(context, imageView, uri, BitmapCache.IMAGE_CACHE, false);
     }
 
-    public static void loadBitmap(Context context, ImageView imageView, String uri, String mode) {
+    public static void loadBitmap(Context context, ImageView imageView, String uri, String mode, boolean mosaic) {
         imageView.setTag(uri);
         if (uri == null) {
             imageView.setImageResource(R.drawable.ic_states_warning);
@@ -119,7 +125,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 imageView.setImageBitmap(cache);
             } else {
                 imageView.setImageResource(R.drawable.yukatterload);
-                new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri));
+                new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri, mosaic));
             }
         }
     }
@@ -134,7 +140,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 protected void onPostExecute(Bitmap bitmap) {
                     callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
                 }
-            }.executeParallel(new Params(mode, uri));
+            }.executeParallel(new Params(mode, uri, false));
         }
     }
 
@@ -145,10 +151,12 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     static class Params {
         private String mode;
         private String uri;
+        private boolean mosaic;
 
-        private Params(String mode, String uri) {
+        private Params(String mode, String uri, boolean mosaic) {
             this.mode = mode;
             this.uri = uri;
+            this.mosaic = mosaic;
         }
 
         public String getMode() {
@@ -157,6 +165,10 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
 
         public String getUri() {
             return uri;
+        }
+
+        public boolean getMosaic() {
+            return mosaic;
         }
     }
 }

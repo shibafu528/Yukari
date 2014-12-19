@@ -16,7 +16,7 @@ import java.io.InputStream;
 /**
  * Created by Shibafu on 13/08/04.
  */
-public class BitmapResizer {
+public class BitmapUtil {
 
     /**
      * 指定Uriの画像データを縮小します
@@ -110,5 +110,13 @@ public class BitmapResizer {
             default:
                 return -1;
         }
+    }
+
+    public static Bitmap createMosaic(Bitmap src) {
+        Bitmap minimized = Bitmap.createScaledBitmap(src, 16, 16, false);
+        Bitmap resized = Bitmap.createScaledBitmap(minimized, src.getWidth(), src.getHeight(), false);
+        minimized.recycle();
+
+        return resized;
     }
 }

@@ -26,7 +26,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.util.BitmapResizer;
+import shibafu.yukari.util.BitmapUtil;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 
@@ -142,14 +142,14 @@ public class PostService extends IntentService{
                             InputStream is;
                             int[] size = new int[2];
                             try {
-                                Bitmap thumb = BitmapResizer.resizeBitmap(this, u, 128, 128, size);
+                                Bitmap thumb = BitmapUtil.resizeBitmap(this, u, 128, 128, size);
                                 thumb.recycle();
                             } catch (IOException | NullPointerException e) {
                                 throw new IOException(e);
                             }
                             if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
                                 Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
-                                Bitmap resized = BitmapResizer.resizeBitmap(
+                                Bitmap resized = BitmapUtil.resizeBitmap(
                                         this,
                                         u,
                                         imageResizeLength,

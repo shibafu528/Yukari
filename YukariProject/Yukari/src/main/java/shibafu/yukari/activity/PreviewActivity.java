@@ -42,7 +42,7 @@ import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.util.BitmapResizer;
+import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -245,7 +245,7 @@ public class PreviewActivity extends FragmentYukariBase {
                 int exifRotate = 0;
                 if (url.startsWith("content://")) {
                     try {
-                        exifRotate = BitmapResizer.getExifRotate(getApplicationContext(), Uri.parse(url));
+                        exifRotate = BitmapUtil.getExifRotate(getApplicationContext(), Uri.parse(url));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

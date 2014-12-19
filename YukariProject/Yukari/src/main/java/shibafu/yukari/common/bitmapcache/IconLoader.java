@@ -80,7 +80,7 @@ public class IconLoader {
                 if (!request.isAvailable()) continue;
 
                 request.setBitmap(ImageLoaderTask.loadBitmapInternal(
-                        request.getContext(), request.getUri(), BitmapCache.PROFILE_ICON_CACHE));
+                        request.getContext(), request.getUri(), BitmapCache.PROFILE_ICON_CACHE, false));
 
                 Message msg = new Message();
                 msg.obj = request;
