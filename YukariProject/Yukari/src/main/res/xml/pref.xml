@@ -121,6 +121,11 @@
             android:title="メッセージ通知"
             android:summary="ダイレクトメッセージを受信した際に通知します"
             android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_respond"
+            android:title="RTレスポンス通知"
+            android:summary="RTに対する反応を受信した際に通知します"
+            android:defaultValue="0"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="投稿設定">

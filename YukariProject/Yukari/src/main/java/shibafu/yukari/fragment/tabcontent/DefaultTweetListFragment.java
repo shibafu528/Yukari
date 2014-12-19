@@ -25,6 +25,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
@@ -36,6 +37,7 @@ import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import twitter4j.DirectMessage;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
@@ -70,6 +72,14 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private MenuItem miUnsubscriveList;
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
+
+    private SharedPreferences preferences;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -459,8 +469,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
         if ((getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION)
                 && users.contains(from) && !elements.contains(status)) {
-            if (getMode() == TabType.TABTYPE_MENTION &&
-                    (!status.isMentionedToMe() || status.isRetweet())) return;
+            if (getMode() == TabType.TABTYPE_MENTION) {
+                boolean rtRespond = status instanceof RespondNotifyStatus;
+                if (rtRespond && !new NotificationType(preferences.getInt("pref_notif_respond", 0)).isEnabled()) return;
+                else if (!rtRespond && (!status.isMentionedToMe() || status.isRetweet())) return;
+            }
 
             if (muted) {
                 stash.add(status);

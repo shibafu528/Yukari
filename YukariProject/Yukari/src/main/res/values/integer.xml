@@ -5,6 +5,7 @@
     <integer name="notification_retweeted">3</integer>
     <integer name="notification_replied">4</integer>
     <integer name="notification_message">5</integer>
+    <integer name="notification_respond">6</integer>
 
     <integer name="grid_columns_num">3</integer>
 </resources>
