@@ -147,6 +147,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 loader.execute(loader.new Params(userRecord));
                 break;
             case LOADER_LOAD_MORE:
+                addLimitCount(100);
                 loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
