@@ -129,6 +129,10 @@
 
     <PreferenceCategory android:title="投稿設定">
         <CheckBoxPreference
+            android:key="pref_save_tags"
+            android:title="実況モード"
+            android:summary="最後に入力したハッシュタグを保持します"/>
+        <CheckBoxPreference
             android:key="pref_use_binded_user"
             android:title="タブのアカウントを使う"
             android:summary="表示中のタブに紐付いたアカウントが選ばれた状態で投稿画面を開きます\nマルチタイムラインと検索では機能しません"
