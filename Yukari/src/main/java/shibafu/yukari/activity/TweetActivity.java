@@ -25,6 +25,7 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -42,6 +43,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
 
 import java.io.File;
@@ -306,6 +309,19 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
         } else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
+        }
+        if (sp.getBoolean("pref_save_tags", false)) {
+            List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>(){}.getType());
+            StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText)? "" : defaultText);
+            sb.append(" ");
+            for (String tag : tags) {
+                if (sb.length() > 1) {
+                    sb.append(" ");
+                }
+                sb.append("#");
+                sb.append(tag);
+            }
+            defaultText = sb.toString();
         }
         etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
         int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
@@ -1024,6 +1040,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     protected void onStop() {
         if (useStoredWriters && isTwitterServiceBound() && getTwitterService() != null) {
             getTwitterService().setWriterUsers(writers);
+        }
+        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("pref_save_tags", false)) {
+            List<String> strings = EXTRACTOR.extractHashtags(etInput.getText().toString());
+            String json = new Gson().toJson(strings);
+            PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
+                    .edit()
+                    .putString("pref_saved_tags", json)
+                    .commit();
         }
         super.onStop();
     }
