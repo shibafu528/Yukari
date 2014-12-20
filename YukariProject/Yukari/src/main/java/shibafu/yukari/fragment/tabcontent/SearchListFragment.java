@@ -58,6 +58,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 break;
             case LOADER_LOAD_MORE:
                 if (nextQuery != null) {
+                    addLimitCount(100);
                     restLoader.execute(restLoader.new Params(userRecord, nextQuery));
                 }
                 break;

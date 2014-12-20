@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 import shibafu.yukari.R;
@@ -55,6 +56,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected ArrayList<T> elements = new ArrayList<>();
     protected ListView listView;
     protected TweetAdapterWrap adapterWrap;
+
+    //Elements Limit
+    private boolean limitedTimeline;
+    private int limitCount = 256;
 
     //Unread Set
     private long lastShowedFirstItemId = -1;
@@ -251,6 +256,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 getActivity().setTitle(title);
             }
         }
+
+        limitedTimeline = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_limited_timeline", false);
     }
 
     @Override
@@ -318,6 +325,26 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         return handler;
     }
 
+    public boolean isLimitedTimeline() {
+        return limitedTimeline;
+    }
+
+    public void setLimitedTimeline(boolean limitedTimeline) {
+        this.limitedTimeline = limitedTimeline;
+    }
+
+    public int getLimitCount() {
+        return limitCount;
+    }
+
+    public void setLimitCount(int limitCount) {
+        this.limitCount = limitCount;
+    }
+
+    public void addLimitCount(int limitCount) {
+        this.limitCount += limitCount;
+    }
+
     public void scrollToTop() {
         getListView().setSelection(0);
     }
@@ -368,6 +395,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         if (adapterWrap != null) {
             adapterWrap.setUserExtras(getService().getUserExtras());
         }
+        limitCount = users.size() * 256;
     }
 
     protected int prepareInsertStatus(T status) {
@@ -392,6 +420,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                     return;
             }
             elements.add(position, element);
+            if (isLimitedTimeline() && elements.size() > getLimitCount()) {
+                for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
+                    unreadSet.remove(commonDelegate.getId(iterator.next()));
+                    iterator.remove();
+                }
+            }
             int firstPos = listView.getFirstVisiblePosition();
             View firstView = listView.getChildAt(0);
             int y = firstView != null? firstView.getTop() : 0;
