@@ -276,7 +276,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         String defaultText;
         if (isWebIntent) {
             String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
-            String paramText = dataArg.getQueryParameter("text");
+            String paramText = dataArg.getQueryParameter("text").replaceAll("%0[dD]", "\r").replaceAll("%0[aA]", "\n");
             String paramUrl = dataArg.getQueryParameter("url");
             String paramHashtags = dataArg.getQueryParameter("hashtags");
 
@@ -293,9 +293,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 }
             }
             defaultText = sb.toString();
-        }
-        else if (args.getAction() != null && args.getType() != null &&
-                args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("text/")) {
+        } else if (Intent.ACTION_SEND.equals(args.getAction())) {
             defaultText = args.getDataString();
             if (defaultText == null) {
                 defaultText = args.getStringExtra(Intent.EXTRA_TEXT);
@@ -306,8 +304,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             else if (args.hasExtra(Intent.EXTRA_SUBJECT)) {
                 defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
             }
-        }
-        else {
+        } else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
         etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
