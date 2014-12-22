@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -218,8 +219,16 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             Toast.makeText(getActivity(), "検索ワードが空です", Toast.LENGTH_LONG).show();
         }
         else {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
             //DBに検索履歴を保存
             getTwitterService().getDatabase().updateSearchHistory(query);
+            //オプション追記
+            if (sp.getBoolean("pref_search_ja", false)) {
+                query += " lang:ja";
+            }
+            if (sp.getBoolean("pref_search_minus_rt", false)) {
+                query += " -RT";
+            }
             //コールバック着火
             ((SearchDialogCallback)getActivity()).onSearchQuery(query, false, false);
             dismiss();
