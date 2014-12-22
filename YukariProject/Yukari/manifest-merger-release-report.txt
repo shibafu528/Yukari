@@ -1,0 +1,395 @@
+-- Merging decision tree log ---
+manifest
+ADDED from AndroidManifest.xml:2:1
+	package
+		ADDED from AndroidManifest.xml:3:5
+	android:versionName
+		ADDED from AndroidManifest.xml:6:5
+	android:versionCode
+		ADDED from AndroidManifest.xml:5:5
+		INJECTED from AndroidManifest.xml:0:0
+		INJECTED from AndroidManifest.xml:0:0
+	xmlns:android
+		ADDED from AndroidManifest.xml:2:11
+	android:installLocation
+		ADDED from AndroidManifest.xml:4:5
+uses-permission#android.permission.INTERNET
+ADDED from AndroidManifest.xml:8:5
+	android:name
+		ADDED from AndroidManifest.xml:8:22
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from AndroidManifest.xml:9:5
+	android:name
+		ADDED from AndroidManifest.xml:9:22
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from AndroidManifest.xml:10:5
+	android:name
+		ADDED from AndroidManifest.xml:10:22
+uses-permission#android.permission.VIBRATE
+ADDED from AndroidManifest.xml:11:5
+	android:name
+		ADDED from AndroidManifest.xml:11:22
+uses-permission#com.twitter.android.permission.AUTH_APP
+ADDED from AndroidManifest.xml:12:5
+	android:name
+		ADDED from AndroidManifest.xml:12:22
+application
+ADDED from AndroidManifest.xml:14:5
+MERGED from com.android.support:appcompat-v7:20.0.0:17:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.google.android.gms:play-services:6.1.11:16:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from YukariProject.GalleryMultiPicker:library:unspecified:11:5
+MERGED from com.android.support:appcompat-v7:20.0.0:17:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:20.0.0:17:5
+	android:label
+		ADDED from AndroidManifest.xml:17:9
+	android:allowBackup
+		ADDED from AndroidManifest.xml:15:9
+	android:icon
+		ADDED from AndroidManifest.xml:16:9
+	android:largeHeap
+		ADDED from AndroidManifest.xml:19:9
+	android:theme
+		ADDED from AndroidManifest.xml:18:9
+meta-data#com.google.android.gms.version
+ADDED from AndroidManifest.xml:20:9
+	android:value
+		ADDED from AndroidManifest.xml:21:13
+	android:name
+		ADDED from AndroidManifest.xml:20:20
+activity#shibafu.yukari.activity.MainActivity
+ADDED from AndroidManifest.xml:23:9
+	android:label
+		ADDED from AndroidManifest.xml:25:13
+	android:launchMode
+		ADDED from AndroidManifest.xml:26:13
+	android:name
+		ADDED from AndroidManifest.xml:24:13
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from AndroidManifest.xml:27:13
+action#android.intent.action.MAIN
+ADDED from AndroidManifest.xml:28:17
+	android:name
+		ADDED from AndroidManifest.xml:28:25
+category#android.intent.category.LAUNCHER
+ADDED from AndroidManifest.xml:30:17
+	android:name
+		ADDED from AndroidManifest.xml:30:27
+intent-filter#android.intent.action.VIEW+android.intent.category.BROWSABLE+android.intent.category.DEFAULT
+ADDED from AndroidManifest.xml:32:13
+action#android.intent.action.VIEW
+ADDED from AndroidManifest.xml:33:17
+	android:name
+		ADDED from AndroidManifest.xml:33:25
+category#android.intent.category.DEFAULT
+ADDED from AndroidManifest.xml:35:17
+	android:name
+		ADDED from AndroidManifest.xml:35:27
+category#android.intent.category.BROWSABLE
+ADDED from AndroidManifest.xml:36:17
+	android:name
+		ADDED from AndroidManifest.xml:36:27
+data
+ADDED from AndroidManifest.xml:38:17
+	android:mimeType
+		ADDED from AndroidManifest.xml:38:23
+activity#shibafu.yukari.activity.OAuthActivity
+ADDED from AndroidManifest.xml:41:9
+	android:label
+		ADDED from AndroidManifest.xml:43:13
+	android:launchMode
+		ADDED from AndroidManifest.xml:44:13
+	android:name
+		ADDED from AndroidManifest.xml:42:13
+service#shibafu.yukari.service.TwitterService
+ADDED from AndroidManifest.xml:57:9
+	android:name
+		ADDED from AndroidManifest.xml:57:18
+service#shibafu.yukari.service.CacheCleanerService
+ADDED from AndroidManifest.xml:58:9
+	android:process
+		ADDED from AndroidManifest.xml:60:13
+	android:name
+		ADDED from AndroidManifest.xml:59:13
+activity#shibafu.yukari.activity.TweetActivity
+ADDED from AndroidManifest.xml:62:9
+	android:label
+		ADDED from AndroidManifest.xml:64:13
+	android:theme
+		ADDED from AndroidManifest.xml:65:13
+	android:name
+		ADDED from AndroidManifest.xml:63:13
+intent-filter#android.intent.action.SEND+android.intent.category.DEFAULT
+ADDED from AndroidManifest.xml:66:13
+action#android.intent.action.SEND
+ADDED from AndroidManifest.xml:67:17
+	android:name
+		ADDED from AndroidManifest.xml:67:25
+activity#shibafu.yukari.activity.TweetShortcutActivity
+ADDED from AndroidManifest.xml:75:9
+	android:label
+		ADDED from AndroidManifest.xml:77:13
+	android:icon
+		ADDED from AndroidManifest.xml:78:13
+	android:theme
+		ADDED from AndroidManifest.xml:79:13
+	android:name
+		ADDED from AndroidManifest.xml:76:13
+intent-filter#android.intent.action.CREATE_SHORTCUT
+ADDED from AndroidManifest.xml:80:13
+action#android.intent.action.CREATE_SHORTCUT
+ADDED from AndroidManifest.xml:81:17
+	android:name
+		ADDED from AndroidManifest.xml:81:25
+service#shibafu.yukari.service.PostService
+ADDED from AndroidManifest.xml:84:9
+	android:name
+		ADDED from AndroidManifest.xml:84:18
+activity#shibafu.yukari.activity.StatusActivity
+ADDED from AndroidManifest.xml:86:9
+	android:label
+		ADDED from AndroidManifest.xml:88:13
+	android:theme
+		ADDED from AndroidManifest.xml:89:13
+	android:name
+		ADDED from AndroidManifest.xml:87:13
+activity#shibafu.yukari.activity.IntentActivity
+ADDED from AndroidManifest.xml:91:9
+	android:theme
+		ADDED from AndroidManifest.xml:93:13
+	android:name
+		ADDED from AndroidManifest.xml:92:13
+intent-filter#android.intent.category.DEFAULT+shibafu.yukari.ACTION_LINK_ACCEL
+ADDED from AndroidManifest.xml:107:13
+	android:label
+		ADDED from AndroidManifest.xml:107:28
+	android:icon
+		ADDED from AndroidManifest.xml:107:55
+action#shibafu.yukari.ACTION_LINK_ACCEL
+ADDED from AndroidManifest.xml:108:17
+	android:name
+		ADDED from AndroidManifest.xml:108:25
+activity#shibafu.yukari.activity.AssetExtractActivity
+ADDED from AndroidManifest.xml:118:9
+	android:label
+		ADDED from AndroidManifest.xml:120:13
+	android:configChanges
+		ADDED from AndroidManifest.xml:121:13
+	android:name
+		ADDED from AndroidManifest.xml:119:13
+activity#shibafu.yukari.activity.ProfileActivity
+ADDED from AndroidManifest.xml:123:9
+	android:label
+		ADDED from AndroidManifest.xml:125:13
+	android:name
+		ADDED from AndroidManifest.xml:124:13
+provider#shibafu.yukari.provider.LinkProvider
+ADDED from AndroidManifest.xml:136:9
+	android:authorities
+		ADDED from AndroidManifest.xml:138:13
+	android:exported
+		ADDED from AndroidManifest.xml:139:13
+	android:name
+		ADDED from AndroidManifest.xml:137:13
+activity#shibafu.yukari.activity.NotFoundStubActivity
+ADDED from AndroidManifest.xml:142:9
+	android:theme
+		ADDED from AndroidManifest.xml:144:13
+	android:name
+		ADDED from AndroidManifest.xml:143:13
+activity#shibafu.yukari.plugin.MorseInputActivity
+ADDED from AndroidManifest.xml:147:9
+	android:label
+		ADDED from AndroidManifest.xml:150:13
+	android:icon
+		ADDED from AndroidManifest.xml:149:13
+	android:theme
+		ADDED from AndroidManifest.xml:151:13
+	android:name
+		ADDED from AndroidManifest.xml:148:13
+intent-filter#com.adamrocker.android.simeji.ACTION_INTERCEPT+com.adamrocker.android.simeji.REPLACE
+ADDED from AndroidManifest.xml:152:13
+action#com.adamrocker.android.simeji.ACTION_INTERCEPT
+ADDED from AndroidManifest.xml:153:17
+	android:name
+		ADDED from AndroidManifest.xml:153:25
+category#com.adamrocker.android.simeji.REPLACE
+ADDED from AndroidManifest.xml:155:17
+	android:name
+		ADDED from AndroidManifest.xml:155:27
+activity#shibafu.yukari.activity.SNPickerActivity
+ADDED from AndroidManifest.xml:159:9
+	android:label
+		ADDED from AndroidManifest.xml:161:13
+	android:theme
+		ADDED from AndroidManifest.xml:162:13
+	android:name
+		ADDED from AndroidManifest.xml:160:13
+receiver#shibafu.yukari.receiver.StubReceiver
+ADDED from AndroidManifest.xml:165:9
+	android:name
+		ADDED from AndroidManifest.xml:165:19
+activity#shibafu.yukari.activity.TraceActivity
+ADDED from AndroidManifest.xml:167:9
+	android:label
+		ADDED from AndroidManifest.xml:170:13
+	android:theme
+		ADDED from AndroidManifest.xml:169:13
+	android:name
+		ADDED from AndroidManifest.xml:168:13
+activity#shibafu.yukari.activity.PreviewActivity
+ADDED from AndroidManifest.xml:172:9
+	android:theme
+		ADDED from AndroidManifest.xml:174:13
+	android:name
+		ADDED from AndroidManifest.xml:173:13
+activity#shibafu.yukari.activity.MoviePreviewActivity
+ADDED from AndroidManifest.xml:175:9
+	android:theme
+		ADDED from AndroidManifest.xml:177:13
+	android:name
+		ADDED from AndroidManifest.xml:176:13
+activity#shibafu.yukari.activity.AccountChooserActivity
+ADDED from AndroidManifest.xml:179:9
+	android:label
+		ADDED from AndroidManifest.xml:182:13
+	android:theme
+		ADDED from AndroidManifest.xml:181:13
+	android:name
+		ADDED from AndroidManifest.xml:180:13
+activity#shibafu.yukari.activity.AccountManageActivity
+ADDED from AndroidManifest.xml:184:9
+	android:label
+		ADDED from AndroidManifest.xml:186:13
+	android:name
+		ADDED from AndroidManifest.xml:185:13
+activity#shibafu.yukari.activity.ConfigActivity
+ADDED from AndroidManifest.xml:188:9
+	android:label
+		ADDED from AndroidManifest.xml:190:13
+	android:name
+		ADDED from AndroidManifest.xml:189:13
+activity#shibafu.yukari.activity.MuteActivity
+ADDED from AndroidManifest.xml:192:9
+	android:label
+		ADDED from AndroidManifest.xml:194:13
+	android:name
+		ADDED from AndroidManifest.xml:193:13
+activity#shibafu.yukari.activity.AutoMuteActivity
+ADDED from AndroidManifest.xml:196:9
+	android:label
+		ADDED from AndroidManifest.xml:198:13
+	android:name
+		ADDED from AndroidManifest.xml:197:13
+activity#shibafu.yukari.activity.FontSelectorActivity
+ADDED from AndroidManifest.xml:200:9
+	android:label
+		ADDED from AndroidManifest.xml:202:13
+	android:name
+		ADDED from AndroidManifest.xml:201:13
+activity#shibafu.yukari.activity.CommandsPrefActivity
+ADDED from AndroidManifest.xml:204:9
+	android:name
+		ADDED from AndroidManifest.xml:204:19
+activity#shibafu.yukari.activity.LicenseActivity
+ADDED from AndroidManifest.xml:206:9
+	android:label
+		ADDED from AndroidManifest.xml:208:13
+	android:name
+		ADDED from AndroidManifest.xml:207:13
+activity#shibafu.yukari.activity.ProfileEditActivity
+ADDED from AndroidManifest.xml:210:9
+	android:label
+		ADDED from AndroidManifest.xml:212:13
+	android:configChanges
+		ADDED from AndroidManifest.xml:213:13
+	android:uiOptions
+		ADDED from AndroidManifest.xml:214:13
+	android:name
+		ADDED from AndroidManifest.xml:211:13
+meta-data#android.support.UI_OPTIONS
+ADDED from AndroidManifest.xml:215:13
+	android:value
+		ADDED from AndroidManifest.xml:217:17
+	android:name
+		ADDED from AndroidManifest.xml:216:17
+activity#shibafu.yukari.activity.TabEditActivity
+ADDED from AndroidManifest.xml:220:9
+	android:label
+		ADDED from AndroidManifest.xml:222:13
+	android:name
+		ADDED from AndroidManifest.xml:221:13
+activity#shibafu.yukari.plugin.OpenAclogActivity
+ADDED from AndroidManifest.xml:224:9
+	android:label
+		ADDED from AndroidManifest.xml:226:13
+	android:name
+		ADDED from AndroidManifest.xml:225:13
+intent-filter#android.intent.category.DEFAULT+jp.r246.twicca.ACTION_SHOW_TWEET
+ADDED from AndroidManifest.xml:227:13
+action#jp.r246.twicca.ACTION_SHOW_TWEET
+ADDED from AndroidManifest.xml:228:17
+	android:name
+		ADDED from AndroidManifest.xml:228:25
+activity#shibafu.yukari.activity.UserSearchActivity
+ADDED from AndroidManifest.xml:233:9
+	android:label
+		ADDED from AndroidManifest.xml:236:13
+	android:windowSoftInputMode
+		ADDED from AndroidManifest.xml:237:13
+	android:theme
+		ADDED from AndroidManifest.xml:235:13
+	android:name
+		ADDED from AndroidManifest.xml:234:13
+activity#shibafu.yukari.activity.MaintenanceActivity
+ADDED from AndroidManifest.xml:239:9
+	android:label
+		ADDED from AndroidManifest.xml:241:13
+	android:name
+		ADDED from AndroidManifest.xml:240:13
+activity#info.shibafu528.gallerymultipicker.MultiPickerActivity
+ADDED from AndroidManifest.xml:243:9
+	android:label
+		ADDED from AndroidManifest.xml:245:13
+	android:uiOptions
+		ADDED from AndroidManifest.xml:246:13
+	android:name
+		ADDED from AndroidManifest.xml:244:13
+meta-data#info.shibafu528.gallerymultipicker.ICON_THEME
+ADDED from AndroidManifest.xml:250:13
+	android:value
+		ADDED from AndroidManifest.xml:252:17
+	android:name
+		ADDED from AndroidManifest.xml:251:17
+activity#shibafu.yukari.activity.TwpfActivity
+ADDED from AndroidManifest.xml:255:9
+	android:label
+		ADDED from AndroidManifest.xml:257:13
+	android:name
+		ADDED from AndroidManifest.xml:256:13
+intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT
+ADDED from AndroidManifest.xml:258:13
+uses-sdk
+INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
+MERGED from com.android.support:appcompat-v7:20.0.0:16:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.google.android.gms:play-services:6.1.11:15:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from YukariProject:betterpickers:unspecified:7:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.larswerkman:HoloColorPicker:1.4:3:5
+MERGED from YukariProject.GalleryMultiPicker:library:unspecified:7:5
+MERGED from com.android.support:appcompat-v7:20.0.0:16:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:20.0.0:16:5
+	android:targetSdkVersion
+		INJECTED from AndroidManifest.xml:0:0
+		INJECTED from AndroidManifest.xml:0:0
+	android:minSdkVersion
+		INJECTED from AndroidManifest.xml:0:0
+		INJECTED from AndroidManifest.xml:0:0
