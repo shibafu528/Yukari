@@ -179,7 +179,7 @@
             android:defaultValue="16"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="デバッグ設定">
+    <PreferenceCategory android:title="実験中の機能">
         <CheckBoxPreference
             android:key="pref_show_received"
             android:title="受信アカウントの表示"
