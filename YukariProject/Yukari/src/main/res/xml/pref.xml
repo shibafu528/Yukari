@@ -155,6 +155,17 @@
             android:defaultValue=" ＞RT"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="検索設定">
+        <CheckBoxPreference
+            android:key="pref_search_ja"
+            android:title="日本語のツイートのみ"
+            android:summary="検索対象のツイートを日本語のものに絞り込みます"/>
+        <CheckBoxPreference
+            android:key="pref_search_minus_rt"
+            android:title="RTを除外"
+            android:summary="リツイートを検索対象から除外します"/>
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="キャッシュ設定">
         <ListPreference
             android:key="pref_icon_cache_size"
