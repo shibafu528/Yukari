@@ -765,6 +765,16 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @Override
     public void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking) {
+        //オプション追記
+        if (!isSavedSearch) {
+            if (sharedPreferences.getBoolean("pref_search_ja", false) && !searchQuery.contains("lang:ja")) {
+                searchQuery += " lang:ja";
+            }
+            if (sharedPreferences.getBoolean("pref_search_minus_rt", false) && !searchQuery.contains(" -RT")) {
+                searchQuery += " -RT";
+            }
+        }
+
         boolean exist = false;
         int existId = -1;
         for (int i = 0; i < pageList.size(); i++) {

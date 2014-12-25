@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -211,26 +210,18 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     private void sendQuery() {
-        sendQuery(searchQuery.getText().toString());
+        sendQuery(searchQuery.getText().toString(), false);
     }
 
-    public void sendQuery(String query) {
+    public void sendQuery(String query, boolean isSavedSearch) {
         if (query.length() < 1) {
             Toast.makeText(getActivity(), "検索ワードが空です", Toast.LENGTH_LONG).show();
         }
         else {
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
             //DBに検索履歴を保存
             getTwitterService().getDatabase().updateSearchHistory(query);
-            //オプション追記
-            if (sp.getBoolean("pref_search_ja", false)) {
-                query += " lang:ja";
-            }
-            if (sp.getBoolean("pref_search_minus_rt", false)) {
-                query += " -RT";
-            }
             //コールバック着火
-            ((SearchDialogCallback)getActivity()).onSearchQuery(query, false, false);
+            ((SearchDialogCallback)getActivity()).onSearchQuery(query, isSavedSearch, false);
             dismiss();
         }
     }
@@ -365,7 +356,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public void onListItemClick(ListView l, View v, int position, long id) {
             super.onListItemClick(l, v, position, id);
             String query = searchHistories.get(position).getQuery();
-            getParent().sendQuery(query);
+            getParent().sendQuery(query, false);
         }
 
         @Override
@@ -466,7 +457,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public void onListItemClick(ListView l, View v, int position, long id) {
             super.onListItemClick(l, v, position, id);
             String query = (String) getListAdapter().getItem(position);
-            getParent().sendQuery(query);
+            getParent().sendQuery(query, false);
         }
 
         @Override
@@ -571,7 +562,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         @Override
         public void onListItemClick(ListView l, View v, int position, long id) {
             super.onListItemClick(l, v, position, id);
-            getParent().sendQuery(savedSearches.get(position).getQuery());
+            getParent().sendQuery(savedSearches.get(position).getQuery(), true);
         }
 
         @Override
