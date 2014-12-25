@@ -47,6 +47,9 @@
         <Preference
             android:title="::meu"
             android:summary="胸もはんこもぺったんだめう"/>
+        <Preference
+            android:title="::dice NdN"
+            android:summary="さいころを振ります(Nにそれぞれ整数)\nexample) ::dice 1d100"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference

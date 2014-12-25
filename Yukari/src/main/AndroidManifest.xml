@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="33"
-    android:versionName="1.0.0.178 (ensemble 141222)" >
+    android:versionCode="34"
+    android:versionName="1.0.0.179 (ensemble 141225)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

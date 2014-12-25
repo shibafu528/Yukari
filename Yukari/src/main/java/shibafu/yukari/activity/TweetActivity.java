@@ -521,6 +521,30 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::meu":
                             inputText = "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)";
                             break;
+                        case "::dice":
+                            if (inputText.split(" ").length > 1) {
+                                String diceInput = inputText.replace("::dice ", "");
+                                Pattern pattern = Pattern.compile("(\\d+).(\\d+)");
+                                Matcher m = pattern.matcher(diceInput);
+                                if (m.find() && m.groupCount() == 2) {
+                                    int randomSum = 0;
+                                    Random r = new Random();
+                                    int count = Integer.parseInt(m.group(1));
+                                    int length = Integer.parseInt(m.group(2));
+                                    for (int i = 0; i < count; i++) {
+                                        randomSum += r.nextInt(length) + 1;
+                                    }
+                                    inputText = String.format("%dd%d => [%d]", count, length, randomSum);
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+                            } else {
+                                final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
+                                Random r = new Random();
+                                inputText = dice[r.nextInt(6)];
+                            }
+                            break;
                     }
                 }
 
