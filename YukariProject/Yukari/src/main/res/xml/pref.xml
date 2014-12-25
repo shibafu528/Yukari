@@ -205,6 +205,10 @@
             android:key="pref_limited_timeline"
             android:title="Limited TL"
             android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします" />
+        <CheckBoxPreference
+            android:key="pref_remove_screenshot_subject"
+            android:title="スクショ共有の本文を削除"
+            android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">

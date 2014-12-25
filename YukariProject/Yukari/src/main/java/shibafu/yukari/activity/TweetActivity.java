@@ -304,7 +304,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             if (args.hasExtra(Intent.EXTRA_TITLE)) {
                 defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
             }
-            else if (args.hasExtra(Intent.EXTRA_SUBJECT)) {
+            else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
                 defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
             }
         } else {
