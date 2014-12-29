@@ -15,4 +15,5 @@
     <dimen name="status_button_size">76dp</dimen>
     <dimen name="status_button_padding">12dp</dimen>
     <dimen name="status_button_delta">100dp</dimen>
+    <dimen name="status_button_delta_half">50dp</dimen>
 </resources>
