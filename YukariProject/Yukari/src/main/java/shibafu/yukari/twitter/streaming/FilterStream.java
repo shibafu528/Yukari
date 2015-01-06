@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.FilterQuery;
 import twitter4j.Status;
@@ -37,7 +40,7 @@ public class FilterStream extends Stream{
 
     public FilterStream(Context context, AuthUserRecord userRecord, String query) {
         super(context, userRecord);
-        this.query = query;
+        this.query = new ParsedQuery(query).getValidQuery();
         stream.addListener(statusListener);
     }
 
@@ -65,5 +68,43 @@ public class FilterStream extends Stream{
         Intent intent = super.createBroadcast(action);
         intent.putExtra(EXTRA_FILTER_QUERY, query);
         return intent;
+    }
+
+    public static class ParsedQuery {
+        private String validQuery;
+        private String language;
+        private boolean filterRetweet;
+
+        public ParsedQuery(String query) {
+            //languageの解釈
+            Pattern langPattern = Pattern.compile("lang:(\\S+)");
+            Matcher matcher = langPattern.matcher(query);
+            if (matcher.find()) {
+                query = query.replace(matcher.group(), "").trim();
+                language = matcher.group(1);
+            } else {
+                language = null;
+            }
+            //-RTの解釈
+            if (query.contains("-RT")) {
+                query = query.replace("-RT", "").trim();
+                filterRetweet = true;
+            } else {
+                filterRetweet = false;
+            }
+            validQuery = query;
+        }
+
+        public String getValidQuery() {
+            return validQuery;
+        }
+
+        public String getLanguage() {
+            return language;
+        }
+
+        public boolean isFilterRetweet() {
+            return filterRetweet;
+        }
     }
 }

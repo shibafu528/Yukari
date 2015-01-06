@@ -14,6 +14,7 @@ import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.DirectMessage;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -27,6 +28,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
+    private FilterStream.ParsedQuery parsedQuery;
     private Query nextQuery;
     private boolean streaming;
 
@@ -41,6 +43,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             //どうしてもnullが渡ってきてしまった場合はこうしてこうじゃ
             searchQuery = "ﾕｯｶﾘｰﾝ";
         }
+        parsedQuery = new FilterStream.ParsedQuery(searchQuery);
 
         if (getMode() == TabType.TABTYPE_TRACK) {
             streaming = true;
@@ -91,16 +94,16 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     public void setStreaming(boolean streaming) {
         this.streaming = streaming;
         if (streaming) {
-            getStatusManager().startFilterStream(searchQuery, getCurrentUser());
+            getStatusManager().startFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
         }
         else {
-            getStatusManager().stopFilterStream(searchQuery);
+            getStatusManager().stopFilterStream(parsedQuery.getValidQuery());
         }
     }
 
     @Override
     public String getStreamFilter() {
-        return searchQuery;
+        return parsedQuery.getValidQuery();
     }
 
     @Override
