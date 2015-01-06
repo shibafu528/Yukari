@@ -331,7 +331,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                     @Override
                     protected void onPostExecute(ThrowableResult<Map<String, RateLimitStatus>> result) {
                         super.onPostExecute(result);
-                        if (!result.isException() && result.getResult() != null) {
+                        if (!result.isException() && result.getResult() != null && isAdded()) {
                             ApiAdapter apiAdapter = new ApiAdapter(getActivity(), result.getResult());
                             setListAdapter(apiAdapter);
                             setListShown(true);
