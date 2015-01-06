@@ -89,17 +89,18 @@ public class TwitterService extends Service{
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(Stream.CONNECTED_STREAM)) {
-                AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                if (connectivityFlags.get(userRecord.NumericId) != null) {
-                    showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
-                    connectivityFlags.put(userRecord.NumericId, true);
+            if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_notif_connectivity", true)) {
+                if (intent.getAction().equals(Stream.CONNECTED_STREAM)) {
+                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
+                    if (connectivityFlags.get(userRecord.NumericId) != null) {
+                        showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
+                        connectivityFlags.put(userRecord.NumericId, true);
+                    }
+                } else if (intent.getAction().equals(Stream.DISCONNECTED_STREAM)) {
+                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
+                    showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
+                    connectivityFlags.put(userRecord.NumericId, false);
                 }
-            }
-            else if (intent.getAction().equals(Stream.DISCONNECTED_STREAM)) {
-                AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
-                connectivityFlags.put(userRecord.NumericId, false);
             }
         }
     };
