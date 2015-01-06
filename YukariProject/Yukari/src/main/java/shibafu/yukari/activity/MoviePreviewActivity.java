@@ -72,7 +72,14 @@ public class MoviePreviewActivity extends FragmentActivity{
 
             @Override
             protected void onPostExecute(String s) {
-                videoView.setVideoURI(Uri.parse(s));
+                try {
+                    videoView.setVideoURI(Uri.parse(s));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(),
+                            "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         }.executeParallel(linkMedia);
 

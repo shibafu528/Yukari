@@ -56,6 +56,7 @@ import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
@@ -712,7 +713,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_TRACK:
-                getTwitterService().getStatusManager().startFilterStream(tabInfo.getSearchKeyword(), tabInfo.getBindAccount());
+                getTwitterService().getStatusManager().startFilterStream(
+                        new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
+                        tabInfo.getBindAccount());
                 break;
         }
         tabInfo.setListFragment(fragment);

@@ -85,8 +85,18 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
     }
 
     @Override
-    public void onServiceDisconnected() {
+    public void onServiceDisconnected() {}
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("selected", getSupportActionBar().getSelectedNavigationIndex());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("selected", 0));
     }
 
     private class TabListener<T extends Fragment> implements ActionBar.TabListener {
@@ -321,7 +331,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                     @Override
                     protected void onPostExecute(ThrowableResult<Map<String, RateLimitStatus>> result) {
                         super.onPostExecute(result);
-                        if (!result.isException() && result.getResult() != null) {
+                        if (!result.isException() && result.getResult() != null && isAdded()) {
                             ApiAdapter apiAdapter = new ApiAdapter(getActivity(), result.getResult());
                             setListAdapter(apiAdapter);
                             setListShown(true);
@@ -336,6 +346,9 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
         public void onResume() {
             super.onResume();
             if (serviceBound()) {
+                if (currentUser == null) {
+                    currentUser = getService().getPrimaryUser();
+                }
                 reload();
             }
         }

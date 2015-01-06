@@ -636,7 +636,9 @@ public class StatusMainFragment extends TwitterFragment{
 
                 @Override
                 protected void showToast(String message) {
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                    if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                    }
                 }
             }.executeParallel(user.NumericId);
         }
