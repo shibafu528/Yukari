@@ -531,6 +531,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                     Random r = new Random();
                                     int count = Integer.parseInt(m.group(1));
                                     int length = Integer.parseInt(m.group(2));
+                                    if (count < 1 || length < 1) {
+                                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
                                     for (int i = 0; i < count; i++) {
                                         randomSum += r.nextInt(length) + 1;
                                     }
