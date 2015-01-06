@@ -1,5 +1,7 @@
 package shibafu.yukari.twitter;
 
+import android.widget.Toast;
+
 import java.util.List;
 
 import shibafu.yukari.common.Suppressor;
@@ -7,6 +9,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.TwitterException;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -22,9 +25,16 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
     }
 
     private RESTLoaderInterface loaderInterface;
+    protected TwitterException exception;
+    protected AuthUserRecord exceptionUser;
 
     protected RESTLoader(RESTLoaderInterface loaderInterface) {
         this.loaderInterface = loaderInterface;
+    }
+
+    protected void setException(TwitterException exception, AuthUserRecord userRecord) {
+        this.exception = exception;
+        this.exceptionUser = userRecord;
     }
 
     @Override
@@ -66,6 +76,26 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
             loaderInterface.notifyDataSetChanged();
+        } else if (exception != null && exceptionUser != null) {
+            switch (exception.getStatusCode()) {
+                case 429:
+                    Toast.makeText(loaderInterface.getService().getApplicationContext(),
+                            String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
+                                    exceptionUser.ScreenName,
+                                    exception.getRateLimitStatus().getSecondsUntilReset() / 60,
+                                    exception.getRateLimitStatus().getSecondsUntilReset() % 60),
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    Toast.makeText(loaderInterface.getService().getApplicationContext(),
+                            String.format("[@%s]\n通信エラー: %d:%d\n%s",
+                                    exceptionUser.ScreenName,
+                                    exception.getStatusCode(),
+                                    exception.getErrorCode(),
+                                    exception.getErrorMessage()),
+                            Toast.LENGTH_SHORT).show();
+                    break;
+            }
         }
         loaderInterface.changeFooterProgress(false);
     }

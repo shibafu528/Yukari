@@ -630,6 +630,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 return PRListFactory.create(responseList, params[0].getUserRecord());
             } catch (TwitterException e) {
                 e.printStackTrace();
+                setException(e, params[0].getUserRecord());
             }
             return null;
         }
