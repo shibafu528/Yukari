@@ -125,6 +125,11 @@
             android:title="RTレスポンス通知"
             android:summary="RTに対する反応を受信した際に通知します"
             android:defaultValue="0"/>
+        <CheckBoxPreference
+            android:key="pref_notif_connectivity"
+            android:title="ストリーミング通信状態通知"
+            android:summary="ストリーミングに接続・切断された時にメッセージを表示します"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="投稿設定">
