@@ -230,8 +230,8 @@ public class TwitterService extends Service{
         twitter = null;
 
         storeUsers();
-        users = null;
-        userExtras = null;
+        users = new ArrayList<>();
+        userExtras = new ArrayList<>();
 
         BitmapCache.dispose();
 
