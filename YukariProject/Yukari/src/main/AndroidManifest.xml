@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="35"
-    android:versionName="1.1.0.182 (ensemble 150106)" >
+    android:versionName="1.1.0.183 (ensemble 150107)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -245,6 +245,12 @@
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
+            </intent-filter>
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenFavstarActivity"
@@ -257,6 +263,12 @@
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
+            </intent-filter>
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenAclogUserActivity"
@@ -268,6 +280,12 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
+                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
             </intent-filter>
         </activity-alias>
 
