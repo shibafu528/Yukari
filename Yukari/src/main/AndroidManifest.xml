@@ -226,6 +226,7 @@
             android:label="@string/title_activity_open_aclog">
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
+                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_STATUS"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
