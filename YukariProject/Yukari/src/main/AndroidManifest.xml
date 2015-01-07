@@ -229,6 +229,46 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".plugin.UserPluginActivity"
+            android:theme="@style/AppThemeTranslucent"/>
+        <activity-alias
+            android:name=".plugin.OpenTwilogActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
+            android:label="twilogを開く">
+            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
+            <intent-filter>
+                <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="jp.r246.twicca.category.OWNER"/>
+                <category android:name="jp.r246.twicca.category.USER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".plugin.OpenFavstarActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
+            android:label="Favstarを開く">
+            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
+            <intent-filter>
+                <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="jp.r246.twicca.category.OWNER"/>
+                <category android:name="jp.r246.twicca.category.USER"/>
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".plugin.OpenAclogUserActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
+            android:label="aclogを開く">
+            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="aclog"/>
+            <intent-filter>
+                <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="jp.r246.twicca.category.OWNER"/>
+                <category android:name="jp.r246.twicca.category.USER"/>
+            </intent-filter>
+        </activity-alias>
 
         <activity
             android:name=".activity.UserSearchActivity"
