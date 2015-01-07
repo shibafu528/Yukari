@@ -6,6 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import shibafu.yukari.twitter.TwitterUtil;
+import twitter.share.lib.TwitterIntent;
+import twitter.share.lib.TwitterShare;
+import twitter.share.lib.intent.UserIntent;
 
 /**
  * Created by shibafu on 15/01/07.
@@ -22,19 +25,29 @@ public class UserPluginActivity extends Activity {
 
         Intent intent = getIntent();
         String componentName = intent.getComponent().getClassName();
+        String screenName;
+        switch (intent.getAction()) {
+            case TwitterIntent.ACTION_SHOW_USER:
+                UserIntent userIntent = (UserIntent) TwitterShare.INSTANCE.getTwitterIntent(intent);
+                screenName = userIntent.getScreen_name();
+                break;
+            default:
+                screenName = intent.getStringExtra(Intent.EXTRA_TEXT);
+                break;
+        }
         if (componentName != null) {
             switch (componentName) {
                 case TO_TWILOG:
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse(TwitterUtil.getTwilogURL(intent.getStringExtra(Intent.EXTRA_TEXT)))));
+                            Uri.parse(TwitterUtil.getTwilogURL(screenName))));
                     break;
                 case TO_FAVSTAR:
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse(TwitterUtil.getFavstarURL(intent.getStringExtra(Intent.EXTRA_TEXT)))));
+                            Uri.parse(TwitterUtil.getFavstarURL(screenName))));
                     break;
                 case TO_ACLOG:
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse(TwitterUtil.getAclogURL(intent.getStringExtra(Intent.EXTRA_TEXT)))));
+                            Uri.parse(TwitterUtil.getAclogURL(screenName))));
                     break;
             }
         }
