@@ -109,6 +109,7 @@
             android:id="@+id/llMenuTwilog">
 
             <ImageView
+                android:id="@+id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
@@ -116,6 +117,7 @@
                 android:layout_gravity="center_horizontal" />
 
             <TextView
+                android:id="@+id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -137,6 +139,7 @@
             android:id="@+id/llMenuFavstar">
 
             <ImageView
+                android:id="@id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
@@ -144,6 +147,7 @@
                 android:layout_gravity="center_horizontal" />
 
             <TextView
+                android:id="@id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
@@ -164,6 +168,7 @@
             android:id="@+id/llMenuAclog">
 
             <ImageView
+                android:id="@id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
@@ -171,6 +176,7 @@
                 android:layout_gravity="center_horizontal" />
 
             <TextView
+                android:id="@id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
