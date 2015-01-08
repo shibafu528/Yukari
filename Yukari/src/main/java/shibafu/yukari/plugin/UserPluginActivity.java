@@ -15,9 +15,9 @@ import twitter.share.lib.intent.UserIntent;
  */
 public class UserPluginActivity extends Activity {
 
-    private static final String TO_TWILOG  = "shibafu.yukari.plugin.OpenTwilogActivity";
-    private static final String TO_FAVSTAR = "shibafu.yukari.plugin.OpenFavstarActivity";
-    private static final String TO_ACLOG   = "shibafu.yukari.plugin.OpenAclogUserActivity";
+    public static final String TO_TWILOG  = "shibafu.yukari.plugin.OpenTwilogActivity";
+    public static final String TO_FAVSTAR = "shibafu.yukari.plugin.OpenFavstarActivity";
+    public static final String TO_ACLOG   = "shibafu.yukari.plugin.OpenAclogUserActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
