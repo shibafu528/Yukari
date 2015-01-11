@@ -237,7 +237,7 @@
         <activity-alias
             android:name=".plugin.OpenTwilogActivity"
             android:targetActivity=".plugin.UserPluginActivity"
-            android:label="twilogを開く"
+            android:label="@string/title_activity_open_twilog"
             android:icon="@drawable/ic_twilog">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_twilog"/>
@@ -258,7 +258,7 @@
         <activity-alias
             android:name=".plugin.OpenFavstarActivity"
             android:targetActivity=".plugin.UserPluginActivity"
-            android:label="Favstarを開く"
+            android:label="@string/title_activity_open_favstar"
             android:icon="@drawable/ic_favorite_m">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_favorite_m"/>
@@ -279,7 +279,7 @@
         <activity-alias
             android:name=".plugin.OpenAclogUserActivity"
             android:targetActivity=".plugin.UserPluginActivity"
-            android:label="aclogを開く"
+            android:label="@string/title_activity_open_aclog_user"
             android:icon="@drawable/ic_aclog">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="aclog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_aclog"/>
