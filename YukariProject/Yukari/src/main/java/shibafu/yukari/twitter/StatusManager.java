@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.RemoteInput;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
@@ -44,6 +45,7 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.receiver.VoiceReplyReceiver;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
@@ -296,8 +298,8 @@ public class StatusManager {
                                     context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
+                            PreformedStatus ps = (PreformedStatus) status;
                             {
-                                PreformedStatus ps = (PreformedStatus) status;
                                 Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
                                 replyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
                                 replyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
@@ -308,6 +310,24 @@ public class StatusManager {
                                 builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
                                                 context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
+                            }
+                            {
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), VoiceReplyReceiver.class);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
+                                        ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
+                                                : ps.getUser().getScreenName()) + " ");
+                                NotificationCompat.Action voiceReply = new NotificationCompat.Action
+                                        .Builder(R.drawable.ic_stat_reply, "声で返信",
+                                            PendingIntent.getBroadcast(context.getApplicationContext(),
+                                                        R.integer.notification_replied,
+                                                        voiceReplyIntent,
+                                                        PendingIntent.FLAG_UPDATE_CURRENT))
+                                        .addRemoteInput(new RemoteInput.Builder(Intent.EXTRA_TEXT).setLabel("返信").build())
+                                        .build();
+                                builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
                             break;
                         }
@@ -328,8 +348,8 @@ public class StatusManager {
                                     context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
+                            DirectMessage dm = (DirectMessage) status;
                             {
-                                DirectMessage dm = (DirectMessage) status;
                                 Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
                                 replyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
                                 replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
@@ -338,6 +358,22 @@ public class StatusManager {
                                 builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
                                                 context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
+                            }
+                            {
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), VoiceReplyReceiver.class);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                                NotificationCompat.Action voiceReply = new NotificationCompat.Action
+                                        .Builder(R.drawable.ic_stat_reply, "声で返信",
+                                        PendingIntent.getBroadcast(context.getApplicationContext(),
+                                                R.integer.notification_replied,
+                                                voiceReplyIntent,
+                                                PendingIntent.FLAG_UPDATE_CURRENT))
+                                        .addRemoteInput(new RemoteInput.Builder(Intent.EXTRA_TEXT).setLabel("返信").build())
+                                        .build();
+                                builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
                             break;
                         }
