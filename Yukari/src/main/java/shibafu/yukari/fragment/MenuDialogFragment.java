@@ -2,6 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -413,7 +414,11 @@ public class MenuDialogFragment extends DialogFragment {
                     intent.putExtra("owner_profile_image_url_mini", userRecord.ProfileImageUrl);
                     intent.putExtra("owner_profile_image_url_normal", userRecord.ProfileImageUrl);
                     intent.putExtra("owner_profile_image_url_bigger", userRecord.ProfileImageUrl);
-                    startActivity(intent);
+                    try {
+                        startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(getActivity().getApplicationContext(), "プラグインの起動に失敗しました\nアプリが削除されましたか？", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
         }
