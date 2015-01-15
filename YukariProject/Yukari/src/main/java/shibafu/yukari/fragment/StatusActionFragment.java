@@ -2,6 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -194,7 +195,11 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                         intent = createPluginIntent(position - ITEMS.length + 1);
                     }
                     if (intent != null) {
-                        startActivity(intent);
+                        try {
+                            startActivity(intent);
+                        } catch (ActivityNotFoundException e) {
+                            Toast.makeText(getActivity().getApplicationContext(), "プラグインの起動に失敗しました\nアプリが削除されましたか？", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
                 break;
