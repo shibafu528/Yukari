@@ -10,9 +10,11 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.RemoteInput;
 import android.util.Log;
 
 import java.io.ByteArrayInputStream;
@@ -23,9 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
@@ -37,6 +41,7 @@ public class PostService extends IntentService{
     public static final String EXTRA_DRAFT = "draft";
     public static final String EXTRA_FLAGS = "flags";
     public static final String EXTRA_FLAGS_TARGET_ID = "targetId";
+    public static final String EXTRA_REMOTE_INPUT = "remoteInput";
     public static final int FLAG_FAVORITE  = 0x01;
     public static final int FLAG_RETWEET   = 0x02;
 
@@ -74,6 +79,9 @@ public class PostService extends IntentService{
         int flags = intent.getIntExtra(EXTRA_FLAGS, 0);
         long targetTweetId = intent.getLongExtra(EXTRA_FLAGS_TARGET_ID, 0);
         TweetDraft draft = (TweetDraft) intent.getSerializableExtra(EXTRA_DRAFT);
+        if (RemoteInput.getResultsFromIntent(intent) != null) {
+            draft = parseRemoteInput(intent);
+        }
         if (draft == null) {
             nm.cancel(0);
             showErrorMessage(1, null, "データが破損しています");
@@ -210,6 +218,38 @@ public class PostService extends IntentService{
             service.getDatabase().deleteDraft(draft);
         }
         stopForeground(true);
+    }
+
+    private TweetDraft parseRemoteInput(Intent intent) {
+        //Wearからの音声入力を受け取る
+        Bundle input = RemoteInput.getResultsFromIntent(intent);
+        if (input != null) {
+            AuthUserRecord user = (AuthUserRecord) intent.getSerializableExtra(TweetActivity.EXTRA_USER);
+            int mode = intent.getIntExtra(TweetActivity.EXTRA_MODE, 0);
+            String prefix = intent.getStringExtra(TweetActivity.EXTRA_TEXT);
+            CharSequence voiceInput = input.getCharSequence(EXTRA_REMOTE_INPUT);
+
+            TweetDraft.Builder builder = new TweetDraft.Builder()
+                    .addWriter(user);
+
+            if (mode == TweetActivity.MODE_DM) {
+                String targetSN = intent.getStringExtra(TweetActivity.EXTRA_DM_TARGET_SN);
+                long inReplyToId = intent.getLongExtra(TweetActivity.EXTRA_IN_REPLY_TO, -1);
+
+                builder.setMessageTarget(targetSN)
+                        .setInReplyTo(inReplyToId)
+                        .setDirectMessage(true)
+                        .setText(String.valueOf(voiceInput));
+            } else {
+                PreformedStatus inReplyToStatus = (PreformedStatus) intent.getSerializableExtra(TweetActivity.EXTRA_STATUS);
+
+                builder.setInReplyTo(inReplyToStatus.getId())
+                        .setText(prefix + voiceInput);
+            }
+
+            return builder.build();
+        }
+        return null;
     }
 
     private void showErrorMessage(int id, TweetDraft draft, String reason) {
