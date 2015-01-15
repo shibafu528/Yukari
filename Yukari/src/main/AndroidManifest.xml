@@ -335,10 +335,6 @@
         <activity
             android:name=".activity.IntentChooserActivity"
             android:theme="@style/YukariDarkDialogTheme"/>
-
-        <receiver
-            android:name=".receiver.VoiceReplyReceiver"
-            android:exported="false"/>
    </application>
 
 </manifest>

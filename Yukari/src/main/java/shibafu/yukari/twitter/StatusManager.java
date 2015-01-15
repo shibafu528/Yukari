@@ -45,7 +45,7 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
-import shibafu.yukari.receiver.VoiceReplyReceiver;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
@@ -312,7 +312,7 @@ public class StatusManager {
                                 );
                             }
                             {
-                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), VoiceReplyReceiver.class);
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
@@ -321,11 +321,11 @@ public class StatusManager {
                                                 : ps.getUser().getScreenName()) + " ");
                                 NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                         .Builder(R.drawable.ic_stat_reply, "声で返信",
-                                            PendingIntent.getBroadcast(context.getApplicationContext(),
+                                            PendingIntent.getService(context.getApplicationContext(),
                                                         R.integer.notification_replied,
                                                         voiceReplyIntent,
                                                         PendingIntent.FLAG_UPDATE_CURRENT))
-                                        .addRemoteInput(new RemoteInput.Builder(Intent.EXTRA_TEXT).setLabel("返信").build())
+                                        .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                         .build();
                                 builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
@@ -360,18 +360,18 @@ public class StatusManager {
                                 );
                             }
                             {
-                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), VoiceReplyReceiver.class);
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
                                 voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
                                 NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                         .Builder(R.drawable.ic_stat_reply, "声で返信",
-                                        PendingIntent.getBroadcast(context.getApplicationContext(),
+                                        PendingIntent.getService(context.getApplicationContext(),
                                                 R.integer.notification_replied,
                                                 voiceReplyIntent,
                                                 PendingIntent.FLAG_UPDATE_CURRENT))
-                                        .addRemoteInput(new RemoteInput.Builder(Intent.EXTRA_TEXT).setLabel("返信").build())
+                                        .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                         .build();
                                 builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
