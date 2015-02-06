@@ -288,6 +288,7 @@ public class StatusManager {
                     if (notificationType.isUseVibration()) {
                         vibrate(pattern, -1);
                     }
+                    builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                     builder.setAutoCancel(true);
                     switch (category) {
                         case R.integer.notification_replied:
