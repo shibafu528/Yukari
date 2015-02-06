@@ -18,6 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -36,6 +37,7 @@ public class FollowDialogFragment extends DialogFragment {
 
     public static final String ARGUMENT_TARGET = "target";
     public static final String ARGUMENT_KNOWN_RELATIONS = "known_relations";
+    public static final String ARGUMENT_ALL_R4S = "r4s";
 
     public static final int RELATION_NONE = 0;
     public static final int RELATION_FOLLOW = 1;
@@ -90,6 +92,16 @@ public class FollowDialogFragment extends DialogFragment {
         for (AuthUserRecord userRecord : relationships.keySet()) {
             Relationship relationship = relationships.get(userRecord);
             entryList.add(new ListEntry(userRecord, relationship));
+        }
+
+        if (args.getBoolean(ARGUMENT_ALL_R4S, false)) {
+            if ("toshi_a".equals(targetUser.getScreenName())) {
+                Toast.makeText(getActivity(), "ｱｱｱｯwwwwミクッター作者に全垢r4sかまそうとしてるｩwwwwwwwwwwwww\n\n(toshi_a proof を発動しました)", Toast.LENGTH_LONG).show();
+            } else {
+                for (ListEntry e : entryList) {
+                    e.afterRelation = RELATION_PRE_R4S;
+                }
+            }
         }
 
         Adapter adapter = new Adapter(getActivity(), entryList);
