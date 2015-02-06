@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -171,6 +172,22 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 fragment.show(getFragmentManager(), "follow");
             }
         });
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("allow_all_r4s", false)) {
+            btnFollowManage.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    FollowDialogFragment fragment = new FollowDialogFragment();
+                    Bundle args = new Bundle();
+                    args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
+                    args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+                    args.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
+                    fragment.setArguments(args);
+                    fragment.setTargetFragment(ProfileFragment.this, 0);
+                    fragment.show(getFragmentManager(), "follow");
+                    return true;
+                }
+            });
+        }
 
         ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
         ibMenu.setOnClickListener(new View.OnClickListener() {
