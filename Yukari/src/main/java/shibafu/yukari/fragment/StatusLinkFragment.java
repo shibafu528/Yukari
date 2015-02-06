@@ -232,6 +232,26 @@ public class StatusLinkFragment extends ListFragment{
                                                 })
                                                 .create();
                                         ad.show();
+                                    } else if (lr.text.contains("matome.naver.jp/odai/2133899121334612301")
+                                            || lr.text.contains("matome.naver.jp/odai/2138315187918614201")) {
+                                        AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                                .setTitle("確認")
+                                                .setMessage("このURLは飯テロ系まとめです。\nブラウザで開きますか？")
+                                                .setPositiveButton("続行", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                        executor.executeIntent(uri);
+                                                    }
+                                                })
+                                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+                                                        dialog.dismiss();
+                                                    }
+                                                })
+                                                .create();
+                                        ad.show();
                                     } else {
                                         executor.executeIntent(uri);
                                     }
