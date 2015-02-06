@@ -28,7 +28,6 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
@@ -52,6 +51,7 @@ public class StatusMainFragment extends TwitterFragment{
     private static final int REQUEST_RT_QUOTE  = 0x04;
     private static final int REQUEST_FRT_QUOTE = 0x05;
     private static final int REQUEST_CHANGE    = 0x06;
+    private static final int REQUEST_QUOTE     = 0x07;
 
     private static final int BUTTON_SHOW_DURATION = 260;
 
@@ -430,7 +430,7 @@ public class StatusMainFragment extends TwitterFragment{
                                             intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
                                             break;
                                     }
-                                    startActivity(intent);
+                                    startActivityForResult(intent, REQUEST_QUOTE);
                                 } else {
                                     int request = -1;
                                     switch (which) {
@@ -550,33 +550,23 @@ public class StatusMainFragment extends TwitterFragment{
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == REQUEST_REPLY) {
+            if (requestCode == REQUEST_REPLY || requestCode == REQUEST_QUOTE) {
                 getActivity().finish();
             } else if (requestCode == REQUEST_RT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
-                new ParallelAsyncTask<TweetDraft, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(TweetDraft... params) {
-                        //これ、RT失敗してもツイートしちゃうんですよねえ
-                        getActivity().startService(PostService.newIntent(getActivity(), params[0],
-                                PostService.FLAG_RETWEET,
-                                status.getId()));
-                        return null;
-                    }
-                }.executeParallel(draft);
+                //これ、RT失敗してもツイートしちゃうんですよねえ
+                getActivity().startService(PostService.newIntent(getActivity(), draft,
+                        PostService.FLAG_RETWEET,
+                        status.getId()));
+                getActivity().finish();
             } else if (requestCode == REQUEST_FRT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
-                new ParallelAsyncTask<TweetDraft, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(TweetDraft... params) {
-                        //これ、FRT失敗してもツイートしちゃうんですよねえ
-                        getActivity().startService(PostService.newIntent(
-                                getActivity(), params[0],
-                                PostService.FLAG_FAVORITE | PostService.FLAG_RETWEET,
-                                status.getId()));
-                        return null;
-                    }
-                }.executeParallel(draft);
+                //これ、FRT失敗してもツイートしちゃうんですよねえ
+                getActivity().startService(PostService.newIntent(
+                        getActivity(), draft,
+                        PostService.FLAG_FAVORITE | PostService.FLAG_RETWEET,
+                        status.getId()));
+                getActivity().finish();
             } else if (requestCode == REQUEST_CHANGE) {
                 user = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                 loadProfileImage();
