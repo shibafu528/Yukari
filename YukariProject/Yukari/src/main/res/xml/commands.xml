@@ -13,7 +13,7 @@
             android:summary="違法エビビーム" />
         <Preference
             android:title="::bb"
-            android:summary="\@la0c bbop" />
+            android:summary="\@nkroid bbop" />
         <Preference
             android:title="::cn &lt;NAME&gt;"
             android:summary="発言者の名前を&lt;NAME&gt;に変更する" />
