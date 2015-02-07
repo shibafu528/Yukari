@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -235,7 +236,7 @@ public class StatusManager {
             NotificationType notificationType = new NotificationType(prefValue);
 
             if (notificationType.isEnabled()) {
-                int icon = 0;
+                int icon = 0, color = context.getResources().getColor(R.color.key_color);
                 Uri sound = null;
                 String titleHeader = "", tickerHeader = "";
                 long[] pattern = null;
@@ -253,6 +254,7 @@ public class StatusManager {
                         tickerHeader = "RTされました : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
                         pattern = VIB_RETWEET;
+                        color = Color.rgb(0, 128, 0);
                         break;
                     case R.integer.notification_faved:
                         icon = R.drawable.ic_stat_favorite;
@@ -260,6 +262,7 @@ public class StatusManager {
                         tickerHeader = "ふぁぼられ : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                         pattern = VIB_FAVED;
+                        color = Color.rgb(255, 128, 0);
                         break;
                     case R.integer.notification_message:
                         icon = R.drawable.ic_stat_message;
@@ -282,6 +285,7 @@ public class StatusManager {
                     builder.setContentTitle(titleHeader + actionBy.getScreenName());
                     builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
                     builder.setTicker(tickerHeader + actionBy.getScreenName());
+                    builder.setColor(color);
                     if (notificationType.isUseSound()) {
                         builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
                     }

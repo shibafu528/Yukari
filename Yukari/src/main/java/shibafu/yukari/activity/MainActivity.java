@@ -44,6 +44,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TriangleView;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
@@ -88,6 +89,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @InjectView(R.id.ibClose)       ImageButton ibClose;
     @InjectView(R.id.ibStream)      ImageButton ibStream;
     @InjectView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
+    @InjectView(R.id.streamState)   TriangleView tvStreamState;
 
     //QuickPost関連
     private InputMethodManager imm;
@@ -180,9 +182,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         decorView = getWindow().getDecorView();
         ButterKnife.inject(this);
 
-        TextView tvStreamStates = (TextView) findViewById(R.id.tvStreamStates);
-        tvStreamStates.setOnTouchListener(tweetGestureListener);
-        tvStreamStates.setOnClickListener(new View.OnClickListener() {
+        View flStreamState = findViewById(R.id.flStreamState);
+        flStreamState.setOnTouchListener(tweetGestureListener);
+        flStreamState.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (isImmersive()) {
@@ -197,7 +199,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
             }
         });
-        tvStreamStates.setOnLongClickListener(new View.OnLongClickListener() {
+        flStreamState.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 if (enableQuickPost) {
@@ -206,8 +208,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
                     }
                     return true;
-                }
-                else return false;
+                } else return false;
             }
         });
 
