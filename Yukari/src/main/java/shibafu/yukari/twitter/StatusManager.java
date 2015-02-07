@@ -50,6 +50,7 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
+import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
@@ -78,6 +79,7 @@ public class StatusManager {
     public static final int UPDATE_UNFAVED = 2;
     public static final int UPDATE_DELETED = 3;
     public static final int UPDATE_DELETED_DM = 4;
+    public static final int UPDATE_NOTIFY = 5;
     public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
@@ -133,6 +135,7 @@ public class StatusManager {
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
                 showNotification(R.integer.notification_faved, preformedStatus, user);
+                createHistory(from, HistoryStatus.KIND_FAVED, user, preformedStatus);
             }
         }
 
@@ -209,6 +212,16 @@ public class StatusManager {
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
+            }
+        }
+
+        private void createHistory(Stream from, int kind, User eventBy, Status status) {
+            HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus));
             }
         }
 
@@ -543,6 +556,7 @@ public class StatusManager {
                             status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                             checkOwn == null) {
                         showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus);
 
                         //Put Response Stand-By
                         retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
