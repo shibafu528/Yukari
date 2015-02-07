@@ -71,7 +71,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         if (type < 0) return;
         boolean requireBind = (type & 0x80) == 0x80;
         type &= 0x7f;
-        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM)) {
+        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM || type == TabType.TABTYPE_HISTORY)) {
             findInnerFragment().addTab(type, null);
         }
         else {
@@ -163,6 +163,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
                 case TabType.TABTYPE_DM:
+                case TabType.TABTYPE_HISTORY:
                     for (TabInfo info : tabs) {
                         if (info.getType() == type && info.getBindAccount() == userRecord) {
                             return;
@@ -234,7 +235,8 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                     "Mentions (Single Account)",
                     "DM",
                     "DM (Single Account)",
-                    "List"
+                    "List",
+                    "History"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
@@ -260,6 +262,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                                     break;
                                 case 6:
                                     type |= TabType.TABTYPE_LIST;
+                                    break;
+                                case 7:
+                                    type = TabType.TABTYPE_HISTORY;
                                     break;
                                 default:
                                     type = -1;
