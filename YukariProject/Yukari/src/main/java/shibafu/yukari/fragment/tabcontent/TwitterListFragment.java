@@ -139,12 +139,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorScheme(
-                R.color.key_color,
-                R.color.key_color_2,
-                R.color.key_color,
-                R.color.key_color_2
-        );
+        swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
