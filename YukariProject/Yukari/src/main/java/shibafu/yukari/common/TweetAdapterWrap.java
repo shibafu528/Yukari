@@ -30,6 +30,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
@@ -194,10 +195,13 @@ public class TweetAdapterWrap {
                 else if (DirectMessage.class.isAssignableFrom(cls)) {
                     return new MessageViewConverter(context, userRecords, userExtras, sharedPreferences);
                 }
+                else if (HistoryStatus.class.isAssignableFrom(cls)) {
+                    return new HistoryViewConverter(context, userRecords, userExtras, sharedPreferences);
+                }
             } catch (IllegalAccessException | InstantiationException e) {
                 throw new RuntimeException(e);
             }
-            throw new ClassCastException("対応されているクラスではありません.");
+            throw new UnsupportedOperationException("対応されているクラスではありません.");
         }
 
         protected ViewConverter(Context context,
@@ -551,6 +555,50 @@ public class TweetAdapterWrap {
             viewHolder.tvTimestamp.setText(String.format("%s to @%s / %s",
                     viewHolder.tvTimestamp.getText(),
                     message.getRecipientScreenName(), message.getRecipient().getName()));
+            return v;
+        }
+    }
+
+    private static class HistoryViewConverter extends ViewConverter {
+
+        private ViewConverter includeViewConverter;
+
+        protected HistoryViewConverter(Context context,
+                                       List<AuthUserRecord> userRecords,
+                                       List<UserExtras> userExtras,
+                                       SharedPreferences preferences)
+                throws IllegalAccessException, InstantiationException {
+            super(context, userRecords, userExtras, preferences, TweetCommon.newInstance(HistoryStatus.class));
+            includeViewConverter = ViewConverter.newInstance(context, userRecords, userExtras, preferences, PreformedStatus.class);
+        }
+
+        private String kindToString(int kind) {
+            switch (kind) {
+                case HistoryStatus.KIND_FAVED:
+                    return "お気に入り登録";
+                case HistoryStatus.KIND_RETWEETED:
+                    return "リツイート";
+                default:
+                    return "反応";
+            }
+        }
+
+        @Override
+        protected View convertViewAbs(View v, TweetViewHolder viewHolder, TwitterResponse content, int mode) {
+            final HistoryStatus historyStatus = (HistoryStatus) content;
+            viewHolder.tvText.setVisibility(View.GONE);
+            viewHolder.tvName.setText(String.format("@%sさんが%s", historyStatus.getUser().getScreenName(), kindToString(historyStatus.getKind())));
+            viewHolder.tvTimestamp.setText(StringUtil.formatDate(historyStatus.getCreatedAt()));
+
+            viewHolder.flInclude.setVisibility(View.VISIBLE);
+            View include;
+            if (viewHolder.flInclude.getChildCount() > 0) {
+                include = viewHolder.flInclude.getChildAt(0);
+            } else {
+                include = View.inflate(getContext(), R.layout.row_tweet, null);
+                viewHolder.flInclude.addView(include);
+            }
+            includeViewConverter.convertView(include, historyStatus.getStatus(), mode | MODE_INCLUDE);
             return v;
         }
     }
