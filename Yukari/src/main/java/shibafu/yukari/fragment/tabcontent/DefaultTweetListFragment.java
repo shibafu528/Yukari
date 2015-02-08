@@ -521,7 +521,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     }
                 }
                 break;
-            default:
+            case StatusManager.UPDATE_FAVED:
+            case StatusManager.UPDATE_UNFAVED:
                 int position = 0;
                 for (; position < elements.size(); ++position) {
                     if (elements.get(position).getId() == status.getId()) break;

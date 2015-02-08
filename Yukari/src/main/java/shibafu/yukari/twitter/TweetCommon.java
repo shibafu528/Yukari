@@ -24,7 +24,7 @@ public class TweetCommon {
         else if (DirectMessage.class.isAssignableFrom(clz)) {
             return new MessageCommonDelegate();
         }
-        throw new ClassCastException("対応されているクラスではありません.");
+        throw new UnsupportedOperationException("対応されているクラスではありません.");
     }
 
     public static class StatusCommonDelegate implements TweetCommonDelegate {

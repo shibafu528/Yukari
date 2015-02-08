@@ -1,5 +1,7 @@
 package shibafu.yukari.twitter.statusimpl;
 
+import java.util.Date;
+
 import twitter4j.Status;
 import twitter4j.User;
 
@@ -25,11 +27,22 @@ public class HistoryStatus extends FakeStatus{
         return kind;
     }
 
-    public User getEventBy() {
+    public Status getStatus() {
+        return status;
+    }
+
+    @Override
+    public User getUser() {
         return eventBy;
     }
 
-    public Status getStatus() {
-        return status;
+    @Override
+    public String getText() {
+        return "";
+    }
+
+    @Override
+    public Date getCreatedAt() {
+        return new Date(getId());
     }
 }

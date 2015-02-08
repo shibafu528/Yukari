@@ -217,12 +217,14 @@ public class StatusManager {
 
         private void createHistory(Stream from, int kind, User eventBy, Status status) {
             HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
+            EventBuffer eventBuffer = new EventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
             for (StatusListener sl : statusListeners) {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus));
+                e.getValue().offer(eventBuffer);
             }
+            updateBuffer.add(eventBuffer);
         }
 
         private void showNotification(int category, TwitterResponse status, User actionBy) {
@@ -650,6 +652,7 @@ public class StatusManager {
     }
     private List<StatusListener> statusListeners = new ArrayList<>();
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
+    private List<EventBuffer> updateBuffer = new ArrayList<>();
 
     private class UserUpdateDelayer {
         private Thread thread;
@@ -830,6 +833,10 @@ public class StatusManager {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
                 statusBuffer.remove(l);
+            } else {
+                for (EventBuffer eventBuffer : updateBuffer) {
+                    eventBuffer.sendBufferedEvent(l);
+                }
             }
         }
     }
