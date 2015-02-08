@@ -22,6 +22,8 @@ dependencies {
 
     compile 'com.larswerkman:HoloColorPicker:1.4'
 
+    compile 'com.github.machinarius:preferencefragment:0.1.1'
+
     compile project(':GalleryMultiPicker:library')
     compile project(':twpfparser')
 
