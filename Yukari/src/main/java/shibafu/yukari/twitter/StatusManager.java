@@ -558,7 +558,7 @@ public class StatusManager {
                             status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                             checkOwn == null) {
                         showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus);
+                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
                         //Put Response Stand-By
                         retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
