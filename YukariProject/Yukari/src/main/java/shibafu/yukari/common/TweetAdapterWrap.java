@@ -455,6 +455,10 @@ public class TweetAdapterWrap {
                 viewHolder.llAttach.setVisibility(View.GONE);
             }
 
+            if (mode == MODE_DEFAULT && st.isTooManyRepeatText() && getPreferences().getBoolean("pref_shorten_repeat_text", false)) {
+                viewHolder.tvText.setText(st.getRepeatedSequence() + "\n...(repeat)...");
+            }
+
             if (mode != MODE_PREVIEW) {
                 if (st.isRetweet()) {
                     String timestamp = "RT by @" + st.getUser().getScreenName() + "\n" +

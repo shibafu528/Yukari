@@ -56,6 +56,10 @@
             android:entries="@array/pref_mode_multiline_entries"
             android:entryValues="@array/pref_mode_multiline_values"
             android:defaultValue="0"/>
+        <CheckBoxPreference
+            android:key="pref_shorten_repeat_text"
+            android:title="反復ツイートの圧縮"
+            android:summary="4行以上同じ文章が続いているツイートを圧縮します"/>
         <Preference
             android:key="pref_font"
             android:title="フォント設定"
