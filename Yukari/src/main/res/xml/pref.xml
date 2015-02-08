@@ -49,6 +49,14 @@
             android:inputType="number"
             android:defaultValue="14"
             android:maxLength="2"/>
+        <EditTextPreference
+            android:key="pref_font_input"
+            android:title="入力文字サイズの設定"
+            android:summary="投稿画面上の文字サイズを設定します"
+            android:dialogTitle="入力文字サイズの設定 (デフォルト:18)"
+            android:inputType="number"
+            android:defaultValue="18"
+            android:maxLength="2"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
