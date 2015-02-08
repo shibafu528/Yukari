@@ -244,6 +244,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
+        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
         etInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
