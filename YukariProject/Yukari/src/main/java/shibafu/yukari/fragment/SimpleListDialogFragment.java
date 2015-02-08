@@ -6,62 +6,51 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 
+import java.util.List;
+
 /**
  * Created by shibafu on 14/02/18.
  */
-public class SimpleAlertDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
+public class SimpleListDialogFragment extends DialogFragment implements DialogInterface.OnClickListener {
 
     public static final String ARG_REQUEST_CODE = "requestcode";
     public static final String ARG_ICON = "icon";
     public static final String ARG_TITLE = "title";
     public static final String ARG_MESSAGE = "message";
-    public static final String ARG_POSITIVE = "positive";
+    public static final String ARG_ITEMS = "items";
+    public static final String ARG_POSITIVE = "possitive";
     public static final String ARG_NEGATIVE = "negative";
 
     public static interface OnDialogChoseListener {
         void onDialogChose(int requestCode, int which);
     }
 
-    @Deprecated
-    public static SimpleAlertDialogFragment newInstance(
-            String title, String message, String positive, String negative) {
-        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
-        Bundle args = new Bundle();
-        args.putBoolean("compat", true);
-        args.putString(ARG_TITLE, title);
-        args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSITIVE, positive);
-        args.putString(ARG_NEGATIVE, negative);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public static SimpleAlertDialogFragment newInstance(
+    public static SimpleListDialogFragment newInstance(
             int requestCode,
-            String title, String message, String positive, String negative) {
-        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
+            String title, String message, String possitive, String negative, String... items) {
+        SimpleListDialogFragment fragment = new SimpleListDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_REQUEST_CODE, requestCode);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSITIVE, positive);
+        args.putString(ARG_POSITIVE, possitive);
         args.putString(ARG_NEGATIVE, negative);
+        args.putStringArray(ARG_ITEMS, items);
         fragment.setArguments(args);
         return fragment;
     }
 
-    public static SimpleAlertDialogFragment newInstance(
+    public static SimpleListDialogFragment newInstance(
             int requestCode,
-            int iconId,
-            String title, String message, String positive, String negative) {
-        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
+            String title, String message, String possitive, String negative, List<String> items) {
+        SimpleListDialogFragment fragment = new SimpleListDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_REQUEST_CODE, requestCode);
-        args.putInt(ARG_ICON, iconId);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSITIVE, positive);
+        args.putString(ARG_POSITIVE, possitive);
         args.putString(ARG_NEGATIVE, negative);
+        args.putStringArray(ARG_ITEMS, items.toArray(new String[items.size()]));
         fragment.setArguments(args);
         return fragment;
     }
@@ -74,6 +63,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         String message = args.getString(ARG_MESSAGE);
         String positive = args.getString(ARG_POSITIVE);
         String negative = args.getString(ARG_NEGATIVE);
+        String[] items = args.getStringArray(ARG_ITEMS);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
@@ -82,6 +72,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         if (message != null) builder.setMessage(message);
         if (positive != null) builder.setPositiveButton(positive, this);
         if (negative != null) builder.setNegativeButton(negative, this);
+        if (items != null) builder.setItems(items, this);
 
         return builder.create();
     }

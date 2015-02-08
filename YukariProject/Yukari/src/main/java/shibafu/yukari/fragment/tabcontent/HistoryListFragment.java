@@ -1,8 +1,12 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.activity.StatusActivity;
+import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
@@ -13,7 +17,9 @@ import twitter4j.Status;
 /**
  * Created by shibafu on 15/02/07.
  */
-public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusManager.StatusListener {
+public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusManager.StatusListener, SimpleListDialogFragment.OnDialogChoseListener {
+
+    private HistoryStatus lastClicked;
 
     public HistoryListFragment() {
         super(HistoryStatus.class);
@@ -41,7 +47,13 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
 
     @Override
     public void onListItemClick(HistoryStatus clickedElement) {
-
+        lastClicked = clickedElement;
+        SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                0, "メニュー", null, null, null,
+                "@" + clickedElement.getUser().getScreenName(),
+                "ツイートを開く");
+        dialogFragment.setTargetFragment(this, 0);
+        dialogFragment.show(getFragmentManager(), "menu");
     }
 
     @Override
@@ -79,6 +91,27 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
                         insertElement(historyStatus, position);
                     }
                 });
+            }
+        }
+    }
+
+    @Override
+    public void onDialogChose(int requestCode, int which) {
+        if (requestCode == 0) {
+            Intent intent = new Intent();
+            switch (which) {
+                case 0:
+                    intent.setClass(getActivity(), ProfileActivity.class);
+                    intent.putExtra(ProfileActivity.EXTRA_USER, getTwitterService().isMyTweet(lastClicked.getStatus()));
+                    intent.putExtra(ProfileActivity.EXTRA_TARGET, lastClicked.getUser().getId());
+                    startActivity(intent);
+                    break;
+                case 1:
+                    intent.setClass(getActivity(), StatusActivity.class);
+                    intent.putExtra(StatusActivity.EXTRA_STATUS, lastClicked.getStatus());
+                    intent.putExtra(StatusActivity.EXTRA_USER, getTwitterService().isMyTweet(lastClicked.getStatus()));
+                    startActivity(intent);
+                    break;
             }
         }
     }
