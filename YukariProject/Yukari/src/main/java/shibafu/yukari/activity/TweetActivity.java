@@ -949,6 +949,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (status != null) {
             Status s = status.isRetweet()? status.getRetweetedStatus() : status;
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
+        } else {
+            tvTitle.setText("Reply >> load failed. (deleted or temporary error)");
         }
     }
 
