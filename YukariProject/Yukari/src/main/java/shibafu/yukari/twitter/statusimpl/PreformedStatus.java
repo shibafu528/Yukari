@@ -1,5 +1,7 @@
 package shibafu.yukari.twitter.statusimpl;
 
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -75,7 +77,7 @@ public class PreformedStatus implements Status{
             for (String s1 : split) {
                 int repeat = 0;
                 for (String s2 : split) {
-                    if (s1.equals(s2)) {
+                    if (!TextUtils.isEmpty(s2.trim()) && s1.equals(s2)) {
                         ++repeat;
                     }
                 }
