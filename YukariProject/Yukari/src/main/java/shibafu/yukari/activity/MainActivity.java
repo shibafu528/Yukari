@@ -730,8 +730,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             pageList.clear();
 
             ArrayList<TabInfo> tabs = getTwitterService().getDatabase().getTabs();
-            for (TabInfo info : tabs) {
-                addTab(info);
+            for (int i = 0; i < tabs.size(); i++) {
+                addTab(tabs.get(i));
+                if (tabs.get(i).isStartup()) {
+                    pageId = i;
+                }
             }
         }
         else for (int i = 0; i < pageList.size(); ++i) {

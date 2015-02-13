@@ -19,7 +19,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -292,7 +294,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
             public View getView(int position, View convertView, ViewGroup parent) {
                 ViewHolder viewHolder;
                 if (convertView == null) {
-                    convertView = inflater.inflate(R.layout.row_sortable, null);
+                    convertView = inflater.inflate(R.layout.row_tabedit, null);
                     viewHolder = new ViewHolder(convertView);
                     convertView.setTag(viewHolder);
                 } else {
@@ -311,6 +313,20 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                             return false;
                         }
                     });
+                    viewHolder.radioButton.setOnCheckedChangeListener(null);
+                    viewHolder.radioButton.setChecked(item.isStartup());
+                    viewHolder.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                for (TabInfo tab : tabs) {
+                                    tab.setStartup(tab.getId() == item.getId());
+                                }
+                                syncDatabase();
+                                notifyDataSetChanged();
+                            }
+                        }
+                    });
 
                     if (grabbedTab != null && grabbedTab.getId() == item.getId()) {
                         convertView.setBackgroundColor(Color.parseColor("#9933b5e5"));
@@ -325,6 +341,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         static class ViewHolder {
             @InjectView(android.R.id.text1) TextView text;
             @InjectView(R.id.handle) View handle;
+            @InjectView(R.id.radio) RadioButton radioButton;
 
             ViewHolder(View v) {
                 ButterKnife.inject(this, v);
