@@ -134,7 +134,7 @@ public class TabInfo implements DBRecord, Serializable {
     }
 
     //Alias of SearchKeyword (for List TabInfo)
-    public String getListSlug() { return searchKeyword; }
+    public String getListName() { return searchKeyword; }
 
     public void setSearchKeyword(String searchKeyword) {
         this.searchKeyword = searchKeyword;
@@ -176,7 +176,7 @@ public class TabInfo implements DBRecord, Serializable {
             case TabType.TABTYPE_HISTORY:
                 return "History";
             case TabType.TABTYPE_LIST:
-                return "List: " + getListSlug();
+                return "List: " + getListName();
             case TabType.TABTYPE_USER:
                 return "User";
             case TabType.TABTYPE_BOOKMARK:
