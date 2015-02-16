@@ -2,12 +2,21 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +25,28 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import butterknife.ButterKnife;
+import butterknife.InjectViews;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
+import shibafu.yukari.activity.IntentChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -44,12 +63,45 @@ public class MenuDialogFragment extends DialogFragment {
     private static final int REQUEST_ACLOG = 4;
     private static final int REQUEST_ACCOUNT = 5;
 
+    private static final List<Integer> REQUEST_PLUGIN_CHOOSE = Collections.unmodifiableList(Arrays.asList(16, 17, 18));
+    private static final List<Integer> REQUEST_PLUGIN_EXEC = Collections.unmodifiableList(Arrays.asList(32, 33, 34));
+
     private static final int ACCOUNT_ICON_DIP = 32;
+
+    @InjectViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
+    List<View> pluginViews;
+
+    private MenuPlugin[] plugins = new MenuPlugin[3];
+    private static final String[] DEFAULT_PLUGINS = {
+            UserPluginActivity.TO_TWILOG,
+            UserPluginActivity.TO_FAVSTAR,
+            UserPluginActivity.TO_ACLOG
+    };
 
     private LinearLayout llActiveAccounts;
     private ArrayList<AuthUserRecord> activeAccounts;
 
     private ImageView keepScreenOnImage;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+        for (int i = 0; i < 3; ++i) {
+            String json = sp.getString("menu_plugin_" + i, "");
+            if (TextUtils.isEmpty(json)) {
+                try {
+                    ActivityInfo info = activity.getPackageManager()
+                            .getActivityInfo(new ComponentName(activity, DEFAULT_PLUGINS[i]), 0);
+                    plugins[i] = new MenuPlugin(activity, info);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                plugins[i] = new Gson().fromJson(json, MenuPlugin.class);
+            }
+        }
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -150,33 +202,6 @@ public class MenuDialogFragment extends DialogFragment {
             }
         });
 
-        View twilogMenu = v.findViewById(R.id.llMenuTwilog);
-        twilogMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_TWILOG);
-            }
-        });
-
-        View favstarMenu = v.findViewById(R.id.llMenuFavstar);
-        favstarMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_FAVSTAR);
-            }
-        });
-
-        final View aclogMenu = v.findViewById(R.id.llMenuAclog);
-        aclogMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_ACLOG);
-            }
-        });
-
         View exitMenu = v.findViewById(R.id.llMenuExit);
         exitMenu.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -245,7 +270,71 @@ public class MenuDialogFragment extends DialogFragment {
             }
         });
 
+        ButterKnife.inject(this, v);
+        ButterKnife.apply(pluginViews, new ButterKnife.Action<View>() {
+            @Override
+            public void apply(View view, final int index) {
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                        startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
+                    }
+                });
+                view.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        Intent filter = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
+                        filter.addCategory("jp.r246.twicca.category.OWNER");
+                        Intent chooser = new Intent(getActivity(), IntentChooserActivity.class);
+                        chooser.putExtra(IntentChooserActivity.EXTRA_FILTER, filter);
+                        startActivityForResult(chooser, REQUEST_PLUGIN_CHOOSE.get(index));
+                        return true;
+                    }
+                });
+            }
+        });
+
+        updatePlugin(0, plugins[0]);
+        updatePlugin(1, plugins[1]);
+        updatePlugin(2, plugins[2]);
+
         return v;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.reset(this);
+    }
+
+    private void updatePlugin(int index, MenuPlugin plugin) {
+        if (plugins[index] != plugin) {
+            String json = new Gson().toJson(plugin);
+            PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+                    .putString("menu_plugin_" + index, json)
+                    .apply();
+        }
+        plugins[index] = plugin;
+        View v = pluginViews.get(index);
+        TextView label = (TextView) v.findViewById(R.id.tvMenuPlugin);
+        label.setText(plugin.getShortLabel());
+        ImageView icon = (ImageView) v.findViewById(R.id.ivMenuPlugin);
+        try {
+            Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
+            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
+                case "light":
+                    icon.setImageDrawable(res.getDrawable(plugin.getLightIconId()));
+                    break;
+                case "dark":
+                    icon.setImageDrawable(res.getDrawable(plugin.getDarkIconId()));
+                    break;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        } catch (Resources.NotFoundException e) {
+            icon.setImageResource(R.drawable.ic_favorite_m);
+        }
     }
 
     @Override
@@ -295,6 +384,97 @@ public class MenuDialogFragment extends DialogFragment {
                 }.run();
                 break;
             }
+            default:
+                if (REQUEST_PLUGIN_CHOOSE.contains(requestCode)) {
+                    ResolveInfo info = data.getParcelableExtra(IntentChooserActivity.EXTRA_SELECT);
+                    try {
+                        MenuPlugin plugin = new MenuPlugin(getActivity(), info.activityInfo);
+                        updatePlugin(REQUEST_PLUGIN_CHOOSE.indexOf(requestCode), plugin);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getActivity(), "プラグインの解決に失敗しました", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (REQUEST_PLUGIN_EXEC.contains(requestCode)) {
+                    dismiss();
+                    AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    Intent intent = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
+                    intent.addCategory("jp.r246.twicca.category.OWNER");
+                    intent.setComponent(plugins[REQUEST_PLUGIN_EXEC.indexOf(requestCode)].getComponentName());
+                    intent.putExtra(Intent.EXTRA_TEXT, userRecord.ScreenName);
+                    intent.putExtra("name", userRecord.Name);
+                    intent.putExtra("id", String.valueOf(userRecord.NumericId));
+                    intent.putExtra("profile_image_url", userRecord.ProfileImageUrl);
+                    intent.putExtra("profile_image_url_mini", userRecord.ProfileImageUrl);
+                    intent.putExtra("profile_image_url_normal", userRecord.ProfileImageUrl);
+                    intent.putExtra("profile_image_url_bigger", userRecord.ProfileImageUrl);
+                    intent.putExtra("owner_screen_name", userRecord.ScreenName);
+                    intent.putExtra("owner_name", userRecord.Name);
+                    intent.putExtra("owner_id", String.valueOf(userRecord.NumericId));
+                    intent.putExtra("owner_profile_image_url", userRecord.ProfileImageUrl);
+                    intent.putExtra("owner_profile_image_url_mini", userRecord.ProfileImageUrl);
+                    intent.putExtra("owner_profile_image_url_normal", userRecord.ProfileImageUrl);
+                    intent.putExtra("owner_profile_image_url_bigger", userRecord.ProfileImageUrl);
+                    try {
+                        startActivity(intent);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(getActivity().getApplicationContext(), "プラグインの起動に失敗しました\nアプリが削除されましたか？", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+        }
+    }
+
+    static class MenuPlugin {
+        private String packageName;
+        private String name;
+        private String label;
+        private String shortLabel;
+        private int iconId;
+        private int lightIconId;
+        private int darkIconId;
+
+        public MenuPlugin(Context context, ActivityInfo info) throws PackageManager.NameNotFoundException {
+            PackageManager packageManager = context.getPackageManager();
+            ComponentName componentName = new ComponentName(info.applicationInfo.packageName, info.name);
+            ActivityInfo metaInfo = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA);
+
+            packageName = info.applicationInfo.packageName;
+            name = info.name;
+            label = String.valueOf(info.loadLabel(packageManager));
+            iconId = info.getIconResource();
+            if (metaInfo.metaData != null) {
+                shortLabel = metaInfo.metaData.getString("shibafu.yukari.PLUGIN_SHORT_LABEL");
+                lightIconId = metaInfo.metaData.getInt("shibafu.yukari.PLUGIN_LIGHT_ICON");
+                darkIconId = metaInfo.metaData.getInt("shibafu.yukari.PLUGIN_DARK_ICON");
+            }
+        }
+
+        public String getPackageName() {
+            return packageName;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public ComponentName getComponentName() {
+            return new ComponentName(packageName, name);
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public String getShortLabel() {
+            return TextUtils.isEmpty(shortLabel) ? label : shortLabel;
+        }
+
+        public int getLightIconId() {
+            return lightIconId == 0 ? iconId : lightIconId;
+        }
+
+        public int getDarkIconId() {
+            return darkIconId == 0 ? iconId : darkIconId;
         }
     }
 }

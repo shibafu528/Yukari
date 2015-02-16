@@ -23,6 +23,7 @@ public class TabInfo implements DBRecord, Serializable {
     private long bindListId = -1;
     private String searchKeyword;
     private String filterQuery;
+    private boolean isStartup;
 
     private transient TwitterListFragment listFragment;
 
@@ -59,6 +60,7 @@ public class TabInfo implements DBRecord, Serializable {
         this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_ID + "_t"));
         this.type = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TYPE));
         this.order = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TAB_ORDER));
+        this.isStartup = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_IS_STARTUP)) == 1;
         long accountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID));
         if (accountId > -1) {
             bindAccount = new AuthUserRecord(cursor);
@@ -87,6 +89,7 @@ public class TabInfo implements DBRecord, Serializable {
         values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD,
                 (type == TabType.TABTYPE_SEARCH || type == TabType.TABTYPE_TRACK || type == TabType.TABTYPE_LIST)? searchKeyword:"");
         values.put(CentralDatabase.COL_TABS_FILTER_QUERY, (type == TabType.TABTYPE_FILTER)?filterQuery:"");
+        values.put(CentralDatabase.COL_TABS_IS_STARTUP, isStartup);
         return values;
     }
 
@@ -131,7 +134,7 @@ public class TabInfo implements DBRecord, Serializable {
     }
 
     //Alias of SearchKeyword (for List TabInfo)
-    public String getListSlug() { return searchKeyword; }
+    public String getListName() { return searchKeyword; }
 
     public void setSearchKeyword(String searchKeyword) {
         this.searchKeyword = searchKeyword;
@@ -173,7 +176,7 @@ public class TabInfo implements DBRecord, Serializable {
             case TabType.TABTYPE_HISTORY:
                 return "History";
             case TabType.TABTYPE_LIST:
-                return "List: " + getListSlug();
+                return "List: " + getListName();
             case TabType.TABTYPE_USER:
                 return "User";
             case TabType.TABTYPE_BOOKMARK:
@@ -181,5 +184,13 @@ public class TabInfo implements DBRecord, Serializable {
             default:
                 return "?Unknown Tab";
         }
+    }
+
+    public boolean isStartup() {
+        return isStartup;
+    }
+
+    public void setStartup(boolean isStartup) {
+        this.isStartup = isStartup;
     }
 }

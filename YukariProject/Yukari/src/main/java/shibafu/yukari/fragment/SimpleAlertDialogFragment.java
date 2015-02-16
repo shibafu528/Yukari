@@ -15,7 +15,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     public static final String ARG_ICON = "icon";
     public static final String ARG_TITLE = "title";
     public static final String ARG_MESSAGE = "message";
-    public static final String ARG_POSSITIVE = "possitive";
+    public static final String ARG_POSITIVE = "positive";
     public static final String ARG_NEGATIVE = "negative";
 
     public static interface OnDialogChoseListener {
@@ -24,13 +24,13 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
 
     @Deprecated
     public static SimpleAlertDialogFragment newInstance(
-            String title, String message, String possitive, String negative) {
+            String title, String message, String positive, String negative) {
         SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
         Bundle args = new Bundle();
         args.putBoolean("compat", true);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSSITIVE, possitive);
+        args.putString(ARG_POSITIVE, positive);
         args.putString(ARG_NEGATIVE, negative);
         fragment.setArguments(args);
         return fragment;
@@ -38,13 +38,13 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
 
     public static SimpleAlertDialogFragment newInstance(
             int requestCode,
-            String title, String message, String possitive, String negative) {
+            String title, String message, String positive, String negative) {
         SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_REQUEST_CODE, requestCode);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSSITIVE, possitive);
+        args.putString(ARG_POSITIVE, positive);
         args.putString(ARG_NEGATIVE, negative);
         fragment.setArguments(args);
         return fragment;
@@ -53,14 +53,14 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     public static SimpleAlertDialogFragment newInstance(
             int requestCode,
             int iconId,
-            String title, String message, String possitive, String negative) {
+            String title, String message, String positive, String negative) {
         SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_REQUEST_CODE, requestCode);
         args.putInt(ARG_ICON, iconId);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSSITIVE, possitive);
+        args.putString(ARG_POSITIVE, positive);
         args.putString(ARG_NEGATIVE, negative);
         fragment.setArguments(args);
         return fragment;
@@ -72,7 +72,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         int iconId = args.getInt(ARG_ICON, -1);
         String title = args.getString(ARG_TITLE);
         String message = args.getString(ARG_MESSAGE);
-        String possitive = args.getString(ARG_POSSITIVE);
+        String positive = args.getString(ARG_POSITIVE);
         String negative = args.getString(ARG_NEGATIVE);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -80,7 +80,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         if (iconId > -1) builder.setIcon(iconId);
         if (title != null) builder.setTitle(title);
         if (message != null) builder.setMessage(message);
-        if (possitive != null) builder.setPositiveButton(possitive, this);
+        if (positive != null) builder.setPositiveButton(positive, this);
         if (negative != null) builder.setNegativeButton(negative, this);
 
         return builder.create();

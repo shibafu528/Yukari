@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import shibafu.yukari.common.TabInfo;
@@ -25,7 +26,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 11;
+    public static final int DB_VER = 12;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -101,6 +102,7 @@ public class CentralDatabase {
     public static final String COL_TABS_BIND_LIST_ID = "BindListId";
     public static final String COL_TABS_SEARCH_KEYWORD = "SearchKeyword";
     public static final String COL_TABS_FILTER_QUERY = "FilterQuery";
+    public static final String COL_TABS_IS_STARTUP = "IsStartup";
 
     //SearchHistoryテーブル
     public static final String TABLE_SEARCH_HISTORY = "SearchHistory";
@@ -201,15 +203,19 @@ public class CentralDatabase {
                     COL_TABS_BIND_ACCOUNT_ID + " INTEGER, " +
                     COL_TABS_BIND_LIST_ID + " INTEGER, " +
                     COL_TABS_SEARCH_KEYWORD + " TEXT, " +
-                    COL_TABS_FILTER_QUERY + " TEXT)"
+                    COL_TABS_FILTER_QUERY + " TEXT, " +
+                    COL_TABS_IS_STARTUP + " INTEGER)"
             );
             {
                 TabInfo homeTab = new TabInfo(TabType.TABTYPE_HOME, 0, null);
+                homeTab.setStartup(true);
                 db.insert(TABLE_TABS, null, homeTab.getContentValues());
                 TabInfo mentionTab = new TabInfo(TabType.TABTYPE_MENTION, 1, null);
                 db.insert(TABLE_TABS, null, mentionTab.getContentValues());
                 TabInfo dmTab = new TabInfo(TabType.TABTYPE_DM, 2, null);
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
+                TabInfo historyTab = new TabInfo(TabType.TABTYPE_HISTORY, 2, null);
+                db.insert(TABLE_TABS, null, historyTab.getContentValues());
             }
             db.execSQL(
                     "CREATE TABLE " + TABLE_SEARCH_HISTORY + " (" +
@@ -245,6 +251,7 @@ public class CentralDatabase {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             if (oldVersion == 1) {
                 TabInfo homeTab = new TabInfo(TabType.TABTYPE_HOME, 0, null);
+                homeTab.setStartup(true);
                 db.insert(TABLE_TABS, null, homeTab.getContentValues());
                 TabInfo mentionTab = new TabInfo(TabType.TABTYPE_MENTION, 1, null);
                 db.insert(TABLE_TABS, null, mentionTab.getContentValues());
@@ -340,6 +347,11 @@ public class CentralDatabase {
                                 COL_AUTO_MUTE_MATCH + " INTEGER, " +
                                 COL_AUTO_MUTE_QUERY + " TEXT)"
                 );
+                ++oldVersion;
+            }
+            if (oldVersion == 11) {
+                db.execSQL("ALTER TABLE " + TABLE_TABS + " ADD " + COL_TABS_IS_STARTUP + " INTEGER DEFAULT 0");
+                ++oldVersion;
             }
         }
     }
@@ -551,6 +563,15 @@ public class CentralDatabase {
             }
         } finally {
             cursor.close();
+        }
+        Iterator<TabInfo> iterator = tabs.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().isStartup()) {
+                break;
+            }
+        }
+        if (!tabs.get(tabs.size() - 1).isStartup() && !iterator.hasNext()) {
+            tabs.get(0).setStartup(true);
         }
         return tabs;
     }

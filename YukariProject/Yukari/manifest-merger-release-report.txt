@@ -36,15 +36,16 @@ ADDED from AndroidManifest.xml:12:5
 application
 ADDED from AndroidManifest.xml:14:5
 MERGED from com.android.support:appcompat-v7:20.0.0:17:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
 MERGED from com.google.android.gms:play-services:6.1.11:16:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
 MERGED from YukariProject.GalleryMultiPicker:library:unspecified:11:5
 MERGED from com.android.support:appcompat-v7:20.0.0:17:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
-MERGED from com.android.support:support-v4:20.0.0:17:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
+MERGED from com.android.support:support-v4:21.0.3:16:5
 	android:label
 		ADDED from AndroidManifest.xml:17:9
 	android:allowBackup
@@ -329,64 +330,158 @@ ADDED from AndroidManifest.xml:224:9
 		ADDED from AndroidManifest.xml:226:13
 	android:name
 		ADDED from AndroidManifest.xml:225:13
-intent-filter#android.intent.category.DEFAULT+jp.r246.twicca.ACTION_SHOW_TWEET
+intent-filter#android.intent.category.DEFAULT+jp.r246.twicca.ACTION_SHOW_TWEET+twitterShareLibrary.lib.intent.ACTION_SHOW_STATUS
 ADDED from AndroidManifest.xml:227:13
 action#jp.r246.twicca.ACTION_SHOW_TWEET
 ADDED from AndroidManifest.xml:228:17
 	android:name
 		ADDED from AndroidManifest.xml:228:25
-activity#shibafu.yukari.activity.UserSearchActivity
-ADDED from AndroidManifest.xml:233:9
-	android:label
-		ADDED from AndroidManifest.xml:236:13
-	android:windowSoftInputMode
-		ADDED from AndroidManifest.xml:237:13
-	android:theme
-		ADDED from AndroidManifest.xml:235:13
+action#twitterShareLibrary.lib.intent.ACTION_SHOW_STATUS
+ADDED from AndroidManifest.xml:229:17
 	android:name
-		ADDED from AndroidManifest.xml:234:13
-activity#shibafu.yukari.activity.MaintenanceActivity
-ADDED from AndroidManifest.xml:239:9
+		ADDED from AndroidManifest.xml:229:25
+activity#shibafu.yukari.plugin.UserPluginActivity
+ADDED from AndroidManifest.xml:234:9
+	android:theme
+		ADDED from AndroidManifest.xml:236:13
+	android:name
+		ADDED from AndroidManifest.xml:235:13
+activity-alias#shibafu.yukari.plugin.OpenTwilogActivity
+ADDED from AndroidManifest.xml:237:9
 	android:label
+		ADDED from AndroidManifest.xml:240:13
+	android:targetActivity
+		ADDED from AndroidManifest.xml:239:13
+	android:icon
 		ADDED from AndroidManifest.xml:241:13
 	android:name
-		ADDED from AndroidManifest.xml:240:13
-activity#info.shibafu528.gallerymultipicker.MultiPickerActivity
-ADDED from AndroidManifest.xml:243:9
-	android:label
-		ADDED from AndroidManifest.xml:245:13
-	android:uiOptions
-		ADDED from AndroidManifest.xml:246:13
-	android:name
-		ADDED from AndroidManifest.xml:244:13
-meta-data#info.shibafu528.gallerymultipicker.ICON_THEME
-ADDED from AndroidManifest.xml:250:13
+		ADDED from AndroidManifest.xml:238:13
+meta-data#shibafu.yukari.PLUGIN_SHORT_LABEL
+ADDED from AndroidManifest.xml:242:13
 	android:value
-		ADDED from AndroidManifest.xml:252:17
+		ADDED from AndroidManifest.xml:242:73
 	android:name
-		ADDED from AndroidManifest.xml:251:17
-activity#shibafu.yukari.activity.TwpfActivity
-ADDED from AndroidManifest.xml:255:9
+		ADDED from AndroidManifest.xml:242:24
+meta-data#shibafu.yukari.PLUGIN_LIGHT_ICON
+ADDED from AndroidManifest.xml:243:13
+	android:resource
+		ADDED from AndroidManifest.xml:243:72
+	android:name
+		ADDED from AndroidManifest.xml:243:24
+meta-data#shibafu.yukari.PLUGIN_DARK_ICON
+ADDED from AndroidManifest.xml:244:13
+	android:resource
+		ADDED from AndroidManifest.xml:244:71
+	android:name
+		ADDED from AndroidManifest.xml:244:24
+intent-filter#android.intent.category.DEFAULT+jp.r246.twicca.ACTION_SHOW_USER+jp.r246.twicca.category.OWNER+jp.r246.twicca.category.USER
+ADDED from AndroidManifest.xml:245:13
+action#jp.r246.twicca.ACTION_SHOW_USER
+ADDED from AndroidManifest.xml:246:17
+	android:name
+		ADDED from AndroidManifest.xml:246:25
+category#jp.r246.twicca.category.OWNER
+ADDED from AndroidManifest.xml:248:17
+	android:name
+		ADDED from AndroidManifest.xml:248:27
+category#jp.r246.twicca.category.USER
+ADDED from AndroidManifest.xml:249:17
+	android:name
+		ADDED from AndroidManifest.xml:249:27
+intent-filter#android.intent.category.DEFAULT+twitterShareLibrary.lib.intent.ACTION_SHOW_USER+twitterShareLibrary.lib.intent.CATEGORY_OWNER+twitterShareLibrary.lib.intent.CATEGORY_USER
+ADDED from AndroidManifest.xml:251:13
+action#twitterShareLibrary.lib.intent.ACTION_SHOW_USER
+ADDED from AndroidManifest.xml:252:17
+	android:name
+		ADDED from AndroidManifest.xml:252:25
+category#twitterShareLibrary.lib.intent.CATEGORY_OWNER
+ADDED from AndroidManifest.xml:254:17
+	android:name
+		ADDED from AndroidManifest.xml:254:27
+category#twitterShareLibrary.lib.intent.CATEGORY_USER
+ADDED from AndroidManifest.xml:255:17
+	android:name
+		ADDED from AndroidManifest.xml:255:27
+activity-alias#shibafu.yukari.plugin.OpenFavstarActivity
+ADDED from AndroidManifest.xml:258:9
 	android:label
-		ADDED from AndroidManifest.xml:257:13
+		ADDED from AndroidManifest.xml:261:13
+	android:targetActivity
+		ADDED from AndroidManifest.xml:260:13
+	android:icon
+		ADDED from AndroidManifest.xml:262:13
 	android:name
-		ADDED from AndroidManifest.xml:256:13
+		ADDED from AndroidManifest.xml:259:13
+activity-alias#shibafu.yukari.plugin.OpenAclogUserActivity
+ADDED from AndroidManifest.xml:279:9
+	android:label
+		ADDED from AndroidManifest.xml:282:13
+	android:targetActivity
+		ADDED from AndroidManifest.xml:281:13
+	android:icon
+		ADDED from AndroidManifest.xml:283:13
+	android:name
+		ADDED from AndroidManifest.xml:280:13
+activity#shibafu.yukari.activity.UserSearchActivity
+ADDED from AndroidManifest.xml:301:9
+	android:label
+		ADDED from AndroidManifest.xml:304:13
+	android:windowSoftInputMode
+		ADDED from AndroidManifest.xml:305:13
+	android:theme
+		ADDED from AndroidManifest.xml:303:13
+	android:name
+		ADDED from AndroidManifest.xml:302:13
+activity#shibafu.yukari.activity.MaintenanceActivity
+ADDED from AndroidManifest.xml:307:9
+	android:label
+		ADDED from AndroidManifest.xml:309:13
+	android:name
+		ADDED from AndroidManifest.xml:308:13
+activity#info.shibafu528.gallerymultipicker.MultiPickerActivity
+ADDED from AndroidManifest.xml:311:9
+	android:label
+		ADDED from AndroidManifest.xml:313:13
+	android:uiOptions
+		ADDED from AndroidManifest.xml:314:13
+	android:name
+		ADDED from AndroidManifest.xml:312:13
+meta-data#info.shibafu528.gallerymultipicker.ICON_THEME
+ADDED from AndroidManifest.xml:318:13
+	android:value
+		ADDED from AndroidManifest.xml:320:17
+	android:name
+		ADDED from AndroidManifest.xml:319:17
+activity#shibafu.yukari.activity.TwpfActivity
+ADDED from AndroidManifest.xml:323:9
+	android:label
+		ADDED from AndroidManifest.xml:325:13
+	android:name
+		ADDED from AndroidManifest.xml:324:13
 intent-filter#android.intent.action.VIEW+android.intent.category.DEFAULT
-ADDED from AndroidManifest.xml:258:13
+ADDED from AndroidManifest.xml:326:13
+activity#shibafu.yukari.activity.IntentChooserActivity
+ADDED from AndroidManifest.xml:335:9
+	android:theme
+		ADDED from AndroidManifest.xml:337:13
+	android:name
+		ADDED from AndroidManifest.xml:336:13
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:20.0.0:16:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
 MERGED from com.google.android.gms:play-services:6.1.11:15:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
 MERGED from YukariProject:betterpickers:unspecified:7:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
 MERGED from com.larswerkman:HoloColorPicker:1.4:3:5
+MERGED from com.github.machinarius:preferencefragment:0.1.1:18:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
 MERGED from YukariProject.GalleryMultiPicker:library:unspecified:7:5
 MERGED from com.android.support:appcompat-v7:20.0.0:16:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
-MERGED from com.android.support:support-v4:20.0.0:16:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
+MERGED from com.android.support:support-v4:21.0.3:15:5
 	android:targetSdkVersion
 		INJECTED from AndroidManifest.xml:0:0
 		INJECTED from AndroidManifest.xml:0:0

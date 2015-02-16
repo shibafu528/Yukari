@@ -332,4 +332,99 @@ public class TweetDraft implements Serializable{
             attachedPictures.add(Uri.parse(stream.readUTF()));
         }
     }
+
+    public static class Builder {
+        private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+        private String text;
+        private long dateTime = System.currentTimeMillis();
+        private long inReplyTo = -1;
+        private boolean isQuoted;
+        private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
+        private boolean useGeoLocation;
+        private double geoLatitude;
+        private double geoLongitude;
+        private boolean isPossiblySensitive;
+        private boolean isDirectMessage;
+        private boolean isFailedDelivery;
+        private String messageTarget;
+
+        public Builder setWriters(ArrayList<AuthUserRecord> writers) {
+            this.writers = writers;
+            return this;
+        }
+
+        public Builder addWriter(AuthUserRecord writer) {
+            this.writers.add(writer);
+            return this;
+        }
+
+        public Builder setText(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public Builder setDateTime(long dateTime) {
+            this.dateTime = dateTime;
+            return this;
+        }
+
+        public Builder setInReplyTo(long inReplyTo) {
+            this.inReplyTo = inReplyTo;
+            return this;
+        }
+
+        public Builder setQuoted(boolean isQuoted) {
+            this.isQuoted = isQuoted;
+            return this;
+        }
+
+        public Builder setAttachedPictures(ArrayList<Uri> attachedPictures) {
+            this.attachedPictures = attachedPictures;
+            return this;
+        }
+
+        public Builder addAttachedPicture(Uri attachedPicture) {
+            this.attachedPictures.add(attachedPicture);
+            return this;
+        }
+
+        public Builder setUseGeoLocation(boolean useGeoLocation) {
+            this.useGeoLocation = useGeoLocation;
+            return this;
+        }
+
+        public Builder setGeoLocation(double latitude, double longitude) {
+            this.geoLatitude = latitude;
+            this.geoLongitude = longitude;
+            return this;
+        }
+
+        public Builder setPossiblySensitive(boolean isPossiblySensitive) {
+            this.isPossiblySensitive = isPossiblySensitive;
+            return this;
+        }
+
+        public Builder setDirectMessage(boolean isDirectMessage) {
+            this.isDirectMessage = isDirectMessage;
+            return this;
+        }
+
+        public Builder setFailedDelivery(boolean isFailedDelivery) {
+            this.isFailedDelivery = isFailedDelivery;
+            return this;
+        }
+
+        public Builder setMessageTarget(String messageTarget) {
+            this.messageTarget = messageTarget;
+            return this;
+        }
+
+        public TweetDraft build() {
+            if (isDirectMessage) {
+                return new TweetDraft(writers, text, dateTime, inReplyTo, messageTarget, isQuoted, attachedPictures, useGeoLocation, geoLatitude, geoLongitude, isPossiblySensitive, isFailedDelivery);
+            } else {
+                return new TweetDraft(writers, text, dateTime, inReplyTo, isQuoted, attachedPictures, useGeoLocation, geoLatitude, geoLongitude, isPossiblySensitive, isFailedDelivery);
+            }
+        }
+    }
 }

@@ -129,6 +129,9 @@ public class TwpfActivity extends ActionBarYukariBase {
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_twpf, container, false);
             ButterKnife.inject(this, v);
+            if (profile != null) {
+                updateView();
+            }
             return v;
         }
 

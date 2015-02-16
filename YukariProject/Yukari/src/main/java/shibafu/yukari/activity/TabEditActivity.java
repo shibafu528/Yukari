@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
@@ -14,16 +15,21 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
@@ -71,7 +77,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         if (type < 0) return;
         boolean requireBind = (type & 0x80) == 0x80;
         type &= 0x7f;
-        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM)) {
+        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM || type == TabType.TABTYPE_HISTORY)) {
             findInnerFragment().addTab(type, null);
         }
         else {
@@ -120,13 +126,61 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
 
     public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
 
-        private ArrayList<TabInfo> tabs;
+        private Adapter adapter;
+        private ArrayList<TabInfo> tabs = new ArrayList<>();
         private TabInfo deleteReserve = null;
+
+        private boolean sortable;
+        private TabInfo grabbedTab;
+        private int dragPosition = -1;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onViewCreated(View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            adapter = new Adapter(getActivity(), tabs);
+            setListAdapter(adapter);
+            getListView().setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (!sortable) {
+                        return false;
+                    }
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            break;
+                        case MotionEvent.ACTION_MOVE: {
+                            int position = getListView().pointToPosition((int) event.getX(), (int) event.getY());
+                            if (position < 0) {
+                                break;
+                            }
+                            if (position != dragPosition) {
+                                dragPosition = position;
+                                adapter.remove(grabbedTab);
+                                adapter.insert(grabbedTab, dragPosition);
+                            }
+                            return true;
+                        }
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                        case MotionEvent.ACTION_OUTSIDE:
+                            stopDrag();
+                            return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            syncDatabase();
         }
 
         @Override
@@ -163,6 +217,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
                 case TabType.TABTYPE_DM:
+                case TabType.TABTYPE_HISTORY:
                     for (TabInfo info : tabs) {
                         if (info.getType() == type && info.getBindAccount() == userRecord) {
                             return;
@@ -185,9 +240,18 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
             }
         }
 
+        public void syncDatabase() {
+            for (int i = 0; i < tabs.size(); i++) {
+                tabs.get(i).setOrder(i);
+            }
+            ((TabEditActivity) getActivity()).getTwitterService().getDatabase().updateRecord(tabs);
+        }
+
         public void reloadList() {
-            tabs = ((TabEditActivity) getActivity()).getTwitterService().getDatabase().getTabs();
-            setListAdapter(new Adapter(getActivity(), tabs));
+            //全て再読み込み
+            tabs.clear();
+            tabs.addAll(((TabEditActivity) getActivity()).getTwitterService().getDatabase().getTabs());
+            adapter.notifyDataSetChanged();
         }
 
         @Override
@@ -201,6 +265,21 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
             deleteReserve = null;
         }
 
+        private void startDrag(TabInfo tabInfo) {
+            dragPosition = -1;
+            sortable = true;
+            grabbedTab = tabInfo;
+            adapter.notifyDataSetChanged();
+        }
+
+        private void stopDrag() {
+            dragPosition = -1;
+            sortable = false;
+            grabbedTab = null;
+            adapter.notifyDataSetChanged();
+            syncDatabase();
+        }
+
         private class Adapter extends ArrayAdapter<TabInfo> {
             private LayoutInflater inflater;
 
@@ -211,15 +290,59 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
+                ViewHolder viewHolder;
                 if (convertView == null) {
-                    convertView = inflater.inflate(android.R.layout.simple_list_item_1, null);
+                    convertView = inflater.inflate(R.layout.row_tabedit, null);
+                    viewHolder = new ViewHolder(convertView);
+                    convertView.setTag(viewHolder);
+                } else {
+                    viewHolder = (ViewHolder) convertView.getTag();
                 }
-                TabInfo item = getItem(position);
+                final TabInfo item = getItem(position);
                 if (item != null) {
-                    TextView tv = (TextView) convertView.findViewById(android.R.id.text1);
-                    tv.setText(item.getTitle());
+                    viewHolder.text.setText(item.getTitle());
+                    viewHolder.handle.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(View v, MotionEvent event) {
+                            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                                startDrag(item);
+                                return true;
+                            }
+                            return false;
+                        }
+                    });
+                    viewHolder.radioButton.setOnCheckedChangeListener(null);
+                    viewHolder.radioButton.setChecked(item.isStartup());
+                    viewHolder.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                for (TabInfo tab : tabs) {
+                                    tab.setStartup(tab.getId() == item.getId());
+                                }
+                                syncDatabase();
+                                notifyDataSetChanged();
+                            }
+                        }
+                    });
+
+                    if (grabbedTab != null && grabbedTab.getId() == item.getId()) {
+                        convertView.setBackgroundColor(Color.parseColor("#9933b5e5"));
+                    } else {
+                        convertView.setBackgroundColor(Color.TRANSPARENT);
+                    }
                 }
                 return convertView;
+            }
+        }
+
+        static class ViewHolder {
+            @InjectView(android.R.id.text1) TextView text;
+            @InjectView(R.id.handle) View handle;
+            @InjectView(R.id.radio) RadioButton radioButton;
+
+            ViewHolder(View v) {
+                ButterKnife.inject(this, v);
             }
         }
     }
@@ -234,7 +357,8 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                     "Mentions (Single Account)",
                     "DM",
                     "DM (Single Account)",
-                    "List"
+                    "List",
+                    "History"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
@@ -260,6 +384,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                                     break;
                                 case 6:
                                     type |= TabType.TABTYPE_LIST;
+                                    break;
+                                case 7:
+                                    type = TabType.TABTYPE_HISTORY;
                                     break;
                                 default:
                                     type = -1;
@@ -298,7 +425,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                                     TabType.TABTYPE_LIST,
                                     (AuthUserRecord) args.getSerializable(ARG_USER),
                                     userList.getId(),
-                                    userList.getSlug());
+                                    userList.getName());
                         }
                     })
                     .create();
@@ -378,7 +505,11 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 UserList item = getItem(position);
                 if (item != null) {
                     TextView tv = (TextView) convertView.findViewById(android.R.id.text1);
-                    tv.setText(item.getFullName());
+                    if (item.getUser().getId() == ((AuthUserRecord) getArguments().getSerializable(ARG_USER)).NumericId) {
+                        tv.setText(item.getName());
+                    } else {
+                        tv.setText(String.format("@%s/%s", item.getUser().getScreenName(), item.getName()));
+                    }
                 }
                 return convertView;
             }

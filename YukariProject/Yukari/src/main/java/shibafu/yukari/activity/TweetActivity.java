@@ -244,6 +244,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
+        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
         etInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -415,7 +416,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
                             break;
                         case "::bb":
-                            inputText = input.replace("::bb", "@la0c bbop");
+                            inputText = input.replace("::bb", "@nkroid bbop");
                             break;
                         case "::cn": {
                             String name = inputText.replace("::cn ", "");
@@ -948,6 +949,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (status != null) {
             Status s = status.isRetweet()? status.getRetweetedStatus() : status;
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
+        } else {
+            tvTitle.setText("Reply >> load failed. (deleted or temporary error)");
         }
     }
 

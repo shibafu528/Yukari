@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -12,6 +13,7 @@ import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.RemoteInput;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
@@ -44,9 +46,11 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
+import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
@@ -75,6 +79,7 @@ public class StatusManager {
     public static final int UPDATE_UNFAVED = 2;
     public static final int UPDATE_DELETED = 3;
     public static final int UPDATE_DELETED_DM = 4;
+    public static final int UPDATE_NOTIFY = 5;
     public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
@@ -130,6 +135,7 @@ public class StatusManager {
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
                 showNotification(R.integer.notification_faved, preformedStatus, user);
+                createHistory(from, HistoryStatus.KIND_FAVED, user, preformedStatus);
             }
         }
 
@@ -209,6 +215,18 @@ public class StatusManager {
             }
         }
 
+        private void createHistory(Stream from, int kind, User eventBy, Status status) {
+            HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
+            EventBuffer eventBuffer = new EventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(eventBuffer);
+            }
+            updateBuffer.add(eventBuffer);
+        }
+
         private void showNotification(int category, TwitterResponse status, User actionBy) {
             TweetCommonDelegate delegate = TweetCommon.newInstance(status.getClass());
 
@@ -233,7 +251,7 @@ public class StatusManager {
             NotificationType notificationType = new NotificationType(prefValue);
 
             if (notificationType.isEnabled()) {
-                int icon = 0;
+                int icon = 0, color = context.getResources().getColor(R.color.key_color);
                 Uri sound = null;
                 String titleHeader = "", tickerHeader = "";
                 long[] pattern = null;
@@ -251,6 +269,7 @@ public class StatusManager {
                         tickerHeader = "RTされました : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
                         pattern = VIB_RETWEET;
+                        color = Color.rgb(0, 128, 0);
                         break;
                     case R.integer.notification_faved:
                         icon = R.drawable.ic_stat_favorite;
@@ -258,6 +277,7 @@ public class StatusManager {
                         tickerHeader = "ふぁぼられ : @";
                         sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                         pattern = VIB_FAVED;
+                        color = Color.rgb(255, 128, 0);
                         break;
                     case R.integer.notification_message:
                         icon = R.drawable.ic_stat_message;
@@ -280,12 +300,14 @@ public class StatusManager {
                     builder.setContentTitle(titleHeader + actionBy.getScreenName());
                     builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
                     builder.setTicker(tickerHeader + actionBy.getScreenName());
+                    builder.setColor(color);
                     if (notificationType.isUseSound()) {
                         builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
                     }
                     if (notificationType.isUseVibration()) {
                         vibrate(pattern, -1);
                     }
+                    builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                     builder.setAutoCancel(true);
                     switch (category) {
                         case R.integer.notification_replied:
@@ -296,8 +318,8 @@ public class StatusManager {
                                     context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
+                            PreformedStatus ps = (PreformedStatus) status;
                             {
-                                PreformedStatus ps = (PreformedStatus) status;
                                 Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
                                 replyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
                                 replyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
@@ -308,6 +330,24 @@ public class StatusManager {
                                 builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
                                                 context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
+                            }
+                            {
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
+                                        ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
+                                                : ps.getUser().getScreenName()) + " ");
+                                NotificationCompat.Action voiceReply = new NotificationCompat.Action
+                                        .Builder(R.drawable.ic_stat_reply, "声で返信",
+                                            PendingIntent.getService(context.getApplicationContext(),
+                                                        R.integer.notification_replied,
+                                                        voiceReplyIntent,
+                                                        PendingIntent.FLAG_UPDATE_CURRENT))
+                                        .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
+                                        .build();
+                                builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
                             break;
                         }
@@ -328,8 +368,8 @@ public class StatusManager {
                                     context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                             builder.setContentIntent(pendingIntent);
 
+                            DirectMessage dm = (DirectMessage) status;
                             {
-                                DirectMessage dm = (DirectMessage) status;
                                 Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
                                 replyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
                                 replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
@@ -338,6 +378,22 @@ public class StatusManager {
                                 builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
                                                 context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                                 );
+                            }
+                            {
+                                Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, findUserRecord(dm.getRecipient()));
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
+                                voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                                NotificationCompat.Action voiceReply = new NotificationCompat.Action
+                                        .Builder(R.drawable.ic_stat_reply, "声で返信",
+                                        PendingIntent.getService(context.getApplicationContext(),
+                                                R.integer.notification_replied,
+                                                voiceReplyIntent,
+                                                PendingIntent.FLAG_UPDATE_CURRENT))
+                                        .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
+                                        .build();
+                                builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                             }
                             break;
                         }
@@ -502,6 +558,7 @@ public class StatusManager {
                             status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                             checkOwn == null) {
                         showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
                         //Put Response Stand-By
                         retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
@@ -595,6 +652,7 @@ public class StatusManager {
     }
     private List<StatusListener> statusListeners = new ArrayList<>();
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
+    private List<EventBuffer> updateBuffer = new ArrayList<>();
 
     private class UserUpdateDelayer {
         private Thread thread;
@@ -775,6 +833,10 @@ public class StatusManager {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
                 statusBuffer.remove(l);
+            } else {
+                for (EventBuffer eventBuffer : updateBuffer) {
+                    eventBuffer.sendBufferedEvent(l);
+                }
             }
         }
     }

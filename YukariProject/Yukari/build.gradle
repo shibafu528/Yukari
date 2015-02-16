@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile 'com.android.support:appcompat-v7:20.0.+'
-    compile 'com.android.support:support-v4:20.0.+'
+    compile 'com.android.support:support-v4:21.0.+'
     compile 'com.google.android.gms:play-services:6.1.11'
 
     compile 'com.google.code.gson:gson:2.3'
@@ -21,6 +21,8 @@ dependencies {
     compile 'com.twitter:twitter-text:1.6.1'
 
     compile 'com.larswerkman:HoloColorPicker:1.4'
+
+    compile 'com.github.machinarius:preferencefragment:0.1.1'
 
     compile project(':GalleryMultiPicker:library')
     compile project(':twpfparser')

@@ -1,5 +1,7 @@
 package shibafu.yukari.twitter.statusimpl;
 
+import android.text.TextUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -28,6 +30,7 @@ import twitter4j.UserMentionEntity;
  * Created by Shibafu on 13/10/13.
  */
 public class PreformedStatus implements Status{
+    private final static int TOO_MANY_REPEAT = 3;
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
     private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
 
@@ -43,6 +46,8 @@ public class PreformedStatus implements Status{
     private List<Long> quoteEntities;
     private boolean isMentionedToMe;
     private boolean censoredThumbs;
+    private boolean isTooManyRepeatText;
+    private String repeatedSequence;
 
     //受信の度に変動する情報
     private int favoriteCount;
@@ -65,6 +70,25 @@ public class PreformedStatus implements Status{
 
         //全Entity置き換え、モールスの復号を行う
         text = MorseCodec.decode(replaceAllEntities(status));
+        //繰り返し文かどうかチェック
+        {
+            int maxRepeat = 0;
+            String[] split = text.split("\n");
+            for (String s1 : split) {
+                int repeat = 0;
+                for (String s2 : split) {
+                    if (!TextUtils.isEmpty(s2.trim()) && s1.equals(s2)) {
+                        ++repeat;
+                    }
+                }
+                if ((maxRepeat = Math.max(maxRepeat, repeat)) == repeat) {
+                    repeatedSequence = s1;
+                }
+            }
+            if (maxRepeat > TOO_MANY_REPEAT) {
+                isTooManyRepeatText = true;
+            }
+        }
         //via抽出
         Matcher matcher = VIA_PATTERN.matcher(status.getSource());
         if (matcher.find()) {
@@ -257,6 +281,14 @@ public class PreformedStatus implements Status{
 
     public String getPlainText() {
         return status.getText();
+    }
+
+    public boolean isTooManyRepeatText() {
+        return isTooManyRepeatText;
+    }
+
+    public String getRepeatedSequence() {
+        return repeatedSequence;
     }
 
     @Override

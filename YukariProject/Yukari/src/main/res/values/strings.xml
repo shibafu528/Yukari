@@ -25,6 +25,9 @@
     <string name="title_activity_profile_edit">プロフィール編集</string>
     <string name="title_activity_column_edit">タブの編集</string>
     <string name="title_activity_open_aclog">このツイートのaclogを開く</string>
+    <string name="title_activity_open_twilog">twilogを開く</string>
+    <string name="title_activity_open_favstar">Favstarを開く</string>
+    <string name="title_activity_open_aclog_user">aclogを開く</string>
     <string name="title_activity_mute">ミュート設定</string>
     <string name="title_activity_auto_mute">オートミュート設定</string>
     <string name="title_activity_user_search">ユーザー検索</string>
@@ -46,4 +49,7 @@
 
     <string name="list_members_count">%1$d 人のメンバー</string>
     <string name="list_subscribers_count">, %1$d 人がリストを保存</string>
+
+    <string name="error_storage_not_found">[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です\nSDカードが挿入されているか確認してください</string>
+    <string name="error_broken_font">[Yukari データチェック]\nフォントファイルが壊れています\n再展開を行います</string>
 </resources>

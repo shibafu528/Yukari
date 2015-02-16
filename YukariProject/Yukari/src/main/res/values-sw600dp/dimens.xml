@@ -3,6 +3,8 @@
          screen margins) for sw600dp devices (e.g. 7" tablets) here. -->
     <dimen name="mainfooter_height">44dp</dimen>
     <dimen name="mainfooter_button_width">108dp</dimen>
+    <dimen name="mainfooter_state_width">36dp</dimen>
+    <dimen name="mainfooter_state_padding">12dp</dimen>
     <dimen name="status_button_size">128dp</dimen>
     <dimen name="status_button_padding">24dp</dimen>
     <dimen name="status_button_delta">160dp</dimen>
