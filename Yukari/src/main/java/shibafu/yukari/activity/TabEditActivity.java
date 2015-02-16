@@ -248,8 +248,6 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         }
 
         public void reloadList() {
-            //一度保存する
-            syncDatabase();
             //全て再読み込み
             tabs.clear();
             tabs.addAll(((TabEditActivity) getActivity()).getTwitterService().getDatabase().getTabs());
@@ -427,7 +425,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                                     TabType.TABTYPE_LIST,
                                     (AuthUserRecord) args.getSerializable(ARG_USER),
                                     userList.getId(),
-                                    userList.getSlug());
+                                    userList.getName());
                         }
                     })
                     .create();
@@ -507,7 +505,11 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 UserList item = getItem(position);
                 if (item != null) {
                     TextView tv = (TextView) convertView.findViewById(android.R.id.text1);
-                    tv.setText(item.getFullName());
+                    if (item.getUser().getId() == ((AuthUserRecord) getArguments().getSerializable(ARG_USER)).NumericId) {
+                        tv.setText(item.getName());
+                    } else {
+                        tv.setText(String.format("@%s/%s", item.getUser().getScreenName(), item.getName()));
+                    }
                 }
                 return convertView;
             }
