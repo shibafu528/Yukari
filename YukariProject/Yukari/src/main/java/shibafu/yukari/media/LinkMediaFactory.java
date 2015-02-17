@@ -55,6 +55,12 @@ public class LinkMediaFactory {
                 linkMedia = new Gyazo(mediaURL);
             } else if (mediaURL.contains("sunoho.com/p/i")) {
                 linkMedia = new Sunoho(mediaURL);
+            } else if (mediaURL.contains("img.ly/")) {
+                if (mediaURL.contains("img.ly/show/")) {
+                    linkMedia = new SimplePicture(mediaURL);
+                } else {
+                    linkMedia = new Imgly(mediaURL);
+                }
             } else if (mediaURL.contains("twitpic.com")) {
                 //f*ck!!!!!!!!!!!!!!!!!!!
                 linkMedia = new Twitpic(mediaURL);
