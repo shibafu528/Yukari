@@ -53,6 +53,8 @@ public class LinkMediaFactory {
                 linkMedia = new Totori(mediaURL);
             } else if (mediaURL.contains("gyazo.com")) {
                 linkMedia = new Gyazo(mediaURL);
+            } else if (mediaURL.contains("sunoho.com/p/i")) {
+                linkMedia = new Sunoho(mediaURL);
             } else if (mediaURL.contains("twitpic.com")) {
                 //f*ck!!!!!!!!!!!!!!!!!!!
                 linkMedia = new Twitpic(mediaURL);
