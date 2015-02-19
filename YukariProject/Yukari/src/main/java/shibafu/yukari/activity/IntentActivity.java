@@ -14,7 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.activity.base.ListYukariBase;
+import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
@@ -68,11 +70,28 @@ public class IntentActivity extends ListYukariBase{
                         activity.finish();
                     }
                 }));
+        matchTemp.add(new Pair<Pattern, AfterWork>(
+                Pattern.compile("^yukari://command/.+"),
+                new AfterWork() {
+                    @Override
+                    public void work(IntentActivity activity) {
+                        switch (activity.getIntent().getData().getLastPathSegment()) {
+                            case "yukarin":
+                                activity.startService(PostService.newIntent(activity, new TweetDraft.Builder().setText("＼ﾕｯｶﾘｰﾝ／").addWriter(activity.primaryUser).build()));
+                                break;
+                            default:
+                                Toast.makeText(activity, "非対応タグです", Toast.LENGTH_SHORT).show();
+                                break;
+                        }
+                        activity.finish();
+                    }
+                }
+        ));
         MATCHES = Collections.unmodifiableList(matchTemp);
     }
 
-    private Twitter twitter;
-    private AuthUserRecord primaryUser;
+    protected Twitter twitter;
+    protected AuthUserRecord primaryUser;
 
     private Pair<Matcher, AfterWork> matchedWork;
 

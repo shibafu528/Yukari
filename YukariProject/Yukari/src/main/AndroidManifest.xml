@@ -114,6 +114,11 @@
                 <data android:scheme="http" android:host="mobile.twitter.com" />
                 <data android:scheme="https" android:host="mobile.twitter.com" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="yukari" android:host="command" />
+            </intent-filter>
         </activity>
         <activity
             android:name="shibafu.yukari.activity.AssetExtractActivity"
