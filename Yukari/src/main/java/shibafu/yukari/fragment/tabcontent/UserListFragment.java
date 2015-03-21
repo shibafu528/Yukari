@@ -95,7 +95,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
         Bundle args = new Bundle();
         args.putInt(FriendListFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
         args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-        args.putString(TweetListFragment.EXTRA_TITLE, "List: " + clickedElement.getFullName());
+        args.putString(TweetListFragment.EXTRA_TITLE, String.format("List: @%s/%s", clickedElement.getUser().getScreenName(), clickedElement.getName()));
         args.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, clickedElement.getId());
         fragment.setArguments(args);
         if (getActivity() instanceof ProfileActivity) {
@@ -447,7 +447,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
 
             UserList list = getItem(position);
             if (list != null) {
-                vh.title.setText(list.getFullName());
+                vh.title.setText(String.format("@%s/%s", list.getUser().getScreenName(), list.getName()));
                 vh.description.setText(list.getDescription());
                 String members = getString(R.string.list_members_count, list.getMemberCount());
                 if (list.isPublic() && list.getSubscriberCount() > 0) {
