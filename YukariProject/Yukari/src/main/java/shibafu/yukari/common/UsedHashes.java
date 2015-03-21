@@ -14,17 +14,17 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/06.
  */
-public class HashCache {
+public class UsedHashes {
     private static final int LIMIT = 16;
-    public static final String FILE_NAME = "hashtag.txt";
+    public static final String FILE_NAME = "usedhash.txt";
     private LinkedList<String> cache = new LinkedList<>();
 
-    public HashCache(Context context) {
+    public UsedHashes(Context context) {
         //既存データのロードを試みる
-        File cacheFile = new File(context.getCacheDir(), FILE_NAME);
-        if (cacheFile.exists()) {
+        File storeFile = new File(context.getFilesDir(), FILE_NAME);
+        if (storeFile.exists()) {
             try {
-                FileReader fr = new FileReader(cacheFile);
+                FileReader fr = new FileReader(storeFile);
                 BufferedReader br = new BufferedReader(fr);
                 String s;
                 while ((s = br.readLine()) != null) {
@@ -41,10 +41,10 @@ public class HashCache {
     }
 
     public void save(Context context) {
-        //キャッシュディレクトリにセーブを試みる
-        File cacheFile = new File(context.getCacheDir(), FILE_NAME);
+        //データディレクトリにセーブを試みる
+        File storeFile = new File(context.getFilesDir(), FILE_NAME);
         try {
-            FileWriter fw = new FileWriter(cacheFile);
+            FileWriter fw = new FileWriter(storeFile);
             BufferedWriter bw = new BufferedWriter(fw);
             for (String s : cache) {
                 bw.write(s);
