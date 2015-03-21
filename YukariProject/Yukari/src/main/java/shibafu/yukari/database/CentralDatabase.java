@@ -570,7 +570,7 @@ public class CentralDatabase {
                 break;
             }
         }
-        if (!tabs.get(tabs.size() - 1).isStartup() && !iterator.hasNext()) {
+        if (!tabs.isEmpty() && !tabs.get(tabs.size() - 1).isStartup() && !iterator.hasNext()) {
             tabs.get(0).setStartup(true);
         }
         return tabs;

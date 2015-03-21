@@ -64,6 +64,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.DraftDialogFragment;
@@ -176,7 +177,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             boolean charging = intent.getIntExtra("plugged", 0) > 0;
             batteryTweet = String.format("%s のバッテリー残量: %s%d%%", Build.MODEL, charging ? "🔌" : "🔋", percent);
         }
-    };;
+    };
+
+    //最近使ったハッシュタグ
+    private UsedHashes usedHashes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -197,6 +201,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         //リソースIDを解決
         tweetCountColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor));
         tweetCountOverColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor));
+
+        //最近使ったハッシュタグのロード
+        usedHashes = new UsedHashes(getApplicationContext());
 
         //Extraを取得
         final Intent args = getIntent();
@@ -557,6 +564,13 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 TweetDraft draft = getTweetDraft();
                 draft.setText(inputText);
 
+                //使用されているハッシュタグを記憶
+                List<String> hashtags = EXTRACTOR.extractHashtags(inputText);
+                for (String hashtag : hashtags) {
+                    usedHashes.put(hashtag);
+                }
+                usedHashes.save(getApplicationContext());
+
                 if (isComposerMode) {
                     Intent intent = new Intent();
                     intent.putExtra(EXTRA_DRAFT, draft);
@@ -661,35 +675,66 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         ibHash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
-                final String[] hashCache = getTwitterService().getHashCache();
-                builder.setTitle("TLで見かけたハッシュタグ");
-                builder.setItems(hashCache, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        currentDialog = null;
+                AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
+                        .setTitle("ハッシュタグ入力")
+                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialog) {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            }
+                        })
+                        .setItems(new String[]{"入力履歴から", "タイムラインから"}, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                currentDialog = null;
 
-                        etInput.getText().append(" " + hashCache[which]);
-                    }
-                });
-                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    }
-                });
-                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    }
-                });
-                AlertDialog ad = builder.create();
-                ad.show();
-                currentDialog = ad;
+                                AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
+                                final String[] hashtags;
+                                switch (which) {
+                                    case 0:
+                                        builder.setTitle("ハッシュタグ入力履歴");
+                                        hashtags = usedHashes.getAll().toArray(new String[usedHashes.getAll().size()]);
+                                        break;
+                                    case 1:
+                                        builder.setTitle("TLで見かけたハッシュタグ");
+                                        hashtags = getTwitterService().getHashCache();
+                                        break;
+                                    default:
+                                        return;
+                                }
+                                builder.setItems(hashtags, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        currentDialog = null;
+
+                                        etInput.getText().append(" " + hashtags[which]);
+                                    }
+                                });
+                                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.dismiss();
+                                        currentDialog = null;
+                                    }
+                                });
+                                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                    @Override
+                                    public void onCancel(DialogInterface dialog) {
+                                        dialog.dismiss();
+                                        currentDialog = null;
+                                    }
+                                });
+                                AlertDialog ad = builder.create();
+                                ad.show();
+                                currentDialog = ad;
+                            }
+                        })
+                        .create();
+                dialog.show();
+                currentDialog = dialog;
             }
         });
         ibHash.setOnLongClickListener(new View.OnLongClickListener() {
