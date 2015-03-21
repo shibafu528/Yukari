@@ -2,6 +2,7 @@ package shibafu.yukari.common;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.text.TextUtils;
 
 import java.io.Serializable;
 
@@ -62,7 +63,7 @@ public class TabInfo implements DBRecord, Serializable {
         this.order = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_TAB_ORDER));
         this.isStartup = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_TABS_IS_STARTUP)) == 1;
         long accountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID));
-        if (accountId > -1) {
+        if (accountId > -1 && !TextUtils.isEmpty(cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN)))) {
             bindAccount = new AuthUserRecord(cursor);
         }
         switch (this.type) {
