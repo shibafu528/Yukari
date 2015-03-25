@@ -13,7 +13,7 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.fragment.StatusActionFragment;

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;

@@ -20,7 +20,7 @@ import android.widget.TextView;
 import java.util.Collections;
 import java.util.List;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 
 /**
  * Created by shibafu on 14/06/27.

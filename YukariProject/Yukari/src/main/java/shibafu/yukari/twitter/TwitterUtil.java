@@ -2,7 +2,7 @@ package shibafu.yukari.twitter;
 
 import android.content.Context;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
 import twitter4j.Twitter;

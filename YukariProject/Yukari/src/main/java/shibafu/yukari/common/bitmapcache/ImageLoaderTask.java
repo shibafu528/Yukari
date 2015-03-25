@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.util.BitmapUtil;
 

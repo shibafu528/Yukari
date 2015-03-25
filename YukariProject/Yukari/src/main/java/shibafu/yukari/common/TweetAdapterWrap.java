@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;

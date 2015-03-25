@@ -11,7 +11,7 @@ import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.OpacityBar;
 import com.larswerkman.holocolorpicker.SVBar;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 
 /**
  * Created by shibafu on 14/09/06.
