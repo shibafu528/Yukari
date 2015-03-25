@@ -554,12 +554,12 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
             //ScreenNameに対するリンク張り
             Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
-            String jumpUrl = "content://shibafu.yukari.link/user/";
+            String jumpUrl = "content://shibafu.yukari.af2015.link/user/";
             Linkify.addLinks(tvBio, pattern, jumpUrl);
             //Hashtagに対するリンク張り
             pattern = Pattern.compile(
                     "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
-            final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
+            final String jumpUrlHash = "content://shibafu.yukari.af2015.link/hash/";
             Linkify.TransformFilter filter = new Linkify.TransformFilter() {
                 @Override
                 public String transformUrl(Matcher match, String url) {
