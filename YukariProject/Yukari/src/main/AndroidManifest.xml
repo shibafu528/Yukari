@@ -35,7 +35,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/hash" />
+                <data android:mimeType="vnd.shibafu.yukari.af2015/hash" />
             </intent-filter>
         </activity>
         <activity
@@ -135,13 +135,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/user" />
+                <data android:mimeType="vnd.shibafu.yukari.af2015/user" />
             </intent-filter>
         </activity>
 
         <provider
             android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="shibafu.yukari.link"
+            android:authorities="shibafu.yukari.af2015.link"
             android:exported="false" />
 
         <!-- 未実装Intentはここに飛ばせ -->
