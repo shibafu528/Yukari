@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 
 /**
 * Created by shibafu on 14/07/05.

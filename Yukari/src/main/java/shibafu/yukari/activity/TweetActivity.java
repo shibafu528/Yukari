@@ -60,7 +60,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;

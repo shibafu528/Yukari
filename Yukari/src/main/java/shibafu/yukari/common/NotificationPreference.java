@@ -13,7 +13,7 @@ import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 
 /**
  * Created by shibafu on 14/01/26.

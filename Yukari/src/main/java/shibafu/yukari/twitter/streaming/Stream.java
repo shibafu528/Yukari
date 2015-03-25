@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.TwitterStream;

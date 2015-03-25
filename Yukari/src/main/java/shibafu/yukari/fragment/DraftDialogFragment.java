@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.TweetDraft;

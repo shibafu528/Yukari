@@ -16,7 +16,7 @@ import android.view.View;
 
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 
 /**

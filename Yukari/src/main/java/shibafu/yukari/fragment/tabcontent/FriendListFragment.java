@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;

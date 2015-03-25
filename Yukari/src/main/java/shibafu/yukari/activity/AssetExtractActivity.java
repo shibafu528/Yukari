@@ -17,7 +17,7 @@ import java.util.zip.ZipInputStream;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import shibafu.yukari.R;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.FontAsset;
 
 /**
