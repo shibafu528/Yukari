@@ -23,6 +23,12 @@ public class ThemeUtil {
             case "maki":
                 activity.setTheme(R.style.ColorsTheme_Maki);
                 break;
+            case "aoi":
+                activity.setTheme(R.style.ColorsTheme_Aoi);
+                break;
+            case "akane":
+                activity.setTheme(R.style.ColorsTheme_Akane);
+                break;
         }
     }
 
@@ -39,6 +45,12 @@ public class ThemeUtil {
                 break;
             case "maki":
                 activity.setTheme(R.style.ColorsTheme_Maki_Dialog);
+                break;
+            case "aoi":
+                activity.setTheme(R.style.ColorsTheme_Aoi_Dialog);
+                break;
+            case "akane":
+                activity.setTheme(R.style.ColorsTheme_Akane_Dialog);
                 break;
         }
     }

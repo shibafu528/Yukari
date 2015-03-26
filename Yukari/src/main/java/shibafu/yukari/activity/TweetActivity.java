@@ -199,6 +199,12 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             case "maki":
                 setTheme(R.style.ColorsTheme_Maki_Dialog_VertAnimation);
                 break;
+            case "aoi":
+                setTheme(R.style.ColorsTheme_Aoi_Dialog_VertAnimation);
+                break;
+            case "akane":
+                setTheme(R.style.ColorsTheme_Akane_Dialog_VertAnimation);
+                break;
         }
         super.onCreate(savedInstanceState, true);
         requestWindowFeature(Window.FEATURE_NO_TITLE);

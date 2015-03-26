@@ -140,6 +140,8 @@
         <item>Dark</item>
         <item>Zunda</item>
         <item>Pepper</item>
+        <item>Aoi</item>
+        <item>Akane</item>
     </string-array>
 
     <string-array name="pref_theme_values">
@@ -147,5 +149,7 @@
         <item>dark</item>
         <item>zunko</item>
         <item>maki</item>
+        <item>aoi</item>
+        <item>akane</item>
     </string-array>
 </resources>
