@@ -1,13 +1,13 @@
 package shibafu.yukari.activity;
 
 
-import android.app.Activity;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.webkit.WebView;
 
-public class LicenseActivity extends Activity {
+import shibafu.yukari.activity.base.ActionBarYukariBase;
+
+public class LicenseActivity extends ActionBarYukariBase {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -16,9 +16,7 @@ public class LicenseActivity extends Activity {
 		wv.loadUrl("file:///android_asset/about.html");
 		setContentView(wv);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 	}
 
     @Override
@@ -30,4 +28,10 @@ public class LicenseActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
 }
