@@ -75,6 +75,9 @@
         <item name="colorPrimary">@color/key_color</item>
         <item name="colorPrimaryDark">@color/key_color_2</item>
         <item name="colorAccent">@color/key_color_accent</item>
+        <item name="android:colorPrimary">@color/key_color</item>
+        <item name="android:colorPrimaryDark">@color/key_color_2</item>
+        <item name="android:colorAccent">@color/key_color_accent</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
@@ -98,6 +101,9 @@
         <item name="colorPrimaryDark">@color/zunko_primary_dark</item>
         <item name="colorPrimaryLight">@color/zunko_primary_light</item>
         <item name="colorAccent">@color/zunko_accent</item>
+        <item name="android:colorPrimary">@color/zunko_primary</item>
+        <item name="android:colorPrimaryDark">@color/zunko_primary_dark</item>
+        <item name="android:colorAccent">@color/zunko_accent</item>
         <item name="pressDrawable">@drawable/zunko_press</item>
         <item name="focusDrawable">@drawable/zunko_focus</item>
     </style>
@@ -132,6 +138,9 @@
         <item name="colorPrimaryDark">@color/maki_primary_dark</item>
         <item name="colorPrimaryLight">@color/maki_primary_light</item>
         <item name="colorAccent">@color/maki_accent</item>
+        <item name="android:colorPrimary">@color/maki_primary</item>
+        <item name="android:colorPrimaryDark">@color/maki_primary_dark</item>
+        <item name="android:colorAccent">@color/maki_accent</item>
         <item name="pressDrawable">@drawable/maki_press</item>
         <item name="focusDrawable">@drawable/maki_focus</item>
     </style>

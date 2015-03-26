@@ -60,8 +60,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
-import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
@@ -655,7 +655,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 }
                 Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
                 intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-                intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+                intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("dark")? R.style.YukariDarkTheme : R.style.YukariLightTheme);
                 intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
                 intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
                 startActivityForResult(intent, REQUEST_GALLERY);

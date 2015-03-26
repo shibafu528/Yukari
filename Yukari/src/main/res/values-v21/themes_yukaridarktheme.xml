@@ -93,6 +93,9 @@
         <item name="colorPrimary">@color/key_color</item>
         <item name="colorPrimaryDark">@color/key_color_2</item>
         <item name="colorAccent">@color/key_color_accent</item>
+        <item name="android:colorPrimary">@color/key_color</item>
+        <item name="android:colorPrimaryDark">@color/key_color_2</item>
+        <item name="android:colorAccent">@color/key_color_accent</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
