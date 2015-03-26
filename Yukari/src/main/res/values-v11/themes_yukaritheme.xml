@@ -45,6 +45,16 @@
 
         <item name="android:actionModeBackground">@drawable/key_color</item>
 
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+
+        <item name="android:textColor">@color/black</item>
+
+        <item name="footerBarColor">@color/status_bar_color</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
     </style>
 
 
@@ -90,6 +100,14 @@
         <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
         <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
         <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/bg_mention</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="android:textColor">@color/black</item>
 
     </style>
 

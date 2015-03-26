@@ -20,7 +20,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:background="@drawable/status_bar_color">
+        android:background="?attr/footerBarColor">
 
         <LinearLayout
             android:layout_width="fill_parent"
@@ -124,7 +124,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignTop="@+id/tweetgesture"
         android:layout_marginRight="@dimen/mainfooter_height"
-        android:background="@drawable/key_color"
+        android:background="?attr/colorPrimary"
         android:orientation="horizontal"
         android:visibility="gone">
 
