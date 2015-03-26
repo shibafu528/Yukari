@@ -425,7 +425,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                         break;
                 }
                 final String message = String.format(
-                        "[403:93] Permission denined\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
+                        "[403:93] Permission denied\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
                         exceptionUser.ScreenName,
                         permissionText);
                 getHandler().postDelayed(new Runnable() {
