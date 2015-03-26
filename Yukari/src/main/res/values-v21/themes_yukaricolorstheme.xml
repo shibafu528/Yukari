@@ -6,10 +6,10 @@
     <style name="ColorsTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="tweetTextColor">#000</item>
 
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+        <item name="tweetNormal">@drawable/selector_tweet_normal_c_background</item>
+        <item name="tweetRetweet">@drawable/selector_tweet_retweet_c_background</item>
+        <item name="tweetOwn">@drawable/selector_tweet_own_c_background</item>
+        <item name="tweetMention">@drawable/selector_tweet_mention_c_background</item>
 
         <item name="tabTitleColor">@color/key_color</item>
 
@@ -35,6 +35,7 @@
 
         <item name="colorPrimary">@color/key_color</item>
         <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorPrimaryLight">#B394E0</item>
         <item name="colorAccent">@color/key_color_accent</item>
 
         <item name="footerBarColor">@color/status_bar_color</item>
@@ -79,15 +80,11 @@
     </style>
 
     <style name="ColorsTheme.Zunko" parent="ColorsTheme.Base">
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
-
         <item name="tabTitleColor">@color/zunko_primary_dark</item>
 
         <item name="colorPrimary">@color/zunko_primary</item>
         <item name="colorPrimaryDark">@color/zunko_primary_dark</item>
+        <item name="colorPrimaryLight">@color/zunko_primary_light</item>
         <item name="colorAccent">@color/zunko_accent</item>
 
         <item name="footerBarColor">@color/zunko_footer</item>
@@ -96,14 +93,10 @@
     </style>
 
     <style name="ColorsTheme.Zunko.Dialog" parent="ColorsTheme.Base.Dialog">
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
-
         <item name="tabTitleColor">@color/zunko_primary_dark</item>
         <item name="colorPrimary">@color/zunko_primary</item>
         <item name="colorPrimaryDark">@color/zunko_primary_dark</item>
+        <item name="colorPrimaryLight">@color/zunko_primary_light</item>
         <item name="colorAccent">@color/zunko_accent</item>
         <item name="pressDrawable">@drawable/zunko_press</item>
         <item name="focusDrawable">@drawable/zunko_focus</item>
@@ -120,15 +113,11 @@
     </style>
 
     <style name="ColorsTheme.Maki" parent="ColorsTheme.Base">
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
-
         <item name="tabTitleColor">@color/maki_primary_dark</item>
 
         <item name="colorPrimary">@color/maki_primary</item>
         <item name="colorPrimaryDark">@color/maki_primary_dark</item>
+        <item name="colorPrimaryLight">@color/maki_primary_light</item>
         <item name="colorAccent">@color/maki_accent</item>
 
         <item name="footerBarColor">@color/maki_footer</item>
@@ -137,15 +126,11 @@
     </style>
 
     <style name="ColorsTheme.Maki.Dialog" parent="ColorsTheme.Base.Dialog">
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
-
         <item name="tabTitleColor">@color/maki_primary_dark</item>
 
         <item name="colorPrimary">@color/maki_primary</item>
         <item name="colorPrimaryDark">@color/maki_primary_dark</item>
+        <item name="colorPrimaryLight">@color/maki_primary_light</item>
         <item name="colorAccent">@color/maki_accent</item>
         <item name="pressDrawable">@drawable/maki_press</item>
         <item name="focusDrawable">@drawable/maki_focus</item>
