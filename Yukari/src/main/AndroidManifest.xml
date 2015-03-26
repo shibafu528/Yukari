@@ -3,7 +3,7 @@
     package="shibafu.yukari.af2015"
     android:installLocation="auto"
     android:versionCode="43"
-    android:versionName="aprilfool 2015 (base y4a-ensemble-1.1.1.195)" >
+    android:versionName="aprilfool_2015 (base y4a-ensemble-1.1.1.195)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
