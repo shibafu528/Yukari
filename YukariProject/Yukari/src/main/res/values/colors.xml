@@ -58,4 +58,20 @@
     <color name="maki_footer">#ccFFC107</color>
     <drawable name="maki_focus">#caFFECB3</drawable>
     <drawable name="maki_press">#caFFC107</drawable>
+
+    <color name="aoi_primary">#03A9F4</color>
+    <color name="aoi_primary_dark">#0288D1</color>
+    <color name="aoi_primary_light">#B3E5FC</color>
+    <color name="aoi_accent">#00BCD4</color>
+    <color name="aoi_footer">#cc03A9F4</color>
+    <drawable name="aoi_focus">#caB3E5FC</drawable>
+    <drawable name="aoi_press">#ca03A9F4</drawable>
+
+    <color name="akane_primary">#E91E63</color>
+    <color name="akane_primary_dark">#C2185B</color>
+    <color name="akane_primary_light">#F8BBD0</color>
+    <color name="akane_accent">#FF5252</color>
+    <color name="akane_footer">#ccE91E63</color>
+    <drawable name="akane_focus">#caF8BBD0</drawable>
+    <drawable name="akane_press">#caE91E63</drawable>
 </resources>

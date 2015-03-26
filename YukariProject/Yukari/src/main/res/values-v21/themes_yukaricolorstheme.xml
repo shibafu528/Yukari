@@ -155,4 +155,78 @@
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
 
+    <style name="ColorsTheme.Aoi" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/aoi_primary_dark</item>
+
+        <item name="colorPrimary">@color/aoi_primary</item>
+        <item name="colorPrimaryDark">@color/aoi_primary_dark</item>
+        <item name="colorPrimaryLight">@color/aoi_primary_light</item>
+        <item name="colorAccent">@color/aoi_accent</item>
+
+        <item name="footerBarColor">@color/aoi_footer</item>
+        <item name="pressDrawable">@drawable/aoi_press</item>
+        <item name="focusDrawable">@drawable/aoi_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/aoi_primary_dark</item>
+
+        <item name="colorPrimary">@color/aoi_primary</item>
+        <item name="colorPrimaryDark">@color/aoi_primary_dark</item>
+        <item name="colorPrimaryLight">@color/aoi_primary_light</item>
+        <item name="colorAccent">@color/aoi_accent</item>
+        <item name="android:colorPrimary">@color/aoi_primary</item>
+        <item name="android:colorPrimaryDark">@color/aoi_primary_dark</item>
+        <item name="android:colorAccent">@color/aoi_accent</item>
+        <item name="pressDrawable">@drawable/aoi_press</item>
+        <item name="focusDrawable">@drawable/aoi_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Translucent" parent="ColorsTheme.Aoi">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Dialog.VertAnimation" parent="ColorsTheme.Aoi.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+    <style name="ColorsTheme.Akane" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/akane_primary_dark</item>
+
+        <item name="colorPrimary">@color/akane_primary</item>
+        <item name="colorPrimaryDark">@color/akane_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akane_primary_light</item>
+        <item name="colorAccent">@color/akane_accent</item>
+
+        <item name="footerBarColor">@color/akane_footer</item>
+        <item name="pressDrawable">@drawable/akane_press</item>
+        <item name="focusDrawable">@drawable/akane_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/akane_primary_dark</item>
+
+        <item name="colorPrimary">@color/akane_primary</item>
+        <item name="colorPrimaryDark">@color/akane_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akane_primary_light</item>
+        <item name="colorAccent">@color/akane_accent</item>
+        <item name="android:colorPrimary">@color/akane_primary</item>
+        <item name="android:colorPrimaryDark">@color/akane_primary_dark</item>
+        <item name="android:colorAccent">@color/akane_accent</item>
+        <item name="pressDrawable">@drawable/akane_press</item>
+        <item name="focusDrawable">@drawable/akane_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Translucent" parent="ColorsTheme.Akane">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Dialog.VertAnimation" parent="ColorsTheme.Akane.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
 </resources>

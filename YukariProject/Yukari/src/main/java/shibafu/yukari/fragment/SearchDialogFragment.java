@@ -116,6 +116,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
+            case "aoi":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "akane":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
