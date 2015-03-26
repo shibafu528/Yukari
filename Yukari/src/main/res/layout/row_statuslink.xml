@@ -14,7 +14,7 @@
             android:id="@+id/statuslink_category"
             android:layout_gravity="left|center_vertical"
             android:autoText="false"
-            android:background="#7849ba"
+            android:background="?attr/colorPrimary"
             android:textColor="#fff"
             android:visibility="gone"
             android:paddingLeft="8dp"
