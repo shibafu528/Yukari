@@ -38,11 +38,17 @@ public class StatusActivity extends FragmentYukariBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 setTheme(R.style.YukariLightTheme_Translucent);
                 break;
             case "dark":
                 setTheme(R.style.YukariDarkTheme_Translucent);
+                break;
+            case "zunko":
+                setTheme(R.style.ColorsTheme_Zunko_Translucent);
+                break;
+            case "maki":
+                setTheme(R.style.ColorsTheme_Maki_Translucent);
                 break;
         }
         super.onCreate(savedInstanceState, true);

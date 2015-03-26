@@ -34,6 +34,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
 
@@ -139,7 +140,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
+        swipeRefreshLayout.setColorSchemeResources(AttrUtil.resolveAttribute(getActivity().getTheme(), R.attr.colorPrimary));
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {

@@ -45,6 +45,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
@@ -99,13 +100,21 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         Dialog dialog = new Dialog(getActivity());
 
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 dialog.getContext().setTheme(R.style.YukariLightDialogTheme);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":
                 dialog.getContext().setTheme(R.style.YukariDarkDialogTheme);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                break;
+            case "zunko":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                break;
+            case "maki":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -204,7 +213,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColorResource(R.color.key_color);
+        tabStrip.setTabIndicatorColorResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.colorPrimary));
 
         return v;
     }

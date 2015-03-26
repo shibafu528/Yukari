@@ -89,6 +89,14 @@
 
         <item name="menuButtonDrawable">@drawable/ic_menu_dark_d</item>
         <item name="searchButtonDrawable">@drawable/ic_search_d</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+
+        <item name="footerBarColor">@color/status_bar_color</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
 
     <style name="YukariDarkDialogTheme" parent="android:Theme.Holo.Dialog">
@@ -175,6 +183,12 @@
         <item name="tweetVoiceDrawable">@drawable/ic_voice_input_d</item>
         <item name="tweetMorseDrawable">@drawable/ic_morse_d</item>
         <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music_d</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
 
 </resources>

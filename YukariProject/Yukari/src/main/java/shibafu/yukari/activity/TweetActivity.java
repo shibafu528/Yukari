@@ -187,11 +187,17 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final String theme = sp.getString("pref_theme", "light");
         switch (theme) {
-            case "light":
+            default:
                 setTheme(R.style.VertAnimationTheme);
                 break;
             case "dark":
                 setTheme(R.style.VertAnimationTheme_Dark);
+                break;
+            case "zunko":
+                setTheme(R.style.ColorsTheme_Zunko_Dialog_VertAnimation);
+                break;
+            case "maki":
+                setTheme(R.style.ColorsTheme_Maki_Dialog_VertAnimation);
                 break;
         }
         super.onCreate(savedInstanceState, true);

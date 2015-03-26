@@ -84,7 +84,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
         }
 
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 view.setBackgroundResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":

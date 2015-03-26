@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -27,10 +26,11 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.util.ThemeUtil;
 
 public class SNPickerActivity extends FragmentYukariBase implements LoaderManager.LoaderCallbacks<List<SNPickerActivity.SuggestedName>> {
 
@@ -46,14 +46,7 @@ public class SNPickerActivity extends FragmentYukariBase implements LoaderManage
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightDialogTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkDialogTheme);
-                break;
-        }
+        ThemeUtil.setDialogTheme(this);
         super.onCreate(savedInstanceState, true);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         requestWindowFeature(Window.FEATURE_NO_TITLE);

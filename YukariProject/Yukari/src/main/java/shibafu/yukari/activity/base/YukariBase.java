@@ -2,12 +2,11 @@ package shibafu.yukari.activity.base;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 
-import shibafu.yukari.af2015.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/07/12.
@@ -17,14 +16,7 @@ public abstract class YukariBase extends Activity implements TwitterServiceConne
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkTheme);
-                break;
-        }
+        ThemeUtil.setActivityTheme(this);
         super.onCreate(savedInstanceState);
     }
 

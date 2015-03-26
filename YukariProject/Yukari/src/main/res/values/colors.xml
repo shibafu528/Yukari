@@ -5,6 +5,7 @@
     <color name="key_color">#ff7849ba</color>
     <drawable name="key_color">#ff7849ba</drawable>
     <drawable name="status_bar_color">#cc7849ba</drawable>
+    <color name="status_bar_color">#cc7849ba</color>
 
     <color name="bg_retweet">#ffd7dffd</color>
     <drawable name="bg_retweet">#ffd7dffd</drawable>
@@ -41,4 +42,20 @@
     <color name="count_error">#f00</color>
     <color name="count_error_d">#f44</color>
     <color name="key_color_accent">#ea80fc</color>
+
+    <color name="zunko_primary">#4CAF50</color>
+    <color name="zunko_primary_dark">#388E3C</color>
+    <color name="zunko_primary_light">#C8E6C9</color>
+    <color name="zunko_accent">#7C4DFF</color>
+    <color name="zunko_footer">#cc4caf50</color>
+    <drawable name="zunko_focus">#cac8e6c9</drawable>
+    <drawable name="zunko_press">#ca4caf50</drawable>
+    
+    <color name="maki_primary">#FFC107</color>
+    <color name="maki_primary_dark">#FFA000</color>
+    <color name="maki_primary_light">#FFECB3</color>
+    <color name="maki_accent">#FF4081</color>
+    <color name="maki_footer">#ccFFC107</color>
+    <drawable name="maki_focus">#caFFECB3</drawable>
+    <drawable name="maki_press">#caFFC107</drawable>
 </resources>
