@@ -20,6 +20,8 @@ public class LinkMediaFactory {
         if (linkMedia == null) {
             if (mediaURL.contains("pbs.twimg.com/media/")) {
                 linkMedia = new Twimg(mediaURL);
+            } else if (mediaURL.contains("pbs.twimg.com/tweet_video/") || mediaURL.contains("video.twimg.com")) {
+                linkMedia = new TwitterVideo(mediaURL);
             } else if (mediaURL.contains("/yfrog.com")) {
                 linkMedia = new YFrog(mediaURL);
             } else if (mediaURL.contains("p.twipple.jp")) {
