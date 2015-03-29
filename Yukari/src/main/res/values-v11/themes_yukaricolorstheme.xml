@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Generated with http://android-holo-colors.com -->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="ColorsTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="tweetTextColor">#000</item>
+
+        <item name="tweetNormal">@drawable/selector_tweet_normal_c_background</item>
+        <item name="tweetRetweet">@drawable/selector_tweet_retweet_c_background</item>
+        <item name="tweetOwn">@drawable/selector_tweet_own_c_background</item>
+        <item name="tweetMention">@drawable/selector_tweet_mention_c_background</item>
+
+        <item name="tabTitleColor">@color/key_color</item>
+
+        <item name="profileTweetsDrawable">@drawable/ic_prof_tweets</item>
+        <item name="profileFavoritesDrawable">@drawable/ic_prof_favorite</item>
+        <item name="profileFollowsDrawable">@drawable/ic_prof_follow</item>
+        <item name="profileFollowersDrawable">@drawable/ic_prof_follower</item>
+
+
+        <item name="menuProfileDrawable">@drawable/ic_profile</item>
+        <item name="menuTwilogDrawable">@drawable/ic_twilog</item>
+        <item name="menuFavstarDrawable">@drawable/ic_favorite_m</item>
+        <item name="menuAclogDrawable">@drawable/ic_aclog</item>
+        <item name="menuBacklightDrawable">@drawable/ic_always_light_off</item>
+        <item name="menuReportDrawable">@drawable/ic_feedback</item>
+        <item name="menuSettingDrawable">@drawable/ic_settings</item>
+        <item name="menuQuitDrawable">@drawable/ic_quit</item>
+        <item name="menuReloadDrawable">@drawable/ic_navigation_refresh</item>
+        <item name="menuBookmarkDrawable">@drawable/ic_bookmark</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
+        <item name="searchButtonDrawable">@drawable/ic_search</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorPrimaryLight">#B394E0</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+
+        <item name="footerBarColor">@color/status_bar_color</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+    </style>
+
+    <style name="ColorsTheme.Base.Dialog" parent="android:Theme.Holo.Light.Dialog">
+        <item name="tweetTextColor">#000</item>
+
+        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
+        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
+        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
+        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+
+        <item name="tabTitleColor">@color/key_color</item>
+
+        <item name="tweetCountColor">@color/count_safe</item>
+        <item name="tweetCountOverColor">@color/count_error</item>
+
+        <item name="selectorTextColor">@color/selector_key_light_textcolor</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
+        <item name="searchButtonDrawable">@drawable/ic_search</item>
+
+        <item name="tweetAttachDrawable">@drawable/ic_content_picture</item>
+        <item name="tweetShotDrawable">@drawable/ic_access_camera</item>
+        <item name="tweetTagDrawable">@drawable/ic_hashtag</item>
+        <item name="tweetGrassDrawable">@drawable/ic_grass</item>
+        <item name="tweetPointDrawable">@drawable/ic_santen</item>
+        <item name="tweetDraftDrawable">@drawable/ic_list</item>
+        <item name="tweetReplyDrawable">@drawable/ic_reply_b</item>
+        <item name="tweetVoiceDrawable">@drawable/ic_voice_input</item>
+        <item name="tweetMorseDrawable">@drawable/ic_morse</item>
+        <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+    </style>
+
+    <style name="ColorsTheme.Zunko" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/zunko_primary_dark</item>
+
+        <item name="colorPrimary">@color/zunko_primary</item>
+        <item name="colorPrimaryDark">@color/zunko_primary_dark</item>
+        <item name="colorPrimaryLight">@color/zunko_primary_light</item>
+        <item name="colorAccent">@color/zunko_accent</item>
+
+        <item name="footerBarColor">@color/zunko_footer</item>
+        <item name="pressDrawable">@drawable/zunko_press</item>
+        <item name="focusDrawable">@drawable/zunko_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Zunko.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/zunko_primary_dark</item>
+        <item name="colorPrimary">@color/zunko_primary</item>
+        <item name="colorPrimaryDark">@color/zunko_primary_dark</item>
+        <item name="colorPrimaryLight">@color/zunko_primary_light</item>
+        <item name="colorAccent">@color/zunko_accent</item>
+        <item name="pressDrawable">@drawable/zunko_press</item>
+        <item name="focusDrawable">@drawable/zunko_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Zunko.Translucent" parent="ColorsTheme.Zunko">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Zunko.Dialog.VertAnimation" parent="ColorsTheme.Zunko.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+    <style name="ColorsTheme.Maki" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/maki_primary_dark</item>
+
+        <item name="colorPrimary">@color/maki_primary</item>
+        <item name="colorPrimaryDark">@color/maki_primary_dark</item>
+        <item name="colorPrimaryLight">@color/maki_primary_light</item>
+        <item name="colorAccent">@color/maki_accent</item>
+
+        <item name="footerBarColor">@color/maki_footer</item>
+        <item name="pressDrawable">@drawable/maki_press</item>
+        <item name="focusDrawable">@drawable/maki_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Maki.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/maki_primary_dark</item>
+
+        <item name="colorPrimary">@color/maki_primary</item>
+        <item name="colorPrimaryDark">@color/maki_primary_dark</item>
+        <item name="colorPrimaryLight">@color/maki_primary_light</item>
+        <item name="colorAccent">@color/maki_accent</item>
+        <item name="pressDrawable">@drawable/maki_press</item>
+        <item name="focusDrawable">@drawable/maki_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Maki.Translucent" parent="ColorsTheme.Maki">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Maki.Dialog.VertAnimation" parent="ColorsTheme.Maki.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/aoi_primary_dark</item>
+
+        <item name="colorPrimary">@color/aoi_primary</item>
+        <item name="colorPrimaryDark">@color/aoi_primary_dark</item>
+        <item name="colorPrimaryLight">@color/aoi_primary_light</item>
+        <item name="colorAccent">@color/aoi_accent</item>
+
+        <item name="footerBarColor">@color/aoi_footer</item>
+        <item name="pressDrawable">@drawable/aoi_press</item>
+        <item name="focusDrawable">@drawable/aoi_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/aoi_primary_dark</item>
+
+        <item name="colorPrimary">@color/aoi_primary</item>
+        <item name="colorPrimaryDark">@color/aoi_primary_dark</item>
+        <item name="colorPrimaryLight">@color/aoi_primary_light</item>
+        <item name="colorAccent">@color/aoi_accent</item>
+        <item name="pressDrawable">@drawable/aoi_press</item>
+        <item name="focusDrawable">@drawable/aoi_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Translucent" parent="ColorsTheme.Aoi">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Aoi.Dialog.VertAnimation" parent="ColorsTheme.Aoi.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+    <style name="ColorsTheme.Akane" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/akane_primary_dark</item>
+
+        <item name="colorPrimary">@color/akane_primary</item>
+        <item name="colorPrimaryDark">@color/akane_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akane_primary_light</item>
+        <item name="colorAccent">@color/akane_accent</item>
+
+        <item name="footerBarColor">@color/akane_footer</item>
+        <item name="pressDrawable">@drawable/akane_press</item>
+        <item name="focusDrawable">@drawable/akane_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/akane_primary_dark</item>
+
+        <item name="colorPrimary">@color/akane_primary</item>
+        <item name="colorPrimaryDark">@color/akane_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akane_primary_light</item>
+        <item name="colorAccent">@color/akane_accent</item>
+        <item name="pressDrawable">@drawable/akane_press</item>
+        <item name="focusDrawable">@drawable/akane_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Translucent" parent="ColorsTheme.Akane">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+    </style>
+
+    <style name="ColorsTheme.Akane.Dialog.VertAnimation" parent="ColorsTheme.Akane.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+</resources>
