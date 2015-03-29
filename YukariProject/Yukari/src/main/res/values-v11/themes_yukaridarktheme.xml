@@ -63,11 +63,13 @@
         </item>
 
         <item name="tweetTextColor">#fff</item>
+        <item name="tweetPressColor">@color/bg_press_d</item>
+        <item name="tweetFocusColor">@color/bg_press_d</item>
 
-        <item name="tweetNormal">@drawable/selector_tweet_normal_d_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_d_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_d_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_d_background</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet_d</item>
+        <item name="tweetOwn">@drawable/bg_own_d</item>
+        <item name="tweetMention">@drawable/bg_mention_d</item>
 
         <item name="tabTitleColor">#fff</item>
 

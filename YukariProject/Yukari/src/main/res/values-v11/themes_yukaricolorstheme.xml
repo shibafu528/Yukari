@@ -5,11 +5,13 @@
 
     <style name="ColorsTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">?attr/colorPrimaryLight</item>
+        <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
 
-        <item name="tweetNormal">@drawable/selector_tweet_normal_c_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_c_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_c_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_c_background</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
 
         <item name="tabTitleColor">@color/key_color</item>
 
@@ -45,11 +47,13 @@
 
     <style name="ColorsTheme.Base.Dialog" parent="android:Theme.Holo.Light.Dialog">
         <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">?attr/colorPrimaryLight</item>
+        <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
 
-        <item name="tweetNormal">@drawable/selector_tweet_normal_background</item>
-        <item name="tweetRetweet">@drawable/selector_tweet_retweet_background</item>
-        <item name="tweetOwn">@drawable/selector_tweet_own_background</item>
-        <item name="tweetMention">@drawable/selector_tweet_mention_background</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
 
         <item name="tabTitleColor">@color/key_color</item>
 

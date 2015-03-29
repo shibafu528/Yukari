@@ -21,7 +21,9 @@
     <color name="bg_own_d">#ff00182c</color>
     <drawable name="bg_own_d">#ff00182c</drawable>
 
+    <color name="bg_press">#B394E0</color>
     <drawable name="bg_press">#B394E0</drawable>
+    <color name="bg_press_d">#ff382852</color>
     <drawable name="bg_press_d">#ff382852</drawable>
 
     <drawable name="focus_key_color">@drawable/key_color</drawable>

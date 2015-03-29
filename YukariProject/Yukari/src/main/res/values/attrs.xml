@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="tweetTextColor" format="color|reference"/>
-    <attr name="tweetNormal" format="reference"/>
-    <attr name="tweetRetweet" format="reference"/>
-    <attr name="tweetOwn" format="reference"/>
-    <attr name="tweetMention" format="reference"/>
+    <attr name="tweetNormal" format="color|reference"/>
+    <attr name="tweetRetweet" format="color|reference"/>
+    <attr name="tweetOwn" format="color|reference"/>
+    <attr name="tweetMention" format="color|reference"/>
     <attr name="tabTitleColor" format="color|reference"/>
     <attr name="tweetCountColor" format="color|reference"/>
     <attr name="tweetCountOverColor" format="color|reference"/>
@@ -40,4 +40,10 @@
     <attr name="pressDrawable" format="reference"/>
     <attr name="focusDrawable" format="reference"/>
     <attr name="colorPrimaryLight" format="color|reference"/>
+    <attr name="tweetPressColor" format="color|reference"/>
+    <attr name="tweetFocusColor" format="color|reference"/>
+    <declare-styleable name="SelectorView">
+        <attr name="on_pressed" format="reference"/>
+        <attr name="on_focused" format="reference"/>
+    </declare-styleable>
 </resources>

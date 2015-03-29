@@ -3,10 +3,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:state_pressed="true"
-        android:drawable="?attr/pressDrawable"/>
+        android:drawable="@drawable/press_key_light_color"/>
     <item
         android:state_focused="true"
-        android:drawable="?attr/focusDrawable"/>
+        android:drawable="@drawable/focus_key_light_color"/>
     <item
         android:drawable="@android:color/transparent"/>
 </selector>
