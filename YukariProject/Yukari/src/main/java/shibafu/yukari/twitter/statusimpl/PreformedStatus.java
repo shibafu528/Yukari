@@ -6,14 +6,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -124,9 +127,23 @@ public class PreformedStatus implements Status{
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
             mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
         }
-        if (status.getExtendedMediaEntities().length > 1) {
-            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
-                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+        for (ExtendedMediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+            switch (mediaEntity.getType()) {
+                case "video":
+                case "animated_gif":
+                    if (mediaEntity.getVideoVariants().length > 0) {
+                        ExtendedMediaEntity.Variant variant = mediaEntity.getVideoVariants()[0];
+                        for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
+                            if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
+                                iterator.remove();
+                            }
+                        }
+                        mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
+                    }
+                    break;
+                default:
+                    mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+                    break;
             }
         }
         //RTステータスならそちらも生成
@@ -390,6 +407,11 @@ public class PreformedStatus implements Status{
     }
 
     @Override
+    public String[] getWithheldInCountries() {
+        return status.getWithheldInCountries();
+    }
+
+    @Override
     public int compareTo(Status another) {
         return status.compareTo(another);
     }
@@ -415,7 +437,7 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public MediaEntity[] getExtendedMediaEntities() {
+    public ExtendedMediaEntity[] getExtendedMediaEntities() {
         return status.getExtendedMediaEntities();
     }
 

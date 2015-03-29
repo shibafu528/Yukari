@@ -90,7 +90,7 @@ public class PreviewActivity extends FragmentYukariBase {
             finish();
             return;
         }
-        else if ("vine.co".equals(data.getHost())) {
+        else if ("vine.co".equals(data.getHost()) || data.toString().contains("pbs.twimg.com/tweet_video/") || "video.twimg.com".equals(data.getHost())) {
             Intent intent = new Intent(Intent.ACTION_VIEW, data, this, MoviePreviewActivity.class);
             intent.putExtras(getIntent());
             startActivity(intent);

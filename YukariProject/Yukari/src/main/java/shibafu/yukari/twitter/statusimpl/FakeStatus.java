@@ -2,6 +2,7 @@ package shibafu.yukari.twitter.statusimpl;
 
 import java.util.Date;
 
+import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -140,6 +141,11 @@ public class FakeStatus implements Status {
     }
 
     @Override
+    public String[] getWithheldInCountries() {
+        return new String[0];
+    }
+
+    @Override
     public int compareTo(Status another) {
         return 0;
     }
@@ -165,8 +171,8 @@ public class FakeStatus implements Status {
     }
 
     @Override
-    public MediaEntity[] getExtendedMediaEntities() {
-        return new MediaEntity[0];
+    public ExtendedMediaEntity[] getExtendedMediaEntities() {
+        return new ExtendedMediaEntity[0];
     }
 
     @Override
