@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -178,9 +180,9 @@ public class TweetAdapterWrap {
         private SharedPreferences preferences;
         private TweetCommonDelegate delegate;
 
-        private int bgDefaultResId;
-        private int bgMentionResId;
-        private int bgOwnResId;
+        private StateListDrawable bgDefaultDrawable;
+        private StateListDrawable bgMentionDrawable;
+        private StateListDrawable bgOwnDrawable;
 
         public static ViewConverter newInstance(
                 Context context,
@@ -216,9 +218,23 @@ public class TweetAdapterWrap {
             this.preferences = preferences;
             this.delegate = delegate;
 
-            bgDefaultResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetNormal);
-            bgMentionResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetMention);
-            bgOwnResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetOwn);
+            Drawable tweetOnPress = context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetPressColor));
+            Drawable tweetOnFocus = context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetFocusColor));
+            bgDefaultDrawable = new SimpleStateListDrawable(
+                    context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetNormal)),
+                    tweetOnPress,
+                    tweetOnFocus
+            );
+            bgMentionDrawable = new SimpleStateListDrawable(
+                    context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetMention)),
+                    tweetOnPress,
+                    tweetOnFocus
+            );
+            bgOwnDrawable = new SimpleStateListDrawable(
+                    context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetOwn)),
+                    tweetOnPress,
+                    tweetOnFocus
+            );
         }
 
         protected Context getContext() {
@@ -312,13 +328,13 @@ public class TweetAdapterWrap {
             if (mode != MODE_PREVIEW) {
                 switch (statusRelation) {
                     case TweetCommonDelegate.REL_MENTION:
-                        v.setBackgroundResource(bgMentionResId);
+                        v.setBackgroundDrawable(bgMentionDrawable.getConstantState().newDrawable());
                         break;
                     case TweetCommonDelegate.REL_OWN:
-                        v.setBackgroundResource(bgOwnResId);
+                        v.setBackgroundDrawable(bgOwnDrawable.getConstantState().newDrawable());
                         break;
                     default:
-                        v.setBackgroundResource(bgDefaultResId);
+                        v.setBackgroundDrawable(bgDefaultDrawable.getConstantState().newDrawable());
                         break;
                 }
             }
@@ -349,7 +365,7 @@ public class TweetAdapterWrap {
 
         public static final LinearLayout.LayoutParams LP_THUMB = new LinearLayout.LayoutParams(140, 140, 1);
 
-        private int bgRetweetResId;
+        private StateListDrawable bgRetweetDrawable;
 
         protected StatusViewConverter(Context context,
                                       List<AuthUserRecord> userRecords,
@@ -357,7 +373,14 @@ public class TweetAdapterWrap {
                                       SharedPreferences preferences)
                 throws IllegalAccessException, InstantiationException {
             super(context, userRecords, userExtras, preferences, TweetCommon.newInstance(PreformedStatus.class));
-            bgRetweetResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetRetweet);
+
+            Drawable tweetOnPress = context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetPressColor));
+            Drawable tweetOnFocus = context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetFocusColor));
+            bgRetweetDrawable = new SimpleStateListDrawable(
+                    context.getResources().getDrawable(AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetRetweet)),
+                    tweetOnPress,
+                    tweetOnFocus
+            );
         }
 
         @Override
@@ -465,7 +488,7 @@ public class TweetAdapterWrap {
                             StringUtil.formatDate(st.getRetweetedStatus().getCreatedAt()) + " via " + st.getRetweetedStatus().getSource();
                     viewHolder.tvTimestamp.setText(timestamp);
                     viewHolder.tvName.setText("@" + st.getRetweetedStatus().getUser().getScreenName() + " / " + st.getRetweetedStatus().getUser().getName());
-                    v.setBackgroundResource(bgRetweetResId);
+                    v.setBackgroundDrawable(bgRetweetDrawable.getConstantState().newDrawable());
 
                     if (st.getRetweetedStatus().getUser().isProtected()) {
                         viewHolder.ivProtected.setVisibility(View.VISIBLE);
