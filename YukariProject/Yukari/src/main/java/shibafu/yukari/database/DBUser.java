@@ -425,6 +425,11 @@ public class DBUser implements User, DBRecord {
     }
 
     @Override
+    public String[] getWithheldInCountries() {
+        return new String[0];
+    }
+
+    @Override
     public int compareTo(User another) {
         long dist = id - another.getId();
         if (dist > 0) return 1;

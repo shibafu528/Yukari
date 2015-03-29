@@ -92,20 +92,20 @@
     <orderEntry type="library" exported="" name="play-services-6.1.11" level="project" />
     <orderEntry type="library" exported="" name="gson-2.3" level="project" />
     <orderEntry type="library" exported="" name="support-v4-21.0.3" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-async-4.0.2" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.2" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-async-4.0.3" level="project" />
     <orderEntry type="library" exported="" name="HoloColorPicker-1.4" level="project" />
     <orderEntry type="library" exported="" name="preferencefragment-0.1.1" level="project" />
     <orderEntry type="library" exported="" name="butterknife-5.1.2" level="project" />
     <orderEntry type="library" exported="" name="Twitter_share_core" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-20.0.0" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-stream-4.0.2" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-stream-4.0.3" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-media-support-4.0.3" level="project" />
     <orderEntry type="library" exported="" name="Twitter_share_for_Twitter4j" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="snakeyaml-1.12" level="project" />
     <orderEntry type="library" exported="" name="twitter-text-1.6.1" level="project" />
-    <orderEntry type="library" exported="" name="twitter4j-core-4.0.2" level="project" />
     <orderEntry type="library" exported="" name="GrassleafCore" level="project" />
+    <orderEntry type="library" exported="" name="twitter4j-core-4.0.3" level="project" />
     <orderEntry type="module" module-name="betterpickers" exported="" />
     <orderEntry type="module" module-name="twpfparser" exported="" />
     <orderEntry type="module" module-name="library" exported="" />
