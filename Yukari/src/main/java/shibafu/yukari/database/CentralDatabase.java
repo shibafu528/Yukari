@@ -785,6 +785,11 @@ public class CentralDatabase {
         }
         db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
     }
+
+    @Deprecated
+    public Cursor rawQuery(String sql, String[] selectionArgs) {
+        return db.rawQuery(sql, selectionArgs);
+    }
     //</editor-fold>
 
     public static String joinColumnName(String table, String column) {
