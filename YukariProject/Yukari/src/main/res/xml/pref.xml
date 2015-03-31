@@ -226,6 +226,10 @@
             android:key="pref_remove_screenshot_subject"
             android:title="スクショ共有の本文を削除"
             android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない" />
+        <Preference
+            android:key="pref_repair_bookmark"
+            android:title="ブックマークの修復"
+            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません" />
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
