@@ -108,26 +108,28 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     }
 
     private static boolean alternateFeature(Context context, ImageView imageView, String url) {
-        File alternateFeatureDir = new File(context.getExternalFilesDir(null), "alternate_feature");
-        if (alternateFeatureDir.exists()) {
-            File[] files = alternateFeatureDir.listFiles();
-            if (files.length < 1) {
-                return false;
+        File externalFilesDir = context.getExternalFilesDir(null);
+        if (externalFilesDir != null) {
+            File alternateFeatureDir = new File(externalFilesDir, "alternate_feature");
+            if (alternateFeatureDir.exists()) {
+                File[] files = alternateFeatureDir.listFiles();
+                if (files.length < 1) {
+                    return false;
+                }
+                Random random = new Random(url.hashCode());
+                int index = random.nextInt(files.length);
+                Bitmap cache = BitmapCache.getImageFromMemory(files[index].getAbsolutePath(), BitmapCache.PROFILE_ICON_CACHE);
+                if (cache != null && !cache.isRecycled()) {
+                    imageView.setImageBitmap(cache);
+                } else {
+                    Bitmap bm = BitmapFactory.decodeFile(files[index].getAbsolutePath());
+                    BitmapCache.putImage(files[index].getAbsolutePath(), bm, context, BitmapCache.PROFILE_ICON_CACHE);
+                    imageView.setImageBitmap(bm);
+                }
+                return true;
             }
-            Random random = new Random(url.hashCode());
-            int index = random.nextInt(files.length);
-            Bitmap cache = BitmapCache.getImageFromMemory(files[index].getAbsolutePath(), BitmapCache.PROFILE_ICON_CACHE);
-            if (cache != null && !cache.isRecycled()) {
-                imageView.setImageBitmap(cache);
-            } else {
-                Bitmap bm = BitmapFactory.decodeFile(files[index].getAbsolutePath());
-                BitmapCache.putImage(files[index].getAbsolutePath(), bm, context, BitmapCache.PROFILE_ICON_CACHE);
-                imageView.setImageBitmap(bm);
-            }
-            return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {

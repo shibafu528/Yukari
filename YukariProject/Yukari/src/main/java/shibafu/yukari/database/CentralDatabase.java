@@ -623,7 +623,14 @@ public class CentralDatabase {
         ArrayList<Bookmark> bookmarks = new ArrayList<>();
         try {
             if (cursor.moveToFirst()) {
-                do bookmarks.add(new Bookmark(cursor));
+                do {
+                    //TODO: デシリアライズ時のt4jバージョン差によるクラッシュを回避する技です。こんなの辞められるようにしような。
+                    try {
+                        bookmarks.add(new Bookmark(cursor));
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
+                }
                 while (cursor.moveToNext());
             }
         } finally {
@@ -777,6 +784,11 @@ public class CentralDatabase {
             throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
         }
         db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
+    }
+
+    @Deprecated
+    public Cursor rawQuery(String sql, String[] selectionArgs) {
+        return db.rawQuery(sql, selectionArgs);
     }
     //</editor-fold>
 

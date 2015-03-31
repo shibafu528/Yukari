@@ -174,6 +174,14 @@ public class ConfigActivity extends ActionBarYukariBase {
                     return true;
                 }
             });
+
+            findPreference("pref_repair_bookmark").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getActivity(), BookmarkRepairActivity.class));
+                    return false;
+                }
+            });
         }
     }
 }
