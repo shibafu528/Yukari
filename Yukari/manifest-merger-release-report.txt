@@ -474,6 +474,10 @@ ADDED from AndroidManifest.xml:341:9
 		ADDED from AndroidManifest.xml:343:13
 	android:name
 		ADDED from AndroidManifest.xml:342:13
+activity#shibafu.yukari.activity.BookmarkRepairActivity
+ADDED from AndroidManifest.xml:345:9
+	android:name
+		ADDED from AndroidManifest.xml:345:19
 uses-sdk
 INJECTED from AndroidManifest.xml:0:0 reason: use-sdk injection requested
 MERGED from com.android.support:appcompat-v7:20.0.0:16:5
