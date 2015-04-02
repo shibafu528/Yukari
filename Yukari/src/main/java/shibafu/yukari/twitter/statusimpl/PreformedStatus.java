@@ -301,11 +301,11 @@ public class PreformedStatus implements Status{
     }
 
     public boolean isTooManyRepeatText() {
-        return isTooManyRepeatText;
+        return retweetedStatus != null ? retweetedStatus.isTooManyRepeatText() : isTooManyRepeatText;
     }
 
     public String getRepeatedSequence() {
-        return repeatedSequence;
+        return retweetedStatus != null ? retweetedStatus.getRepeatedSequence() : repeatedSequence;
     }
 
     @Override
