@@ -13,7 +13,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.util.Random;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -107,33 +106,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
         }
     }
 
-    private static boolean alternateFeature(Context context, ImageView imageView, String url) {
-        File externalFilesDir = context.getExternalFilesDir(null);
-        if (externalFilesDir != null) {
-            File alternateFeatureDir = new File(externalFilesDir, "alternate_feature");
-            if (alternateFeatureDir.exists()) {
-                File[] files = alternateFeatureDir.listFiles();
-                if (files.length < 1) {
-                    return false;
-                }
-                Random random = new Random(url.hashCode());
-                int index = random.nextInt(files.length);
-                Bitmap cache = BitmapCache.getImageFromMemory(files[index].getAbsolutePath(), BitmapCache.PROFILE_ICON_CACHE);
-                if (cache != null && !cache.isRecycled()) {
-                    imageView.setImageBitmap(cache);
-                } else {
-                    Bitmap bm = BitmapFactory.decodeFile(files[index].getAbsolutePath());
-                    BitmapCache.putImage(files[index].getAbsolutePath(), bm, context, BitmapCache.PROFILE_ICON_CACHE);
-                    imageView.setImageBitmap(bm);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
-        if (alternateFeature(context, imageView, uri)) return;
         IconLoader.loadBitmap(context, imageView, uri);
     }
 
