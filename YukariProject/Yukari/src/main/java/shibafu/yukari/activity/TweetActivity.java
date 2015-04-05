@@ -31,7 +31,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -60,7 +59,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
@@ -80,7 +79,7 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener{
+public class TweetActivity extends ActionBarYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener{
 
     public static final int MODE_TWEET   = 0;
     public static final int MODE_REPLY   = 1;
@@ -207,7 +206,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 break;
         }
         super.onCreate(savedInstanceState, true);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getSupportActionBar().hide();
         setContentView(R.layout.activity_tweet);
 
         //リソースIDを解決
