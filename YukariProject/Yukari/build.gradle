@@ -13,10 +13,10 @@ dependencies {
     //compile 'com.doomonafireball.betterpickers:library:1.5.+'
     compile project(':betterpickers')
 
-    compile 'org.twitter4j:twitter4j-core:4.+'
-    compile 'org.twitter4j:twitter4j-async:4.+'
-    compile 'org.twitter4j:twitter4j-media-support:4.+'
-    compile 'org.twitter4j:twitter4j-stream:4.+'
+    compile 'org.twitter4j:twitter4j-core:4.0.3'
+    compile 'org.twitter4j:twitter4j-async:4.0.3'
+    compile 'org.twitter4j:twitter4j-media-support:4.0.3'
+    compile 'org.twitter4j:twitter4j-stream:4.0.3'
 
     compile 'com.twitter:twitter-text:1.6.1'
 
