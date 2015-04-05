@@ -45,7 +45,7 @@
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
 
-    <style name="ColorsTheme.Base.Dialog" parent="android:Theme.Holo.Light.Dialog">
+    <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
         <item name="tweetTextColor">#000</item>
         <item name="tweetPressColor">?attr/colorPrimaryLight</item>
         <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
