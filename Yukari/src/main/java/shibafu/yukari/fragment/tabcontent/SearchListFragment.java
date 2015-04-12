@@ -145,6 +145,14 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 });
                 stash.clear();
                 break;
+            case StatusManager.UPDATE_FORCE_UPDATE_UI:
+                getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        adapterWrap.notifyDataSetChanged();
+                    }
+                });
+                break;
             case StatusManager.UPDATE_DELETED:
                 getHandler().post(new Runnable() {
                     @Override

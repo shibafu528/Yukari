@@ -74,6 +74,7 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                 }
 
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
+                loaderInterface.getService().getStatusManager().loadQuotedEntities(status);
             }
             loaderInterface.notifyDataSetChanged();
         } else if (exception != null && exceptionUser != null) {
