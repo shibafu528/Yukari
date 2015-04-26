@@ -1,27 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!--
-        Base application theme for API 11+. This theme completely replaces
-        AppBaseTheme from res/values/styles.xml on API 11+ devices.
-    -->
-    <style name="AppBaseTheme" parent="YukariLightTheme">
-        <!-- API 11 theme customizations can go here. -->
-    </style>
-
-    <style name="VertAnimationTheme" parent="YukariLightDialogTheme">
-        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
-    </style>
-    <style name="VertAnimationTheme.Dark" parent="YukariDarkDialogTheme">
-        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
-    </style>
-    <style name="Animation" parent="android:Animation" />
-    <style name="Animation.Vert" parent="android:Animation.Activity">
-        <item name="android:activityOpenEnterAnimation">@anim/activity_tweet_open_enter</item>
-        <item name="android:activityOpenExitAnimation">@anim/activity_tweet_open_exit</item>
-        <item name="android:activityCloseEnterAnimation">@anim/activity_tweet_close_enter</item>
-        <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
-    </style>
-
     <style name="AppThemeTranslucent" parent="android:Theme.Material.Light.NoActionBar" tools:ignore="NewApi">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
