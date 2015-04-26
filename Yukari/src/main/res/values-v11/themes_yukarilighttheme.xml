@@ -104,7 +104,7 @@
         <item name="listSortableHandleDrawable">@drawable/sortable_light</item>
     </style>
 
-    <style name="YukariLightDialogTheme" parent="android:Theme.Holo.Light.Dialog">
+    <style name="YukariLightDialogTheme" parent="Theme.AppCompat.Light.Dialog">
 
         <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
 
