@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari.af2015"
     android:installLocation="auto"
-    android:versionCode="45"
-    android:versionName="material_colors (base y4a-ensemble-1.1.4.198)" >
+    android:versionCode="46"
+    android:versionName="material_colors (base y4a-ensemble-1.1.5.200)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

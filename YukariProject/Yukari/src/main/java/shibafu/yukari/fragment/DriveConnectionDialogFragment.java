@@ -18,9 +18,9 @@ import com.google.android.gms.common.SupportErrorDialogFragment;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.drive.Contents;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.MetadataChangeSet;
@@ -46,7 +46,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
     public static final int MODE_EXPORT   = 0;
     public static final int MODE_IMPORT   = 1;
 
-    private static final String LOG_TAG = "DriveConnectionDialogFragment";
+    private static final String LOG_TAG = "DriveConnectionDialog";
     private static final int REQUEST_RESOLVE_CONNECTION = 1;
     private static final int REQUEST_ERROR_SERVICE_AVAIL = 2;
 
@@ -245,19 +245,19 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     dismiss();
                 } else {
                     file = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
-                    file.openContents(apiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(resultCallback);
+                    file.open(apiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(resultCallback);
                 }
             }
 
-            private ResultCallback<DriveApi.ContentsResult> resultCallback = new ResultCallback<DriveApi.ContentsResult>() {
+            private ResultCallback<DriveApi.DriveContentsResult> resultCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
                 @Override
-                public void onResult(DriveApi.ContentsResult result) {
+                public void onResult(DriveApi.DriveContentsResult result) {
                     if (!result.getStatus().isSuccess()) {
                         Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
                         dismiss();
                         return;
                     }
-                    Contents contents = result.getContents();
+                    DriveContents contents = result.getDriveContents();
 
                     InputStream is = contents.getInputStream();
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -269,8 +269,14 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
+                    } finally {
+                        try {
+                            baos.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    file.commitAndCloseContents(apiClient, contents);
+                    contents.discard(apiClient);
 
                     if (!isCancelled) {
                         OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
@@ -302,22 +308,22 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     return;
                 }
                 if (result.getMetadataBuffer().getCount() < 1) {
-                    Drive.DriveApi.newContents(apiClient).setResultCallback(resultCallback);
+                    Drive.DriveApi.newDriveContents(apiClient).setResultCallback(resultCallback);
                 } else {
                     existFile = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
-                    existFile.openContents(apiClient, DriveFile.MODE_WRITE_ONLY, null).setResultCallback(resultCallback);
+                    existFile.open(apiClient, DriveFile.MODE_WRITE_ONLY, null).setResultCallback(resultCallback);
                 }
             }
 
-            private ResultCallback<DriveApi.ContentsResult> resultCallback = new ResultCallback<DriveApi.ContentsResult>() {
+            private ResultCallback<DriveApi.DriveContentsResult> resultCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
                 @Override
-                public void onResult(DriveApi.ContentsResult result) {
+                public void onResult(DriveApi.DriveContentsResult result) {
                     if (!result.getStatus().isSuccess()) {
                         Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_export), Toast.LENGTH_SHORT).show();
                         dismiss();
                         return;
                     }
-                    Contents contents = result.getContents();
+                    DriveContents contents = result.getDriveContents();
 
                     OutputStream os = contents.getOutputStream();
                     try {
@@ -340,7 +346,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                                 }
                             });
                         } else {
-                            existFile.commitAndCloseContents(apiClient, contents).setResultCallback(new ResultCallback<Status>() {
+                            contents.commit(apiClient, null).setResultCallback(new ResultCallback<Status>() {
                                 @Override
                                 public void onResult(Status status) {
                                     showResultMessage(status.getStatus());

@@ -51,7 +51,7 @@ public class LinkMediaFactory {
                 linkMedia = new Esx(mediaURL);
             } else if (mediaURL.contains("twitpic.com/d250g2") || mediaURL.contains("d250g2.com")) {
                 linkMedia = new D250g2(mediaURL);
-            } else if (mediaURL.contains("totori.dip.jp")) {
+            } else if ((mediaURL.endsWith("/") ? mediaURL.substring(0, mediaURL.length() - 1) : mediaURL).equals("http://totori.dip.jp")) {
                 linkMedia = new Totori(mediaURL);
             } else if (mediaURL.contains("gyazo.com")) {
                 linkMedia = new Gyazo(mediaURL);
