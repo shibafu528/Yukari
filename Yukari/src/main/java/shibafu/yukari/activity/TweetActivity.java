@@ -1,6 +1,6 @@
 package shibafu.yukari.activity;
 
-import android.app.AlertDialog;
+import android.support.v7.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ContentUris;
@@ -606,7 +606,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             @Override
             public boolean onLongClick(View v) {
                 SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                        REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
+                        REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(乂'_')No"
                 );
                 dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
                 return true;
