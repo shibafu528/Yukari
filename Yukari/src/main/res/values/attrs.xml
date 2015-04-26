@@ -46,4 +46,5 @@
         <attr name="on_pressed" format="reference"/>
         <attr name="on_focused" format="reference"/>
     </declare-styleable>
+    <attr name="listSortableHandleDrawable" format="reference"/>
 </resources>

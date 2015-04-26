@@ -172,6 +172,13 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     adapterWrap.notifyDataSetChanged();
                 }
             });
+        } else if (kind == StatusManager.UPDATE_FORCE_UPDATE_UI) {
+            getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    adapterWrap.notifyDataSetChanged();
+                }
+            });
         }
     }
 
