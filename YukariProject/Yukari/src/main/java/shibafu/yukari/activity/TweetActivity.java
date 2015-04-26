@@ -1151,7 +1151,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
                         .setTitle("添付の取り消し")
                         .setMessage("画像の添付を取り消してもよろしいですか？")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton("はい", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
