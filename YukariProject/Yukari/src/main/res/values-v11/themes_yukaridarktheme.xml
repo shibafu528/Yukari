@@ -102,7 +102,7 @@
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
 
-    <style name="YukariDarkDialogTheme" parent="android:Theme.Holo.Dialog">
+    <style name="YukariDarkDialogTheme" parent="Theme.AppCompat.Dialog">
 
         <item name="android:actionBarStyle">@style/ActionBarYukariTheme</item>
 

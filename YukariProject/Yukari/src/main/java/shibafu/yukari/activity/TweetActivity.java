@@ -31,6 +31,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -206,7 +207,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 break;
         }
         super.onCreate(savedInstanceState, true);
-        getSupportActionBar().hide();
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
 
         //リソースIDを解決
