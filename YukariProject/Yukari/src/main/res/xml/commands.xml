@@ -57,6 +57,10 @@
             android:title="大草原モード"
             android:summary="TLを草原にします"/>
         <CheckBoxPreference
+            android:key="j_fullmute"
+            android:title="ハイパーミュート"
+            android:summary="それはハイパーミュート、どれほどのものかは使ってみればわかる。"/>
+        <CheckBoxPreference
             android:key="allow_all_r4s"
             android:title="全垢R4Sコマンドを有効にする"
             android:summary="フォロー管理を長押し"/>
