@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -156,6 +157,18 @@ public class TweetAdapterWrap {
             flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
             ivAccountColor = (ImageView) v.findViewById(R.id.tweet_accountcolor);
             ivUserColor = (ImageView) v.findViewById(R.id.tweet_color);
+        }
+
+        public void hideTextViews() {
+            for (Field field : getClass().getDeclaredFields()) {
+                if (field.getName().startsWith("tv")) {
+                    try {
+                        ((View) field.get(this)).setVisibility(View.GONE);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -528,6 +541,10 @@ public class TweetAdapterWrap {
                         viewHolder.flInclude.setVisibility(View.GONE);
                     }
                     break;
+            }
+
+            if (getPreferences().getBoolean("j_fullmute", false)) {
+                viewHolder.hideTextViews();
             }
 
             return v;
