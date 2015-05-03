@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="46"
-    android:versionName="1.1.6.201 (ensemble 150502)" >
+    android:versionName="1.1.6.202 (ensemble 150503)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
