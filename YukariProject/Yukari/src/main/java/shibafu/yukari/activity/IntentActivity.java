@@ -31,7 +31,7 @@ public class IntentActivity extends ListYukariBase{
     static {
         List<Pair<Pattern, AfterWork>> matchTemp = new ArrayList<>();
         matchTemp.add(new Pair<Pattern, AfterWork>(
-                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$"),
+                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?$"),
                 new AfterWork() {
                     @Override
                     public void work(IntentActivity activity) {
