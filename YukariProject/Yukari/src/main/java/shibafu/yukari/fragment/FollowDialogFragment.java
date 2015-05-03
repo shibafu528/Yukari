@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
@@ -44,6 +45,7 @@ public class FollowDialogFragment extends DialogFragment {
     public static final int RELATION_BLOCK = 2;
     public static final int RELATION_PRE_R4S = 3;
     public static final int RELATION_UNBLOCK = 4;
+    public static final int RELATION_CUTOFF = 5;
 
     private AlertDialog dialog;
 
@@ -184,10 +186,12 @@ public class FollowDialogFragment extends DialogFragment {
     private class Adapter extends ArrayAdapter<ListEntry> {
 
         private LayoutInflater inflater;
+        private boolean visibleCutoff = false;
 
         public Adapter(Context context, List<ListEntry> objects) {
             super(context, 0, objects);
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            visibleCutoff = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("allow_cutoff", false);
         }
 
         @Override
@@ -232,6 +236,9 @@ public class FollowDialogFragment extends DialogFragment {
                                     e.afterRelation = RELATION_NONE;
                                 }
                                 break;
+                            default:
+                                e.afterRelation = e.beforeRelation;
+                                break;
                         }
 
                         setStatus(e, btnFollow, ivRelation);
@@ -248,6 +255,7 @@ public class FollowDialogFragment extends DialogFragment {
 
                         PopupMenu popupMenu = new PopupMenu(getContext(), view);
                         popupMenu.inflate(R.menu.follow);
+                        popupMenu.getMenu().findItem(R.id.action_cutoff).setVisible(visibleCutoff);
                         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                             @Override
                             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -258,6 +266,10 @@ public class FollowDialogFragment extends DialogFragment {
                                         return true;
                                     case R.id.action_report:
                                         e.afterRelation = RELATION_PRE_R4S;
+                                        setStatus(e, btnFollow, ivRelation);
+                                        return true;
+                                    case R.id.action_cutoff:
+                                        e.afterRelation = RELATION_CUTOFF;
                                         setStatus(e, btnFollow, ivRelation);
                                         return true;
                                 }
@@ -291,6 +303,10 @@ public class FollowDialogFragment extends DialogFragment {
             }
             else if (e.getAfterRelation() == RELATION_PRE_R4S) {
                 btnFollow.setText("報告取りやめ");
+                ivRelation.setImageResource(R.drawable.ic_f_not);
+            }
+            else if (e.getAfterRelation() == RELATION_CUTOFF) {
+                btnFollow.setText("ブロ解中断");
                 ivRelation.setImageResource(R.drawable.ic_f_not);
             }
             else if (e.getAfterRelation() == RELATION_FOLLOW) {

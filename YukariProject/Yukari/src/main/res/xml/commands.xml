@@ -64,5 +64,9 @@
             android:key="allow_all_r4s"
             android:title="全垢R4Sコマンドを有効にする"
             android:summary="フォロー管理を長押し"/>
+        <CheckBoxPreference
+            android:key="allow_cutoff"
+            android:title="ブロブロ解除コマンドを有効にする"
+            android:summary="フォロー管理のブロックとかがあるサブメニューに増やします"/>
     </PreferenceCategory>
 </PreferenceScreen>
