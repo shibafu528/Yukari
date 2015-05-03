@@ -357,6 +357,10 @@ public class PreformedStatus implements Status{
         return status.getUser();
     }
 
+    /**
+     * リツイートなら元ツイートの発言者、そうでなければこのツイートの発言者を返す
+     * @return 本来の発言者
+     */
     public User getSourceUser() {
         return status.isRetweet()? retweetedStatus.getUser() : status.getUser();
     }
