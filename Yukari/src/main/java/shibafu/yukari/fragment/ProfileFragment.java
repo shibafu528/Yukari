@@ -211,7 +211,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 }
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setItems(menuList.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                builder.setItems(menuList.toArray(new String[menuList.size()]), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
@@ -718,6 +718,22 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("ブロック解除失敗:").append(e.getStatusCode());
+                            }
+                            break;
+                        case FollowDialogFragment.RELATION_CUTOFF:
+                            try {
+                                twitter.createBlock(claim.getTargetUser());
+                                sb.append("ブロックしました");
+                                try {
+                                    twitter.destroyBlock(claim.getTargetUser());
+                                    sb.append("ブロック解除しました");
+                                } catch (TwitterException e) {
+                                    e.printStackTrace();
+                                    sb.append("ブロック解除失敗:").append(e.getStatusCode());
+                                }
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                sb.append("ブロック失敗:").append(e.getStatusCode());
                             }
                             break;
                     }
