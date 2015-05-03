@@ -91,6 +91,7 @@
 
         <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
         <item name="searchButtonDrawable">@drawable/ic_search</item>
+        <item name="listSortableHandleDrawable">@drawable/sortable_light</item>
 
         <item name="android:colorPrimary">@color/key_color</item>
         <item name="android:colorPrimaryDark">@color/key_color_2</item>

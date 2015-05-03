@@ -24,7 +24,7 @@ public class Vine extends LinkMedia {
             @Override
             public void run() {
                 try {
-                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL).openConnection();
+                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
                     conn.setReadTimeout(10000);
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     try {
@@ -66,13 +66,13 @@ public class Vine extends LinkMedia {
             @Override
             public void run() {
                 try {
-                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL).openConnection();
+                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
                     conn.setReadTimeout(10000);
                     BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     try {
                         String s;
                         while ((s = br.readLine()) != null) {
-                            if (s.contains("property=\"twitter:image\"")) {
+                            if (s.contains("property=\"twitter:image:src\"")) {
                                 Pattern pattern = Pattern.compile("content=\"(https?://.+)\"");
                                 Matcher m = pattern.matcher(s);
                                 if (m.find()) {

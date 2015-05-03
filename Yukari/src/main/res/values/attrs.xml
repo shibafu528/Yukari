@@ -36,4 +36,5 @@
     <attr name="tweetMorseDrawable" format="reference"/>
     <attr name="tweetNowPlayingDrawable" format="reference"/>
     <attr name="dialogStyle" format="reference"/>
+    <attr name="listSortableHandleDrawable" format="reference"/>
 </resources>

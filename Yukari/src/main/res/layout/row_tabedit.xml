@@ -21,12 +21,13 @@
         android:layout_weight="1"
         android:layout_marginLeft="8dp" />
 
-    <TextView
+    <ImageView
         android:layout_width="54dp"
         android:layout_height="48dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="■"
+        android:src="?attr/listSortableHandleDrawable"
         android:id="@+id/handle"
         android:layout_gravity="center_vertical"
-        android:gravity="center" />
+        android:gravity="center"
+        android:scaleType="centerInside"
+        android:padding="8dp" />
 </LinearLayout>

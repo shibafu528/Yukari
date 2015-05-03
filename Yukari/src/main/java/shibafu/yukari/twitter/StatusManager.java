@@ -42,6 +42,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
@@ -63,6 +64,8 @@ import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
@@ -80,6 +83,7 @@ public class StatusManager {
     public static final int UPDATE_DELETED = 3;
     public static final int UPDATE_DELETED_DM = 4;
     public static final int UPDATE_NOTIFY = 5;
+    public static final int UPDATE_FORCE_UPDATE_UI = 6;
     public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
@@ -202,6 +206,15 @@ public class StatusManager {
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
                 e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
+            }
+        }
+
+        public void onForceUpdateUI(Stream from) {
+            for (StatusListener sl : statusListeners) {
+                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0));
+            }
+            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
             }
         }
 
@@ -578,6 +591,7 @@ public class StatusManager {
                     }
 
                     receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+                    loadQuotedEntities(preformedStatus);
                 }
 
                 @Override
@@ -948,5 +962,35 @@ public class StatusManager {
 
     public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
         this.autoMuteConfigs = autoMuteConfigs;
+    }
+
+    public void loadQuotedEntities(PreformedStatus preformedStatus) {
+        for (Long id : preformedStatus.getQuoteEntities()) {
+            if (receivedStatuses.indexOfKey(id) < 0) {
+                new TwitterAsyncTask<Object>(context) {
+
+                    @Override
+                    protected TwitterException doInBackground(Object... params) {
+                        Twitter twitter = service.getTwitter();
+                        AuthUserRecord userRecord = (AuthUserRecord) params[1];
+                        twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                        try {
+                            twitter4j.Status s = twitter.showStatus(((long) params[0]));
+                            receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
+                        } catch (TwitterException e) {
+                            e.printStackTrace();
+                            return e;
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(TwitterException e) {
+                        super.onPostExecute(e);
+                        sendFakeBroadcast("onForceUpdateUI", new Class[]{});
+                    }
+                }.executeParallel(id, preformedStatus.getRepresentUser());
+            }
+        }
     }
 }
