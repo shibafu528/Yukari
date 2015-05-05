@@ -4,9 +4,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TextAppearanceSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +56,7 @@ public class TweetAdapterWrap {
     private ViewConverter converter;
     private TweetAdapter adapter;
     private LayoutInflater inflater;
+    private SharedPreferences preferences;
 
     public TweetAdapterWrap(Context context,
                             List<AuthUserRecord> userRecords,
@@ -64,6 +72,7 @@ public class TweetAdapterWrap {
                 userExtras,
                 PreferenceManager.getDefaultSharedPreferences(context),
                 contentClass);
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     public TweetAdapter getAdapter() {
@@ -120,7 +129,8 @@ public class TweetAdapterWrap {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.row_tweet, null);
+                convertView = inflater.inflate(preferences.getBoolean("pref_mode_singleline", false)?
+                        R.layout.row_tweet_single : R.layout.row_tweet, null);
             }
 
             TwitterResponse item = getItem(position);
@@ -157,6 +167,20 @@ public class TweetAdapterWrap {
             flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
             ivAccountColor = (ImageView) v.findViewById(R.id.tweet_accountcolor);
             ivUserColor = (ImageView) v.findViewById(R.id.tweet_color);
+        }
+
+        public void setText(SharedPreferences pref, User user, int mode, String text) {
+            if (pref.getBoolean("pref_mode_singleline", false) && ((ViewConverter.MODE_DETAIL | ViewConverter.MODE_PREVIEW) & mode) == 0) {
+                SpannableStringBuilder sb = new SpannableStringBuilder();
+                sb.append(user.getScreenName());
+                sb.setSpan(new StyleSpan(Typeface.BOLD), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.setSpan(new ForegroundColorSpan(Color.parseColor("#ff419b38")), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.append(" ");
+                sb.append(text.replace("\n", " "));
+                tvText.setText(sb);
+            } else {
+                tvText.setText(text);
+            }
         }
 
         public void hideTextViews() {
@@ -302,7 +326,7 @@ public class TweetAdapterWrap {
                     }
                 }
             }
-            viewHolder.tvText.setText(text);
+            viewHolder.setText(preferences, u, mode, text);
 
             String imageUrl = getPreferences().getBoolean("pref_narrow", false) ?
                     u.getProfileImageURLHttps() : u.getBiggerProfileImageURLHttps();
@@ -469,7 +493,7 @@ public class TweetAdapterWrap {
             }
 
             if (mode == MODE_DEFAULT && st.isTooManyRepeatText() && getPreferences().getBoolean("pref_shorten_repeat_text", false)) {
-                viewHolder.tvText.setText(st.getRepeatedSequence() + "\n...(repeat)...");
+                viewHolder.setText(getPreferences(), st.getSourceUser(), mode, st.getRepeatedSequence() + "\n...(repeat)...");
             }
 
             if (mode != MODE_PREVIEW) {
@@ -530,7 +554,10 @@ public class TweetAdapterWrap {
                         for (int i = 0; i < qeSize; i++) {
                             Long quoteId = quoteEntities.get(i);
                             if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
-                                View tv = View.inflate(getContext(), R.layout.row_tweet, null);
+                                View tv = View.inflate(getContext(),
+                                        getPreferences().getBoolean("pref_mode_singleline", false)?
+                                                R.layout.row_tweet_single : R.layout.row_tweet,
+                                        null);
                                 ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getUserExtras(), getPreferences(), PreformedStatus.class);
                                 vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), mode | MODE_INCLUDE);
                                 viewHolder.flInclude.addView(tv);
