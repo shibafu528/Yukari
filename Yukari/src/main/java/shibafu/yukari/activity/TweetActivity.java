@@ -46,6 +46,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
+import com.twitter.Validator;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,7 +79,6 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
-import twitter4j.util.CharacterUtil;
 
 public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener{
 
@@ -1000,15 +1000,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private int updateTweetCount() {
-        String text = etInput.getText().toString();
-        int count = CharacterUtil.count(text);
-        List<String> urls = EXTRACTOR.extractURLs(text);
-        for (String url : urls) {
-            count -= url.length() < shortUrlLength ? -(shortUrlLength - url.length()) : (url.length() - shortUrlLength);
-            if (url.startsWith("https://")) {
-                count += 1;
-            }
-        }
+        int count = new Validator().getTweetLength(etInput.getText().toString());
         if (attachPictures.size() > 0) {
             reservedCount = shortUrlLength + 1;
         } else {
