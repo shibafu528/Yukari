@@ -49,4 +49,6 @@
     <style name="YukariSearchTheme" parent="YukariLightTheme">
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
+
+    <style name="YukariAboutTheme" parent="YukariLightTheme"/>
 </resources>

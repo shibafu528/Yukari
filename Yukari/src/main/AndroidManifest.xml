@@ -343,6 +343,11 @@
             android:theme="@style/YukariDarkDialogTheme"/>
 
         <activity android:name=".activity.BookmarkRepairActivity"/>
+
+        <activity
+            android:name=".activity.AboutActivity"
+            android:theme="@style/YukariAboutTheme"
+            android:screenOrientation="portrait"/>
    </application>
 
 </manifest>

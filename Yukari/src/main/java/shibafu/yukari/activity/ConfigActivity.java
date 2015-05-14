@@ -83,6 +83,13 @@ public class ConfigActivity extends ActionBarYukariBase {
                 summaryText += "\nDeveloped by @shibafu528";
                 aboutVersionPref.setSummary(summaryText);
             }
+            aboutVersionPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getActivity(), AboutActivity.class));
+                    return true;
+                }
+            });
             findPreference("pref_about_licenses").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
@@ -102,7 +109,7 @@ public class ConfigActivity extends ActionBarYukariBase {
                         if (versionText.length > 1) {
                             text += " //ver." + versionText[0];
                         }
-                    } catch (PackageManager.NameNotFoundException e){
+                    } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
                     }
                     intent.putExtra(TweetActivity.EXTRA_TEXT, text);
@@ -130,7 +137,7 @@ public class ConfigActivity extends ActionBarYukariBase {
                                     int selectedFlags = 0;
                                     for (int i = 23; i >= 0; --i) {
                                         selectedFlags <<= 1;
-                                        selectedFlags |= selectedStates[i]?1:0;
+                                        selectedFlags |= selectedStates[i] ? 1 : 0;
                                     }
                                     sp.edit().putInt("pref_prev_time", selectedFlags).commit();
                                 }
