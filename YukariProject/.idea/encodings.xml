@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
+  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLDrawable.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLFontLayer.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLRenderUtil2D.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLRenderUtil3D.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLRenderUtilCore.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/combudashi/GLTexture2D.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/excompass/Compass.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Yukari/src/main/java/combu/framehelper/FPSChecker.java" charset="UTF-8" />
+  </component>
 </project>
-
