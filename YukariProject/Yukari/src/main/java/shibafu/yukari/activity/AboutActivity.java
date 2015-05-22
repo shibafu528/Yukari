@@ -103,75 +103,61 @@ public class AboutActivity extends ActionBarYukariBase {
             // 画面のクリア
             gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
-            // グリッド線の描画
             gl.glEnable(GL10.GL_DEPTH_TEST);
+            // グリッド箱とロゴの描画
             gl.glPushMatrix();
             {
                 gl.glRotatef(-logoRotateAngle, logoRotateX, logoRotateY, logoRotateZ);
-                gl.glScalef(0.7f, 0.7f, 0.7f);
+                gl.glScalef(0.75f, 0.75f, 0.75f);
                 gl.glPushMatrix();
                 {
-                    gl.glTranslatef(0.0f, -1.0f, 0.0f);
-                    gl.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-                    drawGrid(gl11);
-                }
-                gl.glPopMatrix();
-                gl.glPushMatrix();
-                {
-                    gl.glTranslatef(0.0f, 1.0f, 0.0f);
-                    gl.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-                    drawGrid(gl11);
-                }
-                gl.glPopMatrix();
-                gl.glPushMatrix();
-                {
-                    gl.glTranslatef(-1.0f, 0.0f, 0.0f);
-                    gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-                    drawGrid(gl11);
-                }
-                gl.glPopMatrix();
-                gl.glPushMatrix();
-                {
-                    gl.glTranslatef(1.0f, 0.0f, 0.0f);
-                    gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-                    drawGrid(gl11);
-                }
-                gl.glPopMatrix();
-                gl.glPushMatrix();
-                {
-                    gl.glTranslatef(0.0f, 0.0f, -1.0f);
-                    drawGrid(gl11);
-                }
-                gl.glPopMatrix();
-                gl.glPushMatrix();
-                {
-                    gl.glTranslatef(0.0f, 0.0f, 1.0f);
-                    drawGrid(gl11);
+                    gl.glScalef(0.625f, 0.625f, 0.625f);
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(0.0f, -1.0f, 0.0f);
+                        gl.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(0.0f, 1.0f, 0.0f);
+                        gl.glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(-1.0f, 0.0f, 0.0f);
+                        gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(1.0f, 0.0f, 0.0f);
+                        gl.glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(0.0f, 0.0f, -1.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
+                    gl.glPushMatrix();
+                    {
+                        gl.glTranslatef(0.0f, 0.0f, 1.0f);
+                        drawGrid(gl11);
+                    }
+                    gl.glPopMatrix();
                 }
                 gl.glPopMatrix();
                 GLRenderUtil2D.drawTexture(gl, texYukariLogo, 0f, 0f, 1f, 1f, 0f, 1f, 1f);
             }
             gl.glPopMatrix();
-
-            // ロゴの描画
-            gl.glPushMatrix();
-            {
-                gl.glLoadIdentity();
-                gl.glMatrixMode(GL10.GL_PROJECTION);
-                gl.glPushMatrix();
-                {
-                    gl.glDisable(GL10.GL_DEPTH_TEST);
-                    gl.glLoadIdentity();
-                    gl.glOrthof(-1f, 1f, -1f * ratio, 1f * ratio, -0.5f, 0.5f);
-                    gl.glRotatef(logoRotateAngle, logoRotateX, logoRotateY, logoRotateZ);
-                    gl.glNormal3f(0, 0, 1);
-                    //GLRenderUtil2D.drawTexture(gl, texYukariLogo, 0f, 0f, 1f, 1f, 0f, 1f, 1f);
-                }
-                gl.glMatrixMode(GL10.GL_PROJECTION);
-                gl.glPopMatrix();
-            }
-            gl.glMatrixMode(GL10.GL_MODELVIEW);
-            gl.glPopMatrix();
+            gl.glDisable(GL10.GL_DEPTH_TEST);
         }
 
         private void drawGrid(GL11 gl11) {
