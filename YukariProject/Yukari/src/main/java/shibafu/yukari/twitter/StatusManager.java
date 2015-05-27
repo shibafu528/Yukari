@@ -240,6 +240,34 @@ public class StatusManager {
             updateBuffer.add(eventBuffer);
         }
 
+        private Uri getNotificationUrl(int category) {
+            boolean useYukariVoice = sharedPreferences.getBoolean("j_yukari_voice", false);
+            switch (category) {
+                case R.integer.notification_replied:
+                case R.integer.notification_message:
+                case R.integer.notification_respond:
+                    if (useYukariVoice) {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
+                    } else {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+                    }
+                case R.integer.notification_retweeted:
+                    if (useYukariVoice) {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
+                    } else {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
+                    }
+                case R.integer.notification_faved:
+                    if (useYukariVoice) {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/y_fav");
+                    } else {
+                        return Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
+                    }
+                default:
+                    return null;
+            }
+        }
+
         private void showNotification(int category, TwitterResponse status, User actionBy) {
             TweetCommonDelegate delegate = TweetCommon.newInstance(status.getClass());
 
@@ -265,7 +293,7 @@ public class StatusManager {
 
             if (notificationType.isEnabled()) {
                 int icon = 0, color = context.getResources().getColor(R.color.key_color);
-                Uri sound = null;
+                Uri sound = getNotificationUrl(category);
                 String titleHeader = "", tickerHeader = "";
                 long[] pattern = null;
                 switch (category) {
@@ -273,14 +301,12 @@ public class StatusManager {
                         icon = R.drawable.ic_stat_reply;
                         titleHeader = "Reply from @";
                         tickerHeader = "リプライ : @";
-                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                         pattern = VIB_REPLY;
                         break;
                     case R.integer.notification_retweeted:
                         icon = R.drawable.ic_stat_retweet;
                         titleHeader = "Retweeted by @";
                         tickerHeader = "RTされました : @";
-                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
                         pattern = VIB_RETWEET;
                         color = Color.rgb(0, 128, 0);
                         break;
@@ -288,7 +314,6 @@ public class StatusManager {
                         icon = R.drawable.ic_stat_favorite;
                         titleHeader = "Faved by @";
                         tickerHeader = "ふぁぼられ : @";
-                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                         pattern = VIB_FAVED;
                         color = Color.rgb(255, 128, 0);
                         break;
@@ -296,14 +321,12 @@ public class StatusManager {
                         icon = R.drawable.ic_stat_message;
                         titleHeader = "Message from @";
                         tickerHeader = "DM : @";
-                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                         pattern = VIB_REPLY;
                         break;
                     case R.integer.notification_respond:
                         icon = R.drawable.ic_stat_reply;
                         titleHeader = "RT-Respond from @";
                         tickerHeader = "RTレスポンス : @";
-                        sound = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                         pattern = VIB_REPLY;
                         break;
                 }
