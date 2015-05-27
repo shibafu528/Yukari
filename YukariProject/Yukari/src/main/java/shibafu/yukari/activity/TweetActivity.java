@@ -557,6 +557,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                 inputText = dice[r.nextInt(6)];
                             }
                             break;
+                        case "::yk": {
+                            inputText = String.format("ゆかりさんゆかりさん！！(%d回目)", sp.getLong("count_yk", 1));
+                            sp.edit().putLong("count_yk", sp.getLong("count_yk", 1) + 1).commit();
+                            break;
+                        }
                     }
                 }
 
