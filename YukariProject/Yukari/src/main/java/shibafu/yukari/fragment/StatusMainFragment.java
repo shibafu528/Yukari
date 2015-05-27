@@ -82,6 +82,16 @@ public class StatusMainFragment extends TwitterFragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
+        class LocalFunction {
+            void closeAfterFavorite() {
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                if (pref.getBoolean("pref_close_after_fav", true)) {
+                    getActivity().finish();
+                }
+            }
+        }
+        final LocalFunction local = new LocalFunction();
+
         ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,7 +158,7 @@ public class StatusMainFragment extends TwitterFragment{
                                     currentDialog = null;
 
                                     task.execute();
-                                    getActivity().finish();
+                                    local.closeAfterFavorite();
                                 }
                             })
                             .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -170,7 +180,7 @@ public class StatusMainFragment extends TwitterFragment{
                     currentDialog = ad;
                 } else {
                     task.execute();
-                    getActivity().finish();
+                    local.closeAfterFavorite();
                 }
             }
         });
@@ -222,7 +232,7 @@ public class StatusMainFragment extends TwitterFragment{
                                 currentDialog = null;
 
                                 task.execute();
-                                getActivity().finish();
+                                local.closeAfterFavorite();
                             }
                         })
                         .setNeutralButton("本文で検索", new DialogInterface.OnClickListener() {
@@ -270,7 +280,7 @@ public class StatusMainFragment extends TwitterFragment{
                                         nuisanceGuard();
                                     } else {
                                         task.execute();
-                                        getActivity().finish();
+                                        local.closeAfterFavorite();
                                     }
                                 }
                             })
@@ -296,7 +306,7 @@ public class StatusMainFragment extends TwitterFragment{
                         nuisanceGuard();
                     } else {
                         task.execute();
-                        getActivity().finish();
+                        local.closeAfterFavorite();
                     }
                 }
             }
@@ -310,7 +320,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel();
-                getActivity().finish();
+                local.closeAfterFavorite();
             }
 
             @Override
@@ -390,7 +400,7 @@ public class StatusMainFragment extends TwitterFragment{
                                     currentDialog = null;
 
                                     task.execute();
-                                    getActivity().finish();
+                                    local.closeAfterFavorite();
                                 }
                             })
                             .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -412,7 +422,7 @@ public class StatusMainFragment extends TwitterFragment{
                     currentDialog = ad;
                 } else {
                     task.execute();
-                    getActivity().finish();
+                    local.closeAfterFavorite();
                 }
             }
         });

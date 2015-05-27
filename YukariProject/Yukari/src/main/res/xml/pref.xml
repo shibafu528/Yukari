@@ -26,6 +26,11 @@
             android:key="pref_narcist"
             android:title="ナルシストオプション"
             android:summary="自分のツイートをお気に入り登録できるようにします"/>
+        <CheckBoxPreference
+            android:key="pref_close_after_fav"
+            android:title="Fav/RT後にメニューを閉じる"
+            android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="確認ダイアログ">
