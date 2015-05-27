@@ -313,6 +313,14 @@ public class PreformedStatus implements Status{
         return plainSource;
     }
 
+    /**
+     * リツイートなら元ツイートのvia、そうでなければこのツイートのviaを返す
+     * @return 本来のvia
+     */
+    public String getOriginSource() {
+        return status.isRetweet()? retweetedStatus.getSource() : this.getSource();
+    }
+
     public String getFullSource() {
         return status.getSource();
     }
