@@ -1,10 +1,14 @@
 package shibafu.yukari.activity;
 
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -34,6 +38,12 @@ import static combu.combudashi.GLRenderUtilCore.makeFloatBuffer;
 public class AboutActivity extends ActionBarYukariBase {
     private GLSurfaceView view;
 
+    private int touchCounter = 0;
+    private boolean touching = false;
+
+    private MediaPlayer mpYukari;
+    private MediaPlayer mpDefault;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +66,16 @@ public class AboutActivity extends ActionBarYukariBase {
         for (TextView textView : textViews) {
             textView.setTypeface(typeface);
         }
+
+        mpDefault = MediaPlayer.create(this, R.raw.se_reply);
+        mpYukari = MediaPlayer.create(this, R.raw.y_apply);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mpDefault.release();
+        mpYukari.release();
     }
 
     @Override
@@ -68,6 +88,37 @@ public class AboutActivity extends ActionBarYukariBase {
     protected void onResume() {
         super.onResume();
         view.onResume();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                touching = true;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (touching) {
+                    touchCounter++;
+                    touching = false;
+
+                    if (touchCounter % 32 == 0) {
+                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        if (sp.getBoolean("j_yukari_voice", false)) {
+                            // to disable
+                            sp.edit().putBoolean("j_yukari_voice", false).apply();
+                            // play sound
+                            mpDefault.start();
+                        } else {
+                            // to enable
+                            sp.edit().putBoolean("j_yukari_voice", true).apply();
+                            // play sound
+                            mpYukari.start();
+                        }
+                    }
+                }
+                break;
+        }
+        return true;
     }
 
     @Override
