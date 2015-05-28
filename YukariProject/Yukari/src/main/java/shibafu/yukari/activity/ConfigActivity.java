@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -186,6 +187,14 @@ public class ConfigActivity extends ActionBarYukariBase {
                 @Override
                 public boolean onPreferenceClick(Preference preference) {
                     startActivity(new Intent(getActivity(), BookmarkRepairActivity.class));
+                    return false;
+                }
+            });
+
+            findPreference("pref_about_faq").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD")));
                     return false;
                 }
             });

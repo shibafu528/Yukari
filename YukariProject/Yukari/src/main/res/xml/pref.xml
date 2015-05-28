@@ -262,6 +262,7 @@
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
         <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>
+        <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能"/>
         <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>
     </PreferenceCategory>
 </PreferenceScreen>
