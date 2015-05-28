@@ -10,7 +10,6 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.TextView;
@@ -47,7 +46,6 @@ public class AboutActivity extends ActionBarYukariBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
@@ -57,6 +55,8 @@ public class AboutActivity extends ActionBarYukariBase {
         view = new GLSurfaceView(this);
         view.setRenderer(new Renderer());
         setContentView(view);
+
+        getSupportActionBar().hide();
 
         View overlay = getLayoutInflater().inflate(R.layout.activity_about, null);
         addContentView(overlay, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
