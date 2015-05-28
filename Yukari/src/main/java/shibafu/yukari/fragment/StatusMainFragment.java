@@ -66,6 +66,9 @@ public class StatusMainFragment extends TwitterFragment{
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
+    // URL引用のみを許可
+    private boolean limitedQuote = false;
+
     private AlertDialog currentDialog = null;
     private ImageButton ibReply;
     private ImageButton ibFavorite;
@@ -444,6 +447,17 @@ public class StatusMainFragment extends TwitterFragment{
         ibQuote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //引用制限時
+                if (limitedQuote) {
+                    Intent intent = new Intent(getActivity(), TweetActivity.class);
+                    intent.putExtra(TweetActivity.EXTRA_USER, user);
+                    intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                    startActivityForResult(intent, REQUEST_QUOTE);
+                    return;
+                }
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setTitle("引用形式を選択");
                 builder.setNeutralButton("キャンセル", new DialogInterface.OnClickListener() {
@@ -531,11 +545,14 @@ public class StatusMainFragment extends TwitterFragment{
         ibShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String stot = TwitterUtil.createSTOT(status);
                 Intent intent = new Intent(Intent.ACTION_SEND);
                 intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, stot);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                if (limitedQuote) {
+                    intent.putExtra(Intent.EXTRA_TEXT, TwitterUtil.getTweetURL(status));
+                } else {
+                    intent.putExtra(Intent.EXTRA_TEXT, TwitterUtil.createSTOT(status));
+                }
                 startActivity(intent);
             }
         });
@@ -710,8 +727,9 @@ public class StatusMainFragment extends TwitterFragment{
             //鍵postの場合
             ibRetweet.setEnabled(false);
             ibFavRt.setEnabled(false);
-            ibShare.setEnabled(false);
-            ibQuote.setEnabled(false);
+            limitedQuote = true;
+        } else {
+            limitedQuote = false;
         }
         loadProfileImage();
     }
