@@ -75,7 +75,7 @@
         <activity
             android:name="shibafu.dissonance.activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
-            android:icon="@drawable/ic_launcher_tweet"
+            android:icon="@mipmap/ic_launcher_tweet"
             android:theme="@style/AppThemeTranslucent">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>

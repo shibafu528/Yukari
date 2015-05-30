@@ -20,7 +20,7 @@ public class TweetShortcutActivity extends Activity {
         Intent intent = new Intent();
         intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
         intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
-                Intent.ShortcutIconResource.fromContext(this, R.drawable.ic_launcher_tweet));
+                Intent.ShortcutIconResource.fromContext(this, R.mipmap.ic_launcher_tweet));
         intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, getString(R.string.title_activity_tweet));
 
         setResult(RESULT_OK, intent);
