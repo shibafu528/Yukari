@@ -13,7 +13,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         android:largeHeap="true">
@@ -50,7 +50,7 @@
 
                 <data
                     android:host="twitter"
-                    android:scheme="yukari" />
+                    android:scheme="dissonance" />
             </intent-filter>
         </activity>
 
@@ -350,8 +350,7 @@
             android:screenOrientation="portrait"/>
 
         <activity
-            android:name=".activity.ApiActivity"
-            android:theme="@style/YukariDarkTheme"/>
+            android:name=".activity.ApiActivity"/>
    </application>
 
 </manifest>

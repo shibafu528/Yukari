@@ -250,7 +250,7 @@ public class AboutActivity extends ActionBarYukariBase {
             gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
             // テクスチャロード
-            texYukariLogo = GLTexture2D.fromResource(gl, AboutActivity.this, R.drawable.ic_launcher);
+            texYukariLogo = GLTexture2D.fromResource(gl, AboutActivity.this, R.mipmap.ic_launcher);
 
             // グリッドの座標情報をつくってバッファに投げ込む
             List<Float> gridVerts = new ArrayList<>();

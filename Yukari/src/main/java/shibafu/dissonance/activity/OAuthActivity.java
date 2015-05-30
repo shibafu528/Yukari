@@ -39,7 +39,7 @@ public class OAuthActivity extends YukariBase {
 
     public static final String EXTRA_REBOOT = "reboot";
 
-    private static final String CALLBACK_URL = "yukari://twitter";
+    private static final String CALLBACK_URL = "dissonance://twitter";
     private Twitter twitter;
     private RequestToken requestToken;
 

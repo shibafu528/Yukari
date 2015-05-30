@@ -129,7 +129,7 @@ public class FontSelectorActivity extends ActionBarActivity {
                     name = (TextView) tweetView.findViewById(R.id.tweet_name);
                     text = (TextView) tweetView.findViewById(R.id.tweet_text);
                     timestamp = (TextView) tweetView.findViewById(R.id.tweet_timestamp);
-                    icon.setImageResource(R.drawable.ic_launcher);
+                    icon.setImageResource(R.mipmap.ic_launcher);
                     tweetView.setBackgroundResource(R.drawable.selector_tweet_normal_background);
 
                     name.setText("@yukari4a / ﾕｯｶﾘｰﾝ");

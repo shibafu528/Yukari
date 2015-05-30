@@ -198,6 +198,14 @@ public class ConfigActivity extends ActionBarYukariBase {
                     return false;
                 }
             });
+
+            findPreference("pref_consumer").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(getActivity(), ApiActivity.class));
+                    return false;
+                }
+            });
         }
     }
 }

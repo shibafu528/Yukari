@@ -2,6 +2,7 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="アカウント">
+        <Preference android:key="pref_consumer" android:title="コンシューマーキー" android:summary="CK/CSの再設定を行います"/>
         <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
     </PreferenceCategory>
 
@@ -260,7 +261,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
-        <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
+        <Preference android:key="pref_about_version" android:title="Dissonance"/>
         <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>
         <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能"/>
         <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>

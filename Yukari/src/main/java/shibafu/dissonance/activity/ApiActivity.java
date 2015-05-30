@@ -54,7 +54,8 @@ public class ApiActivity extends ActionBarYukariBase {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState, true);
+        setTheme(R.style.YukariLightTheme);
         view = new GLSurfaceView(this);
         view.setRenderer(new Renderer());
         setContentView(view);
@@ -258,7 +259,7 @@ public class ApiActivity extends ActionBarYukariBase {
             gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
             // テクスチャロード
-            texYukariLogo = GLTexture2D.fromResource(gl, ApiActivity.this, R.drawable.ic_launcher);
+            texYukariLogo = GLTexture2D.fromResource(gl, ApiActivity.this, R.mipmap.ic_launcher);
 
             // グリッドの座標情報をつくってバッファに投げ込む
             List<Float> gridVerts = new ArrayList<>();
