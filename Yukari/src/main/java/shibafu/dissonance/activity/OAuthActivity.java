@@ -37,6 +37,8 @@ public class OAuthActivity extends YukariBase {
     private final int TWITTER_REQUEST_CODE = 1;
     private static final ComponentName TWITTER_AUTH_ACTIVITY = new ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity");
 
+    private static final int RESET_KEY_REQUEST_CODE = 2;
+
     public static final String EXTRA_REBOOT = "reboot";
 
     private static final String CALLBACK_URL = "dissonance://twitter";
@@ -51,7 +53,10 @@ public class OAuthActivity extends YukariBase {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_oauth);
 
+        showAuthMenu();
+    }
 
+    private void showAuthMenu() {
         boolean foundTwitter = false;
         PackageManager pm = getPackageManager();
         try {
@@ -63,55 +68,59 @@ public class OAuthActivity extends YukariBase {
 
         twitter = TwitterUtil.getTwitterInstance(this);
 
+        String[] menuItems;
         if (foundTwitter) {
-            new AlertDialog.Builder(this)
-                    .setTitle("認証方法を選択")
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            setResult(RESULT_CANCELED);
-                            finish();
-                        }
-                    })
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            setResult(RESULT_CANCELED);
-                            finish();
-                        }
-                    })
-                    .setItems(new String[]{"ブラウザを起動...", "[非推奨] Twitter公式アプリ"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                            switch (which) {
-                                case 0:
+            menuItems = new String[]{"CK/CS設定を開く", "ブラウザを起動...", "[非推奨] Twitter公式アプリ"};
+        } else {
+            menuItems = new String[]{"CK/CS設定を開く", "ブラウザを起動..."};
+        }
+        new AlertDialog.Builder(this)
+                .setTitle("認証方法を選択")
+                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        setResult(RESULT_CANCELED);
+                        finish();
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        setResult(RESULT_CANCELED);
+                        finish();
+                    }
+                })
+                .setItems(menuItems, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        switch (which) {
+                            case 0:
+                                startActivityForResult(new Intent(getApplicationContext(), ApiActivity.class), RESET_KEY_REQUEST_CODE);
+                                break;
+                            case 1:
+                                startOAuth();
+                                break;
+                            case 2:
+                            {
+                                begunOAuth = true;
+                                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                Intent intent = new Intent().setComponent(TWITTER_AUTH_ACTIVITY);
+                                intent.putExtra("ck", sp.getString("twitter_consumer_key", ""));
+                                intent.putExtra("cs", sp.getString("twitter_consumer_secret", ""));
+                                try {
+                                    startActivityForResult(intent, TWITTER_REQUEST_CODE);
+                                } catch (SecurityException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show();
                                     startOAuth();
-                                    break;
-                                case 1:
-                                {
-                                    begunOAuth = true;
-                                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                                    Intent intent = new Intent().setComponent(TWITTER_AUTH_ACTIVITY);
-                                    intent.putExtra("ck", sp.getString("twitter_consumer_key", ""));
-                                    intent.putExtra("cs", sp.getString("twitter_consumer_secret", ""));
-                                    try {
-                                        startActivityForResult(intent, TWITTER_REQUEST_CODE);
-                                    } catch (SecurityException e) {
-                                        e.printStackTrace();
-                                        Toast.makeText(getApplicationContext(), "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show();
-                                        startOAuth();
-                                    }
-                                    break;
                                 }
+                                break;
                             }
                         }
-                    })
-                    .create().show();
-        }
-        else {
-            startOAuth();
-        }
+                    }
+                })
+                .create().show();
     }
 
     @Override
@@ -208,6 +217,8 @@ public class OAuthActivity extends YukariBase {
             Intent intent = new Intent(getIntent());
             intent.putExtra("atk", accessToken);
             setIntent(intent);
+        } else if (requestCode == RESET_KEY_REQUEST_CODE){
+            showAuthMenu();
         }
     }
 
