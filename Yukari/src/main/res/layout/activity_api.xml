@@ -7,7 +7,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="#fff"
         android:text="Consumer Key"
         android:id="@+id/textView5"
         android:layout_alignTop="@+id/etCk"
@@ -21,7 +20,6 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Consumer Secret"
-        android:textColor="#fff"
         android:id="@+id/textView7"
         android:layout_alignTop="@+id/etCs"
         android:layout_alignParentLeft="true"
@@ -34,7 +32,6 @@
         android:layout_height="wrap_content"
         android:text="Visit apps.twitter.com"
         android:id="@+id/button"
-        android:textColor="#fff"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -46,7 +43,6 @@
         android:layout_height="wrap_content"
         android:text="OK"
         android:id="@+id/btnOk"
-        android:textColor="#fff"
         android:layout_above="@+id/button"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -73,6 +69,8 @@
         android:layout_alignEnd="@+id/etCs"
         android:layout_toRightOf="@+id/textView7"
         android:layout_toEndOf="@+id/textView7"
-        android:layout_marginLeft="4dp" />
+        android:layout_marginLeft="4dp">
+        <requestFocus/>
+    </EditText>
 
 </RelativeLayout>

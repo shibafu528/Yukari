@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="shibafu.yukari"
+    package="shibafu.dissonance"
     android:installLocation="auto"
     android:versionCode="49"
     android:versionName="Rev.209 [fork:1.2.0.208α]" >
@@ -21,7 +21,7 @@
             android:value="@integer/google_play_services_version"/>
 
         <activity
-            android:name="shibafu.yukari.activity.MainActivity"
+            android:name="shibafu.dissonance.activity.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask">
             <intent-filter>
@@ -39,7 +39,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.OAuthActivity"
+            android:name="shibafu.dissonance.activity.OAuthActivity"
             android:label="@string/title_activity_oauth"
             android:launchMode="singleTask" >
             <intent-filter>
@@ -54,13 +54,13 @@
             </intent-filter>
         </activity>
 
-        <service android:name="shibafu.yukari.service.TwitterService" />
+        <service android:name="shibafu.dissonance.service.TwitterService" />
         <service
-            android:name=".service.CacheCleanerService"
+            android:name="shibafu.dissonance.service.CacheCleanerService"
             android:process=":cleaner"/>
 
         <activity
-            android:name="shibafu.yukari.activity.TweetActivity"
+            android:name="shibafu.dissonance.activity.TweetActivity"
             android:label="@string/title_activity_tweet"
             android:theme="@style/VertAnimationTheme" >
             <intent-filter>
@@ -73,7 +73,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.TweetShortcutActivity"
+            android:name="shibafu.dissonance.activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
             android:icon="@drawable/ic_launcher_tweet"
             android:theme="@style/AppThemeTranslucent">
@@ -81,15 +81,15 @@
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
         </activity>
-        <service android:name=".service.PostService"/>
+        <service android:name="shibafu.dissonance.service.PostService"/>
 
         <activity
-            android:name="shibafu.yukari.activity.StatusActivity"
+            android:name="shibafu.dissonance.activity.StatusActivity"
             android:label="@string/title_activity_status"
             android:theme="@style/YukariLightTheme.Translucent" >
         </activity>
         <activity
-            android:name=".activity.IntentActivity"
+            android:name="shibafu.dissonance.activity.IntentActivity"
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -122,12 +122,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.AssetExtractActivity"
+            android:name="shibafu.dissonance.activity.AssetExtractActivity"
             android:label="@string/title_activity_assetextract"
             android:configChanges="orientation|screenSize">
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.ProfileActivity"
+            android:name="shibafu.dissonance.activity.ProfileActivity"
             android:label="@string/title_activity_profile">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -140,18 +140,18 @@
         </activity>
 
         <provider
-            android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="shibafu.yukari.link"
+            android:name="shibafu.dissonance.provider.LinkProvider"
+            android:authorities="shibafu.dissonance.link"
             android:exported="false" />
 
         <!-- 未実装Intentはここに飛ばせ -->
         <activity
-            android:name="shibafu.yukari.activity.NotFoundStubActivity"
+            android:name="shibafu.dissonance.activity.NotFoundStubActivity"
             android:theme="@android:style/Theme.NoDisplay">
         </activity>
 
         <activity
-            android:name=".plugin.MorseInputActivity"
+            android:name="shibafu.dissonance.plugin.MorseInputActivity"
             android:icon="@drawable/ic_launcher_morse"
             android:label="@string/title_morse_input"
             android:theme="@style/AppThemeTranslucent" >
@@ -163,58 +163,58 @@
         </activity>
 
         <activity
-            android:name=".activity.SNPickerActivity"
+            android:name="shibafu.dissonance.activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
             android:theme="@style/YukariLightDialogTheme">
         </activity>
 
-        <receiver android:name=".receiver.StubReceiver"/>
+        <receiver android:name="shibafu.dissonance.receiver.StubReceiver"/>
 
         <activity
-            android:name=".activity.TraceActivity"
+            android:name="shibafu.dissonance.activity.TraceActivity"
             android:theme="@style/AppDialogThemeWhenLarge"
             android:label="Trace" />
 
         <activity
-            android:name=".activity.PreviewActivity"
+            android:name="shibafu.dissonance.activity.PreviewActivity"
             android:theme="@style/AppThemeTranslucentBg"/>
         <activity
-            android:name=".activity.MoviePreviewActivity"
+            android:name="shibafu.dissonance.activity.MoviePreviewActivity"
             android:theme="@style/AppThemeTranslucentBg"/>
 
         <activity
-            android:name=".activity.AccountChooserActivity"
+            android:name="shibafu.dissonance.activity.AccountChooserActivity"
             android:theme="@style/YukariDialogTheme"
             android:label="@string/title_activity_accountchooser"/>
 
         <activity
-            android:name=".activity.AccountManageActivity"
+            android:name="shibafu.dissonance.activity.AccountManageActivity"
             android:label="@string/title_activity_accountmanage"/>
 
         <activity
-            android:name=".activity.ConfigActivity"
+            android:name="shibafu.dissonance.activity.ConfigActivity"
             android:label="@string/title_activity_config"/>
 
         <activity
-            android:name=".activity.MuteActivity"
+            android:name="shibafu.dissonance.activity.MuteActivity"
             android:label="@string/title_activity_mute"/>
 
         <activity
-            android:name=".activity.AutoMuteActivity"
+            android:name="shibafu.dissonance.activity.AutoMuteActivity"
             android:label="@string/title_activity_auto_mute"/>
 
         <activity
-            android:name=".activity.FontSelectorActivity"
+            android:name="shibafu.dissonance.activity.FontSelectorActivity"
             android:label="@string/title_activity_font_selector"/>
 
-        <activity android:name=".activity.CommandsPrefActivity"/>
+        <activity android:name="shibafu.dissonance.activity.CommandsPrefActivity"/>
 
         <activity
-            android:name=".activity.LicenseActivity"
+            android:name="shibafu.dissonance.activity.LicenseActivity"
             android:label="@string/title_activity_about" />
 
         <activity
-            android:name=".activity.ProfileEditActivity"
+            android:name="shibafu.dissonance.activity.ProfileEditActivity"
             android:label="@string/title_activity_profile_edit"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:uiOptions="splitActionBarWhenNarrow">
@@ -224,11 +224,11 @@
         </activity>
 
         <activity
-            android:name=".activity.TabEditActivity"
+            android:name="shibafu.dissonance.activity.TabEditActivity"
             android:label="@string/title_activity_column_edit" />
 
         <activity
-            android:name=".plugin.OpenAclogActivity"
+            android:name="shibafu.dissonance.plugin.OpenAclogActivity"
             android:label="@string/title_activity_open_aclog">
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
@@ -238,16 +238,16 @@
         </activity>
         
         <activity
-            android:name=".plugin.UserPluginActivity"
+            android:name="shibafu.dissonance.plugin.UserPluginActivity"
             android:theme="@style/AppThemeTranslucent"/>
         <activity-alias
             android:name=".plugin.OpenTwilogActivity"
-            android:targetActivity=".plugin.UserPluginActivity"
+            android:targetActivity="shibafu.dissonance.plugin.UserPluginActivity"
             android:label="@string/title_activity_open_twilog"
             android:icon="@drawable/ic_twilog">
-            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_twilog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_twilog_d"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_SHORT_LABEL" android:value="twilog"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_twilog"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_DARK_ICON" android:resource="@drawable/ic_twilog_d"/>
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -263,12 +263,12 @@
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenFavstarActivity"
-            android:targetActivity=".plugin.UserPluginActivity"
+            android:targetActivity="shibafu.dissonance.plugin.UserPluginActivity"
             android:label="@string/title_activity_open_favstar"
             android:icon="@drawable/ic_favorite_m">
-            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_favorite_m"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_favorite_m_d"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_favorite_m"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_DARK_ICON" android:resource="@drawable/ic_favorite_m_d"/>
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -284,12 +284,12 @@
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenAclogUserActivity"
-            android:targetActivity=".plugin.UserPluginActivity"
+            android:targetActivity="shibafu.dissonance.plugin.UserPluginActivity"
             android:label="@string/title_activity_open_aclog_user"
             android:icon="@drawable/ic_aclog">
-            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="aclog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_aclog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_aclog_d"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_SHORT_LABEL" android:value="aclog"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_aclog"/>
+            <meta-data android:name="shibafu.dissonance.PLUGIN_DARK_ICON" android:resource="@drawable/ic_aclog_d"/>
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -305,13 +305,13 @@
         </activity-alias>
 
         <activity
-            android:name=".activity.UserSearchActivity"
+            android:name="shibafu.dissonance.activity.UserSearchActivity"
             android:theme="@style/YukariSearchTheme"
             android:label="@string/title_activity_user_search"
             android:windowSoftInputMode="adjustResize"/>
 
         <activity
-            android:name=".activity.MaintenanceActivity"
+            android:name="shibafu.dissonance.activity.MaintenanceActivity"
             android:label="Maintenance Mode" />
 
         <activity
@@ -327,7 +327,7 @@
         </activity>
 
         <activity
-            android:name=".activity.TwpfActivity"
+            android:name="shibafu.dissonance.activity.TwpfActivity"
             android:label="ツイフィール ビューア">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -339,15 +339,19 @@
         </activity>
 
         <activity
-            android:name=".activity.IntentChooserActivity"
+            android:name="shibafu.dissonance.activity.IntentChooserActivity"
             android:theme="@style/YukariDarkDialogTheme"/>
 
-        <activity android:name=".activity.BookmarkRepairActivity"/>
+        <activity android:name="shibafu.dissonance.activity.BookmarkRepairActivity"/>
 
         <activity
-            android:name=".activity.AboutActivity"
+            android:name="shibafu.dissonance.activity.AboutActivity"
             android:theme="@style/YukariAboutTheme"
             android:screenOrientation="portrait"/>
+
+        <activity
+            android:name=".activity.ApiActivity"
+            android:theme="@style/YukariDarkTheme"/>
    </application>
 
 </manifest>

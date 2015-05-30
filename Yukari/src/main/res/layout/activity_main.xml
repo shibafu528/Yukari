@@ -38,7 +38,7 @@
                     android:layout_height="match_parent"
                     android:padding="@dimen/mainfooter_state_padding"
                     android:id="@+id/flStreamState">
-                    <shibafu.yukari.common.TriangleView
+                    <shibafu.dissonance.common.TriangleView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:id="@+id/streamState" />
