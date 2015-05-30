@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Yukari</string>
-
-    <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
-    <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
+    <string name="app_name">Dissonance</string>
 
     <string name="activity_animation_duration">300</string>
 
@@ -50,6 +47,6 @@
     <string name="list_members_count">%1$d 人のメンバー</string>
     <string name="list_subscribers_count">, %1$d 人がリストを保存</string>
 
-    <string name="error_storage_not_found">[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です\nSDカードが挿入されているか確認してください</string>
-    <string name="error_broken_font">[Yukari データチェック]\nフォントファイルが壊れています\n再展開を行います</string>
+    <string name="error_storage_not_found">[Dissonance 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です\nSDカードが挿入されているか確認してください</string>
+    <string name="error_broken_font">[Dissonance データチェック]\nフォントファイルが壊れています\n再展開を行います</string>
 </resources>

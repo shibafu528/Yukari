@@ -795,6 +795,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     public void onServiceConnected() {
         if (getTwitterService().getUsers().isEmpty()) {
+            Intent intent = new Intent(MainActivity.this, ApiActivity.class);
+            intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
+            startActivity(intent);
+            finish();
+        }
+        if (getTwitterService().getUsers().isEmpty()) {
             Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
             intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
             startActivityForResult(intent, REQUEST_OAUTH);

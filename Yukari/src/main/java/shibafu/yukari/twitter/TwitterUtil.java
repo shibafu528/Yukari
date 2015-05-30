@@ -1,8 +1,9 @@
 package shibafu.yukari.twitter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
-import shibafu.yukari.R;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -17,8 +18,9 @@ public class TwitterUtil {
      * それ以外の場所ではTwitterServiceをバインドし取得すること。
      */
 	public static Twitter getTwitterInstance(Context context) {
-		String consumer_key = context.getString(R.string.twitter_consumer_key);
-		String consumer_secret = context.getString(R.string.twitter_consumer_secret);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
+		String consumer_key = sp.getString("twitter_consumer_key", "");
+		String consumer_secret = sp.getString("twitter_consumer_secret", "");
 
         ConfigurationBuilder configuration = new ConfigurationBuilder();
 
