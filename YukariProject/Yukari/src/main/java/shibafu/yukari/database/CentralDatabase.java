@@ -22,15 +22,18 @@ import shibafu.yukari.twitter.AuthUserRecord;
 /**
  * Created by Shibafu on 13/12/18.
  */
+@SuppressWarnings("TryWithIdenticalCatches")
 public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 12;
+    public static final int DB_VER = 13;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
     public static final String COL_ACCOUNTS_ID = "_id";
+    public static final String COL_ACCOUNTS_CONSUMER_KEY = "ConsumerKey";
+    public static final String COL_ACCOUNTS_CONSUMER_SECRET = "ConsumerSecret";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN = "AccessToken";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN_SECRET = "AccessTokenSecret";
     public static final String COL_ACCOUNTS_IS_PRIMARY = "IsPrimary"; //各種操作のメインアカウント、最初に認証した垢がデフォルト
@@ -140,6 +143,8 @@ public class CentralDatabase {
             db.execSQL(
                     "CREATE TABLE " + TABLE_ACCOUNTS + " (" +
                     COL_ACCOUNTS_ID + " INTEGER PRIMARY KEY, " +
+                    COL_ACCOUNTS_CONSUMER_KEY + " TEXT, " +
+                    COL_ACCOUNTS_CONSUMER_SECRET + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN_SECRET + " TEXT, " +
                     COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
@@ -353,6 +358,11 @@ public class CentralDatabase {
                 db.execSQL("ALTER TABLE " + TABLE_TABS + " ADD " + COL_TABS_IS_STARTUP + " INTEGER DEFAULT 0");
                 ++oldVersion;
             }
+            if (oldVersion == 12) {
+                db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_CONSUMER_KEY + " TEXT");
+                db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_CONSUMER_SECRET + " TEXT");
+                ++oldVersion;
+            }
         }
     }
 
@@ -446,6 +456,8 @@ public class CentralDatabase {
                 TABLE_ACCOUNTS + "," + TABLE_USER,
                 new String[]{
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                        COL_ACCOUNTS_CONSUMER_KEY,
+                        COL_ACCOUNTS_CONSUMER_SECRET,
                         COL_ACCOUNTS_ACCESS_TOKEN,
                         COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         COL_ACCOUNTS_IS_PRIMARY,
@@ -652,7 +664,16 @@ public class CentralDatabase {
             if (cursor.moveToFirst()) do {
                 records.add(constructor.newInstance(cursor));
             } while (cursor.moveToNext());
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
@@ -684,7 +705,16 @@ public class CentralDatabase {
             if (cursor.moveToFirst()) do {
                 records.add(constructor.newInstance(args));
             } while (cursor.moveToNext());
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         } finally {
@@ -772,7 +802,13 @@ public class CentralDatabase {
         try {
             Long id = (Long) clz.getMethod(annotation.deleteKeyMethodName()).invoke(record);
             db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
