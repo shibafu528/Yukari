@@ -135,6 +135,19 @@ public class AuthUserRecord implements Serializable, DBRecord{
         return records;
     }
 
+    /**
+     * 拡張機能を実行することが可能か確認します。<br>
+     * 1アカウントでもCK/CSオーバライドを行っていれば可能と判断されます。
+     * @param userRecords アカウント
+     * @return 拡張機能の実行許可
+     */
+    public static boolean canUseDissonanceFunctions(List<AuthUserRecord> userRecords) {
+        for (AuthUserRecord userRecord : userRecords) {
+            if (!userRecord.isDefaultConsumer()) return true;
+        }
+        return false;
+    }
+
     @Override
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
