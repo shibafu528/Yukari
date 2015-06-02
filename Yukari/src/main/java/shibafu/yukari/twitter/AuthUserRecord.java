@@ -1,18 +1,22 @@
 package shibafu.yukari.twitter;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.util.LongSparseArray;
+import android.text.TextUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
+import twitter4j.Twitter;
 import twitter4j.auth.AccessToken;
 
 @DBTable(CentralDatabase.TABLE_ACCOUNTS)
@@ -26,6 +30,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public boolean isPrimary;
     public boolean isActive;
     public boolean isWriter;
+    public String ConsumerKey;
+    public String ConsumerSecret;
 	public AccessToken Token;
     public int AccountColor;
 
@@ -47,6 +53,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
         isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;
         isWriter = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_WRITER)) == 1;
+        ConsumerKey = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_CONSUMER_KEY));
+        ConsumerSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_CONSUMER_SECRET));
         String accessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
         String accessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
         Token = new AccessToken(accessToken, accessTokenSecret, NumericId);
@@ -56,6 +64,41 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public AccessToken getAccessToken() {
 		return Token;
 	}
+
+    /**
+     * デフォルトのコンシューマキーを使用する必要があるかどうかを取得します。
+     * @return デフォルトコンシューマキーの必要性
+     */
+    public boolean isDefaultConsumer() {
+        return TextUtils.isEmpty(ConsumerKey) || TextUtils.isEmpty(ConsumerSecret);
+    }
+
+    /**
+     * Twitterインスタンスの認証情報をこのアカウントを利用するための認証情報で上書きします。
+     * @param context Context
+     * @param twitter 上書きするTwitterインスタンス
+     */
+    public void updateTwitterInstance(Context context, Twitter twitter) {
+        if (isDefaultConsumer()) {
+            twitter.setOAuthConsumer(context.getString(R.string.twitter_consumer_key),
+                    context.getString(R.string.twitter_consumer_secret));
+        } else {
+            twitter.setOAuthConsumer(ConsumerKey, ConsumerSecret);
+        }
+        twitter.setOAuthAccessToken(getAccessToken());
+    }
+
+    /**
+     * このアカウントを利用するための認証情報を設定したTwitterインスタンスを生成します。
+     * @param context Context
+     * @return このアカウントのTwitterインスタンス
+     */
+    @SuppressWarnings("deprecated")
+    public Twitter getTwitterInstance(Context context) {
+        Twitter twitter = TwitterUtil.getTwitterInstance(context);
+        updateTwitterInstance(context, twitter);
+        return twitter;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -96,6 +139,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
         values.put(CentralDatabase.COL_ACCOUNTS_ID, NumericId);
+        values.put(CentralDatabase.COL_ACCOUNTS_CONSUMER_KEY, ConsumerKey);
+        values.put(CentralDatabase.COL_ACCOUNTS_CONSUMER_SECRET, ConsumerSecret);
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, Token.getToken());
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, Token.getTokenSecret());
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
@@ -114,6 +159,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isActive = aur.isActive;
         isWriter = aur.isWriter;
         Token = aur.Token;
+        ConsumerKey = aur.ConsumerKey;
+        ConsumerSecret = aur.ConsumerSecret;
     }
 
     public Object getSessionTemporary(String key) {
