@@ -37,6 +37,8 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_SELECTED_USERS  = "selected_users";
     //複数選択を許可するか設定する
     public static final String EXTRA_MULTIPLE_CHOOSE = "multiple_choose";
+    //CKCSオーバライド済アカウントのみにフィルタする
+    public static final String EXTRA_FILTER_CONSUMER_OVERRODE = "consumer_overrode";
 
     public static final String EXTRA_SELECTED_USERSN = "selected_sn";
     public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
@@ -47,6 +49,7 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_METADATA = "meta";
 
     private boolean isMultipleChoose = false;
+    private boolean isFilterConsumerOverrode = false;
     private List<Long> defaultSelectedUserIds = new ArrayList<>();
 
     private Adapter adapter;
@@ -72,6 +75,7 @@ public class AccountChooserActivity extends ListYukariBase {
         }
 
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
+        isFilterConsumerOverrode = args.getBooleanExtra(EXTRA_FILTER_CONSUMER_OVERRODE, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             setFinishOnTouchOutside(!isMultipleChoose);
@@ -135,7 +139,9 @@ public class AccountChooserActivity extends ListYukariBase {
         boolean isSelected;
         for (AuthUserRecord userRecord : users) {
             isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
-            dataList.add(new Data(userRecord, isSelected));
+            if (!isFilterConsumerOverrode || !userRecord.isDefaultConsumer()) {
+                dataList.add(new Data(userRecord, isSelected));
+            }
         }
         adapter = new Adapter(AccountChooserActivity.this, dataList);
         setListAdapter(adapter);
@@ -164,7 +170,10 @@ public class AccountChooserActivity extends ListYukariBase {
     @Override
     public void onServiceConnected() {
         List<AuthUserRecord> users = getTwitterService().getUsers();
-        if (!isMultipleChoose && users.size() == 1) {
+        if (isFilterConsumerOverrode && !AuthUserRecord.canUseDissonanceFunctions(users)) {
+            setResult(RESULT_CANCELED);
+            finish();
+        } else if (!isMultipleChoose && users.size() == 1) {
             AuthUserRecord user = users.get(0);
             Intent result = new Intent();
             result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
@@ -173,8 +182,7 @@ public class AccountChooserActivity extends ListYukariBase {
             result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
-        }
-        else {
+        } else {
             createList();
         }
     }
