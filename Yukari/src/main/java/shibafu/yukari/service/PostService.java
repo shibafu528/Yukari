@@ -32,6 +32,7 @@ import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
+import shibafu.yukari.util.CompatUtil;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
 
@@ -94,7 +95,7 @@ public class PostService extends IntentService{
                 .setTicker("ツイートを送信中")
                 .setContentTitle("ツイートを送信中")
                 .setContentText(draft.getText())
-                .setContentIntent(getEmptyPendingIntent())
+                .setContentIntent(CompatUtil.getEmptyPendingIntent(getApplicationContext()))
                 .setWhen(System.currentTimeMillis())
                 .setSmallIcon(android.R.drawable.stat_sys_upload)
                 .setProgress(1, 0, true)
@@ -277,7 +278,7 @@ public class PostService extends IntentService{
                 .setTicker("ツイートに失敗しました")
                 .setContentTitle("ツイートに失敗しました")
                 .setContentText(reason)
-                .setContentIntent(getEmptyPendingIntent())
+                .setContentIntent(CompatUtil.getEmptyPendingIntent(getApplicationContext()))
                 .setAutoCancel(true)
                 .setSmallIcon(android.R.drawable.stat_notify_error)
                 .setWhen(System.currentTimeMillis());
@@ -293,10 +294,6 @@ public class PostService extends IntentService{
             service.getDatabase().updateDraft(draft);
         }
         nm.notify(id, builder.build());
-    }
-
-    private PendingIntent getEmptyPendingIntent() {
-        return PendingIntent.getActivity(getApplicationContext(), 0, new Intent(), 0);
     }
 
     @Override

@@ -59,6 +59,7 @@ import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
+import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
@@ -335,6 +336,7 @@ public class StatusManager {
                     builder.setSmallIcon(icon);
                     builder.setContentTitle(titleHeader + actionBy.getScreenName());
                     builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
+                    builder.setContentIntent(CompatUtil.getEmptyPendingIntent(context));
                     builder.setTicker(tickerHeader + actionBy.getScreenName());
                     builder.setColor(color);
                     if (notificationType.isUseSound()) {
