@@ -21,7 +21,7 @@ public class BookmarkListFragment extends TweetListFragment {
         switch (requestMode) {
             case LOADER_LOAD_UPDATE:
                 elements.clear();
-                adapterWrap.notifyDataSetChanged();
+                notifyDataSetChanged();
                 clearUnreadNotifier();
             case LOADER_LOAD_INIT:
                 loader.execute();
@@ -94,7 +94,7 @@ public class BookmarkListFragment extends TweetListFragment {
 
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
-            adapterWrap.notifyDataSetChanged();
+            notifyDataSetChanged();
             changeFooterProgress(false);
             setRefreshComplete();
         }

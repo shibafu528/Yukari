@@ -176,7 +176,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                     @Override
                                     public void run() {
                                         elements.add(location, ps);
-                                        adapterWrap.notifyDataSetChanged();
+                                        notifyDataSetChanged();
                                     }
                                 });
                             }
@@ -503,7 +503,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     @Override
                     public void run() {
                         elements.clear();
-                        adapterWrap.notifyDataSetChanged();
+                        notifyDataSetChanged();
                     }
                 });
                 stash.clear();
@@ -512,7 +512,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 getHandler().post(new Runnable() {
                     @Override
                     public void run() {
-                        adapterWrap.notifyDataSetChanged();
+                        notifyDataSetChanged();
                     }
                 });
                 break;
@@ -541,7 +541,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         @Override
                         public void run() {
                             elements.get(p).merge(status, from);
-                            adapterWrap.notifyDataSetChanged();
+                            notifyDataSetChanged();
                         }
                     });
                 }

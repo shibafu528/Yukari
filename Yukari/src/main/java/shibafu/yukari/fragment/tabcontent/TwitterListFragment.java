@@ -160,6 +160,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         super.onActivityCreated(savedInstanceState);
 
         listView = getListView();
+        listView.setRecyclerListener(new TweetAdapterWrap.RecycleListener());
 
         footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
         footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
@@ -269,6 +270,14 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         } else {
             lastShowedFirstItemY = 0;
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        setListAdapter(null);
+        listView = null;
+        adapterWrap = null;
     }
 
     @Override
@@ -428,7 +437,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             int firstPos = listView.getFirstVisiblePosition();
             View firstView = listView.getChildAt(0);
             int y = firstView != null? firstView.getTop() : 0;
-            adapterWrap.notifyDataSetChanged();
+            notifyDataSetChanged();
             if (elements.size() == 1 || firstPos == 0 && y > -1) {
                 listView.setSelection(0);
             } else {
@@ -449,7 +458,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 View firstView = listView.getChildAt(0);
                 int y = firstView != null? firstView.getTop() : 0;
                 iterator.remove();
-                adapterWrap.notifyDataSetChanged();
+                notifyDataSetChanged();
                 if (elements.size() == 1 || firstPos == 0) {
                     listView.setSelection(0);
                 } else {
@@ -461,6 +470,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 }
                 break;
             }
+        }
+    }
+
+    protected void notifyDataSetChanged() {
+        if (adapterWrap != null) {
+            adapterWrap.notifyDataSetChanged();
         }
     }
 

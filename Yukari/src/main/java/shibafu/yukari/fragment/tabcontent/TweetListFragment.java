@@ -98,7 +98,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                     }
                 }
             }
-            adapterWrap.notifyDataSetChanged();
+            notifyDataSetChanged();
         }
     };
 
@@ -142,7 +142,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         @Override
         public void notifyDataSetChanged() {
-            adapterWrap.notifyDataSetChanged();
+            TweetListFragment.this.notifyDataSetChanged();
         }
 
         @Override

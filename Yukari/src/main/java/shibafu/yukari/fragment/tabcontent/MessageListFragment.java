@@ -169,14 +169,14 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 @Override
                 public void run() {
                     elements.clear();
-                    adapterWrap.notifyDataSetChanged();
+                    notifyDataSetChanged();
                 }
             });
         } else if (kind == StatusManager.UPDATE_FORCE_UPDATE_UI) {
             getHandler().post(new Runnable() {
                 @Override
                 public void run() {
-                    adapterWrap.notifyDataSetChanged();
+                    notifyDataSetChanged();
                 }
             });
         }
@@ -414,7 +414,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                         elements.add(position, message);
                     }
                 }
-                adapterWrap.notifyDataSetChanged();
+                notifyDataSetChanged();
             } else if (causedException != null &&
                     exceptionUser != null &&
                     causedException.getStatusCode() == 403 &&

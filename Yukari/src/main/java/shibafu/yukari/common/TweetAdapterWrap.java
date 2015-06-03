@@ -8,15 +8,14 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.preference.PreferenceManager;
-import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
-import android.text.style.TextAppearanceSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -88,6 +87,18 @@ public class TweetAdapterWrap {
         notifyDataSetChanged();
     }
 
+    public static class RecycleListener implements AbsListView.RecyclerListener {
+
+        @Override
+        public void onMovedToScrapHeap(View view) {
+            if (view.getTag(R.string.key_viewholder) != null &&
+                    view.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
+                TweetViewHolder viewHolder = (TweetViewHolder) view.getTag(R.string.key_viewholder);
+                viewHolder.recycleImageViews();
+            }
+        }
+    }
+
     private class TweetAdapter extends BaseAdapter {
         private int clsType;
         private static final int CLS_STATUS = 0;
@@ -154,6 +165,19 @@ public class TweetAdapterWrap {
         ImageView ivAccountColor;
         ImageView ivUserColor;
 
+        private static final List<Field> textViews = new ArrayList<>();
+        private static final List<Field> imageViews = new ArrayList<>();
+
+        static {
+            for (Field field : TweetViewHolder.class.getDeclaredFields()) {
+                if (field.getName().startsWith("tv")) {
+                    textViews.add(field);
+                } else if (field.getName().startsWith("iv")) {
+                    imageViews.add(field);
+                }
+            }
+        }
+
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
             tvText = (TextView) v.findViewById(R.id.tweet_text);
@@ -184,12 +208,40 @@ public class TweetAdapterWrap {
         }
 
         public void hideTextViews() {
-            for (Field field : getClass().getDeclaredFields()) {
-                if (field.getName().startsWith("tv")) {
-                    try {
-                        ((View) field.get(this)).setVisibility(View.GONE);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+            for (Field field : textViews) {
+                try {
+                    ((View) field.get(this)).setVisibility(View.GONE);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void recycleImageViews() {
+            //ImageViewを全て解放
+            for (Field field : imageViews) {
+                try {
+                    ((ImageView) field.get(this)).setImageDrawable(null);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            //Attachを全て解放
+            if (llAttach != null) {
+                for (int i = 0; i < llAttach.getChildCount(); ++i) {
+                    View v = llAttach.getChildAt(i);
+                    if (v != null && v instanceof ImageView) {
+                        ((ImageView) v).setImageDrawable(null);
+                    }
+                }
+            }
+            //Includeを全て解放
+            if (flInclude != null) {
+                for (int i = 0; i < flInclude.getChildCount(); ++i) {
+                    View v = flInclude.getChildAt(i);
+                    if (v != null && v.getTag(R.string.key_viewholder) != null &&
+                            v.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
+                        ((TweetViewHolder) v.getTag(R.string.key_viewholder)).recycleImageViews();
                     }
                 }
             }
@@ -219,6 +271,7 @@ public class TweetAdapterWrap {
         private int bgMentionResId;
         private int bgOwnResId;
 
+        @SuppressWarnings("TryWithIdenticalCatches")
         public static ViewConverter newInstance(
                 Context context,
                 List<AuthUserRecord> userRecords,
@@ -235,7 +288,9 @@ public class TweetAdapterWrap {
                 else if (HistoryStatus.class.isAssignableFrom(cls)) {
                     return new HistoryViewConverter(context, userRecords, userExtras, sharedPreferences);
                 }
-            } catch (IllegalAccessException | InstantiationException e) {
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
                 throw new RuntimeException(e);
             }
             throw new UnsupportedOperationException("対応されているクラスではありません.");
