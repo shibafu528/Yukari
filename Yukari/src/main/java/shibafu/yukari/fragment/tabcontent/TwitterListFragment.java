@@ -160,7 +160,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         super.onActivityCreated(savedInstanceState);
 
         listView = getListView();
-        listView.setRecyclerListener(new TweetAdapterWrap.RecycleListener());
 
         footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
         footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
