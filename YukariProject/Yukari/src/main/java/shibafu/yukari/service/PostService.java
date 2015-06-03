@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -217,7 +218,26 @@ public class PostService extends IntentService{
             nm.notify(R.integer.notification_tweet, builder.build());
             service.getDatabase().deleteDraft(draft);
         }
+
+        //ゆかりさんが反応する機能
+        if (sp.getBoolean("j_yukari_voice", false)) {
+            reactionFromYukari(draft);
+        }
+
         stopForeground(true);
+    }
+
+    private void reactionFromYukari(TweetDraft draft) {
+        if (draft.getText().contains("壁")) {
+            MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.y_wall);
+            mp.start();
+        } else if (draft.getText().contains("床")) {
+            MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.y_floor);
+            mp.start();
+        } else if (draft.getText().contains("まないた") || draft.getText().contains("まな板") || draft.getText().contains("洗濯板")) {
+            MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.y_tweet_notice);
+            mp.start();
+        }
     }
 
     private TweetDraft parseRemoteInput(Intent intent) {
