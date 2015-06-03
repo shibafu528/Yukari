@@ -134,7 +134,7 @@ public class PreviewActivity extends FragmentYukariBase {
                         }
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        if (touchMode == TOUCH_ZOOM) {
+                        if (touchMode == TOUCH_ZOOM && event.getPointerCount() >= 2) {
                             if (isShowPanel) {
                                 llControlPanel.startAnimation(animFadeOut);
                                 llControlPanel.setVisibility(View.INVISIBLE);
