@@ -277,6 +277,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         setListAdapter(null);
         listView = null;
         adapterWrap = null;
+        swipeRefreshLayout = null;
+        unreadNotifierView = null;
         connection.disconnect(getActivity());
     }
 

@@ -773,7 +773,7 @@ public class StatusManager {
     }
 
     private CentralDatabase getDatabase() {
-        return service.getDatabase();
+        return service == null ? null : service.getDatabase();
     }
 
     public HashCache getHashCache() {
@@ -859,6 +859,14 @@ public class StatusManager {
         receivedStatuses.clear();
 
         userUpdateDelayer.shutdown();
+
+        this.suppressor = null;
+        this.sharedPreferences = null;
+        this.notificationManager = null;
+        this.vibrator = null;
+        this.audioManager = null;
+        this.service = null;
+        this.context = null;
     }
 
     public void addStatusListener(StatusListener l) {
@@ -964,6 +972,7 @@ public class StatusManager {
         return receivedStatuses;
     }
 
+    @SuppressWarnings("TryWithIdenticalCatches")
     public void sendFakeBroadcast(String methodName, Class[] argTypes, Object... args) {
         try {
             Class[] newArgTypes = new Class[argTypes.length+1];
@@ -980,7 +989,11 @@ public class StatusManager {
                 newArgs[0] = entry.getValue();
                 m.invoke(listener, newArgs);
             }
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
     }

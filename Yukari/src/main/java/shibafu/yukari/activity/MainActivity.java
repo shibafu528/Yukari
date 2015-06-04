@@ -527,6 +527,16 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        currentPage = null;
+        pageList = null;
+        tabPagerAdapter = null;
+        viewPager = null;
+        imm = null;
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.isLongPress()) {
