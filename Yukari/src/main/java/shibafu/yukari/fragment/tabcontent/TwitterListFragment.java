@@ -277,11 +277,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         setListAdapter(null);
         listView = null;
         adapterWrap = null;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
         connection.disconnect(getActivity());
     }
 
