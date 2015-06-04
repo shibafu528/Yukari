@@ -23,6 +23,11 @@
             android:title="メニューを下に寄せる"
             android:summary="ツイート詳細画面のメニューを下寄せにします"/>
         <CheckBoxPreference
+            android:key="pref_choose_reply_to"
+            android:title="返信先を確認する"
+            android:summary="複数メンションが含まれるツイートに返信する際、1人に返信するか、全員に返信するか確認します\n無効にしても、返信ボタン長押しで全員に返信できます"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
             android:key="pref_narcist"
             android:title="ナルシストオプション"
             android:summary="自分のツイートをお気に入り登録できるようにします"/>

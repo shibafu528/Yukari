@@ -10,7 +10,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -77,6 +79,7 @@ public class StatusMainFragment extends TwitterFragment{
     private ImageButton ibShare;
     private ImageButton ibQuote;
     private ImageButton ibAccount;
+    private SharedPreferences sharedPreferences;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -85,20 +88,16 @@ public class StatusMainFragment extends TwitterFragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         class LocalFunction {
             void closeAfterFavorite() {
-                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                if (pref.getBoolean("pref_close_after_fav", true)) {
+                if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
                     getActivity().finish();
                 }
             }
-        }
-        final LocalFunction local = new LocalFunction();
 
-        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
-        ibReply.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            void replyToSender() {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
@@ -108,10 +107,8 @@ public class StatusMainFragment extends TwitterFragment{
                                 : status.getUser().getScreenName()) + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
-        });
-        ibReply.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
+
+            void replyToAllMentions() {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
@@ -134,6 +131,42 @@ public class StatusMainFragment extends TwitterFragment{
                     intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
                 }
                 startActivityForResult(intent, REQUEST_REPLY);
+            }
+        }
+        final LocalFunction local = new LocalFunction();
+
+        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
+        ibReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!(status.isMentionedTo(user) && status.getUserMentionEntities().length == 1) &&
+                        status.getUserMentionEntities().length > 0 && sharedPreferences.getBoolean("pref_choose_reply_to", true)) {
+                    PopupMenu popupMenu = new PopupMenu(getActivity(), v);
+                    popupMenu.inflate(R.menu.reply_to);
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            switch (menuItem.getItemId()) {
+                                case R.id.action_reply_to_sender:
+                                    local.replyToSender();
+                                    return true;
+                                case R.id.action_reply_to_all_mentions:
+                                    local.replyToAllMentions();
+                                    return true;
+                            }
+                            return false;
+                        }
+                    });
+                    popupMenu.show();
+                } else {
+                    local.replyToSender();
+                }
+            }
+        });
+        ibReply.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                local.replyToAllMentions();
                 return true;
             }
         });
@@ -142,7 +175,6 @@ public class StatusMainFragment extends TwitterFragment{
         ibRetweet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
@@ -150,7 +182,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 };
-                if (pref.getBoolean("pref_dialog_rt", true)) {
+                if (sharedPreferences.getBoolean("pref_dialog_rt", true)) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("リツイートしますか？")
@@ -203,8 +235,6 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
-            private SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
             private final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... params) {
@@ -214,7 +244,7 @@ public class StatusMainFragment extends TwitterFragment{
             };
 
             private boolean isNuisance(String source) {
-                if (pref.getBoolean("pref_guard_nuisance", true)) {
+                if (sharedPreferences.getBoolean("pref_guard_nuisance", true)) {
                     int l = NUISANCES.length;
                     for (int i = 0; i < l; i++) {
                         if (source.contains(NUISANCES[i])) return true;
@@ -269,7 +299,7 @@ public class StatusMainFragment extends TwitterFragment{
             }
 
             private void doFavorite() {
-                if (pref.getBoolean("pref_dialog_fav", false)) {
+                if (sharedPreferences.getBoolean("pref_dialog_fav", false)) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("お気に入り登録しますか？")
@@ -383,7 +413,6 @@ public class StatusMainFragment extends TwitterFragment{
         ibFavRt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
                     @Override
                     protected Void doInBackground(Void... params) {
@@ -392,7 +421,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 };
-                if (pref.getBoolean("pref_dialog_favrt", true)) {
+                if (sharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("お気に入りに登録してRTしますか？")
@@ -527,9 +556,8 @@ public class StatusMainFragment extends TwitterFragment{
                                             break;
                                     }
                                     if (request > -1) {
-                                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                                         intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, sp.getString("pref_quote_comment_footer", " ＞RT"));
+                                        intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
                                         startActivityForResult(intent, request);
                                     }
                                 }
@@ -717,7 +745,7 @@ public class StatusMainFragment extends TwitterFragment{
     @Override
     public void onServiceConnected() {
         if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
-                !PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_narcist", false)) {
+                !sharedPreferences.getBoolean("pref_narcist", false)) {
             //自分のツイートの場合
             ibFavorite.setEnabled(false);
             ibFavRt.setEnabled(false);
