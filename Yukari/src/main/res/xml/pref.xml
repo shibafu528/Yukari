@@ -262,6 +262,10 @@
             android:key="pref_block_doubleclock"
             android:title="TLダブルクリックの防止"
             android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
+        <CheckBoxPreference
+            android:key="pref_extended_touch_event"
+            android:title="TLタッチ拡張"
+            android:summary="TL上のタッチイベントを増やします"/>
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"

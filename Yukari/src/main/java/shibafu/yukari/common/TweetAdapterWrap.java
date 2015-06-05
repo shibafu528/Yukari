@@ -512,7 +512,7 @@ public class TweetAdapterWrap {
                                     BitmapCache.IMAGE_CACHE,
                                     hidden && getPreferences().getBoolean("pref_prev_mosaic", false));
 
-                            if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview()) {
+                            if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview() || getPreferences().getBoolean("pref_extended_touch_event", false)) {
                                 iv.setOnClickListener(new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
