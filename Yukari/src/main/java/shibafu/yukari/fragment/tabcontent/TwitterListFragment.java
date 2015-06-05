@@ -156,8 +156,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         listView = getListView();
 
@@ -226,22 +226,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public void onStart() {
         super.onStart();
         if (elementClass != null && lastShowedFirstItemId > -1) {
-            final Long[] copyOfUnreadSet = unreadSet.toArray(new Long[unreadSet.size()]);
-            getHandler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    int position;
-                    int length = elements.size();
-                    for (position = 0; position < length; ++position) {
-                        if (commonDelegate.getId(elements.get(position)) == lastShowedFirstItemId) break;
-                    }
-                    if (position < length) {
-                        listView.setSelectionFromTop(position, lastShowedFirstItemY);
-                    }
-                    Collections.addAll(unreadSet, copyOfUnreadSet);
-                    updateUnreadNotifier();
-                }
-            }, 150);
+            int position;
+            int length = elements.size();
+            for (position = 0; position < length; ++position) {
+                if (commonDelegate.getId(elements.get(position)) == lastShowedFirstItemId) break;
+            }
+            if (position < length) {
+                listView.setSelectionFromTop(position, lastShowedFirstItemY);
+            }
+            updateUnreadNotifier();
         }
     }
 
