@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -102,6 +103,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
     //TweetCommon Delegate
     private TweetCommonDelegate commonDelegate;
+
+    //DoubleClock Blocker
+    private boolean enableDoubleClickBlocker;
+    private boolean blockingDoubleClock;
 
     private Handler handler = new Handler();
 
@@ -249,7 +254,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             }
         }
 
-        limitedTimeline = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_limited_timeline", false);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        limitedTimeline = sharedPreferences.getBoolean("pref_limited_timeline", false);
+
+        enableDoubleClickBlocker = sharedPreferences.getBoolean("pref_block_doubleclock", false);
+        blockingDoubleClock = false;
     }
 
     @Override
@@ -368,11 +377,18 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
     @Override
     public final void onListItemClick(ListView l, View v, int position, long id) {
+        if (blockingDoubleClock) {
+            return;
+        }
+
         if (position < elements.size()) {
             //要素クリックイベントの呼び出し
             onListItemClick(elements.get(position));
-        }
-        else if (position == elements.size() && !isLoading) {
+            if (enableDoubleClickBlocker) {
+                //次回onResumeまでクリックイベントを無視する
+                blockingDoubleClock = true;
+            }
+        } else if (position == elements.size() && !isLoading) {
             //フッタークリック
             for (AuthUserRecord user : users) {
                 executeLoader(LOADER_LOAD_MORE, user);
