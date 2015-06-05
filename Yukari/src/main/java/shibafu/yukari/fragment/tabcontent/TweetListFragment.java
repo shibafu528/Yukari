@@ -262,11 +262,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
     private void dismissSwipeActionStatusView() {
         enableReload();
-        ObjectAnimator.ofFloat(swipeActionStatusView, "alpha", 0.9f, 0f)
-                .setDuration(150)
-                .start();
-        swipeActionStatusView.setVisibility(View.INVISIBLE);
-        swipeActionStatusGrabbed = null;
+        if (swipeActionStatusView != null) {
+            ObjectAnimator.ofFloat(swipeActionStatusView, "alpha", 0.9f, 0f)
+                    .setDuration(150)
+                    .start();
+            swipeActionStatusView.setVisibility(View.INVISIBLE);
+            swipeActionStatusGrabbed = null;
+        }
     }
 
     private Runnable onReloadMuteConfigs = new Runnable() {

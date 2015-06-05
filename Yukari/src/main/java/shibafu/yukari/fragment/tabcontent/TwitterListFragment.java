@@ -383,7 +383,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     protected void removeFooter() {
-        listView.removeFooterView(footerView);
+        if (listView != null) {
+            listView.removeFooterView(footerView);
+        }
     }
 
     @Override

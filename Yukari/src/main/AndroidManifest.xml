@@ -3,7 +3,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="50"
-    android:versionName="1.2.0.211α (rehearsal 150605)" >
+    android:versionName="1.2.0.212α (rehearsal 150606)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
