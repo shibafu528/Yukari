@@ -90,6 +90,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     //SwipeRefreshLayout
     private SwipeRefreshLayout swipeRefreshLayout;
     private int refreshCounter;
+    private boolean disabledReload;
+
+    //SwipeAction PopupWindow
+    protected View swipeActionStatusView;
+    protected TextView swipeActionInfoLabel;
 
     //Footer View
     private View footerView;
@@ -156,6 +161,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         });
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
+
+        swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
+        swipeActionInfoLabel = (TextView) v.findViewById(R.id.swipeActionInfo);
+        if (swipeActionStatusView != null) {
+            swipeActionStatusView.setVisibility(View.INVISIBLE);
+        }
 
         return v;
     }
@@ -510,6 +521,19 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected void disableReload() {
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setEnabled(false);
+            disabledReload = true;
+        }
+    }
+
+    protected void disableReloadTemp() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setEnabled(false);
+        }
+    }
+
+    protected void enableReload() {
+        if (swipeRefreshLayout != null && !disabledReload) {
+            swipeRefreshLayout.setEnabled(true);
         }
     }
 

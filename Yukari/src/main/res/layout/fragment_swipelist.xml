@@ -26,4 +26,30 @@
         android:layout_gravity="right|top"
         android:layout_marginRight="6dp"
         android:layout_marginTop="-12dp" />
+
+    <LinearLayout
+        android:id="@+id/swipeActionStatusFrame"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="-10dp"
+        android:layout_marginRight="-10dp"
+        android:layout_marginTop="-10dp"
+        android:layout_gravity="center_horizontal|top"
+        android:background="@drawable/dialog_full_holo_light"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Swipe Action >> Cancel"
+            android:id="@+id/swipeActionInfo"
+            android:layout_marginLeft="4dp" />
+
+        <include
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            layout="@layout/row_tweet"
+            android:id="@+id/swipeActionStatus"/>
+    </LinearLayout>
 </FrameLayout>

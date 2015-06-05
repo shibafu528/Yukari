@@ -13,6 +13,7 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -85,6 +86,14 @@ public class TweetAdapterWrap {
     public void setUserExtras(List<UserExtras> userExtras) {
         converter.setUserExtras(userExtras);
         notifyDataSetChanged();
+    }
+
+    public void setOnTouchProfileImageIconListener(OnTouchProfileImageIconListener listener) {
+        converter.setOnTouchProfileImageIconListener(listener);
+    }
+
+    public interface OnTouchProfileImageIconListener {
+        boolean onTouch(TwitterResponse element, View v, MotionEvent event);
     }
 
     public static class RecycleListener implements AbsListView.RecyclerListener {
@@ -270,6 +279,7 @@ public class TweetAdapterWrap {
         private int bgDefaultResId;
         private int bgMentionResId;
         private int bgOwnResId;
+        private OnTouchProfileImageIconListener onTouchProfileImageIconListener;
 
         @SuppressWarnings("TryWithIdenticalCatches")
         public static ViewConverter newInstance(
@@ -333,7 +343,11 @@ public class TweetAdapterWrap {
             return preferences;
         }
 
-        public View convertView(View v, TwitterResponse content, int mode) {
+        public void setOnTouchProfileImageIconListener(OnTouchProfileImageIconListener listener) {
+            this.onTouchProfileImageIconListener = listener;
+        }
+
+        public View convertView(final View v, final TwitterResponse content, int mode) {
             //ViewHolderを取得もしくは新規作成
             TweetViewHolder viewHolder = (TweetViewHolder) v.getTag(R.string.key_viewholder);
             if (viewHolder == null) {
@@ -387,6 +401,14 @@ public class TweetAdapterWrap {
                     u.getProfileImageURLHttps() : u.getBiggerProfileImageURLHttps();
             if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
                 ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, imageUrl);
+            }
+            if (onTouchProfileImageIconListener != null) {
+                viewHolder.ivIcon.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View iv, MotionEvent event) {
+                        return onTouchProfileImageIconListener.onTouch(content, v, event);
+                    }
+                });
             }
 
             viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());

@@ -281,6 +281,14 @@ public class PreformedStatus implements Status{
         return status;
     }
 
+    /**
+     * リツイートなら元ツイートのPreformedStatusを、そうでなければ自分自身を返す
+     * @return 本来のツイート
+     */
+    public PreformedStatus getOriginStatus() {
+        return retweetedStatus != null ? retweetedStatus : this;
+    }
+
     @Override
     public Date getCreatedAt() {
         return status.getCreatedAt();
