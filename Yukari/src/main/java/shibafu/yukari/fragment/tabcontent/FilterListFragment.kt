@@ -10,6 +10,7 @@ import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.StatusManager
+import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import twitter4j.DirectMessage
 import twitter4j.Status
@@ -52,11 +53,26 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
         super<TweetListFragment>.onDetach()
     }
 
-    override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) {
+    protected fun executeLoader(requestMode: Int) {
+        val filterQuery = getFilterQuery()
+        val loaders = filterQuery?.getSources()?.mapNotNull { s ->
+            val loader = s.getRESTLoader(getActivity(), null) ?: return
+            val user = s.getSourceAccount() ?: return
+            Pair(user, loader)
+        }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_UPDATE -> setRefreshComplete()
+            TwitterListFragment.LOADER_LOAD_INIT -> loaders?.forEach { s -> s.second.execute(RESTParams(s.first)) }
+            TwitterListFragment.LOADER_LOAD_UPDATE -> {
+                if (loaders == null) setRefreshComplete()
+                else {
+                    clearUnreadNotifier()
+                    loaders.forEach { s -> s.second.execute(RESTParams(s.first, true)) }
+                }
+            }
         }
     }
+
+    override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) = executeLoader(requestMode)
 
     protected fun getFilterQuery(): FilterQuery? {
         //クエリのコンパイル待ち
