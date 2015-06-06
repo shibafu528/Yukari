@@ -44,7 +44,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     private static final int SWIPE_ACTION_RETWEET = 4;
     private static final int SWIPE_ACTION_FAVRT = 5;
 
-
+    private static final int SWIPE_ACTION_THRESHOLD = 120;
 
     private float swipeActionDownPositionX, swipeActionDownPositionY;
     private int swipeActionSelected = 0;
@@ -87,7 +87,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                             case MotionEvent.ACTION_MOVE:
                                 float moveX = event.getRawX() - swipeActionDownPositionX;
                                 float moveY = Math.abs(event.getRawY() - swipeActionDownPositionY);
-                                if (moveX < 80 && moveY < 80) {
+                                if (moveX < SWIPE_ACTION_THRESHOLD && moveY < SWIPE_ACTION_THRESHOLD) {
                                     swipeActionSelected = SWIPE_ACTION_CANCEL;
                                 } else if (moveX > moveY * 3) {
                                     swipeActionSelected = SWIPE_ACTION_FAVORITE;
