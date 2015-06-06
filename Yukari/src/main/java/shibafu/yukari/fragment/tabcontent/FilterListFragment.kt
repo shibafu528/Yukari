@@ -57,7 +57,7 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
         val filterQuery = getFilterQuery()
         val loaders = filterQuery?.getSources()?.mapNotNull { s ->
             val loader = s.getRESTLoader(getActivity(), null) ?: return
-            val user = s.getSourceAccount() ?: return
+            val user = s.sourceAccount ?: return
             Pair(user, loader)
         }
         when (requestMode) {

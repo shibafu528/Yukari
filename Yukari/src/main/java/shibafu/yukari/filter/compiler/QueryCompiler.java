@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.filter.FilterQuery;
+import shibafu.yukari.filter.source.All;
 import shibafu.yukari.filter.source.FilterSource;
 import shibafu.yukari.twitter.AuthUserRecord;
 
@@ -46,7 +47,7 @@ public final class QueryCompiler {
         if (beginFrom < 0) {
             //from句が存在しない -> from allと同義とする
             sources = new ArrayList<>(1);
-            sources.add(new FilterSource(FilterSource.Resource.ALL, null));
+            sources.add(new All());
         } else {
             sources = parseSource(beginWhere < 0 ? query : query.substring(0, beginWhere - 1));
         }
@@ -68,6 +69,6 @@ public final class QueryCompiler {
 
     @NonNull
     private static List<FilterSource> parseSource(@NonNull String fromQuery) {
-        return new ArrayList<FilterSource>(1){{add(new FilterSource(FilterSource.Resource.ALL, null));}};
+        return new ArrayList<FilterSource>(1){{add(new All());}};
     }
 }

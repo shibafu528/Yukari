@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.filter.compiler.QueryCompiler;
+import shibafu.yukari.filter.source.All;
 import shibafu.yukari.filter.source.FilterSource;
 import twitter4j.TwitterResponse;
 
@@ -32,7 +33,7 @@ public class FilterQuery {
         }
         if (sources == null) {
             this.sources = new ArrayList<>(1);
-            this.sources.add(new FilterSource(FilterSource.Resource.ALL, null));
+            this.sources.add(new All());
         } else {
             this.sources = sources;
         }
