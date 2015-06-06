@@ -83,7 +83,7 @@
 
         <item name="android:windowTitleStyle">@style/CompatTextAppearance_DialogWindowTitle</item>
 
-        <item name="android:windowBackground">@drawable/dialog_full_holo_dark</item>
+        <item name="android:windowBackground">@drawable/dialog_full_holo_dark_y</item>
 
         <item name="actionBarStyle">@style/ActionBarYukariTheme</item>
 
@@ -159,7 +159,7 @@
     <style name="YukariDarkTheme.Translucent" parent="YukariDarkTheme">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_dark</item>
+        <item name="dialogStyle">@drawable/dialog_full_holo_dark_y</item>
     </style>
 
 </resources>

@@ -1,8 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 dependencies {
     compile 'com.android.support:appcompat-v7:20.0.+'
-    compile 'com.android.support:support-v4:21.0.+'
+    compile 'com.android.support:support-v4:22.2.+'
     compile 'com.google.android.gms:play-services-plus:6.5.87'
     compile 'com.google.android.gms:play-services-drive:6.5.87'
 
@@ -29,6 +30,7 @@ dependencies {
     compile project(':twpfparser')
 
     compile fileTree(dir: './libs', includes: ['*.jar'])
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 android {
@@ -62,4 +64,19 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+buildscript {
+    ext.kotlin_version = '0.12.200'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+repositories {
+    mavenCentral()
 }

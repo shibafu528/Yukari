@@ -35,7 +35,7 @@
         android:layout_marginRight="-10dp"
         android:layout_marginTop="-10dp"
         android:layout_gravity="center_horizontal|top"
-        android:background="@drawable/dialog_full_holo_light"
+        android:background="@drawable/dialog_full_holo_light_y"
         android:orientation="vertical">
 
         <TextView
