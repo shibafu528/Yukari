@@ -21,6 +21,8 @@ public class TweetListFragmentFactory {
                 return new BookmarkListFragment();
             case TabType.TABTYPE_HISTORY:
                 return new HistoryListFragment();
+            case TabType.TABTYPE_FILTER:
+                return new FilterListFragment();
             default:
                 return new DefaultTweetListFragment();
         }
@@ -35,6 +37,9 @@ public class TweetListFragmentFactory {
                 break;
             case TabType.TABTYPE_LIST:
                 b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
+                break;
+            case TabType.TABTYPE_FILTER:
+                b.putString(FilterListFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
                 break;
         }
         b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());

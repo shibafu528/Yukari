@@ -35,6 +35,8 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
+import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.ResponseList;
@@ -77,7 +79,12 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         if (type < 0) return;
         boolean requireBind = (type & 0x80) == 0x80;
         type &= 0x7f;
-        if (!requireBind && (type == TabType.TABTYPE_HOME || type == TabType.TABTYPE_MENTION || type == TabType.TABTYPE_DM || type == TabType.TABTYPE_HISTORY)) {
+        if (!requireBind && (
+                   type == TabType.TABTYPE_HOME
+                || type == TabType.TABTYPE_MENTION
+                || type == TabType.TABTYPE_DM
+                || type == TabType.TABTYPE_HISTORY
+                || type == TabType.TABTYPE_FILTER)) {
             findInnerFragment().addTab(type, null);
         }
         else {
@@ -213,6 +220,7 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         }
 
         public void addTab(int type, AuthUserRecord userRecord, Object... args) {
+            CentralDatabase database = ((TabEditActivity) getActivity()).getTwitterService().getDatabase();
             switch (type) {
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
@@ -223,18 +231,24 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                             return;
                         }
                     }
-                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateRecord(new TabInfo(type, tabs.size() + 1, userRecord));
+                    database.updateRecord(new TabInfo(type, tabs.size() + 1, userRecord));
+                    reloadList();
+                    break;
+                case TabType.TABTYPE_FILTER:
+                    database.updateRecord(new TabInfo(
+                            type,
+                            tabs.size() + 1,
+                            null,
+                            QueryCompiler.DEFAULT_QUERY));
                     reloadList();
                     break;
                 case TabType.TABTYPE_LIST:
-                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                            .updateRecord(new TabInfo(
-                                    type,
-                                    tabs.size() + 1,
-                                    userRecord,
-                                    (Long) args[0],
-                                    (String) args[1]));
+                    database.updateRecord(new TabInfo(
+                            type,
+                            tabs.size() + 1,
+                            userRecord,
+                            (Long) args[0],
+                            (String) args[1]));
                     reloadList();
                     break;
             }
@@ -358,7 +372,8 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                     "DM",
                     "DM (Single Account)",
                     "List",
-                    "History"
+                    "History",
+                    "Filter"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
@@ -387,6 +402,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                                     break;
                                 case 7:
                                     type = TabType.TABTYPE_HISTORY;
+                                    break;
+                                case 8:
+                                    type = TabType.TABTYPE_FILTER;
                                     break;
                                 default:
                                     type = -1;
