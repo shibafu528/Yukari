@@ -82,7 +82,7 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
         return filterQuery
     }
 
-    protected fun evaluateInFilterQuery(s: Status): Boolean = getFilterQuery()?.evaluate(s) ?: false
+    protected fun evaluateInFilterQuery(s: Status): Boolean = getFilterQuery()?.evaluate(s, users) ?: false
 
     override fun onServiceConnected() {
         super<TweetListFragment>.onServiceConnected()

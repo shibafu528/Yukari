@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.filter.FilterQuery;
+import shibafu.yukari.filter.expression.Constant;
+import shibafu.yukari.filter.expression.Expression;
 import shibafu.yukari.filter.source.All;
 import shibafu.yukari.filter.source.FilterSource;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -53,22 +55,29 @@ public final class QueryCompiler {
         }
 
         //where句の解釈
-        /*
-            ＿人人人人人人人人人＿
-            ＞　まだ考えてない　＜
-            ￣^Y^Y^Y^Y^Y^Y^Y^Y^￣
-         */
+        Expression rootExpression;
+        if (beginWhere < 0) {
+            //where句が存在しない -> where trueと同義とする
+            rootExpression = new Constant(true);
+        } else {
+            rootExpression = parseExpression(query.substring(beginWhere));
+        }
 
         //コンパイル終了時間の記録
         compileTime = System.currentTimeMillis() - compileTime;
         Log.d(LOG_TAG, String.format("Compile finished. (%dms): %s", compileTime, query));
 
         //コンパイル結果を格納
-        return new FilterQuery(sources, null);
+        return new FilterQuery(sources, rootExpression);
     }
 
     @NonNull
     private static List<FilterSource> parseSource(@NonNull String fromQuery) {
         return new ArrayList<FilterSource>(1){{add(new All());}};
+    }
+
+    @NonNull
+    private static Expression parseExpression(@NonNull String whereQuery) {
+        return new Constant(true);
     }
 }
