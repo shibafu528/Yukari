@@ -55,15 +55,15 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
 
     protected fun executeLoader(requestMode: Int) {
         val filterQuery = getFilterQuery()
-        val loaders = filterQuery?.getSources()?.mapNotNull { s ->
+        val loaders = filterQuery.sources.mapNotNull { s ->
             val loader = s.getRESTLoader(getActivity(), null) ?: return
             val user = s.sourceAccount ?: return
             Pair(user, loader)
         }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_INIT -> loaders?.forEach { s -> s.second.execute(RESTParams(s.first)) }
+            TwitterListFragment.LOADER_LOAD_INIT -> loaders.forEach { s -> s.second.execute(RESTParams(s.first)) }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
-                if (loaders == null) setRefreshComplete()
+                if (loaders.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
                     loaders.forEach { s -> s.second.execute(RESTParams(s.first, true)) }
@@ -74,15 +74,13 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
 
     override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) = executeLoader(requestMode)
 
-    protected fun getFilterQuery(): FilterQuery? {
+    protected fun getFilterQuery(): FilterQuery {
         //クエリのコンパイル待ち
         while (filterQuery == null) {
             Thread.sleep(100)
         }
-        return filterQuery
+        return filterQuery!!
     }
-
-    protected fun evaluateInFilterQuery(s: Status): Boolean = getFilterQuery()?.evaluate(s, users) ?: false
 
     override fun onServiceConnected() {
         super<TweetListFragment>.onServiceConnected()
@@ -103,7 +101,7 @@ public class FilterListFragment : TweetListFragment(), StatusManager.StatusListe
     override fun getStreamFilter(): String? = null
 
     override fun onStatus(from: AuthUserRecord, status: PreformedStatus, muted: Boolean) {
-        if (elements.contains(status) || !evaluateInFilterQuery(status)) return
+        if (elements.contains(status) || !getFilterQuery().evaluate(status, users)) return
 
         when {
             muted -> stash.add(status)
