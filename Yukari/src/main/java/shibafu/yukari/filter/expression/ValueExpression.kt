@@ -8,7 +8,7 @@ import twitter4j.TwitterResponse
  *
  * Created by shibafu on 15/06/07.
  */
-public interface Value : Expression {
+public interface ValueExpression : Expression {
     var value: Any?
         private set
 }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.filter.FilterQuery;
-import shibafu.yukari.filter.expression.Constant;
+import shibafu.yukari.filter.expression.ConstantValue;
 import shibafu.yukari.filter.expression.Expression;
 import shibafu.yukari.filter.source.All;
 import shibafu.yukari.filter.source.FilterSource;
@@ -58,7 +58,7 @@ public final class QueryCompiler {
         Expression rootExpression;
         if (beginWhere < 0) {
             //where句が存在しない -> where trueと同義とする
-            rootExpression = new Constant(true);
+            rootExpression = new ConstantValue(true);
         } else {
             rootExpression = parseExpression(query.substring(beginWhere));
         }
@@ -78,6 +78,6 @@ public final class QueryCompiler {
 
     @NonNull
     private static Expression parseExpression(@NonNull String whereQuery) {
-        return new Constant(true);
+        return new ConstantValue(true);
     }
 }

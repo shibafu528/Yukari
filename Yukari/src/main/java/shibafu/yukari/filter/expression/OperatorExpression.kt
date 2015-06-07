@@ -5,7 +5,7 @@ package shibafu.yukari.filter.expression
  *
  * Created by shibafu on 15/06/07.
  */
-public interface Operator : Expression {
+public interface OperatorExpression : Expression {
     val leftExpression: Expression
     val rightExpression: Expression
 }

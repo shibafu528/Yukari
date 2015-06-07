@@ -6,7 +6,7 @@ import twitter4j.TwitterResponse
 /**
  * Created by shibafu on 15/06/07.
  */
-public class Constant : Value {
+public class ConstantValue : ValueExpression {
     override var value: Any?
 
     constructor(const: Any) {

@@ -8,7 +8,7 @@ import twitter4j.TwitterResponse
 /**
  * Created by shibafu on 15/06/07.
  */
-public class Parameter(val path: String) : Value {
+public class ParameterValue(val path: String) : ValueExpression {
     override var value: Any? = null
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean {
