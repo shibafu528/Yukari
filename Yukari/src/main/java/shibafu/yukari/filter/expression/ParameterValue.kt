@@ -1,8 +1,6 @@
 package shibafu.yukari.filter.expression
 
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.TweetCommon
-import twitter4j.Status
 import twitter4j.TwitterResponse
 
 /**

@@ -1,9 +1,6 @@
 package shibafu.yukari.filter
 
-import android.util.Log
-import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.filter.expression.Expression
-import shibafu.yukari.filter.source
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
 import twitter4j.TwitterResponse

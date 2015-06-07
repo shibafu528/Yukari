@@ -6,6 +6,6 @@ package shibafu.yukari.filter.expression
  * Created by shibafu on 15/06/07.
  */
 public interface OperatorExpression : Expression {
-    val leftExpression: Expression
-    val rightExpression: Expression
+    public val leftExpression: Expression
+    public val rightExpression: Expression
 }
