@@ -9,17 +9,27 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
     override fun next(): Token {
         do {
             when (query[currentPos]) {
-                '"' -> {
+                ' ' -> {}
+                '"' -> return Token(TokenType.String, getQuoteString(currentPos + 1))
+                else -> {
+                    val begin = currentPos
 
+                    do {
+                        if (" \"".contains(query[currentPos])) break
+                        currentPos++
+                    } while (hasNext())
+
+                    return Token(TokenType.Literal, query.substring(begin, currentPos))
                 }
             }
+            currentPos++
         } while (hasNext())
         throw UnsupportedOperationException()
     }
 
     override fun hasNext(): Boolean = currentPos < query.length()
 
-    fun getQuoteString(start: Int) : String {
+    private fun getQuoteString(start: Int) : String {
         var cursor = start
         while (cursor < query.length()) {
             when (query[cursor]) {
@@ -29,7 +39,10 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
                 } else cursor++
 
                 // ダブルクォーテーション -> 探索終了
-                '"' -> return query.substring(start, cursor - 1).replace("\\", "")
+                '"' -> {
+                    currentPos = cursor + 1
+                    return query.substring(start, cursor).replace("\\", "")
+                }
             }
             cursor++
         }
