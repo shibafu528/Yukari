@@ -13,11 +13,12 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
                 '"' -> return Token(TokenType.String, currentPos, getQuoteString(currentPos + 1, '"'))
                 '\'' -> return Token(TokenType.String, currentPos, getQuoteString(currentPos + 1, '\''))
                 ',' -> return Token(TokenType.Comma, currentPos++)
+                ':' -> return Token(TokenType.Colon, currentPos++)
                 else -> {
                     val begin = currentPos
 
                     do {
-                        if (" \"\t\r\n',".contains(query[currentPos])) break
+                        if (" \"\t\r\n',:".contains(query[currentPos])) break
                         currentPos++
                     } while (hasNext())
 
@@ -60,7 +61,8 @@ public data class Token(val type: TokenType, val cursor: Int, val value: String 
 public enum class TokenType {
     Literal,
     String,
-    Comma
+    Comma,
+    Colon
 }
 
 public class TokenizeException(kind: TokenizeExceptionKind, query: String, cursor: Int)
