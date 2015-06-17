@@ -28,6 +28,28 @@ class TokenizerTest {
         assertFalse(tokenizer.hasNext())
     }
 
+    test fun singleQuotationTokenTest() {
+        val tokenizer = Tokenizer("'foo' \"bar\" 'hoge \"fuga\" piyo' \"hoge 'fuga' piyo\"")
+
+        val fooToken = tokenizer.next()
+        assertEquals(TokenType.String, fooToken.type)
+        assertEquals("foo", fooToken.value)
+
+        val barToken = tokenizer.next()
+        assertEquals(TokenType.String, barToken.type)
+        assertEquals("bar", barToken.value)
+
+        val hogeFugaToken = tokenizer.next()
+        assertEquals(TokenType.String, hogeFugaToken.type)
+        assertEquals("hoge \"fuga\" piyo", hogeFugaToken.value)
+
+        val hogeFugaToken2 = tokenizer.next()
+        assertEquals(TokenType.String, hogeFugaToken2.type)
+        assertEquals("hoge 'fuga' piyo", hogeFugaToken2.value)
+
+        assertFalse(tokenizer.hasNext())
+    }
+
     test fun noneTokenTest() {
         val tokenizer = Tokenizer("")
         assertFalse(tokenizer.hasNext())

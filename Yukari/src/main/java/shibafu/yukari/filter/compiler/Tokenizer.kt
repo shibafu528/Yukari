@@ -9,8 +9,9 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
     override fun next(): Token {
         do {
             when (query[currentPos]) {
-                ' ' -> {}
-                '"' -> return Token(TokenType.String, getQuoteString(currentPos + 1))
+                ' ', '\t', '\r', '\n' -> {}
+                '"' -> return Token(TokenType.String, getQuoteString(currentPos + 1, '"'))
+                '\'' -> return Token(TokenType.String, getQuoteString(currentPos + 1, '\''))
                 else -> {
                     val begin = currentPos
 
@@ -29,7 +30,7 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
 
     override fun hasNext(): Boolean = currentPos < query.length()
 
-    private fun getQuoteString(start: Int) : String {
+    private fun getQuoteString(start: Int, quoteToken: Char) : String {
         var cursor = start
         while (cursor < query.length()) {
             when (query[cursor]) {
@@ -38,8 +39,8 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
                     throw TokenizeException(TokenizeExceptionKind.STRING_IS_NOT_CLOSED, query, cursor)
                 } else cursor++
 
-                // ダブルクォーテーション -> 探索終了
-                '"' -> {
+                // クォーテーショントークン -> 探索終了
+                quoteToken -> {
                     currentPos = cursor + 1
                     return query.substring(start, cursor).replace("\\", "")
                 }
