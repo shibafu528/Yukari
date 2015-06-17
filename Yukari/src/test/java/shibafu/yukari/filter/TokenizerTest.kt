@@ -86,4 +86,19 @@ class TokenizerTest {
 
         assertFalse(tokenizer.hasNext())
     }
+
+    test fun commaTest() {
+        val tokenizer = Tokenizer("hoge, fuga")
+
+        val hogeToken = tokenizer.next()
+        assertEquals(TokenType.Literal, hogeToken.type)
+        assertEquals("hoge", hogeToken.value)
+
+        val commaToken = tokenizer.next()
+        assertEquals(TokenType.Comma, commaToken.type)
+
+        val fugaToken = tokenizer.next()
+        assertEquals(TokenType.Literal, fugaToken.type)
+        assertEquals("fuga", fugaToken.value)
+    }
 }

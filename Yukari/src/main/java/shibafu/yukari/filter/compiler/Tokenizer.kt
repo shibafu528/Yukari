@@ -10,17 +10,18 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
         do {
             when (query[currentPos]) {
                 ' ', '\t', '\r', '\n' -> {}
-                '"' -> return Token(TokenType.String, getQuoteString(currentPos + 1, '"'))
-                '\'' -> return Token(TokenType.String, getQuoteString(currentPos + 1, '\''))
+                '"' -> return Token(TokenType.String, currentPos, getQuoteString(currentPos + 1, '"'))
+                '\'' -> return Token(TokenType.String, currentPos, getQuoteString(currentPos + 1, '\''))
+                ',' -> return Token(TokenType.Comma, currentPos++)
                 else -> {
                     val begin = currentPos
 
                     do {
-                        if (" \"".contains(query[currentPos])) break
+                        if (" \"\t\r\n',".contains(query[currentPos])) break
                         currentPos++
                     } while (hasNext())
 
-                    return Token(TokenType.Literal, query.substring(begin, currentPos))
+                    return Token(TokenType.Literal, begin, query.substring(begin, currentPos))
                 }
             }
             currentPos++
@@ -52,13 +53,14 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
     }
 }
 
-public data class Token(val type: TokenType, val value: String) {
+public data class Token(val type: TokenType, val cursor: Int, val value: String = "") {
     fun isMatch(v: String) = v.toLowerCase().equals(value.toLowerCase())
 }
 
 public enum class TokenType {
     Literal,
-    String
+    String,
+    Comma
 }
 
 public class TokenizeException(kind: TokenizeExceptionKind, query: String, cursor: Int)
