@@ -1,7 +1,14 @@
 package shibafu.yukari.util;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+
 import java.util.Calendar;
 import java.util.Date;
+
+import shibafu.yukari.R;
 
 /**
  * Created by Shibafu on 14/01/12.
@@ -60,5 +67,25 @@ public class StringUtil {
         format02d(s, c.get(Calendar.MINUTE)).append(':');
         format02d(s, c.get(Calendar.SECOND));
         return s.toString();
+    }
+
+    public static String getVersionInfo(Context context) {
+        StringBuilder sb = new StringBuilder(context.getString(R.string.app_name));
+        PackageManager pm = context.getPackageManager();
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            sb.append(" ");
+            sb.append(packageInfo.versionName);
+            sb.append("/");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            sb.append(" unknown ver/");
+        }
+        sb.append(Build.MANUFACTURER);
+        sb.append("/");
+        sb.append(Build.MODEL);
+        sb.append("/");
+        sb.append(Build.VERSION.RELEASE);
+        return sb.toString();
     }
 }

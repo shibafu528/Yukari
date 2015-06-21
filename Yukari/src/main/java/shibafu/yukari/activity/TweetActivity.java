@@ -75,6 +75,7 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
+import shibafu.yukari.util.StringUtil;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
@@ -249,6 +250,13 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //テキストエリアの設定
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
+        tvCount.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                etInput.append(StringUtil.getVersionInfo(getApplicationContext()));
+                return true;
+            }
+        });
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
         etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
