@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,7 +20,10 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -74,6 +78,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
     private SharedPreferences preferences;
+
+    private Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<Long, PreformedStatus>());
 
     @Override
     public void onAttach(Activity activity) {
@@ -481,12 +487,19 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             } else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            insertElement(status, position);
-                        }
-                    });
+                    if (asyncInsertWaitings.containsKey(status.getId())) {
+                        Log.d("Timeline_onStatus", "Redundant status : " + status.getId());
+                        asyncInsertWaitings.get(status.getId()).merge(status);
+                    } else {
+                        asyncInsertWaitings.put(status.getId(), status);
+                        getHandler().post(new Runnable() {
+                            @Override
+                            public void run() {
+                                insertElement(status, position);
+                                asyncInsertWaitings.remove(status.getId());
+                            }
+                        });
+                    }
                 }
             }
         }
