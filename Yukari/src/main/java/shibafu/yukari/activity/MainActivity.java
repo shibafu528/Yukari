@@ -318,7 +318,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 ibMenu.setVisibility(View.GONE);
             }
         }
-        else {
+        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             ibMenu.setVisibility(View.GONE);
         }
 
