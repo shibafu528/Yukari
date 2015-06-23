@@ -312,7 +312,7 @@
 
         <activity
             android:name=".activity.MaintenanceActivity"
-            android:label="Maintenance Mode" />
+            android:label="@string/title_activity_maintenance" />
 
         <activity
             android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
@@ -328,7 +328,7 @@
 
         <activity
             android:name=".activity.TwpfActivity"
-            android:label="ツイフィール ビューア">
+            android:label="@string/title_activity_twpf">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -348,6 +348,10 @@
             android:name=".activity.AboutActivity"
             android:theme="@style/YukariAboutTheme"
             android:screenOrientation="portrait"/>
+
+        <activity
+            android:name=".activity.TemplateEditActivity"
+            android:label="@string/title_activity_template_edit"/>
    </application>
 
 </manifest>

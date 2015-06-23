@@ -53,6 +53,12 @@
         <Preference
             android:title="::yk"
             android:summary="ゆかりさんゆかりさん！！(n回目)"/>
+        <Preference
+            android:title="::te"
+            android:summary="定型文を呼び出します"/>
+        <Preference
+            android:title="::td"
+            android:summary="定型文を登録・編集します"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference

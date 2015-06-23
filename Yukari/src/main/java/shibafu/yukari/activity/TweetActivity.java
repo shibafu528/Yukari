@@ -68,8 +68,10 @@ import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.database.Template;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -81,7 +83,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener{
+public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener{
 
     public static final int MODE_TWEET   = 0;
     public static final int MODE_REPLY   = 1;
@@ -111,6 +113,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     private static final int REQUEST_DIALOG_CLEAR = 0x01;
     private static final int REQUEST_DIALOG_YUKARIN = 0x02;
+    private static final int REQUEST_DIALOG_TEMPLATE = 0x03;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -182,6 +185,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     //最近使ったハッシュタグ
     private UsedHashes usedHashes;
+
+    //定型文入力 一時変数
+    private List<String> templateStrings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -569,6 +575,22 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             inputText = String.format("ゆかりさんゆかりさん！！(%d回目)", sp.getLong("count_yk", 1));
                             sp.edit().putLong("count_yk", sp.getLong("count_yk", 1) + 1).commit();
                             break;
+                        }
+                        case "::te": {
+                            List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
+                            templateStrings = new ArrayList<>();
+                            for (Template template : templates) {
+                                templateStrings.add(template.getValue());
+                            }
+                            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                                    REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル", templateStrings
+                            );
+                            dialogFragment.show(getSupportFragmentManager(), "template");
+                            return;
+                        }
+                        case "::td": {
+                            startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
+                            return;
                         }
                     }
                 }
@@ -1328,6 +1350,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     etInput.setText("＼ﾕｯｶﾘｰﾝ／");
                     btnPost.performClick();
+                }
+                break;
+            case REQUEST_DIALOG_TEMPLATE:
+                if (which > -1) {
+                    etInput.setText(templateStrings.get(which));
                 }
                 break;
         }
