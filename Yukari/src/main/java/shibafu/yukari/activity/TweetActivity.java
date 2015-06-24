@@ -439,47 +439,51 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::bb":
                             inputText = input.replace("::bb", "@nkroid bbop");
                             break;
-                        case "::cn": {
-                            String name = inputText.replace("::cn ", "");
-                            new ThrowableTwitterAsyncTask<String, Void>() {
-                                @Override
-                                protected ThrowableResult<Void> doInBackground(String... params) {
-                                    try {
-                                        Twitter twitter = getTwitterService().getTwitter();
-                                        for (AuthUserRecord user : writers) {
-                                            twitter.setOAuthAccessToken(user.getAccessToken());
-                                            twitter.updateProfile(params[0], null, null, null);
+                        case "::cn":
+                            if (inputText.split(" ").length > 1) {
+                                String name = inputText.replace("::cn ", "");
+                                new ThrowableTwitterAsyncTask<String, Void>() {
+                                    @Override
+                                    protected ThrowableResult<Void> doInBackground(String... params) {
+                                        try {
+                                            Twitter twitter = getTwitterService().getTwitter();
+                                            for (AuthUserRecord user : writers) {
+                                                twitter.setOAuthAccessToken(user.getAccessToken());
+                                                twitter.updateProfile(params[0], null, null, null);
+                                            }
+                                            return new ThrowableResult<>((Void) null);
+                                        } catch (TwitterException e) {
+                                            e.printStackTrace();
+                                            return new ThrowableResult<>(e);
                                         }
-                                        return new ThrowableResult<>((Void) null);
-                                    } catch (TwitterException e) {
-                                        e.printStackTrace();
-                                        return new ThrowableResult<>(e);
                                     }
-                                }
 
-                                @Override
-                                protected void onPreExecute() {
-                                    super.onPreExecute();
-                                    showToast("Updating your name...");
-                                }
-
-                                @Override
-                                protected void onPostExecute(ThrowableResult<Void> result) {
-                                    super.onPostExecute(result);
-                                    if (!result.isException()) {
-                                        showToast("Updated your name!");
+                                    @Override
+                                    protected void onPreExecute() {
+                                        super.onPreExecute();
+                                        showToast("Updating your name...");
                                     }
-                                }
 
-                                @Override
-                                protected void showToast(String message) {
-                                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-                                }
-                            }.execute(name);
-                            setResult(RESULT_OK);
-                            finish();
-                            return;
-                        }
+                                    @Override
+                                    protected void onPostExecute(ThrowableResult<Void> result) {
+                                        super.onPostExecute(result);
+                                        if (!result.isException()) {
+                                            showToast("Updated your name!");
+                                        }
+                                    }
+
+                                    @Override
+                                    protected void showToast(String message) {
+                                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                                    }
+                                }.execute(name);
+                                setResult(RESULT_OK);
+                                finish();
+                                return;
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
                         case "::d250g2":
                             if (inputText.split(" ").length > 1) {
                                 String comment = inputText.replace("::d250g2 ", "");
