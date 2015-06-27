@@ -39,6 +39,7 @@ import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
@@ -451,6 +452,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 startActivity(new Intent(MainActivity.this, TweetActivity.class));
             }
         });
+    }
+
+    @OnClick(R.id.llMainFooterRight)
+    void onClickFooterSpace() {
+        if (currentPage != null && sharedPreferences.getBoolean("pref_quick_scroll_to_top", false)) {
+            currentPage.scrollToTop();
+        }
     }
 
     @Override

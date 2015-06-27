@@ -19,6 +19,10 @@
             android:title="投稿ボタンを表示"
             android:summary="投稿画面を呼び出すボタンを表示します"/>
         <CheckBoxPreference
+            android:key="pref_quick_scroll_to_top"
+            android:title="先頭へぽっぴんジャンプ♪"
+            android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
+        <CheckBoxPreference
             android:key="pref_bottom_stack"
             android:title="メニューを下に寄せる"
             android:summary="ツイート詳細画面のメニューを下寄せにします"/>

@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter.statusimpl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -138,6 +139,9 @@ public class PreformedStatus implements Status{
 
     public PreformedStatus(PreformedStatus other) {
         for (Field field : PreformedStatus.class.getDeclaredFields()) {
+            if ((field.getModifiers() & Modifier.FINAL) == Modifier.FINAL) {
+                continue;
+            }
             try {
                 field.set(this, field.get(other));
             } catch (IllegalAccessException e) {
