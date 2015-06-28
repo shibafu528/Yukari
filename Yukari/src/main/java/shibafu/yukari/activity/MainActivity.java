@@ -452,6 +452,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 startActivity(new Intent(MainActivity.this, TweetActivity.class));
             }
         });
+
+        findViewById(R.id.llMainFooterRight).setOnTouchListener(tweetGestureListener);
     }
 
     @OnClick(R.id.llMainFooterRight)

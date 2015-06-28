@@ -66,6 +66,7 @@
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 android:layout_weight="1"
+                android:focusable="false"
                 android:orientation="horizontal">
 
                 <ImageView
