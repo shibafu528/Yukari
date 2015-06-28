@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.OnTouch;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
@@ -103,40 +104,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     //投稿ボタン関連
     @InjectView(R.id.tweetbutton_frame) FrameLayout flTweet;
 
-    private final View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    tweetGestureYStart = event.getY();
-                case MotionEvent.ACTION_MOVE:
-                    tweetGestureY = event.getY();
-                    isTouchTweet = true;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
-                        Intent intent = new Intent(MainActivity.this, TweetActivity.class);
-                        if (sharedPreferences.getBoolean("pref_use_binded_user", false)
-                                && currentPage != null
-                                && currentPage instanceof DefaultTweetListFragment
-                                && currentPage.getBoundUsers().size() == 1) {
-                            switch (currentPage.getMode()) {
-                                case TabType.TABTYPE_HOME:
-                                case TabType.TABTYPE_MENTION:
-                                case TabType.TABTYPE_DM:
-                                case TabType.TABTYPE_LIST:
-                                    intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
-                                    break;
-                            }
-                        }
-                        startActivity(intent);
-                        return true;
-                    }
-                    break;
-            }
-            return v.getId() == R.id.tweetgesture;
-        }
-    };
     private TabPagerAdapter tabPagerAdapter;
 
     @Override
@@ -184,7 +151,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ButterKnife.inject(this);
 
         View flStreamState = findViewById(R.id.flStreamState);
-        flStreamState.setOnTouchListener(tweetGestureListener);
         flStreamState.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -262,10 +228,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 return true;
             }
         });
-        tvTabText.setOnTouchListener(tweetGestureListener);
 
         ImageButton ibSearch = (ImageButton) findViewById(R.id.ibSearch);
-        ibSearch.setOnTouchListener(tweetGestureListener);
         ibSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -278,14 +242,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
-                            case R.id.action_save_search:
-                            {
+                            case R.id.action_save_search: {
                                 Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
                                 startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
                                 break;
                             }
-                            case R.id.action_search_tweets:
-                            {
+                            case R.id.action_search_tweets: {
                                 SearchDialogFragment dialogFragment = new SearchDialogFragment();
                                 dialogFragment.show(getSupportFragmentManager(), "search");
                                 break;
@@ -302,11 +264,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         });
 
-        FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
-        area.setOnTouchListener(tweetGestureListener);
-
         ImageButton ibMenu = (ImageButton) findViewById(R.id.ibMenu);
-        ibMenu.setOnTouchListener(tweetGestureListener);
         ibMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -323,7 +281,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             ibMenu.setVisibility(View.GONE);
         }
 
-        ibClose.setOnTouchListener(tweetGestureListener);
         ibClose.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
@@ -339,8 +296,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
                     viewPager.setCurrentItem(current - 1);
                     return true;
-                }
-                else return false;
+                } else return false;
             }
         });
         ibClose.setOnClickListener(new View.OnClickListener() {
@@ -352,7 +308,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         });
 
-        ibStream.setOnTouchListener(tweetGestureListener);
         ibStream.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -373,7 +328,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager.setAdapter(tabPagerAdapter);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int i, float v, int i2) {}
+            public void onPageScrolled(int i, float v, int i2) {
+            }
 
             @Override
             public void onPageSelected(int i) {
@@ -403,7 +359,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
 
             @Override
-            public void onPageScrollStateChanged(int i) {}
+            public void onPageScrollStateChanged(int i) {
+            }
         });
 
         ImageButton ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
@@ -445,15 +402,47 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         });
 
         ImageView ivTweet = (ImageView) findViewById(R.id.ivTweet);
-        ivTweet.setOnTouchListener(tweetGestureListener);
         ivTweet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, TweetActivity.class));
             }
         });
+    }
 
-        findViewById(R.id.llMainFooterRight).setOnTouchListener(tweetGestureListener);
+    @OnTouch({R.id.tweetgesture, R.id.llMainFooterRight, R.id.flStreamState, R.id.tvMainTab,
+            R.id.ibSearch, R.id.ibMenu, R.id.ibClose, R.id.ibStream, R.id.ivTweet,
+            R.id.ibCloseTweet, R.id.ibAccount, R.id.etTweetInput, R.id.ibTweet})
+    boolean onTouchFooter(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                tweetGestureYStart = event.getY();
+            case MotionEvent.ACTION_MOVE:
+                tweetGestureY = event.getY();
+                isTouchTweet = true;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
+                    Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                    if (sharedPreferences.getBoolean("pref_use_binded_user", false)
+                            && currentPage != null
+                            && currentPage instanceof DefaultTweetListFragment
+                            && currentPage.getBoundUsers().size() == 1) {
+                        switch (currentPage.getMode()) {
+                            case TabType.TABTYPE_HOME:
+                            case TabType.TABTYPE_MENTION:
+                            case TabType.TABTYPE_DM:
+                            case TabType.TABTYPE_LIST:
+                                intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
+                                break;
+                        }
+                    }
+                    startActivity(intent);
+                    return true;
+                }
+                break;
+        }
+        return v.getId() == R.id.tweetgesture;
     }
 
     @OnClick(R.id.llMainFooterRight)
