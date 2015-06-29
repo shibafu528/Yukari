@@ -5,16 +5,20 @@ import android.database.Cursor;
 
 import java.util.Date;
 
+import lombok.Value;
+
 /**
  * Created by shibafu on 14/03/10.
  */
+@Value
 @DBTable(CentralDatabase.TABLE_SEARCH_HISTORY)
 public class SearchHistory implements DBRecord{
-    private long id = -1;
-    private String query;
-    private Date date;
+    private final long id;
+    private final String query;
+    private final Date date;
 
     public SearchHistory(String query, Date date) {
+        this.id = -1;
         this.query = query;
         this.date = date;
     }
@@ -23,18 +27,6 @@ public class SearchHistory implements DBRecord{
         this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_SHISTORY_ID));
         this.query = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_SHISTORY_QUERY));
         this.date = new Date(cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_SHISTORY_DATE)));
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getQuery() {
-        return query;
-    }
-
-    public Date getDate() {
-        return date;
     }
 
     @Override

@@ -5,12 +5,17 @@ import android.database.Cursor;
 
 import java.io.Serializable;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
+
 /**
  * Created by shibafu on 15/06/23.
  */
+@Data
 @DBTable(CentralDatabase.TABLE_TEMPLATE)
 public class Template implements DBRecord, Serializable{
-    private long id = -1;
+    @Setter(AccessLevel.NONE) private long id = -1;
     private String value;
 
     public Template(String value) {
@@ -24,18 +29,6 @@ public class Template implements DBRecord, Serializable{
 
     @Override
     public String toString() {
-        return value;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
         return value;
     }
 

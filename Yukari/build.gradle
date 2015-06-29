@@ -33,6 +33,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     testCompile 'junit:junit:4.12'
+
+    provided 'org.projectlombok:lombok:1.16.4'
 }
 
 android {
