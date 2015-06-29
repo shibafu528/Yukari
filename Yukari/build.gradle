@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'me.tatarka.retrolambda'
 
 dependencies {
     compile 'com.android.support:appcompat-v7:20.0.+'
@@ -47,8 +48,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
@@ -72,6 +73,8 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 }
+
+//-- Kotlin --
 buildscript {
     ext.kotlin_version = '0.12.200'
     repositories {
@@ -83,4 +86,13 @@ buildscript {
 }
 repositories {
     mavenCentral()
+}
+//^^ Kotlin ^^
+
+retrolambda {
+    jdk System.getenv("JAVA8_HOME")
+    oldJdk System.getenv("JAVA7_HOME")
+    javaVersion JavaVersion.VERSION_1_7
+    defaultMethods true
+    incremental true
 }

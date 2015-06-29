@@ -19,7 +19,6 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,12 +77,7 @@ public class FontSelectorActivity extends ActionBarActivity {
             fonts.add(new Pair<>(FontAsset.SYSTEM_FONT_ID, Typeface.DEFAULT));
 
             File fontDir = new File(getActivity().getExternalFilesDir(null), "font");
-            File[] files = fontDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String filename) {
-                    return filename.endsWith(".ttf") || filename.endsWith(".otf");
-                }
-            });
+            File[] files = fontDir.listFiles((dir, filename) -> filename.endsWith(".ttf") || filename.endsWith(".otf"));
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
                 try {
@@ -95,7 +89,7 @@ public class FontSelectorActivity extends ActionBarActivity {
                 } catch (RuntimeException e) {
                     //native typeface cannot be made
                     e.printStackTrace();
-                    fonts.add(new Pair<String, Typeface>(file.getName(), null));
+                    fonts.add(new Pair<>(file.getName(), null));
                 }
             }
 

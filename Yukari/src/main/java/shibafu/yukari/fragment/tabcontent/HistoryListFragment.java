@@ -85,12 +85,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
             final HistoryStatus historyStatus = (HistoryStatus) status;
             final int position = prepareInsertStatus(historyStatus);
             if (position > -1) {
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        insertElement(historyStatus, position);
-                    }
-                });
+                getHandler().post(() -> insertElement(historyStatus, position));
             }
         }
     }

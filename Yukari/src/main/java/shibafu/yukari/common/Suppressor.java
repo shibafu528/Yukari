@@ -23,13 +23,10 @@ public class Suppressor {
     private LongList mutedIDs = new LongList();
     private LongList noRetweetIDs = new LongList();
 
-    private static final Comparator<Long> COMPARATOR = new Comparator<Long>() {
-        @Override
-        public int compare(Long lhs, Long rhs) {
-            if (lhs.equals(rhs)) return 0;
-            else if (lhs > rhs) return 1;
-            else return -1;
-        }
+    private static final Comparator<Long> COMPARATOR = (lhs, rhs) -> {
+        if (lhs.equals(rhs)) return 0;
+        else if (lhs > rhs) return 1;
+        else return -1;
     };
 
     public void setConfigs(List<MuteConfig> configs) {

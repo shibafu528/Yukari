@@ -1,6 +1,5 @@
 package shibafu.yukari.activity;
 
-import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -441,75 +440,60 @@ public class PreviewActivity extends FragmentYukariBase {
         tweetView = findViewById(R.id.inclPreviewStatus);
 
         ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
-        ibRotateLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (image != null) {
-                    Matrix rotateMatrix = new Matrix();
-                    rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                    rotateMatrix.postRotate(-90f);
-                    rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                    matrix.preConcat(rotateMatrix);
-                    updateMatrix();
-                }
+        ibRotateLeft.setOnClickListener(v -> {
+            if (image != null) {
+                Matrix rotateMatrix = new Matrix();
+                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                rotateMatrix.postRotate(-90f);
+                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                matrix.preConcat(rotateMatrix);
+                updateMatrix();
             }
         });
         ImageButton ibRotateRight = (ImageButton) findViewById(R.id.ibPreviewRotateRight);
-        ibRotateRight.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (image != null) {
-                    Matrix rotateMatrix = new Matrix();
-                    rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                    rotateMatrix.postRotate(90f);
-                    rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                    matrix.preConcat(rotateMatrix);
-                    updateMatrix();
-                }
+        ibRotateRight.setOnClickListener(v -> {
+            if (image != null) {
+                Matrix rotateMatrix = new Matrix();
+                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
+                rotateMatrix.postRotate(90f);
+                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
+                matrix.preConcat(rotateMatrix);
+                updateMatrix();
             }
         });
 
         ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
-        ibBrowser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null));
-            }
-        });
+        ibBrowser.setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
 
         ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
-        ibSave.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-            @Override
-            public void onClick(View v) {
-                Uri uri = Uri.parse(mediaUrl);
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
-                        "https".equals(uri.getScheme())) {
-                    uri = Uri.parse(mediaUrl.replace("https://", "http://"));
-                }
-                DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                DownloadManager.Request request = new DownloadManager.Request(uri);
-                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                String[] split = uri.getLastPathSegment().split("\\.");
-                if (split != null && split.length > 1) {
-                    request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
-                }
-                else {
-                    //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
-                    uri = Uri.parse(uri.toString() + ".png");
-                    request.setMimeType("image/png");
-                }
-                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
-                File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                pathExternalPublicDir.mkdirs();
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                    request.setShowRunningNotification(true);
-                }
-                else {
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                }
-                dlm.enqueue(request);
+        ibSave.setOnClickListener(v -> {
+            Uri uri = Uri.parse(mediaUrl);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
+                    "https".equals(uri.getScheme())) {
+                uri = Uri.parse(mediaUrl.replace("https://", "http://"));
             }
+            DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            DownloadManager.Request request = new DownloadManager.Request(uri);
+            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+            String[] split = uri.getLastPathSegment().split("\\.");
+            if (split != null && split.length > 1) {
+                request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
+            }
+            else {
+                //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
+                uri = Uri.parse(uri.toString() + ".png");
+                request.setMimeType("image/png");
+            }
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
+            File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            pathExternalPublicDir.mkdirs();
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+                request.setShowRunningNotification(true);
+            }
+            else {
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            }
+            dlm.enqueue(request);
         });
 
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
@@ -537,12 +521,7 @@ public class PreviewActivity extends FragmentYukariBase {
 
         if (status != null) {
             tweetView.setVisibility(View.VISIBLE);
-            new android.os.Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW);
-                }
-            });
+            new android.os.Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW));
         } else {
             tweetView.setVisibility(View.GONE);
         }

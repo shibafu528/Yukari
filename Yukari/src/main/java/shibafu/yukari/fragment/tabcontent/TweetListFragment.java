@@ -26,7 +26,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.TwitterException;
-import twitter4j.TwitterResponse;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -165,54 +164,48 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                 }
                 final LocalFunction local = new LocalFunction();
 
-                adapterWrap.setOnTouchProfileImageIconListener(new TweetAdapterWrap.OnTouchProfileImageIconListener() {
-                    @Override
-                    public boolean onTouch(TwitterResponse element, View v, MotionEvent event) {
-                        if (swipeActionStatusGrabbed != null) {
-                            return local.onStatusGrabbed(event);
-                        }
-
-                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                            local.requestDisallowInterceptTouchEvent();
-
-                            PreformedStatus status = (PreformedStatus) element;
-                            TweetAdapterWrap.ViewConverter viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                                    getActivity(),
-                                    status.getRepresentUser().toSingleList(),
-                                    null,
-                                    PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                                    PreformedStatus.class);
-                            viewConverter.convertView(swipeActionStatusView.findViewById(R.id.swipeActionStatus),
-                                    status, TweetAdapterWrap.ViewConverter.MODE_DEFAULT);
-
-                            swipeActionStatusView.setVisibility(View.VISIBLE);
-
-                            Rect rectInGlobal = new Rect();
-                            v.getGlobalVisibleRect(rectInGlobal);
-
-                            ObjectAnimator.ofPropertyValuesHolder(swipeActionStatusView,
-                                    PropertyValuesHolder.ofFloat("translationY", rectInGlobal.top, 0f),
-                                    PropertyValuesHolder.ofFloat("alpha", 0f, 0.9f))
-                                    .setDuration(150)
-                                    .start();
-
-                            swipeActionStatusGrabbed = status;
-                            swipeActionDownPositionX = event.getRawX();
-                            swipeActionDownPositionY = event.getRawY();
-                            return true;
-                        }
-                        return false;
+                adapterWrap.setOnTouchProfileImageIconListener((element, v, event) -> {
+                    if (swipeActionStatusGrabbed != null) {
+                        return local.onStatusGrabbed(event);
                     }
+
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        local.requestDisallowInterceptTouchEvent();
+
+                        PreformedStatus status = (PreformedStatus) element;
+                        TweetAdapterWrap.ViewConverter viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
+                                getActivity(),
+                                status.getRepresentUser().toSingleList(),
+                                null,
+                                PreferenceManager.getDefaultSharedPreferences(getActivity()),
+                                PreformedStatus.class);
+                        viewConverter.convertView(swipeActionStatusView.findViewById(R.id.swipeActionStatus),
+                                status, TweetAdapterWrap.ViewConverter.MODE_DEFAULT);
+
+                        swipeActionStatusView.setVisibility(View.VISIBLE);
+
+                        Rect rectInGlobal = new Rect();
+                        v.getGlobalVisibleRect(rectInGlobal);
+
+                        ObjectAnimator.ofPropertyValuesHolder(swipeActionStatusView,
+                                PropertyValuesHolder.ofFloat("translationY", rectInGlobal.top, 0f),
+                                PropertyValuesHolder.ofFloat("alpha", 0f, 0.9f))
+                                .setDuration(150)
+                                .start();
+
+                        swipeActionStatusGrabbed = status;
+                        swipeActionDownPositionX = event.getRawX();
+                        swipeActionDownPositionY = event.getRawY();
+                        return true;
+                    }
+                    return false;
                 });
 
-                listView.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        if (swipeActionStatusGrabbed != null) {
-                            return local.onStatusGrabbed(event);
-                        }
-                        return false;
+                listView.setOnTouchListener((v, event) -> {
+                    if (swipeActionStatusGrabbed != null) {
+                        return local.onStatusGrabbed(event);
                     }
+                    return false;
                 });
             }
         }
@@ -271,42 +264,39 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     }
 
-    private Runnable onReloadMuteConfigs = new Runnable() {
-        @Override
-        public void run() {
-            Suppressor suppressor = getService().getSuppressor();
-            boolean[] mute;
-            for (Iterator<PreformedStatus> it = elements.iterator(); it.hasNext(); ) {
-                PreformedStatus s = it.next();
+    private Runnable onReloadMuteConfigs = () -> {
+        Suppressor suppressor = getService().getSuppressor();
+        boolean[] mute;
+        for (Iterator<PreformedStatus> it = elements.iterator(); it.hasNext(); ) {
+            PreformedStatus s = it.next();
 
-                mute = suppressor.decision(s);
-                s.setCensoredThumbs(mute[MuteConfig.MUTE_IMAGE_THUMB]);
+            mute = suppressor.decision(s);
+            s.setCensoredThumbs(mute[MuteConfig.MUTE_IMAGE_THUMB]);
 
-                if ((mute[MuteConfig.MUTE_TWEET_RTED] ||
-                        (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                        (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    stash.add(s);
+            if ((mute[MuteConfig.MUTE_TWEET_RTED] ||
+                    (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
+                    (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
+                stash.add(s);
+                it.remove();
+            }
+        }
+        for (Iterator<PreformedStatus> it = stash.iterator(); it.hasNext(); ) {
+            PreformedStatus s = it.next();
+
+            mute = suppressor.decision(s);
+            s.setCensoredThumbs(mute[MuteConfig.MUTE_IMAGE_THUMB]);
+
+            if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
+                    (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
+                    (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
+                int position = prepareInsertStatus(s);
+                if (position > -1) {
+                    elements.add(position, s);
                     it.remove();
                 }
             }
-            for (Iterator<PreformedStatus> it = stash.iterator(); it.hasNext(); ) {
-                PreformedStatus s = it.next();
-
-                mute = suppressor.decision(s);
-                s.setCensoredThumbs(mute[MuteConfig.MUTE_IMAGE_THUMB]);
-
-                if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
-                        (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                        (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    int position = prepareInsertStatus(s);
-                    if (position > -1) {
-                        elements.add(position, s);
-                        it.remove();
-                    }
-                }
-            }
-            notifyDataSetChanged();
         }
+        notifyDataSetChanged();
     };
 
     @Override
@@ -322,12 +312,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             storedStatus = elements.get(i);
             if (status.getId() == storedStatus.getId()) {
                 storedStatus.merge(status);
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyDataSetChanged();
-                    }
-                });
+                getHandler().post(this::notifyDataSetChanged);
                 return -1;
             }
             else if (status.getId() > storedStatus.getId()) {

@@ -19,7 +19,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -152,35 +151,32 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
             super.onViewCreated(view, savedInstanceState);
             adapter = new Adapter(getActivity(), tabs);
             setListAdapter(adapter);
-            getListView().setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (!sortable) {
-                        return false;
-                    }
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            break;
-                        case MotionEvent.ACTION_MOVE: {
-                            int position = getListView().pointToPosition((int) event.getX(), (int) event.getY());
-                            if (position < 0) {
-                                break;
-                            }
-                            if (position != dragPosition) {
-                                dragPosition = position;
-                                adapter.remove(grabbedTab);
-                                adapter.insert(grabbedTab, dragPosition);
-                            }
-                            return true;
-                        }
-                        case MotionEvent.ACTION_UP:
-                        case MotionEvent.ACTION_CANCEL:
-                        case MotionEvent.ACTION_OUTSIDE:
-                            stopDrag();
-                            return true;
-                    }
+            getListView().setOnTouchListener((v, event) -> {
+                if (!sortable) {
                     return false;
                 }
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        break;
+                    case MotionEvent.ACTION_MOVE: {
+                        int position = getListView().pointToPosition((int) event.getX(), (int) event.getY());
+                        if (position < 0) {
+                            break;
+                        }
+                        if (position != dragPosition) {
+                            dragPosition = position;
+                            adapter.remove(grabbedTab);
+                            adapter.insert(grabbedTab, dragPosition);
+                        }
+                        return true;
+                    }
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                    case MotionEvent.ACTION_OUTSIDE:
+                        stopDrag();
+                        return true;
+                }
+                return false;
             });
         }
 
@@ -315,28 +311,22 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 final TabInfo item = getItem(position);
                 if (item != null) {
                     viewHolder.text.setText(item.getTitle());
-                    viewHolder.handle.setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(View v, MotionEvent event) {
-                            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                                startDrag(item);
-                                return true;
-                            }
-                            return false;
+                    viewHolder.handle.setOnTouchListener((v, event) -> {
+                        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                            startDrag(item);
+                            return true;
                         }
+                        return false;
                     });
                     viewHolder.radioButton.setOnCheckedChangeListener(null);
                     viewHolder.radioButton.setChecked(item.isStartup());
-                    viewHolder.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                for (TabInfo tab : tabs) {
-                                    tab.setStartup(tab.getId() == item.getId());
-                                }
-                                syncDatabase();
-                                notifyDataSetChanged();
+                    viewHolder.radioButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                        if (isChecked) {
+                            for (TabInfo tab : tabs) {
+                                tab.setStartup(tab.getId() == item.getId());
                             }
+                            syncDatabase();
+                            notifyDataSetChanged();
                         }
                     });
 
@@ -377,41 +367,38 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
-                    .setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            int type = 0;
-                            if (which % 2 == 1) {
-                                type = 0x80;
-                            }
-                            switch (which) {
-                                case 0:
-                                case 1:
-                                    type |= TabType.TABTYPE_HOME;
-                                    break;
-                                case 2:
-                                case 3:
-                                    type |= TabType.TABTYPE_MENTION;
-                                    break;
-                                case 4:
-                                case 5:
-                                    type |= TabType.TABTYPE_DM;
-                                    break;
-                                case 6:
-                                    type |= TabType.TABTYPE_LIST;
-                                    break;
-                                case 7:
-                                    type = TabType.TABTYPE_HISTORY;
-                                    break;
-                                case 8:
-                                    type = TabType.TABTYPE_FILTER;
-                                    break;
-                                default:
-                                    type = -1;
-                                    break;
-                            }
-                            ((TabEditActivity)getActivity()).addTab(type);
+                    .setItems(items, (dialog, which) -> {
+                        int type = 0;
+                        if (which % 2 == 1) {
+                            type = 0x80;
                         }
+                        switch (which) {
+                            case 0:
+                            case 1:
+                                type |= TabType.TABTYPE_HOME;
+                                break;
+                            case 2:
+                            case 3:
+                                type |= TabType.TABTYPE_MENTION;
+                                break;
+                            case 4:
+                            case 5:
+                                type |= TabType.TABTYPE_DM;
+                                break;
+                            case 6:
+                                type |= TabType.TABTYPE_LIST;
+                                break;
+                            case 7:
+                                type = TabType.TABTYPE_HISTORY;
+                                break;
+                            case 8:
+                                type = TabType.TABTYPE_FILTER;
+                                break;
+                            default:
+                                type = -1;
+                                break;
+                        }
+                        ((TabEditActivity)getActivity()).addTab(type);
                     });
             return builder.create();
         }
@@ -434,17 +421,14 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("Loading...")
-                    .setAdapter(new Adapter(getActivity(), userLists), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Bundle args = getArguments();
-                            UserList userList = userLists.get(which);
-                            ((TabEditActivity) getActivity()).addTab(
-                                    TabType.TABTYPE_LIST,
-                                    (AuthUserRecord) args.getSerializable(ARG_USER),
-                                    userList.getId(),
-                                    userList.getName());
-                        }
+                    .setAdapter(new Adapter(getActivity(), userLists), (dialog1, which) -> {
+                        Bundle args = getArguments();
+                        UserList userList = userLists.get(which);
+                        ((TabEditActivity) getActivity()).addTab(
+                                TabType.TABTYPE_LIST,
+                                (AuthUserRecord) args.getSerializable(ARG_USER),
+                                userList.getId(),
+                                userList.getName());
                     })
                     .create();
             Bundle args = getArguments();

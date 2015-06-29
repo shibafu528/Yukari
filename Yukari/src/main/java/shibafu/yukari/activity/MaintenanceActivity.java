@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -296,12 +295,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                         getActivity(),
                         currentUser.ProfileImageUrl,
                         BitmapCache.PROFILE_ICON_CACHE,
-                        new ImageLoaderTask.DrawableLoaderCallback() {
-                            @Override
-                            public void onLoadDrawable(Drawable drawable) {
-                                accountMenu.setIcon(drawable);
-                            }
-                        }
+                        accountMenu::setIcon
                 );
                 ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>> task
                         = new ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>>() {

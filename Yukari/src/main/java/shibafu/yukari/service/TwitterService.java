@@ -290,7 +290,7 @@ public class TwitterService extends Service{
     }
 
     public List<AuthUserRecord> getUsers() {
-        return users != null ? users : new ArrayList<AuthUserRecord>();
+        return users != null ? users : new ArrayList<>();
     }
 
     public AuthUserRecord getPrimaryUser() {
@@ -445,12 +445,7 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     private void showToast(final String text) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-            }
-        });
+        handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
     public ConfigurationBuilder getBuilder() {

@@ -10,10 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -99,15 +97,12 @@ public class AccountChooserActivity extends ListYukariBase {
         }
 
         if (isMultipleChoose) {
-            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    for (int i = 0; i < dataList.size(); ++i) {
-                        dataList.get(i).checked = (i == position);
-                    }
-                    adapter.notifyDataSetChanged();
-                    return true;
+            getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+                for (int i = 0; i < dataList.size(); ++i) {
+                    dataList.get(i).checked = (i == position);
                 }
+                adapter.notifyDataSetChanged();
+                return true;
             });
         }
     }
@@ -247,12 +242,9 @@ public class AccountChooserActivity extends ListYukariBase {
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
                 vh.checkBox.setTag(position);
-                vh.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        int position = (Integer)buttonView.getTag();
-                        getItem(position).checked = isChecked;
-                    }
+                vh.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    int position1 = (Integer)buttonView.getTag();
+                    getItem(position1).checked = isChecked;
                 });
                 vh.checkBox.setChecked(d.checked);
             }

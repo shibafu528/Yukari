@@ -12,7 +12,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -82,18 +81,15 @@ public class TemplateEditActivity extends ActionBarYukariBase {
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    deleteReserve = templates.get(position);
-                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            DIALOG_DELETE,
-                            "確認", "設定を削除しますか?", "OK", "キャンセル"
-                    );
-                    dialogFragment.setTargetFragment(InnerFragment.this, 1);
-                    dialogFragment.show(getChildFragmentManager(), "alert");
-                    return true;
-                }
+            getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+                deleteReserve = templates.get(position);
+                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                        DIALOG_DELETE,
+                        "確認", "設定を削除しますか?", "OK", "キャンセル"
+                );
+                dialogFragment.setTargetFragment(InnerFragment.this, 1);
+                dialogFragment.show(getChildFragmentManager(), "alert");
+                return true;
             });
 
         }
@@ -172,27 +168,21 @@ public class TemplateEditActivity extends ActionBarYukariBase {
             return new AlertDialog.Builder(getActivity())
                     .setTitle(template == null ? "新規追加" : "編集")
                     .setView(editText)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            InnerFragment innerFragment = (InnerFragment) getTargetFragment();
-                            if (innerFragment == null) {
-                                throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
-                            }
-                            Template template = (Template) getArguments().getSerializable(ARG_TEMPLATE);
-                            if (template == null) {
-                                template = new Template(editText.getText().toString());
-                            } else {
-                                template.setValue(editText.getText().toString());
-                            }
-                            innerFragment.updateTemplate(template);
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        dismiss();
+                        InnerFragment innerFragment = (InnerFragment) getTargetFragment();
+                        if (innerFragment == null) {
+                            throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
                         }
+                        Template template1 = (Template) getArguments().getSerializable(ARG_TEMPLATE);
+                        if (template1 == null) {
+                            template1 = new Template(editText.getText().toString());
+                        } else {
+                            template1.setValue(editText.getText().toString());
+                        }
+                        innerFragment.updateTemplate(template1);
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {}
-                    })
+                    .setNegativeButton("キャンセル", (dialog, which) -> {})
                     .create();
         }
     }

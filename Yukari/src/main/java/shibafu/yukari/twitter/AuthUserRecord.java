@@ -178,14 +178,14 @@ public class AuthUserRecord implements Serializable, DBRecord{
 
     public Object getSessionTemporary(String key) {
         if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+            sessionTemporary.put(NumericId, new HashMap<>());
         }
         return sessionTemporary.get(NumericId).get(key);
     }
 
     public Object getSessionTemporary(String key, Object ifNull) {
         if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+            sessionTemporary.put(NumericId, new HashMap<>());
         }
         Object value = sessionTemporary.get(NumericId).get(key);
         return value != null ? value : ifNull;
@@ -193,7 +193,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
 
     public void putSessionTemporary(String key, Object value) {
         if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<String, Object>());
+            sessionTemporary.put(NumericId, new HashMap<>());
         }
         sessionTemporary.get(NumericId).put(key, value);
     }

@@ -218,14 +218,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //アカウント表示の設定
         tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
-        tvTweetBy.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-                intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
-                startActivityForResult(intent, REQUEST_ACCOUTS);
-            }
+        tvTweetBy.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
+            startActivityForResult(intent, REQUEST_ACCOUTS);
         });
 
         //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
@@ -256,12 +253,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //テキストエリアの設定
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
-        tvCount.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                etInput.append(StringUtil.getVersionInfo(getApplicationContext()));
-                return true;
-            }
+        tvCount.setOnLongClickListener(v -> {
+            etInput.append(StringUtil.getVersionInfo(getApplicationContext()));
+            return true;
         });
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
@@ -288,13 +282,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 }
             }
         });
-        etInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
-                }
+        etInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
             }
         });
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
@@ -629,226 +620,181 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 finish();
             }
         });
-        btnPost.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                        REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
-                );
-                dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
-                return true;
-            }
+        btnPost.setOnLongClickListener(v -> {
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
+            );
+            dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
+            return true;
         });
 
         //各種サービスボタンの設定
         ImageButton ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
-        ibCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //添付上限判定
-                if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                    Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                //SDカード使用可否のチェックを行う
-                boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-                if (!existExternal) {
-                    Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                //保存先パスを作成する
-                String extStorage = Environment.getExternalStorageDirectory().getPath();
-                File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
-                if (!extDestDir.exists()) {
-                    extDestDir.mkdirs();
-                }
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-                String fileName = sdf.format(new Date(System.currentTimeMillis()));
-                File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
-                //コンテントプロバイダに登録
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.Images.Media.TITLE, fileName);
-                values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-                values.put(MediaStore.Images.Media.DATA, destFile.getPath());
-                cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                //カメラを呼び出す
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
-                startActivityForResult(intent, REQUEST_CAMERA);
+        ibCamera.setOnClickListener(v -> {
+            //添付上限判定
+            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                return;
             }
+            //SDカード使用可否のチェックを行う
+            boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+            if (!existExternal) {
+                Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            //保存先パスを作成する
+            String extStorage = Environment.getExternalStorageDirectory().getPath();
+            File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
+            if (!extDestDir.exists()) {
+                extDestDir.mkdirs();
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String fileName = sdf.format(new Date(System.currentTimeMillis()));
+            File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
+            //コンテントプロバイダに登録
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DATA, destFile.getPath());
+            cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            //カメラを呼び出す
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
+            startActivityForResult(intent, REQUEST_CAMERA);
         });
         ImageButton ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
-        ibAttach.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //添付上限判定
-                if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                    Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
-                intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-                intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
-                intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
-                intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
-                startActivityForResult(intent, REQUEST_GALLERY);
-                overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+        ibAttach.setOnClickListener(v -> {
+            //添付上限判定
+            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                return;
             }
+            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
+            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
+            startActivityForResult(intent, REQUEST_GALLERY);
+            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
         });
-        ibAttach.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
-                    Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
-                    if (c.moveToLast()) {
-                        long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
-                        attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
-                    }
-                    c.close();
-                    Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
+        ibAttach.setOnLongClickListener(view -> {
+            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
+                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                if (c.moveToLast()) {
+                    long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
+                    attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
                 }
-                return true;
+                c.close();
+                Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
             }
+            return true;
         });
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
-        ibHash.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
-                        .setTitle("ハッシュタグ入力")
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .setItems(new String[]{"入力履歴から", "タイムラインから"}, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+        ibHash.setOnClickListener(v -> {
+            AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
+                    .setTitle("ハッシュタグ入力")
+                    .setOnCancelListener(dialog1 -> {
+                        dialog1.dismiss();
+                        currentDialog = null;
+                    })
+                    .setItems(new String[]{"入力履歴から", "タイムラインから"}, (dialog1, which) -> {
+                        dialog1.dismiss();
+                        currentDialog = null;
 
-                                AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
-                                final String[] hashtags;
-                                switch (which) {
-                                    case 0:
-                                        builder.setTitle("ハッシュタグ入力履歴");
-                                        hashtags = usedHashes.getAll().toArray(new String[usedHashes.getAll().size()]);
-                                        break;
-                                    case 1:
-                                        builder.setTitle("TLで見かけたハッシュタグ");
-                                        hashtags = getTwitterService().getHashCache();
-                                        break;
-                                    default:
-                                        return;
-                                }
-                                builder.setItems(hashtags, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                        currentDialog = null;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
+                        final String[] hashtags;
+                        switch (which) {
+                            case 0:
+                                builder.setTitle("ハッシュタグ入力履歴");
+                                hashtags = usedHashes.getAll().toArray(new String[usedHashes.getAll().size()]);
+                                break;
+                            case 1:
+                                builder.setTitle("TLで見かけたハッシュタグ");
+                                hashtags = getTwitterService().getHashCache();
+                                break;
+                            default:
+                                return;
+                        }
+                        builder.setItems(hashtags, (dialog2, which1) -> {
+                            dialog2.dismiss();
+                            currentDialog = null;
 
-                                        etInput.getText().append(" " + hashtags[which]);
-                                    }
-                                });
-                                builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                        currentDialog = null;
-                                    }
-                                });
-                                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialog) {
-                                        dialog.dismiss();
-                                        currentDialog = null;
-                                    }
-                                });
-                                AlertDialog ad = builder.create();
-                                ad.show();
-                                currentDialog = ad;
-                            }
-                        })
-                        .create();
-                dialog.show();
-                currentDialog = dialog;
-            }
+                            etInput.getText().append(" " + hashtags[which1]);
+                        });
+                        builder.setNegativeButton("キャンセル", (dialog2, which1) -> {
+                            dialog2.dismiss();
+                            currentDialog = null;
+                        });
+                        builder.setOnCancelListener(dialog2 -> {
+                            dialog2.dismiss();
+                            currentDialog = null;
+                        });
+                        AlertDialog ad = builder.create();
+                        ad.show();
+                        currentDialog = ad;
+                    })
+                    .create();
+            dialog.show();
+            currentDialog = dialog;
         });
-        ibHash.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                appendTextInto(" #");
-                return true;
-            }
+        ibHash.setOnLongClickListener(v -> {
+            appendTextInto(" #");
+            return true;
         });
         ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
-        ibVoice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
-                try {
-                    startActivityForResult(intent, REQUEST_VOICE);
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
-                }
+        ibVoice.setOnClickListener(v -> {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
+            try {
+                startActivityForResult(intent, REQUEST_VOICE);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
             }
         });
         ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
-        ibDraft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
-                        .setTitle("下書きメニュー")
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .setItems(new String[] {"下書きを保存", "下書きを開く", "入力欄をクリア"}, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+        ibDraft.setOnClickListener(v -> {
+            AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
+                    .setTitle("下書きメニュー")
+                    .setOnCancelListener(dialog -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    })
+                    .setItems(new String[] {"下書きを保存", "下書きを開く", "入力欄をクリア"}, (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
 
-                                switch (which) {
-                                    case 0: {
-                                        if (tweetCount >= 140 && attachPictures.isEmpty()) {
-                                            Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
-                                        }
-                                        else {
-                                            getTwitterService().getDatabase().updateDraft(getTweetDraft());
-                                            Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
-                                        }
-                                        break;
-                                    }
-                                    case 1: {
-                                        DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
-                                        draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
-                                        break;
-                                    }
-                                    case 2: {
-                                        SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                                                REQUEST_DIALOG_CLEAR,
-                                                "確認",
-                                                "入力中の文章をすべて削除してもよろしいですか？",
-                                                "OK",
-                                                "キャンセル");
-                                        dialogFragment.show(getSupportFragmentManager(), "dialog");
-                                        break;
-                                    }
+                        switch (which) {
+                            case 0: {
+                                if (tweetCount >= 140 && attachPictures.isEmpty()) {
+                                    Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                 }
+                                else {
+                                    getTwitterService().getDatabase().updateDraft(getTweetDraft());
+                                    Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
+                                }
+                                break;
                             }
-                        })
-                        .create();
-                ad.show();
-                currentDialog = ad;
-            }
+                            case 1: {
+                                DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
+                                draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
+                                break;
+                            }
+                            case 2: {
+                                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                                        REQUEST_DIALOG_CLEAR,
+                                        "確認",
+                                        "入力中の文章をすべて削除してもよろしいですか？",
+                                        "OK",
+                                        "キャンセル");
+                                dialogFragment.show(getSupportFragmentManager(), "dialog");
+                                break;
+                            }
+                        }
+                    })
+                    .create();
+            ad.show();
+            currentDialog = ad;
         });
 
         //各種エクストラボタンの設定
@@ -858,14 +804,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             try {
                 final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
                 ibNowPlay.setVisibility(View.VISIBLE);
-                ibNowPlay.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
-                        intent.addCategory("com.adamrocker.android.simeji.REPLACE");
-                        intent.setPackage(ai.packageName);
-                        startActivityForResult(intent, REQUEST_NOWPLAYING);
-                    }
+                ibNowPlay.setOnClickListener(v -> {
+                    Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
+                    intent.addCategory("com.adamrocker.android.simeji.REPLACE");
+                    intent.setPackage(ai.packageName);
+                    startActivityForResult(intent, REQUEST_NOWPLAYING);
                 });
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
@@ -873,54 +816,40 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
         ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
         {
-            ibMorse.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
-                    startActivityForResult(intent, REQUEST_NOWPLAYING);
-                }
+            ibMorse.setOnClickListener(v -> {
+                Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
+                startActivityForResult(intent, REQUEST_NOWPLAYING);
             });
         }
         ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
-        ibGrasses.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int start = etInput.getSelectionStart();
-                int end = etInput.getSelectionEnd();
-                if (start < 0 || end < 0 || start == end) {
-                    appendTextInto("ｗ");
-                }
-                else {
-                    String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
-                    char[] chr = text.toCharArray();
-                    int grass = text.length() - 1;
-                    StringBuilder sb = new StringBuilder();
-                    for (char c : chr) {
-                        sb.append(c);
-                        if (grass > 0) {
-                            sb.append("ｗ");
-                            --grass;
-                        }
+        ibGrasses.setOnClickListener(v -> {
+            int start = etInput.getSelectionStart();
+            int end = etInput.getSelectionEnd();
+            if (start < 0 || end < 0 || start == end) {
+                appendTextInto("ｗ");
+            }
+            else {
+                String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
+                char[] chr = text.toCharArray();
+                int grass = text.length() - 1;
+                StringBuilder sb = new StringBuilder();
+                for (char c : chr) {
+                    sb.append(c);
+                    if (grass > 0) {
+                        sb.append("ｗ");
+                        --grass;
                     }
-                    text = sb.toString();
-                    etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
                 }
+                text = sb.toString();
+                etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
             }
         });
         ImageButton ibSanten = (ImageButton) findViewById(R.id.ibTweetSanten);
-        ibSanten.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appendTextInto("…");
-            }
-        });
+        ibSanten.setOnClickListener(v -> appendTextInto("…"));
         ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
-        ibSNPicker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
-                startActivityForResult(intent, REQUEST_SNPICKER);
-            }
+        ibSNPicker.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
+            startActivityForResult(intent, REQUEST_SNPICKER);
         });
 
 
@@ -950,63 +879,57 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             Bitmap sourceIcon = ((BitmapDrawable)ri.activityInfo.loadIcon(pm)).getBitmap();
             imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
             imageButton.setTag(ri);
-            imageButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ResolveInfo ri = (ResolveInfo) v.getTag();
+            imageButton.setOnClickListener(v -> {
+                ResolveInfo ri1 = (ResolveInfo) v.getTag();
 
-                    Intent intent = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
-                    intent.addCategory(Intent.CATEGORY_DEFAULT);
-                    intent.setPackage(ri.activityInfo.packageName);
-                    intent.setClassName(ri.activityInfo.packageName, ri.activityInfo.name);
+                Intent intent = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
+                intent.addCategory(Intent.CATEGORY_DEFAULT);
+                intent.setPackage(ri1.activityInfo.packageName);
+                intent.setClassName(ri1.activityInfo.packageName, ri1.activityInfo.name);
 
-                    String text = etInput.getText().toString();
-                    intent.putExtra(Intent.EXTRA_TEXT, text);
+                String text = etInput.getText().toString();
+                intent.putExtra(Intent.EXTRA_TEXT, text);
 
-                    Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
-                    String prefix = "";
-                    if (prefixMatcher.find()) {
-                        StringBuilder sb = new StringBuilder();
-                        for (int i = 0; i < prefixMatcher.groupCount(); i++) {
-                            sb.append(prefixMatcher.group(i+1));
-                        }
-                        prefix = sb.toString();
+                Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
+                String prefix = "";
+                if (prefixMatcher.find()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < prefixMatcher.groupCount(); i++) {
+                        sb.append(prefixMatcher.group(i+1));
                     }
-                    intent.putExtra("prefix", prefix);
-
-                    Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
-                    String suffix = "";
-                    if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
-                        suffix = suffixMatcher.group(1);
-                    }
-                    intent.putExtra("suffix", suffix);
-
-                    Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
-                    Matcher userInputMatcher = userInputPattern.matcher(text);
-                    if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
-                        intent.putExtra("user_input", userInputMatcher.group(1));
-                    }
-                    else {
-                        intent.putExtra("user_input", "");
-                    }
-
-                    if (status != null) {
-                        intent.putExtra("in_reply_to_status_id", status.getId());
-                    }
-                    intent.putExtra("cursor", etInput.getSelectionStart());
-
-                    startActivityForResult(intent, REQUEST_TWICCA_PLUGIN);
+                    prefix = sb.toString();
                 }
+                intent.putExtra("prefix", prefix);
+
+                Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
+                String suffix = "";
+                if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
+                    suffix = suffixMatcher.group(1);
+                }
+                intent.putExtra("suffix", suffix);
+
+                Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
+                Matcher userInputMatcher = userInputPattern.matcher(text);
+                if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
+                    intent.putExtra("user_input", userInputMatcher.group(1));
+                }
+                else {
+                    intent.putExtra("user_input", "");
+                }
+
+                if (status != null) {
+                    intent.putExtra("in_reply_to_status_id", status.getId());
+                }
+                intent.putExtra("cursor", etInput.getSelectionStart());
+
+                startActivityForResult(intent, REQUEST_TWICCA_PLUGIN);
             });
-            imageButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    ResolveInfo info = (ResolveInfo) v.getTag();
-                    Toast toast = Toast.makeText(TweetActivity.this, info.activityInfo.loadLabel(pm), Toast.LENGTH_LONG);
-                    toast.setGravity(Gravity.CENTER, 0, -128);
-                    toast.show();
-                    return true;
-                }
+            imageButton.setOnLongClickListener(v -> {
+                ResolveInfo info = (ResolveInfo) v.getTag();
+                Toast toast = Toast.makeText(TweetActivity.this, info.activityInfo.loadLabel(pm), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, -128);
+                toast.show();
+                return true;
             });
             llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         }
@@ -1164,53 +1087,41 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         final ImageView ivAttach = new ImageView(this);
         ivAttach.setLayoutParams(new ViewGroup.LayoutParams(size, size));
         ivAttach.setImageBitmap(bmp);
-        ivAttach.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
-                        .setTitle("添付の取り消し")
-                        .setMessage("画像の添付を取り消してもよろしいですか？")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton("はい", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+        ivAttach.setOnClickListener(v -> {
+            AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
+                    .setTitle("添付の取り消し")
+                    .setMessage("画像の添付を取り消してもよろしいですか？")
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton("はい", (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
 
-                                llTweetAttachInner.removeView(ivAttach);
-                                for (Iterator<AttachPicture> it = attachPictures.iterator(); it.hasNext(); ) {
-                                    AttachPicture attachPicture = it.next();
-                                    if (attachPicture.imageView == ivAttach) {
-                                        it.remove();
-                                        break;
-                                    }
-                                }
+                        llTweetAttachInner.removeView(ivAttach);
+                        for (Iterator<AttachPicture> it = attachPictures.iterator(); it.hasNext(); ) {
+                            AttachPicture attachPicture = it.next();
+                            if (attachPicture.imageView == ivAttach) {
+                                it.remove();
+                                break;
+                            }
+                        }
 
-                                if (attachPictures.isEmpty()) {
-                                    llTweetAttachParent.setVisibility(View.GONE);
-                                }
+                        if (attachPictures.isEmpty()) {
+                            llTweetAttachParent.setVisibility(View.GONE);
+                        }
 
-                                updateTweetCount();
-                            }
-                        })
-                        .setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .create();
-                ad.show();
-                currentDialog = ad;
-            }
+                        updateTweetCount();
+                    })
+                    .setNegativeButton("いいえ", (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    })
+                    .setOnCancelListener(dialog -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    })
+                    .create();
+            ad.show();
+            currentDialog = ad;
         });
         return ivAttach;
     }
@@ -1224,12 +1135,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             pic.width = size[0];
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);
-            pic.imageView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri, getApplicationContext(), PreviewActivity.class));
-                    return true;
-                }
+            pic.imageView.setOnLongClickListener(v -> {
+                startActivity(new Intent(Intent.ACTION_VIEW, uri, getApplicationContext(), PreviewActivity.class));
+                return true;
             });
         } catch (IOException | NullPointerException e) {
             e.printStackTrace();

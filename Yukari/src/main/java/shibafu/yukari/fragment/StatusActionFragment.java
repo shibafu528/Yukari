@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -149,40 +148,31 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
+                            .setPositiveButton("OK", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
 
-                                    AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                                        @Override
-                                        protected Void doInBackground(Void... params) {
-                                            if (status instanceof Bookmark) {
-                                                getTwitterService().getDatabase().deleteRecord((Bookmark) status);
-                                            } else {
-                                                getTwitterService().destroyStatus(user, status.getId());
-                                            }
-                                            return null;
+                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground(Void... params) {
+                                        if (status instanceof Bookmark) {
+                                            getTwitterService().getDatabase().deleteRecord((Bookmark) status);
+                                        } else {
+                                            getTwitterService().destroyStatus(user, status.getId());
                                         }
-                                    };
-                                    task.execute();
-                                    getActivity().finish();
-                                }
+                                        return null;
+                                    }
+                                };
+                                task.execute();
+                                getActivity().finish();
                             })
-                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
+                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
+                            .setOnCancelListener(dialog -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
                             .create();
                     ad.show();
@@ -288,20 +278,14 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("ミュート")
-                    .setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            StatusActionFragment fragment = (StatusActionFragment) getTargetFragment();
-                            if (fragment != null) {
-                                fragment.onSelectedMuteOption(muteOptions[which]);
-                            }
+                    .setItems(items, (dialog1, which) -> {
+                        dismiss();
+                        StatusActionFragment fragment = (StatusActionFragment) getTargetFragment();
+                        if (fragment != null) {
+                            fragment.onSelectedMuteOption(muteOptions[which]);
                         }
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
+                    .setNegativeButton("キャンセル", (dialog1, which) -> {
                     })
                     .create();
             return dialog;

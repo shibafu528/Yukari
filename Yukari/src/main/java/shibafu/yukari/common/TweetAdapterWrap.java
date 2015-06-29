@@ -314,7 +314,7 @@ public class TweetAdapterWrap {
                 throws IllegalAccessException, InstantiationException {
             this.context = context;
             this.userRecords = userRecords;
-            this.userExtras = userExtras != null ? userExtras : new ArrayList<UserExtras>();
+            this.userExtras = userExtras != null ? userExtras : new ArrayList<>();
             this.preferences = preferences;
             this.delegate = delegate;
 
@@ -403,12 +403,7 @@ public class TweetAdapterWrap {
                 ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, imageUrl);
             }
             if (onTouchProfileImageIconListener != null) {
-                viewHolder.ivIcon.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View iv, MotionEvent event) {
-                        return onTouchProfileImageIconListener.onTouch(content, v, event);
-                    }
-                });
+                viewHolder.ivIcon.setOnTouchListener((iv, event) -> onTouchProfileImageIconListener.onTouch(content, v, event));
             }
 
             viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
@@ -535,17 +530,14 @@ public class TweetAdapterWrap {
                                     hidden && getPreferences().getBoolean("pref_prev_mosaic", false));
 
                             if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview() || getPreferences().getBoolean("pref_extended_touch_event", false)) {
-                                iv.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        Intent intent = new Intent(
-                                                Intent.ACTION_VIEW,
-                                                Uri.parse(media.getBrowseURL()),
-                                                getContext(),
-                                                PreviewActivity.class);
-                                        intent.putExtra(PreviewActivity.EXTRA_STATUS, st);
-                                        getContext().startActivity(intent);
-                                    }
+                                iv.setOnClickListener(v1 -> {
+                                    Intent intent = new Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(media.getBrowseURL()),
+                                            getContext(),
+                                            PreviewActivity.class);
+                                    intent.putExtra(PreviewActivity.EXTRA_STATUS, st);
+                                    getContext().startActivity(intent);
                                 });
                             }
                         }

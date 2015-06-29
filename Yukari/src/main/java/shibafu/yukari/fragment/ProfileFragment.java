@@ -21,7 +21,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -36,7 +35,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import shibafu.yukari.R;
@@ -120,31 +118,25 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
 
         ivProfileIcon = (ImageView)v.findViewById(R.id.ivProfileIcon);
-        ivProfileIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (loadHolder != null && loadHolder.targetUser != null) {
-                    startActivity(new Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(loadHolder.targetUser.getOriginalProfileImageURLHttps()),
-                            getActivity(),
-                            PreviewActivity.class));
-                }
+        ivProfileIcon.setOnClickListener(v1 -> {
+            if (loadHolder != null && loadHolder.targetUser != null) {
+                startActivity(new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(loadHolder.targetUser.getOriginalProfileImageURLHttps()),
+                        getActivity(),
+                        PreviewActivity.class));
             }
         });
         ivHeader = (ImageView) v.findViewById(R.id.ivProfileHeader);
-        ivHeader.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (loadHolder != null
-                        && loadHolder.targetUser != null
-                        && loadHolder.targetUser.getProfileBannerRetinaURL() != null) {
-                    startActivity(new Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL()),
-                            getActivity(),
-                            PreviewActivity.class));
-                }
+        ivHeader.setOnClickListener(v1 -> {
+            if (loadHolder != null
+                    && loadHolder.targetUser != null
+                    && loadHolder.targetUser.getProfileBannerRetinaURL() != null) {
+                startActivity(new Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL()),
+                        getActivity(),
+                        PreviewActivity.class));
             }
         });
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
@@ -160,245 +152,224 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         tvUserId.setText("#" + targetId);
 
         btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
-        btnFollowManage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FollowDialogFragment fragment = new FollowDialogFragment();
-                Bundle args = new Bundle();
-                args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-                args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
-                fragment.setArguments(args);
-                fragment.setTargetFragment(ProfileFragment.this, 0);
-                fragment.show(getFragmentManager(), "follow");
-            }
+        btnFollowManage.setOnClickListener(view -> {
+            FollowDialogFragment fragment = new FollowDialogFragment();
+            Bundle args1 = new Bundle();
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+            fragment.setArguments(args1);
+            fragment.setTargetFragment(ProfileFragment.this, 0);
+            fragment.show(getFragmentManager(), "follow");
         });
         if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("allow_all_r4s", false)) {
-            btnFollowManage.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    FollowDialogFragment fragment = new FollowDialogFragment();
-                    Bundle args = new Bundle();
-                    args.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-                    args.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
-                    args.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
-                    fragment.setArguments(args);
-                    fragment.setTargetFragment(ProfileFragment.this, 0);
-                    fragment.show(getFragmentManager(), "follow");
-                    return true;
-                }
+            btnFollowManage.setOnLongClickListener(v1 -> {
+                FollowDialogFragment fragment = new FollowDialogFragment();
+                Bundle args1 = new Bundle();
+                args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
+                args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+                args1.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
+                fragment.setArguments(args1);
+                fragment.setTargetFragment(ProfileFragment.this, 0);
+                fragment.show(getFragmentManager(), "follow");
+                return true;
             });
         }
 
         ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
-        ibMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<String> menuList = new ArrayList<>();
-                menuList.add("ツイートを送る");
-                menuList.add("DMを送る");
-                menuList.add("ブラウザで開く");
-                menuList.add("保存しているリスト");
-                menuList.add("追加されているリスト");
-                menuList.add("リストへ追加/削除");
-                menuList.add("ミュートする");
-                menuList.add("カラーラベルを設定");
+        ibMenu.setOnClickListener(v1 -> {
+            List<String> menuList = new ArrayList<>();
+            menuList.add("ツイートを送る");
+            menuList.add("DMを送る");
+            menuList.add("ブラウザで開く");
+            menuList.add("保存しているリスト");
+            menuList.add("追加されているリスト");
+            menuList.add("リストへ追加/削除");
+            menuList.add("ミュートする");
+            menuList.add("カラーラベルを設定");
 
-                if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
-                        (targetId >= 0 && targetId == user.NumericId) ||
-                        (selfLoadId && selfLoadName.equals(user.ScreenName))) {
-                    menuList.add("プロフィール編集");
-                    menuList.add("ブロックリスト");
-                }
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setItems(menuList.toArray(new String[menuList.size()]), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        switch (which) {
-                            case 0:
-                            {
-                                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                                intent.putExtra(TweetActivity.EXTRA_USER, user);
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + loadHolder.targetUser.getScreenName() + " ");
-                                startActivity(intent);
-                                break;
-                            }
-                            case 1:
-                            {
-                                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
-                                startActivity(intent);
-                                break;
-                            }
-                            case 2:
-                            {
-                                Intent intent = new Intent(Intent.ACTION_VIEW,
-                                        Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);
-                                break;
-                            }
-                            case 3:
-                            {
-                                UserListFragment fragment = new UserListFragment();
-                                Bundle args = new Bundle();
-                                args.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
-                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                                args.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
-                                fragment.setArguments(args);
-                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                transaction.replace(R.id.frame, fragment, "contain");
-                                transaction.addToBackStack(null);
-                                transaction.commit();
-                                break;
-                            }
-                            case 4:
-                            {
-                                UserListFragment fragment = new UserListFragment();
-                                Bundle args = new Bundle();
-                                args.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
-                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                                args.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
-                                fragment.setArguments(args);
-                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                transaction.replace(R.id.frame, fragment, "contain");
-                                transaction.addToBackStack(null);
-                                transaction.commit();
-                                break;
-                            }
-                            case 5:
-                            {
-                                ListRegisterDialogFragment dialogFragment =
-                                        ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
-                                dialogFragment.setTargetFragment(ProfileFragment.this, 1);
-                                dialogFragment.show(getChildFragmentManager(), "list");
-                                break;
-                            }
-                            case 6:
-                            {
-                                MuteMenuDialogFragment dialogFragment =
-                                        MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
-                                dialogFragment.show(getChildFragmentManager(), "mute");
-                                break;
-                            }
-                            case 7:
-                            {
-                                ColorPickerDialogFragment dialogFragment =
-                                        ColorPickerDialogFragment.newInstance(
-                                                getTargetUserColor(), "colorLabel"
-                                        );
-                                dialogFragment.setTargetFragment(ProfileFragment.this, 2);
-                                dialogFragment.show(getChildFragmentManager(), "colorLabel");
-                                break;
-                            }
-                            case 8:
-                            {
-                                Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
-                                intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
-                                startActivity(intent);
-                                break;
-                            }
-                            case 9:
-                            {
-                                FriendListFragment fragment = new FriendListFragment();
-                                Bundle args = new Bundle();
-                                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
-                                args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                                args.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
-                                fragment.setArguments(args);
-                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                transaction.replace(R.id.frame, fragment, "contain");
-                                transaction.addToBackStack(null);
-                                transaction.commit();
-                                break;
-                            }
-                        }
-                        currentDialog = null;
-                    }
-                });
-                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    }
-                });
-                AlertDialog ad = builder.create();
-                ad.show();
-                currentDialog = ad;
+            if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
+                    (targetId >= 0 && targetId == user.NumericId) ||
+                    (selfLoadId && selfLoadName.equals(user.ScreenName))) {
+                menuList.add("プロフィール編集");
+                menuList.add("ブロックリスト");
             }
-        });
-        ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
-        ibSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (loadHolder != null && loadHolder.targetUser != null) {
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "@" + loadHolder.targetUser.getScreenName());
-                    startActivity(intent);
-                }
-            }
-        });
 
-        gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
-        gridCommands.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (position < 0 || position > 3) return;
-                Fragment fragment = null;
-                Bundle args = new Bundle();
-                switch (position) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setItems(menuList.toArray(new String[menuList.size()]), (dialog, which) -> {
+                dialog.dismiss();
+                switch (which) {
                     case 0:
                     {
-                        fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
-                        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
-                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
+                        Intent intent = new Intent(getActivity(), TweetActivity.class);
+                        intent.putExtra(TweetActivity.EXTRA_USER, user);
+                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + loadHolder.targetUser.getScreenName() + " ");
+                        startActivity(intent);
                         break;
                     }
                     case 1:
                     {
-                        fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
-                        args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
-                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
+                        Intent intent = new Intent(getActivity(), TweetActivity.class);
+                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                        intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
+                        intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
+                        startActivity(intent);
                         break;
                     }
                     case 2:
                     {
-                        fragment = new FriendListFragment();
-                        args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
-                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
+                        Intent intent = new Intent(Intent.ACTION_VIEW,
+                                Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
                         break;
                     }
                     case 3:
                     {
-                        fragment = new FriendListFragment();
-                        args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
-                        args.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
+                        UserListFragment fragment = new UserListFragment();
+                        Bundle args1 = new Bundle();
+                        args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
+                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args1.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
+                        fragment.setArguments(args1);
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame, fragment, "contain");
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        break;
+                    }
+                    case 4:
+                    {
+                        UserListFragment fragment = new UserListFragment();
+                        Bundle args1 = new Bundle();
+                        args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
+                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args1.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
+                        fragment.setArguments(args1);
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame, fragment, "contain");
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        break;
+                    }
+                    case 5:
+                    {
+                        ListRegisterDialogFragment dialogFragment =
+                                ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
+                        dialogFragment.setTargetFragment(ProfileFragment.this, 1);
+                        dialogFragment.show(getChildFragmentManager(), "list");
+                        break;
+                    }
+                    case 6:
+                    {
+                        MuteMenuDialogFragment dialogFragment =
+                                MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
+                        dialogFragment.show(getChildFragmentManager(), "mute");
+                        break;
+                    }
+                    case 7:
+                    {
+                        ColorPickerDialogFragment dialogFragment =
+                                ColorPickerDialogFragment.newInstance(
+                                        getTargetUserColor(), "colorLabel"
+                                );
+                        dialogFragment.setTargetFragment(ProfileFragment.this, 2);
+                        dialogFragment.show(getChildFragmentManager(), "colorLabel");
+                        break;
+                    }
+                    case 8:
+                    {
+                        Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
+                        intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
+                        startActivity(intent);
+                        break;
+                    }
+                    case 9:
+                    {
+                        FriendListFragment fragment = new FriendListFragment();
+                        Bundle args1 = new Bundle();
+                        args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
+                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
+                        fragment.setArguments(args1);
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame, fragment, "contain");
+                        transaction.addToBackStack(null);
+                        transaction.commit();
                         break;
                     }
                 }
-                if (fragment != null) {
-                    fragment.setArguments(args);
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
-                    transaction.addToBackStack(null);
-                    transaction.commit();
+                currentDialog = null;
+            });
+            builder.setOnCancelListener(dialog -> {
+                dialog.dismiss();
+                currentDialog = null;
+            });
+            AlertDialog ad = builder.create();
+            ad.show();
+            currentDialog = ad;
+        });
+        ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
+        ibSearch.setOnClickListener(v1 -> {
+            if (loadHolder != null && loadHolder.targetUser != null) {
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "@" + loadHolder.targetUser.getScreenName());
+                startActivity(intent);
+            }
+        });
+
+        gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
+        gridCommands.setOnItemClickListener((parent, view, position, id) -> {
+            if (position < 0 || position > 3) return;
+            Fragment fragment = null;
+            Bundle args1 = new Bundle();
+            switch (position) {
+                case 0:
+                {
+                    fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
+                    args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
+                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                    args1.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
+                    break;
                 }
+                case 1:
+                {
+                    fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
+                    args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
+                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                    args1.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
+                    break;
+                }
+                case 2:
+                {
+                    fragment = new FriendListFragment();
+                    args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
+                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                    args1.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
+                    break;
+                }
+                case 3:
+                {
+                    fragment = new FriendListFragment();
+                    args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
+                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                    args1.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
+                    break;
+                }
+            }
+            if (fragment != null) {
+                fragment.setArguments(args1);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.addToBackStack(null);
+                transaction.commit();
             }
         });
 
@@ -560,12 +531,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             pattern = Pattern.compile(
                     "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
             final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
-            Linkify.TransformFilter filter = new Linkify.TransformFilter() {
-                @Override
-                public String transformUrl(Matcher match, String url) {
-                    return jumpUrlHash + match.group(match.groupCount());
-                }
-            };
+            Linkify.TransformFilter filter = (match, url) -> jumpUrlHash + match.group(match.groupCount());
             Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
         }
 
@@ -1056,8 +1022,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     getTwitterService() != null ?
                             getTwitterService().getUsers() != null ?
                                     getTwitterService().getUsers()
-                                    : new ArrayList<AuthUserRecord>()
-                            : new ArrayList<AuthUserRecord>();
+                                    : new ArrayList<>()
+                            : new ArrayList<>();
             for (AuthUserRecord userRecord : users) {
                 try {
                     relationships.put(userRecord,
@@ -1108,20 +1074,14 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("ミュート")
-                    .setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            ProfileFragment fragment = (ProfileFragment) getTargetFragment();
-                            if (fragment != null) {
-                                fragment.onSelectedMuteOption(which+1);
-                            }
+                    .setItems(items, (dialog1, which) -> {
+                        dismiss();
+                        ProfileFragment fragment = (ProfileFragment) getTargetFragment();
+                        if (fragment != null) {
+                            fragment.onSelectedMuteOption(which+1);
                         }
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
+                    .setNegativeButton("キャンセル", (dialog1, which) -> {
                     })
                     .create();
             return dialog;

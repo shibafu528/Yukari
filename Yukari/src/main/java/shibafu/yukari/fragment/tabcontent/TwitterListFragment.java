@@ -150,13 +150,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                for (AuthUserRecord user : users) {
-                    executeLoader(LOADER_LOAD_UPDATE, user);
-                    ++refreshCounter;
-                }
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            for (AuthUserRecord user : users) {
+                executeLoader(LOADER_LOAD_UPDATE, user);
+                ++refreshCounter;
             }
         });
 
@@ -199,20 +196,17 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                     break;
             }
 
-            unreadNotifierView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (unreadSet.isEmpty()) {
-                        listView.setSelection(0);
-                    } else {
-                        Long lastUnreadId = Collections.min(unreadSet);
-                        int position;
-                        for (position = 0; position < elements.size(); ++position) {
-                            if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
-                        }
-                        if (position < elements.size()) {
-                            listView.setSelection(position);
-                        }
+            unreadNotifierView.setOnClickListener(v -> {
+                if (unreadSet.isEmpty()) {
+                    listView.setSelection(0);
+                } else {
+                    Long lastUnreadId = Collections.min(unreadSet);
+                    int position;
+                    for (position = 0; position < elements.size(); ++position) {
+                        if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+                    }
+                    if (position < elements.size()) {
+                        listView.setSelection(position);
                     }
                 }
             });
@@ -307,7 +301,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     public List<AuthUserRecord> getBoundUsers() {
-        return users != null ? users : new ArrayList<AuthUserRecord>();
+        return users != null ? users : new ArrayList<>();
     }
 
     public int getMode() {

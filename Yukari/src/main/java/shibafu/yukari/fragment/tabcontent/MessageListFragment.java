@@ -145,12 +145,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         if (users.contains(from) && !elements.contains(directMessage)) {
             final int position = prepareInsertStatus(directMessage);
             if (position > -1) {
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        insertElement(directMessage, position);
-                    }
-                });
+                getHandler().post(() -> insertElement(directMessage, position));
             }
         }
     }
@@ -158,27 +153,14 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     @Override
     public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {
         if (kind == StatusManager.UPDATE_DELETED_DM) {
-            getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    deleteElement(status);
-                }
-            });
+            getHandler().post(() -> deleteElement(status));
         } else if (kind == StatusManager.UPDATE_WIPE_TWEETS) {
-            getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    elements.clear();
-                    notifyDataSetChanged();
-                }
+            getHandler().post(() -> {
+                elements.clear();
+                notifyDataSetChanged();
             });
         } else if (kind == StatusManager.UPDATE_FORCE_UPDATE_UI) {
-            getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    notifyDataSetChanged();
-                }
-            });
+            getHandler().post(this::notifyDataSetChanged);
         }
     }
 
@@ -435,13 +417,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                         "[403:93] Permission denined\n@%s\nDMへのアクセスが制限されています。\n一度アプリ連携を切って認証を再発行してみてください。\n現在のパーミッション: %s",
                         exceptionUser.ScreenName,
                         permissionText);
-                getHandler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                        } catch (NullPointerException ignore) {}
-                    }
+                getHandler().postDelayed(() -> {
+                    try {
+                        Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+                    } catch (NullPointerException ignore) {}
                 }, 100);
             }
             changeFooterProgress(false);

@@ -892,7 +892,7 @@ public class StatusManager {
         if (statusListeners != null && statusListeners.contains(l)) {
             statusListeners.remove(l);
             Log.d("TwitterService", "Removed StatusListener");
-            statusBuffer.put(l, new LinkedList<EventBuffer>());
+            statusBuffer.put(l, new LinkedList<>());
         }
     }
 
@@ -960,12 +960,7 @@ public class StatusManager {
     }
 
     private void showToast(final String text) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-            }
-        });
+        handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
     public static LongSparseArray<PreformedStatus> getReceivedStatuses() {

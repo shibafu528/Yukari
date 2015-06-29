@@ -79,7 +79,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     private SharedPreferences preferences;
 
-    private Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<Long, PreformedStatus>());
+    private Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<>());
 
     @Override
     public void onAttach(Activity activity) {
@@ -178,12 +178,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                             final PreformedStatus ps = new PreformedStatus(reply, getCurrentUser());
                             final int location = prepareInsertStatus(ps);
                             if (location > -1) {
-                                getHandler().post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        elements.add(location, ps);
-                                        notifyDataSetChanged();
-                                    }
+                                getHandler().post(() -> {
+                                    elements.add(location, ps);
+                                    notifyDataSetChanged();
                                 });
                             }
                         } catch (TwitterException e) {
@@ -492,12 +489,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         asyncInsertWaitings.get(status.getId()).merge(status);
                     } else {
                         asyncInsertWaitings.put(status.getId(), status);
-                        getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                insertElement(status, position);
-                                asyncInsertWaitings.remove(status.getId());
-                            }
+                        getHandler().post(() -> {
+                            insertElement(status, position);
+                            asyncInsertWaitings.remove(status.getId());
                         });
                     }
                 }
@@ -512,30 +506,17 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
             case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        elements.clear();
-                        notifyDataSetChanged();
-                    }
+                getHandler().post(() -> {
+                    elements.clear();
+                    notifyDataSetChanged();
                 });
                 stash.clear();
                 break;
             case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyDataSetChanged();
-                    }
-                });
+                getHandler().post(this::notifyDataSetChanged);
                 break;
             case StatusManager.UPDATE_DELETED:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        deleteElement(status);
-                    }
-                });
+                getHandler().post(() -> deleteElement(status));
                 for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
                     if (iterator.next().getId() == status.getId()) {
                         iterator.remove();
@@ -550,12 +531,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 }
                 if (position < elements.size()) {
                     final int p = position;
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            elements.get(p).merge(status, from);
-                            notifyDataSetChanged();
-                        }
+                    getHandler().post(() -> {
+                        elements.get(p).merge(status, from);
+                        notifyDataSetChanged();
                     });
                 }
                 else {

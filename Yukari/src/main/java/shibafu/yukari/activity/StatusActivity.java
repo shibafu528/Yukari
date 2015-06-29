@@ -49,12 +49,7 @@ public class StatusActivity extends FragmentYukariBase {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);
 
-        findViewById(android.R.id.content).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        findViewById(android.R.id.content).setOnClickListener(v -> finish());
 
         Intent args = getIntent();
         status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
@@ -76,16 +71,13 @@ public class StatusActivity extends FragmentYukariBase {
         tweetView = findViewById(R.id.status_tweet);
         if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
                 || status.getInReplyToStatusId() > 0) {
-            tweetView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
-                    intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
-                            status.isRetweet()? status.getRetweetedStatus() : status);
-                    startActivity(intent);
-                }
+            tweetView.setOnClickListener(v -> {
+                Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
+                intent.putExtra(TweetListFragment.EXTRA_USER, user);
+                intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
+                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
+                        status.isRetweet()? status.getRetweetedStatus() : status);
+                startActivity(intent);
             });
         }
 
@@ -119,12 +111,7 @@ public class StatusActivity extends FragmentYukariBase {
     protected void onResume() {
         super.onResume();
         if (status != null) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL);
-                }
-            });
+            new Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL));
         }
     }
 

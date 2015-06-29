@@ -118,12 +118,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            insertElement(status, position);
-                        }
-                    });
+                    getHandler().post(() -> insertElement(status, position));
                 }
             }
         }
@@ -136,30 +131,17 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
             case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        elements.clear();
-                        notifyDataSetChanged();
-                    }
+                getHandler().post(() -> {
+                    elements.clear();
+                    notifyDataSetChanged();
                 });
                 stash.clear();
                 break;
             case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        notifyDataSetChanged();
-                    }
-                });
+                getHandler().post(this::notifyDataSetChanged);
                 break;
             case StatusManager.UPDATE_DELETED:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        deleteElement(status);
-                    }
-                });
+                getHandler().post(() -> deleteElement(status));
                 for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
                     if (iterator.next().getId() == status.getId()) {
                         iterator.remove();
@@ -174,12 +156,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 }
                 if (position < elements.size()) {
                     final int p = position;
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            elements.get(p).merge(status, from);
-                            notifyDataSetChanged();
-                        }
+                    getHandler().post(() -> {
+                        elements.get(p).merge(status, from);
+                        notifyDataSetChanged();
                     });
                 }
                 else {
