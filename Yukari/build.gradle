@@ -2,6 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'me.tatarka.retrolambda'
 
+repositories {
+    maven {
+        url 'http://shibafu528.github.io/totoridipjp4J/build/repo'
+    }
+}
+
 dependencies {
     compile 'com.android.support:appcompat-v7:20.0.+'
     compile 'com.android.support:support-v4:22.2.+'
@@ -26,6 +32,8 @@ dependencies {
     compile 'com.larswerkman:HoloColorPicker:1.4'
 
     compile 'com.github.machinarius:preferencefragment:0.1.1'
+
+    compile 'jp.dip.totori:totoridipjp4J:1.0'
 
     compile project(':GalleryMultiPicker:library')
     compile project(':twpfparser')
