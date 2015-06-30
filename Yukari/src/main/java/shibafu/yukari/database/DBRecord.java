@@ -17,14 +17,15 @@ public interface DBRecord {
             if (column != null) {
                 try {
                     f.setAccessible(true);
-                    Object val = f.get(this);
-                    if (val instanceof String || val instanceof Integer || val instanceof Long || val instanceof Short || val instanceof Float || val instanceof Double) {
-                        if ("id".equals(f.getName()) && val instanceof Long && ((Long) val) == -1) {
+                    Object value = f.get(this);
+                    if (value instanceof String || value instanceof Integer || value instanceof Long || value instanceof Short ||
+                            value instanceof Float || value instanceof Double) {
+                        if ("id".equals(f.getName()) && value instanceof Long && ((Long) value) == -1) {
                             continue;
                         }
-                        values.put(column.value(), val.toString());
-                    } else if (val instanceof Date) {
-                        values.put(column.value(), ((Date) val).getTime());
+                        values.put(column.value(), value.toString());
+                    } else if (value instanceof Date) {
+                        values.put(column.value(), ((Date) value).getTime());
                     } else {
                         throw new IllegalStateException("field cannot put ContentValues: " + f.getName());
                     }
