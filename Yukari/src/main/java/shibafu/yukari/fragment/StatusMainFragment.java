@@ -2,7 +2,6 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -11,8 +10,8 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.PopupMenu;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -131,6 +130,51 @@ public class StatusMainFragment extends TwitterFragment{
                     intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
                 }
                 startActivityForResult(intent, REQUEST_REPLY);
+            }
+
+            boolean beginQuoteTweet(int which) {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+                if (which < 3) {
+                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                    switch (which) {
+                        case 0:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                            break;
+                        case 1:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                            break;
+                        case 2:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                            break;
+                    }
+                    startActivityForResult(intent, REQUEST_QUOTE);
+                } else {
+                    int request = -1;
+                    switch (which) {
+                        case 3:
+                            if (!ibRetweet.isEnabled()) {
+                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            request = REQUEST_RT_QUOTE;
+                            break;
+                        case 4:
+                            if (!ibFavRt.isEnabled()) {
+                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            request = REQUEST_FRT_QUOTE;
+                            break;
+                    }
+                    if (request > -1) {
+                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                        intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
+                        startActivityForResult(intent, request);
+                    }
+                }
+                return true;
             }
         }
         final LocalFunction local = new LocalFunction();
@@ -427,65 +471,25 @@ public class StatusMainFragment extends TwitterFragment{
                 currentDialog = null;
             });
             builder.setItems(
-                    new String[]{
-                            "非公式RT ( RT @id: ... )",
-                            "QT ( QT @id: ... )",
-                            "公式アプリ風 ( \"@id: ...\" )",
-                            "URLのみ ( http://... )",
-                            "RTしてから言及する ( ...＞RT )",
-                            "FavRTしてから言及する ( ...＞RT )"},
+                    R.array.pref_quote_entries,
                     (dialog, which) -> {
                         dialog.dismiss();
                         currentDialog = null;
 
-                        Intent intent = new Intent(getActivity(), TweetActivity.class);
-                        intent.putExtra(TweetActivity.EXTRA_USER, user);
-                        intent.putExtra(TweetActivity.EXTRA_STATUS, status);
-                        if (which < 4) {
-                            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
-                            switch (which) {
-                                case 0:
-                                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                                    break;
-                                case 1:
-                                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                                    break;
-                                case 2:
-                                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
-                                    break;
-                                case 3:
-                                    intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                                    break;
-                            }
-                            startActivityForResult(intent, REQUEST_QUOTE);
-                        } else {
-                            int request = -1;
-                            switch (which) {
-                                case 4:
-                                    if (!ibRetweet.isEnabled()) {
-                                        Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-                                    request = REQUEST_RT_QUOTE;
-                                    break;
-                                case 5:
-                                    if (!ibFavRt.isEnabled()) {
-                                        Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-                                    request = REQUEST_FRT_QUOTE;
-                                    break;
-                            }
-                            if (request > -1) {
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
-                                startActivityForResult(intent, request);
-                            }
-                        }
+                        local.beginQuoteTweet(which);
                     });
             AlertDialog ad = builder.create();
             ad.show();
             currentDialog = ad;
+        });
+        ibQuote.setOnLongClickListener(v1 -> {
+            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote", "2"));
+            if (local.beginQuoteTweet(defaultQuote)) {
+                Toast toast = Toast.makeText(getActivity(), getResources().getStringArray(R.array.pref_quote_entries)[defaultQuote], Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+            }
+            return true;
         });
 
         ibShare = (ImageButton) v.findViewById(R.id.ib_state_share);

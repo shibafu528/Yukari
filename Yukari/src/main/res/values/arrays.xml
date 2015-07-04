@@ -144,4 +144,20 @@
         <item>light</item>
         <item>dark</item>
     </string-array>
+
+    <string-array name="pref_quote_entries">
+        <item>非公式RT ( RT \@id: ... )</item>
+        <item>QT ( QT \@id: ... )</item>
+        <item>URLで引用 ( http://... )</item>
+        <item>RTしてから言及する ( ...＞RT )</item>
+        <item>FavRTしてから言及する ( ...＞RT )</item>
+    </string-array>
+
+    <string-array name="pref_quote_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
 </resources>

@@ -5,7 +5,7 @@
         <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="機能設定">
+    <PreferenceCategory android:title="メイン画面の機能">
         <CheckBoxPreference
             android:key="pref_boot_screenon"
             android:title="デフォルトでスリープ防止"
@@ -22,6 +22,9 @@
             android:key="pref_quick_scroll_to_top"
             android:title="先頭へぽっぴんジャンプ♪"
             android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="ツイート詳細画面の機能">
         <CheckBoxPreference
             android:key="pref_bottom_stack"
             android:title="メニューを下に寄せる"
@@ -40,6 +43,13 @@
             android:title="Fav/RT後にメニューを閉じる"
             android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
             android:defaultValue="true"/>
+        <ListPreference
+            android:key="pref_default_quote"
+            android:title="クイック引用"
+            android:summary="引用ボタンを長押しした時、どの文法で引用を行うか選択します"
+            android:entries="@array/pref_quote_entries"
+            android:entryValues="@array/pref_quote_values"
+            android:defaultValue="2"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="確認ダイアログ">
