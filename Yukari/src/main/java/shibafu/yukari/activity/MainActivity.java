@@ -423,6 +423,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     protected void onResume() {
         super.onResume();
+        //スリープ有効の設定
+        setKeepScreenOn(keepScreenOn);
         //ツイート操作ガイド
         llTweetGuide.setVisibility(sharedPreferences.getBoolean("first_guide", true)? View.VISIBLE : View.GONE);
         //投稿ボタン
