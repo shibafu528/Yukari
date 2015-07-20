@@ -7,6 +7,7 @@ import shibafu.yukari.filter.expression.Expression
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
+import java.util.*
 
 /**
  * クエリ文字列を解釈し、ソースリストと式オブジェクトに変換する機能を提供します。
@@ -57,7 +58,70 @@ public final class QueryCompiler {
         }
 
         private fun parseSource(fromQuery: String): List<FilterSource> {
-            return listOf(All())
+            class TempParams {
+                var type: Token? = null
+                var args: List<Token> = listOf()
+
+                fun clear() {
+                    type = null
+                    args = listOf()
+                }
+
+                fun toFilterSource(): FilterSource {
+                    when(type!!.value) {
+                        "all", "local", "*" -> return All()
+                    }
+                    throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
+                }
+            }
+
+            var filters = emptyList<FilterSource>()
+            var temp = TempParams()
+            var needNextToken: Array<TokenType>? = null
+
+            for (token in Tokenizer(fromQuery)) {
+                //fromが入り込んでいたら飛ばす
+                if (token.type == TokenType.LITERAL && "from".equals(token.value)) continue
+
+                //フィルタの変化
+                if (temp.type != null && token.type == TokenType.LITERAL) {
+                    filters += temp.toFilterSource()
+                    temp.clear()
+                    needNextToken = null
+                }
+
+                //必須トークンチェック
+                if (needNextToken != null) {
+                    if (needNextToken.none { it == token.type }) {
+                        throw FilterCompilerException("不正なトークンが検出されました。文法が正しいか確認して下さい。", token)
+                    }
+                    needNextToken = null
+                    continue
+                }
+
+                if (temp.type == null) {
+                    //抽出ソースのキャプチャ
+                    if (token.type != TokenType.LITERAL) {
+                        throw FilterCompilerException("抽出ソースが指定されていません。", token)
+                    }
+                    temp.type = token
+                    needNextToken = arrayOf(TokenType.COLON, TokenType.COMMA)
+                } else {
+                    //引数のキャプチャ
+                    if (token.type != TokenType.STRING) {
+                        throw FilterCompilerException("引数が正しく指定されていません。", token)
+                    }
+                    temp.args += token
+                    needNextToken = arrayOf(TokenType.COMMA)
+                }
+            }
+            if (temp.type != null) {
+                filters += temp.toFilterSource()
+            }
+            return when {
+                filters.isEmpty() -> listOf(All())
+                else -> filters
+            }
         }
 
         private fun parseExpression(whereQuery: String, userRecords: List<AuthUserRecord>): Expression {
@@ -65,3 +129,6 @@ public final class QueryCompiler {
         }
     }
 }
+
+public class FilterCompilerException(message: String, token: Token?) :
+        Exception(if (token == null) "${message} : ?" else "${message} : ${token.value} (${token.cursor})")

@@ -84,7 +84,7 @@ android {
 
 //-- Kotlin --
 buildscript {
-    ext.kotlin_version = '0.12.200'
+    ext.kotlin_version = '0.12.613'
     repositories {
         mavenCentral()
     }
