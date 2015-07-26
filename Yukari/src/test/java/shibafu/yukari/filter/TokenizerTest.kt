@@ -134,4 +134,30 @@ class TokenizerTest {
         assertEquals("fuga", fugaToken.value)
         assertEquals(6, fugaToken.cursor)
     }
+
+    test fun parenthesisTest() {
+        val tokenizer = Tokenizer("hoge: (fuga)")
+
+        val hogeToken = tokenizer.next()
+        assertEquals(TokenType.LITERAL, hogeToken.type)
+        assertEquals("hoge", hogeToken.value)
+        assertEquals(0, hogeToken.cursor)
+
+        val colonToken = tokenizer.next()
+        assertEquals(TokenType.COLON, colonToken.type)
+        assertEquals(4, colonToken.cursor)
+
+        val leftParenthesisToken = tokenizer.next()
+        assertEquals(TokenType.LEFT_PARENTHESIS, leftParenthesisToken.type)
+        assertEquals(6, leftParenthesisToken.cursor)
+
+        val fugaToken = tokenizer.next()
+        assertEquals(TokenType.LITERAL, fugaToken.type)
+        assertEquals("fuga", fugaToken.value)
+        assertEquals(7, fugaToken.cursor)
+
+        val rightParenthesisToken = tokenizer.next()
+        assertEquals(TokenType.RIGHT_PARENTHESIS, rightParenthesisToken.type)
+        assertEquals(11, rightParenthesisToken.cursor)
+    }
 }

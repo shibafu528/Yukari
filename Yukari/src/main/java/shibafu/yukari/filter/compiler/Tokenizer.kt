@@ -14,11 +14,13 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
                 '\'' -> return Token(TokenType.STRING, currentPos, getQuoteString(currentPos + 1, '\''))
                 ',' -> return Token(TokenType.COMMA, currentPos++)
                 ':' -> return Token(TokenType.COLON, currentPos++)
+                '(' -> return Token(TokenType.LEFT_PARENTHESIS, currentPos++)
+                ')' -> return Token(TokenType.RIGHT_PARENTHESIS, currentPos++)
                 else -> {
                     val begin = currentPos
 
                     do {
-                        if (" \"\t\r\n',:".contains(query[currentPos])) break
+                        if (" \"\t\r\n',:()".contains(query[currentPos])) break
                         currentPos++
                     } while (hasNext())
 
@@ -54,16 +56,37 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
     }
 }
 
+/**
+ * 字句解析を行った結果の字句単位です。
+ *
+ * @property type トークンの型([TokenType])を表します。
+ * @property cursor トークンがソース文字列上に存在する位置を指します。
+ * @property value トークンの文字列を表します。
+ */
 public data class Token(val type: TokenType, val cursor: Int, val value: String = "") {
+    /**
+     * 与えられた文字列が、このトークンの保有する文字列と大小文字を問わずに一致するかを照合します。
+     *
+     * @param v 比較対象の文字列
+     */
     fun isMatch(v: String) = v.toLowerCase().equals(value.toLowerCase())
 }
 
+/**
+ * 解析されたトークンの型を表します。
+ */
 public enum class TokenType {
+    /** 他の区切り記号等で分割された、引用符の無い文字列です。 */
     LITERAL,
+    /** 引用符によって囲われた文字列です。 */
     STRING,
+    /** "," を表します。 */
     COMMA,
+    /** ":" を表します。 */
     COLON,
+    /** "(" を表します。 */
     LEFT_PARENTHESIS,
+    /** ")" を表します。 */
     RIGHT_PARENTHESIS
 }
 

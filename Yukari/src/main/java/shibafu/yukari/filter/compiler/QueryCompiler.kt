@@ -57,6 +57,15 @@ public final class QueryCompiler {
             return FilterQuery(sources, rootExpression)
         }
 
+        /**
+         * FROM句の構文解析を行います。
+         *
+         * 事前にクエリ文字列からFROM句のみを抽出している必要があります。
+         *
+         * @param fromQuery クエリ文字列のFROM句
+         * @param userRecords ソースリストに関連付けるユーザのリスト
+         * @return 抽出ソースのリスト
+         */
         private fun parseSource(fromQuery: String, userRecords: List<AuthUserRecord>): List<FilterSource> {
             class TempParams {
                 var type: Token? = null
