@@ -9,14 +9,16 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
- * 全ての受信ツイートを対象とする抽出ソースです。
+ * 指定されたアカウントのHomeタイムラインおよびUserStreamを対象とする抽出ソースです。
  *
- * Created by shibafu on 15/06/07.
+ * Created by shibafu on 15/07/26.
  */
-public class All : FilterSource {
-    override val sourceAccount: AuthUserRecord? = null
+public class Home(override val sourceAccount: AuthUserRecord?) : FilterSource {
 
-    override fun getRESTLoader(context: Context, iface: RESTLoader.RESTLoaderInterface?): RESTLoader<RESTParams, PreformedResponseList<PreformedStatus>>? = null
+    override fun getRESTLoader(context: Context, iface: RESTLoader.RESTLoaderInterface?)
+            : RESTLoader<RESTParams, PreformedResponseList<PreformedStatus>>? {
+        throw UnsupportedOperationException()
+    }
 
     override fun requireUserStream(): Boolean = true
 

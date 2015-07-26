@@ -6,8 +6,8 @@ import shibafu.yukari.filter.expression.ConstantValue
 import shibafu.yukari.filter.expression.Expression
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
+import shibafu.yukari.filter.source.Home
 import shibafu.yukari.twitter.AuthUserRecord
-import java.util.*
 
 /**
  * クエリ文字列を解釈し、ソースリストと式オブジェクトに変換する機能を提供します。
@@ -41,7 +41,7 @@ public final class QueryCompiler {
             //from句の解釈
             val sources = when {
                 beginFrom < 0 -> listOf(All()) //from句が存在しない -> from allと同義とする
-                else -> parseSource(if (beginWhere < 0) query else query.substring(0, beginWhere - 1))
+                else -> parseSource(if (beginWhere < 0) query else query.substring(0, beginWhere - 1), userRecords)
             }
 
             //where句の解釈
@@ -57,7 +57,7 @@ public final class QueryCompiler {
             return FilterQuery(sources, rootExpression)
         }
 
-        private fun parseSource(fromQuery: String): List<FilterSource> {
+        private fun parseSource(fromQuery: String, userRecords: List<AuthUserRecord>): List<FilterSource> {
             class TempParams {
                 var type: Token? = null
                 var args: List<Token> = listOf()
@@ -67,9 +67,16 @@ public final class QueryCompiler {
                     args = listOf()
                 }
 
-                fun toFilterSource(): FilterSource {
+                fun toFilterSource(): List<FilterSource> {
                     when(type!!.value) {
-                        "all", "local", "*" -> return All()
+                        "all", "local", "*" -> return listOf(All())
+                        "home" -> {
+                            if (args.size() < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
+                            return args.map { p ->
+                                Home(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
+                                        ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
+                            }
+                        }
                     }
                     throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                 }
