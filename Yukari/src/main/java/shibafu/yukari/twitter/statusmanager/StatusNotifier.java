@@ -24,7 +24,9 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.util.AutoRelease;
 import shibafu.yukari.util.CompatUtil;
+import shibafu.yukari.util.Releasable;
 import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
@@ -39,7 +41,8 @@ class StatusNotifier implements Releasable {
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
 
-    @AutoRelease private StatusManager parent;
+    @AutoRelease
+    private StatusManager parent;
     @AutoRelease private Context context;
     @AutoRelease private Handler handler;
     @AutoRelease private SharedPreferences sharedPreferences;

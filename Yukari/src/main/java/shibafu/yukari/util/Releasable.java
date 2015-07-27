@@ -1,4 +1,4 @@
-package shibafu.yukari.twitter.statusmanager;
+package shibafu.yukari.util;
 
 import java.lang.reflect.Field;
 

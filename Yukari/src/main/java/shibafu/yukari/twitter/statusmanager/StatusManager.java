@@ -26,6 +26,8 @@ import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
+import shibafu.yukari.util.AutoRelease;
+import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.*;
 
@@ -41,7 +43,7 @@ import java.util.regex.PatternSyntaxException;
 /**
  * Created by shibafu on 14/03/08.
  */
-public class StatusManager {
+public class StatusManager implements Releasable {
     private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
 
     private static final boolean PUT_STREAM_LOG = false;
@@ -56,16 +58,17 @@ public class StatusManager {
 
     private static final String LOG_TAG = "StatusManager";
 
-    private TwitterService service;
-    private Suppressor suppressor;
+    @AutoRelease
+    TwitterService service;
+    @AutoRelease private Suppressor suppressor;
     private List<AutoMuteConfig> autoMuteConfigs;
 
-    private Context context;
-    private SharedPreferences sharedPreferences;
+    @AutoRelease private Context context;
+    @AutoRelease private SharedPreferences sharedPreferences;
     private Handler handler;
 
     //通知マネージャ
-    private StatusNotifier notifier;
+    @AutoRelease private StatusNotifier notifier;
 
     //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
     private LongSparseArray<PreformedStatus> retweetResponseStandBy = new LongSparseArray<>();
@@ -530,6 +533,11 @@ public class StatusManager {
             su.stop();
         }
 
+        release();
+    }
+
+    @Override
+    public void release() {
         streamUsers.clear();
         statusListeners.clear();
         statusBuffer.clear();
@@ -537,14 +545,9 @@ public class StatusManager {
         receivedStatuses.clear();
 
         notifier.release();
-        notifier = null;
-
         userUpdateDelayer.shutdown();
 
-        this.suppressor = null;
-        this.sharedPreferences = null;
-        this.service = null;
-        this.context = null;
+        Releasable.super.release();
     }
 
     public void startUserStream(AuthUserRecord userRecord) {
