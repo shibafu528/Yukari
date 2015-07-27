@@ -71,23 +71,31 @@ public final class QueryCompiler {
                 var type: Token? = null
                 var args: List<Token> = listOf()
 
-                fun clear() {
+                /** 解析結果をリセットします。 */
+                public fun clear() {
                     type = null
                     args = listOf()
                 }
 
-                fun toFilterSource(): List<FilterSource> {
-                    when(type!!.value) {
-                        "all", "local", "*" -> return listOf(All())
-                        "home" -> {
-                            if (args.size() < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
-                            return args.map { p ->
-                                Home(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
-                                        ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
-                            }
-                        }
+                /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
+                private fun createFiltersWithAuthArguments<T : FilterSource>(filterClz: Class<T>): List<T> {
+                    if (args.size() < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
+
+                    val constructor = filterClz.getConstructor(javaClass<AuthUserRecord>())
+                    return args.map { p ->
+                        constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
+                                ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
                     }
-                    throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
+                }
+
+                /** 構文解析の結果から抽出ソースのインスタンスを作成します。 */
+                public fun toFilterSource(): List<FilterSource> {
+                    return when (type!!.value) {
+                        "all", "local", "*" -> listOf(All())
+                        "home" -> createFiltersWithAuthArguments(javaClass<Home>())
+
+                        else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
+                    }
                 }
             }
 
