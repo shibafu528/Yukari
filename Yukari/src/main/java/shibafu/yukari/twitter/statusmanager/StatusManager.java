@@ -443,6 +443,20 @@ public class StatusManager implements Releasable {
         userUpdateDelayer = new UserUpdateDelayer();
     }
 
+    @Override
+    public void release() {
+        streamUsers.clear();
+        statusListeners.clear();
+        statusBuffer.clear();
+
+        receivedStatuses.clear();
+
+        notifier.release();
+        userUpdateDelayer.shutdown();
+
+        Releasable.super.release();
+    }
+
     private CentralDatabase getDatabase() {
         return service == null ? null : service.getDatabase();
     }
@@ -534,20 +548,6 @@ public class StatusManager implements Releasable {
         }
 
         release();
-    }
-
-    @Override
-    public void release() {
-        streamUsers.clear();
-        statusListeners.clear();
-        statusBuffer.clear();
-
-        receivedStatuses.clear();
-
-        notifier.release();
-        userUpdateDelayer.shutdown();
-
-        Releasable.super.release();
     }
 
     public void startUserStream(AuthUserRecord userRecord) {
