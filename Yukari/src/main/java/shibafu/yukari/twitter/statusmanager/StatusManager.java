@@ -703,7 +703,6 @@ public class StatusManager implements Releasable {
 
                     @Override
                     protected void onPostExecute(TwitterException e) {
-                        super.onPostExecute(e);
                         sendFakeBroadcast("onForceUpdateUI", new Class[]{});
                     }
                 }.executeParallel(id, preformedStatus.getRepresentUser());
