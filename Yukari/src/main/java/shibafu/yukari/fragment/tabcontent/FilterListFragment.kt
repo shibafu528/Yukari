@@ -9,7 +9,7 @@ import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.StatusManager
+import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import twitter4j.DirectMessage

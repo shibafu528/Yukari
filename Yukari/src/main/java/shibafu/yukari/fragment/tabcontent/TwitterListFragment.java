@@ -32,7 +32,7 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import twitter4j.Twitter;

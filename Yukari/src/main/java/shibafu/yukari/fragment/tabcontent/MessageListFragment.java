@@ -30,7 +30,7 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;

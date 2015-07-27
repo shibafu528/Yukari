@@ -33,7 +33,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.streaming.Stream;
 import twitter4j.DirectMessage;

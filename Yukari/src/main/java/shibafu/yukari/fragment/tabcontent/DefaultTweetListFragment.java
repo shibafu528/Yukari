@@ -39,7 +39,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import twitter4j.DirectMessage;

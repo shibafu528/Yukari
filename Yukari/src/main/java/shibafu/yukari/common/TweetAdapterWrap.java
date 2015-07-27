@@ -35,7 +35,7 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;

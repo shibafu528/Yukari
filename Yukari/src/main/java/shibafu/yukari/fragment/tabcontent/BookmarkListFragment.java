@@ -8,7 +8,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 
 /**
  * Created by shibafu on 14/02/13.

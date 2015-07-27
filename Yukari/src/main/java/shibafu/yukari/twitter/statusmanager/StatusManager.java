@@ -1,4 +1,4 @@
-package shibafu.yukari.twitter;
+package shibafu.yukari.twitter.statusmanager;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -18,21 +18,6 @@ import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -49,27 +34,26 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.statusimpl.FakeStatus;
-import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
-import shibafu.yukari.twitter.statusimpl.HistoryStatus;
-import shibafu.yukari.twitter.statusimpl.MetaStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
+import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TweetCommon;
+import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.*;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
 import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.DirectMessage;
-import twitter4j.HashtagEntity;
-import twitter4j.Status;
-import twitter4j.StatusDeletionNotice;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterResponse;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
+import twitter4j.*;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Created by shibafu on 14/03/08.
@@ -126,7 +110,7 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
             }
 
             userUpdateDelayer.enqueue(status.getUser());
@@ -139,7 +123,7 @@ public class StatusManager {
             boolean[] mute = suppressor.decision(preformedStatus);
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
-                showNotification(R.integer.notification_faved, preformedStatus, user);
+                notifier.showNotification(R.integer.notification_faved, preformedStatus, user);
                 createHistory(from, HistoryStatus.KIND_FAVED, user, preformedStatus);
             }
         }
@@ -151,7 +135,7 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
             }
         }
 
@@ -167,12 +151,12 @@ public class StatusManager {
                 sl.onDirectMessage(from.getUserRecord(), directMessage);
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), directMessage));
+                e.getValue().offer(new MessageEventBuffer(from.getUserRecord(), directMessage));
             }
 
             boolean checkOwn = service.isMyTweet(directMessage) != null;
             if (!checkOwn) {
-                showNotification(R.integer.notification_message, directMessage, directMessage.getSender());
+                notifier.showNotification(R.integer.notification_message, directMessage, directMessage.getSender());
             }
         }
 
@@ -197,7 +181,7 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId()));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
             }
         }
 
@@ -206,7 +190,7 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
             }
         }
 
@@ -215,7 +199,7 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
             }
         }
 
@@ -225,13 +209,13 @@ public class StatusManager {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId));
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new EventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
+                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
             }
         }
 
         private void createHistory(Stream from, int kind, User eventBy, Status status) {
             HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
-            EventBuffer eventBuffer = new EventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+            EventBuffer eventBuffer = new UpdateEventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
             for (StatusListener sl : statusListeners) {
                 sl.onUpdatedStatus(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
             }
@@ -241,6 +225,233 @@ public class StatusManager {
             updateBuffer.add(eventBuffer);
         }
 
+        private boolean deliver(StatusListener sl, Stream from) {
+            if (sl.getStreamFilter() == null && from instanceof StreamUser) {
+                return true;
+            }
+            else if (from instanceof FilterStream &&
+                    ((FilterStream) from).getQuery().equals(sl.getStreamFilter())) {
+                return true;
+            }
+            else return false;
+        }
+
+        private StatusQueue statusQueue = new StatusQueue();
+        class StatusQueue {
+            private BlockingQueue<Pair<Stream, Status>> queue = new LinkedBlockingQueue<>();
+
+            public StatusQueue() {
+                new Thread(new Worker(), "StatusQueue").start();
+            }
+
+            public void enqueue(Stream from, Status status) {
+                queue.offer(new Pair<>(from, status));
+            }
+
+            class Worker implements Runnable {
+
+                private void onStatus(final Stream from, Status status) {
+                    if (from == null || status == null || status.getUser() == null || statusListeners == null) {
+                        if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
+                        return;
+                    }
+                    if (PUT_STREAM_LOG) Log.d(LOG_TAG,
+                            String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
+                                    statusListeners.size(),
+                                    StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
+                                    status.getUser().getScreenName(), status.getText()));
+                    userUpdateDelayer.enqueue(status.getUser());
+                    if (status.isRetweet()) {
+                        userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
+                    }
+                    AuthUserRecord user = from.getUserRecord();
+
+                    //自分のツイートかどうかマッチングを行う
+                    AuthUserRecord checkOwn = service.isMyTweet(status);
+                    if (checkOwn != null) {
+                        //自分のツイートであれば受信元は発信元アカウントということにする
+                        user = checkOwn;
+                    }
+
+                    PreformedStatus preformedStatus = new PreformedStatus(status, user);
+
+                    //オートミュート判定を行う
+                    AutoMuteConfig autoMute = null;
+                    for (AutoMuteConfig config : autoMuteConfigs) {
+                        boolean match = false;
+                        switch (config.getMatch()) {
+                            case AutoMuteConfig.MATCH_EXACT:
+                                match = preformedStatus.getText().equals(config.getQuery());
+                                break;
+                            case AutoMuteConfig.MATCH_PARTIAL:
+                                match = preformedStatus.getText().contains(config.getQuery());
+                                break;
+                            case AutoMuteConfig.MATCH_REGEX:
+                                try {
+                                    Pattern pattern = Pattern.compile(config.getQuery());
+                                    Matcher matcher = pattern.matcher(preformedStatus.getText());
+                                    match = matcher.find();
+                                } catch (PatternSyntaxException ignore) {}
+                                break;
+                        }
+                        if (match) {
+                            autoMute = config;
+                        }
+                    }
+                    if (autoMute != null) {
+                        Log.d(LOG_TAG, "AutoMute! : @" + preformedStatus.getSourceUser().getScreenName());
+                        getDatabase().updateRecord(autoMute.getMuteConfig(preformedStatus.getSourceUser().getScreenName(), System.currentTimeMillis() + 3600000));
+                        service.updateMuteConfig();
+                    }
+
+                    //ミュートチェックを行う
+                    boolean[] mute = suppressor.decision(preformedStatus);
+                    if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
+                        preformedStatus.setCensoredThumbs(true);
+                    }
+
+                    boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
+                            (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
+                            (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
+                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, "realtime");
+                    PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
+                    if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
+                            !preformedStatus.isRetweet() &&
+                            standByStatus != null && !preformedStatus.getText().startsWith("@")) {
+                        //Status is RT-Respond
+                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
+                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
+                        notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
+                    }
+                    for (StatusListener sl : statusListeners) {
+                        if (deliver(sl, from)) {
+                            sl.onStatus(user, deliverStatus, muted);
+                        }
+                    }
+                    deliverStatus = (deliverStatus instanceof MetaStatus)? new MetaStatus(preformedStatus, "queued") : deliverStatus;
+                    for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
+                        if (deliver(e.getKey(), from)) {
+                            e.getValue().offer(new StatusEventBuffer(user, deliverStatus, muted));
+                        }
+                    }
+
+                    if (status.isRetweet() &&
+                            !mute[MuteConfig.MUTE_NOTIF_RT] &&
+                            status.getRetweetedStatus().getUser().getId() == user.NumericId &&
+                            checkOwn == null) {
+                        notifier.showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
+
+                        //Put Response Stand-By
+                        retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
+                    }
+                    else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
+                        UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+                        for (UserMentionEntity ume : userMentionEntities) {
+                            if (ume.getId() == user.NumericId) {
+                                notifier.showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
+                            }
+                        }
+                    }
+
+                    HashtagEntity[] hashtagEntities = status.getHashtagEntities();
+                    for (HashtagEntity he : hashtagEntities) {
+                        hashCache.put("#" + he.getText());
+                    }
+
+                    receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+                    loadQuotedEntities(preformedStatus);
+                }
+
+                @Override
+                public void run() {
+                    while (true) {
+                        Pair<Stream, Status> p;
+                        try {
+                            p = queue.take();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            continue;
+                        }
+
+                        onStatus(p.first, p.second);
+                    }
+                }
+            }
+        }
+    };
+    public interface StatusListener {
+        String getStreamFilter();
+        void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
+        void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
+        void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
+    }
+
+    private List<StatusListener> statusListeners = new ArrayList<>();
+    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
+    private List<EventBuffer> updateBuffer = new ArrayList<>();
+
+    private class UserUpdateDelayer {
+        private Thread thread;
+        private Queue<User> queue = new LinkedList<>();
+        private final Object queueLock = new Object();
+        private volatile boolean shutdown;
+
+        private UserUpdateDelayer() {
+            thread = new Thread(new Worker(), "UserUpdateDelayer");
+            thread.start();
+        }
+
+        public void enqueue(User user) {
+            synchronized (queueLock) {
+                queue.offer(user);
+            }
+        }
+
+        public void shutdown() {
+            shutdown = true;
+        }
+
+        private class Worker implements Runnable {
+            @Override
+            public void run() {
+                while (!shutdown) {
+                    List<User> work;
+                    synchronized (queueLock) {
+                        work = new ArrayList<>(queue);
+                        queue.clear();
+                    }
+
+                    if (!work.isEmpty()) {
+                        getDatabase().beginTransaction();
+                        try {
+                            for (User user : work) {
+                                getDatabase().updateRecord(new DBUser(user));
+                            }
+                            getDatabase().setTransactionSuccessful();
+                        } finally {
+                            getDatabase().endTransaction();
+                        }
+                    }
+
+                    try {
+                        int time = work.size() * 4 + 100;
+                        Thread.sleep(time);
+                        if (time >= 110) {
+                            Log.d("UserUpdateDelayer", "Next update is " + time + "ms later");
+                        }
+
+                        while (getDatabase() == null) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException ignore) {}
+                }
+            }
+        }
+    }
+    private UserUpdateDelayer userUpdateDelayer;
+
+    private class Notifier {
         private Uri getNotificationUrl(int category) {
             boolean useYukariVoice = sharedPreferences.getBoolean("j_yukari_voice", false);
             switch (category) {
@@ -379,10 +590,10 @@ public class StatusManager {
                                                 : ps.getUser().getScreenName()) + " ");
                                 NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                         .Builder(R.drawable.ic_stat_reply, "声で返信",
-                                            PendingIntent.getService(context.getApplicationContext(),
-                                                        R.integer.notification_replied,
-                                                        voiceReplyIntent,
-                                                        PendingIntent.FLAG_UPDATE_CURRENT))
+                                        PendingIntent.getService(context.getApplicationContext(),
+                                                R.integer.notification_replied,
+                                                voiceReplyIntent,
+                                                PendingIntent.FLAG_UPDATE_CURRENT))
                                         .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                         .build();
                                 builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
@@ -448,15 +659,10 @@ public class StatusManager {
                     }
                     final String text = tickerHeader + actionBy.getScreenName() + "\n" +
                             delegate.getUser(status).getScreenName() + ": " + delegate.getText(status);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context.getApplicationContext(),
-                                    text,
-                                    Toast.LENGTH_LONG)
-                                    .show();
-                        }
-                    });
+                    handler.post(() -> Toast.makeText(context.getApplicationContext(),
+                            text,
+                            Toast.LENGTH_LONG)
+                            .show());
                 }
             }
         }
@@ -471,287 +677,8 @@ public class StatusManager {
                     break;
             }
         }
-
-        private boolean deliver(StatusListener sl, Stream from) {
-            if (sl.getStreamFilter() == null && from instanceof StreamUser) {
-                return true;
-            }
-            else if (from instanceof FilterStream &&
-                    ((FilterStream) from).getQuery().equals(sl.getStreamFilter())) {
-                return true;
-            }
-            else return false;
-        }
-
-        private AuthUserRecord findUserRecord(User user) {
-            for (AuthUserRecord userRecord : service.getUsers()) {
-                if (userRecord.NumericId == user.getId()) {
-                    return userRecord;
-                }
-            }
-            return null;
-        }
-
-        private StatusQueue statusQueue = new StatusQueue();
-        class StatusQueue {
-            private BlockingQueue<Pair<Stream, Status>> queue = new LinkedBlockingQueue<>();
-
-            public StatusQueue() {
-                new Thread(new Worker(), "StatusQueue").start();
-            }
-
-            public void enqueue(Stream from, Status status) {
-                queue.offer(new Pair<>(from, status));
-            }
-
-            class Worker implements Runnable {
-
-                private void onStatus(final Stream from, Status status) {
-                    if (from == null || status == null || status.getUser() == null || statusListeners == null) {
-                        if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
-                        return;
-                    }
-                    if (PUT_STREAM_LOG) Log.d(LOG_TAG,
-                            String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
-                                    statusListeners.size(),
-                                    StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
-                                    status.getUser().getScreenName(), status.getText()));
-                    userUpdateDelayer.enqueue(status.getUser());
-                    if (status.isRetweet()) {
-                        userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
-                    }
-                    AuthUserRecord user = from.getUserRecord();
-
-                    //自分のツイートかどうかマッチングを行う
-                    AuthUserRecord checkOwn = service.isMyTweet(status);
-                    if (checkOwn != null) {
-                        //自分のツイートであれば受信元は発信元アカウントということにする
-                        user = checkOwn;
-                    }
-
-                    PreformedStatus preformedStatus = new PreformedStatus(status, user);
-
-                    //オートミュート判定を行う
-                    AutoMuteConfig autoMute = null;
-                    for (AutoMuteConfig config : autoMuteConfigs) {
-                        boolean match = false;
-                        switch (config.getMatch()) {
-                            case AutoMuteConfig.MATCH_EXACT:
-                                match = preformedStatus.getText().equals(config.getQuery());
-                                break;
-                            case AutoMuteConfig.MATCH_PARTIAL:
-                                match = preformedStatus.getText().contains(config.getQuery());
-                                break;
-                            case AutoMuteConfig.MATCH_REGEX:
-                                try {
-                                    Pattern pattern = Pattern.compile(config.getQuery());
-                                    Matcher matcher = pattern.matcher(preformedStatus.getText());
-                                    match = matcher.find();
-                                } catch (PatternSyntaxException ignore) {}
-                                break;
-                        }
-                        if (match) {
-                            autoMute = config;
-                        }
-                    }
-                    if (autoMute != null) {
-                        Log.d(LOG_TAG, "AutoMute! : @" + preformedStatus.getSourceUser().getScreenName());
-                        getDatabase().updateRecord(autoMute.getMuteConfig(preformedStatus.getSourceUser().getScreenName(), System.currentTimeMillis() + 3600000));
-                        service.updateMuteConfig();
-                    }
-
-                    //ミュートチェックを行う
-                    boolean[] mute = suppressor.decision(preformedStatus);
-                    if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
-                        preformedStatus.setCensoredThumbs(true);
-                    }
-
-                    boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
-                            (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                            (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
-                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, "realtime");
-                    PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
-                    if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
-                            !preformedStatus.isRetweet() &&
-                            standByStatus != null && !preformedStatus.getText().startsWith("@")) {
-                        //Status is RT-Respond
-                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
-                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
-                        showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
-                    }
-                    for (StatusListener sl : statusListeners) {
-                        if (deliver(sl, from)) {
-                            sl.onStatus(user, deliverStatus, muted);
-                        }
-                    }
-                    deliverStatus = (deliverStatus instanceof MetaStatus)? new MetaStatus(preformedStatus, "queued") : deliverStatus;
-                    for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                        if (deliver(e.getKey(), from)) {
-                            e.getValue().offer(new EventBuffer(user, deliverStatus, muted));
-                        }
-                    }
-
-                    if (status.isRetweet() &&
-                            !mute[MuteConfig.MUTE_NOTIF_RT] &&
-                            status.getRetweetedStatus().getUser().getId() == user.NumericId &&
-                            checkOwn == null) {
-                        showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
-
-                        //Put Response Stand-By
-                        retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
-                    }
-                    else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
-                        UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-                        for (UserMentionEntity ume : userMentionEntities) {
-                            if (ume.getId() == user.NumericId) {
-                                showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
-                            }
-                        }
-                    }
-
-                    HashtagEntity[] hashtagEntities = status.getHashtagEntities();
-                    for (HashtagEntity he : hashtagEntities) {
-                        hashCache.put("#" + he.getText());
-                    }
-
-                    receivedStatuses.put(preformedStatus.getId(), preformedStatus);
-                    loadQuotedEntities(preformedStatus);
-                }
-
-                @Override
-                public void run() {
-                    while (true) {
-                        Pair<Stream, Status> p;
-                        try {
-                            p = queue.take();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                            continue;
-                        }
-
-                        onStatus(p.first, p.second);
-                    }
-                }
-            }
-        }
-    };
-    public interface StatusListener {
-        public String getStreamFilter();
-        public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
-        public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
-        public void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
     }
-
-    private class EventBuffer {
-        public static final int E_STATUS = 0;
-        public static final int E_DM     = 1;
-        public static final int E_UPDATE = 2;
-
-        private int eventType;
-        private AuthUserRecord from;
-        private Status status;
-        private DirectMessage directMessage;
-        private int kind;
-        private boolean muted;
-
-        public EventBuffer(AuthUserRecord from, PreformedStatus status, boolean muted) {
-            this.eventType = E_STATUS;
-            this.from = from;
-            this.status = status;
-            this.muted = muted;
-        }
-
-        public EventBuffer(AuthUserRecord from, DirectMessage directMessage) {
-            this.eventType = E_DM;
-            this.from = from;
-            this.directMessage = directMessage;
-        }
-
-        public EventBuffer(AuthUserRecord from, int kind, Status status) {
-            this.eventType = E_UPDATE;
-            this.from = from;
-            this.kind = kind;
-            this.status = status;
-        }
-
-        public void sendBufferedEvent(StatusListener listener) {
-            switch (eventType) {
-                case E_STATUS:
-                    listener.onStatus(from, (PreformedStatus) status, muted);
-                    break;
-                case E_DM:
-                    listener.onDirectMessage(from, directMessage);
-                    break;
-                case E_UPDATE:
-                    listener.onUpdatedStatus(from, kind, status);
-                    break;
-            }
-        }
-    }
-    private List<StatusListener> statusListeners = new ArrayList<>();
-    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
-    private List<EventBuffer> updateBuffer = new ArrayList<>();
-
-    private class UserUpdateDelayer {
-        private Thread thread;
-        private Queue<User> queue = new LinkedList<>();
-        private final Object queueLock = new Object();
-        private volatile boolean shutdown;
-
-        private UserUpdateDelayer() {
-            thread = new Thread(new Worker(), "UserUpdateDelayer");
-            thread.start();
-        }
-
-        public void enqueue(User user) {
-            synchronized (queueLock) {
-                queue.offer(user);
-            }
-        }
-
-        public void shutdown() {
-            shutdown = true;
-        }
-
-        private class Worker implements Runnable {
-            @Override
-            public void run() {
-                while (!shutdown) {
-                    List<User> work;
-                    synchronized (queueLock) {
-                        work = new ArrayList<>(queue);
-                        queue.clear();
-                    }
-
-                    if (!work.isEmpty()) {
-                        getDatabase().beginTransaction();
-                        try {
-                            for (User user : work) {
-                                getDatabase().updateRecord(new DBUser(user));
-                            }
-                            getDatabase().setTransactionSuccessful();
-                        } finally {
-                            getDatabase().endTransaction();
-                        }
-                    }
-
-                    try {
-                        int time = work.size() * 4 + 100;
-                        Thread.sleep(time);
-                        if (time >= 110) {
-                            Log.d("UserUpdateDelayer", "Next update is " + time + "ms later");
-                        }
-
-                        while (getDatabase() == null) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException ignore) {}
-                }
-            }
-        }
-    }
-    private UserUpdateDelayer userUpdateDelayer;
+    private Notifier notifier = new Notifier();
 
     public StatusManager(TwitterService service) {
         this.context = this.service = service;
@@ -786,6 +713,15 @@ public class StatusManager {
             activeUsers.add(su.getUserRecord());
         }
         return activeUsers;
+    }
+
+    private AuthUserRecord findUserRecord(User user) {
+        for (AuthUserRecord userRecord : service.getUsers()) {
+            if (userRecord.NumericId == user.getId()) {
+                return userRecord;
+            }
+        }
+        return null;
     }
 
     public int getStreamUsersCount() {

@@ -9,6 +9,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.TwitterException;
 
 /**
