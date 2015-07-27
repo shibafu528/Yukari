@@ -39,6 +39,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
@@ -54,7 +55,7 @@ import twitter4j.UserList;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements StatusManager.StatusListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+public class DefaultTweetListFragment extends TweetListFragment implements StatusListener, SimpleAlertDialogFragment.OnDialogChoseListener {
 
     public static final String EXTRA_LIST_ID = "listid";
     public static final String EXTRA_TRACE_START = "trace_start";

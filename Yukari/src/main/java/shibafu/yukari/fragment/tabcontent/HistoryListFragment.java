@@ -8,6 +8,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -17,7 +18,7 @@ import twitter4j.Status;
 /**
  * Created by shibafu on 15/02/07.
  */
-public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusManager.StatusListener, SimpleListDialogFragment.OnDialogChoseListener {
+public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusListener, SimpleListDialogFragment.OnDialogChoseListener {
 
     private HistoryStatus lastClicked;
 

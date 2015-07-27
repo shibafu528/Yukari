@@ -358,12 +358,6 @@ public class StatusManager {
             }
         }
     };
-    public interface StatusListener {
-        String getStreamFilter();
-        void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted);
-        void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
-        void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
-    }
 
     private List<StatusListener> statusListeners = new ArrayList<>();
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
@@ -475,6 +469,7 @@ public class StatusManager {
         return streamUsers.size();
     }
 
+    //<editor-fold desc="Connectivity">
     public boolean isStarted() {
         return isStarted;
     }
@@ -552,33 +547,6 @@ public class StatusManager {
         this.context = null;
     }
 
-    public void addStatusListener(StatusListener l) {
-        if (statusListeners != null && !statusListeners.contains(l)) {
-            statusListeners.add(l);
-            Log.d("TwitterService", "Added StatusListener");
-            if (statusBuffer.containsKey(l)) {
-                Queue<EventBuffer> eventBuffers = statusBuffer.get(l);
-                Log.d("TwitterService", "バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
-                while (!eventBuffers.isEmpty()) {
-                    eventBuffers.poll().sendBufferedEvent(l);
-                }
-                statusBuffer.remove(l);
-            } else {
-                for (EventBuffer eventBuffer : updateBuffer) {
-                    eventBuffer.sendBufferedEvent(l);
-                }
-            }
-        }
-    }
-
-    public void removeStatusListener(StatusListener l) {
-        if (statusListeners != null && statusListeners.contains(l)) {
-            statusListeners.remove(l);
-            Log.d("TwitterService", "Removed StatusListener");
-            statusBuffer.put(l, new LinkedList<>());
-        }
-    }
-
     public void startUserStream(AuthUserRecord userRecord) {
         StreamUser su = new StreamUser(context, userRecord);
         su.setListener(listener);
@@ -641,6 +609,36 @@ public class StatusManager {
             }
         }.execute();
     }
+    //</editor-fold>
+
+    //<editor-fold desc="Subscribe">
+    public void addStatusListener(StatusListener l) {
+        if (statusListeners != null && !statusListeners.contains(l)) {
+            statusListeners.add(l);
+            Log.d("TwitterService", "Added StatusListener");
+            if (statusBuffer.containsKey(l)) {
+                Queue<EventBuffer> eventBuffers = statusBuffer.get(l);
+                Log.d("TwitterService", "バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
+                while (!eventBuffers.isEmpty()) {
+                    eventBuffers.poll().sendBufferedEvent(l);
+                }
+                statusBuffer.remove(l);
+            } else {
+                for (EventBuffer eventBuffer : updateBuffer) {
+                    eventBuffer.sendBufferedEvent(l);
+                }
+            }
+        }
+    }
+
+    public void removeStatusListener(StatusListener l) {
+        if (statusListeners != null && statusListeners.contains(l)) {
+            statusListeners.remove(l);
+            Log.d("TwitterService", "Removed StatusListener");
+            statusBuffer.put(l, new LinkedList<>());
+        }
+    }
+    //</editor-fold>
 
     private void showToast(final String text) {
         handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());

@@ -28,7 +28,7 @@ class UpdateEventBuffer implements EventBuffer{
     }
 
     @Override
-    public void sendBufferedEvent(StatusManager.StatusListener listener) {
+    public void sendBufferedEvent(StatusListener listener) {
         listener.onUpdatedStatus(from, kind, status);
     }
 }

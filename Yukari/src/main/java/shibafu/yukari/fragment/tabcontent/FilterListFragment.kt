@@ -9,16 +9,17 @@ import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.statusmanager.StatusListener
+import shibafu.yukari.twitter.statusmanager.StatusManager
 import twitter4j.DirectMessage
 import twitter4j.Status
 
 /**
  * Created by shibafu on 15/06/06.
  */
-public class FilterListFragment : TweetListFragment(), StatusManager.StatusListener {
+public class FilterListFragment : TweetListFragment(), StatusListener {
     companion object {
         val EXTRA_FILTER_QUERY = "filterQuery"
     }

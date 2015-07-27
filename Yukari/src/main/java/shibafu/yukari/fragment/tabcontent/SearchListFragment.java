@@ -12,6 +12,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
@@ -24,7 +25,7 @@ import twitter4j.TwitterException;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusManager.StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;

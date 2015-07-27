@@ -21,7 +21,7 @@ class StatusEventBuffer implements EventBuffer{
     }
 
     @Override
-    public void sendBufferedEvent(StatusManager.StatusListener listener) {
+    public void sendBufferedEvent(StatusListener listener) {
         listener.onStatus(from, (PreformedStatus) status, muted);
     }
 }
