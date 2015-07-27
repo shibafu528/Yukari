@@ -17,7 +17,6 @@ import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -94,9 +93,7 @@ public class StatusManager implements Releasable {
                 e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
             }
 
-            userUpdateDelayer.enqueue(status.getUser());
-            userUpdateDelayer.enqueue(user);
-            userUpdateDelayer.enqueue(user2);
+            userUpdateDelayer.enqueue(status.getUser(), user, user2);
 
             if (from.getUserRecord().NumericId == user.getId()) return;
 
@@ -366,64 +363,6 @@ public class StatusManager implements Releasable {
     private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
     private List<EventBuffer> updateBuffer = new ArrayList<>();
 
-    private class UserUpdateDelayer {
-        private Thread thread;
-        private Queue<User> queue = new LinkedList<>();
-        private final Object queueLock = new Object();
-        private volatile boolean shutdown;
-
-        private UserUpdateDelayer() {
-            thread = new Thread(new Worker(), "UserUpdateDelayer");
-            thread.start();
-        }
-
-        public void enqueue(User user) {
-            synchronized (queueLock) {
-                queue.offer(user);
-            }
-        }
-
-        public void shutdown() {
-            shutdown = true;
-        }
-
-        private class Worker implements Runnable {
-            @Override
-            public void run() {
-                while (!shutdown) {
-                    List<User> work;
-                    synchronized (queueLock) {
-                        work = new ArrayList<>(queue);
-                        queue.clear();
-                    }
-
-                    if (!work.isEmpty()) {
-                        getDatabase().beginTransaction();
-                        try {
-                            for (User user : work) {
-                                getDatabase().updateRecord(new DBUser(user));
-                            }
-                            getDatabase().setTransactionSuccessful();
-                        } finally {
-                            getDatabase().endTransaction();
-                        }
-                    }
-
-                    try {
-                        int time = work.size() * 4 + 100;
-                        Thread.sleep(time);
-                        if (time >= 110) {
-                            Log.d("UserUpdateDelayer", "Next update is " + time + "ms later");
-                        }
-
-                        while (getDatabase() == null) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException ignore) {}
-                }
-            }
-        }
-    }
     private UserUpdateDelayer userUpdateDelayer;
 
     public StatusManager(TwitterService service) {
@@ -440,7 +379,7 @@ public class StatusManager implements Releasable {
         hashCache = new HashCache(context);
 
         //遅延処理スレッドの開始
-        userUpdateDelayer = new UserUpdateDelayer();
+        userUpdateDelayer = new UserUpdateDelayer(service.getDatabase());
     }
 
     @Override
