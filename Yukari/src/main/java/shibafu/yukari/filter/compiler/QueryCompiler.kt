@@ -91,7 +91,7 @@ public final class QueryCompiler {
                 /** 構文解析の結果から抽出ソースのインスタンスを作成します。 */
                 public fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
-                        "all", "local", "*" -> listOf(All())
+                        "all", "local", "*", "stream" -> listOf(All())
                         "home" -> createFiltersWithAuthArguments(javaClass<Home>())
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
