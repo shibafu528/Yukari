@@ -6,7 +6,10 @@ import shibafu.yukari.twitter.PreformedResponseList
 import shibafu.yukari.twitter.RESTLoader
 import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
+import twitter4j.Paging
+import twitter4j.Twitter
 
 /**
  * フィルタシステムにおける抽出ソースを表す抽象クラスです。
@@ -24,10 +27,9 @@ public interface FilterSource{
 
     /**
      * この抽出ソースが要求するデータを取得するための、REST通信の実装を返します。
-     * @return 対象データソースとの通信を行うRESTLoader
+     * @return 対象データソースとの通信を行う[RestQuery]
      */
-    fun getRESTLoader(context: Context, iface: RESTLoader.RESTLoaderInterface?)
-            : RESTLoader<RESTParams, PreformedResponseList<PreformedStatus>>?
+    fun getRestQuery() : RestQuery?
 
     /**
      * この抽出ソースが、割り当てられているアカウントでのUserStreamの接続を要求するかを返します。

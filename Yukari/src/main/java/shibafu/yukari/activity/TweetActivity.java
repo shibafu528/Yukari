@@ -1,15 +1,7 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -28,44 +20,17 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.TypedValue;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
 import com.twitter.Validator;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
-import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.UsedHashes;
+import shibafu.yukari.common.*;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.database.Template;
@@ -82,6 +47,13 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener{
 
@@ -586,6 +558,24 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         case "::td": {
                             startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
                             return;
+                        }
+                        case "::modq": {
+                            if (inputText.split(" ").length > 1) {
+                                String query = inputText.replace("::modq ", "");
+                                for (TabInfo tabInfo : getTwitterService().getDatabase().getTabs()) {
+                                    if (tabInfo.getType() == TabType.TABTYPE_FILTER) {
+                                        tabInfo.setFilterQuery(query);
+                                        getTwitterService().getDatabase().updateRecord(tabInfo);
+                                    }
+                                }
+                                Toast.makeText(getApplicationContext(), "Modified Query. Pleaze restart app.", Toast.LENGTH_SHORT).show();
+                                setResult(RESULT_OK);
+                                finish();
+                                return;
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
                         }
                     }
                 }

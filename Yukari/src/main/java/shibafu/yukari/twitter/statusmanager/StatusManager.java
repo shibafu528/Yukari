@@ -23,10 +23,8 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.*;
-import shibafu.yukari.twitter.streaming.FilterStream;
-import shibafu.yukari.twitter.streaming.Stream;
+import shibafu.yukari.twitter.streaming.*;
 import shibafu.yukari.twitter.streaming.StreamListener;
-import shibafu.yukari.twitter.streaming.StreamUser;
 import shibafu.yukari.util.AutoRelease;
 import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
@@ -135,7 +133,7 @@ public class StatusManager implements Releasable {
         }
 
         @Override
-        public void onStatus(final Stream from, Status status) {
+        public void onStatus(Stream from, Status status) {
             statusQueue.enqueue(from, status);
         }
 
@@ -181,6 +179,10 @@ public class StatusManager implements Releasable {
             }
             else if (from instanceof FilterStream &&
                     ((FilterStream) from).getQuery().equals(sl.getStreamFilter())) {
+                return true;
+            }
+            else if (from instanceof RestStream &&
+                    ((RestStream) from).getTag().equals(sl.getRestTag())) {
                 return true;
             }
             else return false;
@@ -263,7 +265,7 @@ public class StatusManager implements Releasable {
                     boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
                             (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                             (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
-                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, "realtime");
+                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, from.getClass().getSimpleName());
                     PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
                     if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
                             !preformedStatus.isRetweet() &&
@@ -602,4 +604,80 @@ public class StatusManager implements Releasable {
             }
         }
     }
+
+    public void requestRestQuery(final String tag, final AuthUserRecord userRecord, final boolean appendLoadMarker, final RestQuery query) {
+        final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
+        new ParallelAsyncTask<Void, Void, Void>() {
+            private TwitterException exception;
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, tag, query.getClass().getName()));
+
+                Twitter twitter = service.getTwitter();
+                twitter.setOAuthAccessToken(userRecord.getAccessToken());
+
+                try {
+                    Paging paging = new Paging();
+                    if (!isNarrowMode) paging.setCount(60);
+
+                    ResponseList<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
+                    if (appendLoadMarker) {
+                        LoadMarkerStatus markerStatus;
+
+                        if (responseList == null || responseList.isEmpty()) {
+                            markerStatus = new LoadMarkerStatus(
+                                    paging.getMaxId(),
+                                    userRecord.NumericId);
+//                            return PRListFactory.create(markerStatus, userRecord);
+                        } else {
+                            markerStatus = new LoadMarkerStatus(
+                                    responseList.get(responseList.size() - 1).getId(),
+                                    userRecord.NumericId);
+                            responseList.add(markerStatus);
+                        }
+                    }
+
+                    // StreamManagerに流す
+                    Stream stream = new RestStream(context, userRecord, tag);
+                    for (twitter4j.Status status : responseList) {
+                        listener.onStatus(stream, status);
+                    }
+
+                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, tag, responseList.size()));
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    exception = e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                if (exception != null) {
+                    switch (exception.getStatusCode()) {
+                        case 429:
+                            Toast.makeText(context,
+                                    String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
+                                            userRecord.ScreenName,
+                                            exception.getRateLimitStatus().getSecondsUntilReset() / 60,
+                                            exception.getRateLimitStatus().getSecondsUntilReset() % 60),
+                                    Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            Toast.makeText(context,
+                                    String.format("[@%s]\n通信エラー: %d:%d\n%s",
+                                            userRecord.ScreenName,
+                                            exception.getStatusCode(),
+                                            exception.getErrorCode(),
+                                            exception.getErrorMessage()),
+                                    Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            }
+        }.executeParallel();
+        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, tag));
+    }
+
 }

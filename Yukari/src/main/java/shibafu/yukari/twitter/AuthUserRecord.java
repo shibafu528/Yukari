@@ -6,18 +6,17 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
 import twitter4j.Twitter;
 import twitter4j.auth.AccessToken;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @DBTable(CentralDatabase.TABLE_ACCOUNTS)
 public class AuthUserRecord implements Serializable, DBRecord{
@@ -92,8 +91,10 @@ public class AuthUserRecord implements Serializable, DBRecord{
      * このアカウントを利用するための認証情報を設定したTwitterインスタンスを生成します。
      * @param context Context
      * @return このアカウントのTwitterインスタンス
+     * @deprecated 呼ぶと酷い目に遭うからやめよう
      */
     @SuppressWarnings("deprecated")
+    @Deprecated
     public Twitter getTwitterInstance(Context context) {
         Twitter twitter = TwitterUtil.getTwitterInstance(context);
         updateTwitterInstance(context, twitter);

@@ -6,6 +6,7 @@ import shibafu.yukari.twitter.PreformedResponseList
 import shibafu.yukari.twitter.RESTLoader
 import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -16,7 +17,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
 public class All : FilterSource {
     override val sourceAccount: AuthUserRecord? = null
 
-    override fun getRESTLoader(context: Context, iface: RESTLoader.RESTLoaderInterface?): RESTLoader<RESTParams, PreformedResponseList<PreformedStatus>>? = null
+    override fun getRestQuery() = null
 
     override fun requireUserStream(): Boolean = true
 

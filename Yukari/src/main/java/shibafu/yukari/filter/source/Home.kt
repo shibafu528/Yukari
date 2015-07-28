@@ -6,7 +6,10 @@ import shibafu.yukari.twitter.PreformedResponseList
 import shibafu.yukari.twitter.RESTLoader
 import shibafu.yukari.twitter.rest.RESTParams
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
+import twitter4j.Paging
+import twitter4j.Twitter
 
 /**
  * 指定されたアカウントのHomeタイムラインおよびUserStreamを対象とする抽出ソースです。
@@ -15,10 +18,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  */
 public class Home(override val sourceAccount: AuthUserRecord?) : FilterSource {
 
-    override fun getRESTLoader(context: Context, iface: RESTLoader.RESTLoaderInterface?)
-            : RESTLoader<RESTParams, PreformedResponseList<PreformedStatus>>? {
-        throw UnsupportedOperationException()
-    }
+    override fun getRestQuery() = RestQuery { twitter, paging -> twitter.getHomeTimeline(paging) }
 
     override fun requireUserStream(): Boolean = true
 

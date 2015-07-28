@@ -18,4 +18,6 @@ public interface StatusListener {
     void onDirectMessage(AuthUserRecord from, DirectMessage directMessage);
 
     void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
+
+    default String getRestTag() { return ""; }
 }

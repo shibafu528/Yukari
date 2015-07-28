@@ -5,14 +5,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.Log
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.rest.RESTParams
+import shibafu.yukari.twitter.statusimpl.MetaStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
+import shibafu.yukari.twitter.streaming.RestStream
 import twitter4j.DirectMessage
 import twitter4j.Status
 
@@ -56,24 +58,28 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
     protected fun executeLoader(requestMode: Int) {
         val filterQuery = getFilterQuery()
-        val loaders = filterQuery.sources.mapNotNull { s ->
-            val loader = s.getRESTLoader(getActivity(), null) ?: return
+        val queries = filterQuery.sources.mapNotNull { s ->
+            val loader = s.getRestQuery() ?: return
             val user = s.sourceAccount ?: return
             Pair(user, loader)
         }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_INIT -> loaders.forEach { s -> s.second.execute(RESTParams(s.first)) }
+            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> getStatusManager().requestRestQuery(filterRawQuery, s.first, false, s.second) }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
-                if (loaders.isEmpty()) setRefreshComplete()
+                if (queries.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
-                    loaders.forEach { s -> s.second.execute(RESTParams(s.first, true)) }
+                    queries.forEach { s -> getStatusManager().requestRestQuery(filterRawQuery, s.first, false, s.second)  }
                 }
             }
         }
     }
 
-    override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) = executeLoader(requestMode)
+    override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) {
+        if (userRecord!!.equals(users.first())) {
+            executeLoader(requestMode)
+        }
+    }
 
     protected fun getFilterQuery(): FilterQuery {
         //クエリのコンパイル待ち
@@ -101,8 +107,15 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
     override fun getStreamFilter(): String? = null
 
+    override fun getRestTag(): String = filterRawQuery
+
     override fun onStatus(from: AuthUserRecord, status: PreformedStatus, muted: Boolean) {
         if (elements.contains(status) || !getFilterQuery().evaluate(status, users)) return
+
+        Log.d("FilterListFragment", "[${filterRawQuery}] onStatus : ${status}")
+        if (status is MetaStatus && "RestStream".equals(status.getMetadata())) {
+            setRefreshComplete()
+        }
 
         when {
             muted -> stash.add(status)
