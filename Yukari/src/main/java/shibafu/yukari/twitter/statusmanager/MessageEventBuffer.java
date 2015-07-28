@@ -4,7 +4,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.DirectMessage;
 
 /**
- * �_�C���N�g���b�Z�[�W�̈ꎞ�I�ȕێ��ƃr���[�ւ̍Ĕz�M�@�\���������܂��B
+ * ダイレクトメッセージの一時的な保持とビューへの再配信機能を実装します。
  *
  * Created by shibafu on 2015/07/27.
  */

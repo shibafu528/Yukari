@@ -6,7 +6,7 @@ import twitter4j.DirectMessage;
 import twitter4j.Status;
 
 /**
- * �X�g���[�~���O�C�x���g�̎�M�@�\��񋟂��܂��B
+ * ストリーミングイベントの受信機能を提供します。
  *
  * Created by shibafu on 2015/07/28.
  */

@@ -3,7 +3,7 @@ package shibafu.yukari.util;
 import java.lang.reflect.Field;
 
 /**
- * ���\�[�X�̉�����K�v�ł��邱�Ƃ𖾎����A�܂����̎�i��񋟂��܂��B
+ * リソースの解放が必要であることを明示し、またその手段を提供します。
  *
  * Created by shibafu on 2015/07/28.
  */

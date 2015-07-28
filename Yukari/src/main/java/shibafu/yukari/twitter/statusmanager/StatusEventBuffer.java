@@ -5,7 +5,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
 
 /**
- * �c�C�[�g�̈ꎞ�I�ȕێ��ƃr���[�ւ̍Ĕz�M�@�\���������܂��B
+ * ツイートの一時的な保持とビューへの再配信機能を実装します。
  *
  * Created by shibafu on 2015/07/27.
  */

@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.widget.Toast;
@@ -21,6 +22,8 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -36,13 +39,12 @@ import twitter4j.User;
  */
 class StatusNotifier implements Releasable {
 
-    //�o�C�u���[�V�����p�^�[��
+    //バイブレーションパターン
     private final static long[] VIB_REPLY = {450, 130, 140, 150};
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
 
-    @AutoRelease
-    private StatusManager parent;
+    @AutoRelease private TwitterService service;
     @AutoRelease private Context context;
     @AutoRelease private Handler handler;
     @AutoRelease private SharedPreferences sharedPreferences;
@@ -50,9 +52,9 @@ class StatusNotifier implements Releasable {
     @AutoRelease private AudioManager audioManager;
     @AutoRelease private Vibrator vibrator;
 
-    public StatusNotifier(Context context, StatusManager parent) {
-        this.parent = parent;
-        this.context = context;
+    public StatusNotifier(TwitterService service) {
+        this.service = service;
+        this.context = service.getApplicationContext();
 
         this.handler = new Handler();
 
@@ -122,20 +124,20 @@ class StatusNotifier implements Releasable {
                 case R.integer.notification_replied:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "Reply from @";
-                    tickerHeader = "���v���C : @";
+                    tickerHeader = "リプライ : @";
                     pattern = VIB_REPLY;
                     break;
                 case R.integer.notification_retweeted:
                     icon = R.drawable.ic_stat_retweet;
                     titleHeader = "Retweeted by @";
-                    tickerHeader = "RT����܂��� : @";
+                    tickerHeader = "RTされました : @";
                     pattern = VIB_RETWEET;
                     color = Color.rgb(0, 128, 0);
                     break;
                 case R.integer.notification_faved:
                     icon = R.drawable.ic_stat_favorite;
                     titleHeader = "Faved by @";
-                    tickerHeader = "�ӂ��ڂ�� : @";
+                    tickerHeader = "ふぁぼられ : @";
                     pattern = VIB_FAVED;
                     color = Color.rgb(255, 128, 0);
                     break;
@@ -148,7 +150,7 @@ class StatusNotifier implements Releasable {
                 case R.integer.notification_respond:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "RT-Respond from @";
-                    tickerHeader = "RT���X�|���X : @";
+                    tickerHeader = "RTレスポンス : @";
                     pattern = VIB_REPLY;
                     break;
             }
@@ -186,7 +188,7 @@ class StatusNotifier implements Releasable {
                             replyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
                                     ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
                                             : ps.getUser().getScreenName()) + " ");
-                            builder.addAction(R.drawable.ic_stat_reply, "�ԐM", PendingIntent.getActivity(
+                            builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
                                             context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                             );
                         }
@@ -199,12 +201,12 @@ class StatusNotifier implements Releasable {
                                     ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
                                             : ps.getUser().getScreenName()) + " ");
                             NotificationCompat.Action voiceReply = new NotificationCompat.Action
-                                    .Builder(R.drawable.ic_stat_reply, "���ŕԐM",
+                                    .Builder(R.drawable.ic_stat_reply, "声で返信",
                                     PendingIntent.getService(context.getApplicationContext(),
                                             R.integer.notification_replied,
                                             voiceReplyIntent,
                                             PendingIntent.FLAG_UPDATE_CURRENT))
-                                    .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("�ԐM").build())
+                                    .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                     .build();
                             builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                         }
@@ -228,29 +230,30 @@ class StatusNotifier implements Releasable {
                         builder.setContentIntent(pendingIntent);
 
                         DirectMessage dm = (DirectMessage) status;
+                        AuthUserRecord recipientUserRecord = findUserRecord(dm.getRecipient());
                         {
                             Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
-                            replyIntent.putExtra(TweetActivity.EXTRA_USER, parent.findUserRecord(dm.getRecipient()));
+                            replyIntent.putExtra(TweetActivity.EXTRA_USER, recipientUserRecord);
                             replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
                             replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
                             replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
-                            builder.addAction(R.drawable.ic_stat_message, "�ԐM", PendingIntent.getActivity(
+                            builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
                                             context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                             );
                         }
                         {
                             Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, parent.findUserRecord(dm.getRecipient()));
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, recipientUserRecord);
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
                             NotificationCompat.Action voiceReply = new NotificationCompat.Action
-                                    .Builder(R.drawable.ic_stat_reply, "���ŕԐM",
+                                    .Builder(R.drawable.ic_stat_reply, "声で返信",
                                     PendingIntent.getService(context.getApplicationContext(),
                                             R.integer.notification_replied,
                                             voiceReplyIntent,
                                             PendingIntent.FLAG_UPDATE_CURRENT))
-                                    .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("�ԐM").build())
+                                    .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                     .build();
                             builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
                         }
@@ -277,8 +280,8 @@ class StatusNotifier implements Releasable {
         }
     }
 
-    // �T�C�����g�ɐݒ肵�ĂĂ���������o�C�u���k�����Ⴄ�悤��
-    // �N�\�[���ł��̂悤�ȋ������N���Ȃ��悤��
+    // サイレントに設定しててもうっかりバイブが震えちゃうような
+    // クソ端末でそのような挙動が起きないように
     private void vibrate(long[] pattern, int repeat) {
         switch (audioManager.getRingerMode()) {
             case AudioManager.RINGER_MODE_NORMAL:
@@ -286,5 +289,15 @@ class StatusNotifier implements Releasable {
                 vibrator.vibrate(pattern, repeat);
                 break;
         }
+    }
+
+    @Nullable
+    private AuthUserRecord findUserRecord(User user) {
+        for (AuthUserRecord userRecord : service.getUsers()) {
+            if (userRecord.NumericId == user.getId()) {
+                return userRecord;
+            }
+        }
+        return null;
     }
 }

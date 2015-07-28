@@ -1,14 +1,14 @@
 package shibafu.yukari.twitter.statusmanager;
 
 /**
- * ”zMæ‚ğˆê“I‚É¸‚Á‚½óMƒXƒe[ƒ^ƒX‚ÌAƒf[ƒ^‚Ì•Û‚ÆÄ”zM‹@”\‚ğ’ñ‹Ÿ‚µ‚Ü‚·B
+ * é…ä¿¡å…ˆã‚’ä¸€æ™‚çš„ã«å¤±ã£ãŸå—ä¿¡ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã®ã€ãƒ‡ãƒ¼ã‚¿ã®ä¿æŒã¨å†é…ä¿¡æ©Ÿèƒ½ã‚’æä¾›ã—ã¾ã™ã€‚
  *
  * Created by shibafu on 2015/07/27.
  */
 interface EventBuffer {
     /**
-     * w’è‚ÌƒŠƒXƒi‚É‘Î‚µ‚ÄƒXƒe[ƒ^ƒX‚ÌÄ”zM‚ğÀs‚µ‚Ü‚·B
-     * @param listener ”zMæƒŠƒXƒi
+     * æŒ‡å®šã®ãƒªã‚¹ãƒŠã«å¯¾ã—ã¦ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã®å†é…ä¿¡ã‚’å®Ÿè¡Œã—ã¾ã™ã€‚
+     * @param listener é…ä¿¡å…ˆãƒªã‚¹ãƒŠ
      */
     void sendBufferedEvent(StatusListener listener);
 }

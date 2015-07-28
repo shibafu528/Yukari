@@ -8,6 +8,8 @@ import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
+import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
@@ -57,8 +59,7 @@ public class StatusManager implements Releasable {
 
     private static final String LOG_TAG = "StatusManager";
 
-    @AutoRelease
-    TwitterService service;
+    @AutoRelease private TwitterService service;
     @AutoRelease private Suppressor suppressor;
     private List<AutoMuteConfig> autoMuteConfigs;
 
@@ -86,12 +87,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
 
             userUpdateDelayer.enqueue(status.getUser(), user, user2);
 
@@ -109,12 +105,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
         }
 
         @Override
@@ -125,12 +116,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onDirectMessage(Stream from, DirectMessage directMessage) {
             userUpdateDelayer.enqueue(directMessage.getSender());
-            for (StatusListener sl : statusListeners) {
-                sl.onDirectMessage(from.getUserRecord(), directMessage);
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new MessageEventBuffer(from.getUserRecord(), directMessage));
-            }
+            pushEventQueue(new MessageEventBuffer(from.getUserRecord(), directMessage));
 
             boolean checkOwn = service.isMyTweet(directMessage) != null;
             if (!checkOwn) {
@@ -155,52 +141,38 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId()));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
         }
 
+        @SuppressWarnings("unused")
         public void onWipe(Stream from) {
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
         }
 
+        @SuppressWarnings("unused")
         public void onForceUpdateUI(Stream from) {
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
         }
 
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {
-            for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId));
-            }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
-            }
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
         }
 
         private void createHistory(Stream from, int kind, User eventBy, Status status) {
             HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
             EventBuffer eventBuffer = new UpdateEventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+            pushEventQueue(eventBuffer);
+            updateBuffer.add(eventBuffer);
+        }
+
+        private void pushEventQueue(EventBuffer event) {
             for (StatusListener sl : statusListeners) {
-                sl.onUpdatedStatus(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
+                event.sendBufferedEvent(sl);
             }
             for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(eventBuffer);
+                e.getValue().offer(event);
             }
-            updateBuffer.add(eventBuffer);
         }
 
         private boolean deliver(StatusListener sl, Stream from) {
@@ -341,6 +313,7 @@ public class StatusManager implements Releasable {
                     loadQuotedEntities(preformedStatus);
                 }
 
+                @SuppressWarnings("InfiniteLoopStatement")
                 @Override
                 public void run() {
                     while (true) {
@@ -373,7 +346,7 @@ public class StatusManager implements Releasable {
         this.handler = new Handler();
 
         //通知マネージャの開始
-        notifier = new StatusNotifier(context, this);
+        notifier = new StatusNotifier(service);
 
         //ハッシュタグキャッシュのロード
         hashCache = new HashCache(context);
@@ -412,15 +385,6 @@ public class StatusManager implements Releasable {
         return activeUsers;
     }
 
-    AuthUserRecord findUserRecord(User user) {
-        for (AuthUserRecord userRecord : service.getUsers()) {
-            if (userRecord.NumericId == user.getId()) {
-                return userRecord;
-            }
-        }
-        return null;
-    }
-
     public int getStreamUsersCount() {
         return streamUsers.size();
     }
@@ -457,23 +421,11 @@ public class StatusManager implements Releasable {
     }
 
     public void startAsync() {
-        new ParallelAsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                start();
-                return null;
-            }
-        }.executeParallel();
+        ParallelAsyncTask.executeParallel(this::start);
     }
 
     public void stopAsync() {
-        new ParallelAsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                stop();
-                return null;
-            }
-        }.executeParallel();
+        ParallelAsyncTask.executeParallel(this::stop);
     }
 
     public void shutdownAll() {
@@ -535,21 +487,17 @@ public class StatusManager implements Releasable {
     }
 
     public void reconnectAsync() {
-        new SimpleAsyncTask() {
-            @Override
-            protected Void doInBackground(Void... params) {
-                for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
-                    e.getValue().stop();
-                    e.getValue().start();
-                }
-
-                for (final StreamUser su : streamUsers) {
-                    su.stop();
-                    su.start();
-                }
-                return null;
+        SimpleAsyncTask.execute(() -> {
+            for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+                e.getValue().stop();
+                e.getValue().start();
             }
-        }.execute();
+
+            for (final StreamUser su : streamUsers) {
+                su.stop();
+                su.start();
+            }
+        });
     }
     //</editor-fold>
 
@@ -566,6 +514,7 @@ public class StatusManager implements Releasable {
                 }
                 statusBuffer.remove(l);
             } else {
+                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", updateBuffer.size()));
                 for (EventBuffer eventBuffer : updateBuffer) {
                     eventBuffer.sendBufferedEvent(l);
                 }
@@ -621,17 +570,22 @@ public class StatusManager implements Releasable {
     }
 
     public void loadQuotedEntities(PreformedStatus preformedStatus) {
+        @Value class Params {
+            long id;
+            AuthUserRecord userRecord;
+        }
+
         for (Long id : preformedStatus.getQuoteEntities()) {
             if (receivedStatuses.indexOfKey(id) < 0) {
-                new TwitterAsyncTask<Object>(context) {
+                new TwitterAsyncTask<Params>(context) {
 
                     @Override
-                    protected TwitterException doInBackground(Object... params) {
+                    protected TwitterException doInBackground(@NotNull Params... params) {
                         Twitter twitter = service.getTwitter();
-                        AuthUserRecord userRecord = (AuthUserRecord) params[1];
+                        AuthUserRecord userRecord = params[0].getUserRecord();
                         twitter.setOAuthAccessToken(userRecord.getAccessToken());
                         try {
-                            twitter4j.Status s = twitter.showStatus(((long) params[0]));
+                            twitter4j.Status s = twitter.showStatus(params[0].getId());
                             receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
                         } catch (TwitterException e) {
                             e.printStackTrace();
@@ -644,7 +598,7 @@ public class StatusManager implements Releasable {
                     protected void onPostExecute(TwitterException e) {
                         sendFakeBroadcast("onForceUpdateUI", new Class[]{});
                     }
-                }.executeParallel(id, preformedStatus.getRepresentUser());
+                }.executeParallel(new Params(id, preformedStatus.getRepresentUser()));
             }
         }
     }

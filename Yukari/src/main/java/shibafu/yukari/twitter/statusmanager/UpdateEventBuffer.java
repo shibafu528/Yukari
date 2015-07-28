@@ -4,7 +4,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Status;
 
 /**
- * �f�[�^�X�V�C�x���g�̈ꎞ�I�ȕێ��ƃr���[�ւ̍Ĕz�M�@�\���������܂��B
+ * データ更新イベントの一時的な保持とビューへの再配信機能を実装します。
  *
  * Created by shibafu on 2015/07/27.
  */
