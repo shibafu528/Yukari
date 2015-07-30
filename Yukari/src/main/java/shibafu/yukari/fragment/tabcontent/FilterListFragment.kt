@@ -12,9 +12,9 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.MetaStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
-import shibafu.yukari.twitter.streaming.RestStream
 import twitter4j.DirectMessage
 import twitter4j.Status
 
@@ -113,9 +113,6 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         if (elements.contains(status) || !getFilterQuery().evaluate(status, users)) return
 
         Log.d("FilterListFragment", "[${filterRawQuery}] onStatus : ${status}")
-        if (status is MetaStatus && "RestStream".equals(status.getMetadata())) {
-            setRefreshComplete()
-        }
 
         when {
             muted -> stash.add(status)
@@ -157,6 +154,9 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                     stash.filter { s -> s.getId() == status.getId() }
                          .forEach { s -> s.merge(status, from) }
                 }
+            }
+            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).getTag().equals(filterRawQuery)) {
+                getHandler().post { setRefreshComplete() }
             }
         }
     }

@@ -53,6 +53,7 @@ public class StatusManager implements Releasable {
     public static final int UPDATE_DELETED_DM = 4;
     public static final int UPDATE_NOTIFY = 5;
     public static final int UPDATE_FORCE_UPDATE_UI = 6;
+    public static final int UPDATE_REST_COMPLETED = 7;
     public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
@@ -150,6 +151,11 @@ public class StatusManager implements Releasable {
         @SuppressWarnings("unused")
         public void onForceUpdateUI(Stream from) {
             pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
+        }
+
+        @SuppressWarnings("unused")
+        public void onRestCompleted(Stream from) {
+            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_REST_COMPLETED, new RestCompletedStatus(((RestStream) from).getTag())));
         }
 
         @Override
@@ -621,25 +627,33 @@ public class StatusManager implements Releasable {
                     Paging paging = new Paging();
                     if (!isNarrowMode) paging.setCount(60);
 
-                    ResponseList<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
+                    List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
+                    if (responseList == null) {
+                        responseList = new ArrayList<>();
+                    }
                     if (appendLoadMarker) {
                         LoadMarkerStatus markerStatus;
 
-                        if (responseList == null || responseList.isEmpty()) {
+                        if (responseList.isEmpty()) {
                             markerStatus = new LoadMarkerStatus(
                                     paging.getMaxId(),
                                     userRecord.NumericId);
-//                            return PRListFactory.create(markerStatus, userRecord);
                         } else {
                             markerStatus = new LoadMarkerStatus(
                                     responseList.get(responseList.size() - 1).getId(),
                                     userRecord.NumericId);
-                            responseList.add(markerStatus);
                         }
+
+                        responseList.add(markerStatus);
                     }
 
                     // StreamManagerに流す
                     Stream stream = new RestStream(context, userRecord, tag);
+                    try {
+                        listener.getClass().getMethod("onRestCompleted", Stream.class).invoke(listener, stream);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     for (twitter4j.Status status : responseList) {
                         listener.onStatus(stream, status);
                     }
