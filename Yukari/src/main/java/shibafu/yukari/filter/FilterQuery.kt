@@ -1,5 +1,6 @@
 package shibafu.yukari.filter
 
+import shibafu.yukari.filter.expression.ConstantValue
 import shibafu.yukari.filter.expression.Expression
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
@@ -25,4 +26,56 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      */
     public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
             = rootExpression.evaluate(target, userRecords)
+
+    companion object {
+
+        /**
+         * 抽出クエリをコード上で定義し、[FilterQuery]インスタンスを生成します。
+         */
+        public fun build(query: Builder.() -> Unit): FilterQuery {
+            return Builder(query).toFilterQuery()
+        }
+    }
+
+    /**
+     * 抽出クエリをコード上で定義するためのDSLを提供します。
+     */
+    public class Builder(query: Builder.() -> Unit) {
+        private var sources: List<FilterSource> = emptyList()
+        private var rootExpression: Expression = ConstantValue(true)
+
+        init {
+            query()
+        }
+
+        /**
+         * コンストラクタでの定義入力を利用し、[FilterQuery]インスタンスを生成します。
+         */
+        public fun toFilterQuery(): FilterQuery = FilterQuery(sources, rootExpression)
+
+        /**
+         * FROM句を定義します。
+         */
+        public fun from(query: FromBuilder.() -> Unit) {
+            sources += FromBuilder(query).sources
+        }
+    }
+
+    /**
+     * 抽出クエリのFROM句をコード上で定義するためのDSLを提供します。
+     */
+    public class FromBuilder(query: FromBuilder.() -> Unit) {
+        public var sources: List<FilterSource> = emptyList()
+
+        init {
+            query()
+        }
+
+        /**
+         * 抽出ソースを追加します。
+         */
+        public fun FilterSource.plus() {
+            sources += this
+        }
+    }
 }

@@ -8,9 +8,9 @@ import android.content.IntentFilter
 import android.util.Log
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.QueryCompiler
+import shibafu.yukari.filter.source.Home
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusimpl.MetaStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
@@ -64,18 +64,19 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             Pair(user, loader)
         }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> getStatusManager().requestRestQuery(filterRawQuery, s.first, false, s.second) }
+            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> getStatusManager().requestRestQuery(getRestTag(), s.first, false, s.second) }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
                 if (queries.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
-                    queries.forEach { s -> getStatusManager().requestRestQuery(filterRawQuery, s.first, false, s.second)  }
+                    queries.forEach { s -> getStatusManager().requestRestQuery(getRestTag(), s.first, false, s.second)  }
                 }
             }
         }
     }
 
     override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) {
+        // 1回だけ実行するためのごり押し。こんなことしないで親元をシバいたほうがいい。
         if (userRecord!!.equals(users.first())) {
             executeLoader(requestMode)
         }
@@ -155,7 +156,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                          .forEach { s -> s.merge(status, from) }
                 }
             }
-            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).getTag().equals(filterRawQuery)) {
+            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).getTag().equals(getRestTag())) {
                 getHandler().post { setRefreshComplete() }
             }
         }
