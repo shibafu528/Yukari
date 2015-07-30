@@ -19,7 +19,7 @@ public final class QueryCompiler {
 
     companion object {
         public val DEFAULT_QUERY: String = "from all"
-        private val LOG_TAG = javaClass.getSimpleName()
+        private val LOG_TAG = javaClass<QueryCompiler>().getSimpleName()
 
         /**
          * クエリ文字列を解釈し、ソースリストと式オブジェクトにコンパイルします。

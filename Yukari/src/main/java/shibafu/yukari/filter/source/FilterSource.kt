@@ -1,15 +1,11 @@
 package shibafu.yukari.filter.source
 
 import android.content.Context
+import shibafu.yukari.filter.expression.ConstantValue
+import shibafu.yukari.filter.expression.Expression
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.PreformedResponseList
-import shibafu.yukari.twitter.RESTLoader
-import shibafu.yukari.twitter.rest.RESTParams
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
-import twitter4j.Paging
-import twitter4j.Twitter
 
 /**
  * フィルタシステムにおける抽出ソースを表す抽象クラスです。
@@ -36,6 +32,14 @@ public interface FilterSource{
      * @return UserStreamを必要とする場合はtrue。その場合、利用側ではエンドユーザによって拒否されていない限りUserStreamへの接続を行う必要があります。
      */
     fun requireUserStream(): Boolean
+
+    /**
+     * この抽出ソースによる、UserStream受信に対して干渉するためのフィルタを返します。
+     *
+     * これは利用側では、各抽出ソースから取得したフィルタクエリの論理和をとって使用するものと想定します。
+     * @return UserStream受信に対するフィルタクエリ。
+     */
+    fun filterUserStream(): Expression = ConstantValue(false)
 
     /**
      * この抽出ソースがFilterStreamへの接続を要求する場合、必要なパラメータを設定したインスタンスを返します。
