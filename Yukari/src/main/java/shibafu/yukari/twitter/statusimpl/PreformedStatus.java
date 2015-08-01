@@ -1,34 +1,18 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.ExtendedMediaEntity;
-import twitter4j.GeoLocation;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Place;
-import twitter4j.RateLimitStatus;
-import twitter4j.Scopes;
-import twitter4j.Status;
-import twitter4j.SymbolEntity;
-import twitter4j.URLEntity;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
+import twitter4j.*;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/10/13.
@@ -406,6 +390,16 @@ public class PreformedStatus implements Status{
     @Override
     public String[] getWithheldInCountries() {
         return status.getWithheldInCountries();
+    }
+
+    @Override
+    public long getQuotedStatusId() {
+        return status.getQuotedStatusId();
+    }
+
+    @Override
+    public Status getQuotedStatus() {
+        return status.getQuotedStatus();
     }
 
     @Override

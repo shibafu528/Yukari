@@ -1,19 +1,8 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import java.util.Date;
+import twitter4j.*;
 
-import twitter4j.ExtendedMediaEntity;
-import twitter4j.GeoLocation;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Place;
-import twitter4j.RateLimitStatus;
-import twitter4j.Scopes;
-import twitter4j.Status;
-import twitter4j.SymbolEntity;
-import twitter4j.URLEntity;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
+import java.util.Date;
 
 /**
 * Created by shibafu on 14/06/19.
@@ -143,6 +132,16 @@ public class FakeStatus implements Status {
     @Override
     public String[] getWithheldInCountries() {
         return new String[0];
+    }
+
+    @Override
+    public long getQuotedStatusId() {
+        return 0;
+    }
+
+    @Override
+    public Status getQuotedStatus() {
+        return null;
     }
 
     @Override

@@ -22,10 +22,11 @@ dependencies {
     //compile 'com.doomonafireball.betterpickers:library:1.5.+'
     compile project(':betterpickers')
 
-    compile 'org.twitter4j:twitter4j-core:4.0.3'
-    compile 'org.twitter4j:twitter4j-async:4.0.3'
-    compile 'org.twitter4j:twitter4j-media-support:4.0.3'
-    compile 'org.twitter4j:twitter4j-stream:4.0.3'
+    def t4j_version = '4.0.4'
+    compile "org.twitter4j:twitter4j-core:$t4j_version"
+    compile "org.twitter4j:twitter4j-async:$t4j_version"
+    compile "org.twitter4j:twitter4j-media-support:$t4j_version"
+    compile "org.twitter4j:twitter4j-stream:$t4j_version"
 
     compile 'com.twitter:twitter-text:1.6.1'
 
