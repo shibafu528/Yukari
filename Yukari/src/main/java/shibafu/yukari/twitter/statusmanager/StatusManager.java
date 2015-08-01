@@ -78,6 +78,9 @@ public class StatusManager implements Releasable {
     //ステータス
     private boolean isStarted;
 
+    //実行中の非同期REST
+    private Map<Long, ParallelAsyncTask<Void, Void, Void>> workingRestQueries = new HashMap<>();
+
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<>();
     private Map<String, FilterStream> filterMap = new HashMap<>();
@@ -369,6 +372,12 @@ public class StatusManager implements Releasable {
         statusListeners.clear();
         statusBuffer.clear();
 
+        for (ParallelAsyncTask<Void, Void, Void> task : workingRestQueries.values()) {
+            if (task != null && !task.isCancelled()) {
+                task.cancel(true);
+            }
+        }
+
         receivedStatuses.clear();
 
         notifier.release();
@@ -613,7 +622,8 @@ public class StatusManager implements Releasable {
 
     public void requestRestQuery(final String tag, final AuthUserRecord userRecord, final boolean appendLoadMarker, final RestQuery query) {
         final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
-        new ParallelAsyncTask<Void, Void, Void>() {
+        final long taskKey = System.currentTimeMillis();
+        ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
             private TwitterException exception;
 
             @Override
@@ -647,6 +657,8 @@ public class StatusManager implements Releasable {
                         responseList.add(markerStatus);
                     }
 
+                    if (isCancelled()) return null;
+
                     // StreamManagerに流す
                     Stream stream = new RestStream(context, userRecord, tag);
                     try {
@@ -668,6 +680,7 @@ public class StatusManager implements Releasable {
 
             @Override
             protected void onPostExecute(Void result) {
+                workingRestQueries.remove(taskKey);
                 if (exception != null) {
                     switch (exception.getStatusCode()) {
                         case 429:
@@ -690,7 +703,9 @@ public class StatusManager implements Releasable {
                     }
                 }
             }
-        }.executeParallel();
+        };
+        task.executeParallel();
+        workingRestQueries.put(taskKey, task);
         Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, tag));
     }
 
