@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -107,6 +108,9 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
                     intent.putExtra(StatusActivity.EXTRA_STATUS, lastClicked.getStatus());
                     intent.putExtra(StatusActivity.EXTRA_USER, getTwitterService().isMyTweet(lastClicked.getStatus()));
                     startActivity(intent);
+                    break;
+                case DialogInterface.BUTTON_NEGATIVE:
+                    setBlockingDoubleClock(false);
                     break;
             }
         }
