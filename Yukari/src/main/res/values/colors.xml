@@ -6,22 +6,22 @@
     <drawable name="key_color">#ff7849ba</drawable>
     <drawable name="status_bar_color">#cc7849ba</drawable>
 
-    <color name="bg_retweet">#ffd7dffd</color>
-    <drawable name="bg_retweet">#ffd7dffd</drawable>
-    <color name="bg_mention">#EDB3DD</color>
-    <drawable name="bg_mention">#EDB3DD</drawable>
-    <color name="bg_own">#EFDCFF</color>
-    <drawable name="bg_own">#EFDCFF</drawable>
+    <color name="bg_retweet">#bad7dffd</color>
+    <drawable name="bg_retweet">#bad7dffd</drawable>
+    <color name="bg_mention">#baEDB3DD</color>
+    <drawable name="bg_mention">#baEDB3DD</drawable>
+    <color name="bg_own">#baEFDCFF</color>
+    <drawable name="bg_own">#baEFDCFF</drawable>
 
-    <color name="bg_retweet_d">#ff363358</color>
-    <drawable name="bg_retweet_d">#ff363358</drawable>
-    <color name="bg_mention_d">#ff49003b</color>
-    <drawable name="bg_mention_d">#ff49003b</drawable>
-    <color name="bg_own_d">#ff00182c</color>
-    <drawable name="bg_own_d">#ff00182c</drawable>
+    <color name="bg_retweet_d">#ba363358</color>
+    <drawable name="bg_retweet_d">#ba363358</drawable>
+    <color name="bg_mention_d">#ba49003b</color>
+    <drawable name="bg_mention_d">#ba49003b</drawable>
+    <color name="bg_own_d">#ba00182c</color>
+    <drawable name="bg_own_d">#ba00182c</drawable>
 
-    <drawable name="bg_press">#B394E0</drawable>
-    <drawable name="bg_press_d">#ff382852</drawable>
+    <drawable name="bg_press">#baB394E0</drawable>
+    <drawable name="bg_press_d">#ba382852</drawable>
 
     <drawable name="focus_key_color">@drawable/key_color</drawable>
     <drawable name="press_key_color">#ff613fa3</drawable>
