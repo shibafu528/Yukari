@@ -75,11 +75,10 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         }
     }
 
+    deprecated("フィルタタブにおいて従来のローダーAPIは非推奨です。")
     override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) {
-        // 1回だけ実行するためのごり押し。こんなことしないで親元をシバいたほうがいい。
-        if (userRecord!!.equals(users.first())) {
-            executeLoader(requestMode)
-        }
+        Log.w(javaClass.getSimpleName(), "フィルタタブにおいて従来のローダーAPIは非推奨です。")
+        executeLoader(requestMode)
     }
 
     protected fun getFilterQuery(): FilterQuery {
@@ -105,6 +104,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onServiceDisconnected() {}
 
     override fun isCloseable(): Boolean = false
+
+    override fun onRefresh() {
+        executeLoader(TwitterListFragment.LOADER_LOAD_UPDATE)
+    }
+
+    override fun setRefreshComplete() {
+        getSwipeRefreshLayout().setRefreshing(false)
+    }
 
     override fun getStreamFilter(): String? = null
 

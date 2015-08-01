@@ -14,16 +14,6 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
@@ -32,16 +22,22 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
+
+import java.util.*;
 
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate{
+public abstract class TwitterListFragment<T extends TwitterResponse>
+        extends     ListFragment
+        implements  TwitterServiceConnection.ServiceConnectionCallback,
+                    SwipeRefreshLayout.OnRefreshListener,
+                    TwitterServiceDelegate {
 
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
@@ -150,12 +146,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            for (AuthUserRecord user : users) {
-                executeLoader(LOADER_LOAD_UPDATE, user);
-                ++refreshCounter;
-            }
-        });
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
 
@@ -356,6 +347,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         this.limitCount += limitCount;
     }
 
+    protected SwipeRefreshLayout getSwipeRefreshLayout() {
+        return swipeRefreshLayout;
+    }
+
     public void scrollToTop() {
         getListView().setSelection(0);
     }
@@ -488,6 +483,14 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected void notifyDataSetChanged() {
         if (adapterWrap != null) {
             adapterWrap.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        for (AuthUserRecord user : users) {
+            executeLoader(LOADER_LOAD_UPDATE, user);
+            ++refreshCounter;
         }
     }
 
