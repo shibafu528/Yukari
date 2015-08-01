@@ -86,6 +86,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int REQUEST_DIALOG_CLEAR = 0x01;
     private static final int REQUEST_DIALOG_YUKARIN = 0x02;
     private static final int REQUEST_DIALOG_TEMPLATE = 0x03;
+    private static final int REQUEST_DIALOG_POST = 0x04;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -356,7 +357,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            attachPicture((Uri) args.getParcelableExtra(Intent.EXTRA_STREAM));
+            attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
         }
         else if (mediaUri != null) {
             for (String s : mediaUri) {
@@ -366,248 +367,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //投稿ボタンの設定
         btnPost = (Button) findViewById(R.id.btnTweet);
-        btnPost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (tweetCount < 0) {
-                    Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
-                    return;
-                } else if (tweetCount >= 140 && attachPictures.isEmpty()) {
-                    Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (writers.size() < 1) {
-                    Toast.makeText(TweetActivity.this, "アカウントを指定してください", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                //エイリアス処理
-                String inputText = etInput.getText().toString();
-                if (etInput.getText().toString().startsWith("::")) {
-                    String input = etInput.getText().toString();
-                    String command = input.split(" ")[0];
-                    switch (command) {
-                        case "::cmd":
-                            startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
-                            return;
-                        case "::main":
-                            startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
-                            return;
-                        case "::sb":
-                            inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
-                            break;
-                        case "::jb":
-                            inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
-                            break;
-                        case "::bb":
-                            inputText = input.replace("::bb", "@nkroid bbop");
-                            break;
-                        case "::cn":
-                            if (inputText.split(" ").length > 1) {
-                                String name = inputText.replace("::cn ", "");
-                                new ThrowableTwitterAsyncTask<String, Void>() {
-                                    @Override
-                                    protected ThrowableResult<Void> doInBackground(String... params) {
-                                        try {
-                                            Twitter twitter = getTwitterService().getTwitter();
-                                            for (AuthUserRecord user : writers) {
-                                                twitter.setOAuthAccessToken(user.getAccessToken());
-                                                twitter.updateProfile(params[0], null, null, null);
-                                            }
-                                            return new ThrowableResult<>((Void) null);
-                                        } catch (TwitterException e) {
-                                            e.printStackTrace();
-                                            return new ThrowableResult<>(e);
-                                        }
-                                    }
-
-                                    @Override
-                                    protected void onPreExecute() {
-                                        super.onPreExecute();
-                                        showToast("Updating your name...");
-                                    }
-
-                                    @Override
-                                    protected void onPostExecute(ThrowableResult<Void> result) {
-                                        super.onPostExecute(result);
-                                        if (!result.isException()) {
-                                            showToast("Updated your name!");
-                                        }
-                                    }
-
-                                    @Override
-                                    protected void showToast(String message) {
-                                        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-                                    }
-                                }.execute(name);
-                                setResult(RESULT_OK);
-                                finish();
-                                return;
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                        case "::d250g2":
-                            if (inputText.split(" ").length > 1) {
-                                String comment = inputText.replace("::d250g2 ", "");
-                                inputText = comment + " http://twitpic.com/d250g2";
-                            }
-                            else {
-                                inputText = "http://twitpic.com/d250g2";
-                            }
-                            break;
-                        case "::grgr":
-                            inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
-                            break;
-                        case "::burn":
-                            Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
-                            return;
-                        case "::sy":
-                            inputText = "( ˘ω˘)ｽﾔｧ…";
-                            break;
-                        case "::balus":
-                            sendBroadcast(new Intent("shibafu.yukari.BALUS"));
-                            setResult(RESULT_OK);
-                            finish();
-                            return;
-                        case "::batt":
-                            inputText = batteryTweet;
-                            break;
-                        case "::ay":
-                            inputText = "#あひる焼き";
-                            break;
-                        case "::mh": {
-                            // Quote from https://github.com/0V/MohyoButton/blob/master/MohyoButton/Models/MohyoTweet.cs
-                            final String[] MOHYO = {
-                                    "もひょ",
-                                    "もひょっ",
-                                    "もひょぉ",
-                                    "もひょもひょ",
-                                    "もひょもひょっ",
-                                    "もひょもひょぉ",
-                                    "もひょもひょもひょもひょ",
-                                    "＞ω＜もひょ",
-                                    "(~´ω`)~もひょ",
-                                    "~(´ω`~)もひょ",
-                                    "(～＞ω＜)～もひょ",
-                                    "～(＞ω＜～)もひょ",
-                                    "～(＞ω＜)～もひょ",
-                                    "進捗もひょです",
-                                    "Mohyo",
-                                    "mohyo",
-                                    "むいっ",
-                            };
-                            // End of quote
-                            inputText = MOHYO[new Random().nextInt(MOHYO.length)];
-                            break;
-                        }
-                        case "::ma":
-                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://wiki.famitsu.com/kairi/"))
-                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                            setResult(RESULT_OK);
-                            finish();
-                            return;
-                        case "::meu":
-                            inputText = "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)";
-                            break;
-                        case "::dice":
-                            if (inputText.split(" ").length > 1) {
-                                String diceInput = inputText.replace("::dice ", "");
-                                Pattern pattern = Pattern.compile("(\\d+).(\\d+)");
-                                Matcher m = pattern.matcher(diceInput);
-                                if (m.find() && m.groupCount() == 2) {
-                                    int randomSum = 0;
-                                    Random r = new Random();
-                                    int count = Integer.parseInt(m.group(1));
-                                    int length = Integer.parseInt(m.group(2));
-                                    if (count < 1 || length < 1) {
-                                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-                                    for (int i = 0; i < count; i++) {
-                                        randomSum += r.nextInt(length) + 1;
-                                    }
-                                    inputText = String.format("%dd%d => [%d]", count, length, randomSum);
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                                    return;
-                                }
-                            } else {
-                                final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
-                                Random r = new Random();
-                                inputText = dice[r.nextInt(6)];
-                            }
-                            break;
-                        case "::yk": {
-                            inputText = String.format("ゆかりさんゆかりさん！！(%d回目)", sp.getLong("count_yk", 1));
-                            sp.edit().putLong("count_yk", sp.getLong("count_yk", 1) + 1).commit();
-                            break;
-                        }
-                        case "::te": {
-                            List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
-                            templateStrings = new ArrayList<>();
-                            for (Template template : templates) {
-                                templateStrings.add(template.getValue());
-                            }
-                            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
-                                    REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル", templateStrings
-                            );
-                            dialogFragment.show(getSupportFragmentManager(), "template");
-                            return;
-                        }
-                        case "::td": {
-                            startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
-                            return;
-                        }
-                        case "::modq": {
-                            if (inputText.split(" ").length > 1) {
-                                String query = inputText.replace("::modq ", "");
-                                for (TabInfo tabInfo : getTwitterService().getDatabase().getTabs()) {
-                                    if (tabInfo.getType() == TabType.TABTYPE_FILTER) {
-                                        tabInfo.setFilterQuery(query);
-                                        getTwitterService().getDatabase().updateRecord(tabInfo);
-                                    }
-                                }
-                                Toast.makeText(getApplicationContext(), "Modified Query. Pleaze restart app.", Toast.LENGTH_SHORT).show();
-                                setResult(RESULT_OK);
-                                finish();
-                                return;
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                //ドラフトを作成
-                TweetDraft draft = getTweetDraft();
-                draft.setText(inputText);
-
-                //使用されているハッシュタグを記憶
-                List<String> hashtags = EXTRACTOR.extractHashtags(inputText);
-                for (String hashtag : hashtags) {
-                    usedHashes.put(hashtag);
-                }
-                usedHashes.save(getApplicationContext());
-
-                if (isComposerMode) {
-                    Intent intent = new Intent();
-                    intent.putExtra(EXTRA_DRAFT, draft);
-                    setResult(RESULT_OK, intent);
-                }
-                else {
-                    //サービスに投げる
-                    Intent intent = PostService.newIntent(TweetActivity.this, draft);
-                    startService(intent);
-
-                    if (sp.getBoolean("first_guide", true)) {
-                        sp.edit().putBoolean("first_guide", false).commit();
-                    }
-
-                    setResult(RESULT_OK);
-                }
-                finish();
+        btnPost.setOnClickListener(v -> {
+            if (sp.getBoolean("pref_dialog_post", false)) {
+                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                        REQUEST_DIALOG_POST, "確認", "ツイートしますか？", "OK", "キャンセル"
+                );
+                dialogFragment.show(getSupportFragmentManager(), "dialog");
+            } else {
+                postTweet();
             }
         });
         btnPost.setOnLongClickListener(v -> {
@@ -926,6 +693,248 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             setFinishOnTouchOutside(false);
         }
+    }
+
+    private void postTweet() {
+        if (tweetCount < 0) {
+            Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (tweetCount >= 140 && attachPictures.isEmpty()) {
+            Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (writers.size() < 1) {
+            Toast.makeText(TweetActivity.this, "アカウントを指定してください", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //エイリアス処理
+        String inputText = etInput.getText().toString();
+        if (etInput.getText().toString().startsWith("::")) {
+            String input = etInput.getText().toString();
+            String command = input.split(" ")[0];
+            switch (command) {
+                case "::cmd":
+                    startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
+                    return;
+                case "::main":
+                    startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
+                    return;
+                case "::sb":
+                    inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
+                    break;
+                case "::jb":
+                    inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
+                    break;
+                case "::bb":
+                    inputText = input.replace("::bb", "@nkroid bbop");
+                    break;
+                case "::cn":
+                    if (inputText.split(" ").length > 1) {
+                        String name = inputText.replace("::cn ", "");
+                        new ThrowableTwitterAsyncTask<String, Void>() {
+                            @Override
+                            protected ThrowableResult<Void> doInBackground(String... params) {
+                                try {
+                                    Twitter twitter = getTwitterService().getTwitter();
+                                    for (AuthUserRecord user : writers) {
+                                        twitter.setOAuthAccessToken(user.getAccessToken());
+                                        twitter.updateProfile(params[0], null, null, null);
+                                    }
+                                    return new ThrowableResult<>((Void) null);
+                                } catch (TwitterException e) {
+                                    e.printStackTrace();
+                                    return new ThrowableResult<>(e);
+                                }
+                            }
+
+                            @Override
+                            protected void onPreExecute() {
+                                super.onPreExecute();
+                                showToast("Updating your name...");
+                            }
+
+                            @Override
+                            protected void onPostExecute(ThrowableResult<Void> result) {
+                                super.onPostExecute(result);
+                                if (!result.isException()) {
+                                    showToast("Updated your name!");
+                                }
+                            }
+
+                            @Override
+                            protected void showToast(String message) {
+                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                            }
+                        }.execute(name);
+                        setResult(RESULT_OK);
+                        finish();
+                        return;
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                case "::d250g2":
+                    if (inputText.split(" ").length > 1) {
+                        String comment = inputText.replace("::d250g2 ", "");
+                        inputText = comment + " http://twitpic.com/d250g2";
+                    }
+                    else {
+                        inputText = "http://twitpic.com/d250g2";
+                    }
+                    break;
+                case "::grgr":
+                    inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
+                    break;
+                case "::burn":
+                    Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
+                    return;
+                case "::sy":
+                    inputText = "( ˘ω˘)ｽﾔｧ…";
+                    break;
+                case "::balus":
+                    sendBroadcast(new Intent("shibafu.yukari.BALUS"));
+                    setResult(RESULT_OK);
+                    finish();
+                    return;
+                case "::batt":
+                    inputText = batteryTweet;
+                    break;
+                case "::ay":
+                    inputText = "#あひる焼き";
+                    break;
+                case "::mh": {
+                    // Quote from https://github.com/0V/MohyoButton/blob/master/MohyoButton/Models/MohyoTweet.cs
+                    final String[] MOHYO = {
+                            "もひょ",
+                            "もひょっ",
+                            "もひょぉ",
+                            "もひょもひょ",
+                            "もひょもひょっ",
+                            "もひょもひょぉ",
+                            "もひょもひょもひょもひょ",
+                            "＞ω＜もひょ",
+                            "(~´ω`)~もひょ",
+                            "~(´ω`~)もひょ",
+                            "(～＞ω＜)～もひょ",
+                            "～(＞ω＜～)もひょ",
+                            "～(＞ω＜)～もひょ",
+                            "進捗もひょです",
+                            "Mohyo",
+                            "mohyo",
+                            "むいっ",
+                    };
+                    // End of quote
+                    inputText = MOHYO[new Random().nextInt(MOHYO.length)];
+                    break;
+                }
+                case "::ma":
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://wiki.famitsu.com/kairi/"))
+                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    setResult(RESULT_OK);
+                    finish();
+                    return;
+                case "::meu":
+                    inputText = "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)";
+                    break;
+                case "::dice":
+                    if (inputText.split(" ").length > 1) {
+                        String diceInput = inputText.replace("::dice ", "");
+                        Pattern pattern = Pattern.compile("(\\d+).(\\d+)");
+                        Matcher m = pattern.matcher(diceInput);
+                        if (m.find() && m.groupCount() == 2) {
+                            int randomSum = 0;
+                            Random r = new Random();
+                            int count = Integer.parseInt(m.group(1));
+                            int length = Integer.parseInt(m.group(2));
+                            if (count < 1 || length < 1) {
+                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            for (int i = 0; i < count; i++) {
+                                randomSum += r.nextInt(length) + 1;
+                            }
+                            inputText = String.format("%dd%d => [%d]", count, length, randomSum);
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                    } else {
+                        final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
+                        Random r = new Random();
+                        inputText = dice[r.nextInt(6)];
+                    }
+                    break;
+                case "::yk": {
+                    inputText = String.format("ゆかりさんゆかりさん！！(%d回目)", sp.getLong("count_yk", 1));
+                    sp.edit().putLong("count_yk", sp.getLong("count_yk", 1) + 1).commit();
+                    break;
+                }
+                case "::te": {
+                    List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
+                    templateStrings = new ArrayList<>();
+                    for (Template template : templates) {
+                        templateStrings.add(template.getValue());
+                    }
+                    SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                            REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル", templateStrings
+                    );
+                    dialogFragment.show(getSupportFragmentManager(), "template");
+                    return;
+                }
+                case "::td": {
+                    startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
+                    return;
+                }
+                case "::modq": {
+                    if (inputText.split(" ").length > 1) {
+                        String query = inputText.replace("::modq ", "");
+                        for (TabInfo tabInfo : getTwitterService().getDatabase().getTabs()) {
+                            if (tabInfo.getType() == TabType.TABTYPE_FILTER) {
+                                tabInfo.setFilterQuery(query);
+                                getTwitterService().getDatabase().updateRecord(tabInfo);
+                            }
+                        }
+                        Toast.makeText(getApplicationContext(), "Modified Query. Pleaze restart app.", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                        return;
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
+            }
+        }
+
+        //ドラフトを作成
+        TweetDraft draft = getTweetDraft();
+        draft.setText(inputText);
+
+        //使用されているハッシュタグを記憶
+        List<String> hashtags = EXTRACTOR.extractHashtags(inputText);
+        for (String hashtag : hashtags) {
+            usedHashes.put(hashtag);
+        }
+        usedHashes.save(getApplicationContext());
+
+        if (isComposerMode) {
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_DRAFT, draft);
+            setResult(RESULT_OK, intent);
+        }
+        else {
+            //サービスに投げる
+            Intent intent = PostService.newIntent(TweetActivity.this, draft);
+            startService(intent);
+
+            if (sp.getBoolean("first_guide", true)) {
+                sp.edit().putBoolean("first_guide", false).commit();
+            }
+
+            setResult(RESULT_OK);
+        }
+        finish();
     }
 
     private void updateWritersView() {
@@ -1257,6 +1266,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             case REQUEST_DIALOG_TEMPLATE:
                 if (which > -1) {
                     etInput.setText(templateStrings.get(which));
+                }
+                break;
+            case REQUEST_DIALOG_POST:
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    postTweet();
                 }
                 break;
         }
