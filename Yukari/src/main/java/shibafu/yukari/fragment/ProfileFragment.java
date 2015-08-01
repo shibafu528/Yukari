@@ -21,28 +21,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.GridView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.regex.Pattern;
-
+import android.widget.*;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.MainActivity;
-import shibafu.yukari.activity.MuteActivity;
-import shibafu.yukari.activity.PreviewActivity;
-import shibafu.yukari.activity.ProfileEditActivity;
-import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.activity.*;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -52,18 +33,16 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.FriendListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
-import shibafu.yukari.fragment.tabcontent.UserListFragment;
+import shibafu.yukari.fragment.tabcontent.*;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
-import twitter4j.Relationship;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.URLEntity;
-import twitter4j.User;
+import twitter4j.*;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/08/10.
@@ -1024,10 +1003,11 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                                     getTwitterService().getUsers()
                                     : new ArrayList<>()
                             : new ArrayList<>();
+            Twitter twitter = getTwitterService().getTwitter();
             for (AuthUserRecord userRecord : users) {
                 try {
-                    relationships.put(userRecord,
-                            getTwitterService().getTwitter().showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
+                    twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                    relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
