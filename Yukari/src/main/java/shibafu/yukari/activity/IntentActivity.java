@@ -5,13 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Pair;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -20,6 +13,12 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/08/09.
@@ -30,14 +29,14 @@ public class IntentActivity extends ListYukariBase{
     static {
         List<Pair<Pattern, AfterWork>> matchTemp = new ArrayList<>();
         matchTemp.add(new Pair<>(
-                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?$"),
+                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?$"),
                 activity -> {
                     String id = activity.matchedWork.first.group(1);
                     TweetLoaderTask task = activity.new TweetLoaderTask();
                     task.executeParallel(Long.valueOf(id));
                 }));
         matchTemp.add(new Pair<>(
-                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/?$"),
+                Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/?(?:\\?.+)?$"),
                 activity -> {
                     Intent intent = new Intent(
                             Intent.ACTION_VIEW,
