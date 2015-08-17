@@ -1,7 +1,8 @@
 package shibafu.yukari.filter
 
-import shibafu.yukari.filter.expression.ConstantValue
 import shibafu.yukari.filter.expression.Expression
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
 import twitter4j.TwitterResponse
@@ -14,10 +15,10 @@ import twitter4j.TwitterResponse
  * Created by shibafu on 15/06/07.
  *
  * @property sources 抽出対象のデータソースです。
- * @property rootExpression コンパイルされたクエリ式です。評価時に呼び出されます。
+ * @property rootNode コンパイルされたクエリ式です。評価時に呼び出されます。
  * @constructor 抽出ソースとコンパイルされた式を格納するオブジェクトを生成します。このコンストラクタはクエリコンパイラ以外呼びだすべきではありません。
  */
-public data class FilterQuery(public val sources: List<FilterSource>, private val rootExpression: Expression) {
+public data class FilterQuery(public val sources: List<FilterSource>, private val rootNode: SNode) {
     /**
      * ツイートやメッセージをコンパイルされたクエリ式で評価します。
      * @param target 評価対象
@@ -25,7 +26,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      * @return クエリ式の評価結果 (抽出であれば、真となったら表示するのが妥当です)
      */
     public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
-            = rootExpression.evaluate(target, userRecords)
+            = rootNode.evaluate(target, userRecords).equals(true)
 
     companion object {
 
@@ -42,7 +43,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      */
     public class Builder(query: Builder.() -> Unit) {
         private var sources: List<FilterSource> = emptyList()
-        private var rootExpression: Expression = ConstantValue(true)
+        private var rootNode: SNode = ValueNode(true)
 
         init {
             query()
@@ -51,7 +52,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
         /**
          * コンストラクタでの定義入力を利用し、[FilterQuery]インスタンスを生成します。
          */
-        public fun toFilterQuery(): FilterQuery = FilterQuery(sources, rootExpression)
+        public fun toFilterQuery(): FilterQuery = FilterQuery(sources, rootNode)
 
         /**
          * FROM句を定義します。

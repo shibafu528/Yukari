@@ -9,7 +9,15 @@ import twitter4j.TwitterResponse
 public interface SNode {
     val children: List<SNode>;
 
-    fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
+    fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
+
+    override fun toString(): String {
+        val sb = StringBuilder("( ")
+        sb.append(this.javaClass.getSimpleName().replace("Node", "").toLowerCase()).append("\n  ")
+        children.forEach { sb.append(it.toString()); sb.append("\n  ") }
+        sb.append(")")
+        return sb.toString()
+    }
 }
 
 /**
@@ -17,6 +25,10 @@ public interface SNode {
  */
 public interface FactorNode {
     var value: Any?
+
+    override fun toString(): String {
+        return if (value is String) "\"${value.toString()}\"" else value.toString();
+    }
 }
 
 /**
@@ -25,19 +37,22 @@ public interface FactorNode {
 public class ValueNode(override var value: Any?) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
-        = if (value is Boolean) value as Boolean else true
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any = value ?: false
+
+    override fun toString(): String {
+        return super<FactorNode>.toString()
+    }
 }
 
 /**
  * 変数ノード
  */
-public class VariableNode(val path: String) : SNode, FactorNode {
+public class VariableNode(private val path: String) : SNode, FactorNode {
     override var value: Any? = null
 
     override val children: List<SNode> = emptyList()
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean {
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         fun invoke(pathList: List<String>, target: Any?) {
             if (target == null) return
 
@@ -53,7 +68,11 @@ public class VariableNode(val path: String) : SNode, FactorNode {
         } else {
             invoke(pathList, status)
         }
-        return if (value is Boolean) value as Boolean else true
+        return value ?: false
+    }
+
+    override fun toString(): String {
+        return super<FactorNode>.toString()
     }
 }
 
@@ -63,5 +82,5 @@ public class VariableNode(val path: String) : SNode, FactorNode {
 public class QuoteNode(override val children: List<SNode>) : SNode {
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>)
-            = children.all { it.evaluate(status, userRecords) }
+            = children.map { it.evaluate(status, userRecords) }
 }
