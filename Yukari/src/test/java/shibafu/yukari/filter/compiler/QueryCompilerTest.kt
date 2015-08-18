@@ -174,4 +174,18 @@ public class QueryCompilerTest {
         val result = evaluateFake(snode)
         assertEquals(false, result)
     }
+
+    test fun simpleQueryTest() {
+        val q = "from * where (t)"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals(javaClass<All>(), filter.sources.first().javaClass)
+        assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
+    }
+
+    test fun emptyWhereQueryTest() {
+        val q = "from * where"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals(javaClass<All>(), filter.sources.first().javaClass)
+        assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
+    }
 }

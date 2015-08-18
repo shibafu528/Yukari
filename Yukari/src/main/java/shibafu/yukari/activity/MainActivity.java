@@ -48,6 +48,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
     private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
+    private static final int REQUEST_QUERY = 8;
 
     public static final String EXTRA_SEARCH_WORD = "searchWord";
     public static final String EXTRA_SHOW_TAB = "showTab";
@@ -212,6 +213,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     }
                     case R.id.action_search_users:
                         startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
+                        break;
+                    case R.id.action_query:
+                        startActivityForResult(new Intent(MainActivity.this, QueryEditorActivity.class), REQUEST_QUERY);
                         break;
                 }
                 return false;
