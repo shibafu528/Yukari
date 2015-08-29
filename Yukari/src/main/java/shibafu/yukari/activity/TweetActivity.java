@@ -89,6 +89,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int REQUEST_DIALOG_YUKARIN = 0x02;
     private static final int REQUEST_DIALOG_TEMPLATE = 0x03;
     private static final int REQUEST_DIALOG_POST = 0x04;
+    private static final int REQUEST_DIALOG_BACK = 0x05;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -163,6 +164,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     //定型文入力 一時変数
     private List<String> templateStrings;
+
+    //初期状態のスナップショット
+    private TweetDraft initialDraft;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -705,6 +709,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             setFinishOnTouchOutside(false);
         }
+
+        // 初期化完了時点での下書き状況のスナップショット
+        initialDraft = (TweetDraft) getTweetDraft().clone();
     }
 
     private void postTweet() {
@@ -1093,6 +1100,17 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         super.onStop();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (sp.getBoolean("pref_dialog_cancel_post", true) && !getTweetDraft().equals(initialDraft)) {
+            SimpleAlertDialogFragment dialogFragment =
+                    SimpleAlertDialogFragment.newInstance(REQUEST_DIALOG_BACK, "確認", "下書きに保存しますか?", "保存", "破棄", "キャンセル");
+            dialogFragment.show(getSupportFragmentManager(), "");
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private ImageView createAttachThumb(Bitmap bmp) {
         int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 72, getResources().getDisplayMetrics());
         final ImageView ivAttach = new ImageView(this);
@@ -1102,7 +1120,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
                     .setTitle("添付の取り消し")
                     .setMessage("画像の添付を取り消してもよろしいですか？")
-                    .setIcon(android.R.drawable.ic_dialog_alert)
                     .setPositiveButton("はい", (dialog, which) -> {
                         dialog.dismiss();
                         currentDialog = null;
@@ -1248,6 +1265,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (useStoredWriters && writers.size() == 0) {
             writers = getTwitterService().getWriterUsers();
             updateWritersView();
+            initialDraft.setWriters(writers);
         }
 
         TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
@@ -1283,6 +1301,15 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             case REQUEST_DIALOG_POST:
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     postTweet();
+                }
+                break;
+            case REQUEST_DIALOG_BACK:
+                switch (which) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        getTwitterService().getDatabase().updateDraft(getTweetDraft());
+                    case DialogInterface.BUTTON_NEUTRAL:
+                        finish();
+                        break;
                 }
                 break;
         }

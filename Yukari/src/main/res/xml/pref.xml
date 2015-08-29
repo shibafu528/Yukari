@@ -77,6 +77,11 @@
             android:key="pref_dialog_post"
             android:title="投稿前に確認"
             android:summary="ツイート前に実行するか確認を行います" />
+        <CheckBoxPreference
+            android:key="pref_dialog_cancel_post"
+            android:title="投稿画面を閉じる前に確認"
+            android:summary="ツイートキャンセル前に下書きに保存するか確認を行います"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
