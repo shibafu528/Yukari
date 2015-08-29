@@ -1,30 +1,26 @@
 package shibafu.yukari.service;
 
+import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Binder;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import shibafu.yukari.R;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.AutoMuteConfig;
@@ -33,18 +29,19 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
-import twitter4j.DirectMessage;
-import twitter4j.IDs;
-import twitter4j.Status;
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
-import twitter4j.TwitterAPIConfiguration;
-import twitter4j.TwitterException;
-import twitter4j.UploadedMedia;
+import shibafu.yukari.util.StringUtil;
+import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -209,6 +206,35 @@ public class TwitterService extends Service{
             pixivProxy = new Pixiv.PixivProxy();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        //mikutter更新通知
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
+            new SimpleAsyncTask() {
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    String versionString = getLatestMikutterVersion("stable");
+                    if (versionString != null) {
+                        Log.d("mikutter-version", versionString);
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                                .setSmallIcon(R.drawable.ic_stat_favorite)
+                                .setContentTitle("mikutter " + versionString)
+                                .setContentText("mikutter " + versionString + " がリリースされています。")
+                                .setTicker("mikutter " + versionString)
+                                .setPriority(NotificationCompat.PRIORITY_MAX)
+                                .setAutoCancel(true)
+                                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
+                                        new Intent(Intent.ACTION_VIEW, Uri.parse("http://mikutter.hachune.net/download")),
+                                        PendingIntent.FLAG_CANCEL_CURRENT));
+                        NotificationManagerCompat.from(getApplicationContext()).notify(R.string.app_name, builder.build());
+                    } else {
+                        Log.d("mikutter-version", "null");
+                    }
+                    return null;
+                }
+
+            }.executeParallel();
         }
 
         Log.d(LOG_TAG, "onCreate completed.");
@@ -611,4 +637,49 @@ public class TwitterService extends Service{
         return null;
     }
 
+    private static class MikutterDownload {
+        static class Version {
+            public int major, minor, teeny, build;
+            public String meta;
+        }
+        @SerializedName("version_string") public String versionString;
+        public Version version;
+        public String created;
+        public String url;
+    }
+
+    @Nullable
+    private String getLatestMikutterVersion(@Nullable String channel) {
+        if (channel == null) {
+            channel = "stable";
+        }
+        try {
+            Debug.waitForDebugger();
+
+            HttpURLConnection conn = (HttpURLConnection) new URL("http://mikutter.hachune.net/download/" + channel + ".json").openConnection();
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", StringUtil.getVersionInfo(this));
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            try {
+                String s;
+                while ((s = br.readLine()) != null) {
+                    sb.append(s);
+                }
+            } finally {
+                br.close();
+                conn.disconnect();
+            }
+
+            MikutterDownload[] info = new Gson().fromJson(sb.toString(), MikutterDownload[].class);
+
+            if (info.length == 0) {
+                return null;
+            } else {
+                return info[0].versionString;
+            }
+
+        } catch (IOException ignore) {}
+        return null;
+    }
 }
