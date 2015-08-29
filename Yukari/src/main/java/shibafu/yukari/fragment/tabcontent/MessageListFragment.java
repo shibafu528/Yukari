@@ -63,7 +63,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     @Override
     public void onDetach() {
-        if (isServiceBound()) {
+        if (isServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
