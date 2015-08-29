@@ -12,6 +12,10 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
+import android.text.Editable;
+import android.text.Spanned;
+import android.text.TextWatcher;
+import android.text.style.CharacterStyle;
 import android.util.Log;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
@@ -326,6 +330,26 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 postTweet();
             }
             return false;
+        });
+        etTweet.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 装飾の除去
+                Object[] spanned = s.getSpans(0, s.length(), Object.class);
+                if (spanned != null) {
+                    for (Object o : spanned) {
+                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
+                            s.removeSpan(o);
+                        }
+                    }
+                }
+            }
         });
         etTweet.setTypeface(FontAsset.getInstance(this).getFont());
         ImageButton ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);

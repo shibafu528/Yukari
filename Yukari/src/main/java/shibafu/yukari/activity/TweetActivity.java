@@ -17,8 +17,10 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.text.Editable;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.style.CharacterStyle;
 import android.util.TypedValue;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
@@ -251,6 +253,16 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         ibSNPicker.setVisibility(View.VISIBLE);
                     } else {
                         ibSNPicker.setVisibility(View.GONE);
+                    }
+                }
+
+                // 装飾の除去
+                Object[] spanned = s.getSpans(0, s.length(), Object.class);
+                if (spanned != null) {
+                    for (Object o : spanned) {
+                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
+                            s.removeSpan(o);
+                        }
                     }
                 }
             }
