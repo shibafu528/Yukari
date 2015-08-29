@@ -17,22 +17,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
+import android.widget.*;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -45,6 +30,10 @@ import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -230,6 +219,13 @@ public class PreviewActivity extends FragmentYukariBase {
         }
         else {
             mediaUrl = data.toString();
+        }
+
+        //とりあえず念のため見ておくか
+        if (linkMedia == null) {
+            Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
+            finish();
+            return;
         }
 
         loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
