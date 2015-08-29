@@ -1,12 +1,7 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,13 +13,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -39,18 +27,13 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
-import shibafu.yukari.twitter.statusmanager.StatusListener;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
-import twitter4j.DirectMessage;
-import twitter4j.Paging;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.UserList;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
+import twitter4j.*;
+
+import java.util.*;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -485,7 +468,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             } else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    if (asyncInsertWaitings.containsKey(status.getId())) {
+                    if (asyncInsertWaitings.containsKey(status.getId()) && asyncInsertWaitings.get(status.getId()) != null) {
                         Log.d("Timeline_onStatus", "Redundant status : " + status.getId());
                         asyncInsertWaitings.get(status.getId()).merge(status);
                     } else {
