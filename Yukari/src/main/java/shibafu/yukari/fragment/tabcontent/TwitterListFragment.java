@@ -322,7 +322,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     protected StatusManager getStatusManager() {
-        return getService().getStatusManager();
+        if (getService() != null) {
+            return getService().getStatusManager();
+        } else {
+            return null;
+        }
     }
 
     protected Handler getHandler() {

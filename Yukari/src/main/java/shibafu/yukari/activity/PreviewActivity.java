@@ -221,6 +221,13 @@ public class PreviewActivity extends FragmentYukariBase {
             mediaUrl = data.toString();
         }
 
+        //とりあえず念のため見ておくか
+        if (linkMedia == null) {
+            Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength = -1;

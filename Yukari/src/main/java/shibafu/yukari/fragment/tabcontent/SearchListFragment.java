@@ -4,23 +4,18 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
-
-import java.util.Iterator;
-
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
-import twitter4j.DirectMessage;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.Status;
-import twitter4j.TwitterException;
+import twitter4j.*;
+
+import java.util.Iterator;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -80,7 +75,9 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
 
     @Override
     public void onServiceDisconnected() {
-        getStatusManager().removeStatusListener(this);
+        if (getStatusManager() != null) {
+            getStatusManager().removeStatusListener(this);
+        }
     }
 
     @Override
