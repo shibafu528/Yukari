@@ -287,6 +287,10 @@
             android:key="pref_extended_touch_event"
             android:title="TLタッチ拡張"
             android:summary="TL上のタッチイベントを増やします"/>
+        <CheckBoxPreference
+            android:key="pref_disable_ipv6"
+            android:title="IPv6を無効化"
+            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします"/>
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
