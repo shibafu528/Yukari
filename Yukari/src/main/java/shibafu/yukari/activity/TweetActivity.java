@@ -1037,11 +1037,21 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             switch (requestCode) {
                 case REQUEST_CAMERA:
                 {
-                    Cursor c = getContentResolver().query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-                    c.moveToFirst();
-                    getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            MediaStore.Images.Media.DATA + "=?",
-                            new String[]{c.getString(0)});
+                    try {
+                        ContentResolver resolver = getContentResolver();
+                        Cursor c = resolver.query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+                        if (c != null) {
+                            c.moveToFirst();
+                            resolver.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    MediaStore.Images.Media.DATA + "=?",
+                                    new String[]{c.getString(0)});
+                            c.close();
+                        }
+                    } catch (NullPointerException e) {
+                        Toast.makeText(getApplicationContext(),
+                                "カメラとの連携をキャンセルする際、一時ファイルの削除に失敗しました。\nもしギャラリーにゴミが増えていたら始末をお願いします。",
+                                Toast.LENGTH_SHORT).show();
+                    }
                     break;
                 }
             }
