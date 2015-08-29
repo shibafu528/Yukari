@@ -429,6 +429,9 @@ public class PreviewActivity extends FragmentYukariBase {
         loaderTask.executeParallel(mediaUrl);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
+        if (status != null && status.isRetweet()) {
+            status = status.getRetweetedStatus();
+        }
         tweetView = findViewById(R.id.inclPreviewStatus);
 
         ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);

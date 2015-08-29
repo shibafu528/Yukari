@@ -77,6 +77,9 @@ public class MoviePreviewActivity extends FragmentActivity{
         }.executeParallel(linkMedia);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
+        if (status != null && status.isRetweet()) {
+            status = status.getRetweetedStatus();
+        }
         tweetView = findViewById(R.id.inclPreviewStatus);
         viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
                 this,
