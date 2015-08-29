@@ -34,7 +34,7 @@ dependencies {
 
     compile 'com.github.machinarius:preferencefragment:0.1.1'
 
-    compile 'jp.dip.totori:totoridipjp4J:1.0'
+    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
 
     compile project(':GalleryMultiPicker:library')
     compile project(':twpfparser')
