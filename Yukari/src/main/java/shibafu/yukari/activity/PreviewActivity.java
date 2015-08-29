@@ -17,22 +17,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
+import android.widget.*;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -45,6 +30,10 @@ import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -355,14 +344,17 @@ public class PreviewActivity extends FragmentYukariBase {
                     //実際の読み込みを行う
                     fis = new FileInputStream(cacheFile);
                     options.inJustDecodeBounds = false;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB && Math.max(options.outWidth, options.outHeight) > 960) {
-                        int scaleW = options.outWidth / 960;
-                        int scaleH = options.outHeight / 960;
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB && Math.max(options.outWidth, options.outHeight) > 800) {
+                        int scaleW = options.outWidth / 800;
+                        int scaleH = options.outHeight / 800;
                         options.inSampleSize = Math.max(scaleW, scaleH);
-                    }
-                    else if (Math.max(options.outWidth, options.outHeight) > 1500) {
+                    } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
                         int scaleW = options.outWidth / 1500;
                         int scaleH = options.outHeight / 1500;
+                        options.inSampleSize = Math.max(scaleW, scaleH);
+                    } else if (Math.max(options.outWidth, options.outHeight) > 2048) {
+                        int scaleW = options.outWidth / 2048;
+                        int scaleH = options.outHeight / 2048;
                         options.inSampleSize = Math.max(scaleW, scaleH);
                     }
                     Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
