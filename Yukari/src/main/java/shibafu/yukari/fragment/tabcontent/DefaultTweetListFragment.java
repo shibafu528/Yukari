@@ -476,13 +476,23 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 redundant.merge(status);
                             }
                         } else {
-                            asyncInsertWaitings.put(status.getId(), status);
-                            getHandler().post(() -> {
-                                insertElement(status, position);
-                                synchronized (asyncInsertWaitings) {
-                                    asyncInsertWaitings.remove(status.getId());
+                            class AsyncInsert implements Runnable {
+                                @Override
+                                public void run() {
+                                    if (listView == null) {
+                                        Log.d("Timeline_onStatus", "ListView is null. wait 100ms.");
+                                        getHandler().postDelayed(new AsyncInsert(), 100);
+                                        return;
+                                    }
+
+                                    insertElement(status, position);
+                                    synchronized (asyncInsertWaitings) {
+                                        asyncInsertWaitings.remove(status.getId());
+                                    }
                                 }
-                            });
+                            }
+                            asyncInsertWaitings.put(status.getId(), status);
+                            getHandler().post(new AsyncInsert());
                         }
                     }
                 }
