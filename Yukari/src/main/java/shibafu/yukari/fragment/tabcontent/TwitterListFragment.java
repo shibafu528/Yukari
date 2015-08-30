@@ -358,11 +358,19 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     public void scrollToTop() {
-        getListView().setSelection(0);
+        try {
+            getListView().setSelection(0);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
     }
 
     public void scrollToBottom() {
-        getListView().setSelection(getListAdapter().getCount() - 1);
+        try {
+            getListView().setSelection(getListAdapter().getCount() - 1);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void changeFooterProgress(boolean isLoading) {
