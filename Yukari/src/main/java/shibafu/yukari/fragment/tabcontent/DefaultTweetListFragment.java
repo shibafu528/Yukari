@@ -63,7 +63,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     private SharedPreferences preferences;
 
-    private Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<>());
 
     @Override
     public void onAttach(Activity activity) {
@@ -468,15 +468,22 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             } else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    if (asyncInsertWaitings.containsKey(status.getId()) && asyncInsertWaitings.get(status.getId()) != null) {
-                        Log.d("Timeline_onStatus", "Redundant status : " + status.getId());
-                        asyncInsertWaitings.get(status.getId()).merge(status);
-                    } else {
-                        asyncInsertWaitings.put(status.getId(), status);
-                        getHandler().post(() -> {
-                            insertElement(status, position);
-                            asyncInsertWaitings.remove(status.getId());
-                        });
+                    synchronized (asyncInsertWaitings) {
+                        if (asyncInsertWaitings.containsKey(status.getId())) {
+                            PreformedStatus redundant = asyncInsertWaitings.get(status.getId());
+                            if (redundant != null) {
+                                Log.d("Timeline_onStatus", "Redundant status : " + status.getId());
+                                redundant.merge(status);
+                            }
+                        } else {
+                            asyncInsertWaitings.put(status.getId(), status);
+                            getHandler().post(() -> {
+                                insertElement(status, position);
+                                synchronized (asyncInsertWaitings) {
+                                    asyncInsertWaitings.remove(status.getId());
+                                }
+                            });
+                        }
                     }
                 }
             }

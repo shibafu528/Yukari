@@ -10,10 +10,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
+import android.widget.*;
 import lombok.AccessLevel;
 import lombok.Setter;
 import shibafu.yukari.R;
@@ -362,6 +359,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             getListView().setSelection(0);
         } catch (IllegalStateException e) {
             e.printStackTrace();
+            Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -370,6 +368,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             getListView().setSelection(getListAdapter().getCount() - 1);
         } catch (IllegalStateException e) {
             e.printStackTrace();
+            Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
