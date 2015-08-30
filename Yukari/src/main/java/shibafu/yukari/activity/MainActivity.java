@@ -436,6 +436,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         super.onResume();
         //スリープ有効の設定
         setKeepScreenOn(keepScreenOn);
+        //表示域拡張の設定
+        setImmersive(immersive);
         //ツイート操作ガイド
         llTweetGuide.setVisibility(sharedPreferences.getBoolean("first_guide", true)? View.VISIBLE : View.GONE);
         //投稿ボタン
@@ -446,6 +448,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("screen", keepScreenOn);
+        outState.putBoolean("immersive", immersive);
         if (currentPage != null && currentPage.isAdded()) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
@@ -461,6 +464,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         Log.d("MainActivity", "call onRestoreInstanceState");
 
         keepScreenOn = savedInstanceState.getBoolean("screen");
+        immersive = savedInstanceState.getBoolean("immersive");
         currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         int currentId = savedInstanceState.getInt("currentId", -1);
