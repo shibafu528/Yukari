@@ -467,6 +467,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         immersive = savedInstanceState.getBoolean("immersive");
         currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
+        if (pageList == null) {
+            pageList = new ArrayList<>();
+        }
         int currentId = savedInstanceState.getInt("currentId", -1);
         for (int i = 0; i < pageList.size(); i++) {
             TabInfo tabInfo = pageList.get(i);
@@ -484,7 +487,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onDestroy() {
         super.onDestroy();
         currentPage = null;
-        pageList = null;
         tabPagerAdapter = null;
         viewPager = null;
         imm = null;
