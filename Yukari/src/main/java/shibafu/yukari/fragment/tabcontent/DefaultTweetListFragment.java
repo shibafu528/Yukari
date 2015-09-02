@@ -476,11 +476,19 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 redundant.merge(status);
                             }
                         } else {
+                            class RetryCounter {
+                                int count = 0;
+                            }
+                            final RetryCounter counter = new RetryCounter();
                             class AsyncInsert implements Runnable {
                                 @Override
                                 public void run() {
                                     if (listView == null) {
-                                        Log.d("Timeline_onStatus", "ListView is null. wait 100ms.");
+                                        if (++counter.count > 20) {
+                                            Log.d("Timeline_onStatus", "ListView is null. DROPPED! (" + counter.count + ")");
+                                            return;
+                                        }
+                                        Log.d("Timeline_onStatus", "ListView is null. wait 100ms. (" + counter.count + ")");
                                         getHandler().postDelayed(new AsyncInsert(), 100);
                                         return;
                                     }
