@@ -228,7 +228,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
 
         //IMEの表示設定
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         //テキストエリアの設定
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
