@@ -142,9 +142,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         View flStreamState = findViewById(R.id.flStreamState);
         flStreamState.setOnClickListener(v -> {
             if (isImmersive()) {
-                setImmersive(false);
+                setImmersive(false, true);
                 Handler h = new Handler(Looper.getMainLooper());
-                h.postDelayed(() -> setImmersive(true), 3000);
+                h.postDelayed(() -> setImmersive(true, true), 3000);
             }
         });
         flStreamState.setOnLongClickListener(view -> {
@@ -537,8 +537,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @Override
     public void setImmersive(boolean immersive) {
+        setImmersive(immersive, false);
+    }
+
+    public void setImmersive(boolean immersive, boolean transientState) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            this.immersive = immersive;
+            if (!transientState) {
+                this.immersive = immersive;
+            }
             if (immersive) {
                 decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             } else {
