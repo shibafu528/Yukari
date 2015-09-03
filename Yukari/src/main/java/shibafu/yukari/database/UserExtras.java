@@ -5,14 +5,18 @@ import android.database.Cursor;
 
 import java.util.Collection;
 
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by shibafu on 14/10/04.
  */
+@Data
 @DBTable(CentralDatabase.TABLE_USER_EXTRAS)
 public class UserExtras implements DBRecord {
-    private long id;
+    @Setter(AccessLevel.NONE) private long id;
     private int color;
     private long priorityAccountId;
     private AuthUserRecord priorityAccount;
@@ -39,24 +43,8 @@ public class UserExtras implements DBRecord {
         }
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public void setColor(int color) {
-        this.color = color;
-    }
-
     public long getPriorityAccountId() {
         return priorityAccount == null ? priorityAccountId : getPriorityAccount().NumericId;
-    }
-
-    public AuthUserRecord getPriorityAccount() {
-        return priorityAccount;
     }
 
     public void setPriorityAccount(AuthUserRecord priorityAccount) {

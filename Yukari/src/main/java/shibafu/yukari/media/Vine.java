@@ -20,34 +20,31 @@ public class Vine extends LinkMedia {
     @Override
     protected String expandMediaURL(final String browseURL) {
         final String[] mediaURL = new String[1];
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread thread = new Thread(() -> {
+            try {
+                HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
+                conn.setReadTimeout(10000);
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 try {
-                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
-                    conn.setReadTimeout(10000);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    try {
-                        String s;
-                        while ((s = br.readLine()) != null) {
-                            if (s.contains("property=\"twitter:player:stream\"")) {
-                                Pattern pattern = Pattern.compile("content=\"(https?://.+)\"");
-                                Matcher m = pattern.matcher(s);
-                                if (m.find()) {
-                                    mediaURL[0] = m.group(1);
-                                    return;
-                                }
+                    String s;
+                    while ((s = br.readLine()) != null) {
+                        if (s.contains("property=\"twitter:player:stream\"")) {
+                            Pattern pattern = Pattern.compile("content=\"(https?://.+)\"");
+                            Matcher m = pattern.matcher(s);
+                            if (m.find()) {
+                                mediaURL[0] = m.group(1);
+                                return;
                             }
                         }
-                    } finally {
-                        br.close();
-                        conn.disconnect();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } finally {
+                    br.close();
+                    conn.disconnect();
                 }
-                mediaURL[0] = null;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            mediaURL[0] = null;
         });
         thread.start();
         try {
@@ -62,34 +59,31 @@ public class Vine extends LinkMedia {
     @Override
     protected String expandThumbURL(final String browseURL) {
         final String[] thumbURL = new String[1];
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        Thread thread = new Thread(() -> {
+            try {
+                HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
+                conn.setReadTimeout(10000);
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 try {
-                    HttpURLConnection conn = (HttpURLConnection) new URL(browseURL.replace("http://", "https://")).openConnection();
-                    conn.setReadTimeout(10000);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    try {
-                        String s;
-                        while ((s = br.readLine()) != null) {
-                            if (s.contains("property=\"twitter:image:src\"")) {
-                                Pattern pattern = Pattern.compile("content=\"(https?://.+)\"");
-                                Matcher m = pattern.matcher(s);
-                                if (m.find()) {
-                                    thumbURL[0] = m.group(1);
-                                    return;
-                                }
+                    String s;
+                    while ((s = br.readLine()) != null) {
+                        if (s.contains("property=\"twitter:image:src\"")) {
+                            Pattern pattern = Pattern.compile("content=\"(https?://.+)\"");
+                            Matcher m = pattern.matcher(s);
+                            if (m.find()) {
+                                thumbURL[0] = m.group(1);
+                                return;
                             }
                         }
-                    } finally {
-                        br.close();
-                        conn.disconnect();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } finally {
+                    br.close();
+                    conn.disconnect();
                 }
-                thumbURL[0] = null;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            thumbURL[0] = null;
         });
         thread.start();
         try {

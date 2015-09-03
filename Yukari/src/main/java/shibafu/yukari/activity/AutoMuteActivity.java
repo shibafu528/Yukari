@@ -19,7 +19,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -111,18 +110,15 @@ public class AutoMuteActivity extends ActionBarYukariBase{
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    deleteReserve = configs.get(position);
-                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            DIALOG_DELETE,
-                            "確認", "設定を削除しますか?", "OK", "キャンセル"
-                    );
-                    dialogFragment.setTargetFragment(InnerFragment.this, 1);
-                    dialogFragment.show(getChildFragmentManager(), "alert");
-                    return true;
-                }
+            getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+                deleteReserve = configs.get(position);
+                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                        DIALOG_DELETE,
+                        "確認", "設定を削除しますか?", "OK", "キャンセル"
+                );
+                dialogFragment.setTargetFragment(InnerFragment.this, 1);
+                dialogFragment.show(getChildFragmentManager(), "alert");
+                return true;
             });
 
         }
@@ -293,31 +289,25 @@ public class AutoMuteActivity extends ActionBarYukariBase{
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle(title)
                     .setView(v)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            InnerFragment innerFragment = (InnerFragment) getTargetFragment();
-                            if (innerFragment == null) {
-                                throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
-                            }
-                            AutoMuteConfig config = (AutoMuteConfig) getArguments().getSerializable("config");
-                            if (config == null) {
-                                config = new AutoMuteConfig(
-                                        spMatch.getSelectedItemPosition(),
-                                        query.getText().toString()
-                                );
-                            } else {
-                                config.setMatch(spMatch.getSelectedItemPosition());
-                                config.setQuery(query.getText().toString());
-                            }
-                            innerFragment.updateAutoMuteConfig(config);
+                    .setPositiveButton("OK", (dialog1, which) -> {
+                        dismiss();
+                        InnerFragment innerFragment = (InnerFragment) getTargetFragment();
+                        if (innerFragment == null) {
+                            throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
                         }
+                        AutoMuteConfig config1 = (AutoMuteConfig) getArguments().getSerializable("config");
+                        if (config1 == null) {
+                            config1 = new AutoMuteConfig(
+                                    spMatch.getSelectedItemPosition(),
+                                    query.getText().toString()
+                            );
+                        } else {
+                            config1.setMatch(spMatch.getSelectedItemPosition());
+                            config1.setQuery(query.getText().toString());
+                        }
+                        innerFragment.updateAutoMuteConfig(config1);
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {}
-                    })
+                    .setNegativeButton("キャンセル", (dialog1, which) -> {})
                     .create();
 
             return dialog;

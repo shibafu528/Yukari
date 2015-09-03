@@ -2,7 +2,6 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -10,6 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.PopupMenu;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,6 +67,9 @@ public class StatusMainFragment extends TwitterFragment{
     private PreformedStatus status = null;
     private AuthUserRecord user = null;
 
+    // URL引用のみを許可
+    private boolean limitedQuote = false;
+
     private AlertDialog currentDialog = null;
     private ImageButton ibReply;
     private ImageButton ibFavorite;
@@ -74,6 +78,7 @@ public class StatusMainFragment extends TwitterFragment{
     private ImageButton ibShare;
     private ImageButton ibQuote;
     private ImageButton ibAccount;
+    private SharedPreferences sharedPreferences;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -82,10 +87,16 @@ public class StatusMainFragment extends TwitterFragment{
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
         user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
-        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
-        ibReply.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        class LocalFunction {
+            void closeAfterFavorite() {
+                if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
+                    getActivity().finish();
+                }
+            }
+
+            void replyToSender() {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
@@ -95,10 +106,8 @@ public class StatusMainFragment extends TwitterFragment{
                                 : status.getUser().getScreenName()) + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
-        });
-        ibReply.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
+
+            void replyToAllMentions() {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
@@ -121,136 +130,216 @@ public class StatusMainFragment extends TwitterFragment{
                     intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
                 }
                 startActivityForResult(intent, REQUEST_REPLY);
+            }
+
+            boolean beginQuoteTweet(int which) {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+                if (which < 3) {
+                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                    switch (which) {
+                        case 0:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                            break;
+                        case 1:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                            break;
+                        case 2:
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                            break;
+                    }
+                    startActivityForResult(intent, REQUEST_QUOTE);
+                } else {
+                    int request = -1;
+                    switch (which) {
+                        case 3:
+                            if (!ibRetweet.isEnabled()) {
+                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            request = REQUEST_RT_QUOTE;
+                            break;
+                        case 4:
+                            if (!ibFavRt.isEnabled()) {
+                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                                return false;
+                            }
+                            request = REQUEST_FRT_QUOTE;
+                            break;
+                    }
+                    if (request > -1) {
+                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                        intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
+                        startActivityForResult(intent, request);
+                    }
+                }
                 return true;
             }
+        }
+        final LocalFunction local = new LocalFunction();
+
+        ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
+        ibReply.setOnClickListener(v1 -> {
+            if (!(status.isMentionedTo(user) && status.getUserMentionEntities().length == 1) &&
+                    status.getUserMentionEntities().length > 0 && sharedPreferences.getBoolean("pref_choose_reply_to", true)) {
+                PopupMenu popupMenu = new PopupMenu(getActivity(), v1);
+                popupMenu.inflate(R.menu.reply_to);
+                popupMenu.setOnMenuItemClickListener(menuItem -> {
+                    switch (menuItem.getItemId()) {
+                        case R.id.action_reply_to_sender:
+                            local.replyToSender();
+                            return true;
+                        case R.id.action_reply_to_all_mentions:
+                            local.replyToAllMentions();
+                            return true;
+                    }
+                    return false;
+                });
+                popupMenu.show();
+            } else {
+                local.replyToSender();
+            }
+        });
+        ibReply.setOnLongClickListener(v1 -> {
+            local.replyToAllMentions();
+            return true;
         });
 
         ibRetweet = (ImageButton) v.findViewById(R.id.ib_state_retweet);
-        ibRetweet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        ibRetweet.setOnClickListener(v1 -> {
+            final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                    return null;
+                }
+            };
+            if (sharedPreferences.getBoolean("pref_dialog_rt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
                         .setMessage("リツイートしますか？")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
 
-                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... params) {
-                                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                                        return null;
-                                    }
-                                };
-                                task.execute();
-                                getActivity().finish();
-                            }
+                            task.execute();
+                            local.closeAfterFavorite();
                         })
-                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
+                        .setNegativeButton("キャンセル", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
                         })
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
+                        .setOnCancelListener(dialog -> {
+                            dialog.dismiss();
+                            currentDialog = null;
+                        })
+                        .create();
+                ad.show();
+                currentDialog = ad;
+            } else {
+                task.execute();
+                local.closeAfterFavorite();
+            }
+        });
+        ibRetweet.setOnLongClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントRT");
+            startActivityForResult(intent, REQUEST_RETWEET);
+            Toast.makeText(getActivity(),
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show();
+            return true;
+        });
+
+        ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
+        ibFavorite.setOnClickListener(new View.OnClickListener() {
+            private final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                    return null;
+                }
+            };
+
+            private boolean isNuisance(String source) {
+                if (sharedPreferences.getBoolean("pref_guard_nuisance", true)) {
+                    int l = NUISANCES.length;
+                    for (int i = 0; i < l; i++) {
+                        if (source.contains(NUISANCES[i])) return true;
+                    }
+                }
+                return false;
+            }
+
+            private void nuisanceGuard() {
+                AlertDialog ad = new AlertDialog.Builder(getActivity())
+                        .setTitle("確認")
+                        .setMessage("このツイートは" + status.getOriginSource() + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton("ふぁぼる", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
+
+                            task.execute();
+                            local.closeAfterFavorite();
+                        })
+                        .setNeutralButton("本文で検索", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
+                            Intent intent = new Intent(getActivity(), MainActivity.class);
+                            String query = String.format("\"%s\" -RT", status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                            intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("キャンセル", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
+                        })
+                        .setOnCancelListener(dialog -> {
+                            dialog.dismiss();
+                            currentDialog = null;
                         })
                         .create();
                 ad.show();
                 currentDialog = ad;
             }
-        });
-        ibRetweet.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントRT");
-                startActivityForResult(intent, REQUEST_RETWEET);
-                Toast.makeText(getActivity(),
-                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-
-        ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
-        ibFavorite.setOnClickListener(new View.OnClickListener() {
-            private SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
-            private boolean isNuisance(String source) {
-                int l = NUISANCES.length;
-                for (int i = 0; i < l; i++) {
-                    if (source.contains(NUISANCES[i])) return true;
-                }
-                return false;
-            }
 
             private void doFavorite() {
-                final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        return null;
-                    }
-                };
-                String source = status.getSource();
-                if (status.isRetweet()) {
-                    source = status.getRetweetedStatus().getSource();
-                }
-                if (pref.getBoolean("pref_guard_nuisance", true) && isNuisance(source)) {
+                if (sharedPreferences.getBoolean("pref_dialog_fav", false)) {
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
-                            .setMessage("このツイートは" + source + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .setPositiveButton("ふぁぼる", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
+                            .setMessage("お気に入り登録しますか？")
+                            .setPositiveButton("OK", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                if (isNuisance(status.getOriginSource())) {
+                                    nuisanceGuard();
+                                } else {
                                     task.execute();
-                                    getActivity().finish();
+                                    local.closeAfterFavorite();
                                 }
                             })
-                            .setNeutralButton("本文で検索", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                                    String query = String.format("\"%s\" -RT", status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
-                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query);
-                                    startActivity(intent);
-                                }
+                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
-                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
-                            })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
+                            .setOnCancelListener(dialog -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
                             .create();
                     ad.show();
                     currentDialog = ad;
                 } else {
-                    task.execute();
-                    getActivity().finish();
+                    if (isNuisance(status.getOriginSource())) {
+                        nuisanceGuard();
+                    } else {
+                        task.execute();
+                        local.closeAfterFavorite();
+                    }
                 }
             }
 
@@ -263,7 +352,7 @@ public class StatusMainFragment extends TwitterFragment{
                         return null;
                     }
                 }.executeParallel();
-                getActivity().finish();
+                local.closeAfterFavorite();
             }
 
             @Override
@@ -281,21 +370,15 @@ public class StatusMainFragment extends TwitterFragment{
                         }
                         AlertDialog ad = new AlertDialog.Builder(getActivity())
                                 .setTitle("お気に入り/お気に入り解除")
-                                .setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                        currentDialog = null;
-                                        if (which == 0) doFavorite();
-                                        else doUnfavorite(faved.get(which - 1));
-                                    }
+                                .setItems(items.toArray(new String[items.size()]), (dialog, which) -> {
+                                    dialog.dismiss();
+                                    currentDialog = null;
+                                    if (which == 0) doFavorite();
+                                    else doUnfavorite(faved.get(which - 1));
                                 })
-                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        dialog.dismiss();
-                                        currentDialog = null;
-                                    }
+                                .setNegativeButton("キャンセル", (dialog, which) -> {
+                                    dialog.dismiss();
+                                    currentDialog = null;
                                 })
                                 .create();
                         ad.show();
@@ -305,189 +388,131 @@ public class StatusMainFragment extends TwitterFragment{
                 else doFavorite();
             }
         });
-        ibFavorite.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav");
-                startActivityForResult(intent, REQUEST_FAVORITE);
-                Toast.makeText(getActivity(),
-                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
+        ibFavorite.setOnLongClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav");
+            startActivityForResult(intent, REQUEST_FAVORITE);
+            Toast.makeText(getActivity(),
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show();
+            return true;
         });
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
-        ibFavRt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        ibFavRt.setOnClickListener(v1 -> {
+            final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... params) {
+                    getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                    getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
+                    return null;
+                }
+            };
+            if (sharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
                         .setMessage("お気に入りに登録してRTしますか？")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
 
-                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                                    @Override
-                                    protected Void doInBackground(Void... params) {
-                                        getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                                        getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                                        return null;
-                                    }
-                                };
-                                task.execute();
-                                getActivity().finish();
-                            }
+                            task.execute();
+                            local.closeAfterFavorite();
                         })
-                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
+                        .setNegativeButton("キャンセル", (dialog, which) -> {
+                            dialog.dismiss();
+                            currentDialog = null;
                         })
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
+                        .setOnCancelListener(dialog -> {
+                            dialog.dismiss();
+                            currentDialog = null;
                         })
                         .create();
                 ad.show();
                 currentDialog = ad;
+            } else {
+                task.execute();
+                local.closeAfterFavorite();
             }
         });
-        ibFavRt.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-                intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav&RT");
-                startActivityForResult(intent, REQUEST_FAV_RT);
-                Toast.makeText(getActivity(),
-                        "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
+        ibFavRt.setOnLongClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav&RT");
+            startActivityForResult(intent, REQUEST_FAV_RT);
+            Toast.makeText(getActivity(),
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show();
+            return true;
         });
 
         ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
-        ibQuote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-                builder.setTitle("引用形式を選択");
-                builder.setNeutralButton("キャンセル", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    }
-                });
-                builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    }
-                });
-                builder.setItems(
-                        new String[]{
-                                "非公式RT ( RT @id: ... )",
-                                "QT ( QT @id: ... )",
-                                "公式アプリ風 ( \"@id: ...\" )",
-                                "URLのみ ( http://... )",
-                                "RTしてから言及する ( ...＞RT )",
-                                "FavRTしてから言及する ( ...＞RT )"},
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
-
-                                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                                intent.putExtra(TweetActivity.EXTRA_USER, user);
-                                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
-                                if (which < 4) {
-                                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
-                                    switch (which) {
-                                        case 0:
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                                            break;
-                                        case 1:
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                                            break;
-                                        case 2:
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuote(status));
-                                            break;
-                                        case 3:
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                                            break;
-                                    }
-                                    startActivityForResult(intent, REQUEST_QUOTE);
-                                } else {
-                                    int request = -1;
-                                    switch (which) {
-                                        case 4:
-                                            if (!ibRetweet.isEnabled()) {
-                                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                                return;
-                                            }
-                                            request = REQUEST_RT_QUOTE;
-                                            break;
-                                        case 5:
-                                            if (!ibFavRt.isEnabled()) {
-                                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                                return;
-                                            }
-                                            request = REQUEST_FRT_QUOTE;
-                                            break;
-                                    }
-                                    if (request > -1) {
-                                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-                                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                                        intent.putExtra(TweetActivity.EXTRA_TEXT, sp.getString("pref_quote_comment_footer", " ＞RT"));
-                                        startActivityForResult(intent, request);
-                                    }
-                                }
-                            }
-                        });
-                AlertDialog ad = builder.create();
-                ad.show();
-                currentDialog = ad;
+        ibQuote.setOnClickListener(v1 -> {
+            //引用制限時
+            if (limitedQuote) {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                startActivityForResult(intent, REQUEST_QUOTE);
+                return;
             }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("引用形式を選択");
+            builder.setNeutralButton("キャンセル", (dialog, which) -> {
+                dialog.dismiss();
+                currentDialog = null;
+            });
+            builder.setOnCancelListener(dialog -> {
+                dialog.dismiss();
+                currentDialog = null;
+            });
+            builder.setItems(
+                    R.array.pref_quote_entries,
+                    (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+
+                        local.beginQuoteTweet(which);
+                    });
+            AlertDialog ad = builder.create();
+            ad.show();
+            currentDialog = ad;
+        });
+        ibQuote.setOnLongClickListener(v1 -> {
+            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote", "2"));
+            if (local.beginQuoteTweet(defaultQuote)) {
+                Toast toast = Toast.makeText(getActivity(), getResources().getStringArray(R.array.pref_quote_entries)[defaultQuote], Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+            }
+            return true;
         });
 
         ibShare = (ImageButton) v.findViewById(R.id.ib_state_share);
-        ibShare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String stot = TwitterUtil.createSTOT(status);
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, stot);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+        ibShare.setOnClickListener(v1 -> {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (limitedQuote) {
+                intent.putExtra(Intent.EXTRA_TEXT, TwitterUtil.getTweetURL(status));
+            } else {
+                intent.putExtra(Intent.EXTRA_TEXT, TwitterUtil.createSTOT(status));
             }
+            startActivity(intent);
         });
 
         ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
         if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
             ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
         }
-        ibAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え");
-                startActivityForResult(intent, REQUEST_CHANGE);
-            }
+        ibAccount.setOnClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え");
+            startActivityForResult(intent, REQUEST_CHANGE);
         });
 
         return v;
@@ -637,7 +662,7 @@ public class StatusMainFragment extends TwitterFragment{
     @Override
     public void onServiceConnected() {
         if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
-                !PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_narcist", false)) {
+                !sharedPreferences.getBoolean("pref_narcist", false)) {
             //自分のツイートの場合
             ibFavorite.setEnabled(false);
             ibFavRt.setEnabled(false);
@@ -647,8 +672,9 @@ public class StatusMainFragment extends TwitterFragment{
             //鍵postの場合
             ibRetweet.setEnabled(false);
             ibFavRt.setEnabled(false);
-            ibShare.setEnabled(false);
-            ibQuote.setEnabled(false);
+            limitedQuote = true;
+        } else {
+            limitedQuote = false;
         }
         loadProfileImage();
     }

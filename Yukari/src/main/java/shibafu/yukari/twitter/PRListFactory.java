@@ -41,4 +41,11 @@ public class PRListFactory {
         }
         return new PreformedResponseList<>(list, queryResult);
     }
+
+    public static PreformedResponseList<PreformedStatus> create(
+            Status response, AuthUserRecord receivedUser) {
+        ArrayList<PreformedStatus> list = new ArrayList<>(1);
+        list.add(new PreformedStatus(response, receivedUser));
+        return new PreformedResponseList<>(list, (QueryResult)null);
+    }
 }

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="46"
-    android:versionName="1.1.5.200 (ensemble 150419)" >
+    android:versionCode="54"
+    android:versionName="1.2.0.231α (rehearsal 150902)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -16,7 +16,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:name=".core.YukariApplication">
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
 
@@ -312,7 +313,7 @@
 
         <activity
             android:name=".activity.MaintenanceActivity"
-            android:label="Maintenance Mode" />
+            android:label="@string/title_activity_maintenance" />
 
         <activity
             android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
@@ -328,7 +329,7 @@
 
         <activity
             android:name=".activity.TwpfActivity"
-            android:label="ツイフィール ビューア">
+            android:label="@string/title_activity_twpf">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -343,6 +344,15 @@
             android:theme="@style/YukariDarkDialogTheme"/>
 
         <activity android:name=".activity.BookmarkRepairActivity"/>
+
+        <activity
+            android:name=".activity.AboutActivity"
+            android:theme="@style/YukariAboutTheme"
+            android:screenOrientation="portrait"/>
+
+        <activity
+            android:name=".activity.TemplateEditActivity"
+            android:label="@string/title_activity_template_edit"/>
    </application>
 
 </manifest>

@@ -4,17 +4,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -27,7 +35,7 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
@@ -48,6 +56,7 @@ public class TweetAdapterWrap {
     private ViewConverter converter;
     private TweetAdapter adapter;
     private LayoutInflater inflater;
+    private SharedPreferences preferences;
 
     public TweetAdapterWrap(Context context,
                             List<AuthUserRecord> userRecords,
@@ -63,6 +72,7 @@ public class TweetAdapterWrap {
                 userExtras,
                 PreferenceManager.getDefaultSharedPreferences(context),
                 contentClass);
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     public TweetAdapter getAdapter() {
@@ -76,6 +86,26 @@ public class TweetAdapterWrap {
     public void setUserExtras(List<UserExtras> userExtras) {
         converter.setUserExtras(userExtras);
         notifyDataSetChanged();
+    }
+
+    public void setOnTouchProfileImageIconListener(OnTouchProfileImageIconListener listener) {
+        converter.setOnTouchProfileImageIconListener(listener);
+    }
+
+    public interface OnTouchProfileImageIconListener {
+        boolean onTouch(TwitterResponse element, View v, MotionEvent event);
+    }
+
+    public static class RecycleListener implements AbsListView.RecyclerListener {
+
+        @Override
+        public void onMovedToScrapHeap(View view) {
+            if (view.getTag(R.string.key_viewholder) != null &&
+                    view.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
+                TweetViewHolder viewHolder = (TweetViewHolder) view.getTag(R.string.key_viewholder);
+                viewHolder.recycleImageViews();
+            }
+        }
     }
 
     private class TweetAdapter extends BaseAdapter {
@@ -119,7 +149,8 @@ public class TweetAdapterWrap {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.row_tweet, null);
+                convertView = inflater.inflate(preferences.getBoolean("pref_mode_singleline", false)?
+                        R.layout.row_tweet_single : R.layout.row_tweet, null);
             }
 
             TwitterResponse item = getItem(position);
@@ -143,6 +174,19 @@ public class TweetAdapterWrap {
         ImageView ivAccountColor;
         ImageView ivUserColor;
 
+        private static final List<Field> textViews = new ArrayList<>();
+        private static final List<Field> imageViews = new ArrayList<>();
+
+        static {
+            for (Field field : TweetViewHolder.class.getDeclaredFields()) {
+                if (field.getName().startsWith("tv")) {
+                    textViews.add(field);
+                } else if (field.getName().startsWith("iv")) {
+                    imageViews.add(field);
+                }
+            }
+        }
+
         public TweetViewHolder(View v) {
             tvName = (TextView) v.findViewById(R.id.tweet_name);
             tvText = (TextView) v.findViewById(R.id.tweet_text);
@@ -156,6 +200,60 @@ public class TweetAdapterWrap {
             flInclude = (LinearLayout) v.findViewById(R.id.tweet_include);
             ivAccountColor = (ImageView) v.findViewById(R.id.tweet_accountcolor);
             ivUserColor = (ImageView) v.findViewById(R.id.tweet_color);
+        }
+
+        public void setText(SharedPreferences pref, User user, int mode, String text) {
+            if (pref.getBoolean("pref_mode_singleline", false) && ((ViewConverter.MODE_DETAIL | ViewConverter.MODE_PREVIEW) & mode) == 0) {
+                SpannableStringBuilder sb = new SpannableStringBuilder();
+                sb.append(user.getScreenName());
+                sb.setSpan(new StyleSpan(Typeface.BOLD), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.setSpan(new ForegroundColorSpan(Color.parseColor("#ff419b38")), 0, sb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sb.append(" ");
+                sb.append(text.replace("\n", " "));
+                tvText.setText(sb);
+            } else {
+                tvText.setText(text);
+            }
+        }
+
+        public void hideTextViews() {
+            for (Field field : textViews) {
+                try {
+                    ((View) field.get(this)).setVisibility(View.GONE);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public void recycleImageViews() {
+            //ImageViewを全て解放
+            for (Field field : imageViews) {
+                try {
+                    ((ImageView) field.get(this)).setImageDrawable(null);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+            //Attachを全て解放
+            if (llAttach != null) {
+                for (int i = 0; i < llAttach.getChildCount(); ++i) {
+                    View v = llAttach.getChildAt(i);
+                    if (v != null && v instanceof ImageView) {
+                        ((ImageView) v).setImageDrawable(null);
+                    }
+                }
+            }
+            //Includeを全て解放
+            if (flInclude != null) {
+                for (int i = 0; i < flInclude.getChildCount(); ++i) {
+                    View v = flInclude.getChildAt(i);
+                    if (v != null && v.getTag(R.string.key_viewholder) != null &&
+                            v.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
+                        ((TweetViewHolder) v.getTag(R.string.key_viewholder)).recycleImageViews();
+                    }
+                }
+            }
         }
     }
 
@@ -181,7 +279,9 @@ public class TweetAdapterWrap {
         private int bgDefaultResId;
         private int bgMentionResId;
         private int bgOwnResId;
+        private OnTouchProfileImageIconListener onTouchProfileImageIconListener;
 
+        @SuppressWarnings("TryWithIdenticalCatches")
         public static ViewConverter newInstance(
                 Context context,
                 List<AuthUserRecord> userRecords,
@@ -198,7 +298,9 @@ public class TweetAdapterWrap {
                 else if (HistoryStatus.class.isAssignableFrom(cls)) {
                     return new HistoryViewConverter(context, userRecords, userExtras, sharedPreferences);
                 }
-            } catch (IllegalAccessException | InstantiationException e) {
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            } catch (InstantiationException e) {
                 throw new RuntimeException(e);
             }
             throw new UnsupportedOperationException("対応されているクラスではありません.");
@@ -212,7 +314,7 @@ public class TweetAdapterWrap {
                 throws IllegalAccessException, InstantiationException {
             this.context = context;
             this.userRecords = userRecords;
-            this.userExtras = userExtras != null ? userExtras : new ArrayList<UserExtras>();
+            this.userExtras = userExtras != null ? userExtras : new ArrayList<>();
             this.preferences = preferences;
             this.delegate = delegate;
 
@@ -241,7 +343,11 @@ public class TweetAdapterWrap {
             return preferences;
         }
 
-        public View convertView(View v, TwitterResponse content, int mode) {
+        public void setOnTouchProfileImageIconListener(OnTouchProfileImageIconListener listener) {
+            this.onTouchProfileImageIconListener = listener;
+        }
+
+        public View convertView(final View v, final TwitterResponse content, int mode) {
             //ViewHolderを取得もしくは新規作成
             TweetViewHolder viewHolder = (TweetViewHolder) v.getTag(R.string.key_viewholder);
             if (viewHolder == null) {
@@ -289,12 +395,15 @@ public class TweetAdapterWrap {
                     }
                 }
             }
-            viewHolder.tvText.setText(text);
+            viewHolder.setText(preferences, u, mode, text);
 
             String imageUrl = getPreferences().getBoolean("pref_narrow", false) ?
                     u.getProfileImageURLHttps() : u.getBiggerProfileImageURLHttps();
             if (viewHolder.ivIcon.getTag() == null || !viewHolder.ivIcon.getTag().equals(imageUrl)) {
                 ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, imageUrl);
+            }
+            if (onTouchProfileImageIconListener != null) {
+                viewHolder.ivIcon.setOnTouchListener((iv, event) -> onTouchProfileImageIconListener.onTouch(content, v, event));
             }
 
             viewHolder.tvTimestamp.setTypeface(FontAsset.getInstance(context).getFont());
@@ -420,18 +529,15 @@ public class TweetAdapterWrap {
                                     BitmapCache.IMAGE_CACHE,
                                     hidden && getPreferences().getBoolean("pref_prev_mosaic", false));
 
-                            if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview()) {
-                                iv.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        Intent intent = new Intent(
-                                                Intent.ACTION_VIEW,
-                                                Uri.parse(media.getBrowseURL()),
-                                                getContext(),
-                                                PreviewActivity.class);
-                                        intent.putExtra(PreviewActivity.EXTRA_STATUS, st);
-                                        getContext().startActivity(intent);
-                                    }
+                            if ((mode & MODE_DETAIL) == MODE_DETAIL && media.canPreview() || getPreferences().getBoolean("pref_extended_touch_event", false)) {
+                                iv.setOnClickListener(v1 -> {
+                                    Intent intent = new Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(media.getBrowseURL()),
+                                            getContext(),
+                                            PreviewActivity.class);
+                                    intent.putExtra(PreviewActivity.EXTRA_STATUS, st);
+                                    getContext().startActivity(intent);
                                 });
                             }
                         }
@@ -456,7 +562,7 @@ public class TweetAdapterWrap {
             }
 
             if (mode == MODE_DEFAULT && st.isTooManyRepeatText() && getPreferences().getBoolean("pref_shorten_repeat_text", false)) {
-                viewHolder.tvText.setText(st.getRepeatedSequence() + "\n...(repeat)...");
+                viewHolder.setText(getPreferences(), st.getSourceUser(), mode, st.getRepeatedSequence() + "\n...(repeat)...");
             }
 
             if (mode != MODE_PREVIEW) {
@@ -517,7 +623,10 @@ public class TweetAdapterWrap {
                         for (int i = 0; i < qeSize; i++) {
                             Long quoteId = quoteEntities.get(i);
                             if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
-                                View tv = View.inflate(getContext(), R.layout.row_tweet, null);
+                                View tv = View.inflate(getContext(),
+                                        getPreferences().getBoolean("pref_mode_singleline", false)?
+                                                R.layout.row_tweet_single : R.layout.row_tweet,
+                                        null);
                                 ViewConverter vc = ViewConverter.newInstance(getContext(), getUserRecords(), getUserExtras(), getPreferences(), PreformedStatus.class);
                                 vc.convertView(tv, StatusManager.getReceivedStatuses().get(quoteId), mode | MODE_INCLUDE);
                                 viewHolder.flInclude.addView(tv);
@@ -528,6 +637,10 @@ public class TweetAdapterWrap {
                         viewHolder.flInclude.setVisibility(View.GONE);
                     }
                     break;
+            }
+
+            if (getPreferences().getBoolean("j_fullmute", false)) {
+                viewHolder.hideTextViews();
             }
 
             return v;

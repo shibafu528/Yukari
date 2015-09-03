@@ -1,39 +1,23 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import android.text.TextUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
-import twitter4j.ExtendedMediaEntity;
-import twitter4j.GeoLocation;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Place;
-import twitter4j.RateLimitStatus;
-import twitter4j.Scopes;
-import twitter4j.Status;
-import twitter4j.SymbolEntity;
-import twitter4j.URLEntity;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
+import shibafu.yukari.util.StringUtil;
+import twitter4j.*;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/10/13.
  */
 public class PreformedStatus implements Status{
-    private final static int TOO_MANY_REPEAT = 3;
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
     private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
 
@@ -74,24 +58,8 @@ public class PreformedStatus implements Status{
         //全Entity置き換え、モールスの復号を行う
         text = MorseCodec.decode(replaceAllEntities(status));
         //繰り返し文かどうかチェック
-        {
-            int maxRepeat = 0;
-            String[] split = text.split("\n");
-            for (String s1 : split) {
-                int repeat = 0;
-                for (String s2 : split) {
-                    if (!TextUtils.isEmpty(s2.trim()) && s1.equals(s2)) {
-                        ++repeat;
-                    }
-                }
-                if ((maxRepeat = Math.max(maxRepeat, repeat)) == repeat) {
-                    repeatedSequence = s1;
-                }
-            }
-            if (maxRepeat > TOO_MANY_REPEAT) {
-                isTooManyRepeatText = true;
-            }
-        }
+        repeatedSequence = StringUtil.compressText(text);
+        isTooManyRepeatText = repeatedSequence != null;
         //via抽出
         Matcher matcher = VIA_PATTERN.matcher(status.getSource());
         if (matcher.find()) {
@@ -154,24 +122,17 @@ public class PreformedStatus implements Status{
     }
 
     public PreformedStatus(PreformedStatus other) {
-        this.status = other.status;
-        this.retweetedStatus = other.retweetedStatus;
-        this.text = other.text;
-        this.plainSource = other.plainSource;
-        this.mediaLinkList = other.mediaLinkList;
-        this.urlEntities = other.urlEntities;
-        this.quoteEntities = other.quoteEntities;
-        this.isMentionedToMe = other.isMentionedToMe;
-        this.censoredThumbs = other.censoredThumbs;
-        this.favoriteCount = other.favoriteCount;
-        this.retweetCount = other.retweetCount;
-        this.rateLimitStatus = other.rateLimitStatus;
-        this.isFavorited = other.isFavorited;
-        this.isRetweeted = other.isRetweeted;
-        this.isMentioned = other.isMentioned;
-        this.representUser = other.representUser;
-        this.receivedUsers = other.receivedUsers;
-        this.receivedIds = other.receivedIds;
+        for (Field field : PreformedStatus.class.getDeclaredFields()) {
+            if ((field.getModifiers() & Modifier.FINAL) == Modifier.FINAL) {
+                continue;
+            }
+            try {
+                field.set(this, field.get(other));
+            } catch (IllegalAccessException e) {
+                //何かまずいことになっていると思うので実行時例外でわざと落とす
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public void merge(Status status, AuthUserRecord receivedUser) {
@@ -281,6 +242,14 @@ public class PreformedStatus implements Status{
         return status;
     }
 
+    /**
+     * リツイートなら元ツイートのPreformedStatusを、そうでなければ自分自身を返す
+     * @return 本来のツイート
+     */
+    public PreformedStatus getOriginStatus() {
+        return retweetedStatus != null ? retweetedStatus : this;
+    }
+
     @Override
     public Date getCreatedAt() {
         return status.getCreatedAt();
@@ -311,6 +280,14 @@ public class PreformedStatus implements Status{
     @Override
     public String getSource() {
         return plainSource;
+    }
+
+    /**
+     * リツイートなら元ツイートのvia、そうでなければこのツイートのviaを返す
+     * @return 本来のvia
+     */
+    public String getOriginSource() {
+        return status.isRetweet()? retweetedStatus.getSource() : this.getSource();
     }
 
     public String getFullSource() {
@@ -357,6 +334,10 @@ public class PreformedStatus implements Status{
         return status.getUser();
     }
 
+    /**
+     * リツイートなら元ツイートの発言者、そうでなければこのツイートの発言者を返す
+     * @return 本来の発言者
+     */
     public User getSourceUser() {
         return status.isRetweet()? retweetedStatus.getUser() : status.getUser();
     }
@@ -409,6 +390,16 @@ public class PreformedStatus implements Status{
     @Override
     public String[] getWithheldInCountries() {
         return status.getWithheldInCountries();
+    }
+
+    @Override
+    public long getQuotedStatusId() {
+        return status.getQuotedStatusId();
+    }
+
+    @Override
+    public Status getQuotedStatus() {
+        return status.getQuotedStatus();
     }
 
     @Override

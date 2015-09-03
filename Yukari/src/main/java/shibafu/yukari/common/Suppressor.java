@@ -1,6 +1,9 @@
 package shibafu.yukari.common;
 
 import android.util.Log;
+import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,10 +12,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import shibafu.yukari.database.MuteConfig;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import twitter4j.User;
 
 /**
  * Created by shibafu on 14/04/28.
@@ -23,13 +22,10 @@ public class Suppressor {
     private LongList mutedIDs = new LongList();
     private LongList noRetweetIDs = new LongList();
 
-    private static final Comparator<Long> COMPARATOR = new Comparator<Long>() {
-        @Override
-        public int compare(Long lhs, Long rhs) {
-            if (lhs.equals(rhs)) return 0;
-            else if (lhs > rhs) return 1;
-            else return -1;
-        }
+    private static final Comparator<Long> COMPARATOR = (lhs, rhs) -> {
+        if (lhs.equals(rhs)) return 0;
+        else if (lhs > rhs) return 1;
+        else return -1;
     };
 
     public void setConfigs(List<MuteConfig> configs) {
@@ -69,7 +65,6 @@ public class Suppressor {
             return result;
         } else if (noRetweetIDs.binarySearch(status.getUser().getId())) {
             result[MuteConfig.MUTE_RETWEET] = true;
-            return result;
         }
         for (MuteConfig config : configs) {
             if (config.expired()) continue;

@@ -1,51 +1,32 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.Looper;
+import android.graphics.drawable.Drawable;
+import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
+import android.text.Editable;
+import android.text.Spanned;
+import android.text.TextWatcher;
+import android.text.style.CharacterStyle;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
+import butterknife.OnTouch;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.TabInfo;
-import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.TriangleView;
-import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.*;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.MenuDialogFragment;
@@ -56,11 +37,15 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.util.CharacterUtil;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
 
@@ -102,40 +87,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     //投稿ボタン関連
     @InjectView(R.id.tweetbutton_frame) FrameLayout flTweet;
 
-    private final View.OnTouchListener tweetGestureListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    tweetGestureYStart = event.getY();
-                case MotionEvent.ACTION_MOVE:
-                    tweetGestureY = event.getY();
-                    isTouchTweet = true;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
-                        Intent intent = new Intent(MainActivity.this, TweetActivity.class);
-                        if (sharedPreferences.getBoolean("pref_use_binded_user", false)
-                                && currentPage != null
-                                && currentPage instanceof DefaultTweetListFragment
-                                && currentPage.getBoundUsers().size() == 1) {
-                            switch (currentPage.getMode()) {
-                                case TabType.TABTYPE_HOME:
-                                case TabType.TABTYPE_MENTION:
-                                case TabType.TABTYPE_DM:
-                                case TabType.TABTYPE_LIST:
-                                    intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
-                                    break;
-                            }
-                        }
-                        startActivity(intent);
-                        return true;
-                    }
-                    break;
-            }
-            return v.getId() == R.id.tweetgesture;
-        }
-    };
     private TabPagerAdapter tabPagerAdapter;
 
     @Override
@@ -170,6 +121,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         findViews();
 
+        if (new File(getExternalFilesDir(null), "wallpaper").exists()) {
+            Drawable wallpaper = Drawable.createFromPath(new File(getExternalFilesDir(null), "wallpaper").getAbsolutePath());
+            wallpaper.setAlpha(72);
+            viewPager.setBackground(wallpaper);
+        }
+
         //スリープ防止設定
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
@@ -183,187 +140,134 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ButterKnife.inject(this);
 
         View flStreamState = findViewById(R.id.flStreamState);
-        flStreamState.setOnTouchListener(tweetGestureListener);
-        flStreamState.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isImmersive()) {
-                    setImmersive(false);
-                    Handler h = new Handler(Looper.getMainLooper());
-                    h.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            setImmersive(true);
-                        }
-                    }, 3000);
-                }
+        flStreamState.setOnClickListener(v -> {
+            if (isImmersive()) {
+                setImmersive(false, true);
+                Handler h = new Handler(Looper.getMainLooper());
+                h.postDelayed(() -> setImmersive(true, true), 3000);
             }
         });
-        flStreamState.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (enableQuickPost) {
-                    llQuickTweet.setVisibility(View.VISIBLE);
-                    if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
-                        etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
-                    }
-                    return true;
-                } else return false;
-            }
+        flStreamState.setOnLongClickListener(view -> {
+            if (enableQuickPost) {
+                llQuickTweet.setVisibility(View.VISIBLE);
+                if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
+                    etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                }
+                return true;
+            } else return false;
         });
 
-        tvTabText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
-                Menu menu = popupMenu.getMenu();
-                TabInfo info;
-                for (int i = 0; i < pageList.size(); ++i) {
-                    info = pageList.get(i);
-                    menu.add(Menu.NONE, i, Menu.NONE, info.getTitle());
-                }
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        viewPager.setCurrentItem(menuItem.getItemId(), true);
-                        return true;
-                    }
-                });
-                popupMenu.show();
+        tvTabText.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+            Menu menu = popupMenu.getMenu();
+            TabInfo info;
+            for (int i = 0; i < pageList.size(); ++i) {
+                info = pageList.get(i);
+                menu.add(Menu.NONE, i, Menu.NONE, info.getTitle());
             }
-        });
-        tvTabText.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
-                Menu menu = popupMenu.getMenu();
-                menu.add(Menu.NONE, 0, 0, "⇧ TLの一番上へ");
-                menu.add(Menu.NONE, 2, 1, "◇ タブの編集");
-                menu.add(Menu.NONE, 1, 9, "⇩ TLの一番下へ");
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        switch (menuItem.getItemId()) {
-                            case 0:
-                                currentPage.scrollToTop();
-                                return true;
-                            case 1:
-                                currentPage.scrollToBottom();
-                                return true;
-                            case 2:
-                                startActivity(new Intent(MainActivity.this, TabEditActivity.class));
-                                return true;
-                        }
-                        return false;
-                    }
-                });
-                popupMenu.show();
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                viewPager.setCurrentItem(menuItem.getItemId(), true);
                 return true;
-            }
+            });
+            popupMenu.show();
         });
-        tvTabText.setOnTouchListener(tweetGestureListener);
+        tvTabText.setOnLongClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+            Menu menu = popupMenu.getMenu();
+            menu.add(Menu.NONE, 0, 0, "⇧ TLの一番上へ");
+            menu.add(Menu.NONE, 2, 1, "◇ タブの編集");
+            menu.add(Menu.NONE, 1, 9, "⇩ TLの一番下へ");
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                switch (menuItem.getItemId()) {
+                    case 0:
+                        currentPage.scrollToTop();
+                        return true;
+                    case 1:
+                        currentPage.scrollToBottom();
+                        return true;
+                    case 2:
+                        startActivity(new Intent(MainActivity.this, TabEditActivity.class));
+                        return true;
+                }
+                return false;
+            });
+            popupMenu.show();
+            return true;
+        });
 
         ImageButton ibSearch = (ImageButton) findViewById(R.id.ibSearch);
-        ibSearch.setOnTouchListener(tweetGestureListener);
-        ibSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
-                popupMenu.inflate(R.menu.search);
-                if (currentPage instanceof SearchListFragment) {
-                    popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
-                }
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        switch (menuItem.getItemId()) {
-                            case R.id.action_save_search:
-                            {
-                                Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
-                                startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
-                                break;
-                            }
-                            case R.id.action_search_tweets:
-                            {
-                                SearchDialogFragment dialogFragment = new SearchDialogFragment();
-                                dialogFragment.show(getSupportFragmentManager(), "search");
-                                break;
-                            }
-                            case R.id.action_search_users:
-                                startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
-                                break;
-                        }
-                        return false;
-                    }
-                });
-
-                popupMenu.show();
+        ibSearch.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
+            popupMenu.inflate(R.menu.search);
+            if (currentPage instanceof SearchListFragment) {
+                popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
             }
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                switch (menuItem.getItemId()) {
+                    case R.id.action_save_search: {
+                        Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+                        startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
+                        break;
+                    }
+                    case R.id.action_search_tweets: {
+                        SearchDialogFragment dialogFragment = new SearchDialogFragment();
+                        dialogFragment.show(getSupportFragmentManager(), "search");
+                        break;
+                    }
+                    case R.id.action_search_users:
+                        startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
+                        break;
+                }
+                return false;
+            });
+
+            popupMenu.show();
         });
 
-        FrameLayout area = (FrameLayout) findViewById(R.id.tweetgesture);
-        area.setOnTouchListener(tweetGestureListener);
-
         ImageButton ibMenu = (ImageButton) findViewById(R.id.ibMenu);
-        ibMenu.setOnTouchListener(tweetGestureListener);
-        ibMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
-                menuDialogFragment.show(getSupportFragmentManager(), "menu");
-            }
+        ibMenu.setOnClickListener(v -> {
+            MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
+            menuDialogFragment.show(getSupportFragmentManager(), "menu");
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
                 ibMenu.setVisibility(View.GONE);
             }
         }
-        else {
+        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
             ibMenu.setVisibility(View.GONE);
         }
 
-        ibClose.setOnTouchListener(tweetGestureListener);
-        ibClose.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (currentPage.isCloseable()) {
-                    int current = viewPager.getCurrentItem();
-                    TabInfo tabInfo = pageList.get(current);
-                    if (tabInfo.getListFragment() instanceof SearchListFragment &&
-                            ((SearchListFragment) tabInfo.getListFragment()).isStreaming()) {
-                        getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
-                    }
+        ibClose.setOnLongClickListener(view -> {
+            if (currentPage.isCloseable()) {
+                int current = viewPager.getCurrentItem();
+                TabInfo tabInfo = pageList.get(current);
+                if (tabInfo.getListFragment() instanceof SearchListFragment &&
+                        ((SearchListFragment) tabInfo.getListFragment()).isStreaming()) {
+                    getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
+                }
 
-                    pageList.remove(current);
-                    viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
-                    viewPager.setCurrentItem(current - 1);
-                    return true;
-                }
-                else return false;
-            }
+                pageList.remove(current);
+                viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
+                viewPager.setCurrentItem(current - 1);
+                return true;
+            } else return false;
         });
-        ibClose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (currentPage.isCloseable()) {
-                    Toast.makeText(MainActivity.this, "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
-                }
+        ibClose.setOnClickListener(view -> {
+            if (currentPage.isCloseable()) {
+                Toast.makeText(MainActivity.this, "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
             }
         });
 
-        ibStream.setOnTouchListener(tweetGestureListener);
-        ibStream.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (currentPage instanceof SearchListFragment) {
-                    boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
-                    ((SearchListFragment) currentPage).setStreaming(isStreaming);
-                    if (isStreaming) {
-                        ibStream.setImageResource(R.drawable.ic_play);
-                    }
-                    else {
-                        ibStream.setImageResource(R.drawable.ic_pause);
-                    }
+        ibStream.setOnClickListener(view -> {
+            if (currentPage instanceof SearchListFragment) {
+                boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
+                ((SearchListFragment) currentPage).setStreaming(isStreaming);
+                if (isStreaming) {
+                    ibStream.setImageResource(R.drawable.ic_play);
+                }
+                else {
+                    ibStream.setImageResource(R.drawable.ic_pause);
                 }
             }
         });
@@ -372,7 +276,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager.setAdapter(tabPagerAdapter);
         viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
-            public void onPageScrolled(int i, float v, int i2) {}
+            public void onPageScrolled(int i, float v, int i2) {
+            }
 
             @Override
             public void onPageSelected(int i) {
@@ -402,55 +307,98 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
 
             @Override
-            public void onPageScrollStateChanged(int i) {}
+            public void onPageScrollStateChanged(int i) {
+            }
         });
 
         ImageButton ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
-        ibCloseTweet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (etTweet.getText().length() < 1) {
-                    llQuickTweet.setVisibility(View.GONE);
-                } else {
-                    etTweet.setText("");
-                }
+        ibCloseTweet.setOnClickListener(view -> {
+            if (etTweet.getText().length() < 1) {
+                llQuickTweet.setVisibility(View.GONE);
+            } else {
+                etTweet.setText("");
             }
         });
-        ibSelectAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_QPOST_CHOOSE_ACCOUNT);
-            }
+        ibSelectAccount.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+            startActivityForResult(intent, REQUEST_QPOST_CHOOSE_ACCOUNT);
         });
-        etTweet.setOnKeyListener(new View.OnKeyListener() {
+        etTweet.setOnKeyListener((view, i, keyEvent) -> {
+            if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                postTweet();
+            }
+            return false;
+        });
+        etTweet.addTextChangedListener(new TextWatcher() {
             @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
-                        keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    postTweet();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 装飾の除去
+                Object[] spanned = s.getSpans(0, s.length(), Object.class);
+                if (spanned != null) {
+                    for (Object o : spanned) {
+                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
+                            s.removeSpan(o);
+                        }
+                    }
                 }
-                return false;
             }
         });
         etTweet.setTypeface(FontAsset.getInstance(this).getFont());
         ImageButton ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);
-        ibSendTweet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                postTweet();
-            }
-        });
+        ibSendTweet.setOnClickListener(view -> postTweet());
 
         ImageView ivTweet = (ImageView) findViewById(R.id.ivTweet);
-        ivTweet.setOnTouchListener(tweetGestureListener);
-        ivTweet.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, TweetActivity.class));
-            }
-        });
+        ivTweet.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, TweetActivity.class)));
+    }
+
+    @OnTouch({R.id.tweetgesture, R.id.llMainFooterRight, R.id.flStreamState, R.id.tvMainTab,
+            R.id.ibSearch, R.id.ibMenu, R.id.ibClose, R.id.ibStream, R.id.ivTweet,
+            R.id.ibCloseTweet, R.id.ibAccount, R.id.etTweetInput, R.id.ibTweet})
+    boolean onTouchFooter(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                tweetGestureYStart = event.getY();
+            case MotionEvent.ACTION_MOVE:
+                tweetGestureY = event.getY();
+                isTouchTweet = true;
+                break;
+            case MotionEvent.ACTION_UP:
+                if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
+                    Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                    if (sharedPreferences.getBoolean("pref_use_binded_user", false)
+                            && currentPage != null
+                            && currentPage instanceof DefaultTweetListFragment
+                            && currentPage.getBoundUsers().size() == 1) {
+                        switch (currentPage.getMode()) {
+                            case TabType.TABTYPE_HOME:
+                            case TabType.TABTYPE_MENTION:
+                            case TabType.TABTYPE_DM:
+                            case TabType.TABTYPE_LIST:
+                                intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
+                                break;
+                        }
+                    }
+                    startActivity(intent);
+                    return true;
+                }
+                break;
+        }
+        return v.getId() == R.id.tweetgesture;
+    }
+
+    @OnClick(R.id.llMainFooterRight)
+    void onClickFooterSpace() {
+        if (currentPage != null && sharedPreferences.getBoolean("pref_quick_scroll_to_top", false)) {
+            currentPage.scrollToTop();
+        }
     }
 
     @Override
@@ -486,6 +434,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     protected void onResume() {
         super.onResume();
+        //スリープ有効の設定
+        setKeepScreenOn(keepScreenOn);
+        //表示域拡張の設定
+        setImmersive(immersive);
         //ツイート操作ガイド
         llTweetGuide.setVisibility(sharedPreferences.getBoolean("first_guide", true)? View.VISIBLE : View.GONE);
         //投稿ボタン
@@ -496,6 +448,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("screen", keepScreenOn);
+        outState.putBoolean("immersive", immersive);
         if (currentPage != null && currentPage.isAdded()) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
@@ -511,8 +464,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         Log.d("MainActivity", "call onRestoreInstanceState");
 
         keepScreenOn = savedInstanceState.getBoolean("screen");
+        immersive = savedInstanceState.getBoolean("immersive");
         currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
+        if (pageList == null) {
+            pageList = new ArrayList<>();
+        }
         int currentId = savedInstanceState.getInt("currentId", -1);
         for (int i = 0; i < pageList.size(); i++) {
             TabInfo tabInfo = pageList.get(i);
@@ -524,6 +481,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         }
         tabPagerAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        currentPage = null;
+        tabPagerAdapter = null;
+        viewPager = null;
+        imm = null;
     }
 
     @Override
@@ -571,8 +537,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @Override
     public void setImmersive(boolean immersive) {
+        setImmersive(immersive, false);
+    }
+
+    public void setImmersive(boolean immersive, boolean transientState) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            this.immersive = immersive;
+            if (!transientState) {
+                this.immersive = immersive;
+            }
             if (immersive) {
                 decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
             } else {
@@ -593,18 +565,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public void showExitDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("終了しますか？");
-        builder.setPositiveButton("はい", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                finish();
-            }
+        builder.setPositiveButton("はい", (dialog, which) -> {
+            dialog.dismiss();
+            finish();
         });
-        builder.setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
+        builder.setNegativeButton("いいえ", (dialog, which) -> {
+            dialog.dismiss();
         });
         builder.show();
     }

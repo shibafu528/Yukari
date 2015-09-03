@@ -3,7 +3,6 @@ package shibafu.yukari.fragment;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -20,7 +19,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -169,170 +167,143 @@ public class StatusLinkFragment extends ListFragment{
         }
 
         setListAdapter(new LinkAdapter(getActivity(), list));
-        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                final LinkRow lr = list.get(position);
-                if ((lr.type & TYPE_USER) == TYPE_USER) {
-                    switch (lr.type) {
-                        case TYPE_USER_REPLY:
-                        case TYPE_USER_DM: {
-                            Intent intent = new Intent(getActivity(), TweetActivity.class);
-                            intent.putExtra(TweetActivity.EXTRA_USER, user);
-                            if (lr.type == TYPE_USER_REPLY) {
-                                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + lr.targetUserSN + " ");
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                            } else {
-                                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, lr.targetUser);
-                                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lr.targetUserSN);
-                            }
-                            startActivity(intent);
-                            break;
+        getListView().setOnItemClickListener((parent, view, position, id) -> {
+            final LinkRow lr = list.get(position);
+            if ((lr.type & TYPE_USER) == TYPE_USER) {
+                switch (lr.type) {
+                    case TYPE_USER_REPLY:
+                    case TYPE_USER_DM: {
+                        Intent intent = new Intent(getActivity(), TweetActivity.class);
+                        intent.putExtra(TweetActivity.EXTRA_USER, user);
+                        if (lr.type == TYPE_USER_REPLY) {
+                            intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + lr.targetUserSN + " ");
+                            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                        } else {
+                            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, lr.targetUser);
+                            intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, lr.targetUserSN);
                         }
-                        case TYPE_USER_PROFILE: {
-                            Intent intent = new Intent(getActivity(), ProfileActivity.class);
-                            intent.putExtra(ProfileActivity.EXTRA_USER, user);
-                            intent.putExtra(ProfileActivity.EXTRA_TARGET, lr.targetUser);
-                            startActivity(intent);
-                            break;
-                        }
+                        startActivity(intent);
+                        break;
                     }
-                } else {
-                    class BrowserExecutor {
-                        void executeIntent(Uri uri) {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                        }
+                    case TYPE_USER_PROFILE: {
+                        Intent intent = new Intent(getActivity(), ProfileActivity.class);
+                        intent.putExtra(ProfileActivity.EXTRA_USER, user);
+                        intent.putExtra(ProfileActivity.EXTRA_TARGET, lr.targetUser);
+                        startActivity(intent);
+                        break;
                     }
-                    switch (lr.type) {
-                        case TYPE_URL: {
-                                final Uri uri = Uri.parse(lr.text);
-                                final BrowserExecutor executor = new BrowserExecutor();
-                                if (lr.type == TYPE_URL && uri.getHost().contains("www.google")) {
-                                    String lastPathSegment = uri.getLastPathSegment();
-                                    if (lastPathSegment != null && lastPathSegment.equals("search")) {
-                                        String query = uri.getQueryParameter("q");
-                                        AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                                .setTitle("検索URL")
-                                                .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
-                                                .setPositiveButton("続行", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                        executor.executeIntent(uri);
-                                                    }
-                                                })
-                                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                    }
-                                                })
-                                                .create();
-                                        ad.show();
-                                    } else if (lr.text.contains("matome.naver.jp/odai/2133899121334612301")
-                                            || lr.text.contains("matome.naver.jp/odai/2138315187918614201")) {
-                                        AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                                .setTitle("確認")
-                                                .setMessage("このURLは飯テロ系まとめです。\nブラウザで開きますか？")
-                                                .setPositiveButton("続行", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                        executor.executeIntent(uri);
-                                                    }
-                                                })
-                                                .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(DialogInterface dialog, int which) {
-                                                        dialog.dismiss();
-                                                    }
-                                                })
-                                                .create();
-                                        ad.show();
-                                    } else {
-                                        executor.executeIntent(uri);
-                                    }
+                }
+            } else {
+                class BrowserExecutor {
+                    void executeIntent(Uri uri) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                    }
+                }
+                switch (lr.type) {
+                    case TYPE_URL: {
+                            final Uri uri = Uri.parse(lr.text);
+                            final BrowserExecutor executor = new BrowserExecutor();
+                            if (lr.type == TYPE_URL && uri.getHost().contains("www.google")) {
+                                String lastPathSegment = uri.getLastPathSegment();
+                                if (lastPathSegment != null && lastPathSegment.equals("search")) {
+                                    String query = uri.getQueryParameter("q");
+                                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                            .setTitle("検索URL")
+                                            .setMessage("検索キーワードは「" + query + "」です。\nブラウザで開きますか？")
+                                            .setPositiveButton("続行", (dialog, which) -> {
+                                                dialog.dismiss();
+                                                executor.executeIntent(uri);
+                                            })
+                                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                                dialog.dismiss();
+                                            })
+                                            .create();
+                                    ad.show();
+                                } else if (lr.text.contains("matome.naver.jp/odai/2133899121334612301")
+                                        || lr.text.contains("matome.naver.jp/odai/2138315187918614201")) {
+                                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                            .setTitle("確認")
+                                            .setMessage("このURLは飯テロ系まとめです。\nブラウザで開きますか？")
+                                            .setPositiveButton("続行", (dialog, which) -> {
+                                                dialog.dismiss();
+                                                executor.executeIntent(uri);
+                                            })
+                                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                                dialog.dismiss();
+                                            })
+                                            .create();
+                                    ad.show();
                                 } else {
                                     executor.executeIntent(uri);
                                 }
-                            break;
-                        }
-                        case TYPE_GEO: {
-                            new BrowserExecutor().executeIntent(Uri.parse(lr.text));
-                            break;
-                        }
-                        case (TYPE_URL | TYPE_URL_MEDIA): {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
-                            intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
-                            startActivity(intent);
-                            break;
-                        }
-                        case TYPE_HASH: {
-                            AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                    .setTitle(lr.text)
-                                    .setPositiveButton("つぶやく", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
+                            } else {
+                                executor.executeIntent(uri);
+                            }
+                        break;
+                    }
+                    case TYPE_GEO: {
+                        new BrowserExecutor().executeIntent(Uri.parse(lr.text));
+                        break;
+                    }
+                    case (TYPE_URL | TYPE_URL_MEDIA): {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text), getActivity(), PreviewActivity.class);
+                        intent.putExtra(PreviewActivity.EXTRA_STATUS, status);
+                        startActivity(intent);
+                        break;
+                    }
+                    case TYPE_HASH: {
+                        AlertDialog ad = new AlertDialog.Builder(getActivity())
+                                .setTitle(lr.text)
+                                .setPositiveButton("つぶやく", (dialog, which) -> {
+                                    dialog.dismiss();
 
-                                            Intent intent = new Intent(getActivity(), TweetActivity.class);
-                                            intent.putExtra(TweetActivity.EXTRA_USER, user);
-                                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + lr.text);
-                                            startActivity(intent);
-                                        }
-                                    })
-                                    .setNegativeButton("検索する", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
+                                    Intent intent = new Intent(getActivity(), TweetActivity.class);
+                                    intent.putExtra(TweetActivity.EXTRA_USER, user);
+                                    intent.putExtra(TweetActivity.EXTRA_TEXT, " " + lr.text);
+                                    startActivity(intent);
+                                })
+                                .setNegativeButton("検索する", (dialog, which) -> {
+                                    dialog.dismiss();
 
-                                            Intent intent = new Intent(getActivity(), MainActivity.class);
-                                            intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, lr.text);
-                                            startActivity(intent);
-                                        }
-                                    })
-                                    .setNeutralButton("キャンセル", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            dialog.dismiss();
-                                        }
-                                    })
-                                    .create();
-                            ad.show();
-                            break;
-                        }
-                        case TYPE_TRACE: {
-                            Intent intent = new Intent(getActivity(), TraceActivity.class);
-                            intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                            intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                            intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
-                            startActivity(intent);
-                            break;
-                        }
+                                    Intent intent = new Intent(getActivity(), MainActivity.class);
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, lr.text);
+                                    startActivity(intent);
+                                })
+                                .setNeutralButton("キャンセル", (dialog, which) -> {
+                                    dialog.dismiss();
+                                })
+                                .create();
+                        ad.show();
+                        break;
+                    }
+                    case TYPE_TRACE: {
+                        Intent intent = new Intent(getActivity(), TraceActivity.class);
+                        intent.putExtra(TweetListFragment.EXTRA_USER, user);
+                        intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
+                        intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
+                        startActivity(intent);
+                        break;
                     }
                 }
             }
         });
-        getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final LinkRow lr = list.get(position);
-                if ((lr.type & TYPE_USER) != TYPE_USER) {
-                    switch (lr.type) {
-                        case (TYPE_URL | TYPE_URL_MEDIA):
-                        {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            return true;
-                        }
+        getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+            final LinkRow lr = list.get(position);
+            if ((lr.type & TYPE_USER) != TYPE_USER) {
+                switch (lr.type) {
+                    case (TYPE_URL | TYPE_URL_MEDIA):
+                    {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(lr.text));
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        return true;
                     }
                 }
-                return false;
             }
+            return false;
         });
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -460,20 +431,12 @@ public class StatusLinkFragment extends ListFragment{
                     ImageButton ib = new ImageButton(getContext());
                     ib.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     ib.setImageBitmap(Bitmap.createScaledBitmap(((BitmapDrawable) plugin.icon).getBitmap(), iconSize, iconSize, true));
-                    ib.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            plugin.executeIntent(plugin.canReceiveName);
-                        }
-                    });
-                    ib.setOnLongClickListener(new View.OnLongClickListener() {
-                        @Override
-                        public boolean onLongClick(View v) {
-                            Toast toast = Toast.makeText(getContext(), plugin.label, Toast.LENGTH_SHORT);
-                            toast.setGravity(Gravity.TOP, 0, 0);
-                            toast.show();
-                            return true;
-                        }
+                    ib.setOnClickListener(v1 -> plugin.executeIntent(plugin.canReceiveName));
+                    ib.setOnLongClickListener(v1 -> {
+                        Toast toast = Toast.makeText(getContext(), plugin.label, Toast.LENGTH_SHORT);
+                        toast.setGravity(Gravity.TOP, 0, 0);
+                        toast.show();
+                        return true;
                     });
                     ll.addView(ib, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
                 }

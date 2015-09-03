@@ -4,27 +4,23 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
-
-import java.util.Iterator;
-
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
-import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
-import twitter4j.DirectMessage;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.Status;
-import twitter4j.TwitterException;
+import twitter4j.*;
+
+import java.util.Iterator;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusManager.StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
@@ -79,7 +75,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
     @Override
     public void onServiceDisconnected() {
-        getStatusManager().removeStatusListener(this);
+        if (getStatusManager() != null) {
+            getStatusManager().removeStatusListener(this);
+        }
     }
 
     @Override
@@ -118,12 +116,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             else {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            insertElement(status, position);
-                        }
-                    });
+                    getHandler().post(() -> insertElement(status, position));
                 }
             }
         }
@@ -136,30 +129,17 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
             case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        elements.clear();
-                        adapterWrap.notifyDataSetChanged();
-                    }
+                getHandler().post(() -> {
+                    elements.clear();
+                    notifyDataSetChanged();
                 });
                 stash.clear();
                 break;
             case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapterWrap.notifyDataSetChanged();
-                    }
-                });
+                getHandler().post(this::notifyDataSetChanged);
                 break;
             case StatusManager.UPDATE_DELETED:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        deleteElement(status);
-                    }
-                });
+                getHandler().post(() -> deleteElement(status));
                 for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
                     if (iterator.next().getId() == status.getId()) {
                         iterator.remove();
@@ -174,12 +154,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 }
                 if (position < elements.size()) {
                     final int p = position;
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            elements.get(p).merge(status, from);
-                            adapterWrap.notifyDataSetChanged();
-                        }
+                    getHandler().post(() -> {
+                        elements.get(p).merge(status, from);
+                        notifyDataSetChanged();
                     });
                 }
                 else {

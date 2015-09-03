@@ -50,6 +50,15 @@
         <Preference
             android:title="::dice NdN"
             android:summary="さいころを振ります(Nにそれぞれ整数)\nexample) ::dice 1d100"/>
+        <Preference
+            android:title="::yk"
+            android:summary="ゆかりさんゆかりさん！！(n回目)"/>
+        <Preference
+            android:title="::te"
+            android:summary="定型文を呼び出します"/>
+        <Preference
+            android:title="::td"
+            android:summary="定型文を登録・編集します"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ジョーク機能">
         <CheckBoxPreference
@@ -57,8 +66,20 @@
             android:title="大草原モード"
             android:summary="TLを草原にします"/>
         <CheckBoxPreference
+            android:key="j_fullmute"
+            android:title="ハイパーミュート"
+            android:summary="それはハイパーミュート、どれほどのものかは使ってみればわかる。"/>
+        <CheckBoxPreference
             android:key="allow_all_r4s"
             android:title="全垢R4Sコマンドを有効にする"
             android:summary="フォロー管理を長押し"/>
+        <CheckBoxPreference
+            android:key="allow_cutoff"
+            android:title="ブロブロ解除コマンドを有効にする"
+            android:summary="フォロー管理のブロックとかがあるサブメニューに増やします"/>
+        <CheckBoxPreference
+            android:key="mikutter_stable_notify"
+            android:title="mikutterの更新通知を有効にする"
+            android:summary="起動時に確認を行い、mikutterのstableリリースが出た際には通知します"/>
     </PreferenceCategory>
 </PreferenceScreen>

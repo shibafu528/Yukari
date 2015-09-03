@@ -1,7 +1,6 @@
 package shibafu.yukari.activity;
 
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -43,19 +42,13 @@ public class MoviePreviewActivity extends FragmentActivity{
 
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
         final VideoView videoView = (VideoView) findViewById(R.id.videoView);
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                progressBar.setVisibility(View.GONE);
-                videoView.start();
-            }
+        videoView.setOnPreparedListener(mp -> {
+            progressBar.setVisibility(View.GONE);
+            videoView.start();
         });
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                videoView.seekTo(0);
-                videoView.start();
-            }
+        videoView.setOnCompletionListener(mp -> {
+            videoView.seekTo(0);
+            videoView.start();
         });
 
         LinkMedia linkMedia = LinkMediaFactory.newInstance(data.toString());
@@ -84,6 +77,9 @@ public class MoviePreviewActivity extends FragmentActivity{
         }.executeParallel(linkMedia);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
+        if (status != null && status.isRetweet()) {
+            status = status.getRetweetedStatus();
+        }
         tweetView = findViewById(R.id.inclPreviewStatus);
         viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
                 this,
@@ -92,12 +88,7 @@ public class MoviePreviewActivity extends FragmentActivity{
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
 
-        findViewById(R.id.ibPreviewBrowser).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null));
-            }
-        });
+        findViewById(R.id.ibPreviewBrowser).setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
     }
 
     @Override
@@ -105,12 +96,7 @@ public class MoviePreviewActivity extends FragmentActivity{
         super.onResume();
 
         if (status != null) {
-            new android.os.Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW);
-                }
-            });
+            new android.os.Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW));
         }
     }
 }

@@ -119,12 +119,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             dialog.getWindow().setAttributes(lp);
         }
 
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-                imm.showSoftInput(searchQuery, InputMethodManager.SHOW_IMPLICIT);
-            }
-        });
+        dialog.setOnShowListener(dialogInterface -> imm.showSoftInput(searchQuery, InputMethodManager.SHOW_IMPLICIT));
 
         return dialog;
     }
@@ -141,16 +136,13 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         spacer = v.findViewById(R.id.spacer);
 
         searchQuery = (EditText) v.findViewById(R.id.editText);
-        searchQuery.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
-                        keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    sendQuery();
-                }
-                return false;
+        searchQuery.setOnKeyListener((view, i, keyEvent) -> {
+            if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                sendQuery();
             }
+            return false;
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             searchQuery.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
@@ -178,22 +170,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         ImageButton ibSearch = (ImageButton) v.findViewById(R.id.ibSearch);
-        ibSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        ibSearch.setOnClickListener(view -> sendQuery());
+        ibSearch.setOnLongClickListener(view -> {
+            if (searchQuery.getText().length() > 0) {
+                searchQuery.setText(String.format("\"%s\"", searchQuery.getText().toString()));
                 sendQuery();
+                return true;
             }
-        });
-        ibSearch.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (searchQuery.getText().length() > 0) {
-                    searchQuery.setText(String.format("\"%s\"", searchQuery.getText().toString()));
-                    sendQuery();
-                    return true;
-                }
-                else return false;
-            }
+            else return false;
         });
 
         adapter = new SectionsPagerAdapter(getChildFragmentManager());

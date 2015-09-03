@@ -2,6 +2,7 @@ package shibafu.yukari.common.async;
 
 import android.os.AsyncTask;
 import android.os.Build;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.RejectedExecutionException;
 
@@ -22,5 +23,15 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
         } catch (RejectedExecutionException e) {
             executeParallel(params);
         }
+    }
+
+    public static void executeParallel(Runnable runnable) {
+        new ParallelAsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(@NotNull Void... params) {
+                runnable.run();
+                return null;
+            }
+        }.executeParallel();
     }
 }

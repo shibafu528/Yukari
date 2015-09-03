@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -8,7 +9,8 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
@@ -17,7 +19,7 @@ import twitter4j.Status;
 /**
  * Created by shibafu on 15/02/07.
  */
-public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusManager.StatusListener, SimpleListDialogFragment.OnDialogChoseListener {
+public class HistoryListFragment extends TwitterListFragment<HistoryStatus> implements StatusListener, SimpleListDialogFragment.OnDialogChoseListener {
 
     private HistoryStatus lastClicked;
 
@@ -33,7 +35,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
 
     @Override
     public void onDetach() {
-        if (isServiceBound()) {
+        if (isServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
@@ -85,12 +87,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
             final HistoryStatus historyStatus = (HistoryStatus) status;
             final int position = prepareInsertStatus(historyStatus);
             if (position > -1) {
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        insertElement(historyStatus, position);
-                    }
-                });
+                getHandler().post(() -> insertElement(historyStatus, position));
             }
         }
     }
@@ -111,6 +108,9 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
                     intent.putExtra(StatusActivity.EXTRA_STATUS, lastClicked.getStatus());
                     intent.putExtra(StatusActivity.EXTRA_USER, getTwitterService().isMyTweet(lastClicked.getStatus()));
                     startActivity(intent);
+                    break;
+                case DialogInterface.BUTTON_NEGATIVE:
+                    setBlockingDoubleClock(false);
                     break;
             }
         }

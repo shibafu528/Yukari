@@ -3,7 +3,6 @@ package shibafu.yukari.activity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -99,43 +98,34 @@ public class AccountManageActivity extends ActionBarYukariBase {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("メニュー")
-                    .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "認証情報を削除"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which) {
-                                case 0:
-                                    delegate.getTwitterService().setPrimaryUser(dataList.get(position).NumericId);
-                                    createList();
-                                    break;
-                                case 1:
-                                    ColorPickerDialogFragment dialogFragment
-                                            = ColorPickerDialogFragment.newInstance(
-                                            dataList.get(position).AccountColor,
-                                            String.valueOf(dataList.get(position).NumericId));
-                                    dialogFragment.setTargetFragment(AccountListFragment.this, 1);
-                                    dialogFragment.show(getFragmentManager(), "color");
-                                    break;
-                                case 2:
-                                    AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
-                                            .setTitle("確認")
-                                            .setIcon(android.R.drawable.ic_dialog_alert)
-                                            .setMessage("認証情報を削除してもよろしいですか?")
-                                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    delegate.getTwitterService().deleteUser(dataList.get(position).NumericId);
-                                                    createList();
-                                                }
-                                            })
-                                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                }
-                                            })
-                                            .create();
-                                    alertDialog.show();
-                                    break;
-                            }
+                    .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "認証情報を削除"}, (dialog, which) -> {
+                        switch (which) {
+                            case 0:
+                                delegate.getTwitterService().setPrimaryUser(dataList.get(position).NumericId);
+                                createList();
+                                break;
+                            case 1:
+                                ColorPickerDialogFragment dialogFragment
+                                        = ColorPickerDialogFragment.newInstance(
+                                        dataList.get(position).AccountColor,
+                                        String.valueOf(dataList.get(position).NumericId));
+                                dialogFragment.setTargetFragment(AccountListFragment.this, 1);
+                                dialogFragment.show(getFragmentManager(), "color");
+                                break;
+                            case 2:
+                                AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                                        .setTitle("確認")
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .setMessage("認証情報を削除してもよろしいですか?")
+                                        .setPositiveButton("OK", (dialog1, which1) -> {
+                                            delegate.getTwitterService().deleteUser(dataList.get(position).NumericId);
+                                            createList();
+                                        })
+                                        .setNegativeButton("キャンセル", (dialog1, which1) -> {
+                                        })
+                                        .create();
+                                alertDialog.show();
+                                break;
                         }
                     });
             builder.create().show();

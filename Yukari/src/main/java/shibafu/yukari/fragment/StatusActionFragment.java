@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -33,11 +32,13 @@ import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.fragment.base.ListTwitterFragment;
+import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.HashtagEntity;
-import twitter4j.User;
+import twitter4j.URLEntity;
+import twitter4j.UserMentionEntity;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -147,40 +148,31 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                     AlertDialog ad = new AlertDialog.Builder(getActivity())
                             .setTitle("確認")
                             .setMessage("ツイートを削除しますか？")
-                            .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
+                            .setPositiveButton("OK", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
 
-                                    AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                                        @Override
-                                        protected Void doInBackground(Void... params) {
-                                            if (status instanceof Bookmark) {
-                                                getTwitterService().getDatabase().deleteRecord((Bookmark) status);
-                                            } else {
-                                                getTwitterService().destroyStatus(user, status.getId());
-                                            }
-                                            return null;
+                                AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+                                    @Override
+                                    protected Void doInBackground(Void... params) {
+                                        if (status instanceof Bookmark) {
+                                            getTwitterService().getDatabase().deleteRecord((Bookmark) status);
+                                        } else {
+                                            getTwitterService().destroyStatus(user, status.getId());
                                         }
-                                    };
-                                    task.execute();
-                                    getActivity().finish();
-                                }
+                                        return null;
+                                    }
+                                };
+                                task.execute();
+                                getActivity().finish();
                             })
-                            .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
+                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                }
+                            .setOnCancelListener(dialog -> {
+                                dialog.dismiss();
+                                currentDialog = null;
                             })
                             .create();
                     ad.show();
@@ -253,52 +245,15 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
         }
     }
 
-    public void onSelectedMuteOption(int which) {
-        String query;
-        int match = MuteConfig.MATCH_EXACT;
-        PreformedStatus status = this.status.isRetweet()? this.status.getRetweetedStatus() : this.status;
-        switch (which) {
-            case 0:
-                query = status.getText();
-                break;
-            case 1:
-                query = status.getUser().getName();
-                break;
-            case 2:
-                query = status.getUser().getScreenName();
-                break;
-            case 3:
-                query = String.valueOf(status.getUser().getId());
-                break;
-            case 4:
-                query = status.getSource();
-                break;
-            default:
-                HashtagEntity[] hash = status.getHashtagEntities();
-                if (hash.length <= 0 || which - 5 > hash.length) {
-                    throw new RuntimeException("ミュートスコープ選択が不正 : " + which);
-                } else {
-                    query = "[#＃]" + hash[which - 5].getText();
-                    which = MuteConfig.SCOPE_TEXT;
-                    match = MuteConfig.MATCH_REGEX;
-                }
-        }
-        Intent intent = new Intent(getActivity(), MuteActivity.class);
-        intent.putExtra(MuteActivity.EXTRA_QUERY, query);
-        intent.putExtra(MuteActivity.EXTRA_SCOPE, which);
-        intent.putExtra(MuteActivity.EXTRA_MATCH, match);
-        startActivity(intent);
+    public void onSelectedMuteOption(QuickMuteOption muteOption) {
+        startActivity(muteOption.toIntent(getActivity()));
     }
 
     @Override
-    public void onServiceConnected() {
-
-    }
+    public void onServiceConnected() {}
 
     @Override
-    public void onServiceDisconnected() {
-
-    }
+    public void onServiceDisconnected() {}
 
     public static class MuteMenuDialogFragment extends DialogFragment {
 
@@ -315,37 +270,126 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             Bundle args = getArguments();
             PreformedStatus status = (PreformedStatus) args.getSerializable("status");
-            User user = status.isRetweet()? status.getRetweetedStatus().getUser() : status.getUser();
-            List<String> items = new ArrayList<>(Arrays.asList(new String[]{
-                    "本文",
-                    "ユーザ名(" + user.getName() + ")",
-                    "スクリーンネーム(@" + user.getScreenName() + ")",
-                    "ユーザID(" + user.getId() + ")",
-                    "クライアント名(" + status.getSource() + ")"
-            }));
-            for (HashtagEntity hashtagEntity : status.getHashtagEntities()) {
-                items.add("#" + hashtagEntity.getText());
+            final QuickMuteOption[] muteOptions = QuickMuteOption.fromStatus(status);
+            String[] items = new String[muteOptions.length];
+            for (int i = 0; i < items.length; ++i) {
+                items[i] = muteOptions[i].toString();
             }
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle("ミュート")
-                    .setItems(items.toArray(new String[items.size()]), new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            StatusActionFragment fragment = (StatusActionFragment) getTargetFragment();
-                            if (fragment != null) {
-                                fragment.onSelectedMuteOption(which);
-                            }
+                    .setItems(items, (dialog1, which) -> {
+                        dismiss();
+                        StatusActionFragment fragment = (StatusActionFragment) getTargetFragment();
+                        if (fragment != null) {
+                            fragment.onSelectedMuteOption(muteOptions[which]);
                         }
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                        }
+                    .setNegativeButton("キャンセル", (dialog1, which) -> {
                     })
                     .create();
             return dialog;
+        }
+    }
+
+    private static class QuickMuteOption {
+        public static final int TYPE_TEXT = 0;
+        public static final int TYPE_USER_NAME = 1;
+        public static final int TYPE_SCREEN_NAME = 2;
+        public static final int TYPE_USER_ID = 3;
+        public static final int TYPE_VIA = 4;
+        public static final int TYPE_HASHTAG = 5;
+        public static final int TYPE_MENTION = 6;
+        public static final int TYPE_URL = 7;
+
+        private int type;
+        private String value;
+
+        private QuickMuteOption(int type, String value) {
+            this.type = type;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            switch (type) {
+                case TYPE_TEXT:
+                    return "本文";
+                case TYPE_USER_NAME:
+                    return "ユーザー名(" + value + ")";
+                case TYPE_SCREEN_NAME:
+                    return "スクリーンネーム(@" + value + ")";
+                case TYPE_USER_ID:
+                    return "ユーザーID(" + value + ")";
+                case TYPE_VIA:
+                    return "クライアント名(" + value + ")";
+                case TYPE_HASHTAG:
+                    return "#" + value;
+                case TYPE_MENTION:
+                    return "@" + value;
+                default:
+                    return value;
+            }
+        }
+
+        public Intent toIntent(Context context) {
+            String query = value;
+            int which = MuteConfig.SCOPE_TEXT;
+            int match = MuteConfig.MATCH_EXACT;
+            switch (type) {
+                case TYPE_TEXT:
+                    which = MuteConfig.SCOPE_TEXT;
+                    break;
+                case TYPE_USER_NAME:
+                    which = MuteConfig.SCOPE_USER_NAME;
+                    break;
+                case TYPE_SCREEN_NAME:
+                    which = MuteConfig.SCOPE_USER_SN;
+                    break;
+                case TYPE_USER_ID:
+                    which = MuteConfig.SCOPE_USER_ID;
+                    break;
+                case TYPE_VIA:
+                    which = MuteConfig.SCOPE_VIA;
+                    break;
+                case TYPE_HASHTAG:
+                    query = "[#＃]" + value;
+                    match = MuteConfig.MATCH_REGEX;
+                    break;
+                case TYPE_MENTION:
+                    query = "@" + value;
+                    match = MuteConfig.MATCH_PARTIAL;
+                    break;
+                case TYPE_URL:
+                    match = MuteConfig.MATCH_PARTIAL;
+                    break;
+            }
+            return new Intent(context, MuteActivity.class)
+                    .putExtra(MuteActivity.EXTRA_QUERY, query)
+                    .putExtra(MuteActivity.EXTRA_SCOPE, which)
+                    .putExtra(MuteActivity.EXTRA_MATCH, match);
+        }
+
+        public static QuickMuteOption[] fromStatus(PreformedStatus status) {
+            List<QuickMuteOption> options = new ArrayList<>();
+            options.add(new QuickMuteOption(TYPE_TEXT, status.getText()));
+            options.add(new QuickMuteOption(TYPE_USER_NAME, status.getSourceUser().getName()));
+            options.add(new QuickMuteOption(TYPE_SCREEN_NAME, status.getSourceUser().getScreenName()));
+            options.add(new QuickMuteOption(TYPE_USER_ID, String.valueOf(status.getSourceUser().getId())));
+            options.add(new QuickMuteOption(TYPE_VIA, status.getSource()));
+            for (HashtagEntity hashtagEntity : status.getHashtagEntities()) {
+                options.add(new QuickMuteOption(TYPE_HASHTAG, hashtagEntity.getText()));
+            }
+            for (UserMentionEntity userMentionEntity : status.getUserMentionEntities()) {
+                options.add(new QuickMuteOption(TYPE_MENTION, userMentionEntity.getScreenName()));
+            }
+            for (URLEntity urlEntity : status.getURLEntities()) {
+                options.add(new QuickMuteOption(TYPE_URL, urlEntity.getExpandedURL()));
+            }
+            for (LinkMedia linkMedia : status.getMediaLinkList()) {
+                options.add(new QuickMuteOption(TYPE_URL, linkMedia.getBrowseURL()));
+            }
+            return options.toArray(new QuickMuteOption[options.size()]);
         }
     }
 }

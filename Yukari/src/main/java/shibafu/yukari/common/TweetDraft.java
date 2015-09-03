@@ -6,18 +6,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.GeoLocation;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/07.
@@ -330,6 +326,65 @@ public class TweetDraft implements Serializable{
         attachedPictures = new ArrayList<>();
         for (int i = 0; i < attached; ++i) {
             attachedPictures.add(Uri.parse(stream.readUTF()));
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TweetDraft that = (TweetDraft) o;
+
+        if (dateTime != that.dateTime) return false;
+        if (inReplyTo != that.inReplyTo) return false;
+        if (isQuoted != that.isQuoted) return false;
+        if (useGeoLocation != that.useGeoLocation) return false;
+        if (Double.compare(that.geoLatitude, geoLatitude) != 0) return false;
+        if (Double.compare(that.geoLongitude, geoLongitude) != 0) return false;
+        if (isPossiblySensitive != that.isPossiblySensitive) return false;
+        if (isDirectMessage != that.isDirectMessage) return false;
+        if (isFailedDelivery != that.isFailedDelivery) return false;
+        if (!writers.equals(that.writers)) return false;
+        if (!text.equals(that.text)) return false;
+        if (!attachedPictures.equals(that.attachedPictures)) return false;
+        return !(messageTarget != null ? !messageTarget.equals(that.messageTarget) : that.messageTarget != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = writers.hashCode();
+        result = 31 * result + text.hashCode();
+        result = 31 * result + (int) (dateTime ^ (dateTime >>> 32));
+        result = 31 * result + (int) (inReplyTo ^ (inReplyTo >>> 32));
+        result = 31 * result + (isQuoted ? 1 : 0);
+        result = 31 * result + attachedPictures.hashCode();
+        result = 31 * result + (useGeoLocation ? 1 : 0);
+        temp = Double.doubleToLongBits(geoLatitude);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(geoLongitude);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (isPossiblySensitive ? 1 : 0);
+        result = 31 * result + (isDirectMessage ? 1 : 0);
+        result = 31 * result + (isFailedDelivery ? 1 : 0);
+        result = 31 * result + (messageTarget != null ? messageTarget.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public Object clone() {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(this);
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            return ois.readObject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
