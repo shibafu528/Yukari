@@ -34,4 +34,14 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
             }
         }.executeParallel();
     }
+
+    public static void execute(@NotNull Runnable runnable) {
+        new ParallelAsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(@NotNull Void... params) {
+                runnable.run();
+                return null;
+            }
+        }.execute();
+    }
 }
