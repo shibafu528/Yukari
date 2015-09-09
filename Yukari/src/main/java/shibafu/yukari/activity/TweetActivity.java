@@ -746,7 +746,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
                     break;
                 case "::bb":
-                    inputText = input.replace("::bb", "@nkroid bbop");
+                    inputText = input.replace("::bb", "@la0c bbop");
                     break;
                 case "::cn":
                     if (inputText.split(" ").length > 1) {
