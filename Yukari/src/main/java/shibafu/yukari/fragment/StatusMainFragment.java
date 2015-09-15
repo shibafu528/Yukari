@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -16,29 +15,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
-
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
+import shibafu.yukari.service.AsyncCommandService;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -208,13 +205,8 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibRetweet = (ImageButton) v.findViewById(R.id.ib_state_retweet);
         ibRetweet.setOnClickListener(v1 -> {
-            final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                    return null;
-                }
-            };
+            Intent intent = AsyncCommandService.Companion.createRetweet(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+
             if (sharedPreferences.getBoolean("pref_dialog_rt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
@@ -223,7 +215,7 @@ public class StatusMainFragment extends TwitterFragment{
                             dialog.dismiss();
                             currentDialog = null;
 
-                            task.execute();
+                            getActivity().startService(intent);
                             local.closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -238,7 +230,7 @@ public class StatusMainFragment extends TwitterFragment{
                 ad.show();
                 currentDialog = ad;
             } else {
-                task.execute();
+                getActivity().startService(intent);
                 local.closeAfterFavorite();
             }
         });
@@ -255,13 +247,10 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
-            private final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                    return null;
-                }
-            };
+            private void createFavorite() {
+                Intent intent = AsyncCommandService.Companion.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+                getActivity().startService(intent);
+            }
 
             private boolean isNuisance(String source) {
                 if (sharedPreferences.getBoolean("pref_guard_nuisance", true)) {
@@ -282,7 +271,7 @@ public class StatusMainFragment extends TwitterFragment{
                             dialog.dismiss();
                             currentDialog = null;
 
-                            task.execute();
+                            createFavorite();
                             local.closeAfterFavorite();
                         })
                         .setNeutralButton("本文で検索", (dialog, which) -> {
@@ -318,7 +307,7 @@ public class StatusMainFragment extends TwitterFragment{
                                 if (isNuisance(status.getOriginSource())) {
                                     nuisanceGuard();
                                 } else {
-                                    task.execute();
+                                    createFavorite();
                                     local.closeAfterFavorite();
                                 }
                             })
@@ -337,21 +326,15 @@ public class StatusMainFragment extends TwitterFragment{
                     if (isNuisance(status.getOriginSource())) {
                         nuisanceGuard();
                     } else {
-                        task.execute();
+                        createFavorite();
                         local.closeAfterFavorite();
                     }
                 }
             }
 
             private void doUnfavorite(final AuthUserRecord userRecord) {
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        getTwitterService().destroyFavorite(userRecord,
-                                (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                        return null;
-                    }
-                }.executeParallel();
+                Intent intent = AsyncCommandService.Companion.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
+                getActivity().startService(intent);
                 local.closeAfterFavorite();
             }
 
@@ -401,14 +384,8 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
         ibFavRt.setOnClickListener(v1 -> {
-            final AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                    getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                    return null;
-                }
-            };
+            Intent intent = AsyncCommandService.Companion.createFavRT(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+
             if (sharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
@@ -417,7 +394,7 @@ public class StatusMainFragment extends TwitterFragment{
                             dialog.dismiss();
                             currentDialog = null;
 
-                            task.execute();
+                            getActivity().startService(intent);
                             local.closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -432,7 +409,7 @@ public class StatusMainFragment extends TwitterFragment{
                 ad.show();
                 currentDialog = ad;
             } else {
-                task.execute();
+                getActivity().startService(intent);
                 local.closeAfterFavorite();
             }
         });
@@ -598,27 +575,33 @@ public class StatusMainFragment extends TwitterFragment{
             } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
-                if ((requestCode & REQUEST_RETWEET) == REQUEST_RETWEET) {
-                    new SimpleAsyncTask() {
-                        @Override
-                        protected Void doInBackground(Void... params) {
-                            for (AuthUserRecord user : actionUsers) {
-                                getTwitterService().retweetStatus(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                            }
-                            return null;
+                List<Intent> intents = new ArrayList<>();
+                int maskedCode = (requestCode & (REQUEST_FAVORITE | REQUEST_RETWEET));
+                switch (maskedCode) {
+                    case REQUEST_FAV_RT:
+                        for (AuthUserRecord actionUser : actionUsers) {
+                            intents.add(AsyncCommandService.Companion.createFavRT(
+                                    getActivity().getApplicationContext(),
+                                    status.getOriginStatus().getId(), actionUser));
                         }
-                    }.executeParallel();
+                        break;
+                    case REQUEST_FAVORITE:
+                        for (AuthUserRecord actionUser : actionUsers) {
+                            intents.add(AsyncCommandService.Companion.createFavorite(
+                                    getActivity().getApplicationContext(),
+                                    status.getOriginStatus().getId(), actionUser));
+                        }
+                        break;
+                    case REQUEST_RETWEET:
+                        for (AuthUserRecord actionUser : actionUsers) {
+                            intents.add(AsyncCommandService.Companion.createRetweet(
+                                    getActivity().getApplicationContext(),
+                                    status.getOriginStatus().getId(), actionUser));
+                        }
+                        break;
                 }
-                if ((requestCode & REQUEST_FAVORITE) == REQUEST_FAVORITE) {
-                    new SimpleAsyncTask() {
-                        @Override
-                        protected Void doInBackground(Void... params) {
-                            for (AuthUserRecord user : actionUsers) {
-                                getTwitterService().createFavorite(user, (status.isRetweet()) ? status.getRetweetedStatus().getId() : status.getId());
-                            }
-                            return null;
-                        }
-                    }.executeParallel();
+                for (Intent intent : intents) {
+                    getActivity().startService(intent);
                 }
             }
         }
