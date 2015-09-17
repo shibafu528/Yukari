@@ -10,25 +10,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.util.Pair;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import android.view.*;
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -39,12 +22,9 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.PagableResponseList;
-import twitter4j.ResponseList;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.UserList;
+import twitter4j.*;
+
+import java.util.*;
 
 /**
  * Created by shibafu on 14/07/22.
@@ -123,8 +103,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
         lp.width = dialogWidth;
         dialog.getWindow().setAttributes(lp);
 
-        loadList();
-
         return dialog;
     }
 
@@ -135,8 +113,14 @@ public class ListRegisterDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStart() {
+        super.onStart();
+        loadList();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
         if (currentListLoadTask != null) {
             currentListLoadTask.cancel(true);
             currentListLoadTask = null;
@@ -293,6 +277,9 @@ public class ListRegisterDialogFragment extends DialogFragment {
         protected void onPostExecute(ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> result) {
             super.onPostExecute(result);
             currentListLoadTask = null;
+            if (!ListRegisterDialogFragment.this.isResumed()) {
+                return;
+            }
             progressBar.setVisibility(View.GONE);
             if (!result.isException()) {
                 userLists = result.getResult().first;
