@@ -359,7 +359,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             getListView().setSelection(0);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -368,7 +370,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             getListView().setSelection(getListAdapter().getCount() - 1);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            Toast.makeText(getActivity(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
