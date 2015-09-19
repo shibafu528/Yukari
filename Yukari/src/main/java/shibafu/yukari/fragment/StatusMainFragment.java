@@ -205,7 +205,7 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibRetweet = (ImageButton) v.findViewById(R.id.ib_state_retweet);
         ibRetweet.setOnClickListener(v1 -> {
-            Intent intent = AsyncCommandService.Companion.createRetweet(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+            Intent intent = AsyncCommandService.createRetweet(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
 
             if (sharedPreferences.getBoolean("pref_dialog_rt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
@@ -248,7 +248,7 @@ public class StatusMainFragment extends TwitterFragment{
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
             private void createFavorite() {
-                Intent intent = AsyncCommandService.Companion.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+                Intent intent = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
                 getActivity().startService(intent);
             }
 
@@ -333,7 +333,7 @@ public class StatusMainFragment extends TwitterFragment{
             }
 
             private void doUnfavorite(final AuthUserRecord userRecord) {
-                Intent intent = AsyncCommandService.Companion.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
+                Intent intent = AsyncCommandService.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
                 getActivity().startService(intent);
                 local.closeAfterFavorite();
             }
@@ -384,7 +384,7 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
         ibFavRt.setOnClickListener(v1 -> {
-            Intent intent = AsyncCommandService.Companion.createFavRT(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+            Intent intent = AsyncCommandService.createFavRT(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
 
             if (sharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
@@ -580,21 +580,21 @@ public class StatusMainFragment extends TwitterFragment{
                 switch (maskedCode) {
                     case REQUEST_FAV_RT:
                         for (AuthUserRecord actionUser : actionUsers) {
-                            intents.add(AsyncCommandService.Companion.createFavRT(
+                            intents.add(AsyncCommandService.createFavRT(
                                     getActivity().getApplicationContext(),
                                     status.getOriginStatus().getId(), actionUser));
                         }
                         break;
                     case REQUEST_FAVORITE:
                         for (AuthUserRecord actionUser : actionUsers) {
-                            intents.add(AsyncCommandService.Companion.createFavorite(
+                            intents.add(AsyncCommandService.createFavorite(
                                     getActivity().getApplicationContext(),
                                     status.getOriginStatus().getId(), actionUser));
                         }
                         break;
                     case REQUEST_RETWEET:
                         for (AuthUserRecord actionUser : actionUsers) {
-                            intents.add(AsyncCommandService.Companion.createRetweet(
+                            intents.add(AsyncCommandService.createRetweet(
                                     getActivity().getApplicationContext(),
                                     status.getOriginStatus().getId(), actionUser));
                         }

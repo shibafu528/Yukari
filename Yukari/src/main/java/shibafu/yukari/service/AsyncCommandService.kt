@@ -75,16 +75,16 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
             return intent
         }
 
-        public fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic public fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVORITE, id, user)
 
-        public fun destroyFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic public fun destroyFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_UNFAVORITE, id, user)
 
-        public fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic public fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_RETWEET, id, user)
 
-        public fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic public fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVRT, id, user)
 
     }
