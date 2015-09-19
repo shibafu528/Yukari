@@ -14,7 +14,7 @@ public class Totori extends LinkMedia {
 
     private String getSourceURL(final String browseURL) {
         if (sourceURL == null) {
-            sourceURL = new TotoriDipJPFactory().getInstance().getTopImg().getUrl();
+            sourceURL = fetchSynced(() -> new TotoriDipJPFactory().getInstance().getTopImg().getUrl());
         }
         return sourceURL;
     }
