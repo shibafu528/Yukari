@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import android.util.Log
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.QueryCompiler
-import shibafu.yukari.filter.source.Home
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
@@ -35,25 +34,25 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     override fun onAttach(activity: Activity?) {
-        super<TweetListFragment>.onAttach(activity)
-        filterRawQuery = getArguments()?.getString(EXTRA_FILTER_QUERY) ?: ""
+        super.onAttach(activity)
+        filterRawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: ""
     }
 
     override fun onStart() {
-        super<TweetListFragment>.onStart()
-        getActivity().registerReceiver(onReloadReceiver, IntentFilter(TwitterService.RELOADED_USERS))
+        super.onStart()
+        activity.registerReceiver(onReloadReceiver, IntentFilter(TwitterService.RELOADED_USERS))
     }
 
     override fun onStop() {
-        super<TweetListFragment>.onStop()
-        getActivity().unregisterReceiver(onReloadReceiver)
+        super.onStop()
+        activity.unregisterReceiver(onReloadReceiver)
     }
 
     override fun onDetach() {
-        if (isServiceBound()) {
-            getStatusManager().removeStatusListener(this)
+        if (isServiceBound) {
+            statusManager.removeStatusListener(this)
         }
-        super<TweetListFragment>.onDetach()
+        super.onDetach()
     }
 
     protected fun executeLoader(requestMode: Int) {
@@ -64,20 +63,20 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             Pair(user, loader)
         }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> getStatusManager().requestRestQuery(getRestTag(), s.first, false, s.second) }
+            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> statusManager.requestRestQuery(restTag, s.first, false, s.second) }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
                 if (queries.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
-                    queries.forEach { s -> getStatusManager().requestRestQuery(getRestTag(), s.first, false, s.second)  }
+                    queries.forEach { s -> statusManager.requestRestQuery(restTag, s.first, false, s.second)  }
                 }
             }
         }
     }
 
-    deprecated("フィルタタブにおいて従来のローダーAPIは非推奨です。")
+    @Deprecated("フィルタタブにおいて従来のローダーAPIは非推奨です。")
     override fun executeLoader(requestMode: Int, userRecord: AuthUserRecord?) {
-        Log.w(javaClass.getSimpleName(), "フィルタタブにおいて従来のローダーAPIは非推奨です。")
+        Log.w(javaClass.simpleName, "フィルタタブにおいて従来のローダーAPIは非推奨です。")
         executeLoader(requestMode)
     }
 
@@ -90,15 +89,15 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     override fun onServiceConnected() {
-        super<TweetListFragment>.onServiceConnected()
+        super.onServiceConnected()
         //ユーザ情報を取得
-        users = getTwitterService().getUsers()
+        users = twitterService.users
 
         //クエリのコンパイルを開始
         filterQuery = QueryCompiler.compile(users, filterRawQuery)
 
         //ストリーミングのリスナ登録
-        getStatusManager().addStatusListener(this)
+        statusManager.addStatusListener(this)
     }
 
     override fun onServiceDisconnected() {}
@@ -110,7 +109,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     override fun setRefreshComplete() {
-        getSwipeRefreshLayout().setRefreshing(false)
+        swipeRefreshLayout.isRefreshing = false
     }
 
     override fun getStreamFilter(): String? = null
@@ -120,14 +119,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onStatus(from: AuthUserRecord, status: PreformedStatus, muted: Boolean) {
         if (elements.contains(status) || !getFilterQuery().evaluate(status, users)) return
 
-        Log.d("FilterListFragment", "[${filterRawQuery}] onStatus : ${status}")
+        Log.d("FilterListFragment", "[$filterRawQuery] onStatus : $status")
 
         when {
             muted -> stash.add(status)
             else -> {
                 val position = prepareInsertStatus(status)
                 if (position > -1) {
-                    getHandler().post { insertElement(status, position) }
+                    handler.post { insertElement(status, position) }
                 }
             }
         }
@@ -138,33 +137,33 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onUpdatedStatus(from: AuthUserRecord, kind: Int, status: Status) {
         when (kind) {
             StatusManager.UPDATE_WIPE_TWEETS -> {
-                getHandler().post {
+                handler.post {
                     elements.clear()
                     notifyDataSetChanged()
                 }
                 stash.clear()
             }
-            StatusManager.UPDATE_FORCE_UPDATE_UI -> getHandler().post {
+            StatusManager.UPDATE_FORCE_UPDATE_UI -> handler.post {
                 notifyDataSetChanged()
             }
             StatusManager.UPDATE_DELETED -> {
-                getHandler().post { deleteElement(status) }
-                stash.removeAll(stash.filter {s -> s.getId() == status.getId()})
+                handler.post { deleteElement(status) }
+                stash.removeAll(stash.filter {s -> s.id == status.id })
             }
             StatusManager.UPDATE_FAVED, StatusManager.UPDATE_UNFAVED -> {
-                val position = elements.indexOfFirst { s -> s.getId() == status.getId() }
+                val position = elements.indexOfFirst { s -> s.id == status.id }
                 if (position > -1) {
-                    getHandler().post {
+                    handler.post {
                         elements.get(position).merge(status, from)
                         notifyDataSetChanged()
                     }
                 } else {
-                    stash.filter { s -> s.getId() == status.getId() }
+                    stash.filter { s -> s.id == status.id }
                          .forEach { s -> s.merge(status, from) }
                 }
             }
-            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).getTag().equals(getRestTag())) {
-                getHandler().post { setRefreshComplete() }
+            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).tag.equals(restTag)) {
+                handler.post { setRefreshComplete() }
             }
         }
     }

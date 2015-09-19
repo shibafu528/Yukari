@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.AuthUserRecord
  * Created by shibafu on 2015/09/15.
  */
 public class AsyncCommandService : IntentService("AsyncCommandService") {
-    private val LOG_TAG = javaClass.getSimpleName()
+    private val LOG_TAG = javaClass.simpleName
 
     private var service: TwitterService? = null
     private var serviceBound: Boolean = false
@@ -27,7 +27,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
         }
 
         //ActionとExtraの取得
-        val action = intent.getAction()
+        val action = intent.action
         val id = intent.getLongExtra(EXTRA_ID, -1)
         val user = intent.getSerializableExtra(EXTRA_USER) as? AuthUserRecord
 
@@ -68,7 +68,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
         private val EXTRA_USER = "user"
 
         private fun createIntent(context: Context, action: String, id: Long, user: AuthUserRecord): Intent {
-            val intent = Intent(context, javaClass<AsyncCommandService>())
+            val intent = Intent(context, AsyncCommandService::class.java)
             intent.setAction(action)
             intent.putExtra(EXTRA_ID, id)
             intent.putExtra(EXTRA_USER, user)
@@ -93,7 +93,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate AsyncCommandService")
-        bindService(Intent(this, javaClass<TwitterService>()), connection, Context.BIND_AUTO_CREATE)
+        bindService(Intent(this, TwitterService::class.java), connection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onDestroy() {
@@ -105,7 +105,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
             Log.d(LOG_TAG, "onServiceConnected")
-            service = (binder as TwitterService.TweetReceiverBinder).getService()
+            service = (binder as TwitterService.TweetReceiverBinder).service
             serviceBound = true
         }
 
