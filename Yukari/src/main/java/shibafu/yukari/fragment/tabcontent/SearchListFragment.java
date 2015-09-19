@@ -47,6 +47,14 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
     }
 
     @Override
+    public void onDetach() {
+        if (isServiceBound() && getStatusManager() != null) {
+            getStatusManager().removeStatusListener(this);
+        }
+        super.onDetach();
+    }
+
+    @Override
     protected void executeLoader(int requestMode, AuthUserRecord userRecord) {
         SearchRESTLoader restLoader = new SearchRESTLoader(getDefaultRESTInterface());
         switch (requestMode) {
