@@ -1,14 +1,14 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -55,7 +55,7 @@ public class BookmarkListFragment extends TweetListFragment {
 
         @Override
         protected List<Bookmark> doInBackground(Void... params) {
-            if (!isServiceBound()) return new ArrayList<>();
+            if (!isServiceBound() || getTwitterService() == null || getTwitterService().getDatabase() == null) return new ArrayList<>();
             return getTwitterService().getDatabase().getBookmarks();
         }
 
