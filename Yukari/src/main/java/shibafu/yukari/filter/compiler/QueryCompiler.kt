@@ -19,7 +19,7 @@ public final class QueryCompiler {
 
     companion object {
         public val DEFAULT_QUERY: String = "from all"
-        private val LOG_TAG = javaClass<QueryCompiler>().getSimpleName()
+        private val LOG_TAG = QueryCompiler::class.java.simpleName
 
         /**
          * クエリ文字列を解釈し、ソースリストと式オブジェクトにコンパイルします。
@@ -81,7 +81,7 @@ public final class QueryCompiler {
                 private fun createFiltersWithAuthArguments<T : FilterSource>(filterClz: Class<T>): List<T> {
                     if (args.size() < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
 
-                    val constructor = filterClz.getConstructor(javaClass<AuthUserRecord>())
+                    val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
                     return args.map { p ->
                         constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
                                 ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
@@ -92,7 +92,7 @@ public final class QueryCompiler {
                 public fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
                         "all", "local", "*", "stream" -> listOf(All())
-                        "home" -> createFiltersWithAuthArguments(javaClass<Home>())
+                        "home" -> createFiltersWithAuthArguments(Home::class.java)
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
@@ -155,4 +155,4 @@ public final class QueryCompiler {
 }
 
 public class FilterCompilerException(message: String, token: Token?) :
-        Exception(if (token == null) "${message} : ?" else "${message} : ${token.value} (${token.cursor})")
+        Exception(if (token == null) "$message : ?" else "$message : ${token.value} (${token.cursor})")

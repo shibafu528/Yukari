@@ -13,7 +13,7 @@ public class ParameterValue(val path: String) : ValueExpression {
         fun invoke(pathList: List<String>, target: Any?) {
             if (target == null) return
 
-            val method = target.javaClass.getMethods().first { it.getName().toLowerCase().equals("get" + pathList.first().toLowerCase()) }
+            val method = target.javaClass.methods.first { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
 
             if (pathList.size() == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))
