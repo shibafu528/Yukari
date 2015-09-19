@@ -1,16 +1,16 @@
 package shibafu.yukari.filter
 
+import org.junit.Test
 import shibafu.yukari.filter.compiler.TokenType
 import shibafu.yukari.filter.compiler.Tokenizer
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import org.junit.Test as test
 
 /**
  * Created by shibafu on 15/06/14.
  */
 class TokenizerTest {
-    test fun quotationTokenTest() {
+    @Test fun quotationTokenTest() {
         val tokenizer = Tokenizer("\"foo\" \"bar\" \"hoge fuga\"")
 
         val fooToken = tokenizer.next()
@@ -31,7 +31,7 @@ class TokenizerTest {
         assertFalse(tokenizer.hasNext())
     }
 
-    test fun singleQuotationTokenTest() {
+    @Test fun singleQuotationTokenTest() {
         val tokenizer = Tokenizer("'foo' \"bar\" 'hoge \"fuga\" piyo' \"hoge 'fuga' piyo\"")
 
         val fooToken = tokenizer.next()
@@ -57,12 +57,12 @@ class TokenizerTest {
         assertFalse(tokenizer.hasNext())
     }
 
-    test fun noneTokenTest() {
+    @Test fun noneTokenTest() {
         val tokenizer = Tokenizer("")
         assertFalse(tokenizer.hasNext())
     }
 
-    test fun literalTokenTest() {
+    @Test fun literalTokenTest() {
         val tokenizer = Tokenizer("foo bar")
 
         val fooToken = tokenizer.next()
@@ -78,7 +78,7 @@ class TokenizerTest {
         assertFalse(tokenizer.hasNext())
     }
 
-    test fun literalAndQuotationTest() {
+    @Test fun literalAndQuotationTest() {
         val tokenizer = Tokenizer("foo \"bar\" baz")
 
         val fooToken = tokenizer.next()
@@ -99,7 +99,7 @@ class TokenizerTest {
         assertFalse(tokenizer.hasNext())
     }
 
-    test fun commaTest() {
+    @Test fun commaTest() {
         val tokenizer = Tokenizer("hoge, fuga")
 
         val hogeToken = tokenizer.next()
@@ -117,7 +117,7 @@ class TokenizerTest {
         assertEquals(6, fugaToken.cursor)
     }
 
-    test fun colonTest() {
+    @Test fun colonTest() {
         val tokenizer = Tokenizer("hoge: \"fuga\"")
 
         val hogeToken = tokenizer.next()
@@ -135,7 +135,7 @@ class TokenizerTest {
         assertEquals(6, fugaToken.cursor)
     }
 
-    test fun parenthesisTest() {
+    @Test fun parenthesisTest() {
         val tokenizer = Tokenizer("hoge: (fuga)")
 
         val hogeToken = tokenizer.next()
