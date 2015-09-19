@@ -485,10 +485,10 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                                 public void run() {
                                     if (listView == null) {
                                         if (++counter.count > 20) {
-                                            Log.d("Timeline_onStatus", "ListView is null. DROPPED! (" + counter.count + ")");
+                                            Log.w("Timeline_onStatus", "ListView is null. DROPPED! (" + counter.count + ")");
                                             return;
                                         }
-                                        Log.d("Timeline_onStatus", "ListView is null. wait 100ms. (" + counter.count + ")");
+                                        Log.w("Timeline_onStatus", "ListView is null. wait 100ms. (" + counter.count + ")");
                                         getHandler().postDelayed(new AsyncInsert(), 100);
                                         return;
                                     }

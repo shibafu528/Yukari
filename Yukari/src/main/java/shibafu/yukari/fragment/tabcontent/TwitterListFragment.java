@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -469,6 +470,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     unreadSet.remove(commonDelegate.getId(iterator.next()));
                     iterator.remove();
                 }
+            }
+            if (listView == null) {
+                Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
+                return;
             }
             int firstPos = listView.getFirstVisiblePosition();
             View firstView = listView.getChildAt(0);
