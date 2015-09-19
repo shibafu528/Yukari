@@ -9,7 +9,7 @@ import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
@@ -242,8 +242,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             if (currentPage.isCloseable()) {
                 int current = viewPager.getCurrentItem();
                 TabInfo tabInfo = pageList.get(current);
-                if (tabInfo.getListFragment() instanceof SearchListFragment &&
-                        ((SearchListFragment) tabInfo.getListFragment()).isStreaming()) {
+                TwitterListFragment tabFragment = tabPagerAdapter.findFragmentByPosition(viewPager, current);
+                if (tabFragment instanceof SearchListFragment &&
+                        ((SearchListFragment) tabFragment).isStreaming()) {
                     getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
                 }
 
@@ -282,7 +283,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             @Override
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
-                currentPage = pageList.get(i).getListFragment();
+                currentPage = tabPagerAdapter.findFragmentByPosition(viewPager, i);
                 if (currentPage != null) {
                     if (currentPage.isCloseable()) {
                         ibClose.setVisibility(View.VISIBLE);
@@ -469,16 +470,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         if (pageList == null) {
             pageList = new ArrayList<>();
-        }
-        int currentId = savedInstanceState.getInt("currentId", -1);
-        for (int i = 0; i < pageList.size(); i++) {
-            TabInfo tabInfo = pageList.get(i);
-            if (i == currentId) {
-                tabInfo.setListFragment(currentPage);
-            }
-            else if (tabInfo.getListFragment() == null) {
-                tabInfo.setListFragment(TweetListFragmentFactory.newInstance(tabInfo));
-            }
         }
         tabPagerAdapter.notifyDataSetChanged();
     }
@@ -677,16 +668,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     private void addTab(TabInfo tabInfo) {
-        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
-        switch (tabInfo.getType()) {
-            case TabType.TABTYPE_TRACK:
-                getTwitterService().getStatusManager().startFilterStream(
-                        new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
-                        tabInfo.getBindAccount());
-                break;
-        }
-        tabInfo.setListFragment(fragment);
-
         pageList.add(tabInfo);
     }
 
@@ -704,7 +685,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         }
         else for (int i = 0; i < pageList.size(); ++i) {
-            if (pageList.get(i).getListFragment() == currentPage) {
+            if (tabPagerAdapter.findFragmentByPosition(viewPager, i) == currentPage) {
                 pageId = i;
                 break;
             }
@@ -714,7 +695,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager.setCurrentItem(pageId);
 
         if (!pageList.isEmpty()) {
-            currentPage = pageList.get(pageId).getListFragment();
+            currentPage = tabPagerAdapter.findFragmentByPosition(viewPager, pageId);
             tvTabText.setText(pageList.get(pageId).getTitle());
         }
         else {
@@ -798,7 +779,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     public void onServiceDisconnected() {}
 
-    class TabPagerAdapter extends FragmentStatePagerAdapter {
+    class TabPagerAdapter extends FragmentPagerAdapter {
 
         public TabPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -806,7 +787,18 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         @Override
         public Fragment getItem(int i) {
-            return pageList.get(i).getListFragment();
+            TabInfo tabInfo = pageList.get(i);
+
+            TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
+            switch (tabInfo.getType()) {
+                case TabType.TABTYPE_TRACK:
+                    getTwitterService().getStatusManager().startFilterStream(
+                            new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
+                            tabInfo.getBindAccount());
+                    break;
+            }
+
+            return fragment;
         }
 
         @Override
@@ -817,6 +809,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         @Override
         public CharSequence getPageTitle(int position) {
             return pageList.get(position).getTitle();
+        }
+
+        public TwitterListFragment findFragmentByPosition(ViewPager viewPager,
+                                               int position) {
+            return (TwitterListFragment) instantiateItem(viewPager, position);
         }
     }
 }

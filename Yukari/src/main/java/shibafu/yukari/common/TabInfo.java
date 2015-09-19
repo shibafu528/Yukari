@@ -3,14 +3,12 @@ package shibafu.yukari.common;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.text.TextUtils;
-
-import java.io.Serializable;
-
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+
+import java.io.Serializable;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -25,8 +23,6 @@ public class TabInfo implements DBRecord, Serializable {
     private String searchKeyword;
     private String filterQuery;
     private boolean isStartup;
-
-    private transient TwitterListFragment listFragment;
 
     public TabInfo(int type, int order, AuthUserRecord bindAccount) {
         this.type = type;
@@ -147,14 +143,6 @@ public class TabInfo implements DBRecord, Serializable {
 
     public void setFilterQuery(String filterQuery) {
         this.filterQuery = filterQuery;
-    }
-
-    public TwitterListFragment getListFragment() {
-        return listFragment;
-    }
-
-    public void setListFragment(TwitterListFragment listFragment) {
-        this.listFragment = listFragment;
     }
 
     public String getTitle() {
