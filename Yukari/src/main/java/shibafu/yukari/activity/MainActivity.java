@@ -9,7 +9,7 @@ import android.os.*;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
@@ -41,11 +41,14 @@ import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+import twitter4j.TwitterResponse;
 import twitter4j.util.CharacterUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
 
@@ -69,6 +72,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private TwitterListFragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
+    private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new HashMap<>();
     @InjectView(R.id.tvMainTab)     TextView tvTabText;
     @InjectView(R.id.pager)         ViewPager viewPager;
     @InjectView(R.id.ibClose)       ImageButton ibClose;
@@ -739,6 +743,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
     }
 
+    public <T extends TwitterResponse> ArrayList<T> getElementsList(long id) {
+        if (!pageElements.containsKey(id)) {
+            pageElements.put(id, new ArrayList<T>());
+        }
+        return (ArrayList<T>) pageElements.get(id);
+    }
+
     @Override
     public void onServiceConnected() {
         if (getTwitterService().getUsers().isEmpty()) {
@@ -779,7 +790,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     public void onServiceDisconnected() {}
 
-    class TabPagerAdapter extends FragmentPagerAdapter {
+    class TabPagerAdapter extends FragmentStatePagerAdapter {
 
         public TabPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -792,6 +803,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
             switch (tabInfo.getType()) {
                 case TabType.TABTYPE_TRACK:
+                    //現状ここに行き着くことってそんなに無い気がする
                     getTwitterService().getStatusManager().startFilterStream(
                             new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
                             tabInfo.getBindAccount());

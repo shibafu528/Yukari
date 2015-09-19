@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +39,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     SwipeRefreshLayout.OnRefreshListener,
                     TwitterServiceDelegate {
 
+    public static final String EXTRA_ID = "id";
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
@@ -119,6 +121,16 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
         this.elementClass = elementClass;
         commonDelegate = TweetCommon.newInstance(elementClass);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof MainActivity) {
+            Bundle args = getArguments();
+            long id = args.getLong(EXTRA_ID);
+            elements = ((MainActivity) activity).getElementsList(id);
+        }
     }
 
     @Override

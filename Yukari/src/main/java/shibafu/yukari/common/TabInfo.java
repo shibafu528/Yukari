@@ -9,13 +9,14 @@ import shibafu.yukari.database.DBTable;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.io.Serializable;
+import java.util.Random;
 
 /**
  * Created by Shibafu on 13/12/30.
  */
 @DBTable(CentralDatabase.TABLE_TABS)
 public class TabInfo implements DBRecord, Serializable {
-    private long id = -1;
+    private long id = -Math.abs(new Random().nextLong()); //DB未登録タブは一意の負数にしたいところ
     private int type;
     private int order;
     private AuthUserRecord bindAccount;

@@ -177,8 +177,8 @@ public class StatusManager implements Releasable {
             for (StatusListener sl : statusListeners) {
                 event.sendBufferedEvent(sl);
             }
-            for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                e.getValue().offer(event);
+            for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : statusBuffer.entrySet()) {
+                e.getValue().second.offer(event);
             }
         }
 
@@ -290,9 +290,9 @@ public class StatusManager implements Releasable {
                         }
                     }
                     deliverStatus = (deliverStatus instanceof MetaStatus)? new MetaStatus(preformedStatus, "queued") : deliverStatus;
-                    for (Map.Entry<StatusListener, Queue<EventBuffer>> e : statusBuffer.entrySet()) {
-                        if (deliver(e.getKey(), from)) {
-                            e.getValue().offer(new StatusEventBuffer(user, deliverStatus, muted));
+                    for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : statusBuffer.entrySet()) {
+                        if (deliver(e.getValue().first, from)) {
+                            e.getValue().second.offer(new StatusEventBuffer(user, deliverStatus, muted));
                         }
                     }
 
@@ -344,7 +344,7 @@ public class StatusManager implements Releasable {
     };
 
     private List<StatusListener> statusListeners = new ArrayList<>();
-    private Map<StatusListener, Queue<EventBuffer>> statusBuffer = new HashMap<>();
+    private Map<String, Pair<StatusListener, Queue<EventBuffer>>> statusBuffer = new HashMap<>();
     private List<EventBuffer> updateBuffer = new ArrayList<>();
 
     private UserUpdateDelayer userUpdateDelayer;
@@ -522,14 +522,14 @@ public class StatusManager implements Releasable {
     public void addStatusListener(StatusListener l) {
         if (statusListeners != null && !statusListeners.contains(l)) {
             statusListeners.add(l);
-            Log.d("TwitterService", "Added StatusListener");
-            if (statusBuffer.containsKey(l)) {
-                Queue<EventBuffer> eventBuffers = statusBuffer.get(l);
-                Log.d("TwitterService", "バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
+            Log.d("TwitterService", "Added StatusListener : " + l.getSubscribeIdentifier());
+            if (statusBuffer.containsKey(l.getSubscribeIdentifier())) {
+                Queue<EventBuffer> eventBuffers = statusBuffer.get(l.getSubscribeIdentifier()).second;
+                Log.d("TwitterService", "SubID:" + l.getSubscribeIdentifier() + " -> バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
                 while (!eventBuffers.isEmpty()) {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
-                statusBuffer.remove(l);
+                statusBuffer.remove(l.getSubscribeIdentifier());
             } else {
                 Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", updateBuffer.size()));
                 for (EventBuffer eventBuffer : updateBuffer) {
@@ -542,8 +542,8 @@ public class StatusManager implements Releasable {
     public void removeStatusListener(StatusListener l) {
         if (statusListeners != null && statusListeners.contains(l)) {
             statusListeners.remove(l);
-            Log.d("TwitterService", "Removed StatusListener");
-            statusBuffer.put(l, new LinkedList<>());
+            Log.d("TwitterService", "Removed StatusListener : " + l.getSubscribeIdentifier());
+            statusBuffer.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedList<>()));
         }
     }
     //</editor-fold>

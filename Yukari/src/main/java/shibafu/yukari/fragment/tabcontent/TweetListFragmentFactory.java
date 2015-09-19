@@ -42,6 +42,7 @@ public class TweetListFragmentFactory {
                 b.putString(FilterListFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
                 break;
         }
+        b.putLong(TweetListFragment.EXTRA_ID, tabInfo.getId());
         b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
         b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
         b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
