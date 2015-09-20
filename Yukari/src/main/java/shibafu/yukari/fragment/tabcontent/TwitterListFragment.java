@@ -490,6 +490,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     protected void deleteElement(TwitterResponse element) {
+        if (listView == null) {
+            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ")");
+            return;
+        }
         long id = TweetCommon.newInstance(element.getClass()).getId(element);
         Iterator<T> iterator = elements.iterator();
         while (iterator.hasNext()) {
