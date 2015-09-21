@@ -648,6 +648,11 @@ public class TwitterService extends Service{
         public String url;
     }
 
+    /**
+     * mikutterの最新バージョン情報を取得します。
+     * @param channel リリースの区分。nullにした場合は "stable" 扱いにします。
+     * @return 最新バージョン(基本的にはx.y.z alpha版などそれ以外のケースも有る)
+     */
     @Nullable
     private String getLatestMikutterVersion(@Nullable String channel) {
         if (channel == null) {
