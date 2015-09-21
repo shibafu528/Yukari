@@ -139,7 +139,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         //表示域拡張設定
         setImmersive(sharedPreferences.getBoolean("pref_boot_immersive", false));
 
-        if (sharedPreferences.getBoolean("pref_enable_service", true)) {
+        //サービスの常駐
+        if (sharedPreferences.getBoolean("pref_enable_service", false)) {
             startService(new Intent(getApplicationContext(), TwitterService.class));
         }
     }
