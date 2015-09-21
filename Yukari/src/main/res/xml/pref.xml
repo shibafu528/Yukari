@@ -300,6 +300,11 @@
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
             android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません" />
+        <CheckBoxPreference
+            android:key="pref_enable_service"
+            android:title="Serviceの常駐"
+            android:summary="Serviceを常駐モードで起動します\n基本オンで、どうしても動作に問題があるときは外してください"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">

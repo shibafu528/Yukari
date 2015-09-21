@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.*;
 import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Debug;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
@@ -114,6 +116,23 @@ public class TwitterService extends Service{
 
     public IBinder onBind(Intent intent) {
         return binder;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText("Yukariを実行中です")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setShowWhen(false)
+                .setOngoing(true)
+                .setLocalOnly(true)
+                .setColor(getResources().getColor(R.color.key_color))
+                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
+        startForeground(R.string.app_name, builder.build());
+        return START_STICKY;
     }
 
     @Override
@@ -267,6 +286,8 @@ public class TwitterService extends Service{
         if (pixivProxy != null) {
             pixivProxy.stop();
         }
+
+        stopForeground(true);
 
         startService(new Intent(this, CacheCleanerService.class));
 

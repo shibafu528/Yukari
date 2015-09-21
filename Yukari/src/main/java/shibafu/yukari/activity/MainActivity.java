@@ -36,6 +36,7 @@ import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
@@ -137,6 +138,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         //表示域拡張設定
         setImmersive(sharedPreferences.getBoolean("pref_boot_immersive", false));
+
+        if (sharedPreferences.getBoolean("pref_enable_service", true)) {
+            startService(new Intent(getApplicationContext(), TwitterService.class));
+        }
     }
 
     private void findViews() {
@@ -491,6 +496,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.isLongPress()) {
+                stopService(new Intent(getApplicationContext(), TwitterService.class));
                 finish();
             }
             else if (event.getAction() == KeyEvent.ACTION_UP && !event.isLongPress()) {
@@ -562,6 +568,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         builder.setTitle("終了しますか？");
         builder.setPositiveButton("はい", (dialog, which) -> {
             dialog.dismiss();
+            stopService(new Intent(getApplicationContext(), TwitterService.class));
             finish();
         });
         builder.setNegativeButton("いいえ", (dialog, which) -> {
