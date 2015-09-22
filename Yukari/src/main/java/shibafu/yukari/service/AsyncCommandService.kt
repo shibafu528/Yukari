@@ -6,22 +6,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import shibafu.yukari.BuildConfig
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.putDebugLog
+import shibafu.yukari.util.putErrorLog
 
 /**
  * Created by shibafu on 2015/09/15.
  */
 public class AsyncCommandService : IntentService("AsyncCommandService") {
-    private val LOG_TAG = javaClass.simpleName
-
     private var service: TwitterService? = null
     private var serviceBound: Boolean = false
 
     override fun onHandleIntent(intent: Intent?) {
         if (intent == null) {
-            Log.e(LOG_TAG, "Intentがぬるぬるしてる \n" + intent.toString())
+            putErrorLog("Intentがぬるぬるしてる \n" + intent.toString())
             if (BuildConfig.DEBUG) throw NullPointerException()
             return
         }
@@ -32,7 +31,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
         val user = intent.getSerializableExtra(EXTRA_USER) as? AuthUserRecord
 
         if (action == null || id < 0 || user == null) {
-            Log.e(LOG_TAG, "Intentのパラメータが欠けてる \n" + intent.toString())
+            putErrorLog("Intentのパラメータが欠けてる \n" + intent.toString())
             if (BuildConfig.DEBUG) throw IllegalArgumentException("action: $action; id: $id; user: $user")
             return
         }
@@ -92,19 +91,19 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
     //<editor-fold desc="Service Binder">
     override fun onCreate() {
         super.onCreate()
-        Log.d(LOG_TAG, "onCreate AsyncCommandService")
+        putDebugLog("onCreate AsyncCommandService")
         bindService(Intent(this, TwitterService::class.java), connection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(LOG_TAG, "onDestory AsyncCommandService")
+        putDebugLog("onDestroy AsyncCommandService")
         unbindService(connection)
     }
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-            Log.d(LOG_TAG, "onServiceConnected")
+            putDebugLog("onServiceConnected")
             service = (binder as TwitterService.TweetReceiverBinder).service
             serviceBound = true
         }
