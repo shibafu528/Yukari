@@ -56,12 +56,12 @@ public class ContainsNode(override val children: List<SNode>) : SNode {
 public class RegexNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
-        if (ev.size() != 2 || !ev.all { it is String }) return false
+        if (ev.size() != 2 || ev.any { it !is String }) return false
 
         val source = ev.first() as String
         val matcher = Pattern.compile(ev.drop(1).first() as String).matcher(source)
 
-        return matcher.matches()
+        return matcher.find()
     }
 }
 

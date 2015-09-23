@@ -238,6 +238,12 @@ public class QueryCompilerTest {
         val result = evaluateFake(snode, "ゆかりまないた")
         assertEquals(true, result)
     }
+
+    @Test fun variableRegexExpressionTest() {
+        val snode = parseExpression("(regex ?text \"(らこ){3}～+[wｗ]+\")", emptyList())
+        val result = evaluateFake(snode, "らこらこらこ～ｗ")
+        assertEquals(true, result)
+    }
 }
 
 private class FakeTextStatus(id: Long, private val text: String) : FakeStatus(id) {
