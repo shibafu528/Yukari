@@ -113,6 +113,12 @@ public class QueryCompilerTest {
         return result
     }
 
+    private fun evaluateFake(snode: SNode, text: String) : Any {
+        val result = snode.evaluate(FakeTextStatus(0, text), emptyList())
+        println(snode)
+        return result
+    }
+
     @Test fun trueExpressionTest() {
         val snode = parseExpression("(t)", emptyList())
         val result = evaluateFake(snode)
@@ -227,4 +233,13 @@ public class QueryCompilerTest {
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
+    @Test fun variableExpressionText() {
+        val snode = parseExpression("(contains ?text \"まないた\")", emptyList())
+        val result = evaluateFake(snode, "ゆかりまないた")
+        assertEquals(true, result)
+    }
+}
+
+private class FakeTextStatus(id: Long, private val text: String) : FakeStatus(id) {
+    public override fun getText(): String = this.text
 }

@@ -159,7 +159,7 @@ public final class QueryCompiler {
                         "t", "true", "True", "TRUE" -> ValueNode(true)
                         "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
                         else -> {
-                            if (token.value.startsWith(":")) return VariableNode(token.value.replaceFirst(":", ""))
+                            if (token.value.startsWith("?")) return VariableNode(token.value.replaceFirst("?", ""))
                             else return ValueNode(token.value)
                         }
                     }

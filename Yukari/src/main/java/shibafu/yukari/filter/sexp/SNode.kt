@@ -53,12 +53,12 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        fun invoke(pathList: List<String>, target: Any?) {
-            if (target == null) return
+        fun invoke(pathList: List<String>, target: Any?): Any? {
+            if (target == null) return null
 
             val method = target.javaClass.methods.first { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
 
-            if (pathList.size() == 1) method.invoke(target)
+            return if (pathList.size() == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))
         }
         val pathList = path.split('.').toArrayList()
