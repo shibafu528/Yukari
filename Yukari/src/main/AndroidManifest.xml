@@ -355,6 +355,10 @@
         <activity
             android:name=".activity.TemplateEditActivity"
             android:label="@string/title_activity_template_edit"/>
+
+        <activity android:name=".activity.QueryEditorActivity"
+                  android:windowSoftInputMode="adjustResize"
+                  android:label="Query Editor"/>
    </application>
 
 </manifest>

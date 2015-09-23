@@ -2,8 +2,7 @@ package shibafu.yukari.filter.compiler
 
 import android.util.Log
 import shibafu.yukari.filter.FilterQuery
-import shibafu.yukari.filter.expression.ConstantValue
-import shibafu.yukari.filter.expression.Expression
+import shibafu.yukari.filter.sexp.*
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
@@ -27,6 +26,7 @@ public final class QueryCompiler {
          * @param query クエリ文字列
          * @return コンパイル済クエリ
          */
+        throws(FilterCompilerException::class)
         public fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
             //コンパイル開始時間の記録
             val compileTime = System.currentTimeMillis()
@@ -45,16 +45,16 @@ public final class QueryCompiler {
             }
 
             //where句の解釈
-            val rootExpression = when {
-                beginWhere < 0 -> ConstantValue(true) //where句が存在しない -> where trueと同義とする
-                else -> parseExpression(query.substring(beginWhere), userRecords)
+            val rootNode = when {
+                beginWhere < 0 -> ValueNode(true) //where句が存在しない -> where trueと同義とする
+                else -> parseExpression(query.substring(beginWhere).replaceFirstLiteral("where", "").trim(), userRecords)
             }
 
             //コンパイル終了時間のログ出力
-            Log.d(LOG_TAG, "Compile finished. (${System.currentTimeMillis() - compileTime} ms): $query")
+//            Log.d(LOG_TAG, "Compile finished. (${System.currentTimeMillis() - compileTime} ms): $query")
 
             //コンパイル結果を格納
-            return FilterQuery(sources, rootExpression)
+            return FilterQuery(sources, rootNode)
         }
 
         /**
@@ -66,6 +66,7 @@ public final class QueryCompiler {
          * @param userRecords ソースリストに関連付けるユーザのリスト
          * @return 抽出ソースのリスト
          */
+        throws(FilterCompilerException::class)
         private fun parseSource(fromQuery: String, userRecords: List<AuthUserRecord>): List<FilterSource> {
             class TempParams {
                 var type: Token? = null
@@ -148,8 +149,59 @@ public final class QueryCompiler {
             }
         }
 
-        private fun parseExpression(whereQuery: String, userRecords: List<AuthUserRecord>): Expression {
-            return ConstantValue(true)
+        throws(FilterCompilerException::class)
+        private fun parseExpression(whereQuery: String, userRecords: List<AuthUserRecord>): SNode {
+            fun tokenToNode(token: Token) : SNode {
+                return if (token.type == TokenType.STRING) {
+                    ValueNode(token.value)
+                } else if (token.type == TokenType.LITERAL) {
+                    when (token.value) {
+                        "t", "true", "True", "TRUE" -> ValueNode(true)
+                        "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
+                        else -> {
+                            if (token.value.startsWith(":")) return VariableNode(token.value.replaceFirstLiteral(":", ""))
+                            else return ValueNode(token.value)
+                        }
+                    }
+                } else {
+                    throw FilterCompilerException("不正なトークンが検出されました。文法が正しいか確認して下さい。", token)
+                }
+            }
+
+            fun recursiveParse(tokenizer: Tokenizer) : SNode {
+                if (!tokenizer.hasNext()) throw FilterCompilerException("式を閉じるかっこが見つかりませんでした。", null)
+
+                val funcToken = tokenizer.next()
+                if (funcToken.type == TokenType.RIGHT_PARENTHESIS) return ValueNode(false)
+
+                var paramList = emptyList<SNode>()
+                for (token in tokenizer) {
+                    if (token.type == TokenType.RIGHT_PARENTHESIS) {
+                        if (paramList.isEmpty()) return tokenToNode(funcToken)
+                        else return when(funcToken.value) {
+                            "and", "&" -> AndNode(paramList)
+                            "or", "|" -> OrNode(paramList)
+                            "not", "!" -> NotNode(paramList)
+                            "equals", "eq", "=", "==" -> EqualsNode(paramList)
+                            "noteq", "!=", "/=" -> NotEqualsNode(paramList)
+                            "contains" -> ContainsNode(paramList)
+                            "regex" -> RegexNode(paramList)
+                            else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
+                        }
+                    }
+
+                    if (token.type == TokenType.LEFT_PARENTHESIS) {
+                        paramList += recursiveParse(tokenizer)
+                    } else {
+                        paramList += tokenToNode(token)
+                    }
+                }
+                throw FilterCompilerException("式を閉じるかっこが見つかりませんでした。", null)
+            }
+
+            val tokenizer = Tokenizer(whereQuery)
+            if (tokenizer.hasNext()) tokenizer.next()
+            return if (whereQuery.isNullOrEmpty()) ValueNode(true) else recursiveParse(tokenizer)
         }
     }
 }
