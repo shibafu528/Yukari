@@ -159,7 +159,7 @@ public final class QueryCompiler {
                         "t", "true", "True", "TRUE" -> ValueNode(true)
                         "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
                         else -> {
-                            if (token.value.startsWith("?")) return VariableNode(token.value.replaceFirst("?", ""))
+                            if (token.value.startsWith("?") && token.value.length() > 1) return VariableNode(token.value.replaceFirst("?", ""))
                             else return ValueNode(token.value)
                         }
                     }
@@ -184,7 +184,7 @@ public final class QueryCompiler {
                             "not", "!" -> NotNode(paramList)
                             "equals", "eq", "=", "==" -> EqualsNode(paramList)
                             "noteq", "!=", "/=" -> NotEqualsNode(paramList)
-                            "contains" -> ContainsNode(paramList)
+                            "contains", "in" -> ContainsNode(paramList)
                             "regex" -> RegexNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }

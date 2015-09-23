@@ -56,7 +56,9 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
         fun invoke(pathList: List<String>, target: Any?): Any? {
             if (target == null) return null
 
-            val method = target.javaClass.methods.first { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
+            val method = target.javaClass.methods.firstOrNull { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
+                    ?: target.javaClass.methods.firstOrNull { it.name.toLowerCase().equals("is" + pathList.first().toLowerCase()) }
+                    ?: return null
 
             return if (pathList.size() == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))
