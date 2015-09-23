@@ -9,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:20.0.0'
-    compile 'com.android.support:support-v4:23.0.+'
+    compile 'com.android.support:appcompat-v7:20.0.+'
+    compile 'com.android.support:support-v4:22.2.+'
     compile 'com.google.android.gms:play-services-plus:6.5.87'
     compile 'com.google.android.gms:play-services-drive:6.5.87'
 
