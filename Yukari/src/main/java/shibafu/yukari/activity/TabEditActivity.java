@@ -11,22 +11,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import android.view.*;
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import shibafu.yukari.R;
@@ -42,6 +28,9 @@ import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.UserList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/28.
@@ -132,6 +121,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
 
     public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
 
+        private static final int REQUEST_EDIT_QUERY = 1;
+        private static final String EXTRA_ID = "id";
+
         private Adapter adapter;
         private ArrayList<TabInfo> tabs = new ArrayList<>();
         private TabInfo deleteReserve = null;
@@ -178,6 +170,17 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 }
                 return false;
             });
+            getListView().setOnItemLongClickListener((parent, v, position, id) -> {
+                if (tabs.get(position).getType() != TabType.TABTYPE_FILTER) {
+                    return false;
+                }
+
+                Intent intent = new Intent(getActivity().getApplicationContext(), QueryEditorActivity.class)
+                        .putExtra(EXTRA_ID, tabs.get(position).getId())
+                        .putExtra(Intent.EXTRA_TEXT, tabs.get(position).getFilterQuery());
+                startActivityForResult(intent, REQUEST_EDIT_QUERY);
+                return true;
+            });
         }
 
         @Override
@@ -203,6 +206,28 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                 }
             }
             return super.onOptionsItemSelected(item);
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == REQUEST_EDIT_QUERY && resultCode == RESULT_OK) {
+                long id = data.getLongExtra(EXTRA_ID, -1);
+                String newQuery = data.getStringExtra(Intent.EXTRA_TEXT);
+                assert newQuery != null : "newQuery is null";
+
+                for (TabInfo tab : tabs) {
+                    if (tab.getId() == id) {
+                        tab.setFilterQuery(newQuery);
+
+                        CentralDatabase database = ((TabEditActivity) getActivity()).getTwitterService().getDatabase();
+                        database.updateRecord(tab);
+                        break;
+                    }
+                }
+
+                reloadList();
+            }
         }
 
         @Override

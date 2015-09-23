@@ -26,7 +26,7 @@ public final class QueryCompiler {
          * @return コンパイル済クエリ
          */
         @JvmStatic
-        @Throws(FilterCompilerException::class)
+        @Throws(FilterCompilerException::class, TokenizeException::class)
         public fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
             //コンパイル開始時間の記録
             val compileTime = System.currentTimeMillis()

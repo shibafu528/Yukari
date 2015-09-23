@@ -15,9 +15,12 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
+import shibafu.yukari.filter.compiler.TokenizeException;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 2015/08/18.
@@ -38,6 +41,10 @@ public class QueryEditorActivity extends ActionBarYukariBase {
         setContentView(R.layout.activity_query);
         ButterKnife.inject(this);
 
+        if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
+            query.setText(getIntent().getStringExtra(Intent.EXTRA_TEXT));
+        }
+
         query.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -50,9 +57,17 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
                     try {
-                        FilterQuery q = QueryCompiler.compile(new ArrayList<>(), s.toString());
+                        List<AuthUserRecord> userRecords = null;
+                        if (isTwitterServiceBound() && getTwitterService() != null) {
+                            userRecords = getTwitterService().getUsers();
+                        }
+                        if (userRecords == null) {
+                            userRecords = new ArrayList<>();
+                        }
+
+                        FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
                         compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
-                    } catch (FilterCompilerException e) {
+                    } catch (FilterCompilerException | TokenizeException e) {
                         compileStatus.setText(e.toString());
                     }
                 }, 1500);
@@ -63,6 +78,7 @@ public class QueryEditorActivity extends ActionBarYukariBase {
     @OnClick(R.id.btnDone)
     void onClickDone() {
         Intent data = new Intent();
+        data.putExtras(getIntent());
         data.putExtra(Intent.EXTRA_TEXT, query.getText().toString());
         setResult(RESULT_OK, data);
         finish();
