@@ -647,9 +647,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         long time = System.currentTimeMillis();
 
                         List<AuthUserRecord> users = getTwitterService().getUsers();
-                        FilterQuery query = QueryCompiler.compile(users, data.getStringExtra(Intent.EXTRA_TEXT));
+                        String rawQuery = data.getStringExtra(Intent.EXTRA_TEXT);
+                        FilterQuery query = QueryCompiler.compile(users, rawQuery);
                         TabInfo tabInfo = new TabInfo(
-                                TabType.TABTYPE_FILTER, pageList.size(), getTwitterService().getPrimaryUser(), data.getStringExtra(Intent.EXTRA_TEXT));
+                                TabType.TABTYPE_FILTER, pageList.size(), getTwitterService().getPrimaryUser(), rawQuery);
                         ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
                         for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
                             TwitterResponse element = iterator.next();
@@ -663,7 +664,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         viewPager.setCurrentItem(tabInfo.getOrder());
 
                         time = System.currentTimeMillis() - time;
-                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n処理時間: %d ms\n抽出件数: %d 件", time, elements.size()), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n%s\n処理時間: %d ms\n抽出件数: %d 件", rawQuery, time, elements.size()), Toast.LENGTH_LONG).show();
                     } catch (FilterCompilerException | TokenizeException e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_LONG).show();
