@@ -143,6 +143,30 @@ public class QueryCompilerTest {
         assertEquals(false, result)
     }
 
+    @Test fun equalsNumericExpressionTest() {
+        val snode = parseExpression("(= 1 1)", emptyList())
+        val result = evaluateFake(snode)
+        assertEquals(true, result)
+    }
+
+    @Test fun equalsStringExpressionTest() {
+        val snode = parseExpression("(= hoge hoge)", emptyList())
+        val result = evaluateFake(snode)
+        assertEquals(true, result)
+    }
+
+    @Test fun notEqualsNumericExpressionTest() {
+        val snode = parseExpression("(!= 1 2)", emptyList())
+        val result = evaluateFake(snode)
+        assertEquals(true, result)
+    }
+
+    @Test fun notEqualsStringExpressionTest() {
+        val snode = parseExpression("(!= yukari kyonyu)", emptyList())
+        val result = evaluateFake(snode)
+        assertEquals(true, result)
+    }
+
     @Test fun containsExpressionTest() {
         val snode = parseExpression("(contains \"ておくれとしぁ\" \"ておくれ\")", emptyList())
         val result = evaluateFake(snode)

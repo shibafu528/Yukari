@@ -6,20 +6,24 @@ import java.util.regex.Pattern
 
 public class EqualsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        if (children.isEmpty()) return false
+
+        val first = children.first().evaluate(status, userRecords)
         return when (children.size()) {
-            0 -> false
-            1 -> children.first().equals(true)
-            else -> children.drop(1).all { children.first().equals(it) }
+            1 -> first.equals(true)
+            else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
         }
     }
 }
 
 public class NotEqualsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        if (children.isEmpty()) return true
+
+        val first = children.first().evaluate(status, userRecords)
         return !when (children.size()) {
-            0 -> false
-            1 -> children.first().equals(true)
-            else -> children.drop(1).all { children.first().equals(it) }
+            1 -> first.equals(true)
+            else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
         }
     }
 }
