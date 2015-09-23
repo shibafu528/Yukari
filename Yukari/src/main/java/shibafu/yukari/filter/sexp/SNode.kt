@@ -13,7 +13,7 @@ public interface SNode {
 
     override fun toString(): String {
         val sb = StringBuilder("( ")
-        sb.append(this.javaClass.getSimpleName().replace("Node", "").toLowerCase()).append("\n  ")
+        sb.append(this.javaClass.simpleName.replace("Node", "").toLowerCase()).append("\n  ")
         children.forEach { sb.append(it.toString()); sb.append("\n  ") }
         sb.append(")")
         return sb.toString()
@@ -56,7 +56,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
         fun invoke(pathList: List<String>, target: Any?) {
             if (target == null) return
 
-            val method = target.javaClass.getMethods().first { it.getName().toLowerCase().equals("get" + pathList.first().toLowerCase()) }
+            val method = target.javaClass.methods.first { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
 
             if (pathList.size() == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))

@@ -1,6 +1,5 @@
 package shibafu.yukari.filter.compiler
 
-import android.util.Log
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.sexp.*
 import shibafu.yukari.filter.source.All
@@ -26,7 +25,7 @@ public final class QueryCompiler {
          * @param query クエリ文字列
          * @return コンパイル済クエリ
          */
-        throws(FilterCompilerException::class)
+        @Throws(FilterCompilerException::class)
         public fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
             //コンパイル開始時間の記録
             val compileTime = System.currentTimeMillis()
@@ -47,7 +46,7 @@ public final class QueryCompiler {
             //where句の解釈
             val rootNode = when {
                 beginWhere < 0 -> ValueNode(true) //where句が存在しない -> where trueと同義とする
-                else -> parseExpression(query.substring(beginWhere).replaceFirstLiteral("where", "").trim(), userRecords)
+                else -> parseExpression(query.substring(beginWhere).replaceFirst("where", "").trim(), userRecords)
             }
 
             //コンパイル終了時間のログ出力
@@ -66,7 +65,7 @@ public final class QueryCompiler {
          * @param userRecords ソースリストに関連付けるユーザのリスト
          * @return 抽出ソースのリスト
          */
-        throws(FilterCompilerException::class)
+        @Throws(FilterCompilerException::class)
         private fun parseSource(fromQuery: String, userRecords: List<AuthUserRecord>): List<FilterSource> {
             class TempParams {
                 var type: Token? = null
@@ -149,7 +148,7 @@ public final class QueryCompiler {
             }
         }
 
-        throws(FilterCompilerException::class)
+        @Throws(FilterCompilerException::class)
         private fun parseExpression(whereQuery: String, userRecords: List<AuthUserRecord>): SNode {
             fun tokenToNode(token: Token) : SNode {
                 return if (token.type == TokenType.STRING) {
@@ -159,7 +158,7 @@ public final class QueryCompiler {
                         "t", "true", "True", "TRUE" -> ValueNode(true)
                         "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
                         else -> {
-                            if (token.value.startsWith(":")) return VariableNode(token.value.replaceFirstLiteral(":", ""))
+                            if (token.value.startsWith(":")) return VariableNode(token.value.replaceFirst(":", ""))
                             else return ValueNode(token.value)
                         }
                     }
