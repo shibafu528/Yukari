@@ -54,14 +54,22 @@ public class ContainsNode(override val children: List<SNode>) : SNode {
 }
 
 public class RegexNode(override val children: List<SNode>) : SNode {
+    var lastPatternString: String? = null
+    var lastPattern: Pattern? = null
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
         if (ev.size() != 2 || ev.any { it !is String }) return false
 
         val source = ev.first() as String
-        val matcher = Pattern.compile(ev.drop(1).first() as String).matcher(source)
+        val pattern = ev.drop(1).first() as String
 
-        return matcher.find()
+        if (lastPatternString == null || lastPattern == null || !pattern.equals(lastPatternString)) {
+            lastPattern = Pattern.compile(pattern)
+            lastPatternString = pattern
+        }
+
+        return lastPattern?.matcher(source)?.find() ?: false
     }
 }
 
