@@ -212,4 +212,19 @@ public class QueryCompilerTest {
         assertEquals(All::class.java, filter.sources.first().javaClass)
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
+
+    @Test fun returnedQueryTest() {
+        val q = "from * \nwhere (t)"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
+    }
+
+    @Test fun doubleSpaceQueryTest() {
+        val q = "from *  where (t)"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
+    }
+
 }

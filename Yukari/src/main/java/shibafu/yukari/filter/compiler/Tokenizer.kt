@@ -32,7 +32,7 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
         throw UnsupportedOperationException()
     }
 
-    override fun hasNext(): Boolean = currentPos < query.length()
+    override fun hasNext(): Boolean = currentPos < query.trimEnd().length()
 
     private fun getQuoteString(start: Int, quoteToken: Char) : String {
         var cursor = start

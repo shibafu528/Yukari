@@ -50,7 +50,7 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
                     try {
-                        FilterQuery q = QueryCompiler.Companion.compile(new ArrayList<>(), s.toString());
+                        FilterQuery q = QueryCompiler.compile(new ArrayList<>(), s.toString());
                         compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
                     } catch (FilterCompilerException e) {
                         compileStatus.setText(e.toString());

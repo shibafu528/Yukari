@@ -25,6 +25,7 @@ public final class QueryCompiler {
          * @param query クエリ文字列
          * @return コンパイル済クエリ
          */
+        @JvmStatic
         @Throws(FilterCompilerException::class)
         public fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
             //コンパイル開始時間の記録
