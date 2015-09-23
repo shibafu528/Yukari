@@ -29,6 +29,10 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.*;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.filter.FilterQuery;
+import shibafu.yukari.filter.compiler.FilterCompilerException;
+import shibafu.yukari.filter.compiler.QueryCompiler;
+import shibafu.yukari.filter.compiler.TokenizeException;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
@@ -47,9 +51,7 @@ import twitter4j.util.CharacterUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
 
@@ -638,6 +640,34 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                             }
                         }
                     }.execute(new Args(selectedAccount, pageList.get(viewPager.getCurrentItem()).getSearchKeyword()));
+                    break;
+                }
+                case REQUEST_QUERY: {
+                    try {
+                        long time = System.currentTimeMillis();
+
+                        List<AuthUserRecord> users = getTwitterService().getUsers();
+                        FilterQuery query = QueryCompiler.compile(users, data.getStringExtra(Intent.EXTRA_TEXT));
+                        TabInfo tabInfo = new TabInfo(
+                                TabType.TABTYPE_FILTER, pageList.size(), getTwitterService().getPrimaryUser(), data.getStringExtra(Intent.EXTRA_TEXT));
+                        ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
+                        for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
+                            TwitterResponse element = iterator.next();
+                            if (!query.evaluate(element, users)) {
+                                iterator.remove();
+                            }
+                        }
+                        pageElements.put(tabInfo.getId(), elements);
+                        addTab(tabInfo);
+                        viewPager.getAdapter().notifyDataSetChanged();
+                        viewPager.setCurrentItem(tabInfo.getOrder());
+
+                        time = System.currentTimeMillis() - time;
+                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n処理時間: %d ms\n抽出件数: %d 件", time, elements.size()), Toast.LENGTH_LONG).show();
+                    } catch (FilterCompilerException | TokenizeException e) {
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_LONG).show();
+                    }
                     break;
                 }
             }
