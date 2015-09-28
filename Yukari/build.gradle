@@ -27,6 +27,7 @@ dependencies {
     compile "org.twitter4j:twitter4j-async:$t4j_version"
     compile "org.twitter4j:twitter4j-media-support:$t4j_version"
     compile "org.twitter4j:twitter4j-stream:$t4j_version"
+    compile "org.twitter4j:twitter4j-http2-support:$t4j_version"
 
     compile 'com.twitter:twitter-text:1.6.1'
     compile 'org.jsoup:jsoup:1.8.3'
