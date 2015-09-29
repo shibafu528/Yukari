@@ -16,17 +16,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
+import android.widget.*;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -35,18 +25,19 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.DirectMessage;
-import twitter4j.GeoLocation;
-import twitter4j.Status;
-import twitter4j.TwitterResponse;
-import twitter4j.User;
+import twitter4j.*;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -365,7 +356,9 @@ public class TweetAdapterWrap {
             User u = delegate.getUser(content);
 
             viewHolder.tvName.setTypeface(FontAsset.getInstance(context).getFont());
-            viewHolder.tvName.setText("@" + u.getScreenName() + " / " + u.getName());
+            viewHolder.tvName.setText("@" + u.getScreenName() + " / " +
+                    (preferences.getBoolean("pref_remove_name_newline", false)? u.getName().replace('\n', ' ') : u.getName())
+            );
             viewHolder.tvName.setTextSize(fontSize);
 
             viewHolder.tvText.setTypeface(FontAsset.getInstance(context).getFont());

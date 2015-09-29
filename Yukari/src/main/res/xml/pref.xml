@@ -304,6 +304,10 @@
             android:key="pref_enable_service"
             android:title="Serviceの常駐"
             android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定しますが、RAMが解放されにくくなるのでマルチタスクには不利です"/>
+        <CheckBoxPreference
+            android:key="pref_remove_name_newline"
+            android:title="ユーザー名から改行文字を取り除く"
+            android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
