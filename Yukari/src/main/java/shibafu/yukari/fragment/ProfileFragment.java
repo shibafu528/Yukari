@@ -67,7 +67,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ImageView ivProfileIcon, ivHeader;
     private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
-    private Button btnFollowManage;
+    private Button btnFollowManage, btnOwakareBlock;
     private ImageButton ibMenu, ibSearch;
     private FrameLayout flIconBack;
 
@@ -153,6 +153,17 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 return true;
             });
         }
+        btnOwakareBlock = (Button) v.findViewById(R.id.btnBlock);
+        btnOwakareBlock.setOnClickListener(v2 -> {
+            FollowDialogFragment fragment = new FollowDialogFragment();
+            Bundle args1 = new Bundle();
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
+            fragment.setArguments(args1);
+            fragment.setTargetFragment(ProfileFragment.this, 0);
+            fragment.show(getFragmentManager(), "follow");
+        });
 
         ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
         ibMenu.setOnClickListener(v1 -> {
@@ -512,6 +523,17 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
             Linkify.TransformFilter filter = (match, url) -> jumpUrlHash + match.group(match.groupCount());
             Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
+        }
+
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("j_owakare_block", false)) {
+            String bio = holder.targetUser.getDescription();
+            if (bio == null) {
+                bio = "";
+            }
+
+            if (bio.contains("お別れ") && bio.contains("ブロック")) {
+                btnOwakareBlock.setVisibility(View.VISIBLE);
+            }
         }
 
         tvLocation.setText(holder.targetUser.getLocation());
@@ -1020,6 +1042,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         protected void onPreExecute() {
             progressBar.setVisibility(View.VISIBLE);
             btnFollowManage.setEnabled(false);
+            btnOwakareBlock.setEnabled(false);
             btnFollowManage.setText("読み込み中...");
         }
 
@@ -1027,6 +1050,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         protected void onPostExecute(Void aVoid) {
             progressBar.setVisibility(View.INVISIBLE);
             btnFollowManage.setEnabled(true);
+            btnOwakareBlock.setEnabled(true);
             btnFollowManage.setText("フォロー管理");
         }
     }

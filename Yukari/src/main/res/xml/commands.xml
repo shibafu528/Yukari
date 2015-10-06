@@ -81,5 +81,9 @@
             android:key="mikutter_stable_notify"
             android:title="mikutterの更新通知を有効にする"
             android:summary="起動時に確認を行い、mikutterのstableリリースが出た際には通知します"/>
+        <CheckBoxPreference
+            android:key="j_owakare_block"
+            android:title="お別れブロックボタン"
+            android:summary="お別れはブロックでとか甘いこと言うな"/>
     </PreferenceCategory>
 </PreferenceScreen>
