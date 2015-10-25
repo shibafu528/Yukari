@@ -1,6 +1,5 @@
 package shibafu.yukari.filter
 
-import shibafu.yukari.filter.expression.Expression
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.source.FilterSource
@@ -75,7 +74,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
         /**
          * 抽出ソースを追加します。
          */
-        public fun FilterSource.plus() {
+        operator public fun FilterSource.plus() {
             sources += this
         }
     }
