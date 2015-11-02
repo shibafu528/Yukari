@@ -14,11 +14,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.IOException;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import info.shibafu528.twpfparser.TwiProfile;
@@ -27,6 +22,10 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created by shibafu on 14/12/18.
@@ -114,8 +113,10 @@ public class TwpfActivity extends ActionBarYukariBase {
                     protected void onPostExecute(TwiProfile twiProfile) {
                         super.onPostExecute(twiProfile);
                         if (twiProfile == null) {
-                            Toast.makeText(getActivity(), "通信エラー", Toast.LENGTH_SHORT).show();
-                            getActivity().finish();
+                            if (getActivity() != null) {
+                                Toast.makeText(getActivity(), "通信エラー", Toast.LENGTH_SHORT).show();
+                                getActivity().finish();
+                            }
                         } else {
                             profile = twiProfile;
                             updateView();
