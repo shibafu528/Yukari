@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
+import shibafu.yukari.R;
+import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.util.BitmapUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -13,10 +16,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-
-import shibafu.yukari.R;
-import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.util.BitmapUtil;
 
 /**
  * Created by Shibafu on 13/10/28.
@@ -66,7 +65,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 //キャッシュに保存
                 BitmapCache.putImage(uri, image, context, mode);
             }
-            if (mosaic) {
+            if (image != null && mosaic) {
                 Bitmap mosaicBitmap = BitmapUtil.createMosaic(image);
                 image.recycle();
                 image = mosaicBitmap;
