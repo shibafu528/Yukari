@@ -15,7 +15,7 @@ public class ParameterValue(val path: String) : ValueExpression {
 
             val method = target.javaClass.methods.first { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
 
-            if (pathList.size() == 1) method.invoke(target)
+            if (pathList.size == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))
         }
         val pathList = path.split('.').toArrayList()

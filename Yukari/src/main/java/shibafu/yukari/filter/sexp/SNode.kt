@@ -11,7 +11,7 @@ public interface SNode {
 
     fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
 
-    override fun toString(): String {
+    fun toExpression(): String {
         val sb = StringBuilder("( ")
         sb.append(this.javaClass.simpleName.replace("Node", "").toLowerCase()).append("\n  ")
         children.forEach { sb.append(it.toString()); sb.append("\n  ") }
@@ -26,7 +26,7 @@ public interface SNode {
 public interface FactorNode {
     var value: Any?
 
-    override fun toString(): String {
+    fun toExpression(): String {
         return if (value is String) "\"${value.toString()}\"" else value.toString();
     }
 }
@@ -40,7 +40,11 @@ public class ValueNode(override var value: Any?) : SNode, FactorNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any = value ?: false
 
     override fun toString(): String {
-        return super<FactorNode>.toString()
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
     }
 }
 
@@ -60,7 +64,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
                     ?: target.javaClass.methods.firstOrNull { it.name.toLowerCase().equals("is" + pathList.first().toLowerCase()) }
                     ?: return null
 
-            return if (pathList.size() == 1) method.invoke(target)
+            return if (pathList.size == 1) method.invoke(target)
             else invoke(pathList.drop(1), method.invoke(target))
         }
         val pathList = path.split('.').toArrayList()
@@ -74,7 +78,11 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
     }
 
     override fun toString(): String {
-        return super<FactorNode>.toString()
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
     }
 }
 

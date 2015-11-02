@@ -9,7 +9,7 @@ public class EqualsNode(override val children: List<SNode>) : SNode {
         if (children.isEmpty()) return false
 
         val first = children.first().evaluate(status, userRecords)
-        return when (children.size()) {
+        return when (children.size) {
             1 -> first.equals(true)
             else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
         }
@@ -21,7 +21,7 @@ public class NotEqualsNode(override val children: List<SNode>) : SNode {
         if (children.isEmpty()) return true
 
         val first = children.first().evaluate(status, userRecords)
-        return !when (children.size()) {
+        return !when (children.size) {
             1 -> first.equals(true)
             else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
         }
@@ -47,7 +47,7 @@ public class OrNode(override val children: List<SNode>) : SNode {
 public class ContainsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
-        if (ev.size() != 2 || !ev.all { it is String }) return false
+        if (ev.size != 2 || !ev.all { it is String }) return false
 
         return (ev.first() as String).contains(ev[1] as String)
     }
@@ -59,7 +59,7 @@ public class RegexNode(override val children: List<SNode>) : SNode {
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
-        if (ev.size() != 2 || ev.any { it !is String }) return false
+        if (ev.size != 2 || ev.any { it !is String }) return false
 
         val source = ev.first() as String
         val pattern = ev.drop(1).first() as String
@@ -83,7 +83,11 @@ public class AddOperatorNode(override val children: List<SNode>) : SNode, Factor
     }
 
     override fun toString(): String {
-        return super<FactorNode>.toString()
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
     }
 
 }

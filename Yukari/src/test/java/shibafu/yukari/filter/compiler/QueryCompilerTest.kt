@@ -32,32 +32,32 @@ public class QueryCompilerTest {
 
     @Test fun emptySourceTest() {
         val source = parseSource("from")
-        assertEquals(1, source.size())
+        assertEquals(1, source.size)
         assertEquals(All::class.java, source.first().javaClass)
     }
 
     @Test fun allSourceTest() {
         val source = parseSource("from all")
-        assertEquals(1, source.size())
+        assertEquals(1, source.size)
         assertEquals(All::class.java, source.first().javaClass)
     }
 
     @Test fun doubleAllSourceTest() {
         val source = parseSource("from all, all")
-        assertEquals(2, source.size())
+        assertEquals(2, source.size)
         assertEquals(All::class.java, source.first().javaClass)
         assertEquals(All::class.java, source.drop(1).first().javaClass)
     }
 
     @Test fun localSourceTest() {
         val source = parseSource("from local")
-        assertEquals(1, source.size())
+        assertEquals(1, source.size)
         assertEquals(All::class.java, source.first().javaClass)
     }
 
     @Test fun asteriskSourceTest() {
         val source = parseSource("from *")
-        assertEquals(1, source.size())
+        assertEquals(1, source.size)
         assertEquals(All::class.java, source.first().javaClass)
     }
 
@@ -65,7 +65,7 @@ public class QueryCompilerTest {
         try {
             parseSource("from manaita")
         } catch (e: InvocationTargetException) {
-            throw e.getCause()!!
+            throw e.cause!!
         }
     }
 
@@ -74,7 +74,7 @@ public class QueryCompilerTest {
         sampleUser.ScreenName = "yukari4a"
 
         val source = parseSource("from home:\"yukari4a\"", listOf(sampleUser))
-        assertEquals(1, source.size())
+        assertEquals(1, source.size)
         assertEquals(Home::class.java, source.first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)
     }
@@ -86,7 +86,7 @@ public class QueryCompilerTest {
         sampleUser2.ScreenName = "shibafu528"
 
         val source = parseSource("from home:\"yukari4a\", \"shibafu528\"", listOf(sampleUser, sampleUser2))
-        assertEquals(2, source.size())
+        assertEquals(2, source.size)
         assertEquals(Home::class.java, source.first().javaClass)
         assertEquals(Home::class.java, source.drop(1).first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)
@@ -100,7 +100,7 @@ public class QueryCompilerTest {
         sampleUser2.ScreenName = "shibafu528"
 
         val source = parseSource("from home:\"yukari4a\", home:\"shibafu528\"", listOf(sampleUser, sampleUser2))
-        assertEquals(2, source.size())
+        assertEquals(2, source.size)
         assertEquals(Home::class.java, source.first().javaClass)
         assertEquals(Home::class.java, source.drop(1).first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)

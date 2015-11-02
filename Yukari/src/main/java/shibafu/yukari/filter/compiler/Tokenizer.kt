@@ -32,14 +32,14 @@ public class Tokenizer(private val query: String) : Iterator<Token> {
         throw UnsupportedOperationException()
     }
 
-    override fun hasNext(): Boolean = currentPos < query.trimEnd().length()
+    override fun hasNext(): Boolean = currentPos < query.trimEnd().length
 
     private fun getQuoteString(start: Int, quoteToken: Char) : String {
         var cursor = start
-        while (cursor < query.length()) {
+        while (cursor < query.length) {
             when (query[cursor]) {
                 // エスケープ文字 -> 飛ばす
-                '\\' -> if (cursor + 1 == query.length()) {
+                '\\' -> if (cursor + 1 == query.length) {
                     throw TokenizeException(TokenizeExceptionKind.STRING_IS_NOT_CLOSED, query, cursor)
                 } else cursor++
 
@@ -99,7 +99,7 @@ public enum class TokenizeExceptionKind(val message: String) {
 
     public fun toMessage(query: String, cursor: Int): String {
         val highlight: String = when (this) {
-            else -> if (cursor == query.length()) query.last().toString() else query[cursor].toString()
+            else -> if (cursor == query.length) query.last().toString() else query[cursor].toString()
         }
         return "Pos:$cursor -> $highlight : $message"
     }
