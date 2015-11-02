@@ -117,10 +117,14 @@ public class TwpfActivity extends ActionBarYukariBase {
                                 Toast.makeText(getActivity(), "通信エラー", Toast.LENGTH_SHORT).show();
                                 getActivity().finish();
                             }
-                        } else {
-                            profile = twiProfile;
-                            updateView();
+                            return;
                         }
+                        profile = twiProfile;
+
+                        if (isDetached()) {
+                            return;
+                        }
+                        updateView();
                     }
                 }.executeParallel(args.getString(ARG_SCREEN_NAME));
             }
@@ -142,7 +146,26 @@ public class TwpfActivity extends ActionBarYukariBase {
             ButterKnife.reset(this);
         }
 
+        private boolean isNull(Object... obj) {
+            for (Object o : obj) {
+                if (o == null) return true;
+            }
+            return false;
+        }
+
         private void updateView() {
+            if (isNull(ivProfileIcon,
+                    tvName,
+                    tvScreenName,
+                    tvDescription,
+                    tvLongDescription,
+                    tvLocation,
+                    tvWeb,
+                    tvPersonalTags,
+                    tvLikeTags,
+                    tvDislikeTags,
+                    tvFreeTags)) return;
+
             ImageLoaderTask.loadProfileIcon(getActivity(), ivProfileIcon, profile.getProfileImageUrl());
             tvName.setText(profile.getName());
             tvScreenName.setText(profile.getScreenName());
