@@ -465,6 +465,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     return;
             }
             elements.add(position, element);
+            notifyDataSetChanged();
             if (isLimitedTimeline() && elements.size() > getLimitCount()) {
                 for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
                     unreadSet.remove(commonDelegate.getId(iterator.next()));
@@ -478,7 +479,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             int firstPos = listView.getFirstVisiblePosition();
             View firstView = listView.getChildAt(0);
             int y = firstView != null? firstView.getTop() : 0;
-            notifyDataSetChanged();
             if (elements.size() == 1 || firstPos == 0 && y > -1) {
                 listView.setSelection(0);
             } else {
