@@ -177,7 +177,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             menuList.add("ミュートする");
             menuList.add("カラーラベルを設定");
 
-            if ((loadHolder != null && loadHolder.targetUser.getId() == user.NumericId) ||
+            if ((loadHolder != null && loadHolder.targetUser != null && loadHolder.targetUser.getId() == user.NumericId) ||
                     (targetId >= 0 && targetId == user.NumericId) ||
                     (selfLoadId && selfLoadName.equals(user.ScreenName))) {
                 menuList.add("プロフィール編集");
