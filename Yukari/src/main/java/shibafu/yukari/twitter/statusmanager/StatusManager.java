@@ -321,6 +321,9 @@ public class StatusManager implements Releasable {
                     }
 
                     receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+                    if (preformedStatus.getQuotedStatus() != null) {
+                        receivedStatuses.put(preformedStatus.getQuotedStatusId(), new PreformedStatus(preformedStatus.getQuotedStatus(), user));
+                    }
                     loadQuotedEntities(preformedStatus);
                 }
 
