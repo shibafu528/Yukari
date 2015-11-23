@@ -65,7 +65,8 @@
         <activity
             android:name="shibafu.yukari.activity.TweetActivity"
             android:label="@string/title_activity_tweet"
-            android:theme="@style/VertAnimationTheme" >
+            android:theme="@style/VertAnimationTheme"
+            android:taskAffinity=".tweet">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
