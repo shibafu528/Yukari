@@ -519,13 +519,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     protected void notifyDataSetChanged() {
-        //thread checker
-        if (getActivity() != null && !Thread.currentThread().equals(getActivity().getMainLooper().getThread())) {
-            throw new RuntimeException("UIスレッド以外でデータ変更を行っている可能性があります");
-        }
-
-        if (adapterWrap != null) {
-            adapterWrap.notifyDataSetChanged();
+        if (adapterWrap != null && getActivity() != null) {
+            getActivity().runOnUiThread(adapterWrap::notifyDataSetChanged);
         }
     }
 
