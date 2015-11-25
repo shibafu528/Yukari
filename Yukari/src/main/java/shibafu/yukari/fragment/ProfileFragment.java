@@ -759,7 +759,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
     @Override
     public void onServiceConnected() {
-
+        if (user == null) {
+            user = getTwitterService().getPrimaryUser();
+        }
     }
 
     @Override
