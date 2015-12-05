@@ -103,7 +103,7 @@ public class PreformedStatus implements Status{
                         boolean removedExistsUrl = false;
 
                         for (ExtendedMediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
-                            if (variant.getBitrate() == 0) continue;
+                            if (!variant.getContentType().startsWith("video/")) continue;
 
                             mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
                             if (!removedExistsUrl) {
