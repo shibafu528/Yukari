@@ -47,9 +47,14 @@ public class OrNode(override val children: List<SNode>) : SNode {
 public class ContainsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
-        if (ev.size != 2 || !ev.all { it is String }) return false
 
-        return (ev.first() as String).contains(ev[1] as String)
+        if (ev.size != 2) return false
+
+        return when {
+            ev.all { it is String } -> (ev.first() as String).contains(ev[1] as String)
+            ev.first() is List<*> -> (ev.first() as List<*>).contains(ev[1])
+            else -> false
+        }
     }
 }
 
