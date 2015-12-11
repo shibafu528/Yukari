@@ -14,7 +14,7 @@ public interface SNode {
     fun toExpression(): String {
         val sb = StringBuilder("( ")
         sb.append(this.javaClass.simpleName.replace("Node", "").toLowerCase()).append("\n  ")
-        children.forEach { sb.append(it.toString()); sb.append("\n  ") }
+        children.forEach { sb.append( if (it is SNode) it.toExpression() else it.toString()); sb.append("\n  ") }
         sb.append(")")
         return sb.toString()
     }

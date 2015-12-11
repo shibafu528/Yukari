@@ -649,8 +649,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         List<AuthUserRecord> users = getTwitterService().getUsers();
                         String rawQuery = data.getStringExtra(Intent.EXTRA_TEXT);
                         FilterQuery query = QueryCompiler.compile(users, rawQuery);
-                        TabInfo tabInfo = new TabInfo(
-                                TabType.TABTYPE_FILTER, pageList.size(), getTwitterService().getPrimaryUser(), rawQuery);
+                        TabInfo tabInfo = new TabInfo(TabType.TABTYPE_FILTER, pageList.size(), null, rawQuery);
                         ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
                         for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
                             TwitterResponse element = iterator.next();
