@@ -220,6 +220,13 @@ public class QueryCompilerTest {
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
+    @Test fun emptyWhereQueryTest2() {
+        val q = "from * where ()"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
+        assertEquals(false, filter.evaluate(FakeStatus(0), emptyList()))
+    }
+
     @Test fun returnedQueryTest() {
         val q = "from * \nwhere (t)"
         val filter = QueryCompiler.compile(emptyList(), q)

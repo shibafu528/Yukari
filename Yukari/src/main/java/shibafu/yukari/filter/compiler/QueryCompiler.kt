@@ -183,7 +183,7 @@ public final class QueryCompiler {
                             "or", "|" -> OrNode(paramList)
                             "not", "!" -> NotNode(paramList)
                             "equals", "eq", "=", "==" -> EqualsNode(paramList)
-                            "noteq", "!=", "/=" -> NotEqualsNode(paramList)
+                            "noteq", "neq", "!=", "/=" -> NotEqualsNode(paramList)
                             "contains", "in" -> ContainsNode(paramList)
                             "regex" -> RegexNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)

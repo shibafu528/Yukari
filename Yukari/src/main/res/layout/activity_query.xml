@@ -10,7 +10,7 @@
             android:inputType="textMultiLine"
             android:ems="10"
             android:id="@+id/etQuery"
-            android:text="from * where ()"
+            android:text="from * where (t)"
             android:layout_weight="1"
             android:gravity="top"/>
 
