@@ -185,7 +185,7 @@ public final class QueryCompiler {
                             "equals", "eq", "=", "==" -> EqualsNode(paramList)
                             "noteq", "neq", "!=", "/=" -> NotEqualsNode(paramList)
                             "contains", "in" -> ContainsNode(paramList)
-                            "regex" -> RegexNode(paramList)
+                            "regex", "re", "rg" -> RegexNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }
                     }
