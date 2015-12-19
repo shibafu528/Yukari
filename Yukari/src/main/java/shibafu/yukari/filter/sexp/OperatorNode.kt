@@ -4,6 +4,9 @@ import shibafu.yukari.twitter.AuthUserRecord
 import twitter4j.TwitterResponse
 import java.util.regex.Pattern
 
+/**
+ * 等価演算関数ノード
+ */
 public class EqualsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         if (children.isEmpty()) return false
@@ -16,6 +19,9 @@ public class EqualsNode(override val children: List<SNode>) : SNode {
     }
 }
 
+/**
+ * 不等価演算関数ノード
+ */
 public class NotEqualsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         if (children.isEmpty()) return true
@@ -28,22 +34,34 @@ public class NotEqualsNode(override val children: List<SNode>) : SNode {
     }
 }
 
+/**
+ * 否定演算関数ノード
+ */
 public class NotNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         return !(children.first().evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true)});
     }
 }
 
+/**
+ * 論理積演算関数ノード
+ */
 public class AndNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
             = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.all { it }
 }
 
+/**
+ * 論理和演算関数ノード
+ */
 public class OrNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
             = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.any { it }
 }
 
+/**
+ * 部分集合演算関数ノード
+ */
 public class ContainsNode(override val children: List<SNode>) : SNode {
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
@@ -58,6 +76,12 @@ public class ContainsNode(override val children: List<SNode>) : SNode {
     }
 }
 
+/**
+ * 正規表現マッチ関数ノード
+ *
+ * 1. 検査対象 [FactorNode]
+ * 2. 正規表現パターン [FactorNode]
+ */
 public class RegexNode(override val children: List<SNode>) : SNode {
     var lastPatternString: String? = null
     var lastPattern: Pattern? = null

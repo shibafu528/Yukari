@@ -206,5 +206,10 @@ public final class QueryCompiler {
     }
 }
 
-public class FilterCompilerException(message: String, token: Token?) :
-        Exception(if (token == null) "$message : ?" else "$message : ${token.value} (${token.cursor})")
+public class FilterCompilerException(message: String, token: Token?) : Exception(
+        if (token == null) {
+            "$message : ?"
+        } else {
+            "$message : ${token.value} (${token.cursor})"
+        }
+)

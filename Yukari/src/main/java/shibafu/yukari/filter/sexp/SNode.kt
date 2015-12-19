@@ -57,15 +57,19 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        fun invoke(pathList: List<String>, target: Any?): Any? {
+        tailrec fun invoke(pathList: List<String>, target: Any?): Any? {
             if (target == null) return null
 
-            val method = target.javaClass.methods.firstOrNull { it.name.toLowerCase().equals("get" + pathList.first().toLowerCase()) }
-                    ?: target.javaClass.methods.firstOrNull { it.name.toLowerCase().equals("is" + pathList.first().toLowerCase()) }
-                    ?: return null
+            val normalizedTarget = pathList.first().toLowerCase()
+            val method = target.javaClass.methods.firstOrNull {
+                val name = it.name.toLowerCase()
+                name.equals("get" + normalizedTarget) || name.equals("is" + normalizedTarget)
+            } ?: return null
 
-            return if (pathList.size == 1) method.invoke(target)
-            else invoke(pathList.drop(1), method.invoke(target))
+            return when (pathList.size) {
+                1 -> method.invoke(target)
+                else -> invoke(pathList.drop(1), method.invoke(target))
+            }
         }
         val pathList = path.split('.').toArrayList()
         value = if (path.startsWith('@')) {
