@@ -10,6 +10,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.util.ArrayMap;
+import android.support.v4.util.LongSparseArray;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
@@ -44,6 +46,7 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
+import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
@@ -76,7 +79,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private TwitterListFragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
-    private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new HashMap<>();
+    private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
+    private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
+    private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
     @InjectView(R.id.tvMainTab)     TextView tvTabText;
     @InjectView(R.id.pager)         ViewPager viewPager;
     @InjectView(R.id.ibClose)       ImageButton ibClose;
@@ -649,8 +654,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         List<AuthUserRecord> users = getTwitterService().getUsers();
                         String rawQuery = data.getStringExtra(Intent.EXTRA_TEXT);
                         FilterQuery query = QueryCompiler.compile(users, rawQuery);
-                        TabInfo tabInfo = new TabInfo(
-                                TabType.TABTYPE_FILTER, pageList.size(), getTwitterService().getPrimaryUser(), rawQuery);
+                        TabInfo tabInfo = new TabInfo(TabType.TABTYPE_FILTER, pageList.size(), null, rawQuery);
                         ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
                         for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
                             TwitterResponse element = iterator.next();
@@ -791,6 +795,20 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             pageElements.put(id, new ArrayList<T>());
         }
         return (ArrayList<T>) pageElements.get(id);
+    }
+
+    public LongSparseArray<Long> getLastStatusIdsArray(long id) {
+        if (!lastStatusIdsArrays.containsKey(id)) {
+            lastStatusIdsArrays.put(id, new LongSparseArray<>());
+        }
+        return lastStatusIdsArrays.get(id);
+    }
+
+    public ReferenceHolder<twitter4j.Query> getSearchQuery(long id) {
+        if (!searchQueries.containsKey(id)) {
+            searchQueries.put(id, new ReferenceHolder<>());
+        }
+        return searchQueries.get(id);
     }
 
     @Override

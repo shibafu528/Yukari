@@ -22,7 +22,7 @@ import twitter4j.Status
  */
 public class FilterListFragment : TweetListFragment(), StatusListener {
     companion object {
-        val EXTRA_FILTER_QUERY = "filterQuery"
+        const val EXTRA_FILTER_QUERY = "filterQuery"
     }
 
     private var filterRawQuery = ""
@@ -57,7 +57,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
     protected fun executeLoader(requestMode: Int) {
         val filterQuery = getFilterQuery()
-        val queries = filterQuery.sources.mapNotNull { s ->
+        val queries = filterQuery.sources.filterNotNull().map { s ->
             val loader = s.getRestQuery() ?: return
             val user = s.sourceAccount ?: return
             Pair(user, loader)
@@ -154,7 +154,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 val position = elements.indexOfFirst { s -> s.id == status.id }
                 if (position > -1) {
                     handler.post {
-                        elements.get(position).merge(status, from)
+                        elements[position].merge(status, from)
                         notifyDataSetChanged()
                     }
                 } else {

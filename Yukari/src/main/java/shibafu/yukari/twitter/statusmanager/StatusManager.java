@@ -321,6 +321,9 @@ public class StatusManager implements Releasable {
                     }
 
                     receivedStatuses.put(preformedStatus.getId(), preformedStatus);
+                    if (preformedStatus.getQuotedStatus() != null) {
+                        receivedStatuses.put(preformedStatus.getQuotedStatusId(), new PreformedStatus(preformedStatus.getQuotedStatus(), user));
+                    }
                     loadQuotedEntities(preformedStatus);
                 }
 
@@ -525,11 +528,11 @@ public class StatusManager implements Releasable {
             Log.d("TwitterService", "Added StatusListener : " + l.getSubscribeIdentifier());
             if (statusBuffer.containsKey(l.getSubscribeIdentifier())) {
                 Queue<EventBuffer> eventBuffers = statusBuffer.get(l.getSubscribeIdentifier()).second;
+                statusBuffer.remove(l.getSubscribeIdentifier());
                 Log.d("TwitterService", "SubID:" + l.getSubscribeIdentifier() + " -> バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
                 while (!eventBuffers.isEmpty()) {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
-                statusBuffer.remove(l.getSubscribeIdentifier());
             } else {
                 Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", updateBuffer.size()));
                 for (EventBuffer eventBuffer : updateBuffer) {
@@ -543,7 +546,7 @@ public class StatusManager implements Releasable {
         if (statusListeners != null && statusListeners.contains(l)) {
             statusListeners.remove(l);
             Log.d("TwitterService", "Removed StatusListener : " + l.getSubscribeIdentifier());
-            statusBuffer.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedList<>()));
+            statusBuffer.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedBlockingQueue<>()));
         }
     }
     //</editor-fold>

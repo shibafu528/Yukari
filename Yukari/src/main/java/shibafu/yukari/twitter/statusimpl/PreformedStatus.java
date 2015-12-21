@@ -100,13 +100,22 @@ public class PreformedStatus implements Status{
                 case "video":
                 case "animated_gif":
                     if (mediaEntity.getVideoVariants().length > 0) {
-                        ExtendedMediaEntity.Variant variant = mediaEntity.getVideoVariants()[0];
-                        for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
-                            if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
-                                iterator.remove();
+                        boolean removedExistsUrl = false;
+
+                        for (ExtendedMediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
+                            if (!variant.getContentType().startsWith("video/")) continue;
+
+                            mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
+                            if (!removedExistsUrl) {
+                                for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
+                                    if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
+                                        iterator.remove();
+                                    }
+                                }
+
+                                removedExistsUrl = true;
                             }
                         }
-                        mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
                     }
                     break;
                 default:

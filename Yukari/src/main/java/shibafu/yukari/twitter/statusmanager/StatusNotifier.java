@@ -44,6 +44,13 @@ class StatusNotifier implements Releasable {
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
 
+    //ふぁぼSE
+    private final static String[] YUKARI_FAV_SE = {
+            "android.resource://shibafu.yukari/raw/y_fav",
+            "android.resource://shibafu.yukari/raw/y_like",
+            "android.resource://shibafu.yukari/raw/y_love"
+    };
+
     @AutoRelease private TwitterService service;
     @AutoRelease private Context context;
     @AutoRelease private Handler handler;
@@ -83,7 +90,7 @@ class StatusNotifier implements Releasable {
                 }
             case R.integer.notification_faved:
                 if (useYukariVoice) {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/y_fav");
+                    return Uri.parse(YUKARI_FAV_SE[Integer.parseInt(sharedPreferences.getString("j_yukari_voice_fav", "0"))]);
                 } else {
                     return Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
                 }

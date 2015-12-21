@@ -5,6 +5,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
+import shibafu.yukari.stub.FakeTextStatus
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.FakeStatus
 import twitter4j.auth.AccessToken
@@ -32,40 +33,40 @@ public class QueryCompilerTest {
 
     @Test fun emptySourceTest() {
         val source = parseSource("from")
-        assertEquals(1, source.size())
-        assertEquals(All::class.java, source.first().javaClass)
+        assertEquals(1, source.size)
+        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
     }
 
     @Test fun allSourceTest() {
         val source = parseSource("from all")
-        assertEquals(1, source.size())
-        assertEquals(All::class.java, source.first().javaClass)
+        assertEquals(1, source.size)
+        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
     }
 
     @Test fun doubleAllSourceTest() {
         val source = parseSource("from all, all")
-        assertEquals(2, source.size())
-        assertEquals(All::class.java, source.first().javaClass)
-        assertEquals(All::class.java, source.drop(1).first().javaClass)
+        assertEquals(2, source.size)
+        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
+        assertEquals<Class<*>>(All::class.java, source.drop(1).first().javaClass)
     }
 
     @Test fun localSourceTest() {
         val source = parseSource("from local")
-        assertEquals(1, source.size())
-        assertEquals(All::class.java, source.first().javaClass)
+        assertEquals(1, source.size)
+        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
     }
 
     @Test fun asteriskSourceTest() {
         val source = parseSource("from *")
-        assertEquals(1, source.size())
-        assertEquals(All::class.java, source.first().javaClass)
+        assertEquals(1, source.size)
+        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
     }
 
     @Test(expected = FilterCompilerException::class) fun illegalSourceTest() {
         try {
             parseSource("from manaita")
         } catch (e: InvocationTargetException) {
-            throw e.getCause()!!
+            throw e.cause!!
         }
     }
 
@@ -74,8 +75,8 @@ public class QueryCompilerTest {
         sampleUser.ScreenName = "yukari4a"
 
         val source = parseSource("from home:\"yukari4a\"", listOf(sampleUser))
-        assertEquals(1, source.size())
-        assertEquals(Home::class.java, source.first().javaClass)
+        assertEquals(1, source.size)
+        assertEquals<Class<*>>(Home::class.java, source.first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)
     }
 
@@ -86,9 +87,9 @@ public class QueryCompilerTest {
         sampleUser2.ScreenName = "shibafu528"
 
         val source = parseSource("from home:\"yukari4a\", \"shibafu528\"", listOf(sampleUser, sampleUser2))
-        assertEquals(2, source.size())
-        assertEquals(Home::class.java, source.first().javaClass)
-        assertEquals(Home::class.java, source.drop(1).first().javaClass)
+        assertEquals(2, source.size)
+        assertEquals<Class<*>>(Home::class.java, source.first().javaClass)
+        assertEquals<Class<*>>(Home::class.java, source.drop(1).first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)
         assertEquals(sampleUser2, source.drop(1).first().sourceAccount)
     }
@@ -100,9 +101,9 @@ public class QueryCompilerTest {
         sampleUser2.ScreenName = "shibafu528"
 
         val source = parseSource("from home:\"yukari4a\", home:\"shibafu528\"", listOf(sampleUser, sampleUser2))
-        assertEquals(2, source.size())
-        assertEquals(Home::class.java, source.first().javaClass)
-        assertEquals(Home::class.java, source.drop(1).first().javaClass)
+        assertEquals(2, source.size)
+        assertEquals<Class<*>>(Home::class.java, source.first().javaClass)
+        assertEquals<Class<*>>(Home::class.java, source.drop(1).first().javaClass)
         assertEquals(sampleUser, source.first().sourceAccount)
         assertEquals(sampleUser2, source.drop(1).first().sourceAccount)
     }
@@ -208,28 +209,35 @@ public class QueryCompilerTest {
     @Test fun simpleQueryTest() {
         val q = "from * where (t)"
         val filter = QueryCompiler.compile(emptyList(), q)
-        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
     @Test fun emptyWhereQueryTest() {
         val q = "from * where"
         val filter = QueryCompiler.compile(emptyList(), q)
-        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
+    }
+
+    @Test fun emptyWhereQueryTest2() {
+        val q = "from * where ()"
+        val filter = QueryCompiler.compile(emptyList(), q)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
+        assertEquals(false, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
     @Test fun returnedQueryTest() {
         val q = "from * \nwhere (t)"
         val filter = QueryCompiler.compile(emptyList(), q)
-        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
     @Test fun doubleSpaceQueryTest() {
         val q = "from *  where (t)"
         val filter = QueryCompiler.compile(emptyList(), q)
-        assertEquals(All::class.java, filter.sources.first().javaClass)
+        assertEquals<Class<*>>(All::class.java, filter.sources.first().javaClass)
         assertEquals(true, filter.evaluate(FakeStatus(0), emptyList()))
     }
 
@@ -244,8 +252,4 @@ public class QueryCompilerTest {
         val result = evaluateFake(snode, "らこらこらこ～ｗ")
         assertEquals(true, result)
     }
-}
-
-private class FakeTextStatus(id: Long, private val text: String) : FakeStatus(id) {
-    public override fun getText(): String = this.text
 }

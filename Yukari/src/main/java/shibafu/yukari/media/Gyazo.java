@@ -2,6 +2,7 @@ package shibafu.yukari.media;
 
 import android.net.Uri;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class Gyazo extends LinkMedia{
                 GyazoOEmbed embed = new Gson().fromJson(sb.toString(), GyazoOEmbed.class);
                 this.mediaUrl = embed.url;
                 this.thumbUrl = "https://gyazo.com/thumb/" + Uri.parse(embed.url).getLastPathSegment();
-            } catch (IOException e) {
+            } catch (IOException | JsonSyntaxException e) {
                 e.printStackTrace();
             }
         });
@@ -78,7 +79,5 @@ public class Gyazo extends LinkMedia{
 
     private static class GyazoOEmbed {
         public String url;
-        public int width;
-        public int height;
     }
 }

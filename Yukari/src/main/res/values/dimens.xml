@@ -18,4 +18,6 @@
     <dimen name="status_button_padding">12dp</dimen>
     <dimen name="status_button_delta">100dp</dimen>
     <dimen name="status_button_delta_half">50dp</dimen>
+
+    <dimen name="attach_picture_size">78dp</dimen>
 </resources>

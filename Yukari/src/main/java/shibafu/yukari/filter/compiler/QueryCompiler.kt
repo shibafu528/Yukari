@@ -16,7 +16,7 @@ public final class QueryCompiler {
     private constructor()
 
     companion object {
-        public val DEFAULT_QUERY: String = "from all"
+        const public val DEFAULT_QUERY: String = "from all"
         private val LOG_TAG = QueryCompiler::class.java.simpleName
 
         /**
@@ -79,8 +79,8 @@ public final class QueryCompiler {
                 }
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
-                private fun createFiltersWithAuthArguments<T : FilterSource>(filterClz: Class<T>): List<T> {
-                    if (args.size() < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
+                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>): List<T> {
+                    if (args.size < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
 
                     val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
                     return args.map { p ->
@@ -159,7 +159,7 @@ public final class QueryCompiler {
                         "t", "true", "True", "TRUE" -> ValueNode(true)
                         "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
                         else -> {
-                            if (token.value.startsWith("?") && token.value.length() > 1) return VariableNode(token.value.replaceFirst("?", ""))
+                            if (token.value.startsWith("?") && token.value.length > 1) return VariableNode(token.value.replaceFirst("?", ""))
                             else return ValueNode(token.value)
                         }
                     }
@@ -183,9 +183,9 @@ public final class QueryCompiler {
                             "or", "|" -> OrNode(paramList)
                             "not", "!" -> NotNode(paramList)
                             "equals", "eq", "=", "==" -> EqualsNode(paramList)
-                            "noteq", "!=", "/=" -> NotEqualsNode(paramList)
+                            "noteq", "neq", "!=", "/=" -> NotEqualsNode(paramList)
                             "contains", "in" -> ContainsNode(paramList)
-                            "regex" -> RegexNode(paramList)
+                            "regex", "re", "rg" -> RegexNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }
                     }
@@ -206,5 +206,10 @@ public final class QueryCompiler {
     }
 }
 
-public class FilterCompilerException(message: String, token: Token?) :
-        Exception(if (token == null) "$message : ?" else "$message : ${token.value} (${token.cursor})")
+public class FilterCompilerException(message: String, token: Token?) : Exception(
+        if (token == null) {
+            "$message : ?"
+        } else {
+            "$message : ${token.value} (${token.cursor})"
+        }
+)

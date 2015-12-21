@@ -449,9 +449,8 @@ public class TweetAdapterWrap {
 
     private static class StatusViewConverter extends ViewConverter {
 
-        public static final LinearLayout.LayoutParams LP_THUMB = new LinearLayout.LayoutParams(140, 140, 1);
-
         private int bgRetweetResId;
+        private final LinearLayout.LayoutParams lpThumb;
 
         protected StatusViewConverter(Context context,
                                       List<AuthUserRecord> userRecords,
@@ -460,6 +459,8 @@ public class TweetAdapterWrap {
                 throws IllegalAccessException, InstantiationException {
             super(context, userRecords, userExtras, preferences, TweetCommon.newInstance(PreformedStatus.class));
             bgRetweetResId = AttrUtil.resolveAttribute(context.getTheme(), R.attr.tweetRetweet);
+            int attachPictureSize = context.getResources().getDimensionPixelSize(R.dimen.attach_picture_size);
+            lpThumb = new LinearLayout.LayoutParams(attachPictureSize, attachPictureSize, 1);
         }
 
         @Override
@@ -506,7 +507,7 @@ public class TweetAdapterWrap {
                             if (iv == null) {
                                 iv = new ImageView(getContext());
                                 iv.setId(i);
-                                viewHolder.llAttach.addView(iv, LP_THUMB);
+                                viewHolder.llAttach.addView(iv, lpThumb);
                             }
                             else if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) {
                                 iv.setVisibility(View.GONE);

@@ -7,5 +7,4 @@ package shibafu.yukari.filter.expression
  */
 public interface ValueExpression : Expression {
     public var value: Any?
-        private set
 }

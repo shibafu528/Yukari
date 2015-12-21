@@ -18,14 +18,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
@@ -39,6 +31,13 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.HashtagEntity;
 import twitter4j.URLEntity;
 import twitter4j.UserMentionEntity;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/08/02.
@@ -180,7 +179,7 @@ public class StatusActionFragment extends ListTwitterFragment implements Adapter
                 }
                 else {
                     Intent intent;
-                    if (user != null && status.getUser().getId() == user.NumericId) {
+                    if (status instanceof Bookmark || user != null && status.getUser().getId() == user.NumericId) {
                         intent = createPluginIntent(position - ITEMS.length);
                     }
                     else {

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="58"
-    android:versionName="1.2.0.244α (rehearsal 151010)" >
+    android:versionCode="59"
+    android:versionName="1.2.1.257 (prelude 151222)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -65,7 +65,8 @@
         <activity
             android:name="shibafu.yukari.activity.TweetActivity"
             android:label="@string/title_activity_tweet"
-            android:theme="@style/VertAnimationTheme" >
+            android:theme="@style/VertAnimationTheme"
+            android:taskAffinity=".tweet">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

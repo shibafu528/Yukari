@@ -1,19 +1,14 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.MotionEvent;
 import android.view.View;
-
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -26,6 +21,10 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.TwitterException;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -128,6 +127,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         break;
                                     }
                                     case SWIPE_ACTION_FAVORITE:
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
+                                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                                            if (!sp.getBoolean("pref_narcist", false)) {
+                                                // ナルシストオプションを有効にしていない場合は中断
+                                                break;
+                                            }
+                                        }
                                         new TwitterAsyncTask<PreformedStatus>(getActivity()) {
                                             @Override
                                             protected TwitterException doInBackground(PreformedStatus... params) {

@@ -16,13 +16,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
@@ -30,22 +23,12 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import twitter4j.DirectMessage;
-import twitter4j.HashtagEntity;
-import twitter4j.MediaEntity;
-import twitter4j.Paging;
-import twitter4j.ResponseList;
-import twitter4j.Status;
-import twitter4j.TweetEntity;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterResponse;
-import twitter4j.URLEntity;
-import twitter4j.User;
-import twitter4j.UserMentionEntity;
+import twitter4j.*;
+
+import java.util.*;
 
 /**
  * Created by shibafu on 14/03/25.
@@ -62,13 +45,22 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof MainActivity) {
+            Bundle args = getArguments();
+            long id = args.getLong(EXTRA_ID);
+            lastStatusIds = ((MainActivity) activity).getLastStatusIdsArray(id);
+        }
+    }
+
+    @Override
     public void onDetach() {
         if (isServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
     }
-
 
     @Override
     public boolean isCloseable() {

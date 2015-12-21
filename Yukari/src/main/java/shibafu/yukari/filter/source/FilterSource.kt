@@ -1,8 +1,8 @@
 package shibafu.yukari.filter.source
 
 import android.content.Context
-import shibafu.yukari.filter.expression.ConstantValue
-import shibafu.yukari.filter.expression.Expression
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
@@ -36,10 +36,10 @@ public interface FilterSource{
     /**
      * この抽出ソースによる、UserStream受信に対して干渉するためのフィルタを返します。
      *
-     * これは利用側では、各抽出ソースから取得したフィルタクエリの論理和をとって使用するものと想定します。
+     * これは利用側では、各抽出ソースから取得したフィルタクエリの論理積をとって使用するものと想定します。
      * @return UserStream受信に対するフィルタクエリ。
      */
-    fun filterUserStream(): Expression = ConstantValue(false)
+    fun filterUserStream(): SNode = ValueNode(true)
 
     /**
      * この抽出ソースがFilterStreamへの接続を要求する場合、必要なパラメータを設定したインスタンスを返します。

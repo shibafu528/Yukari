@@ -1,6 +1,6 @@
 package shibafu.yukari.filter
 
-import shibafu.yukari.filter.expression.Expression
+import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.source.FilterSource
@@ -26,7 +26,12 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      * @return クエリ式の評価結果 (抽出であれば、真となったら表示するのが妥当です)
      */
     public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
-            = rootNode.evaluate(target, userRecords).equals(true)
+            = AndNode(listOf(
+                AndNode(sources.map {
+                    it.filterUserStream()
+                }),
+                rootNode
+            )).evaluate(target, userRecords).equals(true)
 
     companion object {
 
@@ -75,7 +80,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
         /**
          * 抽出ソースを追加します。
          */
-        public fun FilterSource.plus() {
+        operator public fun FilterSource.plus() {
             sources += this
         }
     }

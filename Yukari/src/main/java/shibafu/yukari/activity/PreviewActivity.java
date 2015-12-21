@@ -18,6 +18,10 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.*;
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import com.google.zxing.*;
+import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -67,6 +71,9 @@ public class PreviewActivity extends FragmentYukariBase {
     private ProgressBar loadProgress;
     private TextView loadProgressText;
 
+    @InjectView(R.id.llQrText) LinearLayout llQrText;
+    @InjectView(R.id.tvQrText) TextView tvQrText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState, true);
@@ -88,6 +95,7 @@ public class PreviewActivity extends FragmentYukariBase {
 
         user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
+        ButterKnife.inject(this);
         loadProgress = (ProgressBar) findViewById(R.id.pbPreview);
         loadProgressText = (TextView) findViewById(R.id.tvPreviewProgress);
 
@@ -431,6 +439,8 @@ public class PreviewActivity extends FragmentYukariBase {
                 matrix.postScale(scale, scale);
                 matrix.postTranslate(displayWidth / 2, displayHeight / 2);
                 updateMatrix();
+                //QR解析
+                processZxing();
             }
         };
         loaderTask.executeParallel(mediaUrl);
@@ -511,6 +521,20 @@ public class PreviewActivity extends FragmentYukariBase {
                 null,
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
+    }
+
+    private void processZxing() {
+        int[] pixels = new int[image.getWidth() * image.getHeight()];
+        image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+        LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
+        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+        try {
+            Result result = new MultiFormatReader().decode(binaryBitmap);
+            llQrText.setVisibility(View.VISIBLE);
+            tvQrText.setText(result.getText());
+        } catch (NotFoundException e) {
+            llQrText.setVisibility(View.GONE);
+        }
     }
 
     private boolean isDMImage(String url) {
