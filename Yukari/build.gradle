@@ -46,6 +46,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
     testCompile 'junit:junit:4.12'
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     provided 'org.projectlombok:lombok:1.16.4'
 }
@@ -88,7 +89,7 @@ android {
 
 //-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-3595'
+    ext.kotlin_version = '1.0.0-beta-4583'
     repositories {
         mavenCentral()
     }
