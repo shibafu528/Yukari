@@ -57,7 +57,7 @@ public class LinkMediaFactory {
                 linkMedia = new SixHundredEUR(mediaURL);
             } else if (mediaURL.contains("gyazo.com")) {
                 linkMedia = new Gyazo(mediaURL);
-            } else if (mediaURL.contains("sunoho.com/p/i")) {
+            } else if (mediaURL.contains("sunoho.com/p/i") || mediaURL.contains("gyazo.sunoho.com/i")) {
                 linkMedia = new Sunoho(mediaURL);
             } else if (mediaURL.contains("img.ly/")) {
                 if (mediaURL.contains("img.ly/show/")) {
