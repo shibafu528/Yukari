@@ -9,6 +9,5 @@
     <item android:id="@+id/action_search_users"
         android:title="ユーザー検索"/>
     <item android:id="@+id/action_query"
-          android:visible="false"
           android:title="クエリを実行"/>
 </menu>
