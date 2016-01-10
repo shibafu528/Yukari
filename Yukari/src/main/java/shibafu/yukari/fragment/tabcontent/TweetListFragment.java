@@ -318,7 +318,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             storedStatus = elements.get(i);
             if (status.getId() == storedStatus.getId()) {
                 storedStatus.merge(status);
-                getHandler().post(this::notifyDataSetChanged);
+                notifyDataSetChanged();
                 return -1;
             }
             else if (status.getId() > storedStatus.getId()) {
