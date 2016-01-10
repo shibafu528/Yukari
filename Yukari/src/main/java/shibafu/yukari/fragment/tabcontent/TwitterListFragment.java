@@ -470,6 +470,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
                     unreadSet.remove(commonDelegate.getId(iterator.next()));
                     iterator.remove();
+                    notifyDataSetChanged();
                 }
             }
             if (listView == null) {
