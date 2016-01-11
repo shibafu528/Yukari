@@ -59,6 +59,8 @@ public class LinkMediaFactory {
                 linkMedia = new Gyazo(mediaURL);
             } else if (mediaURL.contains("sunoho.com/p/i") || mediaURL.contains("gyazo.sunoho.com/i")) {
                 linkMedia = new Sunoho(mediaURL);
+            } else if (mediaURL.contains("nijie.info/view.php")) {
+                linkMedia = new Nijie(mediaURL);
             } else if (mediaURL.contains("img.ly/")) {
                 if (mediaURL.contains("img.ly/show/")) {
                     linkMedia = new SimplePicture(mediaURL);
