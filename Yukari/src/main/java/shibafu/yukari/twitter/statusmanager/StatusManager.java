@@ -346,9 +346,9 @@ public class StatusManager implements Releasable {
         }
     };
 
-    private List<StatusListener> statusListeners = new ArrayList<>();
-    private Map<String, Pair<StatusListener, Queue<EventBuffer>>> statusBuffer = new HashMap<>();
-    private List<EventBuffer> updateBuffer = new ArrayList<>();
+    private List<StatusListener> statusListeners = Collections.synchronizedList(new ArrayList<>());
+    private Map<String, Pair<StatusListener, Queue<EventBuffer>>> statusBuffer = Collections.synchronizedMap(new HashMap<>());
+    private List<EventBuffer> updateBuffer = Collections.synchronizedList(new ArrayList<>());
 
     private UserUpdateDelayer userUpdateDelayer;
 

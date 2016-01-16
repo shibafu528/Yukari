@@ -57,6 +57,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        //TODO: これ評価毎にメソッド探索してませんか？コスト高くないですか？
         tailrec fun invoke(pathList: List<String>, target: Any?): Any? {
             if (target == null) return null
 
