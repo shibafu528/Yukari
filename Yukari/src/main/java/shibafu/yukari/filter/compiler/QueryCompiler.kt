@@ -5,6 +5,7 @@ import shibafu.yukari.filter.sexp.*
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
+import shibafu.yukari.filter.source.Mention
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -94,6 +95,7 @@ public final class QueryCompiler {
                     return when (type!!.value) {
                         "all", "local", "*", "stream" -> listOf(All())
                         "home" -> createFiltersWithAuthArguments(Home::class.java)
+                        "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }

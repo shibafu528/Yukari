@@ -22,8 +22,8 @@ public class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getFilterStream(context: Context): FilterStream? = null
 
-    override fun filterUserStream(): SNode = ContainsNode(listOf(
+    override fun filterUserStream(): SNode = ContainsNode(
             VariableNode("receivedUsers"),
             ValueNode(sourceAccount)
-    ))
+    )
 }

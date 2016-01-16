@@ -8,6 +8,8 @@ import java.util.regex.Pattern
  * 等価演算関数ノード
  */
 public class EqualsNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         if (children.isEmpty()) return false
 
@@ -23,6 +25,8 @@ public class EqualsNode(override val children: List<SNode>) : SNode {
  * 不等価演算関数ノード
  */
 public class NotEqualsNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         if (children.isEmpty()) return true
 
@@ -38,6 +42,8 @@ public class NotEqualsNode(override val children: List<SNode>) : SNode {
  * 否定演算関数ノード
  */
 public class NotNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         return !(children.first().evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true)});
     }
@@ -47,6 +53,8 @@ public class NotNode(override val children: List<SNode>) : SNode {
  * 論理積演算関数ノード
  */
 public class AndNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
             = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.all { it }
 }
@@ -55,6 +63,8 @@ public class AndNode(override val children: List<SNode>) : SNode {
  * 論理和演算関数ノード
  */
 public class OrNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
             = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.any { it }
 }
@@ -63,6 +73,8 @@ public class OrNode(override val children: List<SNode>) : SNode {
  * 部分集合演算関数ノード
  */
 public class ContainsNode(override val children: List<SNode>) : SNode {
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
 
@@ -86,6 +98,8 @@ public class RegexNode(override val children: List<SNode>) : SNode {
     var lastPatternString: String? = null
     var lastPattern: Pattern? = null
 
+    constructor(vararg children: SNode) : this(children.asList())
+
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         val ev = children.map { it.evaluate(status, userRecords) }
         if (ev.size != 2 || ev.any { it !is String }) return false
@@ -104,6 +118,8 @@ public class RegexNode(override val children: List<SNode>) : SNode {
 
 public class AddOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
     override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r + v})
