@@ -134,7 +134,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
             if (muted) {
                 stash.add(status);
             }
-            else {
+            else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
                     getHandler().post(() -> insertElement(status, position));
