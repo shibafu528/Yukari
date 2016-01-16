@@ -387,9 +387,9 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     position = prepareInsertStatus(message);
                     if (position > -1) {
                         elements.add(position, message);
+                        notifyDataSetChanged();
                     }
                 }
-                notifyDataSetChanged();
             } else if (causedException != null &&
                     exceptionUser != null &&
                     causedException.getStatusCode() == 403 &&

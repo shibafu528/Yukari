@@ -86,6 +86,7 @@ public class BookmarkListFragment extends TweetListFragment {
                     position = prepareInsertStatus(status);
                     if (position > -1) {
                         elements.add(position, status);
+                        notifyDataSetChanged();
                     }
                 }
                 else {
@@ -94,7 +95,6 @@ public class BookmarkListFragment extends TweetListFragment {
 
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
-            notifyDataSetChanged();
             changeFooterProgress(false);
             setRefreshComplete();
         }

@@ -88,12 +88,14 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 traceStart = (Status) trace;
                 if (elements.isEmpty()) {
                     elements.add((PreformedStatus) trace);
+                    notifyDataSetChanged();
                 }
             }
             else if (trace instanceof Status) {
                 traceStart = (Status) trace;
                 if (elements.isEmpty()) {
                     elements.add(new PreformedStatus(traceStart, getCurrentUser()));
+                    notifyDataSetChanged();
                 }
             }
         }

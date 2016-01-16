@@ -1,9 +1,6 @@
 package shibafu.yukari.twitter;
 
 import android.widget.Toast;
-
-import java.util.List;
-
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
@@ -11,6 +8,8 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.TwitterException;
+
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -68,6 +67,7 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                     position = loaderInterface.prepareInsertStatus(status);
                     if (position > -1) {
                         dest.add(position, status);
+                        loaderInterface.notifyDataSetChanged();
                     }
                 }
                 else {
@@ -79,7 +79,6 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                     loaderInterface.getService().getStatusManager().loadQuotedEntities(status);
                 }
             }
-            loaderInterface.notifyDataSetChanged();
         } else if (exception != null && exceptionUser != null) {
             switch (exception.getStatusCode()) {
                 case 429:

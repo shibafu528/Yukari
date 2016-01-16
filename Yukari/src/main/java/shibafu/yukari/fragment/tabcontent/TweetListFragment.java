@@ -284,6 +284,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                     (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
                 stash.add(s);
                 it.remove();
+                notifyDataSetChanged();
             }
         }
         for (Iterator<PreformedStatus> it = stash.iterator(); it.hasNext(); ) {
@@ -298,11 +299,11 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                 int position = prepareInsertStatus(s);
                 if (position > -1) {
                     elements.add(position, s);
+                    notifyDataSetChanged();
                     it.remove();
                 }
             }
         }
-        notifyDataSetChanged();
     };
 
     @Override
