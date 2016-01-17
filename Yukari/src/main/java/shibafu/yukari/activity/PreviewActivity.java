@@ -57,8 +57,8 @@ public class PreviewActivity extends FragmentYukariBase {
 
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
-    private ImageView imageView;
-    private View tweetView;
+    @InjectView(R.id.ivPreviewImage) ImageView imageView;
+    @InjectView(R.id.inclPreviewStatus) View tweetView;
     private PreformedStatus status;
     private AuthUserRecord user;
 
@@ -68,8 +68,9 @@ public class PreviewActivity extends FragmentYukariBase {
     private int displayHeight;
     private TweetAdapterWrap.ViewConverter viewConverter;
 
-    private ProgressBar loadProgress;
-    private TextView loadProgressText;
+    @InjectView(R.id.pbPreview) ProgressBar loadProgress;
+    @InjectView(R.id.tvPreviewProgress) TextView loadProgressText;
+    @InjectView(R.id.tvPreviewProgress2) TextView loadProgressText2;
 
     @InjectView(R.id.llQrText) LinearLayout llQrText;
     @InjectView(R.id.tvQrText) TextView tvQrText;
@@ -96,14 +97,11 @@ public class PreviewActivity extends FragmentYukariBase {
         user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
         ButterKnife.inject(this);
-        loadProgress = (ProgressBar) findViewById(R.id.pbPreview);
-        loadProgressText = (TextView) findViewById(R.id.tvPreviewProgress);
 
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
-        imageView = (ImageView) findViewById(R.id.ivPreviewImage);
         imageView.setOnTouchListener(new View.OnTouchListener() {
             private static final int TOUCH_NONE = 0;
             private static final int TOUCH_DRAG = 1;
@@ -397,11 +395,11 @@ public class PreviewActivity extends FragmentYukariBase {
                 if (elapsed < 1) {
                     elapsed = 1;
                 }
-                loadProgressText.setText(String.format("%d/%d %dKB/s [%d%%]",
-                        callback.received,
-                        callback.contentLength,
-                        (callback.received / 1024) / elapsed,
-                        progress));
+                loadProgressText.setText(String.format("%d%%", progress));
+                loadProgressText2.setText(String.format("%d/%d KB\n%dKB/s",
+                        (callback.received / 1024),
+                        (callback.contentLength / 1024),
+                        (callback.received / 1024) / elapsed));
             }
 
             @Override
@@ -409,6 +407,7 @@ public class PreviewActivity extends FragmentYukariBase {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
                 loadProgress.setVisibility(View.GONE);
                 loadProgressText.setVisibility(View.GONE);
+                loadProgressText2.setVisibility(View.GONE);
 
                 if (isCancelled()) {
                     return;
@@ -449,7 +448,6 @@ public class PreviewActivity extends FragmentYukariBase {
         if (status != null && status.isRetweet()) {
             status = status.getRetweetedStatus();
         }
-        tweetView = findViewById(R.id.inclPreviewStatus);
 
         ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
         ibRotateLeft.setOnClickListener(v -> {
@@ -488,7 +486,7 @@ public class PreviewActivity extends FragmentYukariBase {
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
             String[] split = uri.getLastPathSegment().split("\\.");
-            if (split != null && split.length > 1) {
+            if (split.length > 1) {
                 request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
             }
             else {
