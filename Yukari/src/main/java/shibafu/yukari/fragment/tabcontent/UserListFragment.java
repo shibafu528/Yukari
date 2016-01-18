@@ -61,7 +61,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        adapter = new UserListAdapter(getActivity().getApplicationContext(), elements);
+        adapter = new UserListAdapter(getActivity(), elements);
         setListAdapter(adapter);
 
         registerForContextMenu(getListView());
