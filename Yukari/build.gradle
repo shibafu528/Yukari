@@ -15,7 +15,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-drive:6.5.87'
 
     compile 'com.google.code.gson:gson:2.3'
-    compile 'com.jakewharton:butterknife:5.1.2'
+    compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
     compile 'com.nineoldandroids:library:2.4.0'
 
     //appcompat-v7:21に非対応のため、しばらくは対応パッチの当たった版を使う
@@ -89,7 +89,7 @@ android {
 
 //-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-4584'
+    ext.kotlin_version = '1.0.0-beta-4589'
     repositories {
         mavenCentral()
     }
