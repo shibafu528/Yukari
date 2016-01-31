@@ -912,24 +912,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
                     return;
                 }
-                case "::modq": {
-                    if (inputText.split(" ").length > 1) {
-                        String query = inputText.replace("::modq ", "");
-                        for (TabInfo tabInfo : getTwitterService().getDatabase().getTabs()) {
-                            if (tabInfo.getType() == TabType.TABTYPE_FILTER) {
-                                tabInfo.setFilterQuery(query);
-                                getTwitterService().getDatabase().updateRecord(tabInfo);
-                            }
-                        }
-                        Toast.makeText(getApplicationContext(), "Modified Query. Pleaze restart app.", Toast.LENGTH_SHORT).show();
-                        setResult(RESULT_OK);
-                        finish();
-                        return;
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
             }
         }
 
