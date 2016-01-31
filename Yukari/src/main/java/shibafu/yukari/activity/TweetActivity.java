@@ -93,6 +93,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     private static final int PLUGIN_ICON_DIP = 28;
 
+    private static final int TWEET_COUNT_LIMIT = 140;
+    private static final int TWEET_COUNT_LIMIT_DM = 10000;
+
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
 
@@ -101,7 +104,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
-    private int tweetCount = 140;
+    private int tweetCountLimit = TWEET_COUNT_LIMIT;
+    private int tweetCount = TWEET_COUNT_LIMIT;
     private int reservedCount = 0;
 
     //DMフラグ
@@ -539,7 +543,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
                         switch (which) {
                             case 0: {
-                                if (tweetCount >= 140 && attachPictures.isEmpty()) {
+                                if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
                                     Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                                 }
                                 else {
@@ -637,6 +641,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             ibAttach.setEnabled(false);
             ibCamera.setEnabled(false);
             btnPost.setText("Send");
+            //文字数上限変更
+            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
+            updateTweetCount();
         }
 
 
@@ -718,7 +725,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (tweetCount < 0) {
             Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
             return;
-        } else if (tweetCount >= 140 && attachPictures.isEmpty()) {
+        } else if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -986,7 +993,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         } else {
             reservedCount = 0;
         }
-        tweetCount = 140 - count - reservedCount;
+        tweetCount = tweetCountLimit - count - reservedCount;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
