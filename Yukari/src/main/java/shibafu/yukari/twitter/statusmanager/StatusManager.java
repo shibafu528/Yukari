@@ -282,7 +282,9 @@ public class StatusManager implements Releasable {
                         //Status is RT-Respond
                         retweetResponseStandBy.remove(preformedStatus.getUser().getId());
                         deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
-                        notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
+                        if (!(from instanceof RestStream)) {
+                            notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
+                        }
                     }
                     for (StatusListener sl : statusListeners) {
                         if (deliver(sl, from)) {
@@ -296,21 +298,22 @@ public class StatusManager implements Releasable {
                         }
                     }
 
-                    if (status.isRetweet() &&
-                            !mute[MuteConfig.MUTE_NOTIF_RT] &&
-                            status.getRetweetedStatus().getUser().getId() == user.NumericId &&
-                            checkOwn == null) {
-                        notifier.showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-                        createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
+                    if (!(from instanceof RestStream)) {
+                        if (status.isRetweet() &&
+                                !mute[MuteConfig.MUTE_NOTIF_RT] &&
+                                status.getRetweetedStatus().getUser().getId() == user.NumericId &&
+                                checkOwn == null) {
+                            notifier.showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
+                            createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
-                        //Put Response Stand-By
-                        retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
-                    }
-                    else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
-                        UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-                        for (UserMentionEntity ume : userMentionEntities) {
-                            if (ume.getId() == user.NumericId) {
-                                notifier.showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
+                            //Put Response Stand-By
+                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
+                        } else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
+                            UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
+                            for (UserMentionEntity ume : userMentionEntities) {
+                                if (ume.getId() == user.NumericId) {
+                                    notifier.showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
+                                }
                             }
                         }
                     }
