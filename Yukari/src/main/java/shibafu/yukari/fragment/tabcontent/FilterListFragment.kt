@@ -135,33 +135,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onDirectMessage(from: AuthUserRecord, directMessage: DirectMessage) {}
 
     override fun onUpdatedStatus(from: AuthUserRecord, kind: Int, status: Status) {
+        super.onUpdatedStatus(from, kind, status)
         when (kind) {
-            StatusManager.UPDATE_WIPE_TWEETS -> {
-                handler.post {
-                    elements.clear()
-                    notifyDataSetChanged()
-                }
-                stash.clear()
-            }
-            StatusManager.UPDATE_FORCE_UPDATE_UI -> handler.post {
-                notifyDataSetChanged()
-            }
-            StatusManager.UPDATE_DELETED -> {
-                handler.post { deleteElement(status) }
-                stash.removeAll(stash.filter {s -> s.id == status.id })
-            }
-            StatusManager.UPDATE_FAVED, StatusManager.UPDATE_UNFAVED -> {
-                val position = elements.indexOfFirst { s -> s.id == status.id }
-                if (position > -1) {
-                    handler.post {
-                        elements[position].merge(status, from)
-                        notifyDataSetChanged()
-                    }
-                } else {
-                    stash.filter { s -> s.id == status.id }
-                         .forEach { s -> s.merge(status, from) }
-                }
-            }
             StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).tag.equals(restTag)) {
                 handler.post { setRefreshComplete() }
             }

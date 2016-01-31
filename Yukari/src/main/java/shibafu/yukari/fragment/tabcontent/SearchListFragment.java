@@ -13,12 +13,11 @@ import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
-import twitter4j.*;
-
-import java.util.Iterator;
+import twitter4j.Query;
+import twitter4j.QueryResult;
+import twitter4j.TwitterException;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -116,7 +115,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
             getStatusManager().startFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
         }
         else {
-            getStatusManager().stopFilterStream(parsedQuery.getValidQuery());
+            getStatusManager().stopFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
         }
     }
 
@@ -127,7 +126,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
 
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
-        if (users.contains(from) && !elements.contains(status)) {
+        if (users.contains(from) && !elements.contains(status) && status.getText().contains(parsedQuery.getValidQuery())) {
             if (getMode() == TabType.TABTYPE_MENTION &&
                     ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
@@ -140,54 +139,6 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
                     getHandler().post(() -> insertElement(status, position));
                 }
             }
-        }
-    }
-
-    @Override
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
-
-    @Override
-    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
-        switch (kind) {
-            case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(() -> {
-                    elements.clear();
-                    notifyDataSetChanged();
-                });
-                stash.clear();
-                break;
-            case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(this::notifyDataSetChanged);
-                break;
-            case StatusManager.UPDATE_DELETED:
-                getHandler().post(() -> deleteElement(status));
-                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
-                    if (iterator.next().getId() == status.getId()) {
-                        iterator.remove();
-                    }
-                }
-                break;
-            case StatusManager.UPDATE_FAVED:
-            case StatusManager.UPDATE_UNFAVED:
-                int position = 0;
-                for (; position < elements.size(); ++position) {
-                    if (elements.get(position).getId() == status.getId()) break;
-                }
-                if (position < elements.size()) {
-                    final int p = position;
-                    getHandler().post(() -> {
-                        elements.get(p).merge(status, from);
-                        notifyDataSetChanged();
-                    });
-                }
-                else {
-                    for (position = 0; position < stash.size(); ++position) {
-                        if (stash.get(position).getId() == status.getId()) break;
-                    }
-                    if (position < stash.size()) {
-                        stash.get(position).merge(status, from);
-                    }
-                }
         }
     }
 

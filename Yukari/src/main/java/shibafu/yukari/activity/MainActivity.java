@@ -266,7 +266,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 TwitterListFragment tabFragment = tabPagerAdapter.findFragmentByPosition(viewPager, current);
                 if (tabFragment instanceof SearchListFragment &&
                         ((SearchListFragment) tabFragment).isStreaming()) {
-                    getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword());
+                    getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword(), tabFragment.getCurrentUser());
                 }
 
                 pageList.remove(current);

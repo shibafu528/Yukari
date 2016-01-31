@@ -83,7 +83,7 @@ public class StatusManager implements Releasable {
 
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<>();
-    private Map<String, FilterStream> filterMap = new HashMap<>();
+    private Map<AuthUserRecord, FilterStream> filterMap = new HashMap<>();
     private StreamListener listener = new StreamListener() {
 
         @Override
@@ -187,7 +187,7 @@ public class StatusManager implements Releasable {
                 return true;
             }
             else if (from instanceof FilterStream &&
-                    ((FilterStream) from).getQuery().equals(sl.getStreamFilter())) {
+                    ((FilterStream) from).contains(sl.getStreamFilter())) {
                 return true;
             }
             else if (from instanceof RestStream &&
@@ -423,7 +423,7 @@ public class StatusManager implements Releasable {
         for (StreamUser u : streamUsers) {
             u.start();
         }
-        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
             e.getValue().start();
         }
 
@@ -433,7 +433,7 @@ public class StatusManager implements Releasable {
     public void stop() {
         Log.d(LOG_TAG, "call stop");
 
-        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
         for (StreamUser su : streamUsers) {
@@ -454,7 +454,7 @@ public class StatusManager implements Releasable {
     public void shutdownAll() {
         Log.d(LOG_TAG, "call shutdownAll");
 
-        for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
         for (StreamUser su : streamUsers) {
@@ -489,29 +489,38 @@ public class StatusManager implements Releasable {
     }
 
     public void startFilterStream(String query, AuthUserRecord manager) {
-        if (!filterMap.containsKey(query)) {
-            FilterStream filterStream = new FilterStream(context, manager, query);
-            filterStream.setListener(listener);
-            filterMap.put(query, filterStream);
-            if (isStarted) {
-                filterStream.start();
-                showToast("Start FilterStream:" + query);
+        FilterStream filterStream = FilterStream.getInstance(context, manager);
+        filterStream.setListener(listener);
+        filterStream.addQuery(query);
+        filterMap.put(manager, filterStream);
+        if (isStarted) {
+            if (1 < filterStream.getQueryCount()) {
+                // 再起動
+                filterStream.stop();
             }
+            filterStream.start();
+            showToast("Start FilterStream:" + query);
         }
     }
 
-    public void stopFilterStream(String query) {
-        if (filterMap.containsKey(query)) {
-            FilterStream filterStream = filterMap.get(query);
+    public void stopFilterStream(String query, AuthUserRecord manager) {
+        if (filterMap.containsKey(manager)) {
+            FilterStream filterStream = filterMap.get(manager);
             filterStream.stop();
-            filterMap.remove(query);
+            filterStream.removeQuery(query);
+            if (0 < filterStream.getQueryCount()) {
+                // 再起動
+                filterStream.start();
+            } else {
+                filterMap.remove(manager);
+            }
             showToast("Stop FilterStream:" + query);
         }
     }
 
     public void reconnectAsync() {
         SimpleAsyncTask.execute(() -> {
-            for (Map.Entry<String, FilterStream> e : filterMap.entrySet()) {
+            for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
                 e.getValue().stop();
                 e.getValue().start();
             }
@@ -575,7 +584,7 @@ public class StatusManager implements Releasable {
                 newArgs[0] = streamUser;
                 m.invoke(listener, newArgs);
             }
-            for (Map.Entry<String, FilterStream> entry : filterMap.entrySet()) {
+            for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
                 newArgs[0] = entry.getValue();
                 m.invoke(listener, newArgs);
             }

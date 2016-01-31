@@ -30,10 +30,12 @@ import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -512,54 +514,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     }
                 }
             }
-        }
-    }
-
-    @Override
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
-
-    @Override
-    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
-        switch (kind) {
-            case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(() -> {
-                    elements.clear();
-                    notifyDataSetChanged();
-                });
-                stash.clear();
-                break;
-            case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(this::notifyDataSetChanged);
-                break;
-            case StatusManager.UPDATE_DELETED:
-                getHandler().post(() -> deleteElement(status));
-                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
-                    if (iterator.next().getId() == status.getId()) {
-                        iterator.remove();
-                    }
-                }
-                break;
-            case StatusManager.UPDATE_FAVED:
-            case StatusManager.UPDATE_UNFAVED:
-                int position = 0;
-                for (; position < elements.size(); ++position) {
-                    if (elements.get(position).getId() == status.getId()) break;
-                }
-                if (position < elements.size()) {
-                    final int p = position;
-                    getHandler().post(() -> {
-                        elements.get(p).merge(status, from);
-                        notifyDataSetChanged();
-                    });
-                }
-                else {
-                    for (position = 0; position < stash.size(); ++position) {
-                        if (stash.get(position).getId() == status.getId()) break;
-                    }
-                    if (position < stash.size()) {
-                        stash.get(position).merge(status, from);
-                    }
-                }
         }
     }
 

@@ -20,6 +20,9 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
+import twitter4j.DirectMessage;
+import twitter4j.Status;
 import twitter4j.TwitterException;
 
 import java.util.ArrayList;
@@ -44,6 +47,14 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
     private static final int SWIPE_ACTION_THRESHOLD = 120;
 
+    private static final String[] SWIPE_ACTION_MESSAGES = {
+            " >> Cancel",
+            " >> Reply",
+            " >> Reply All",
+            " >> Favorite",
+            " >> Retweet",
+            " >> Fav & RT"
+    };
     private float swipeActionDownPositionX, swipeActionDownPositionY;
     private int swipeActionSelected = 0;
     private PreformedStatus swipeActionStatusGrabbed;
@@ -96,23 +107,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                 } else if (moveY > moveX * 2) {
                                     swipeActionSelected = SWIPE_ACTION_REPLY;
                                 }
-                                switch(swipeActionSelected) {
-                                    case SWIPE_ACTION_CANCEL:
-                                        swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + " >> Cancel");
-                                        break;
-                                    case SWIPE_ACTION_REPLY:
-                                        swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + " >> Reply");
-                                        break;
-                                    case SWIPE_ACTION_FAVORITE:
-                                        swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + " >> Favorite");
-                                        break;
-                                    case SWIPE_ACTION_RETWEET:
-                                        swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + " >> Retweet");
-                                        break;
-                                    case SWIPE_ACTION_FAVRT:
-                                        swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + " >> Fav & RT");
-                                        break;
-                                }
+
+                                swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + SWIPE_ACTION_MESSAGES[swipeActionSelected]);
                                 break;
                             case MotionEvent.ACTION_UP:
                                 switch(swipeActionSelected) {
@@ -327,6 +323,55 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             }
         }
         return elements.size();
+    }
+
+    //StatusListener用のデフォルト実装
+    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
+
+    //StatusListener用のデフォルト実装
+    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
+        switch (kind) {
+            case StatusManager.UPDATE_WIPE_TWEETS:
+                getHandler().post(() -> {
+                    elements.clear();
+                    notifyDataSetChanged();
+                });
+                stash.clear();
+                break;
+            case StatusManager.UPDATE_FORCE_UPDATE_UI:
+                getHandler().post(this::notifyDataSetChanged);
+                break;
+            case StatusManager.UPDATE_DELETED:
+                getHandler().post(() -> deleteElement(status));
+                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
+                    if (iterator.next().getId() == status.getId()) {
+                        iterator.remove();
+                    }
+                }
+                break;
+            case StatusManager.UPDATE_FAVED:
+            case StatusManager.UPDATE_UNFAVED:
+                int position = 0;
+                for (; position < elements.size(); ++position) {
+                    if (elements.get(position).getId() == status.getId()) break;
+                }
+                if (position < elements.size()) {
+                    final int p = position;
+                    getHandler().post(() -> {
+                        elements.get(p).merge(status, from);
+                        notifyDataSetChanged();
+                    });
+                }
+                else {
+                    for (position = 0; position < stash.size(); ++position) {
+                        if (stash.get(position).getId() == status.getId()) break;
+                    }
+                    if (position < stash.size()) {
+                        stash.get(position).merge(status, from);
+                    }
+                }
+                break;
+        }
     }
 
     private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
