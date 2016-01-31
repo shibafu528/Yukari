@@ -912,6 +912,28 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
                     return;
                 }
+                case "::rev": {
+                    inputText = inputText.replace("::rev ", "");
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = inputText.length() - 1; 0 <= i; i--) {
+                        sb.append(inputText.charAt(i));
+                    }
+                    inputText = sb.toString();
+                    break;
+                }
+                case "::shuf": {
+                    inputText = inputText.replace("::shuf ", "");
+                    List<Character> list = new ArrayList<>();
+                    for (int i = 0; i < inputText.length(); i++) {
+                        list.add(inputText.charAt(i));
+                    }
+                    Collections.shuffle(list);
+                    StringBuilder sb = new StringBuilder();
+                    for (Character c : list) {
+                        sb.append(c);
+                    }
+                    inputText = sb.toString();
+                }
             }
         }
 
