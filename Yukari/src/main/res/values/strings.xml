@@ -35,6 +35,7 @@
     <string name="title_activity_maintenance">Maintenance Mode</string>
     <string name="title_activity_twpf">ツイフィール ビューア</string>
     <string name="title_activity_template_edit">定型文設定</string>
+    <string name="title_activity_query_editor">Query Editor</string>
 
     <string name="drive_error_connect">Driveとの接続に失敗しました</string>
     <string name="drive_importing">インポート中…</string>

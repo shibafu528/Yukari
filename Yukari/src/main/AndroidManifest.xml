@@ -359,7 +359,7 @@
 
         <activity android:name=".activity.QueryEditorActivity"
                   android:windowSoftInputMode="adjustResize"
-                  android:label="Query Editor"/>
+                  android:label="@string/title_activity_query_editor"/>
    </application>
 
 </manifest>
