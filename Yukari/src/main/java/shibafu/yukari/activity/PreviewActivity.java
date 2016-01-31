@@ -372,6 +372,10 @@ public class PreviewActivity extends FragmentYukariBase {
                     }
                     Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
                     fis.close();
+                    if (bitmap == null) {
+                        cacheFile.delete();
+                        return null;
+                    }
                     if (exifRotate > 0) {
                         int width = bitmap.getWidth();
                         int height = bitmap.getHeight();
@@ -395,11 +399,18 @@ public class PreviewActivity extends FragmentYukariBase {
                 if (elapsed < 1) {
                     elapsed = 1;
                 }
-                loadProgressText.setText(String.format("%d%%", progress));
-                loadProgressText2.setText(String.format("%d/%d KB\n%dKB/s",
-                        (callback.received / 1024),
-                        (callback.contentLength / 1024),
-                        (callback.received / 1024) / elapsed));
+                if (callback.contentLength < 1) {
+                    loadProgressText.setText("");
+                    loadProgressText2.setText(String.format("%d KB\n%dKB/s",
+                            (callback.received / 1024),
+                            (callback.received / 1024) / elapsed));
+                } else {
+                    loadProgressText.setText(String.format("%d%%", progress));
+                    loadProgressText2.setText(String.format("%d/%d KB\n%dKB/s",
+                            (callback.received / 1024),
+                            (callback.contentLength / 1024),
+                            (callback.received / 1024) / elapsed));
+                }
             }
 
             @Override
