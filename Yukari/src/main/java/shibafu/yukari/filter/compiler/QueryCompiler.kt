@@ -2,10 +2,7 @@ package shibafu.yukari.filter.compiler
 
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.sexp.*
-import shibafu.yukari.filter.source.All
-import shibafu.yukari.filter.source.FilterSource
-import shibafu.yukari.filter.source.Home
-import shibafu.yukari.filter.source.Mention
+import shibafu.yukari.filter.source.*
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -81,12 +78,39 @@ public final class QueryCompiler {
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
                 private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>): List<T> {
-                    if (args.size < 1) throw FilterCompilerException("アカウントが指定されていません。", type)
+                    if (args.isEmpty()) throw FilterCompilerException("アカウントが指定されていません。", type)
 
                     val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
                     return args.map { p ->
                         constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
                                 ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
+                    }
+                }
+
+                /**
+                 * [args]を / で分割し、ソースアカウントと引数として再解釈して抽出ソースのインスタンスを作成します。
+                 * @param argumentCount 最低限必要な[args]の分割数。/で区切った時の分割数と比較します。
+                 * @param requirePattern 引数エラー発生時にユーザに対して表示する引数の例を指定します。
+                 */
+                private fun <T : FilterSource> createFiltersWithListArguments(filterClz: Class<T>, argumentCount: Int, requirePattern: String): List<T> {
+                    if (args.isEmpty()) throw FilterCompilerException("引数が指定されていません。パターン：$requirePattern", type)
+                    return args.map { p ->
+                        val subArgs = p.value.split("/")
+
+                        if (subArgs.size !in argumentCount..argumentCount + 1) {
+                            throw FilterCompilerException("引数の要件を満たしていません。パターン：$requirePattern", type)
+                        }
+
+                        val (auth, secondArgument) = if (argumentCount == subArgs.size) {
+                            // argument == "*"
+                            Pair(userRecords.firstOrNull { it.isPrimary }, p.value)
+                        } else {
+                            // argument == "receiver/*"
+                            Pair(userRecords.firstOrNull { it.ScreenName.equals(subArgs.first()) }, subArgs.drop(1).joinToString("/"))
+                        }
+
+                        val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
+                        constructor.newInstance(auth, secondArgument)
                     }
                 }
 
@@ -96,6 +120,7 @@ public final class QueryCompiler {
                         "all", "local", "*", "stream" -> listOf(All())
                         "home" -> createFiltersWithAuthArguments(Home::class.java)
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
+                        "user" -> createFiltersWithListArguments(User::class.java, 1, "(受信ユーザ/)対象ユーザ")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
