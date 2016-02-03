@@ -692,18 +692,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
         else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
             //ドラフト生成
-            TweetDraft draft = new TweetDraft(
-                    selectedAccount.toSingleList(),
-                    etTweet.getText().toString(),
-                    System.currentTimeMillis(),
-                    -1,
-                    false,
-                    null,
-                    false,
-                    0,
-                    0,
-                    false,
-                    false);
+            TweetDraft draft = new TweetDraft.Builder()
+                    .setWriters(selectedAccount.toSingleList())
+                    .setText(etTweet.getText().toString())
+                    .setDateTime(System.currentTimeMillis())
+                    .build();
 
             //サービス起動
             startService(PostService.newIntent(this, draft));
