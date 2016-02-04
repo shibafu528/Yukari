@@ -72,7 +72,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
                 else -> invoke(pathList.drop(1), method.invoke(target))
             }
         }
-        val pathList = path.split('.').toArrayList()
+        val pathList = path.split('.')
         value = if (path.startsWith('@')) {
             val screenName = pathList.first().substring(1)
             userRecords.firstOrNull{ it.ScreenName.equals(screenName) }.let { invoke(pathList.drop(1), it) }
