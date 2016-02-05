@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.status;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -266,7 +266,6 @@ public class StatusMainFragment extends TwitterFragment{
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
                         .setTitle("確認")
                         .setMessage("このツイートは" + status.getOriginSource() + "を使用して投稿されています。お気に入り登録してもよろしいですか？")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
                         .setPositiveButton("ふぁぼる", (dialog, which) -> {
                             dialog.dismiss();
                             currentDialog = null;

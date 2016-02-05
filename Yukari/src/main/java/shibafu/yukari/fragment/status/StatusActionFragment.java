@@ -1,4 +1,4 @@
-package shibafu.yukari.fragment;
+package shibafu.yukari.fragment.status;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -23,6 +23,7 @@ import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.fragment.ListRegisterDialogFragment;
 import shibafu.yukari.fragment.base.ListTwitterFragment;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.twitter.AuthUserRecord;
