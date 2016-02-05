@@ -3,14 +3,27 @@ package shibafu.yukari.util
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import android.support.v4.app.Fragment
 import android.util.Log
+import android.widget.Toast
 
 /**
  * Created by shibafu on 2015/07/27.
  */
 
-public fun Context.getDefaultSharedPreferences(): SharedPreferences
-        = PreferenceManager.getDefaultSharedPreferences(this)
+public val Context.defaultSharedPreferences: SharedPreferences
+    get() = PreferenceManager.getDefaultSharedPreferences(this.applicationContext)
+
+public val Fragment.defaultSharedPreferences: SharedPreferences
+    get() = PreferenceManager.getDefaultSharedPreferences(this.activity.applicationContext)
+
+public fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this.applicationContext, text, duration).show()
+}
+
+public fun Fragment.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
+    this.activity.applicationContext.showToast(text, duration)
+}
 
 /**
  * [Class.getSimpleName] を返します。

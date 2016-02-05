@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
