@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
+import lombok.AllArgsConstructor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -247,9 +248,16 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
-            private void createFavorite() {
+            private void createFavorite(boolean withQuotes) {
                 Intent intent = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
                 getActivity().startService(intent);
+
+                if (withQuotes) {
+                    for (Long id : status.getQuoteEntities()) {
+                        Intent i = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), id, user);
+                        getActivity().startService(i);
+                    }
+                }
             }
 
             private boolean isNuisance(String source) {
@@ -270,7 +278,7 @@ public class StatusMainFragment extends TwitterFragment{
                             dialog.dismiss();
                             currentDialog = null;
 
-                            createFavorite();
+                            createFavorite(false);
                             local.closeAfterFavorite();
                         })
                         .setNeutralButton("本文で検索", (dialog, which) -> {
@@ -306,7 +314,7 @@ public class StatusMainFragment extends TwitterFragment{
                                 if (isNuisance(status.getOriginSource())) {
                                     nuisanceGuard();
                                 } else {
-                                    createFavorite();
+                                    createFavorite(false);
                                     local.closeAfterFavorite();
                                 }
                             })
@@ -325,7 +333,7 @@ public class StatusMainFragment extends TwitterFragment{
                     if (isNuisance(status.getOriginSource())) {
                         nuisanceGuard();
                     } else {
-                        createFavorite();
+                        createFavorite(false);
                         local.closeAfterFavorite();
                     }
                 }
@@ -337,37 +345,55 @@ public class StatusMainFragment extends TwitterFragment{
                 local.closeAfterFavorite();
             }
 
+            @AllArgsConstructor
+            class Action {
+                String label;
+                Runnable onAction;
+            }
+
             @Override
             public void onClick(View v) {
-                if (status.isFavoritedSomeone()) {
-                    final List<AuthUserRecord> faved = status.getFavoritedAccounts();
-                    if (faved.size() == 1 && getTwitterService().getUsers().size() == 1) {
-                        doUnfavorite(faved.get(0));
-                    }
-                    else {
-                        List<String> items = new ArrayList<>();
-                        items.add("お気に入り登録");
-                        for (AuthUserRecord userRecord : faved) {
-                            items.add("解除: @" + userRecord.ScreenName);
-                        }
-                        AlertDialog ad = new AlertDialog.Builder(getActivity())
-                                .setTitle("お気に入り/お気に入り解除")
-                                .setItems(items.toArray(new String[items.size()]), (dialog, which) -> {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                    if (which == 0) doFavorite();
-                                    else doUnfavorite(faved.get(which - 1));
-                                })
-                                .setNegativeButton("キャンセル", (dialog, which) -> {
-                                    dialog.dismiss();
-                                    currentDialog = null;
-                                })
-                                .create();
-                        ad.show();
-                        currentDialog = ad;
-                    }
+                final List<Action> items = new ArrayList<>();
+                items.add(new Action("お気に入り登録", this::doFavorite));
+
+                if (sharedPreferences.getBoolean("pref_fav_with_quotes", false) && !status.getQuoteEntities().isEmpty()) {
+                    items.add(new Action("引用もまとめてお気に入り登録", () -> {
+                        createFavorite(true);
+                        local.closeAfterFavorite();
+                    }));
                 }
-                else doFavorite();
+
+                final List<AuthUserRecord> faved = status.getFavoritedAccounts();
+                for (AuthUserRecord userRecord : faved) {
+                    items.add(new Action("解除: @" + userRecord.ScreenName, () -> doUnfavorite(userRecord)));
+                }
+
+                if (items.size() == 1) {
+                    doFavorite();
+                } else if (status.getFavoritedAccounts().size() == 1 && getTwitterService().getUsers().size() == 1) {
+                    // 唯一ログインしているアカウントでふぁぼ済みの場合、ふぁぼ解は自明
+                    doUnfavorite(status.getFavoritedAccounts().get(0));
+                } else {
+                    List<String> itemLabels = new ArrayList<>(items.size());
+                    for (Action item : items) {
+                        itemLabels.add(item.label);
+                    }
+                    AlertDialog ad = new AlertDialog.Builder(getActivity())
+                            .setTitle("お気に入り/お気に入り解除")
+                            .setItems(itemLabels.toArray(new String[itemLabels.size()]), (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
+
+                                items.get(which).onAction.run();
+                            })
+                            .setNegativeButton("キャンセル", (dialog, which) -> {
+                                dialog.dismiss();
+                                currentDialog = null;
+                            })
+                            .create();
+                    ad.show();
+                    currentDialog = ad;
+                }
             }
         });
         ibFavorite.setOnLongClickListener(v1 -> {

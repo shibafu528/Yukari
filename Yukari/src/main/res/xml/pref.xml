@@ -39,6 +39,10 @@
             android:title="ナルシストオプション"
             android:summary="自分のツイートをお気に入り登録できるようにします"/>
         <CheckBoxPreference
+            android:key="pref_fav_with_quotes"
+            android:title="引用もまとめてお気に入り登録"
+            android:summary="引用されているツイートがある場合、まとめてお気に入り登録するオプションを表示します"/>
+        <CheckBoxPreference
             android:key="pref_close_after_fav"
             android:title="Fav/RT後にメニューを閉じる"
             android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
