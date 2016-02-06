@@ -1,8 +1,21 @@
 package shibafu.yukari.filter.compiler
 
 import shibafu.yukari.filter.FilterQuery
-import shibafu.yukari.filter.sexp.*
-import shibafu.yukari.filter.source.*
+import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.EqualsNode
+import shibafu.yukari.filter.sexp.NotEqualsNode
+import shibafu.yukari.filter.sexp.NotNode
+import shibafu.yukari.filter.sexp.OrNode
+import shibafu.yukari.filter.sexp.RegexNode
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.filter.sexp.VariableNode
+import shibafu.yukari.filter.source.All
+import shibafu.yukari.filter.source.FilterSource
+import shibafu.yukari.filter.source.Home
+import shibafu.yukari.filter.source.Mention
+import shibafu.yukari.filter.source.User
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -97,8 +110,8 @@ public final class QueryCompiler {
                     return args.map { p ->
                         val subArgs = p.value.split("/")
 
-                        if (subArgs.size !in argumentCount..argumentCount + 1) {
-                            throw FilterCompilerException("引数の要件を満たしていません。パターン：$requirePattern", type)
+                        if (p.value.isBlank() || subArgs.size !in argumentCount..argumentCount + 1) {
+                            throw FilterCompilerException("引数の要件を満たしていません。パターン：$requirePattern", p)
                         }
 
                         val (auth, secondArgument) = if (argumentCount == subArgs.size) {
