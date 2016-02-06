@@ -88,7 +88,9 @@ public class PreformedStatus implements Status{
 
             Matcher m = STATUS_PATTERN.matcher(urlEntity.getExpandedURL());
             if (m.find()) {
-                quoteEntities.add(Long.valueOf(m.group(1)));
+                try {
+                    quoteEntities.add(Long.valueOf(m.group(1)));
+                } catch (NumberFormatException ignored) {}
             }
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
