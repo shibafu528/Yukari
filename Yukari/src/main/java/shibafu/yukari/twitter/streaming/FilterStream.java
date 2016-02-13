@@ -2,6 +2,8 @@ package shibafu.yukari.twitter.streaming;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -134,7 +136,7 @@ public class FilterStream extends Stream{
         return intent;
     }
 
-    public static class ParsedQuery {
+    public static class ParsedQuery implements Parcelable {
         private String query;
         private String validQuery;
         private String language;
@@ -162,6 +164,36 @@ public class FilterStream extends Stream{
             validQuery = query;
         }
 
+        protected ParsedQuery(Parcel in) {
+            query = in.readString();
+            validQuery = in.readString();
+            language = in.readString();
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(query);
+            dest.writeString(validQuery);
+            dest.writeString(language);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public static final Creator<ParsedQuery> CREATOR = new Creator<ParsedQuery>() {
+            @Override
+            public ParsedQuery createFromParcel(Parcel in) {
+                return new ParsedQuery(in);
+            }
+
+            @Override
+            public ParsedQuery[] newArray(int size) {
+                return new ParsedQuery[size];
+            }
+        };
+
         public String getQuery() {
             return query;
         }
@@ -177,5 +209,6 @@ public class FilterStream extends Stream{
         public boolean isFilterRetweet() {
             return filterRetweet;
         }
+
     }
 }

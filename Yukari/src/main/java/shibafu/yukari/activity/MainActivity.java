@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
+import android.support.v4.util.SparseArrayCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
@@ -54,6 +55,7 @@ import twitter4j.util.CharacterUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
@@ -845,6 +847,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public void onServiceDisconnected() {}
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
+        private SparseArrayCompat<WeakReference<Fragment>> itemCache = new SparseArrayCompat<>();
 
         public TabPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -864,6 +867,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     break;
             }
 
+            itemCache.put(i, new WeakReference<>(fragment));
+
             return fragment;
         }
 
@@ -879,7 +884,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         public TwitterListFragment findFragmentByPosition(ViewPager viewPager,
                                                int position) {
-            return (TwitterListFragment) instantiateItem(viewPager, position);
+            WeakReference<Fragment> cacheRef = itemCache.get(position);
+            if (cacheRef != null && cacheRef.get() != null) {
+                return (TwitterListFragment) cacheRef.get();
+            } else {
+                Log.w("MainActivity", "findFragmentByPosition: page:" + position + " はキャッシュされていません。正しくない参照を返す可能性があります。");
+                return (TwitterListFragment) instantiateItem(viewPager, position);
+            }
         }
     }
 }
