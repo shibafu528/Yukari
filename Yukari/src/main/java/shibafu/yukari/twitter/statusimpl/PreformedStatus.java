@@ -6,11 +6,27 @@ import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.*;
+import twitter4j.ExtendedMediaEntity;
+import twitter4j.GeoLocation;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
+import twitter4j.Place;
+import twitter4j.RateLimitStatus;
+import twitter4j.Scopes;
+import twitter4j.Status;
+import twitter4j.SymbolEntity;
+import twitter4j.URLEntity;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +51,7 @@ public class PreformedStatus implements Status{
     private boolean censoredThumbs;
     private boolean isTooManyRepeatText;
     private String repeatedSequence;
+    private List<String> hashtags;
 
     //受信の度に変動する情報
     private int favoriteCount;
@@ -67,6 +84,11 @@ public class PreformedStatus implements Status{
         }
         else {
             plainSource = status.getSource();
+        }
+        //ハッシュタグ抽出
+        hashtags = new ArrayList<>();
+        for (HashtagEntity entity : getHashtagEntities()) {
+            hashtags.add(entity.getText());
         }
         //リンクリストを作成
         ArrayList<URLEntity> urlEntities = new ArrayList<>();
@@ -548,6 +570,10 @@ public class PreformedStatus implements Status{
 
     public List<Long> getQuoteEntities() {
         return quoteEntities;
+    }
+
+    public List<String> getHashtags() {
+        return hashtags;
     }
 
     private class HashMapEx<K, V> extends HashMap<K, V> {
