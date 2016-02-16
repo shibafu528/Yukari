@@ -318,16 +318,18 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
         if (sp.getBoolean("pref_save_tags", false)) {
             List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>(){}.getType());
-            StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText)? "" : defaultText);
-            sb.append(" ");
-            for (String tag : tags) {
-                if (sb.length() > 1) {
-                    sb.append(" ");
+            if (!tags.isEmpty()) {
+                StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText) ? "" : defaultText);
+                sb.append(" ");
+                for (String tag : tags) {
+                    if (sb.length() > 1) {
+                        sb.append(" ");
+                    }
+                    sb.append("#");
+                    sb.append(tag);
                 }
-                sb.append("#");
-                sb.append(tag);
+                defaultText = sb.toString();
             }
-            defaultText = sb.toString();
         }
         etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
         int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
