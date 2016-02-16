@@ -11,9 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.util.concurrent.CountDownLatch;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.YukariBase;
 import shibafu.yukari.database.CentralDatabase;
@@ -25,6 +22,8 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -249,7 +248,7 @@ public class OAuthActivity extends YukariBase {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    twitter = getTwitterService().getTwitter();
+                    twitter = getTwitterService().getTwitter(null);
                     twitter.setOAuthAccessToken(accessToken);
 
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);

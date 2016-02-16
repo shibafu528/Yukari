@@ -286,8 +286,7 @@ public class PreviewActivity extends FragmentYukariBase {
                                 Thread.sleep(100);
                             } catch (InterruptedException ignore) {}
                         }
-                        Twitter twitter = getTwitterService().getTwitter();
-                        twitter.setOAuthAccessToken(user.getAccessToken());
+                        Twitter twitter = getTwitterService().getTwitter(user);
                         try {
                             input = twitter.getDMImageAsStream(url);
                         } catch (TwitterException e) {

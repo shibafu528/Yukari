@@ -101,8 +101,8 @@ public class IntentActivity extends ListYukariBase{
 
     @Override
     public void onServiceConnected() {
-        twitter = getTwitterService().getTwitter();
         primaryUser = getTwitterService().getPrimaryUser();
+        twitter = getTwitterService().getTwitter(primaryUser);
 
         matchedWork.second.work(IntentActivity.this);
     }

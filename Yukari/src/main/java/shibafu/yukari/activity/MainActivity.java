@@ -617,8 +617,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     new TwitterAsyncTask<Args>(getApplicationContext()) {
                         @Override
                         protected TwitterException doInBackground(Args... params) {
-                            Twitter twitter = getTwitterService().getTwitter();
-                            twitter.setOAuthAccessToken(params[0].account.getAccessToken());
+                            Twitter twitter = getTwitterService().getTwitter(params[0].account);
                             try {
                                 twitter.createSavedSearch(params[0].query);
                             } catch (TwitterException e) {

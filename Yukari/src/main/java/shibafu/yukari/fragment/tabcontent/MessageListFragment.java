@@ -243,8 +243,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 if (user == null) {
                     return new ThrowableResult<>(new IllegalArgumentException("操作対象のユーザが見つかりません."));
                 }
-                Twitter t = getService().getTwitter();
-                t.setOAuthAccessToken(user.getAccessToken());
+                Twitter t = getService().getTwitter(user);
                 try {
                     t.destroyDirectMessage(message.getId());
                 } catch (TwitterException e) {

@@ -764,9 +764,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             @Override
                             protected ThrowableResult<Void> doInBackground(String... params) {
                                 try {
-                                    Twitter twitter = getTwitterService().getTwitter();
                                     for (AuthUserRecord user : writers) {
-                                        twitter.setOAuthAccessToken(user.getAccessToken());
+                                        Twitter twitter = getTwitterService().getTwitter(user);
                                         twitter.updateProfile(params[0], null, null, null);
                                     }
                                     return new ThrowableResult<>((Void) null);

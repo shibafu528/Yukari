@@ -101,6 +101,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private boolean isLoading = false;
 
     //Twitter Wrapper
+    @Deprecated
     protected Twitter twitter;
     private TwitterServiceConnection connection = new TwitterServiceConnection(this);
 

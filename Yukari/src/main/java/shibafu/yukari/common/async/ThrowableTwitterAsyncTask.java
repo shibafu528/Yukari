@@ -48,14 +48,8 @@ public abstract class ThrowableTwitterAsyncTask<Params, Result> extends Throwabl
         }
     }
 
-    protected Twitter getTwitterInstance() {
-        return delegate.getTwitterService().getTwitter();
-    }
-
     protected Twitter getTwitterInstance(AuthUserRecord userRecord) {
-        Twitter twitter = delegate.getTwitterService().getTwitter();
-        twitter.setOAuthAccessToken(userRecord.getAccessToken());
-        return twitter;
+        return delegate.getTwitterService().getTwitter(userRecord);
     }
 
     public final boolean isErrored() {

@@ -613,9 +613,8 @@ public class StatusManager implements Releasable {
 
                     @Override
                     protected TwitterException doInBackground(@NotNull Params... params) {
-                        Twitter twitter = service.getTwitter();
                         AuthUserRecord userRecord = params[0].getUserRecord();
-                        twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                        Twitter twitter = service.getTwitter(userRecord);
                         try {
                             twitter4j.Status s = twitter.showStatus(params[0].getId());
                             receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
@@ -645,8 +644,7 @@ public class StatusManager implements Releasable {
             protected Void doInBackground(Void... params) {
                 Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, tag, query.getClass().getName()));
 
-                Twitter twitter = service.getTwitter();
-                twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                Twitter twitter = service.getTwitter(userRecord);
 
                 try {
                     Paging paging = new Paging();

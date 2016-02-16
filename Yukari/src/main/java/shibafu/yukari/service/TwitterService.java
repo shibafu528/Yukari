@@ -2,7 +2,11 @@ package shibafu.yukari.service;
 
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -35,10 +39,22 @@ import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.*;
-import twitter4j.conf.ConfigurationBuilder;
+import twitter4j.DirectMessage;
+import twitter4j.IDs;
+import twitter4j.Status;
+import twitter4j.StatusUpdate;
+import twitter4j.Twitter;
+import twitter4j.TwitterAPIConfiguration;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.UploadedMedia;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -79,7 +95,10 @@ public class TwitterService extends Service{
     //ネットワーク管理
 
     //Twitter通信系
+    @Deprecated
     private Twitter twitter;
+    private TwitterFactory twitterFactory;
+    private LongSparseArray<Twitter> twitterInstances = new LongSparseArray<>();
     private List<AuthUserRecord> users = new ArrayList<>();
     private List<UserExtras> userExtras = new ArrayList<>();
     private StatusManager statusManager;
@@ -143,6 +162,9 @@ public class TwitterService extends Service{
 
         handler = new Handler();
 
+        //TwitterFactoryの生成
+        twitterFactory = TwitterUtil.getTwitterFactory(this);
+
         //データベースのオープン
         database = new CentralDatabase(this).open();
 
@@ -181,7 +203,7 @@ public class TwitterService extends Service{
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
-                                twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                                twitter = getTwitter(userRecord);
 
                                 IDs ids = null;
                                 try {
@@ -272,7 +294,9 @@ public class TwitterService extends Service{
         statusManager.shutdownAll();
         statusManager = null;
 
+        twitterInstances.clear();
         twitter = null;
+        twitterFactory = null;
 
         storeUsers();
         users = new ArrayList<>();
@@ -495,24 +519,38 @@ public class TwitterService extends Service{
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
-    public ConfigurationBuilder getBuilder() {
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
-        builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
-        return builder;
-    }
-
     public String[] getHashCache() {
         List<String> hashCache = statusManager.getHashCache().getAll();
         return hashCache.toArray(new String[hashCache.size()]);
     }
 
+    /**
+     * @deprecated やめとけこんなの使うな辛いことになるぞ。AccessTokenを指定するなら {@link #getTwitter(AuthUserRecord)} を使うんだ。
+     */
+    @Deprecated
     public Twitter getTwitter() {
         AuthUserRecord primaryUser = getPrimaryUser();
         if (primaryUser != null) {
-            twitter.setOAuthAccessToken(primaryUser.getAccessToken());
+            return getTwitter(primaryUser);
+        } else {
+            return twitterFactory.getInstance();
         }
-        return twitter;
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。結果はアカウントID毎にキャッシュされます。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
+        if (userRecord == null) {
+            return twitterFactory.getInstance();
+        }
+
+        if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
+            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getAccessToken()));
+        }
+        return twitterInstances.get(userRecord.NumericId);
     }
 
     public StatusManager getStatusManager() {

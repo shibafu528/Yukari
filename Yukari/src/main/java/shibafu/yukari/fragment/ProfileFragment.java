@@ -636,8 +636,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
                     Suppressor suppressor = getTwitterService().getSuppressor();
 
-                    Twitter twitter = getTwitterService().getTwitter();
-                    twitter.setOAuthAccessToken(claim.getSourceAccount().getAccessToken());
+                    Twitter twitter = getTwitterService().getTwitter(claim.getSourceAccount());
 
                     switch (claim.getNewRelation()) {
                         case FollowDialogFragment.RELATION_NONE:
@@ -1027,10 +1026,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                                     getTwitterService().getUsers()
                                     : new ArrayList<>()
                             : new ArrayList<>();
-            Twitter twitter = getTwitterService().getTwitter();
             for (AuthUserRecord userRecord : users) {
                 try {
-                    twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                    Twitter twitter = getTwitterService().getTwitter(userRecord);
                     relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
                 } catch (TwitterException e) {
                     e.printStackTrace();

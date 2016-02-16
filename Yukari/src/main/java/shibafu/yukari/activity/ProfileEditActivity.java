@@ -153,8 +153,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                     @Override
                     protected ThrowableResult<Void> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = getTwitterService().getTwitter();
-                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                            Twitter twitter = getTwitterService().getTwitter(userRecord);
                             twitter.updateProfile(
                                     etName.getText().toString(),
                                     etWeb.getText().toString(),
@@ -235,8 +234,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                 @Override
                 protected ThrowableResult<User> doInBackground(Void... params) {
                     try {
-                        Twitter twitter = getTwitterService().getTwitter();
-                        twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                        Twitter twitter = getTwitterService().getTwitter(userRecord);
                         return new ThrowableResult<>(twitter.showUser(userRecord.NumericId));
                     } catch (TwitterException e) {
                         e.printStackTrace();

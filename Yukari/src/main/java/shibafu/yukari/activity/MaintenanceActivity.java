@@ -23,11 +23,6 @@ import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -44,6 +39,10 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.RateLimitStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by shibafu on 14/07/05.
@@ -306,8 +305,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
                     @Override
                     protected ThrowableResult<Map<String, RateLimitStatus>> doInBackground(AuthUserRecord... params) {
-                        Twitter twitter = getService().getTwitter();
-                        twitter.setOAuthAccessToken(params[0].getAccessToken());
+                        Twitter twitter = getService().getTwitter(params[0]);
                         try {
                             return new ThrowableResult<>(twitter.getRateLimitStatus());
                         } catch (TwitterException e) {
