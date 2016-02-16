@@ -17,6 +17,7 @@ import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Query;
 import twitter4j.QueryResult;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
@@ -179,7 +180,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
+            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
                 Query query = params[0].getQuery();
                 query.setCount(isNarrowMode ? 20 : 100);

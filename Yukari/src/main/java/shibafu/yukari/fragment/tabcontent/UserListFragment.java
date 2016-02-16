@@ -365,7 +365,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
 
         @Override
         protected ResponseList<UserList> doInBackground(Void... params) {
-            twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
+            Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
             try {
                 ResponseList<UserList> responseList = null;
                 switch (getMode()) {

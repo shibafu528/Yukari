@@ -333,7 +333,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
         @Override
         protected List<DirectMessage> doInBackground(Params... params) {
-            twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
+            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
                 Paging paging = params[0].getPaging();
                 if (!isNarrowMode) paging.setCount(60);

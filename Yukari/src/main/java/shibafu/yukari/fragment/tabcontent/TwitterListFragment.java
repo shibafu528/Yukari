@@ -12,7 +12,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.AbsListView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import lombok.AccessLevel;
 import lombok.Setter;
 import shibafu.yukari.R;
@@ -26,10 +30,16 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
-import twitter4j.Twitter;
 import twitter4j.TwitterResponse;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -101,8 +111,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private boolean isLoading = false;
 
     //Twitter Wrapper
-    @Deprecated
-    protected Twitter twitter;
     private TwitterServiceConnection connection = new TwitterServiceConnection(this);
 
     //TweetCommon Delegate
@@ -434,7 +442,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
     public void onServiceConnected() {
-        twitter = getService().getTwitter();
         if (users.isEmpty()) {
             users.addAll(getService().getUsers());
         }

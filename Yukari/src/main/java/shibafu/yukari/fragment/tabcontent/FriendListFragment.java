@@ -10,9 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.FontAsset;
@@ -20,8 +17,11 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -102,7 +102,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
         @Override
         protected ResponseList<User> doInBackground(Void... params) {
-            twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
+            Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
             try {
                 ResponseList<twitter4j.User> responseList = null;
                 switch (getMode()) {

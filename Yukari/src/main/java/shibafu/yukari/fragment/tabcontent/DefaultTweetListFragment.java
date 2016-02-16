@@ -163,7 +163,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
                 @Override
                 protected Void doInBackground(twitter4j.Status... params) {
-                    twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
+                    Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
                     twitter4j.Status status = params[0];
                     while (status.getInReplyToStatusId() > -1) {
                         try {
@@ -566,7 +566,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
+            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
                 ResponseList<twitter4j.Status> responseList = null;
                 Paging paging = params[0].getPaging();

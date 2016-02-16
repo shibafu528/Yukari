@@ -198,12 +198,11 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        Twitter twitter = getTwitter();
-                        apiConfiguration = twitter.getAPIConfiguration();
+                        apiConfiguration = getTwitter().getAPIConfiguration();
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
-                                twitter = getTwitter(userRecord);
+                                Twitter twitter = getTwitter(userRecord);
 
                                 IDs ids = null;
                                 try {
