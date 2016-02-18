@@ -35,10 +35,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
@@ -49,6 +45,9 @@ import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
 import twitter4j.TwitterException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -393,7 +392,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<>(getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends());
+                            return new ThrowableResult<>(getServiceAwait().getTwitterOrPrimary(null).getPlaceTrends(1118370).getTrends());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -483,7 +482,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
                             return new ThrowableResult<>(
-                                    getServiceAwait().getTwitter().getSavedSearches());
+                                    getServiceAwait().getTwitterOrPrimary(null).getSavedSearches());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -574,7 +573,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     protected TwitterException doInBackground(SavedSearch... savedSearches) {
                         savedSearch = savedSearches[0];
                         try {
-                            getServiceAwait().getTwitter().destroySavedSearch(savedSearch.getId());
+                            getServiceAwait().getTwitterOrPrimary(null).destroySavedSearch(savedSearch.getId());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return e;

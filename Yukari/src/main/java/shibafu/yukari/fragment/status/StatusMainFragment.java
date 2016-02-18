@@ -640,7 +640,7 @@ public class StatusMainFragment extends TwitterFragment{
                 @Override
                 protected ThrowableResult<String> doInBackground(Long... params) {
                     try {
-                        String url = getTwitterService().getTwitter().showUser(params[0]).getOriginalProfileImageURLHttps();
+                        String url = getTwitterService().getTwitterOrPrimary(user).showUser(params[0]).getOriginalProfileImageURLHttps();
                         return new ThrowableResult<>(url);
                     } catch (TwitterException e) {
                         e.printStackTrace();

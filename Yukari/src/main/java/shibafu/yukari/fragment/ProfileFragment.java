@@ -21,9 +21,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.GridView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.*;
+import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.activity.MuteActivity;
+import shibafu.yukari.activity.PreviewActivity;
+import shibafu.yukari.activity.ProfileEditActivity;
+import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -33,10 +45,18 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.*;
+import shibafu.yukari.fragment.tabcontent.FriendListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
+import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
-import twitter4j.*;
+import twitter4j.Relationship;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.URLEntity;
+import twitter4j.User;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -958,9 +978,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     if (name.startsWith("@")) {
                         name = name.substring(1);
                     }
-                    user = getTwitterService().getTwitter().showUser(name);
+                    user = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user).showUser(name);
                 } else {
-                    user = getTwitterService().getTwitter().showUser(targetId);
+                    user = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user).showUser(targetId);
                 }
 
                 if (user != null) {

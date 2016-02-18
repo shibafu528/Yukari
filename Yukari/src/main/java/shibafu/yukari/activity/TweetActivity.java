@@ -350,7 +350,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                     Thread.sleep(100);
                                 } catch (InterruptedException ignore) {}
                             }
-                            status = getTwitterService().getTwitter().showStatus(inReplyTo);
+                            status = getTwitterService().getTwitterOrPrimary(user).showStatus(inReplyTo);
                         } catch (TwitterException e) {
                             e.printStackTrace();
                         }

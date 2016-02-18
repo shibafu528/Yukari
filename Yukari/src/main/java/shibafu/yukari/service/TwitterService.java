@@ -198,7 +198,7 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        apiConfiguration = getTwitter().getAPIConfiguration();
+                        apiConfiguration = getTwitterOrPrimary(null).getAPIConfiguration();
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
@@ -524,19 +524,6 @@ public class TwitterService extends Service{
     }
 
     /**
-     * @deprecated やめとけこんなの使うな辛いことになるぞ。AccessTokenを指定するなら {@link #getTwitter(AuthUserRecord)} を使うんだ。
-     */
-    @Deprecated
-    public Twitter getTwitter() {
-        AuthUserRecord primaryUser = getPrimaryUser();
-        if (primaryUser != null) {
-            return getTwitter(primaryUser);
-        } else {
-            return twitterFactory.getInstance();
-        }
-    }
-
-    /**
      * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。結果はアカウントID毎にキャッシュされます。
      * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
@@ -550,6 +537,20 @@ public class TwitterService extends Service{
             twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getAccessToken()));
         }
         return twitterInstances.get(userRecord.NumericId);
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。
+     * {@link #getTwitter(AuthUserRecord)} との違いは、こちらは引数 userRecord が null の場合、プライマリユーザでの取得を試みることです。
+     * @param userRecord 認証情報。ここに null を指定すると、プライマリユーザのインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。
+     */
+    public Twitter getTwitterOrPrimary(@Nullable AuthUserRecord userRecord) {
+        if (userRecord == null) {
+            return getTwitter(getPrimaryUser());
+        } else {
+            return getTwitter(userRecord);
+        }
     }
 
     public StatusManager getStatusManager() {
