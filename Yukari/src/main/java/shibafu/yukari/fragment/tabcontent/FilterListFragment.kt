@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import shibafu.yukari.filter.FilterQuery
+import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.statusimpl.ExceptionStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
@@ -94,7 +96,17 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         users = twitterService.users
 
         //クエリのコンパイルを開始
-        filterQuery = QueryCompiler.compile(users, filterRawQuery)
+        try {
+            filterQuery = QueryCompiler.compile(users, filterRawQuery)
+        } catch (e: FilterCompilerException) {
+            handler.post {
+                elements.add(PreformedStatus(ExceptionStatus(Long.MAX_VALUE,
+                        Exception("クエリのコンパイル中にエラーが発生しました。")), users.first()))
+                elements.add(PreformedStatus(ExceptionStatus(Long.MAX_VALUE - 1, e), users.first()))
+                notifyDataSetChanged()
+            }
+            filterQuery = QueryCompiler.compile(users, "from * where (false)")
+        }
 
         //ストリーミングのリスナ登録
         statusManager.addStatusListener(this)
@@ -110,6 +122,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
     override fun setRefreshComplete() {
         swipeRefreshLayout.isRefreshing = false
+    }
+
+    override fun onListItemClick(clickedElement: PreformedStatus?) {
+        if (clickedElement == null || clickedElement.baseStatusClass != ExceptionStatus::class.java) {
+            super.onListItemClick(clickedElement)
+        } else {
+            setBlockingDoubleClock(false)
+        }
     }
 
     override fun getStreamFilter(): String? = null

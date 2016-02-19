@@ -276,6 +276,14 @@ public class PreformedStatus implements Status{
     }
 
     /**
+     * インスタンス生成元Statusの型データを取得
+     * @return 元々の型情報
+     */
+    public Class<? extends Status> getBaseStatusClass() {
+        return status.getClass();
+    }
+
+    /**
      * リツイートなら元ツイートのPreformedStatusを、そうでなければ自分自身を返す
      * @return 本来のツイート
      */

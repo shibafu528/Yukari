@@ -17,8 +17,6 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import lombok.AccessLevel;
-import lombok.Setter;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
@@ -118,7 +116,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     //DoubleClock Blocker
     private boolean enableDoubleClickBlocker;
-    @Setter(AccessLevel.PROTECTED) private boolean blockingDoubleClock;
+    private boolean blockingDoubleClock;
 
     private Handler handler = new Handler();
 
@@ -583,4 +581,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    protected void setBlockingDoubleClock(boolean blockingDoubleClock) {
+        this.blockingDoubleClock = blockingDoubleClock;
+    }
 }
