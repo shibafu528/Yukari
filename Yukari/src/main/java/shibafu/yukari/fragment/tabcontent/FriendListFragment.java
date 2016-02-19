@@ -128,6 +128,9 @@ public class FriendListFragment extends TwitterListFragment<User> {
                 if (responseList != null && !responseList.isEmpty()) {
                     if (getMode() == MODE_SEARCH) {
                         loadCursor++;
+                        if (responseList.size() < 20) {
+                            loadCursor = 0;
+                        }
                     }
                     else {
                         loadCursor = ((PagableResponseList) responseList).getNextCursor();
@@ -152,6 +155,10 @@ public class FriendListFragment extends TwitterListFragment<User> {
                 adapter.notifyDataSetChanged();
             }
             changeFooterProgress(false);
+
+            if (loadCursor == 0) {
+                removeFooter();
+            }
         }
     }
 

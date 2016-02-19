@@ -411,6 +411,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     protected void removeFooter() {
         if (listView != null) {
             listView.removeFooterView(footerView);
+            notifyDataSetChanged();
         }
     }
 
