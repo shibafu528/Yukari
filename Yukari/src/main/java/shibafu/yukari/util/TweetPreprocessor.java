@@ -173,6 +173,11 @@ public class TweetPreprocessor {
             return String.format("ゆかりさんゆかりさん！！(%d回目)", count);
         });
         COMMANDS.put("::rev", (depends, input) -> {
+            if (TextUtils.isEmpty(input)) {
+                Toast.makeText(depends.getActivity().getApplicationContext(), "Input is empty", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+
             StringBuilder sb = new StringBuilder();
             for (int i = input.length() - 1; 0 <= i; i--) {
                 sb.append(input.charAt(i));
@@ -180,6 +185,11 @@ public class TweetPreprocessor {
             return sb.toString();
         });
         COMMANDS.put("::shuf", (depends, input) -> {
+            if (TextUtils.isEmpty(input)) {
+                Toast.makeText(depends.getActivity().getApplicationContext(), "Input is empty", Toast.LENGTH_SHORT).show();
+                return null;
+            }
+
             List<Character> list = new ArrayList<>();
             for (int i = 0; i < input.length(); i++) {
                 list.add(input.charAt(i));
