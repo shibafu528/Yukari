@@ -278,6 +278,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
 
                 pageList.remove(current);
+                onTabChanged(current - 1);
                 viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
                 viewPager.setCurrentItem(current - 1);
                 return true;
@@ -311,32 +312,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
             @Override
             public void onPageSelected(int i) {
-                tvTabText.setText(pageList.get(i).getTitle());
-                WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(i).getId());
-                if (reference != null) {
-                    currentPage = reference.get();
-                }
-                if (currentPage != null) {
-                    if (currentPage.isCloseable()) {
-                        ibClose.setVisibility(View.VISIBLE);
-                    } else {
-                        ibClose.setVisibility(View.INVISIBLE);
-                    }
-                    if (currentPage instanceof SearchListFragment) {
-                        ibStream.setVisibility(View.VISIBLE);
-                        if (((SearchListFragment) currentPage).isStreaming()) {
-                            ibStream.setImageResource(R.drawable.ic_play);
-                        } else {
-                            ibStream.setImageResource(R.drawable.ic_pause);
-                        }
-                    } else {
-                        ibStream.setVisibility(View.INVISIBLE);
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(), "Tab Change Error", Toast.LENGTH_LONG).show();
-                    ibClose.setVisibility(View.INVISIBLE);
-                    ibStream.setVisibility(View.INVISIBLE);
-                }
+                onTabChanged(i);
             }
 
             @Override
@@ -737,9 +713,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     pageId = i;
                 }
             }
-        }
-        else for (int i = 0; i < pageList.size(); ++i) {
-            if (tabPagerAdapter.findFragmentByPosition(viewPager, i) == currentPage) {
+        } else for (int i = 0; i < pageList.size(); ++i) {
+            if (pageList.get(i).getId() == currentPage.getTabId()) {
                 pageId = i;
                 break;
             }
@@ -749,11 +724,43 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager.setCurrentItem(pageId);
 
         if (!pageList.isEmpty()) {
-            currentPage = tabPagerAdapter.findFragmentByPosition(viewPager, pageId);
+            WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(pageId).getId());
+            if (reference != null) {
+                currentPage = reference.get();
+            }
             tvTabText.setText(pageList.get(pageId).getTitle());
         }
         else {
             tvTabText.setText("!EMPTY!");
+        }
+    }
+
+    private void onTabChanged(int i) {
+        tvTabText.setText(pageList.get(i).getTitle());
+        WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(i).getId());
+        if (reference != null && reference.get() != null) {
+            currentPage = reference.get();
+        }
+        if (currentPage != null) {
+            if (currentPage.isCloseable()) {
+                ibClose.setVisibility(View.VISIBLE);
+            } else {
+                ibClose.setVisibility(View.INVISIBLE);
+            }
+            if (currentPage instanceof SearchListFragment) {
+                ibStream.setVisibility(View.VISIBLE);
+                if (((SearchListFragment) currentPage).isStreaming()) {
+                    ibStream.setImageResource(R.drawable.ic_play);
+                } else {
+                    ibStream.setImageResource(R.drawable.ic_pause);
+                }
+            } else {
+                ibStream.setVisibility(View.INVISIBLE);
+            }
+        } else {
+            Toast.makeText(getApplicationContext(), "Tab Change Error", Toast.LENGTH_LONG).show();
+            ibClose.setVisibility(View.INVISIBLE);
+            ibStream.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -815,10 +822,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     public void registTwitterFragment(long id, TwitterListFragment fragment) {
+        Log.d("MainActivity", "regist tab: " + id);
         tabRegistry.put(id, new WeakReference<>(fragment));
     }
 
     public void unregistTwitterFragment(long id) {
+        Log.d("MainActivity", "unregist tab: " + id);
         tabRegistry.remove(id);
     }
 

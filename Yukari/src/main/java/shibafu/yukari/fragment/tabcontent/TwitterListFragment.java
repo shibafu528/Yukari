@@ -305,6 +305,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    public long getTabId() {
+        return getArguments().getLong(EXTRA_ID);
+    }
+
     public String getTitle() {
         return title;
     }
