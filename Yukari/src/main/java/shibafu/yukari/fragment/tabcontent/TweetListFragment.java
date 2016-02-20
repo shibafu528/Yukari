@@ -148,6 +148,14 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         }.execute(swipeActionStatusGrabbed);
                                         break;
                                     case SWIPE_ACTION_FAVRT:
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
+                                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                                            if (!sp.getBoolean("pref_narcist", false)) {
+                                                // ナルシストオプションを有効にしていない場合は中断
+                                                break;
+                                            }
+                                        }
+
                                         new TwitterAsyncTask<PreformedStatus>(getActivity()) {
                                             @Override
                                             protected TwitterException doInBackground(PreformedStatus... params) {
