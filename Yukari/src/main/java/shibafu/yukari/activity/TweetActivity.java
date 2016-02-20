@@ -1,7 +1,16 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.content.*;
+import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -22,9 +31,20 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.CharacterStyle;
 import android.util.TypedValue;
-import android.view.*;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
@@ -32,9 +52,10 @@ import com.twitter.Validator;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
-import shibafu.yukari.common.*;
+import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.database.Template;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
@@ -45,15 +66,20 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.util.TweetPreprocessor;
 import twitter4j.Status;
-import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -738,165 +764,34 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //エイリアス処理
         String inputText = etInput.getText().toString();
+        String preprocessedInput = TweetPreprocessor.preprocess(new TweetPreprocessor.TweetPreprocessorDepends() {
+            @Override
+            public TweetActivity getActivity() {
+                return TweetActivity.this;
+            }
+
+            @Override
+            public List<AuthUserRecord> getWriters() {
+                return writers;
+            }
+
+            @Override
+            public String getBatteryTweetText() {
+                return batteryTweet;
+            }
+        }, inputText);
+
+        if (preprocessedInput == null) {
+            return;
+        } else {
+            inputText = preprocessedInput;
+        }
+
+        // TODO: いずれ廃止する
         if (etInput.getText().toString().startsWith("::")) {
             String input = etInput.getText().toString();
             String command = input.split(" ")[0];
             switch (command) {
-                case "::cmd":
-                    startActivity(new Intent(getApplicationContext(), CommandsPrefActivity.class));
-                    return;
-                case "::main":
-                    startActivity(new Intent(getApplicationContext(), MaintenanceActivity.class));
-                    return;
-                case "::sb":
-                    inputText = "エビビーム！ﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞｗｗｗｗｗｗ";
-                    break;
-                case "::jb":
-                    inputText = "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww";
-                    break;
-                case "::bb":
-                    inputText = input.replace("::bb", "@la0c bbop");
-                    break;
-                case "::cn":
-                    if (inputText.split(" ").length > 1) {
-                        String name = inputText.replace("::cn ", "");
-                        new ThrowableTwitterAsyncTask<String, Void>() {
-                            @Override
-                            protected ThrowableResult<Void> doInBackground(String... params) {
-                                try {
-                                    for (AuthUserRecord user : writers) {
-                                        Twitter twitter = getTwitterService().getTwitter(user);
-                                        twitter.updateProfile(params[0], null, null, null);
-                                    }
-                                    return new ThrowableResult<>((Void) null);
-                                } catch (TwitterException e) {
-                                    e.printStackTrace();
-                                    return new ThrowableResult<>(e);
-                                }
-                            }
-
-                            @Override
-                            protected void onPreExecute() {
-                                super.onPreExecute();
-                                showToast("Updating your name...");
-                            }
-
-                            @Override
-                            protected void onPostExecute(ThrowableResult<Void> result) {
-                                super.onPostExecute(result);
-                                if (!result.isException()) {
-                                    showToast("Updated your name!");
-                                }
-                            }
-
-                            @Override
-                            protected void showToast(String message) {
-                                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
-                            }
-                        }.execute(name);
-                        setResult(RESULT_OK);
-                        finish();
-                        return;
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                case "::d250g2":
-                    if (inputText.split(" ").length > 1) {
-                        String comment = inputText.replace("::d250g2 ", "");
-                        inputText = comment + " http://twitpic.com/d250g2";
-                    }
-                    else {
-                        inputText = "http://twitpic.com/d250g2";
-                    }
-                    break;
-                case "::grgr":
-                    inputText = "三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )三('ω')三( ε: )三(.ω.)三( :3 )ゴロゴロゴロ";
-                    break;
-                case "::burn":
-                    Toast.makeText(getApplicationContext(), "Sorry, burn command was rejected.", Toast.LENGTH_SHORT).show();
-                    return;
-                case "::sy":
-                    inputText = "( ˘ω˘)ｽﾔｧ…";
-                    break;
-                case "::balus":
-                    sendBroadcast(new Intent("shibafu.yukari.BALUS"));
-                    setResult(RESULT_OK);
-                    finish();
-                    return;
-                case "::batt":
-                    inputText = batteryTweet;
-                    break;
-                case "::ay":
-                    inputText = "#あひる焼き";
-                    break;
-                case "::mh": {
-                    // Quote from https://github.com/0V/MohyoButton/blob/master/MohyoButton/Models/MohyoTweet.cs
-                    final String[] MOHYO = {
-                            "もひょ",
-                            "もひょっ",
-                            "もひょぉ",
-                            "もひょもひょ",
-                            "もひょもひょっ",
-                            "もひょもひょぉ",
-                            "もひょもひょもひょもひょ",
-                            "＞ω＜もひょ",
-                            "(~´ω`)~もひょ",
-                            "~(´ω`~)もひょ",
-                            "(～＞ω＜)～もひょ",
-                            "～(＞ω＜～)もひょ",
-                            "～(＞ω＜)～もひょ",
-                            "進捗もひょです",
-                            "Mohyo",
-                            "mohyo",
-                            "むいっ",
-                    };
-                    // End of quote
-                    inputText = MOHYO[new Random().nextInt(MOHYO.length)];
-                    break;
-                }
-                case "::ma":
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://wiki.famitsu.com/kairi/"))
-                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    setResult(RESULT_OK);
-                    finish();
-                    return;
-                case "::meu":
-                    inputText = "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)";
-                    break;
-                case "::dice":
-                    if (inputText.split(" ").length > 1) {
-                        String diceInput = inputText.replace("::dice ", "");
-                        Pattern pattern = Pattern.compile("(\\d+).(\\d+)");
-                        Matcher m = pattern.matcher(diceInput);
-                        if (m.find() && m.groupCount() == 2) {
-                            int randomSum = 0;
-                            Random r = new Random();
-                            int count = Integer.parseInt(m.group(1));
-                            int length = Integer.parseInt(m.group(2));
-                            if (count < 1 || length < 1) {
-                                Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                            for (int i = 0; i < count; i++) {
-                                randomSum += r.nextInt(length) + 1;
-                            }
-                            inputText = String.format("%dd%d => [%d]", count, length, randomSum);
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    } else {
-                        final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
-                        Random r = new Random();
-                        inputText = dice[r.nextInt(6)];
-                    }
-                    break;
-                case "::yk": {
-                    inputText = String.format("ゆかりさんゆかりさん！！(%d回目)", sp.getLong("count_yk", 1));
-                    sp.edit().putLong("count_yk", sp.getLong("count_yk", 1) + 1).commit();
-                    break;
-                }
                 case "::te": {
                     List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
                     templateStrings = new ArrayList<>();
@@ -912,28 +807,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 case "::td": {
                     startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
                     return;
-                }
-                case "::rev": {
-                    inputText = inputText.replace("::rev ", "");
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = inputText.length() - 1; 0 <= i; i--) {
-                        sb.append(inputText.charAt(i));
-                    }
-                    inputText = sb.toString();
-                    break;
-                }
-                case "::shuf": {
-                    inputText = inputText.replace("::shuf ", "");
-                    List<Character> list = new ArrayList<>();
-                    for (int i = 0; i < inputText.length(); i++) {
-                        list.add(inputText.charAt(i));
-                    }
-                    Collections.shuffle(list);
-                    StringBuilder sb = new StringBuilder();
-                    for (Character c : list) {
-                        sb.append(c);
-                    }
-                    inputText = sb.toString();
                 }
             }
         }
