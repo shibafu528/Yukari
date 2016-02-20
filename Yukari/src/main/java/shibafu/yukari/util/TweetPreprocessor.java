@@ -205,7 +205,7 @@ public class TweetPreprocessor {
             String command = input.split(" ")[0];
             TweetPreprocessorAction action = COMMANDS.get(command);
             if (action != null) {
-                return action.preprocess(depends, input.replace(command + " ", ""));
+                return action.preprocess(depends, input.replace(command, "").trim());
             }
         }
         return input;
