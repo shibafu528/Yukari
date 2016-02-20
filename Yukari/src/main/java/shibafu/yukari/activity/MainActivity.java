@@ -91,6 +91,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @InjectView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
     @InjectView(R.id.streamState)   TriangleView tvStreamState;
 
+    private LongSparseArray<WeakReference<TwitterListFragment>> tabRegistry = new LongSparseArray<>();
+
     //QuickPost関連
     private InputMethodManager imm;
     private boolean enableQuickPost = true;
@@ -265,10 +267,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             if (currentPage.isCloseable()) {
                 int current = viewPager.getCurrentItem();
                 TabInfo tabInfo = pageList.get(current);
-                TwitterListFragment tabFragment = tabPagerAdapter.findFragmentByPosition(viewPager, current);
+                TwitterListFragment tabFragment = null;
+                WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(current).getId());
+                if (reference != null) {
+                    tabFragment = reference.get();
+                }
                 if (tabFragment instanceof SearchListFragment &&
                         ((SearchListFragment) tabFragment).isStreaming()) {
-                    getTwitterService().getStatusManager().stopFilterStream(tabInfo.getSearchKeyword(), tabFragment.getCurrentUser());
+                    ((SearchListFragment) tabFragment).setStreaming(false);
                 }
 
                 pageList.remove(current);
@@ -306,7 +312,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             @Override
             public void onPageSelected(int i) {
                 tvTabText.setText(pageList.get(i).getTitle());
-                currentPage = tabPagerAdapter.findFragmentByPosition(viewPager, i);
+                WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(i).getId());
+                if (reference != null) {
+                    currentPage = reference.get();
+                }
                 if (currentPage != null) {
                     if (currentPage.isCloseable()) {
                         ibClose.setVisibility(View.VISIBLE);
@@ -805,6 +814,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         return searchQueries.get(id);
     }
 
+    public void registTwitterFragment(long id, TwitterListFragment fragment) {
+        tabRegistry.put(id, new WeakReference<>(fragment));
+    }
+
+    public void unregistTwitterFragment(long id) {
+        tabRegistry.remove(id);
+    }
+
     @Override
     public void onServiceConnected() {
         if (getTwitterService().getUsers().isEmpty()) {
@@ -881,6 +898,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             return pageList.get(position).getTitle();
         }
 
+        /**
+         * @deprecated 正確なFragmentインスタンスを取得できないため、使用しないこと
+         */
+        @Deprecated
         public TwitterListFragment findFragmentByPosition(ViewPager viewPager,
                                                int position) {
             WeakReference<Fragment> cacheRef = itemCache.get(position);

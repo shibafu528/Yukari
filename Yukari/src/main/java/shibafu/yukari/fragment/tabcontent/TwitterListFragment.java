@@ -138,6 +138,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
             elements = ((MainActivity) activity).getElementsList(id);
+
+            ((MainActivity) activity).registTwitterFragment(id, this);
         }
     }
 
@@ -297,6 +299,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         swipeRefreshLayout = null;
         unreadNotifierView = null;
         connection.disconnect(getActivity());
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).unregistTwitterFragment(getArguments().getLong(EXTRA_ID));
+        }
     }
 
     public String getTitle() {
