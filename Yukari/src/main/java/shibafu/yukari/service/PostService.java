@@ -17,14 +17,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.util.Log;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
@@ -35,6 +27,13 @@ import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.CompatUtil;
 import twitter4j.StatusUpdate;
 import twitter4j.TwitterException;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/03/26.
@@ -90,6 +89,11 @@ public class PostService extends IntentService{
             return;
         }
         ArrayList<AuthUserRecord> writers = draft.getWriters();
+        if (writers == null || writers.isEmpty()) {
+            nm.cancel(0);
+            showErrorMessage(1, null, "投稿アカウントが指定されていません");
+            return;
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
                 .setTicker("ツイートを送信中")
