@@ -585,16 +585,30 @@ public class PreformedStatus implements Status{
     }
 
     private class HashMapEx<K, V> extends HashMap<K, V> {
+        private final Object lock = new Object();
+
+        @Override
+        public V put(K key, V value) {
+            synchronized (lock) {
+                return super.put(key, value);
+            }
+        }
+
         public V get(K key, V ifNotExistValue) {
-            V val = get(key);
+            V val;
+            synchronized (lock) {
+                val = get(key);
+            }
             if (val == null) return ifNotExistValue;
             else return val;
         }
 
         public boolean containsWithFilter(Collection<K> keyCollection, V value) {
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
-                    return true;
+            synchronized (lock) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -602,9 +616,11 @@ public class PreformedStatus implements Status{
 
         public HashMapEx<K, V> filterByKey(Collection<K> keyCollection) {
             HashMapEx<K, V> mapEx = new HashMapEx<>();
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (keyCollection.contains(kvEntry.getKey())) {
-                    mapEx.put(kvEntry.getKey(), kvEntry.getValue());
+            synchronized (lock) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (keyCollection.contains(kvEntry.getKey())) {
+                        mapEx.put(kvEntry.getKey(), kvEntry.getValue());
+                    }
                 }
             }
             return mapEx;
@@ -612,9 +628,11 @@ public class PreformedStatus implements Status{
 
         public List<K> filterByValue(V value) {
             List<K> keys = new ArrayList<>();
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (kvEntry.getValue().equals(value)) {
-                    keys.add(kvEntry.getKey());
+            synchronized (lock) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (kvEntry.getValue().equals(value)) {
+                        keys.add(kvEntry.getKey());
+                    }
                 }
             }
             return keys;
