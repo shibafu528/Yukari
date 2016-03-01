@@ -584,19 +584,19 @@ public class PreformedStatus implements Status{
         return hashtags;
     }
 
-    private class HashMapEx<K, V> extends HashMap<K, V> {
-        private final Object lock = new Object();
+    private static class HashMapEx<K, V> extends HashMap<K, V> {
+        private final Object mutex = this;
 
         @Override
         public V put(K key, V value) {
-            synchronized (lock) {
+            synchronized (mutex) {
                 return super.put(key, value);
             }
         }
 
         public V get(K key, V ifNotExistValue) {
             V val;
-            synchronized (lock) {
+            synchronized (mutex) {
                 val = get(key);
             }
             if (val == null) return ifNotExistValue;
@@ -604,7 +604,7 @@ public class PreformedStatus implements Status{
         }
 
         public boolean containsWithFilter(Collection<K> keyCollection, V value) {
-            synchronized (lock) {
+            synchronized (mutex) {
                 for (Entry<K, V> kvEntry : this.entrySet()) {
                     if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
                         return true;
@@ -616,7 +616,7 @@ public class PreformedStatus implements Status{
 
         public HashMapEx<K, V> filterByKey(Collection<K> keyCollection) {
             HashMapEx<K, V> mapEx = new HashMapEx<>();
-            synchronized (lock) {
+            synchronized (mutex) {
                 for (Entry<K, V> kvEntry : this.entrySet()) {
                     if (keyCollection.contains(kvEntry.getKey())) {
                         mapEx.put(kvEntry.getKey(), kvEntry.getValue());
@@ -628,7 +628,7 @@ public class PreformedStatus implements Status{
 
         public List<K> filterByValue(V value) {
             List<K> keys = new ArrayList<>();
-            synchronized (lock) {
+            synchronized (mutex) {
                 for (Entry<K, V> kvEntry : this.entrySet()) {
                     if (kvEntry.getValue().equals(value)) {
                         keys.add(kvEntry.getKey());
