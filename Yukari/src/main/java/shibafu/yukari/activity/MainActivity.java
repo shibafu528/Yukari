@@ -735,12 +735,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
     }
 
-    private void onTabChanged(int i) {
-        tvTabText.setText(pageList.get(i).getTitle());
-        WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(i).getId());
+    private void onTabChanged(int position) {
+        TabInfo tabInfo = pageList.get(position);
+
+        tvTabText.setText(tabInfo.getTitle());
+        WeakReference<TwitterListFragment> reference = tabRegistry.get(tabInfo.getId());
         if (reference != null && reference.get() != null) {
             currentPage = reference.get();
         }
+
         if (currentPage != null) {
             if (currentPage.isCloseable()) {
                 ibClose.setVisibility(View.VISIBLE);
@@ -872,7 +875,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public void onServiceDisconnected() {}
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
-        private SparseArrayCompat<WeakReference<Fragment>> itemCache = new SparseArrayCompat<>();
 
         public TabPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -892,8 +894,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     break;
             }
 
-            itemCache.put(i, new WeakReference<>(fragment));
-
             return fragment;
         }
 
@@ -907,19 +907,5 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             return pageList.get(position).getTitle();
         }
 
-        /**
-         * @deprecated 正確なFragmentインスタンスを取得できないため、使用しないこと
-         */
-        @Deprecated
-        public TwitterListFragment findFragmentByPosition(ViewPager viewPager,
-                                               int position) {
-            WeakReference<Fragment> cacheRef = itemCache.get(position);
-            if (cacheRef != null && cacheRef.get() != null) {
-                return (TwitterListFragment) cacheRef.get();
-            } else {
-                Log.w("MainActivity", "findFragmentByPosition: page:" + position + " はキャッシュされていません。正しくない参照を返す可能性があります。");
-                return (TwitterListFragment) instantiateItem(viewPager, position);
-            }
-        }
     }
 }
