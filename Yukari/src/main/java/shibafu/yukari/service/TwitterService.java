@@ -198,11 +198,19 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        apiConfiguration = getTwitterOrPrimary(null).getAPIConfiguration();
+                        {
+                            Twitter primary = getTwitterOrPrimary(null);
+                            if (primary != null) {
+                                apiConfiguration = primary.getAPIConfiguration();
+                            }
+                        }
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
                                 Twitter twitter = getTwitter(userRecord);
+                                if (twitter == null) {
+                                    continue;
+                                }
 
                                 IDs ids = null;
                                 try {
@@ -528,7 +536,12 @@ public class TwitterService extends Service{
      * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
      */
+    @Nullable
     public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
+        if (twitterFactory == null) {
+            return null;
+        }
+
         if (userRecord == null) {
             return twitterFactory.getInstance();
         }
@@ -545,6 +558,7 @@ public class TwitterService extends Service{
      * @param userRecord 認証情報。ここに null を指定すると、プライマリユーザのインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。
      */
+    @Nullable
     public Twitter getTwitterOrPrimary(@Nullable AuthUserRecord userRecord) {
         if (userRecord == null) {
             return getTwitter(getPrimaryUser());
