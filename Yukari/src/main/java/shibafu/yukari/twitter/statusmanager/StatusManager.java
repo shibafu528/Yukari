@@ -22,17 +22,40 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.*;
-import shibafu.yukari.twitter.streaming.*;
+import shibafu.yukari.twitter.statusimpl.FakeStatus;
+import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
+import shibafu.yukari.twitter.statusimpl.HistoryStatus;
+import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
+import shibafu.yukari.twitter.statusimpl.MetaStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
+import shibafu.yukari.twitter.statusimpl.RestCompletedStatus;
+import shibafu.yukari.twitter.streaming.FilterStream;
+import shibafu.yukari.twitter.streaming.RestStream;
+import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
+import shibafu.yukari.twitter.streaming.StreamUser;
 import shibafu.yukari.util.AutoRelease;
 import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.Paging;
+import twitter4j.Status;
+import twitter4j.StatusDeletionNotice;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -170,16 +193,20 @@ public class StatusManager implements Releasable {
             HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
             EventBuffer eventBuffer = new UpdateEventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
             pushEventQueue(eventBuffer);
-            updateBuffer.add(eventBuffer);
+            updateBuffer.sync(u -> u.add(eventBuffer));
         }
 
         private void pushEventQueue(EventBuffer event) {
-            for (StatusListener sl : statusListeners) {
-                event.sendBufferedEvent(sl);
-            }
-            for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : statusBuffer.entrySet()) {
-                e.getValue().second.offer(event);
-            }
+            statusListeners.sync(sls -> {
+                for (StatusListener sl : sls) {
+                    event.sendBufferedEvent(sl);
+                }
+            });
+            statusBuffer.sync(sb -> {
+                for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : sb.entrySet()) {
+                    e.getValue().second.offer(event);
+                }
+            });
         }
 
         private boolean deliver(StatusListener sl, Stream from) {
@@ -218,7 +245,7 @@ public class StatusManager implements Releasable {
                     }
                     if (PUT_STREAM_LOG) Log.d(LOG_TAG,
                             String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
-                                    statusListeners.size(),
+                                    statusListeners.syncReturn(List::size),
                                     StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
                                     status.getUser().getScreenName(), status.getText()));
                     userUpdateDelayer.enqueue(status.getUser());
@@ -286,17 +313,7 @@ public class StatusManager implements Releasable {
                             notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
                         }
                     }
-                    for (StatusListener sl : statusListeners) {
-                        if (deliver(sl, from)) {
-                            sl.onStatus(user, deliverStatus, muted);
-                        }
-                    }
-                    deliverStatus = (deliverStatus instanceof MetaStatus)? new MetaStatus(preformedStatus, "queued") : deliverStatus;
-                    for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : statusBuffer.entrySet()) {
-                        if (deliver(e.getValue().first, from)) {
-                            e.getValue().second.offer(new StatusEventBuffer(user, deliverStatus, muted));
-                        }
-                    }
+                    pushEventQueue(new StatusEventBuffer(user, deliverStatus, muted));
 
                     if (!(from instanceof RestStream)) {
                         if (status.isRetweet() &&
@@ -349,9 +366,9 @@ public class StatusManager implements Releasable {
         }
     };
 
-    private List<StatusListener> statusListeners = Collections.synchronizedList(new ArrayList<>());
-    private Map<String, Pair<StatusListener, Queue<EventBuffer>>> statusBuffer = Collections.synchronizedMap(new HashMap<>());
-    private List<EventBuffer> updateBuffer = Collections.synchronizedList(new ArrayList<>());
+    private SyncReference<List<StatusListener>> statusListeners = new SyncReference<>(new ArrayList<>());
+    private SyncReference<Map<String, Pair<StatusListener, Queue<EventBuffer>>>> statusBuffer = new SyncReference<>(new HashMap<>());
+    private SyncReference<List<EventBuffer>> updateBuffer = new SyncReference<>(new ArrayList<>());
 
     private UserUpdateDelayer userUpdateDelayer;
 
@@ -375,8 +392,8 @@ public class StatusManager implements Releasable {
     @Override
     public void release() {
         streamUsers.clear();
-        statusListeners.clear();
-        statusBuffer.clear();
+        statusListeners.sync(List::clear);
+        statusBuffer.sync(Map::clear);
 
         for (ParallelAsyncTask<Void, Void, Void> task : workingRestQueries.values()) {
             if (task != null && !task.isCancelled()) {
@@ -474,17 +491,13 @@ public class StatusManager implements Releasable {
     }
 
     public void stopUserStream(AuthUserRecord userRecord) {
-        StreamUser remove = null;
-        for (StreamUser su : streamUsers) {
+        for (Iterator<StreamUser> iterator = streamUsers.iterator(); iterator.hasNext(); ) {
+            StreamUser su = iterator.next();
             if (su.getUserRecord().equals(userRecord)) {
                 su.stop();
-                remove = su;
+                iterator.remove();
                 break;
             }
-        }
-        if (remove != null) {
-            statusListeners.remove(remove);
-            streamUsers.remove(remove);
         }
     }
 
@@ -534,31 +547,34 @@ public class StatusManager implements Releasable {
     //</editor-fold>
 
     //<editor-fold desc="Subscribe">
-    public void addStatusListener(StatusListener l) {
-        if (statusListeners != null && !statusListeners.contains(l)) {
-            statusListeners.add(l);
+    public void addStatusListener(final StatusListener l) {
+        if (statusListeners != null && !statusListeners.syncReturn(s -> s.contains(l))){
+            statusListeners.sync(s -> s.add(l));
             Log.d("TwitterService", "Added StatusListener : " + l.getSubscribeIdentifier());
-            if (statusBuffer.containsKey(l.getSubscribeIdentifier())) {
-                Queue<EventBuffer> eventBuffers = statusBuffer.get(l.getSubscribeIdentifier()).second;
-                statusBuffer.remove(l.getSubscribeIdentifier());
+            if (statusBuffer.syncReturn(s -> s.containsKey(l.getSubscribeIdentifier()))) {
+                Queue<EventBuffer> eventBuffers = statusBuffer.syncReturn(s -> s.get(l.getSubscribeIdentifier())).second;
+                statusBuffer.sync(s -> s.remove(l.getSubscribeIdentifier()));
                 Log.d("TwitterService", "SubID:" + l.getSubscribeIdentifier() + " -> バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
                 while (!eventBuffers.isEmpty()) {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
             } else {
-                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", updateBuffer.size()));
-                for (EventBuffer eventBuffer : updateBuffer) {
-                    eventBuffer.sendBufferedEvent(l);
-                }
+                Integer size = updateBuffer.syncReturn(List::size);
+                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", size));
+                updateBuffer.sync(u -> {
+                    for (EventBuffer eventBuffer : u) {
+                        eventBuffer.sendBufferedEvent(l);
+                    }
+                });
             }
         }
     }
 
-    public void removeStatusListener(StatusListener l) {
-        if (statusListeners != null && statusListeners.contains(l)) {
-            statusListeners.remove(l);
+    public void removeStatusListener(final StatusListener l) {
+        if (statusListeners != null && statusListeners.syncReturn(s -> s.contains(l))) {
+            statusListeners.sync(s -> s.remove(l));
             Log.d("TwitterService", "Removed StatusListener : " + l.getSubscribeIdentifier());
-            statusBuffer.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedBlockingQueue<>()));
+            statusBuffer.sync(s -> s.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedBlockingQueue<>())));
         }
     }
     //</editor-fold>
@@ -720,6 +736,57 @@ public class StatusManager implements Releasable {
         task.executeParallel();
         workingRestQueries.put(taskKey, task);
         Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, tag));
+    }
+
+    /**
+     * 参照をラップし、同期操作を行う機能を提供します。
+     * @param <T> 参照の型
+     */
+    private static class SyncReference<T> {
+        private final Object mutex = this;
+        private T reference;
+
+        public SyncReference(T reference) {
+            this.reference = reference;
+        }
+
+        /**
+         * ラップされている参照を取得します。<b>このメソッドは同期化されません。</b>
+         * @return ラップされている参照
+         */
+        public T getReference() {
+            return reference;
+        }
+
+        /**
+         * ラップされている参照に対して、関数型インターフェースを適用します。
+         * @param lambda 適用する関数
+         */
+        public void sync(Consumer<T> lambda) {
+            synchronized (mutex) {
+                lambda.accept(reference);
+            }
+        }
+
+        /**
+         * ラップされている参照に対して関数型インターフェースを適用し、結果を取得します。
+         * @param lambda 適用する関数
+         * @param <Result> 結果の型
+         * @return 関数の返り値
+         */
+        public <Result> Result syncReturn(Function<T, Result> lambda) {
+            synchronized (mutex) {
+                return lambda.apply(reference);
+            }
+        }
+    }
+
+    private interface Consumer<T> {
+        void accept(T value);
+    }
+
+    private interface Function<T, R> {
+        R apply(T value);
     }
 
 }
