@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.util.LongSparseArray;
@@ -95,8 +96,6 @@ public class TwitterService extends Service{
     //ネットワーク管理
 
     //Twitter通信系
-    @Deprecated
-    private Twitter twitter;
     private TwitterFactory twitterFactory;
     private LongSparseArray<Twitter> twitterInstances = new LongSparseArray<>();
     private List<AuthUserRecord> users = new ArrayList<>();
@@ -155,7 +154,6 @@ public class TwitterService extends Service{
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
@@ -186,9 +184,6 @@ public class TwitterService extends Service{
 
         //ユーザー設定の読み込み
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
-
-        //Twitterインスタンスの生成
-        twitter = TwitterUtil.getTwitterInstance(this);
 
         if (!users.isEmpty() && getPrimaryUser() != null) {
             //Configuration, Blocks, Mutes, No-Retweetsの取得
@@ -302,7 +297,6 @@ public class TwitterService extends Service{
         statusManager = null;
 
         twitterInstances.clear();
-        twitter = null;
         twitterFactory = null;
 
         storeUsers();
@@ -596,7 +590,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("送信元アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         twitter.updateStatus(status);
     }
 
@@ -614,7 +611,11 @@ public class TwitterService extends Service{
                 fos.close();
             }
 
-            twitter.setOAuthAccessToken(user.getAccessToken());
+            Twitter twitter = getTwitter(user);
+            if (twitter == null) {
+                throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+            }
+
             return twitter.uploadMedia(tempFile);
         }
         finally {
@@ -626,7 +627,10 @@ public class TwitterService extends Service{
         if (from == null) {
             throw new IllegalArgumentException("送信元アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(from.getAccessToken());
+        Twitter twitter = getTwitter(from);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         twitter.sendDirectMessage(to, message);
     }
 
@@ -634,7 +638,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.retweetStatus(id);
             showToast("RTしました (@" + user.ScreenName + ")");
@@ -648,7 +655,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.createFavorite(id);
             showToast("ふぁぼりました (@" + user.ScreenName + ")");
@@ -662,7 +672,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.destroyFavorite(id);
             showToast("あんふぁぼしました (@" + user.ScreenName + ")");
@@ -676,7 +689,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.destroyStatus(id);
             showToast("ツイートを削除しました");
@@ -726,6 +742,7 @@ public class TwitterService extends Service{
      * @param channel リリースの区分。nullにした場合は "stable" 扱いにします。
      * @return 最新バージョン(基本的にはx.y.z alpha版などそれ以外のケースも有る)
      */
+    @WorkerThread
     @Nullable
     private String getLatestMikutterVersion(@Nullable String channel) {
         if (channel == null) {
