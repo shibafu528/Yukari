@@ -44,6 +44,7 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 import java.util.ArrayList;
@@ -392,7 +393,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<>(getServiceAwait().getTwitterOrPrimary(null).getPlaceTrends(1118370).getTrends());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter == null) {
+                                return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
+                            }
+                            return new ThrowableResult<>(twitter.getPlaceTrends(1118370).getTrends());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -481,8 +486,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<>(
-                                    getServiceAwait().getTwitterOrPrimary(null).getSavedSearches());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter == null) {
+                                return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
+                            }
+                            return new ThrowableResult<>(twitter.getSavedSearches());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -573,7 +581,10 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     protected TwitterException doInBackground(SavedSearch... savedSearches) {
                         savedSearch = savedSearches[0];
                         try {
-                            getServiceAwait().getTwitterOrPrimary(null).destroySavedSearch(savedSearch.getId());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter != null) {
+                                twitter.destroySavedSearch(savedSearch.getId());
+                            }
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return e;

@@ -68,6 +68,7 @@ import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.TweetPreprocessor;
 import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 
@@ -376,7 +377,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                                     Thread.sleep(100);
                                 } catch (InterruptedException ignore) {}
                             }
-                            status = getTwitterService().getTwitterOrPrimary(user).showStatus(inReplyTo);
+                            Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
+                            if (twitter != null) {
+                                status = twitter.showStatus(inReplyTo);
+                            }
                         } catch (TwitterException e) {
                             e.printStackTrace();
                         }

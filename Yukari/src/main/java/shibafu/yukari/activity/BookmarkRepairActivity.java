@@ -81,6 +81,10 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
                             }
                             if (userRecord != null) {
                                 Twitter twitter = getTwitterService().getTwitter(userRecord);
+                                if (twitter == null) {
+                                    ++failedCount;
+                                    continue;
+                                }
                                 try {
                                     Bookmark bookmark = new Bookmark(new PreformedStatus(twitter.showStatus(id), userRecord));
                                     database.updateRecord(bookmark);

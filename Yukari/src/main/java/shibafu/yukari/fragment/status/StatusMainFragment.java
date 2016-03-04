@@ -32,6 +32,7 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
 
@@ -640,7 +641,11 @@ public class StatusMainFragment extends TwitterFragment{
                 @Override
                 protected ThrowableResult<String> doInBackground(Long... params) {
                     try {
-                        String url = getTwitterService().getTwitterOrPrimary(user).showUser(params[0]).getOriginalProfileImageURLHttps();
+                        Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
+                        if (twitter == null) {
+                            return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
+                        }
+                        String url = twitter.showUser(params[0]).getOriginalProfileImageURLHttps();
                         return new ThrowableResult<>(url);
                     } catch (TwitterException e) {
                         e.printStackTrace();

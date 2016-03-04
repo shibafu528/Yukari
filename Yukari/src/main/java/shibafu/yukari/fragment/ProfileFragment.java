@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.MuteActivity;
@@ -657,6 +658,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     Suppressor suppressor = getTwitterService().getSuppressor();
 
                     Twitter twitter = getTwitterService().getTwitter(claim.getSourceAccount());
+                    if (twitter == null) {
+                        sb.append("サービス通信エラー");
+                        continue;
+                    }
 
                     switch (claim.getNewRelation()) {
                         case FollowDialogFragment.RELATION_NONE:
@@ -924,6 +929,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     public static class UpdateDialogFragment extends DialogFragment {
         private boolean dismissRequest;
 
+        @NotNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             ProgressDialog pd = new ProgressDialog(getActivity());
@@ -972,15 +978,18 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
 
             try {
-                User user;
-                if (selfLoadId) {
-                    String name = selfLoadName;
-                    if (name.startsWith("@")) {
-                        name = name.substring(1);
+                User user = null;
+                Twitter twitter = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user);
+                if (twitter != null) {
+                    if (selfLoadId) {
+                        String name = selfLoadName;
+                        if (name.startsWith("@")) {
+                            name = name.substring(1);
+                        }
+                        user = twitter.showUser(name);
+                    } else {
+                        user = twitter.showUser(targetId);
                     }
-                    user = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user).showUser(name);
-                } else {
-                    user = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user).showUser(targetId);
                 }
 
                 if (user != null) {
@@ -1049,7 +1058,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             for (AuthUserRecord userRecord : users) {
                 try {
                     Twitter twitter = getTwitterService().getTwitter(userRecord);
-                    relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
+                    if (twitter != null) {
+                        relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
+                    }
                 } catch (TwitterException e) {
                     e.printStackTrace();
                 }
