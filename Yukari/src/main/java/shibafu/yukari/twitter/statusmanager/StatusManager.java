@@ -666,13 +666,15 @@ public class StatusManager implements Releasable {
 
     /**
      * 非同期RESTリクエストを開始します。結果はストリーミングと同一のインターフェースで配信されます。
-     * @param tag 通信結果の配信用タグ
+     * @param restTag 通信結果の配信用タグ
      * @param userRecord 使用するアカウント
-     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
      * @param query RESTリクエストクエリ
+     * @param pagingMaxId {@link Paging#maxId} に設定する値、負数の場合は設定しない
+     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
+     * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
-    public long requestRestQuery(final String tag, final AuthUserRecord userRecord, final boolean appendLoadMarker, final RestQuery query) {
+    public long requestRestQuery(final String restTag, final AuthUserRecord userRecord, final RestQuery query, final long pagingMaxId, final boolean appendLoadMarker, final String loadMarkerTag) {
         final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
         final long taskKey = System.currentTimeMillis();
         ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
@@ -680,9 +682,9 @@ public class StatusManager implements Releasable {
 
             @Override
             protected Void doInBackground(Void... params) {
-                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, tag, query.getClass().getName()));
+                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, restTag, query.getClass().getName()));
 
-                Stream stream = new RestStream(context, userRecord, tag);
+                Stream stream = new RestStream(context, userRecord, restTag);
                 Twitter twitter = service.getTwitter(userRecord);
                 if (twitter == null) {
                     return null;
@@ -691,6 +693,7 @@ public class StatusManager implements Releasable {
                 try {
                     Paging paging = new Paging();
                     if (!isNarrowMode) paging.setCount(60);
+                    if (-1 < pagingMaxId) paging.setMaxId(pagingMaxId);
 
                     List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
                     if (responseList == null) {
@@ -700,10 +703,10 @@ public class StatusManager implements Releasable {
                         LoadMarkerStatus markerStatus;
 
                         if (responseList.isEmpty()) {
-                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId);
+                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId, loadMarkerTag);
                         } else {
                             twitter4j.Status last = responseList.get(responseList.size() - 1);
-                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId);
+                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId, loadMarkerTag);
                         }
 
                         responseList.add(0, markerStatus);
@@ -716,7 +719,7 @@ public class StatusManager implements Releasable {
                         listener.onStatus(stream, status);
                     }
 
-                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, tag, responseList.size()));
+                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size()));
                 } catch (TwitterException e) {
                     e.printStackTrace();
                     exception = e;
@@ -758,14 +761,14 @@ public class StatusManager implements Releasable {
         };
         task.executeParallel();
         workingRestQueries.put(taskKey, task);
-        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, tag));
+        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, restTag));
 
         return taskKey;
     }
 
     /**
      * 非同期RESTリクエストの実行状態を取得します。
-     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, boolean, RestQuery)} の返り値
+     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, RestQuery, long, boolean, String)} の返り値
      * @return 実行中かつ中断されていなければ true
      */
     public boolean isWorkingRestQuery(long taskKey) {

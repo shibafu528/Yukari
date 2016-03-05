@@ -21,7 +21,6 @@ import shibafu.yukari.twitter.statusimpl.ExceptionStatus
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
-import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.util.putDebugLog
@@ -75,25 +74,21 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     protected fun executeLoader(requestMode: Int) {
-        data class QueryPair(val user: AuthUserRecord, val loader: RestQuery)
-
-        val queries = getFilterQueryAwait().sources.filterNotNull().map { s ->
-            QueryPair(s.sourceAccount ?: return, s.getRestQuery() ?: return)
-        }
+        val sources = getFilterQueryAwait().sources.filterNotNull()
 
         when (requestMode) {
             TwitterListFragment.LOADER_LOAD_INIT -> {
                 swipeRefreshLayout.isRefreshing = true
-                queries.forEach { s ->
-                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.user, true, s.loader)
+                sources.forEach { s ->
+                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.sourceAccount, s.getRestQuery(), -1, true, s.hashCode().toString())
                 }
             }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
-                if (queries.isEmpty()) setRefreshComplete()
+                if (sources.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
-                    queries.forEach { s ->
-                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.user, true, s.loader)
+                    sources.forEach { s ->
+                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.sourceAccount, s.getRestQuery(), -1, true, s.hashCode().toString())
                     }
                 }
             }
@@ -152,13 +147,20 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         if (clickedElement != null && clickedElement.baseStatus is LoadMarkerStatus) {
             val loadMarkerStatus = clickedElement.baseStatus as LoadMarkerStatus
             if (loadMarkerStatus.taskKey < 0) {
-                // TODO: ここでリクエストを投げる
-                handler.post {
-                    val visiblePosition = position - listView.firstVisiblePosition
-                    if (visiblePosition > -1) {
-                        val view = listView.getChildAt(visiblePosition)
-                        (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
-                        (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                getFilterQueryAwait().sources.firstOrNull { it.hashCode().toString() == loadMarkerStatus.tag }?.let {
+                    // リクエストの発行
+                    val taskKey = statusManager.requestRestQuery(restTag, it.sourceAccount, it.getRestQuery(), loadMarkerStatus.id, true, it.hashCode().toString())
+                    loadMarkerStatus.taskKey = taskKey
+                    loadingTaskKeys += taskKey
+                    queryingLoadMarkers.put(taskKey, loadMarkerStatus.id)
+                    // Viewの表示更新
+                    handler.post {
+                        val visiblePosition = position - listView.firstVisiblePosition
+                        if (visiblePosition > -1) {
+                            val view: View? = listView.getChildAt(visiblePosition)
+                            (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
+                            (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                        }
                     }
                 }
             }

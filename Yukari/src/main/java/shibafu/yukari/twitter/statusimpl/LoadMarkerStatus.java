@@ -13,13 +13,15 @@ import java.util.Date;
 public class LoadMarkerStatus extends FakeStatus {
     private final long anchorTweetId;
     private final long userId;
+    private final String tag;
 
     private long taskKey = -1;
 
-    public LoadMarkerStatus(long id, long anchorTweetId, long userId) {
+    public LoadMarkerStatus(long id, long anchorTweetId, long userId, String loadMarkerTag) {
         super(id);
         this.anchorTweetId = anchorTweetId;
         this.userId = userId;
+        this.tag = loadMarkerTag;
     }
 
     public long getAnchorTweetId() {
@@ -32,6 +34,10 @@ public class LoadMarkerStatus extends FakeStatus {
 
     public void setTaskKey(long taskKey) {
         this.taskKey = taskKey;
+    }
+
+    public String getTag() {
+        return tag;
     }
 
     @Override
