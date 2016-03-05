@@ -436,7 +436,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
         if (position < elements.size()) {
             //要素クリックイベントの呼び出し
-            if (onListItemClick(elements.get(position)) && enableDoubleClickBlocker) {
+            if (onListItemClick(position, elements.get(position)) && enableDoubleClickBlocker) {
                 //次回onResumeまでクリックイベントを無視する
                 blockingDoubleClock = true;
             }
@@ -448,7 +448,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
-    public abstract boolean onListItemClick(T clickedElement);
+    public abstract boolean onListItemClick(int position, T clickedElement);
 
     protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
@@ -458,6 +458,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
         if (adapterWrap != null) {
             adapterWrap.setUserExtras(getService().getUserExtras());
+            adapterWrap.setStatusManager(getService().getStatusManager());
         }
         limitCount = users.size() * 256;
     }

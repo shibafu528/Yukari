@@ -35,6 +35,7 @@ import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.*;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -49,6 +50,7 @@ public class TweetAdapterWrap {
     private TweetAdapter adapter;
     private LayoutInflater inflater;
     private SharedPreferences preferences;
+    private WeakReference<StatusManager> statusManager;
 
     public TweetAdapterWrap(Context context,
                             List<AuthUserRecord> userRecords,
@@ -86,6 +88,10 @@ public class TweetAdapterWrap {
 
     public interface OnTouchProfileImageIconListener {
         boolean onTouch(TwitterResponse element, View v, MotionEvent event);
+    }
+
+    public void setStatusManager(StatusManager statusManager) {
+        this.statusManager = new WeakReference<>(statusManager);
     }
 
     public static class RecycleListener implements AbsListView.RecyclerListener {
@@ -176,7 +182,18 @@ public class TweetAdapterWrap {
                         convertView = inflater.inflate(R.layout.row_loading, null);
                     }
 
-                    // TODO: ローディング状態の表示どうしようね
+                    LoadMarkerStatus loadMarker = (LoadMarkerStatus) ((PreformedStatus) item).getBaseStatus();
+
+                    ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.pbLoading);
+                    TextView textView = (TextView) convertView.findViewById(R.id.tvLoading);
+
+                    if (statusManager != null && statusManager.get() != null && statusManager.get().isWorkingRestQuery(loadMarker.getTaskKey())) {
+                        progressBar.setVisibility(View.VISIBLE);
+                        textView.setText("loading");
+                    } else {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        textView.setText("more");
+                    }
                     break;
             }
 

@@ -225,7 +225,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     }
 
     @Override
-    public boolean onListItemClick(PreformedStatus clickedElement) {
+    public boolean onListItemClick(int position, PreformedStatus clickedElement) {
         Intent intent = new Intent(getActivity(), StatusActivity.class);
         intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement);
         intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.getRepresentUser());

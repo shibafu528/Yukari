@@ -11,8 +11,10 @@ import java.util.Date;
 * Created by shibafu on 14/06/19.
 */
 public class LoadMarkerStatus extends FakeStatus {
-    private long anchorTweetId;
-    private long userId;
+    private final long anchorTweetId;
+    private final long userId;
+
+    private long taskKey = -1;
 
     public LoadMarkerStatus(long id, long anchorTweetId, long userId) {
         super(id);
@@ -22,6 +24,14 @@ public class LoadMarkerStatus extends FakeStatus {
 
     public long getAnchorTweetId() {
         return anchorTweetId;
+    }
+
+    public long getTaskKey() {
+        return taskKey;
+    }
+
+    public void setTaskKey(long taskKey) {
+        this.taskKey = taskKey;
     }
 
     @Override

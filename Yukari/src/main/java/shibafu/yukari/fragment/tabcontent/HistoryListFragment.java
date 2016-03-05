@@ -48,7 +48,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
     }
 
     @Override
-    public boolean onListItemClick(HistoryStatus clickedElement) {
+    public boolean onListItemClick(int position, HistoryStatus clickedElement) {
         lastClicked = clickedElement;
         SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
                 0, "メニュー", null, null, null,

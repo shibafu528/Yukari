@@ -6,18 +6,22 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.support.v4.util.LongSparseArray
 import android.util.Log
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
+import shibafu.yukari.R
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.ExceptionStatus
-import shibafu.yukari.twitter.statusimpl.FakeStatus
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
+import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.util.putDebugLog
@@ -36,6 +40,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     private var filterQuery: FilterQuery? = null
 
     private val loadingTaskKeys = arrayListOf<Long>()
+    private val queryingLoadMarkers = LongSparseArray<Long>() // TaskKey, LoadMarkerStatus.Id
 
     private val onReloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -70,17 +75,17 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     protected fun executeLoader(requestMode: Int) {
-        val filterQuery = getFilterQuery()
-        val queries = filterQuery.sources.filterNotNull().map { s ->
-            val loader = s.getRestQuery() ?: return
-            val user = s.sourceAccount ?: return
-            Pair(user, loader)
+        data class QueryPair(val user: AuthUserRecord, val loader: RestQuery)
+
+        val queries = getFilterQueryAwait().sources.filterNotNull().map { s ->
+            QueryPair(s.sourceAccount ?: return, s.getRestQuery() ?: return)
         }
+
         when (requestMode) {
             TwitterListFragment.LOADER_LOAD_INIT -> {
                 swipeRefreshLayout.isRefreshing = true
                 queries.forEach { s ->
-                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.first, true, s.second)
+                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.user, true, s.loader)
                 }
             }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
@@ -88,7 +93,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 else {
                     clearUnreadNotifier()
                     queries.forEach { s ->
-                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.first, true, s.second)
+                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.user, true, s.loader)
                     }
                 }
             }
@@ -101,7 +106,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         executeLoader(requestMode)
     }
 
-    protected fun getFilterQuery(): FilterQuery {
+    protected fun getFilterQueryAwait(): FilterQuery {
         //クエリのコンパイル待ち
         while (filterQuery == null) {
             Thread.sleep(100)
@@ -143,11 +148,23 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         swipeRefreshLayout.isRefreshing = false
     }
 
-    override fun onListItemClick(clickedElement: PreformedStatus?): Boolean {
-        if (clickedElement == null || !FakeStatus::class.java.isAssignableFrom(clickedElement.baseStatusClass)) {
-            return super.onListItemClick(clickedElement)
-        } else {
+    override fun onListItemClick(position: Int, clickedElement: PreformedStatus?): Boolean {
+        if (clickedElement != null && clickedElement.baseStatus is LoadMarkerStatus) {
+            val loadMarkerStatus = clickedElement.baseStatus as LoadMarkerStatus
+            if (loadMarkerStatus.taskKey < 0) {
+                // TODO: ここでリクエストを投げる
+                handler.post {
+                    val visiblePosition = position - listView.firstVisiblePosition
+                    if (visiblePosition > -1) {
+                        val view = listView.getChildAt(visiblePosition)
+                        (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
+                        (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                    }
+                }
+            }
             return false
+        } else {
+            return super.onListItemClick(position, clickedElement)
         }
     }
 
@@ -157,7 +174,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
     override fun onStatus(from: AuthUserRecord, status: PreformedStatus, muted: Boolean) {
         if (elements.contains(status)) return
-        if (status.baseStatusClass != LoadMarkerStatus::class.java && !getFilterQuery().evaluate(status, users)) return
+        if (status.baseStatusClass != LoadMarkerStatus::class.java && !getFilterQueryAwait().evaluate(status, users)) return
 
         when {
             muted -> {
@@ -180,6 +197,17 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 status as RestCompletedStatus
                 if (status.tag.equals(restTag)) {
                     loadingTaskKeys.remove(status.taskKey)
+                    if (queryingLoadMarkers.indexOfKey(status.taskKey) > -1) {
+                        val iterator = elements.iterator()
+                        while (iterator.hasNext()) {
+                            val e = iterator.next()
+                            if (e.baseStatus is LoadMarkerStatus && (e.baseStatus as LoadMarkerStatus).taskKey == status.taskKey) {
+                                iterator.remove()
+                                notifyDataSetChanged()
+                            }
+                        }
+                        queryingLoadMarkers.remove(status.taskKey)
+                    }
                     putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
                     if (loadingTaskKeys.isEmpty()) {
                         handler.post { setRefreshComplete() }

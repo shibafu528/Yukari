@@ -68,7 +68,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public boolean onListItemClick(DirectMessage clickedElement) {
+    public boolean onListItemClick(int position, DirectMessage clickedElement) {
         lastClicked = clickedElement;
         lastClickedEntities = new ArrayList<TweetEntity>() {
             @Override
