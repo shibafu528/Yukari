@@ -28,6 +28,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
+import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
@@ -105,6 +106,10 @@ public class TweetAdapterWrap {
         private static final int CLS_DM = 1;
         private static final int CLS_UNKNOWN = 2;
 
+        private static final int VT_CONVERTER = 0;
+        private static final int VT_LOAD_MARKER = 1;
+        private static final int VT_COUNT = 2;
+
         public TweetAdapter(Class<? extends TwitterResponse> clz) {
             if (Status.class.isAssignableFrom(clz)) {
                 clsType = CLS_STATUS;
@@ -138,15 +143,41 @@ public class TweetAdapterWrap {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null) {
-                convertView = inflater.inflate(preferences.getBoolean("pref_mode_singleline", false)?
-                        R.layout.row_tweet_single : R.layout.row_tweet, null);
-            }
-
+        public int getItemViewType(int position) {
             TwitterResponse item = getItem(position);
-            if (item != null) {
-                convertView = converter.convertView(convertView, item, ViewConverter.MODE_DEFAULT);
+            if (item != null && item instanceof PreformedStatus && ((PreformedStatus) item).getBaseStatusClass() == LoadMarkerStatus.class) {
+                return VT_LOAD_MARKER;
+            }
+            return VT_CONVERTER;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return VT_COUNT;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            TwitterResponse item = getItem(position);
+
+            switch (getItemViewType(position)) {
+                default:
+                    if (convertView == null) {
+                        convertView = inflater.inflate(preferences.getBoolean("pref_mode_singleline", false)?
+                                R.layout.row_tweet_single : R.layout.row_tweet, null);
+                    }
+
+                    if (item != null) {
+                        convertView = converter.convertView(convertView, item, ViewConverter.MODE_DEFAULT);
+                    }
+                    break;
+                case VT_LOAD_MARKER:
+                    if (convertView == null) {
+                        convertView = inflater.inflate(R.layout.row_loading, null);
+                    }
+
+                    // TODO: ローディング状態の表示どうしようね
+                    break;
             }
 
             return convertView;

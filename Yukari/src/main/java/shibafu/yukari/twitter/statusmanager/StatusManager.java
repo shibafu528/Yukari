@@ -68,7 +68,7 @@ import java.util.regex.PatternSyntaxException;
 public class StatusManager implements Releasable {
     private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
 
-    private static final boolean PUT_STREAM_LOG = false;
+    private static final boolean PUT_STREAM_LOG = true;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
@@ -112,7 +112,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
 
             userUpdateDelayer.enqueue(status.getUser(), user, user2);
 
@@ -130,7 +130,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
         }
 
         @Override
@@ -141,7 +141,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onDirectMessage(Stream from, DirectMessage directMessage) {
             userUpdateDelayer.enqueue(directMessage.getSender());
-            pushEventQueue(new MessageEventBuffer(from.getUserRecord(), directMessage));
+            pushEventQueue(from, new MessageEventBuffer(from.getUserRecord(), directMessage));
 
             boolean checkOwn = service.isMyTweet(directMessage) != null;
             if (!checkOwn) {
@@ -166,45 +166,53 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
         }
 
         @SuppressWarnings("unused")
         public void onWipe(Stream from) {
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
         }
 
         @SuppressWarnings("unused")
         public void onForceUpdateUI(Stream from) {
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
         }
 
         @SuppressWarnings("unused")
-        public void onRestCompleted(Stream from) {
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_REST_COMPLETED, new RestCompletedStatus(((RestStream) from).getTag())));
+        public void onRestCompleted(Stream from, Long taskKey) {
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_REST_COMPLETED, new RestCompletedStatus(((RestStream) from).getTag(), taskKey)));
         }
 
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {
-            pushEventQueue(new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
+            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
         }
 
         private void createHistory(Stream from, int kind, User eventBy, Status status) {
             HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
             EventBuffer eventBuffer = new UpdateEventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
-            pushEventQueue(eventBuffer);
+            pushEventQueue(from, eventBuffer);
             updateBuffer.sync(u -> u.add(eventBuffer));
         }
 
-        private void pushEventQueue(EventBuffer event) {
+        private void pushEventQueue(Stream from, EventBuffer event) {
+            pushEventQueue(from, event, true);
+        }
+
+        private void pushEventQueue(Stream from, EventBuffer event, boolean isBroadcast) {
             statusListeners.sync(sls -> {
                 for (StatusListener sl : sls) {
-                    event.sendBufferedEvent(sl);
+                    if (isBroadcast || deliver(sl, from)) {
+                        event.sendBufferedEvent(sl);
+                    }
                 }
             });
             statusBuffer.sync(sb -> {
                 for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : sb.entrySet()) {
-                    e.getValue().second.offer(event);
+                    if (isBroadcast || deliver(e.getValue().first, from)) {
+                        e.getValue().second.offer(event);
+                    }
                 }
             });
         }
@@ -244,13 +252,19 @@ public class StatusManager implements Releasable {
                         return;
                     }
                     if (PUT_STREAM_LOG) Log.d(LOG_TAG,
-                            String.format("onStatus(Registered Listener %d): %s from %s :@%s %s",
+                            String.format("onStatus(Registered Listener %d): %s from %s [%s:%s]:@%s %s",
                                     statusListeners.syncReturn(List::size),
-                                    StringUtil.formatDate(status.getCreatedAt()), from.getUserRecord().ScreenName,
-                                    status.getUser().getScreenName(), status.getText()));
-                    userUpdateDelayer.enqueue(status.getUser());
-                    if (status.isRetweet()) {
-                        userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
+                                    StringUtil.formatDate(status.getCreatedAt()),
+                                    from.getUserRecord().ScreenName,
+                                    from.getClass().getSimpleName(),
+                                    status.getClass().getSimpleName(),
+                                    status.getUser().getScreenName(),
+                                    status.getText()));
+                    if (!(status instanceof FakeStatus)) {
+                        userUpdateDelayer.enqueue(status.getUser());
+                        if (status.isRetweet()) {
+                            userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
+                        }
                     }
                     AuthUserRecord user = from.getUserRecord();
 
@@ -313,7 +327,7 @@ public class StatusManager implements Releasable {
                             notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
                         }
                     }
-                    pushEventQueue(new StatusEventBuffer(user, deliverStatus, muted));
+                    pushEventQueue(from, new StatusEventBuffer(user, deliverStatus, muted), false);
 
                     if (!(from instanceof RestStream)) {
                         if (status.isRetweet() &&
@@ -650,7 +664,15 @@ public class StatusManager implements Releasable {
         }
     }
 
-    public void requestRestQuery(final String tag, final AuthUserRecord userRecord, final boolean appendLoadMarker, final RestQuery query) {
+    /**
+     * 非同期RESTリクエストを開始します。結果はストリーミングと同一のインターフェースで配信されます。
+     * @param tag 通信結果の配信用タグ
+     * @param userRecord 使用するアカウント
+     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
+     * @param query RESTリクエストクエリ
+     * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
+     */
+    public long requestRestQuery(final String tag, final AuthUserRecord userRecord, final boolean appendLoadMarker, final RestQuery query) {
         final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
         final long taskKey = System.currentTimeMillis();
         ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
@@ -660,7 +682,11 @@ public class StatusManager implements Releasable {
             protected Void doInBackground(Void... params) {
                 Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, tag, query.getClass().getName()));
 
+                Stream stream = new RestStream(context, userRecord, tag);
                 Twitter twitter = service.getTwitter(userRecord);
+                if (twitter == null) {
+                    return null;
+                }
 
                 try {
                     Paging paging = new Paging();
@@ -689,12 +715,6 @@ public class StatusManager implements Releasable {
                     if (isCancelled()) return null;
 
                     // StreamManagerに流す
-                    Stream stream = new RestStream(context, userRecord, tag);
-                    try {
-                        listener.getClass().getMethod("onRestCompleted", Stream.class).invoke(listener, stream);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                     for (twitter4j.Status status : responseList) {
                         listener.onStatus(stream, status);
                     }
@@ -703,6 +723,12 @@ public class StatusManager implements Releasable {
                 } catch (TwitterException e) {
                     e.printStackTrace();
                     exception = e;
+                } finally {
+                    try {
+                        listener.getClass().getMethod("onRestCompleted", Stream.class, Long.class).invoke(listener, stream, taskKey);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception in reflection call", e);
+                    }
                 }
                 return null;
             }
@@ -736,6 +762,17 @@ public class StatusManager implements Releasable {
         task.executeParallel();
         workingRestQueries.put(taskKey, task);
         Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, tag));
+
+        return taskKey;
+    }
+
+    /**
+     * 非同期RESTリクエストの実行状態を取得します。
+     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, boolean, RestQuery)} の返り値
+     * @return 実行中かつ中断されていなければ true
+     */
+    public boolean isWorkingRestQuery(long taskKey) {
+        return workingRestQueries.containsKey(taskKey) && !workingRestQueries.get(taskKey).isCancelled();
     }
 
     /**

@@ -27,6 +27,8 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.FakeStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.TwitterResponse;
 
@@ -433,8 +435,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
         if (position < elements.size()) {
             //要素クリックイベントの呼び出し
-            onListItemClick(elements.get(position));
-            if (enableDoubleClickBlocker) {
+            if (onListItemClick(elements.get(position)) && enableDoubleClickBlocker) {
                 //次回onResumeまでクリックイベントを無視する
                 blockingDoubleClock = true;
             }
@@ -446,7 +447,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
-    public abstract void onListItemClick(T clickedElement);
+    public abstract boolean onListItemClick(T clickedElement);
 
     protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
@@ -478,7 +479,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     protected void insertElement(T element, int position) {
         if (!elements.contains(element)) {
             if (position < elements.size()) {
-                if (commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                boolean isFake = false;
+                if (element instanceof PreformedStatus) {
+                    isFake = FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
+                }
+                if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
                     return;
             }
             elements.add(position, element);

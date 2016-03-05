@@ -41,8 +41,8 @@ public fun Context.putErrorLog(s: String) {
 /**
  * Log.e(ClassName, String.format(s, param))
  */
-public fun Context.putErrorLog(s: String, vararg param: String) {
-    Log.e(LOG_TAG, java.lang.String.format(s, param))
+public fun Context.putErrorLog(s: String, vararg param: Any) {
+    Log.e(LOG_TAG, java.lang.String.format(s, *param))
 }
 
 /**
@@ -55,6 +55,40 @@ public fun Context.putDebugLog(s: String) {
 /**
  * Log.d(ClassName, String.format(s, param))
  */
-public fun Context.putDebugLog(s: String, vararg param: String) {
-    Log.d(LOG_TAG, java.lang.String.format(s, param))
+public fun Context.putDebugLog(s: String, vararg param: Any) {
+    Log.d(LOG_TAG, java.lang.String.format(s, *param))
+}
+
+/**
+ * [Class.getSimpleName] を返します。
+ */
+public val Fragment.LOG_TAG: String
+    get() = javaClass.simpleName
+
+/**
+ * Log.e(ClassName, s)
+ */
+public fun Fragment.putErrorLog(s: String) {
+    Log.e(LOG_TAG, s)
+}
+
+/**
+ * Log.e(ClassName, String.format(s, param))
+ */
+public fun Fragment.putErrorLog(s: String, vararg param: Any) {
+    Log.e(LOG_TAG, java.lang.String.format(s, *param))
+}
+
+/**
+ * Log.d(ClassName, s)
+ */
+public fun Fragment.putDebugLog(s: String) {
+    Log.d(LOG_TAG, s)
+}
+
+/**
+ * Log.d(ClassName, String.format(s, param))
+ */
+public fun Fragment.putDebugLog(s: String, vararg param: Any) {
+    Log.d(LOG_TAG, java.lang.String.format(s, *param))
 }

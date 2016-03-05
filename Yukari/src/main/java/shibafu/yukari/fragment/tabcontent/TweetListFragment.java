@@ -19,6 +19,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.DirectMessage;
@@ -222,11 +223,12 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     }
 
     @Override
-    public void onListItemClick(PreformedStatus clickedElement) {
+    public boolean onListItemClick(PreformedStatus clickedElement) {
         Intent intent = new Intent(getActivity(), StatusActivity.class);
         intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement);
         intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.getRepresentUser());
         startActivity(intent);
+        return true;
     }
 
     @Override
@@ -322,9 +324,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
             if (status.getId() == storedStatus.getId()) {
-                storedStatus.merge(status);
-                notifyDataSetChanged();
-                return -1;
+                if (FakeStatus.class.isAssignableFrom(status.getBaseStatusClass())) {
+                    return i;
+                } else {
+                    storedStatus.merge(status);
+                    notifyDataSetChanged();
+                    return -1;
+                }
             }
             else if (status.getId() > storedStatus.getId()) {
                 return i;

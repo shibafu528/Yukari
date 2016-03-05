@@ -5,17 +5,22 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Bundle
 import android.util.Log
+import android.view.View
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.ExceptionStatus
+import shibafu.yukari.twitter.statusimpl.FakeStatus
+import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
+import shibafu.yukari.util.putDebugLog
 import twitter4j.DirectMessage
 import twitter4j.Status
 
@@ -30,6 +35,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     private var filterRawQuery = ""
     private var filterQuery: FilterQuery? = null
 
+    private val loadingTaskKeys = arrayListOf<Long>()
+
     private val onReloadReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
         }
@@ -38,6 +45,11 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onAttach(activity: Activity?) {
         super.onAttach(activity)
         filterRawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: ""
+    }
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        removeFooter()
     }
 
     override fun onStart() {
@@ -65,12 +77,19 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             Pair(user, loader)
         }
         when (requestMode) {
-            TwitterListFragment.LOADER_LOAD_INIT -> queries.forEach { s -> statusManager.requestRestQuery(restTag, s.first, false, s.second) }
+            TwitterListFragment.LOADER_LOAD_INIT -> {
+                swipeRefreshLayout.isRefreshing = true
+                queries.forEach { s ->
+                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.first, true, s.second)
+                }
+            }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
                 if (queries.isEmpty()) setRefreshComplete()
                 else {
                     clearUnreadNotifier()
-                    queries.forEach { s -> statusManager.requestRestQuery(restTag, s.first, false, s.second)  }
+                    queries.forEach { s ->
+                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.first, true, s.second)
+                    }
                 }
             }
         }
@@ -124,11 +143,11 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         swipeRefreshLayout.isRefreshing = false
     }
 
-    override fun onListItemClick(clickedElement: PreformedStatus?) {
-        if (clickedElement == null || clickedElement.baseStatusClass != ExceptionStatus::class.java) {
-            super.onListItemClick(clickedElement)
+    override fun onListItemClick(clickedElement: PreformedStatus): Boolean {
+        if (clickedElement == null || !FakeStatus::class.java.isAssignableFrom(clickedElement.baseStatusClass)) {
+            return super.onListItemClick(clickedElement)
         } else {
-            setBlockingDoubleClock(false)
+            return false
         }
     }
 
@@ -137,16 +156,21 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun getRestTag(): String = filterRawQuery
 
     override fun onStatus(from: AuthUserRecord, status: PreformedStatus, muted: Boolean) {
-        if (elements.contains(status) || !getFilterQuery().evaluate(status, users)) return
-
-        Log.d("FilterListFragment", "[$filterRawQuery] onStatus : $status")
+        if (elements.contains(status)) return
+        if (status.baseStatusClass != LoadMarkerStatus::class.java && !getFilterQuery().evaluate(status, users)) return
 
         when {
-            muted -> stash.add(status)
+            muted -> {
+                Log.d("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
+                stash.add(status)
+            }
             else -> {
                 val position = prepareInsertStatus(status)
                 if (position > -1) {
+                    putDebugLog("[$filterRawQuery] onStatus : Insert $position/${elements.size} ... $status")
                     handler.post { insertElement(status, position) }
+                } else {
+                    putDebugLog("[$filterRawQuery] onStatus : Merged or dropped ... $status")
                 }
             }
         }
@@ -157,8 +181,15 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     override fun onUpdatedStatus(from: AuthUserRecord, kind: Int, status: Status) {
         super.onUpdatedStatus(from, kind, status)
         when (kind) {
-            StatusManager.UPDATE_REST_COMPLETED -> if ((status as RestCompletedStatus).tag.equals(restTag)) {
-                handler.post { setRefreshComplete() }
+            StatusManager.UPDATE_REST_COMPLETED -> {
+                status as RestCompletedStatus
+                if (status.tag.equals(restTag)) {
+                    loadingTaskKeys.remove(status.taskKey)
+                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+                    if (loadingTaskKeys.isEmpty()) {
+                        handler.post { setRefreshComplete() }
+                    }
+                }
             }
         }
     }

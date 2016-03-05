@@ -70,11 +70,12 @@ public class FriendListFragment extends TwitterListFragment<User> {
     }
 
     @Override
-    public void onListItemClick(User clickedElement) {
+    public boolean onListItemClick(User clickedElement) {
         Intent intent = new Intent(getActivity(), ProfileActivity.class);
         intent.putExtra(ProfileActivity.EXTRA_USER, getCurrentUser());
         intent.putExtra(ProfileActivity.EXTRA_TARGET, clickedElement.getId());
         startActivity(intent);
+        return true;
     }
 
     @Override

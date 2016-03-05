@@ -73,7 +73,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     }
 
     @Override
-    public void onListItemClick(UserList clickedElement) {
+    public boolean onListItemClick(UserList clickedElement) {
         DefaultTweetListFragment fragment = new DefaultTweetListFragment();
         Bundle args = new Bundle();
         args.putInt(FriendListFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
@@ -87,6 +87,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             transaction.addToBackStack(null);
             transaction.commit();
         }
+        return true;
     }
 
     @Override
