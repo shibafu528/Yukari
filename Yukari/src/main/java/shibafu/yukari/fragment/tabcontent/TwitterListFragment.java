@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -476,6 +477,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         return elements.size();
     }
 
+    @UiThread
     protected void insertElement(T element, int position) {
         if (!elements.contains(element)) {
             if (position < elements.size()) {
@@ -510,6 +512,47 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             }
             updateUnreadNotifier();
         }
+    }
+
+    protected void insertElement2(T element) {
+        int position = prepareInsertStatus(element);
+        if (position < 0 || elements.contains(element)) {
+            return;
+        }
+
+        if (position < elements.size()) {
+            boolean isFake = false;
+            if (element instanceof PreformedStatus) {
+                isFake = FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
+            }
+            if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                return;
+        }
+        elements.add(position, element);
+        notifyDataSetChanged();
+        if (isLimitedTimeline() && elements.size() > getLimitCount()) {
+            for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
+                unreadSet.remove(commonDelegate.getId(iterator.next()));
+                iterator.remove();
+                notifyDataSetChanged();
+            }
+        }
+        if (listView == null) {
+            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
+            return;
+        }
+        handler.post(() -> {
+            int firstPos = listView.getFirstVisiblePosition();
+            View firstView = listView.getChildAt(0);
+            int y = firstView != null ? firstView.getTop() : 0;
+            if (elements.size() == 1 || firstPos == 0 && y > -1) {
+                listView.setSelection(0);
+            } else {
+                unreadSet.add(commonDelegate.getId(element));
+                listView.setSelectionFromTop(firstPos + 1, y);
+            }
+            updateUnreadNotifier();
+        });
     }
 
     protected void deleteElement(TwitterResponse element) {

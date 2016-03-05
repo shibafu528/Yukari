@@ -49,7 +49,7 @@ public class Bookmark extends PreformedStatus implements DBRecord{
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(getStatus());
+            oos.writeObject(getBaseStatus());
             oos.close();
             return baos.toByteArray();
         } catch (IOException e) {

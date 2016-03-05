@@ -700,16 +700,13 @@ public class StatusManager implements Releasable {
                         LoadMarkerStatus markerStatus;
 
                         if (responseList.isEmpty()) {
-                            markerStatus = new LoadMarkerStatus(
-                                    paging.getMaxId(),
-                                    userRecord.NumericId);
+                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId);
                         } else {
-                            markerStatus = new LoadMarkerStatus(
-                                    responseList.get(responseList.size() - 1).getId(),
-                                    userRecord.NumericId);
+                            twitter4j.Status last = responseList.get(responseList.size() - 1);
+                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId);
                         }
 
-                        responseList.add(markerStatus);
+                        responseList.add(0, markerStatus);
                     }
 
                     if (isCancelled()) return null;

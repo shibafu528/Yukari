@@ -1,21 +1,27 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import java.util.Date;
-
 import twitter4j.RateLimitStatus;
 import twitter4j.Status;
 import twitter4j.URLEntity;
 import twitter4j.User;
 
+import java.util.Date;
+
 /**
 * Created by shibafu on 14/06/19.
 */
 public class LoadMarkerStatus extends FakeStatus {
+    private long anchorTweetId;
     private long userId;
 
-    public LoadMarkerStatus(long id, long userId) {
+    public LoadMarkerStatus(long id, long anchorTweetId, long userId) {
         super(id);
+        this.anchorTweetId = anchorTweetId;
         this.userId = userId;
+    }
+
+    public long getAnchorTweetId() {
+        return anchorTweetId;
     }
 
     @Override

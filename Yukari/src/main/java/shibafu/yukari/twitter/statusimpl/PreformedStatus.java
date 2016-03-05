@@ -271,7 +271,11 @@ public class PreformedStatus implements Status{
         return text;
     }
 
-    protected Status getStatus() {
+    /**
+     * インスタンス生成元Statusを取得
+     * @return 元々のStatus
+     */
+    public Status getBaseStatus() {
         return status;
     }
 

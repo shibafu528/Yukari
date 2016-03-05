@@ -143,7 +143,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         swipeRefreshLayout.isRefreshing = false
     }
 
-    override fun onListItemClick(clickedElement: PreformedStatus): Boolean {
+    override fun onListItemClick(clickedElement: PreformedStatus?): Boolean {
         if (clickedElement == null || !FakeStatus::class.java.isAssignableFrom(clickedElement.baseStatusClass)) {
             return super.onListItemClick(clickedElement)
         } else {
@@ -165,13 +165,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 stash.add(status)
             }
             else -> {
-                val position = prepareInsertStatus(status)
-                if (position > -1) {
-                    putDebugLog("[$filterRawQuery] onStatus : Insert $position/${elements.size} ... $status")
-                    handler.post { insertElement(status, position) }
-                } else {
-                    putDebugLog("[$filterRawQuery] onStatus : Merged or dropped ... $status")
-                }
+                insertElement2(status)
+                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
     }
