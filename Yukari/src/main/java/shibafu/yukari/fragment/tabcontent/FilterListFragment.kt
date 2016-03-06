@@ -23,7 +23,6 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
-import shibafu.yukari.util.putDebugLog
 import twitter4j.DirectMessage
 import twitter4j.Status
 
@@ -167,7 +166,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                         (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
                     }
                     // Debug Log
-                    putDebugLog("onListItemClick : Current firstVisiblePosition = ${listView.firstVisiblePosition}")
+//                    putDebugLog("onListItemClick : Current firstVisiblePosition = ${listView.firstVisiblePosition}")
                 }
             }
             return false
@@ -186,12 +185,12 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
         when {
             muted -> {
-                Log.d("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
+//                putDebugLog("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
                 stash.add(status)
             }
             else -> {
                 handler.post { insertElement2(status) }
-                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
+//                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
     }
@@ -216,7 +215,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                         }
                         queryingLoadMarkers.remove(status.taskKey)
                     }
-                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+//                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
                     if (loadingTaskKeys.isEmpty()) {
                         handler.post { setRefreshComplete() }
                     }
