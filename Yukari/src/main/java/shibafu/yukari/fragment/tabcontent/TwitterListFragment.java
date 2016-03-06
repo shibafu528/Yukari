@@ -483,9 +483,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         if (!elements.contains(element)) {
             if (position < elements.size()) {
                 boolean isFake = false;
-                if (element instanceof PreformedStatus) {
-                    isFake = FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
-                }
+                isFake = isFakeStatus(element);
                 if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
                     return;
             }
@@ -515,6 +513,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    @UiThread
     protected void insertElement2(T element) {
         int position = prepareInsertStatus(element);
         if (position < 0 || elements.contains(element)) {
@@ -522,10 +521,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
 
         if (position < elements.size()) {
-            boolean isFake = false;
-            if (element instanceof PreformedStatus) {
-                isFake = FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
-            }
+            boolean isFake = isFakeStatus(element);
             if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
                 return;
         }
@@ -533,27 +529,32 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         notifyDataSetChanged();
         if (isLimitedTimeline() && elements.size() > getLimitCount()) {
             for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
-                unreadSet.remove(commonDelegate.getId(iterator.next()));
-                iterator.remove();
-                notifyDataSetChanged();
+                T e = iterator.next();
+                if (!isFakeStatus(e)) {
+                    unreadSet.remove(commonDelegate.getId(e));
+                    iterator.remove();
+                    notifyDataSetChanged();
+                }
             }
         }
         if (listView == null) {
             Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
             return;
         }
-        handler.post(() -> {
-            int firstPos = listView.getFirstVisiblePosition();
-            View firstView = listView.getChildAt(0);
-            int y = firstView != null ? firstView.getTop() : 0;
-            if (elements.size() == 1 || firstPos == 0 && y > -1) {
-                listView.setSelection(0);
-            } else {
-                unreadSet.add(commonDelegate.getId(element));
-                listView.setSelectionFromTop(firstPos + 1, y);
-            }
-            updateUnreadNotifier();
-        });
+        int firstPos = listView.getFirstVisiblePosition();
+        View firstView = listView.getChildAt(0);
+        int y = firstView != null ? firstView.getTop() : 0;
+        if (elements.size() == 1 || firstPos == 0 && y > -1) {
+            Log.d("insertElement2", "Scroll Position = 0");
+            listView.setSelection(0);
+        } else if (position <= firstPos) {
+            Log.d("insertElement2", "Scroll Position = " + (firstPos + 1));
+            unreadSet.add(commonDelegate.getId(element));
+            listView.setSelectionFromTop(firstPos + 1, y);
+        } else {
+            Log.d("insertElement2", "Scroll Position = " + firstPos);
+        }
+        updateUnreadNotifier();
     }
 
     protected void deleteElement(TwitterResponse element) {
@@ -644,4 +645,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     protected void setBlockingDoubleClock(boolean blockingDoubleClock) {
         this.blockingDoubleClock = blockingDoubleClock;
     }
+
+    private boolean isFakeStatus(T element) {
+        return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
+    }
+
 }

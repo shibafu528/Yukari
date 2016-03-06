@@ -68,7 +68,7 @@ import java.util.regex.PatternSyntaxException;
 public class StatusManager implements Releasable {
     private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
 
-    private static final boolean PUT_STREAM_LOG = true;
+    private static final boolean PUT_STREAM_LOG = false;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;

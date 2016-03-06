@@ -129,6 +129,11 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
         //ストリーミングのリスナ登録
         statusManager.addStatusListener(this)
+
+        //初期受信を実行
+        if (elements.isEmpty()) {
+            executeLoader(LOADER_LOAD_INIT)
+        }
     }
 
     override fun onServiceDisconnected() {}
@@ -154,14 +159,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                     loadingTaskKeys += taskKey
                     queryingLoadMarkers.put(taskKey, loadMarkerStatus.id)
                     // Viewの表示更新
-                    handler.post {
-                        val visiblePosition = position - listView.firstVisiblePosition
-                        if (visiblePosition > -1) {
-                            val view: View? = listView.getChildAt(visiblePosition)
-                            (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
-                            (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
-                        }
+                    val visiblePosition = position - listView.firstVisiblePosition
+                    if (visiblePosition > -1) {
+                        val view: View? = listView.getChildAt(visiblePosition)
+                        (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
+                        (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
                     }
+                    // Debug Log
+                    putDebugLog("onListItemClick : Current firstVisiblePosition = ${listView.firstVisiblePosition}")
                 }
             }
             return false
@@ -184,7 +189,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 stash.add(status)
             }
             else -> {
-                insertElement2(status)
+                handler.post { insertElement2(status) }
                 putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
