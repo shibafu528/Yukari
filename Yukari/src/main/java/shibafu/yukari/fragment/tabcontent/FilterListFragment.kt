@@ -158,6 +158,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                     loadMarkerStatus.taskKey = taskKey
                     loadingTaskKeys += taskKey
                     queryingLoadMarkers.put(taskKey, loadMarkerStatus.id)
+                    addLimitCount(100)
                     // Viewの表示更新
                     val visiblePosition = position - listView.firstVisiblePosition
                     if (visiblePosition > -1) {
