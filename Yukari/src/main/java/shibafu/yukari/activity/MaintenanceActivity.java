@@ -305,8 +305,8 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
                     @Override
                     protected ThrowableResult<Map<String, RateLimitStatus>> doInBackground(AuthUserRecord... params) {
-                        Twitter twitter = getService().getTwitter(params[0]);
                         try {
+                            Twitter twitter = getService().getTwitterOrThrow(params[0]);
                             return new ThrowableResult<>(twitter.getRateLimitStatus());
                         } catch (TwitterException e) {
                             e.printStackTrace();

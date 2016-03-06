@@ -5,14 +5,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
-import android.support.v4.util.SparseArrayCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
@@ -20,16 +23,32 @@ import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.CharacterStyle;
 import android.util.Log;
-import android.view.*;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.*;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.common.*;
+import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.common.TabInfo;
+import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TriangleView;
+import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.filter.FilterQuery;
@@ -56,7 +75,10 @@ import twitter4j.util.CharacterUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
 
@@ -602,8 +624,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     new TwitterAsyncTask<Args>(getApplicationContext()) {
                         @Override
                         protected TwitterException doInBackground(Args... params) {
-                            Twitter twitter = getTwitterService().getTwitter(params[0].account);
                             try {
+                                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].account);
                                 twitter.createSavedSearch(params[0].query);
                             } catch (TwitterException e) {
                                 e.printStackTrace();

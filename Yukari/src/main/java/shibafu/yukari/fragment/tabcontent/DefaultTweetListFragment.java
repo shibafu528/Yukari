@@ -24,6 +24,7 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
@@ -164,6 +165,9 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 @Override
                 protected Void doInBackground(twitter4j.Status... params) {
                     Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
+                    if (twitter == null) {
+                        return null;
+                    }
                     twitter4j.Status status = params[0];
                     while (status.getInReplyToStatusId() > -1) {
                         try {
@@ -566,8 +570,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
                 ResponseList<twitter4j.Status> responseList = null;
                 Paging paging = params[0].getPaging();
                 if (!isNarrowMode) paging.setCount(60);
@@ -598,6 +602,8 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                     }
                 }
                 return PRListFactory.create(responseList, params[0].getUserRecord());
+            } catch (MissingTwitterInstanceException e) {
+                e.printStackTrace();
             } catch (TwitterException e) {
                 e.printStackTrace();
                 setException(e, params[0].getUserRecord());

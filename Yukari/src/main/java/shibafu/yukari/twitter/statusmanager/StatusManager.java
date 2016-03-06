@@ -645,12 +645,14 @@ public class StatusManager implements Releasable {
                     protected TwitterException doInBackground(@NotNull Params... params) {
                         AuthUserRecord userRecord = params[0].getUserRecord();
                         Twitter twitter = service.getTwitter(userRecord);
-                        try {
-                            twitter4j.Status s = twitter.showStatus(params[0].getId());
-                            receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return e;
+                        if (twitter != null) {
+                            try {
+                                twitter4j.Status s = twitter.showStatus(params[0].getId());
+                                receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return e;
+                            }
                         }
                         return null;
                     }

@@ -180,8 +180,8 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
                 Query query = params[0].getQuery();
                 query.setCount(isNarrowMode ? 20 : 100);
                 QueryResult result = twitter.search(query);

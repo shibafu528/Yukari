@@ -228,8 +228,8 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
         @Override
         protected ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> doInBackground(AuthUserRecord... params) {
-            Twitter twitter = delegate.getTwitterService().getTwitter(params[0]);
             try {
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0]);
                 ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
                 ArrayList<Long> membership = new ArrayList<>();
                 for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
@@ -308,7 +308,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Params> doInBackground(Params... params) {
             try {
-                Twitter twitter = delegate.getTwitterService().getTwitter(params[0].userRecord);
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0].userRecord);
                 switch (params[0].mode) {
                     case ADD:
                         twitter.createUserListMember(params[0].list.getId(), targetUser.getId());

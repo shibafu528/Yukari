@@ -103,8 +103,8 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
         @Override
         protected ResponseList<User> doInBackground(Void... params) {
-            Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(getCurrentUser());
                 ResponseList<twitter4j.User> responseList = null;
                 switch (getMode()) {
                     case MODE_FRIEND:

@@ -467,8 +467,8 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
                         new ThrowableAsyncTask<AuthUserRecord, Void, ResponseList<UserList>>() {
                             @Override
                             protected ThrowableResult<ResponseList<UserList>> doInBackground(AuthUserRecord... params) {
-                                Twitter twitter = ((TabEditActivity) getActivity()).getTwitterService().getTwitter(params[0]);
                                 try {
+                                    Twitter twitter = ((TabEditActivity) getActivity()).getTwitterService().getTwitterOrThrow(params[0]);
                                     return new ThrowableResult<>(twitter.getUserLists(params[0].NumericId));
                                 } catch (TwitterException e) {
                                     e.printStackTrace();

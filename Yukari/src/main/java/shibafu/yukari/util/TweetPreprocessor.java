@@ -54,7 +54,7 @@ public class TweetPreprocessor {
                     protected ThrowableResult<Void> doInBackground(String... params) {
                         try {
                             for (AuthUserRecord user : depends.getWriters()) {
-                                Twitter twitter = depends.getActivity().getTwitterService().getTwitter(user);
+                                Twitter twitter = depends.getActivity().getTwitterService().getTwitterOrThrow(user);
                                 twitter.updateProfile(params[0], null, null, null);
                             }
                             return new ThrowableResult<>((Void) null);

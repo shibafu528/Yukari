@@ -245,8 +245,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 if (user == null) {
                     return new ThrowableResult<>(new IllegalArgumentException("操作対象のユーザが見つかりません."));
                 }
-                Twitter t = getService().getTwitter(user);
                 try {
+                    Twitter t = getService().getTwitterOrThrow(user);
                     t.destroyDirectMessage(message.getId());
                 } catch (TwitterException e) {
                     e.printStackTrace();
@@ -335,8 +335,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
         @Override
         protected List<DirectMessage> doInBackground(Params... params) {
-            Twitter twitter = getTwitterService().getTwitter(params[0].getUserRecord());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
                 Paging paging = params[0].getPaging();
                 if (!isNarrowMode) paging.setCount(60);
                 ResponseList<DirectMessage> inBoxResponse = twitter.getDirectMessages(paging);

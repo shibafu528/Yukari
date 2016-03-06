@@ -248,7 +248,7 @@ public class OAuthActivity extends YukariBase {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    twitter = getTwitterService().getTwitter(null);
+                    twitter = getTwitterService().getTwitterOrThrow(null);
                     twitter.setOAuthAccessToken(accessToken);
 
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);

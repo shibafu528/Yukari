@@ -15,6 +15,7 @@ import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
@@ -36,6 +37,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -559,6 +561,21 @@ public class TwitterService extends Service{
         } else {
             return getTwitter(userRecord);
         }
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。
+     * {@link #getTwitter(AuthUserRecord)} との違いは、こちらはインスタンスの取得に失敗した際、例外をスローすることです。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    @NonNull
+    public Twitter getTwitterOrThrow(@Nullable AuthUserRecord userRecord) throws MissingTwitterInstanceException {
+        Twitter twitter = getTwitter(userRecord);
+        if (twitter == null) {
+            throw new MissingTwitterInstanceException("Twitter インスタンスの取得エラー");
+        }
+        return twitter;
     }
 
     public StatusManager getStatusManager() {

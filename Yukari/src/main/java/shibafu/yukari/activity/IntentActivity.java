@@ -129,6 +129,7 @@ public class IntentActivity extends ListYukariBase{
 
         @Override
         protected PreformedStatus doInBackground(Long... params) {
+            if (twitter == null) return null;
             try {
                 twitter4j.Status status = twitter.showStatus(params[0]);
                 PreformedStatus ps = new PreformedStatus(status, primaryUser);
