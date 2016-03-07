@@ -1,10 +1,9 @@
 package shibafu.yukari.activity;
 
-import android.support.v7.app.AlertDialog;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -12,9 +11,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.util.concurrent.CountDownLatch;
-
 import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.YukariBase;
 import shibafu.yukari.database.CentralDatabase;
@@ -26,6 +22,8 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -64,43 +62,34 @@ public class OAuthActivity extends YukariBase {
         if (foundTwitter) {
             new AlertDialog.Builder(this)
                     .setTitle("認証方法を選択")
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            setResult(RESULT_CANCELED);
-                            finish();
-                        }
+                    .setNegativeButton("キャンセル", (dialog, which) -> {
+                        setResult(RESULT_CANCELED);
+                        finish();
                     })
-                    .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialog) {
-                            setResult(RESULT_CANCELED);
-                            finish();
-                        }
+                    .setOnCancelListener(dialog -> {
+                        setResult(RESULT_CANCELED);
+                        finish();
                     })
-                    .setItems(new String[]{"ブラウザを起動...", "[非推奨] Twitter公式アプリ"}, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                            switch (which) {
-                                case 0:
+                    .setItems(new String[]{"ブラウザを起動...", "[非推奨] Twitter公式アプリ"}, (dialog, which) -> {
+                        dialog.dismiss();
+                        switch (which) {
+                            case 0:
+                                startOAuth();
+                                break;
+                            case 1:
+                            {
+                                begunOAuth = true;
+                                Intent intent = new Intent().setComponent(TWITTER_AUTH_ACTIVITY);
+                                intent.putExtra("ck", getString(R.string.twitter_consumer_key));
+                                intent.putExtra("cs", getString(R.string.twitter_consumer_secret));
+                                try {
+                                    startActivityForResult(intent, TWITTER_REQUEST_CODE);
+                                } catch (SecurityException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(), "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show();
                                     startOAuth();
-                                    break;
-                                case 1:
-                                {
-                                    begunOAuth = true;
-                                    Intent intent = new Intent().setComponent(TWITTER_AUTH_ACTIVITY);
-                                    intent.putExtra("ck", getString(R.string.twitter_consumer_key));
-                                    intent.putExtra("cs", getString(R.string.twitter_consumer_secret));
-                                    try {
-                                        startActivityForResult(intent, TWITTER_REQUEST_CODE);
-                                    } catch (SecurityException e) {
-                                        e.printStackTrace();
-                                        Toast.makeText(getApplicationContext(), "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show();
-                                        startOAuth();
-                                    }
-                                    break;
                                 }
+                                break;
                             }
                         }
                     })
@@ -259,7 +248,7 @@ public class OAuthActivity extends YukariBase {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    twitter = getTwitterService().getTwitter();
+                    twitter = getTwitterService().getTwitterOrThrow(null);
                     twitter.setOAuthAccessToken(accessToken);
 
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);

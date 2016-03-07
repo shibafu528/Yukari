@@ -1,21 +1,11 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import android.text.TextUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
+import shibafu.yukari.util.StringUtil;
 import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
@@ -29,11 +19,21 @@ import twitter4j.URLEntity;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Created by Shibafu on 13/10/13.
  */
 public class PreformedStatus implements Status{
-    private final static int TOO_MANY_REPEAT = 3;
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
     private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
 
@@ -51,6 +51,7 @@ public class PreformedStatus implements Status{
     private boolean censoredThumbs;
     private boolean isTooManyRepeatText;
     private String repeatedSequence;
+    private List<String> hashtags;
 
     //受信の度に変動する情報
     private int favoriteCount;
@@ -74,24 +75,8 @@ public class PreformedStatus implements Status{
         //全Entity置き換え、モールスの復号を行う
         text = MorseCodec.decode(replaceAllEntities(status));
         //繰り返し文かどうかチェック
-        {
-            int maxRepeat = 0;
-            String[] split = text.split("\n");
-            for (String s1 : split) {
-                int repeat = 0;
-                for (String s2 : split) {
-                    if (!TextUtils.isEmpty(s2.trim()) && s1.equals(s2)) {
-                        ++repeat;
-                    }
-                }
-                if ((maxRepeat = Math.max(maxRepeat, repeat)) == repeat) {
-                    repeatedSequence = s1;
-                }
-            }
-            if (maxRepeat > TOO_MANY_REPEAT) {
-                isTooManyRepeatText = true;
-            }
-        }
+        repeatedSequence = StringUtil.compressText(text);
+        isTooManyRepeatText = repeatedSequence != null;
         //via抽出
         Matcher matcher = VIA_PATTERN.matcher(status.getSource());
         if (matcher.find()) {
@@ -99,6 +84,11 @@ public class PreformedStatus implements Status{
         }
         else {
             plainSource = status.getSource();
+        }
+        //ハッシュタグ抽出
+        hashtags = new ArrayList<>();
+        for (HashtagEntity entity : getHashtagEntities()) {
+            hashtags.add(entity.getText());
         }
         //リンクリストを作成
         ArrayList<URLEntity> urlEntities = new ArrayList<>();
@@ -120,7 +110,9 @@ public class PreformedStatus implements Status{
 
             Matcher m = STATUS_PATTERN.matcher(urlEntity.getExpandedURL());
             if (m.find()) {
-                quoteEntities.add(Long.valueOf(m.group(1)));
+                try {
+                    quoteEntities.add(Long.valueOf(m.group(1)));
+                } catch (NumberFormatException ignored) {}
             }
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
@@ -132,13 +124,22 @@ public class PreformedStatus implements Status{
                 case "video":
                 case "animated_gif":
                     if (mediaEntity.getVideoVariants().length > 0) {
-                        ExtendedMediaEntity.Variant variant = mediaEntity.getVideoVariants()[0];
-                        for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
-                            if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
-                                iterator.remove();
+                        boolean removedExistsUrl = false;
+
+                        for (ExtendedMediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
+                            if (!variant.getContentType().startsWith("video/")) continue;
+
+                            mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
+                            if (!removedExistsUrl) {
+                                for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
+                                    if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
+                                        iterator.remove();
+                                    }
+                                }
+
+                                removedExistsUrl = true;
                             }
                         }
-                        mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
                     }
                     break;
                 default:
@@ -154,24 +155,17 @@ public class PreformedStatus implements Status{
     }
 
     public PreformedStatus(PreformedStatus other) {
-        this.status = other.status;
-        this.retweetedStatus = other.retweetedStatus;
-        this.text = other.text;
-        this.plainSource = other.plainSource;
-        this.mediaLinkList = other.mediaLinkList;
-        this.urlEntities = other.urlEntities;
-        this.quoteEntities = other.quoteEntities;
-        this.isMentionedToMe = other.isMentionedToMe;
-        this.censoredThumbs = other.censoredThumbs;
-        this.favoriteCount = other.favoriteCount;
-        this.retweetCount = other.retweetCount;
-        this.rateLimitStatus = other.rateLimitStatus;
-        this.isFavorited = other.isFavorited;
-        this.isRetweeted = other.isRetweeted;
-        this.isMentioned = other.isMentioned;
-        this.representUser = other.representUser;
-        this.receivedUsers = other.receivedUsers;
-        this.receivedIds = other.receivedIds;
+        for (Field field : PreformedStatus.class.getDeclaredFields()) {
+            if ((field.getModifiers() & Modifier.FINAL) == Modifier.FINAL) {
+                continue;
+            }
+            try {
+                field.set(this, field.get(other));
+            } catch (IllegalAccessException e) {
+                //何かまずいことになっていると思うので実行時例外でわざと落とす
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public void merge(Status status, AuthUserRecord receivedUser) {
@@ -277,8 +271,28 @@ public class PreformedStatus implements Status{
         return text;
     }
 
-    protected Status getStatus() {
+    /**
+     * インスタンス生成元Statusを取得
+     * @return 元々のStatus
+     */
+    public Status getBaseStatus() {
         return status;
+    }
+
+    /**
+     * インスタンス生成元Statusの型データを取得
+     * @return 元々の型情報
+     */
+    public Class<? extends Status> getBaseStatusClass() {
+        return status.getClass();
+    }
+
+    /**
+     * リツイートなら元ツイートのPreformedStatusを、そうでなければ自分自身を返す
+     * @return 本来のツイート
+     */
+    public PreformedStatus getOriginStatus() {
+        return retweetedStatus != null ? retweetedStatus : this;
     }
 
     @Override
@@ -311,6 +325,14 @@ public class PreformedStatus implements Status{
     @Override
     public String getSource() {
         return plainSource;
+    }
+
+    /**
+     * リツイートなら元ツイートのvia、そうでなければこのツイートのviaを返す
+     * @return 本来のvia
+     */
+    public String getOriginSource() {
+        return status.isRetweet()? retweetedStatus.getSource() : this.getSource();
     }
 
     public String getFullSource() {
@@ -357,6 +379,10 @@ public class PreformedStatus implements Status{
         return status.getUser();
     }
 
+    /**
+     * リツイートなら元ツイートの発言者、そうでなければこのツイートの発言者を返す
+     * @return 本来の発言者
+     */
     public User getSourceUser() {
         return status.isRetweet()? retweetedStatus.getUser() : status.getUser();
     }
@@ -409,6 +435,16 @@ public class PreformedStatus implements Status{
     @Override
     public String[] getWithheldInCountries() {
         return status.getWithheldInCountries();
+    }
+
+    @Override
+    public long getQuotedStatusId() {
+        return status.getQuotedStatusId();
+    }
+
+    @Override
+    public Status getQuotedStatus() {
+        return status.getQuotedStatus();
     }
 
     @Override
@@ -548,17 +584,35 @@ public class PreformedStatus implements Status{
         return quoteEntities;
     }
 
-    private class HashMapEx<K, V> extends HashMap<K, V> {
+    public List<String> getHashtags() {
+        return hashtags;
+    }
+
+    private static class HashMapEx<K, V> extends HashMap<K, V> {
+        private final Object mutex = this;
+
+        @Override
+        public V put(K key, V value) {
+            synchronized (mutex) {
+                return super.put(key, value);
+            }
+        }
+
         public V get(K key, V ifNotExistValue) {
-            V val = get(key);
+            V val;
+            synchronized (mutex) {
+                val = get(key);
+            }
             if (val == null) return ifNotExistValue;
             else return val;
         }
 
         public boolean containsWithFilter(Collection<K> keyCollection, V value) {
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
-                    return true;
+            synchronized (mutex) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (keyCollection.contains(kvEntry.getKey()) && kvEntry.getValue().equals(value)) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -566,9 +620,11 @@ public class PreformedStatus implements Status{
 
         public HashMapEx<K, V> filterByKey(Collection<K> keyCollection) {
             HashMapEx<K, V> mapEx = new HashMapEx<>();
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (keyCollection.contains(kvEntry.getKey())) {
-                    mapEx.put(kvEntry.getKey(), kvEntry.getValue());
+            synchronized (mutex) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (keyCollection.contains(kvEntry.getKey())) {
+                        mapEx.put(kvEntry.getKey(), kvEntry.getValue());
+                    }
                 }
             }
             return mapEx;
@@ -576,9 +632,11 @@ public class PreformedStatus implements Status{
 
         public List<K> filterByValue(V value) {
             List<K> keys = new ArrayList<>();
-            for (Entry<K, V> kvEntry : this.entrySet()) {
-                if (kvEntry.getValue().equals(value)) {
-                    keys.add(kvEntry.getKey());
+            synchronized (mutex) {
+                for (Entry<K, V> kvEntry : this.entrySet()) {
+                    if (kvEntry.getValue().equals(value)) {
+                        keys.add(kvEntry.getKey());
+                    }
                 }
             }
             return keys;

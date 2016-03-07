@@ -21,7 +21,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -134,18 +133,15 @@ public class MuteActivity extends ActionBarYukariBase{
         @Override
         public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
-            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    deleteReserve = configs.get(position);
-                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            DIALOG_DELETE,
-                            "確認", "設定を削除しますか?", "OK", "キャンセル"
-                    );
-                    dialogFragment.setTargetFragment(InnerFragment.this, 1);
-                    dialogFragment.show(getChildFragmentManager(), "alert");
-                    return true;
-                }
+            getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+                deleteReserve = configs.get(position);
+                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                        DIALOG_DELETE,
+                        "確認", "設定を削除しますか?", "OK", "キャンセル"
+                );
+                dialogFragment.setTargetFragment(InnerFragment.this, 1);
+                dialogFragment.show(getChildFragmentManager(), "alert");
+                return true;
             });
 
         }
@@ -350,35 +346,29 @@ public class MuteActivity extends ActionBarYukariBase{
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle(title)
                     .setView(v)
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dismiss();
-                            InnerFragment innerFragment = (InnerFragment) getTargetFragment();
-                            if (innerFragment == null) {
-                                throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
-                            }
-                            MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
-                            if (config == null) {
-                                config = new MuteConfig(spTarget.getSelectedItemPosition(),
-                                        spMatch.getSelectedItemPosition(),
-                                        spErase.getSelectedItemPosition(),
-                                        query.getText().toString(),
-                                        expirationTimeMillis);
-                            } else {
-                                config.setScope(spTarget.getSelectedItemPosition());
-                                config.setMatch(spMatch.getSelectedItemPosition());
-                                config.setMute(spErase.getSelectedItemPosition());
-                                config.setQuery(query.getText().toString());
-                                config.setExpirationTimeMillis(expirationTimeMillis);
-                            }
-                            innerFragment.updateMuteConfig(config);
+                    .setPositiveButton("OK", (dialog1, which) -> {
+                        dismiss();
+                        InnerFragment innerFragment = (InnerFragment) getTargetFragment();
+                        if (innerFragment == null) {
+                            throw new RuntimeException("TargetFragmentが設定されてないよ！！！１１");
                         }
+                        MuteConfig config1 = (MuteConfig) getArguments().getSerializable("config");
+                        if (config1 == null) {
+                            config1 = new MuteConfig(spTarget.getSelectedItemPosition(),
+                                    spMatch.getSelectedItemPosition(),
+                                    spErase.getSelectedItemPosition(),
+                                    query.getText().toString(),
+                                    expirationTimeMillis);
+                        } else {
+                            config1.setScope(spTarget.getSelectedItemPosition());
+                            config1.setMatch(spMatch.getSelectedItemPosition());
+                            config1.setMute(spErase.getSelectedItemPosition());
+                            config1.setQuery(query.getText().toString());
+                            config1.setExpirationTimeMillis(expirationTimeMillis);
+                        }
+                        innerFragment.updateMuteConfig(config1);
                     })
-                    .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {}
-                    })
+                    .setNegativeButton("キャンセル", (dialog1, which) -> {})
                     .create();
 
             return dialog;
@@ -399,40 +389,37 @@ public class MuteActivity extends ActionBarYukariBase{
         @OnClick(R.id.btnMuteExpr)
         void onClickExpireMenu() {
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
-                    .setItems(R.array.mute_expr, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Calendar c = Calendar.getInstance();
-                            c.set(Calendar.SECOND, 0);
-                            switch (which) {
-                                case 0:
-                                    c.add(Calendar.MINUTE, 30);
-                                    break;
-                                case 1:
-                                    c.add(Calendar.HOUR_OF_DAY, 1);
-                                    break;
-                                case 2:
-                                    c.add(Calendar.HOUR_OF_DAY, 3);
-                                    break;
-                                case 3:
-                                    c.add(Calendar.HOUR_OF_DAY, 12);
-                                    break;
-                                case 4:
-                                    c.add(Calendar.DAY_OF_MONTH, 1);
-                                    break;
-                                case 6:
-                                    c.setTimeInMillis(0);
-                                    break;
-                            }
-                            expirationTimeMillis = c.getTimeInMillis();
-                            updateExpire();
-                            if (expirationTimeMillis > 0) {
-                                llExprConfig.setVisibility(View.VISIBLE);
-                                llExprNever.setVisibility(View.GONE);
-                            } else {
-                                llExprConfig.setVisibility(View.GONE);
-                                llExprNever.setVisibility(View.VISIBLE);
-                            }
+                    .setItems(R.array.mute_expr, (dialog1, which) -> {
+                        Calendar c = Calendar.getInstance();
+                        c.set(Calendar.SECOND, 0);
+                        switch (which) {
+                            case 0:
+                                c.add(Calendar.MINUTE, 30);
+                                break;
+                            case 1:
+                                c.add(Calendar.HOUR_OF_DAY, 1);
+                                break;
+                            case 2:
+                                c.add(Calendar.HOUR_OF_DAY, 3);
+                                break;
+                            case 3:
+                                c.add(Calendar.HOUR_OF_DAY, 12);
+                                break;
+                            case 4:
+                                c.add(Calendar.DAY_OF_MONTH, 1);
+                                break;
+                            case 6:
+                                c.setTimeInMillis(0);
+                                break;
+                        }
+                        expirationTimeMillis = c.getTimeInMillis();
+                        updateExpire();
+                        if (expirationTimeMillis > 0) {
+                            llExprConfig.setVisibility(View.VISIBLE);
+                            llExprNever.setVisibility(View.GONE);
+                        } else {
+                            llExprConfig.setVisibility(View.GONE);
+                            llExprNever.setVisibility(View.VISIBLE);
                         }
                     })
                     .create();
@@ -447,15 +434,12 @@ public class MuteActivity extends ActionBarYukariBase{
             c.setTimeInMillis(expirationTimeMillis);
 
             CalendarDatePickerDialog dialog = CalendarDatePickerDialog.newInstance(
-                    new CalendarDatePickerDialog.OnDateSetListener() {
-                        @Override
-                        public void onDateSet(CalendarDatePickerDialog calendarDatePickerDialog, int i, int i2, int i3) {
-                            Calendar c = Calendar.getInstance();
-                            c.setTimeInMillis(expirationTimeMillis);
-                            c.set(i, i2, i3);
-                            expirationTimeMillis = c.getTimeInMillis();
-                            updateExpire();
-                        }
+                    (calendarDatePickerDialog, i, i2, i3) -> {
+                        Calendar c1 = Calendar.getInstance();
+                        c1.setTimeInMillis(expirationTimeMillis);
+                        c1.set(i, i2, i3);
+                        expirationTimeMillis = c1.getTimeInMillis();
+                        updateExpire();
                     },
                     c.get(Calendar.YEAR),
                     c.get(Calendar.MONTH),
@@ -471,16 +455,13 @@ public class MuteActivity extends ActionBarYukariBase{
             c.setTimeInMillis(expirationTimeMillis);
 
             RadialTimePickerDialog dialog = RadialTimePickerDialog.newInstance(
-                    new RadialTimePickerDialog.OnTimeSetListener() {
-                        @Override
-                        public void onTimeSet(RadialTimePickerDialog dialog, int hourOfDay, int minute) {
-                            Calendar c = Calendar.getInstance();
-                            c.setTimeInMillis(expirationTimeMillis);
-                            c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                            c.set(Calendar.MINUTE, minute);
-                            expirationTimeMillis = c.getTimeInMillis();
-                            updateExpire();
-                        }
+                    (dialog1, hourOfDay, minute) -> {
+                        Calendar c1 = Calendar.getInstance();
+                        c1.setTimeInMillis(expirationTimeMillis);
+                        c1.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        c1.set(Calendar.MINUTE, minute);
+                        expirationTimeMillis = c1.getTimeInMillis();
+                        updateExpire();
                     },
                     c.get(Calendar.HOUR_OF_DAY),
                     c.get(Calendar.MINUTE),

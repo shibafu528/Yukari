@@ -5,10 +5,6 @@ import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import shibafu.yukari.af2015.R;
@@ -20,6 +16,9 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 15/03/31.
@@ -56,7 +55,6 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
                 int processedCount = 0;
                 int repairCount = 0;
                 int failedCount = 0;
-                Twitter twitter = getTwitterService().getTwitter();
                 List<AuthUserRecord> userRecords = getTwitterService().getUsers();
                 CentralDatabase database = getTwitterService().getDatabase();
                 List<Long> aliveIDs = new ArrayList<>();
@@ -82,7 +80,11 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
                                 }
                             }
                             if (userRecord != null) {
-                                twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                                Twitter twitter = getTwitterService().getTwitter(userRecord);
+                                if (twitter == null) {
+                                    ++failedCount;
+                                    continue;
+                                }
                                 try {
                                     Bookmark bookmark = new Bookmark(new PreformedStatus(twitter.showStatus(id), userRecord));
                                     database.updateRecord(bookmark);

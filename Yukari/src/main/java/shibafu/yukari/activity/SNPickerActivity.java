@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -56,17 +55,14 @@ public class SNPickerActivity extends FragmentYukariBase implements LoaderManage
 
         ListView listView = (ListView) findViewById(R.id.lvSNPick);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SuggestedName d = suggestedNameList.get(position);
-                Intent intent = new Intent();
-                intent.putExtra(EXTRA_USER_ID, d.id);
-                intent.putExtra(EXTRA_NAME, d.name);
-                intent.putExtra(EXTRA_SCREEN_NAME, d.sn);
-                setResult(RESULT_OK, intent);
-                finish();
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            SuggestedName d = suggestedNameList.get(position);
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_USER_ID, d.id);
+            intent.putExtra(EXTRA_NAME, d.name);
+            intent.putExtra(EXTRA_SCREEN_NAME, d.sn);
+            setResult(RESULT_OK, intent);
+            finish();
         });
 
         tvHead = (TextView) findViewById(R.id.tvSNPickHead);

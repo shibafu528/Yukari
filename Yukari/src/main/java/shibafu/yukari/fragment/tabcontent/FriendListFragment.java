@@ -10,9 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import java.util.List;
-
 import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.FontAsset;
@@ -20,8 +17,11 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
+
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -70,11 +70,12 @@ public class FriendListFragment extends TwitterListFragment<User> {
     }
 
     @Override
-    public void onListItemClick(User clickedElement) {
+    public boolean onListItemClick(int position, User clickedElement) {
         Intent intent = new Intent(getActivity(), ProfileActivity.class);
         intent.putExtra(ProfileActivity.EXTRA_USER, getCurrentUser());
         intent.putExtra(ProfileActivity.EXTRA_TARGET, clickedElement.getId());
         startActivity(intent);
+        return true;
     }
 
     @Override
@@ -102,8 +103,8 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
         @Override
         protected ResponseList<User> doInBackground(Void... params) {
-            twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(getCurrentUser());
                 ResponseList<twitter4j.User> responseList = null;
                 switch (getMode()) {
                     case MODE_FRIEND:
@@ -128,6 +129,9 @@ public class FriendListFragment extends TwitterListFragment<User> {
                 if (responseList != null && !responseList.isEmpty()) {
                     if (getMode() == MODE_SEARCH) {
                         loadCursor++;
+                        if (responseList.size() < 20) {
+                            loadCursor = 0;
+                        }
                     }
                     else {
                         loadCursor = ((PagableResponseList) responseList).getNextCursor();
@@ -152,6 +156,10 @@ public class FriendListFragment extends TwitterListFragment<User> {
                 adapter.notifyDataSetChanged();
             }
             changeFooterProgress(false);
+
+            if (loadCursor == 0) {
+                removeFooter();
+            }
         }
     }
 

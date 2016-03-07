@@ -14,7 +14,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -71,25 +70,19 @@ public class ProfileEditActivity extends ActionBarYukariBase {
         etWeb = (EditText) findViewById(R.id.etProfileWeb);
         etBio = (EditText) findViewById(R.id.etProfileBio);
 
-        findViewById(R.id.btnChooseIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("image/*");
-                startActivityForResult(intent, REQUEST_GALLERY);
-            }
+        findViewById(R.id.btnChooseIcon).setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_GALLERY);
         });
 
-        findViewById(R.id.btnUndoIcon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (trimmedIcon != null) {
-                    trimmedIcon.recycle();
-                    trimmedIcon = null;
-                }
-                ImageLoaderTask.loadProfileIcon(getApplicationContext(), ivIcon, user.getBiggerProfileImageURLHttps());
-                Toast.makeText(ProfileEditActivity.this, "Undo!", Toast.LENGTH_SHORT).show();
+        findViewById(R.id.btnUndoIcon).setOnClickListener(v -> {
+            if (trimmedIcon != null) {
+                trimmedIcon.recycle();
+                trimmedIcon = null;
             }
+            ImageLoaderTask.loadProfileIcon(getApplicationContext(), ivIcon, user.getBiggerProfileImageURLHttps());
+            Toast.makeText(ProfileEditActivity.this, "Undo!", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -160,8 +153,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                     @Override
                     protected ThrowableResult<Void> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = getTwitterService().getTwitter();
-                            twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                            Twitter twitter = getTwitterService().getTwitterOrThrow(userRecord);
                             twitter.updateProfile(
                                     etName.getText().toString(),
                                     etWeb.getText().toString(),
@@ -242,8 +234,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                 @Override
                 protected ThrowableResult<User> doInBackground(Void... params) {
                     try {
-                        Twitter twitter = getTwitterService().getTwitter();
-                        twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                        Twitter twitter = getTwitterService().getTwitterOrThrow(userRecord);
                         return new ThrowableResult<>(twitter.showUser(userRecord.NumericId));
                     } catch (TwitterException e) {
                         e.printStackTrace();

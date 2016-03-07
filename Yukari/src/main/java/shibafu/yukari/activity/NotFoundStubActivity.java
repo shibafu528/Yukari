@@ -3,7 +3,6 @@ package shibafu.yukari.activity;
 import android.app.Activity;
 import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 /**
@@ -22,11 +21,8 @@ public class NotFoundStubActivity extends Activity{
                 .setTitle("Yukari : 未実装の操作")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setMessage("この機能はまだ実装されていません。時が来るまではこの機能を忘れて気長にお待ちください。\n\nDebug Info:\ngetDataString() = " + getIntent().getDataString())
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        finish();
-                    }
+                .setPositiveButton("OK", (dialogInterface, i) -> {
+                    finish();
                 })
                 .create();
     }

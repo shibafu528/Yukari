@@ -4,5 +4,7 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/Yukari/*.apk
+/captures
 .directory
 *.apk

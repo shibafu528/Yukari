@@ -8,23 +8,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
-import android.view.ContextMenu;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.Iterator;
-import java.util.List;
-
+import android.view.*;
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import shibafu.yukari.af2015.R;
@@ -36,12 +21,10 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.PagableResponseList;
-import twitter4j.ResponseList;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.UserList;
+import twitter4j.*;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -78,7 +61,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        adapter = new UserListAdapter(getActivity().getApplicationContext(), elements);
+        adapter = new UserListAdapter(getActivity(), elements);
         setListAdapter(adapter);
 
         registerForContextMenu(getListView());
@@ -90,7 +73,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     }
 
     @Override
-    public void onListItemClick(UserList clickedElement) {
+    public boolean onListItemClick(int position, UserList clickedElement) {
         DefaultTweetListFragment fragment = new DefaultTweetListFragment();
         Bundle args = new Bundle();
         args.putInt(FriendListFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
@@ -104,6 +87,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             transaction.addToBackStack(null);
             transaction.commit();
         }
+        return true;
     }
 
     @Override
@@ -324,10 +308,10 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
                                     for (Iterator<UserList> iterator = elements.iterator(); iterator.hasNext(); ) {
                                         if (iterator.next().getId() == result.getResult()) {
                                             iterator.remove();
+                                            adapter.notifyDataSetChanged();
                                             break;
                                         }
                                     }
-                                    adapter.notifyDataSetChanged();
                                 }
                             }
                         }
@@ -382,8 +366,8 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
 
         @Override
         protected ResponseList<UserList> doInBackground(Void... params) {
-            twitter.setOAuthAccessToken(getCurrentUser().getAccessToken());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(getCurrentUser());
                 ResponseList<UserList> responseList = null;
                 switch (getMode()) {
                     case MODE_FOLLOWING:

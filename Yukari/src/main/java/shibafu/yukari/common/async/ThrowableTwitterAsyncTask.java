@@ -1,5 +1,6 @@
 package shibafu.yukari.common.async;
 
+import android.support.annotation.Nullable;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
@@ -48,14 +49,9 @@ public abstract class ThrowableTwitterAsyncTask<Params, Result> extends Throwabl
         }
     }
 
-    protected Twitter getTwitterInstance() {
-        return delegate.getTwitterService().getTwitter();
-    }
-
+    @Nullable
     protected Twitter getTwitterInstance(AuthUserRecord userRecord) {
-        Twitter twitter = delegate.getTwitterService().getTwitter();
-        twitter.setOAuthAccessToken(userRecord.getAccessToken());
-        return twitter;
+        return delegate.getTwitterService().getTwitter(userRecord);
     }
 
     public final boolean isErrored() {

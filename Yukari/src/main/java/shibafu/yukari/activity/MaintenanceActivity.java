@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -24,11 +23,6 @@ import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -45,6 +39,10 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.RateLimitStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by shibafu on 14/07/05.
@@ -296,12 +294,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                         getActivity(),
                         currentUser.ProfileImageUrl,
                         BitmapCache.PROFILE_ICON_CACHE,
-                        new ImageLoaderTask.DrawableLoaderCallback() {
-                            @Override
-                            public void onLoadDrawable(Drawable drawable) {
-                                accountMenu.setIcon(drawable);
-                            }
-                        }
+                        accountMenu::setIcon
                 );
                 ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>> task
                         = new ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>>() {
@@ -312,9 +305,8 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
                     @Override
                     protected ThrowableResult<Map<String, RateLimitStatus>> doInBackground(AuthUserRecord... params) {
-                        Twitter twitter = getService().getTwitter();
-                        twitter.setOAuthAccessToken(params[0].getAccessToken());
                         try {
+                            Twitter twitter = getService().getTwitterOrThrow(params[0]);
                             return new ThrowableResult<>(twitter.getRateLimitStatus());
                         } catch (TwitterException e) {
                             e.printStackTrace();

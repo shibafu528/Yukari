@@ -9,7 +9,6 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -80,56 +79,41 @@ public class DraftDialogFragment extends DialogFragment {
         adapter = new DraftAdapter();
         listView.setAdapter(adapter);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                listener.onDraftSelected(drafts.get(position));
-                dismiss();
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            listener.onDraftSelected(drafts.get(position));
+            dismiss();
         });
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                final int pos = position;
-                AlertDialog ad = new AlertDialog.Builder(getActivity())
-                        .setTitle("確認")
-                        .setMessage("\"" + drafts.get(position).getText() + "\"を削除しますか？")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            final int pos = position;
+            AlertDialog ad = new AlertDialog.Builder(getActivity())
+                    .setTitle("確認")
+                    .setMessage("\"" + drafts.get(position).getText() + "\"を削除しますか？")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
 
-                                service.getDatabase().deleteDraft(drafts.get(pos));
-                                drafts = service.getDatabase().getDrafts();
-                                adapter.notifyDataSetChanged();
+                        service.getDatabase().deleteDraft(drafts.get(pos));
+                        drafts = service.getDatabase().getDrafts();
+                        adapter.notifyDataSetChanged();
 
-                                if (drafts.size() < 1) {
-                                    Toast.makeText(getActivity(), "下書きがありません", Toast.LENGTH_SHORT).show();
-                                    dismiss();
-                                }
-                            }
-                        })
-                        .setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-                                dialog.dismiss();
-                                currentDialog = null;
-                            }
-                        })
-                        .create();
-                ad.show();
-                currentDialog = ad;
-                return true;
-            }
+                        if (drafts.size() < 1) {
+                            Toast.makeText(getActivity(), "下書きがありません", Toast.LENGTH_SHORT).show();
+                            dismiss();
+                        }
+                    })
+                    .setNegativeButton("キャンセル", (dialog, which) -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    })
+                    .setOnCancelListener(dialog -> {
+                        dialog.dismiss();
+                        currentDialog = null;
+                    })
+                    .create();
+            ad.show();
+            currentDialog = ad;
+            return true;
         });
     }
 

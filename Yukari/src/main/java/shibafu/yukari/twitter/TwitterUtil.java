@@ -21,13 +21,28 @@ public class TwitterUtil {
 		String consumer_secret = context.getString(R.string.twitter_consumer_secret);
 
         ConfigurationBuilder configuration = new ConfigurationBuilder();
+        configuration.setOAuthConsumerKey(consumer_key);
+        configuration.setOAuthConsumerSecret(consumer_secret);
 
 		TwitterFactory factory = new TwitterFactory(configuration.build());
-		Twitter twitter = factory.getInstance();
-		twitter.setOAuthConsumer(consumer_key, consumer_secret);
-
-		return twitter;
+        return factory.getInstance();
 	}
+
+    /**
+     * CK/CSの設定を行ったTwitterFactoryのインスタンスを生成します。
+     * @param context Application Context
+     * @return TwitterFactory instance
+     */
+    public static TwitterFactory getTwitterFactory(Context context) {
+        String consumer_key = context.getString(R.string.twitter_consumer_key);
+        String consumer_secret = context.getString(R.string.twitter_consumer_secret);
+
+        ConfigurationBuilder configuration = new ConfigurationBuilder();
+        configuration.setOAuthConsumerKey(consumer_key);
+        configuration.setOAuthConsumerSecret(consumer_secret);
+
+        return new TwitterFactory(configuration.build());
+    }
 
     //<editor-fold desc="外部サービスURL生成">
     public static String getFavstarURL(String screenName) {

@@ -7,22 +7,22 @@
     <drawable name="status_bar_color">#cc7849ba</drawable>
     <color name="status_bar_color">#cc7849ba</color>
 
-    <color name="bg_retweet">#ffd7dffd</color>
-    <drawable name="bg_retweet">#ffd7dffd</drawable>
-    <color name="bg_mention">#EDB3DD</color>
-    <drawable name="bg_mention">#EDB3DD</drawable>
-    <color name="bg_own">#EFDCFF</color>
-    <drawable name="bg_own">#EFDCFF</drawable>
+    <color name="bg_retweet">#bad7dffd</color>
+    <drawable name="bg_retweet">#bad7dffd</drawable>
+    <color name="bg_mention">#baEDB3DD</color>
+    <drawable name="bg_mention">#baEDB3DD</drawable>
+    <color name="bg_own">#baEFDCFF</color>
+    <drawable name="bg_own">#baEFDCFF</drawable>
 
-    <color name="bg_retweet_d">#ff363358</color>
-    <drawable name="bg_retweet_d">#ff363358</drawable>
-    <color name="bg_mention_d">#ff49003b</color>
-    <drawable name="bg_mention_d">#ff49003b</drawable>
-    <color name="bg_own_d">#ff00182c</color>
-    <drawable name="bg_own_d">#ff00182c</drawable>
+    <color name="bg_retweet_d">#ba363358</color>
+    <drawable name="bg_retweet_d">#ba363358</drawable>
+    <color name="bg_mention_d">#ba49003b</color>
+    <drawable name="bg_mention_d">#ba49003b</drawable>
+    <color name="bg_own_d">#ba00182c</color>
+    <drawable name="bg_own_d">#ba00182c</drawable>
 
-    <color name="bg_press">#B394E0</color>
-    <drawable name="bg_press">#B394E0</drawable>
+    <color name="bg_press">#baB394E0</color>
+    <drawable name="bg_press">#baB394E0</drawable>
     <color name="bg_press_d">#ff382852</color>
     <drawable name="bg_press_d">#ff382852</drawable>
 
@@ -52,7 +52,7 @@
     <color name="zunko_footer">#cc4caf50</color>
     <drawable name="zunko_focus">#cac8e6c9</drawable>
     <drawable name="zunko_press">#ca4caf50</drawable>
-    
+
     <color name="maki_primary">#FFC107</color>
     <color name="maki_primary_dark">#FFA000</color>
     <color name="maki_primary_light">#FFECB3</color>

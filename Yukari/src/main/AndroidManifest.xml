@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari.af2015"
     android:installLocation="auto"
-    android:versionCode="46"
-    android:versionName="material_colors (base y4a-ensemble-1.1.5.200)" >
+    android:versionCode="64"
+    android:versionName="feature/material base 1.2.5.281" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -16,13 +16,15 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:name="shibafu.yukari.core.YukariApplication">
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
 
         <activity
             android:name="shibafu.yukari.activity.MainActivity"
             android:label="@string/app_name"
+            android:configChanges="orientation|screenSize"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,6 +57,7 @@
         </activity>
 
         <service android:name="shibafu.yukari.service.TwitterService" />
+        <service android:name="shibafu.yukari.service.AsyncCommandService"/>
         <service
             android:name="shibafu.yukari.service.CacheCleanerService"
             android:process=":cleaner"/>
@@ -62,7 +65,8 @@
         <activity
             android:name="shibafu.yukari.activity.TweetActivity"
             android:label="@string/title_activity_tweet"
-            android:theme="@style/VertAnimationTheme" >
+            android:theme="@style/VertAnimationTheme"
+            android:taskAffinity=".tweet">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -328,7 +332,7 @@
 
         <activity
             android:name="shibafu.yukari.activity.TwpfActivity"
-            android:label="ツイフィール ビューア">
+            android:label="@string/title_activity_twpf">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
 
@@ -343,6 +347,19 @@
             android:theme="@style/YukariDarkDialogTheme"/>
 
         <activity android:name="shibafu.yukari.activity.BookmarkRepairActivity"/>
+
+        <activity
+            android:name="shibafu.yukari.activity.AboutActivity"
+            android:theme="@style/YukariAboutTheme"
+            android:screenOrientation="portrait"/>
+
+        <activity
+            android:name="shibafu.yukari.activity.TemplateEditActivity"
+            android:label="@string/title_activity_template_edit"/>
+
+        <activity android:name="shibafu.yukari.activity.QueryEditorActivity"
+                  android:windowSoftInputMode="adjustResize"
+                  android:label="@string/title_activity_query_editor"/>
    </application>
 
 </manifest>

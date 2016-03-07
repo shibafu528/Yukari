@@ -249,41 +249,38 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 }
             }
 
-            private ResultCallback<DriveApi.DriveContentsResult> resultCallback = new ResultCallback<DriveApi.DriveContentsResult>() {
-                @Override
-                public void onResult(DriveApi.DriveContentsResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
-                        dismiss();
-                        return;
-                    }
-                    DriveContents contents = result.getDriveContents();
+            private ResultCallback<DriveApi.DriveContentsResult> resultCallback = result -> {
+                if (!result.getStatus().isSuccess()) {
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
+                    dismiss();
+                    return;
+                }
+                DriveContents contents = result.getDriveContents();
 
-                    InputStream is = contents.getInputStream();
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int length;
+                InputStream is = contents.getInputStream();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buffer = new byte[1024];
+                int length;
+                try {
+                    while ((length = is.read(buffer, 0, buffer.length)) != -1) {
+                        baos.write(buffer, 0, length);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
                     try {
-                        while ((length = is.read(buffer, 0, buffer.length)) != -1) {
-                            baos.write(buffer, 0, length);
-                        }
+                        baos.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        try {
-                            baos.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
-                    contents.discard(apiClient);
+                }
+                contents.discard(apiClient);
 
-                    if (!isCancelled) {
-                        OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
-                        listener.onDriveImportCompleted(baos.toByteArray());
-                        Toast.makeText(getActivity(), getActivity().getString(R.string.drive_complete_import), Toast.LENGTH_SHORT).show();
-                        dismiss();
-                    }
+                if (!isCancelled) {
+                    OnDriveImportCompletedListener listener = (OnDriveImportCompletedListener) getTargetFragment();
+                    listener.onDriveImportCompleted(baos.toByteArray());
+                    Toast.makeText(getActivity(), getActivity().getString(R.string.drive_complete_import), Toast.LENGTH_SHORT).show();
+                    dismiss();
                 }
             };
         });
@@ -339,19 +336,9 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
 
                     if (!isCancelled) {
                         if (existFile == null) {
-                            appFolder.createFile(apiClient, metadata, contents).setResultCallback(new ResultCallback<DriveFolder.DriveFileResult>() {
-                                @Override
-                                public void onResult(DriveFolder.DriveFileResult driveFileResult) {
-                                    showResultMessage(driveFileResult.getStatus());
-                                }
-                            });
+                            appFolder.createFile(apiClient, metadata, contents).setResultCallback(driveFileResult -> showResultMessage(driveFileResult.getStatus()));
                         } else {
-                            contents.commit(apiClient, null).setResultCallback(new ResultCallback<Status>() {
-                                @Override
-                                public void onResult(Status status) {
-                                    showResultMessage(status.getStatus());
-                                }
-                            });
+                            contents.commit(apiClient, null).setResultCallback(status -> showResultMessage(status.getStatus()));
                         }
                     }
                 }

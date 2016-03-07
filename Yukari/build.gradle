@@ -1,34 +1,54 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'me.tatarka.retrolambda'
+
+repositories {
+    maven {
+        url 'http://shibafu528.github.io/totoridipjp4J/build/repo'
+    }
+}
 
 dependencies {
     compile 'com.android.support:appcompat-v7:22.1.+'
-    compile 'com.android.support:support-v4:22.1.+'
+    compile 'com.android.support:support-v4:22.2.+'
     compile 'com.google.android.gms:play-services-plus:6.5.87'
     compile 'com.google.android.gms:play-services-drive:6.5.87'
 
     compile 'com.google.code.gson:gson:2.3'
-    compile 'com.jakewharton:butterknife:5.1.2'
+    compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
     compile 'com.nineoldandroids:library:2.4.0'
 
     //appcompat-v7:21に非対応のため、しばらくは対応パッチの当たった版を使う
     //compile 'com.doomonafireball.betterpickers:library:1.5.+'
     compile project(':betterpickers')
 
-    compile 'org.twitter4j:twitter4j-core:4.0.3'
-    compile 'org.twitter4j:twitter4j-async:4.0.3'
-    compile 'org.twitter4j:twitter4j-media-support:4.0.3'
-    compile 'org.twitter4j:twitter4j-stream:4.0.3'
+    def t4j_version = '4.0.4'
+    compile "org.twitter4j:twitter4j-core:$t4j_version"
+    compile "org.twitter4j:twitter4j-async:$t4j_version"
+    compile "org.twitter4j:twitter4j-media-support:$t4j_version"
+    compile "org.twitter4j:twitter4j-stream:$t4j_version"
+    compile "org.twitter4j:twitter4j-http2-support:$t4j_version"
 
     compile 'com.twitter:twitter-text:1.6.1'
+    compile 'org.jsoup:jsoup:1.8.3'
+    compile 'com.google.zxing:javase:3.2.1'
 
     compile 'com.larswerkman:HoloColorPicker:1.4'
 
     compile 'com.github.machinarius:preferencefragment:0.1.1'
 
+    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
+
     compile project(':GalleryMultiPicker:library')
     compile project(':twpfparser')
 
     compile fileTree(dir: './libs', includes: ['*.jar'])
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    testCompile 'junit:junit:4.12'
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+
+    provided 'org.projectlombok:lombok:1.16.4'
 }
 
 android {
@@ -41,8 +61,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
@@ -62,4 +82,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+}
+
+//-- Kotlin --
+buildscript {
+    ext.kotlin_version = '1.0.0'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+repositories {
+    mavenCentral()
+}
+//^^ Kotlin ^^
+
+retrolambda {
+    jdk System.getenv("JAVA8_HOME")
+    oldJdk System.getenv("JAVA7_HOME")
+    javaVersion JavaVersion.VERSION_1_7
+    defaultMethods true
+    incremental true
 }

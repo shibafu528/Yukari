@@ -35,21 +35,20 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -100,29 +99,13 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         Dialog dialog = new Dialog(getActivity());
 
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            default:
+            case "light":
                 dialog.getContext().setTheme(R.style.YukariLightDialogTheme);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":
                 dialog.getContext().setTheme(R.style.YukariDarkDialogTheme);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
-                break;
-            case "zunko":
-                dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
-                break;
-            case "maki":
-                dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
-                break;
-            case "aoi":
-                dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
-                break;
-            case "akane":
-                dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -136,12 +119,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             dialog.getWindow().setAttributes(lp);
         }
 
-        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
-            @Override
-            public void onShow(DialogInterface dialogInterface) {
-                imm.showSoftInput(searchQuery, InputMethodManager.SHOW_IMPLICIT);
-            }
-        });
+        dialog.setOnShowListener(dialogInterface -> imm.showSoftInput(searchQuery, InputMethodManager.SHOW_IMPLICIT));
 
         return dialog;
     }
@@ -158,16 +136,13 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         spacer = v.findViewById(R.id.spacer);
 
         searchQuery = (EditText) v.findViewById(R.id.editText);
-        searchQuery.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View view, int i, KeyEvent keyEvent) {
-                if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
-                        keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                    sendQuery();
-                }
-                return false;
+        searchQuery.setOnKeyListener((view, i, keyEvent) -> {
+            if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
+                    keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                sendQuery();
             }
+            return false;
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             searchQuery.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
@@ -195,22 +170,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         ImageButton ibSearch = (ImageButton) v.findViewById(R.id.ibSearch);
-        ibSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        ibSearch.setOnClickListener(view -> sendQuery());
+        ibSearch.setOnLongClickListener(view -> {
+            if (searchQuery.getText().length() > 0) {
+                searchQuery.setText(String.format("\"%s\"", searchQuery.getText().toString()));
                 sendQuery();
+                return true;
             }
-        });
-        ibSearch.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (searchQuery.getText().length() > 0) {
-                    searchQuery.setText(String.format("\"%s\"", searchQuery.getText().toString()));
-                    sendQuery();
-                    return true;
-                }
-                else return false;
-            }
+            else return false;
         });
 
         adapter = new SectionsPagerAdapter(getChildFragmentManager());
@@ -221,7 +188,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColorResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.colorPrimary));
+        tabStrip.setTabIndicatorColorResource(R.color.key_color);
 
         return v;
     }
@@ -426,7 +393,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<>(getServiceAwait().getTwitter().getPlaceTrends(1118370).getTrends());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter == null) {
+                                return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
+                            }
+                            return new ThrowableResult<>(twitter.getPlaceTrends(1118370).getTrends());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -515,8 +486,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            return new ThrowableResult<>(
-                                    getServiceAwait().getTwitter().getSavedSearches());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter == null) {
+                                return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
+                            }
+                            return new ThrowableResult<>(twitter.getSavedSearches());
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return new ThrowableResult<>(e);
@@ -607,7 +581,10 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     protected TwitterException doInBackground(SavedSearch... savedSearches) {
                         savedSearch = savedSearches[0];
                         try {
-                            getServiceAwait().getTwitter().destroySavedSearch(savedSearch.getId());
+                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            if (twitter != null) {
+                                twitter.destroySavedSearch(savedSearch.getId());
+                            }
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             return e;

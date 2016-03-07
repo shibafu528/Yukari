@@ -10,25 +10,8 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.util.Pair;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import android.view.*;
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
@@ -39,12 +22,9 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.PagableResponseList;
-import twitter4j.ResponseList;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.User;
-import twitter4j.UserList;
+import twitter4j.*;
+
+import java.util.*;
 
 /**
  * Created by shibafu on 14/07/22.
@@ -64,7 +44,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     private AuthUserRecord currentUser;
 
     private ResponseList<UserList> userLists;
-    private ArrayList<Long> membership;
+    private List<Long> membership;
 
     private ListLoadTask currentListLoadTask;
     private Map<ListUpdateTask, UserList> updateTasks = new HashMap<>();
@@ -123,8 +103,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
         lp.width = dialogWidth;
         dialog.getWindow().setAttributes(lp);
 
-        loadList();
-
         return dialog;
     }
 
@@ -135,8 +113,14 @@ public class ListRegisterDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onStart() {
+        super.onStart();
+        loadList();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
         if (currentListLoadTask != null) {
             currentListLoadTask.cancel(true);
             currentListLoadTask = null;
@@ -168,7 +152,17 @@ public class ListRegisterDialogFragment extends DialogFragment {
         if (currentListLoadTask != null) {
             currentListLoadTask.cancel(true);
         }
-        currentListLoadTask = new ListLoadTask();
+        switch (Integer.valueOf(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_lists_membership_finder", "0"))) {
+            default:
+                currentListLoadTask = new ListLoadTask(ListMembershipChecker.MEMBERS_FULL_SEARCH);
+                break;
+            case 1:
+                currentListLoadTask = new ListLoadTask(ListMembershipChecker.CHECK_MEMBERS_SHOW);
+                break;
+            case 2:
+                currentListLoadTask = new ListLoadTask(ListMembershipChecker.NO_SEARCH);
+                break;
+        }
         currentListLoadTask.executeParallel(currentUser);
     }
 
@@ -236,40 +230,30 @@ public class ListRegisterDialogFragment extends DialogFragment {
         }
     }
 
-    private class ListLoadTask extends ThrowableTwitterAsyncTask<AuthUserRecord, Pair<ResponseList<UserList>, ArrayList<Long>>> {
+    private class ListLoadTask extends ThrowableTwitterAsyncTask<AuthUserRecord, Pair<ResponseList<UserList>, List<Long>>> {
+        private ListMembershipChecker checker;
+
+        public ListLoadTask(ListMembershipChecker checker) {
+            this.checker = checker;
+        }
+
         @Override
         protected void showToast(String message) {
             Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
         }
 
         @Override
-        protected ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> doInBackground(AuthUserRecord... params) {
-            Twitter twitter = delegate.getTwitterService().getTwitter();
-            twitter.setOAuthAccessToken(params[0].getAccessToken());
+        protected ThrowableResult<Pair<ResponseList<UserList>, List<Long>>> doInBackground(AuthUserRecord... params) {
             try {
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0]);
                 ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
-                ArrayList<Long> membership = new ArrayList<>();
                 for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
                     UserList list = iterator.next();
                     if (list.getUser().getId() != params[0].NumericId) {
                         iterator.remove();
-                    } else {
-                        try {
-                            for (long cursor = -1;;) {
-                                PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
-                                for (User userListMember : userListMembers) {
-                                    if (userListMember.getId() == targetUser.getId()) {
-                                        membership.add(list.getId());
-                                        break;
-                                    }
-                                }
-                                if (userListMembers.hasNext()) {
-                                    cursor = userListMembers.getNextCursor();
-                                } else break;
-                            }
-                        } catch (TwitterException ignored) {}
                     }
                 }
+                List<Long> membership = checker.findMembership(twitter, lists, targetUser.getId());
                 return new ThrowableResult<>(new Pair<>(lists, membership));
             } catch (TwitterException e) {
                 e.printStackTrace();
@@ -290,9 +274,12 @@ public class ListRegisterDialogFragment extends DialogFragment {
         }
 
         @Override
-        protected void onPostExecute(ThrowableResult<Pair<ResponseList<UserList>, ArrayList<Long>>> result) {
+        protected void onPostExecute(ThrowableResult<Pair<ResponseList<UserList>, List<Long>>> result) {
             super.onPostExecute(result);
             currentListLoadTask = null;
+            if (!ListRegisterDialogFragment.this.isResumed()) {
+                return;
+            }
             progressBar.setVisibility(View.GONE);
             if (!result.isException()) {
                 userLists = result.getResult().first;
@@ -301,6 +288,62 @@ public class ListRegisterDialogFragment extends DialogFragment {
                 listView.setAdapter(adapter);
             }
         }
+    }
+
+    /**
+     * リストにユーザが登録されているか取得する処理の定義
+     */
+    private enum ListMembershipChecker {
+        /** ユーザ全探索 */
+        MEMBERS_FULL_SEARCH {
+            @Override
+            public List<Long> findMembership(Twitter twitter, List<UserList> userLists, long targetUserId) {
+                List<Long> membership = new ArrayList<>();
+                for (UserList list : userLists) {
+                    try {
+                        for (long cursor = -1;;) {
+                            PagableResponseList<User> userListMembers = twitter.getUserListMembers(list.getId(), cursor);
+                            for (User userListMember : userListMembers) {
+                                if (userListMember.getId() == targetUserId) {
+                                    membership.add(list.getId());
+                                    break;
+                                }
+                            }
+                            if (userListMembers.hasNext()) {
+                                cursor = userListMembers.getNextCursor();
+                            } else break;
+                        }
+                    } catch (TwitterException ignored) {}
+                }
+                return membership;
+            }
+        },
+
+        /** GET members/show を使って取得 */
+        CHECK_MEMBERS_SHOW {
+            @Override
+            public List<Long> findMembership(Twitter twitter, List<UserList> userLists, long targetUserId) {
+                List<Long> membership = new ArrayList<>();
+                for (UserList list : userLists) {
+                    try {
+                        twitter.showUserListMembership(list.getId(), targetUserId);
+                        membership.add(list.getId());
+                    } catch (TwitterException ignored) {}
+                }
+                return membership;
+            }
+        },
+
+        /** 探索しない */
+        NO_SEARCH {
+            @Override
+            public List<Long> findMembership(Twitter twitter, List<UserList> userLists, long targetUserId) {
+                return new ArrayList<>();
+            }
+        }
+        ;
+
+        public abstract List<Long> findMembership(Twitter twitter, List<UserList> userLists, long targetUserId);
     }
 
     private class ListUpdateTask extends ThrowableTwitterAsyncTask<ListUpdateTask.Params, ListUpdateTask.Params> {
@@ -322,8 +365,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Params> doInBackground(Params... params) {
             try {
-                Twitter twitter = delegate.getTwitterService().getTwitter();
-                twitter.setOAuthAccessToken(params[0].userRecord.getAccessToken());
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0].userRecord);
                 switch (params[0].mode) {
                     case ADD:
                         twitter.createUserListMember(params[0].list.getId(), targetUser.getId());

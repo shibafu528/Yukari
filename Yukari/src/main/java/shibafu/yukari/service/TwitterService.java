@@ -1,5 +1,6 @@
 package shibafu.yukari.service;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -7,24 +8,27 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Binder;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.WorkerThread;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import shibafu.yukari.af2015.R;
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.AutoMuteConfig;
@@ -33,9 +37,11 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
+import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.IDs;
 import twitter4j.Status;
@@ -43,8 +49,20 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
 import twitter4j.UploadedMedia;
-import twitter4j.conf.ConfigurationBuilder;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -80,7 +98,8 @@ public class TwitterService extends Service{
     //ネットワーク管理
 
     //Twitter通信系
-    private Twitter twitter;
+    private TwitterFactory twitterFactory;
+    private LongSparseArray<Twitter> twitterInstances = new LongSparseArray<>();
     private List<AuthUserRecord> users = new ArrayList<>();
     private List<UserExtras> userExtras = new ArrayList<>();
     private StatusManager statusManager;
@@ -120,12 +139,31 @@ public class TwitterService extends Service{
     }
 
     @Override
-    @SuppressWarnings("deprecation")
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText("Yukariを実行中です")
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setShowWhen(false)
+                .setOngoing(true)
+                .setLocalOnly(true)
+                .setColor(getResources().getColor(R.color.key_color))
+                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
+        startForeground(R.string.app_name, builder.build());
+        return START_STICKY;
+    }
+
+    @Override
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
 
         handler = new Handler();
+
+        //TwitterFactoryの生成
+        twitterFactory = TwitterUtil.getTwitterFactory(this);
 
         //データベースのオープン
         database = new CentralDatabase(this).open();
@@ -149,9 +187,6 @@ public class TwitterService extends Service{
         //ユーザー設定の読み込み
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
 
-        //Twitterインスタンスの生成
-        twitter = TwitterUtil.getTwitterInstance(this);
-
         if (!users.isEmpty() && getPrimaryUser() != null) {
             //Configuration, Blocks, Mutes, No-Retweetsの取得
             new TwitterAsyncTask<Void>(getApplicationContext()) {
@@ -160,12 +195,19 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        Twitter twitter = getTwitter();
-                        apiConfiguration = twitter.getAPIConfiguration();
+                        {
+                            Twitter primary = getTwitterOrPrimary(null);
+                            if (primary != null) {
+                                apiConfiguration = primary.getAPIConfiguration();
+                            }
+                        }
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
                             for (AuthUserRecord userRecord : users) {
-                                twitter.setOAuthAccessToken(userRecord.getAccessToken());
+                                Twitter twitter = getTwitter(userRecord);
+                                if (twitter == null) {
+                                    continue;
+                                }
 
                                 IDs ids = null;
                                 try {
@@ -211,6 +253,35 @@ public class TwitterService extends Service{
             e.printStackTrace();
         }
 
+        //mikutter更新通知
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
+            new SimpleAsyncTask() {
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    String versionString = getLatestMikutterVersion("stable");
+                    if (versionString != null) {
+                        Log.d("mikutter-version", versionString);
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                                .setSmallIcon(R.drawable.ic_stat_favorite)
+                                .setContentTitle("mikutter " + versionString)
+                                .setContentText("mikutter " + versionString + " がリリースされています。")
+                                .setTicker("mikutter " + versionString)
+                                .setPriority(NotificationCompat.PRIORITY_MAX)
+                                .setAutoCancel(true)
+                                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
+                                        new Intent(Intent.ACTION_VIEW, Uri.parse("http://mikutter.hachune.net/download")),
+                                        PendingIntent.FLAG_CANCEL_CURRENT));
+                        NotificationManagerCompat.from(getApplicationContext()).notify(R.string.app_name, builder.build());
+                    } else {
+                        Log.d("mikutter-version", "null");
+                    }
+                    return null;
+                }
+
+            }.executeParallel();
+        }
+
         Log.d(LOG_TAG, "onCreate completed.");
     }
 
@@ -227,7 +298,8 @@ public class TwitterService extends Service{
         statusManager.shutdownAll();
         statusManager = null;
 
-        twitter = null;
+        twitterInstances.clear();
+        twitterFactory = null;
 
         storeUsers();
         users = new ArrayList<>();
@@ -241,6 +313,8 @@ public class TwitterService extends Service{
         if (pixivProxy != null) {
             pixivProxy.stop();
         }
+
+        stopForeground(true);
 
         startService(new Intent(this, CacheCleanerService.class));
 
@@ -290,7 +364,7 @@ public class TwitterService extends Service{
     }
 
     public List<AuthUserRecord> getUsers() {
-        return users != null ? users : new ArrayList<AuthUserRecord>();
+        return users != null ? users : new ArrayList<>();
     }
 
     public AuthUserRecord getPrimaryUser() {
@@ -445,19 +519,7 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     private void showToast(final String text) {
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    public ConfigurationBuilder getBuilder() {
-        ConfigurationBuilder builder = new ConfigurationBuilder();
-        builder.setOAuthConsumerKey(getString(R.string.twitter_consumer_key));
-        builder.setOAuthConsumerSecret(getString(R.string.twitter_consumer_secret));
-        return builder;
+        handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
     public String[] getHashCache() {
@@ -465,10 +527,53 @@ public class TwitterService extends Service{
         return hashCache.toArray(new String[hashCache.size()]);
     }
 
-    public Twitter getTwitter() {
-        AuthUserRecord primaryUser = getPrimaryUser();
-        if (primaryUser != null) {
-            twitter.setOAuthAccessToken(primaryUser.getAccessToken());
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。結果はアカウントID毎にキャッシュされます。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    @Nullable
+    public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
+        if (twitterFactory == null) {
+            return null;
+        }
+
+        if (userRecord == null) {
+            return twitterFactory.getInstance();
+        }
+
+        if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
+            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getAccessToken()));
+        }
+        return twitterInstances.get(userRecord.NumericId);
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。
+     * {@link #getTwitter(AuthUserRecord)} との違いは、こちらは引数 userRecord が null の場合、プライマリユーザでの取得を試みることです。
+     * @param userRecord 認証情報。ここに null を指定すると、プライマリユーザのインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。
+     */
+    @Nullable
+    public Twitter getTwitterOrPrimary(@Nullable AuthUserRecord userRecord) {
+        if (userRecord == null) {
+            return getTwitter(getPrimaryUser());
+        } else {
+            return getTwitter(userRecord);
+        }
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。
+     * {@link #getTwitter(AuthUserRecord)} との違いは、こちらはインスタンスの取得に失敗した際、例外をスローすることです。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    @NonNull
+    public Twitter getTwitterOrThrow(@Nullable AuthUserRecord userRecord) throws MissingTwitterInstanceException {
+        Twitter twitter = getTwitter(userRecord);
+        if (twitter == null) {
+            throw new MissingTwitterInstanceException("Twitter インスタンスの取得エラー");
         }
         return twitter;
     }
@@ -502,7 +607,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("送信元アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         twitter.updateStatus(status);
     }
 
@@ -520,7 +628,11 @@ public class TwitterService extends Service{
                 fos.close();
             }
 
-            twitter.setOAuthAccessToken(user.getAccessToken());
+            Twitter twitter = getTwitter(user);
+            if (twitter == null) {
+                throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+            }
+
             return twitter.uploadMedia(tempFile);
         }
         finally {
@@ -532,7 +644,10 @@ public class TwitterService extends Service{
         if (from == null) {
             throw new IllegalArgumentException("送信元アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(from.getAccessToken());
+        Twitter twitter = getTwitter(from);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         twitter.sendDirectMessage(to, message);
     }
 
@@ -540,7 +655,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.retweetStatus(id);
             showToast("RTしました (@" + user.ScreenName + ")");
@@ -554,7 +672,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.createFavorite(id);
             showToast("ふぁぼりました (@" + user.ScreenName + ")");
@@ -568,7 +689,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.destroyFavorite(id);
             showToast("あんふぁぼしました (@" + user.ScreenName + ")");
@@ -582,7 +706,10 @@ public class TwitterService extends Service{
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");
         }
-        twitter.setOAuthAccessToken(user.getAccessToken());
+        Twitter twitter = getTwitter(user);
+        if (twitter == null) {
+            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
+        }
         try {
             twitter.destroyStatus(id);
             showToast("ツイートを削除しました");
@@ -616,4 +743,55 @@ public class TwitterService extends Service{
         return null;
     }
 
+    private static class MikutterDownload {
+        static class Version {
+            public int major, minor, teeny, build;
+            public String meta;
+        }
+        @SerializedName("version_string") public String versionString;
+        public Version version;
+        public String created;
+        public String url;
+    }
+
+    /**
+     * mikutterの最新バージョン情報を取得します。
+     * @param channel リリースの区分。nullにした場合は "stable" 扱いにします。
+     * @return 最新バージョン(基本的にはx.y.z alpha版などそれ以外のケースも有る)
+     */
+    @WorkerThread
+    @Nullable
+    private String getLatestMikutterVersion(@Nullable String channel) {
+        if (channel == null) {
+            channel = "stable";
+        }
+        try {
+            Debug.waitForDebugger();
+
+            HttpURLConnection conn = (HttpURLConnection) new URL("http://mikutter.hachune.net/download/" + channel + ".json").openConnection();
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", StringUtil.getVersionInfo(this));
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            try {
+                String s;
+                while ((s = br.readLine()) != null) {
+                    sb.append(s);
+                }
+            } finally {
+                br.close();
+                conn.disconnect();
+            }
+
+            MikutterDownload[] info = new Gson().fromJson(sb.toString(), MikutterDownload[].class);
+
+            if (info.length == 0) {
+                return null;
+            } else {
+                return info[0].versionString;
+            }
+
+        } catch (IOException ignore) {}
+        return null;
+    }
 }

@@ -1,12 +1,22 @@
 package shibafu.yukari.util;
 
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.annotation.Nullable;
+
 import java.util.Calendar;
 import java.util.Date;
+
+import shibafu.yukari.af2015.R;
 
 /**
  * Created by Shibafu on 14/01/12.
  */
 public class StringUtil {
+    private final static int TOO_MANY_REPEAT = 4;
+
     public static String generateKey(String key) {
         if (key == null) return "null";
         char[] array = key.toCharArray();
@@ -60,5 +70,49 @@ public class StringUtil {
         format02d(s, c.get(Calendar.MINUTE)).append(':');
         format02d(s, c.get(Calendar.SECOND));
         return s.toString();
+    }
+
+    public static String getVersionInfo(Context context) {
+        StringBuilder sb = new StringBuilder(context.getString(R.string.app_name));
+        PackageManager pm = context.getPackageManager();
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            sb.append(" ");
+            sb.append(packageInfo.versionName);
+            sb.append("/");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            sb.append(" unknown ver/");
+        }
+        sb.append(Build.MANUFACTURER);
+        sb.append("/");
+        sb.append(Build.MODEL);
+        sb.append("/");
+        sb.append(Build.VERSION.RELEASE);
+        return sb.toString();
+    }
+
+    @Nullable
+    public static String compressText(String text) {
+        String repeatedSequence = "";
+
+        int maxRepeat = 0;
+        String[] split = text.split("\n");
+        for (String s1 : split) {
+            int repeat = 0;
+            for (String s2 : split) {
+                if (!"".equals(s2.trim()) && s1.trim().equals(s2.trim())) {
+                    ++repeat;
+                }
+            }
+            if ((maxRepeat = Math.max(maxRepeat, repeat)) == repeat) {
+                repeatedSequence = s1.trim();
+            }
+        }
+        if (maxRepeat >= TOO_MANY_REPEAT) {
+            return repeatedSequence;
+        } else {
+            return null;
+        }
     }
 }

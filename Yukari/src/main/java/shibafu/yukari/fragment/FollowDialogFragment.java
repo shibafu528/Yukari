@@ -3,12 +3,11 @@ package shibafu.yukari.fragment;
 import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -44,6 +43,7 @@ public class FollowDialogFragment extends DialogFragment {
     public static final int RELATION_BLOCK = 2;
     public static final int RELATION_PRE_R4S = 3;
     public static final int RELATION_UNBLOCK = 4;
+    public static final int RELATION_CUTOFF = 5;
 
     private AlertDialog dialog;
 
@@ -110,25 +110,19 @@ public class FollowDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("フォロー状態 @" + targetUser.getScreenName());
         builder.setView(listView);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
-                if (callback != null) {
-                    List<RelationClaim> claims = new ArrayList<>();
-                    for (ListEntry entry : entryList) {
-                        if (entry.beforeRelation != entry.afterRelation) {
-                            claims.add(new RelationClaim(entry.getUserRecord(), targetUser.getId(), entry.afterRelation));
-                        }
+        builder.setPositiveButton("OK", (dialogInterface, i) -> {
+            FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
+            if (callback != null) {
+                List<RelationClaim> claims = new ArrayList<>();
+                for (ListEntry entry : entryList) {
+                    if (entry.beforeRelation != entry.afterRelation) {
+                        claims.add(new RelationClaim(entry.getUserRecord(), targetUser.getId(), entry.afterRelation));
                     }
-                    callback.onChangedRelationships(claims);
                 }
+                callback.onChangedRelationships(claims);
             }
         });
-        builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-            }
+        builder.setNegativeButton("キャンセル", (dialogInterface, i) -> {
         });
 
         dialog = builder.create();
@@ -184,10 +178,12 @@ public class FollowDialogFragment extends DialogFragment {
     private class Adapter extends ArrayAdapter<ListEntry> {
 
         private LayoutInflater inflater;
+        private boolean visibleCutoff = false;
 
         public Adapter(Context context, List<ListEntry> objects) {
             super(context, 0, objects);
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            visibleCutoff = PreferenceManager.getDefaultSharedPreferences(context).getBoolean("allow_cutoff", false);
         }
 
         @Override
@@ -210,62 +206,61 @@ public class FollowDialogFragment extends DialogFragment {
                 final ImageView ivRelation = (ImageView) v.findViewById(R.id.ivFollowStatus);
                 final Button btnFollow = (Button) v.findViewById(R.id.btnFollow);
                 btnFollow.setTag(e);
-                btnFollow.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        final ListEntry e = (ListEntry) view.getTag();
+                btnFollow.setOnClickListener(view -> {
+                    final ListEntry e1 = (ListEntry) view.getTag();
 
-                        switch (e.afterRelation) {
-                            case RELATION_NONE:
-                            case RELATION_UNBLOCK:
-                                e.afterRelation = RELATION_FOLLOW;
-                                break;
-                            case RELATION_BLOCK:
-                                e.afterRelation = RELATION_UNBLOCK;
-                                break;
-                            case RELATION_FOLLOW:
-                            case RELATION_PRE_R4S:
-                                if (e.beforeRelation == RELATION_BLOCK) {
-                                    e.afterRelation = RELATION_UNBLOCK;
-                                }
-                                else {
-                                    e.afterRelation = RELATION_NONE;
-                                }
-                                break;
-                        }
-
-                        setStatus(e, btnFollow, ivRelation);
+                    switch (e1.afterRelation) {
+                        case RELATION_NONE:
+                        case RELATION_UNBLOCK:
+                            e1.afterRelation = RELATION_FOLLOW;
+                            break;
+                        case RELATION_BLOCK:
+                            e1.afterRelation = RELATION_UNBLOCK;
+                            break;
+                        case RELATION_FOLLOW:
+                        case RELATION_PRE_R4S:
+                            if (e1.beforeRelation == RELATION_BLOCK) {
+                                e1.afterRelation = RELATION_UNBLOCK;
+                            }
+                            else {
+                                e1.afterRelation = RELATION_NONE;
+                            }
+                            break;
+                        default:
+                            e1.afterRelation = e1.beforeRelation;
+                            break;
                     }
+
+                    setStatus(e1, btnFollow, ivRelation);
                 });
                 setStatus(e, btnFollow, ivRelation);
 
                 ImageButton ibMenu = (ImageButton) v.findViewById(R.id.ibMenu);
                 ibMenu.setTag(e);
-                ibMenu.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        final ListEntry e = (ListEntry) view.getTag();
+                ibMenu.setOnClickListener(view -> {
+                    final ListEntry e1 = (ListEntry) view.getTag();
 
-                        PopupMenu popupMenu = new PopupMenu(getContext(), view);
-                        popupMenu.inflate(R.menu.follow);
-                        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                            @Override
-                            public boolean onMenuItemClick(MenuItem menuItem) {
-                                switch (menuItem.getItemId()) {
-                                    case R.id.action_block:
-                                        e.afterRelation = RELATION_BLOCK;
-                                        setStatus(e, btnFollow, ivRelation);
-                                        return true;
-                                    case R.id.action_report:
-                                        e.afterRelation = RELATION_PRE_R4S;
-                                        setStatus(e, btnFollow, ivRelation);
-                                        return true;
-                                }
+                    PopupMenu popupMenu = new PopupMenu(getContext(), view);
+                    popupMenu.inflate(R.menu.follow);
+                    popupMenu.getMenu().findItem(R.id.action_cutoff).setVisible(visibleCutoff);
+                    popupMenu.setOnMenuItemClickListener(menuItem -> {
+                        switch (menuItem.getItemId()) {
+                            case R.id.action_block:
+                                e1.afterRelation = RELATION_BLOCK;
+                                setStatus(e1, btnFollow, ivRelation);
                                 return true;
-                            }
-                        });
-                        popupMenu.show();
-                    }
+                            case R.id.action_report:
+                                e1.afterRelation = RELATION_PRE_R4S;
+                                setStatus(e1, btnFollow, ivRelation);
+                                return true;
+                            case R.id.action_cutoff:
+                                e1.afterRelation = RELATION_CUTOFF;
+                                setStatus(e1, btnFollow, ivRelation);
+                                return true;
+                        }
+                        return true;
+                    });
+                    popupMenu.show();
                 });
 
                 TextView tvFoYou = (TextView) v.findViewById(R.id.tvFoYou);
@@ -291,6 +286,10 @@ public class FollowDialogFragment extends DialogFragment {
             }
             else if (e.getAfterRelation() == RELATION_PRE_R4S) {
                 btnFollow.setText("報告取りやめ");
+                ivRelation.setImageResource(R.drawable.ic_f_not);
+            }
+            else if (e.getAfterRelation() == RELATION_CUTOFF) {
+                btnFollow.setText("ブロ解中断");
                 ivRelation.setImageResource(R.drawable.ic_f_not);
             }
             else if (e.getAfterRelation() == RELATION_FOLLOW) {

@@ -1,11 +1,15 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +17,21 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+import shibafu.yukari.af2015.R;
+import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceConnection;
+import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TweetCommon;
+import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.statusimpl.FakeStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
+import twitter4j.TwitterResponse;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,26 +42,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import shibafu.yukari.af2015.R;
-import shibafu.yukari.activity.MainActivity;
-import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.TweetAdapterWrap;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceConnection;
-import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
-import shibafu.yukari.twitter.TweetCommon;
-import shibafu.yukari.twitter.TweetCommonDelegate;
-import shibafu.yukari.util.AttrUtil;
-import twitter4j.Twitter;
-import twitter4j.TwitterResponse;
-
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TwitterListFragment<T extends TwitterResponse> extends ListFragment implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate{
+public abstract class TwitterListFragment<T extends TwitterResponse>
+        extends     ListFragment
+        implements  TwitterServiceConnection.ServiceConnectionCallback,
+                    SwipeRefreshLayout.OnRefreshListener,
+                    TwitterServiceDelegate {
 
+    public static final String EXTRA_ID = "id";
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_MODE = "mode";
     public static final String EXTRA_USER = "user";
@@ -90,6 +99,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     //SwipeRefreshLayout
     private SwipeRefreshLayout swipeRefreshLayout;
     private int refreshCounter;
+    private boolean disabledReload;
+
+    //SwipeAction PopupWindow
+    protected View swipeActionStatusView;
+    protected TextView swipeActionInfoLabel;
 
     //Footer View
     private View footerView;
@@ -98,11 +112,14 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     private boolean isLoading = false;
 
     //Twitter Wrapper
-    protected Twitter twitter;
     private TwitterServiceConnection connection = new TwitterServiceConnection(this);
 
     //TweetCommon Delegate
     private TweetCommonDelegate commonDelegate;
+
+    //DoubleClock Blocker
+    private boolean enableDoubleClickBlocker;
+    private boolean blockingDoubleClock;
 
     private Handler handler = new Handler();
 
@@ -115,6 +132,18 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
 
         this.elementClass = elementClass;
         commonDelegate = TweetCommon.newInstance(elementClass);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof MainActivity) {
+            Bundle args = getArguments();
+            long id = args.getLong(EXTRA_ID);
+            elements = ((MainActivity) activity).getElementsList(id);
+
+            ((MainActivity) activity).registTwitterFragment(id, this);
+        }
     }
 
     @Override
@@ -140,25 +169,23 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorSchemeResources(AttrUtil.resolveAttribute(getActivity().getTheme(), R.attr.colorPrimary));
-        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                for (AuthUserRecord user : users) {
-                    executeLoader(LOADER_LOAD_UPDATE, user);
-                    ++refreshCounter;
-                }
-            }
-        });
+        swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
+
+        swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
+        swipeActionInfoLabel = (TextView) v.findViewById(R.id.swipeActionInfo);
+        if (swipeActionStatusView != null) {
+            swipeActionStatusView.setVisibility(View.INVISIBLE);
+        }
 
         return v;
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         listView = getListView();
 
@@ -184,20 +211,17 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                     break;
             }
 
-            unreadNotifierView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (unreadSet.isEmpty()) {
-                        listView.setSelection(0);
-                    } else {
-                        Long lastUnreadId = Collections.min(unreadSet);
-                        int position;
-                        for (position = 0; position < elements.size(); ++position) {
-                            if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
-                        }
-                        if (position < elements.size()) {
-                            listView.setSelection(position);
-                        }
+            unreadNotifierView.setOnClickListener(v -> {
+                if (unreadSet.isEmpty()) {
+                    listView.setSelection(0);
+                } else {
+                    Long lastUnreadId = Collections.min(unreadSet);
+                    int position;
+                    for (position = 0; position < elements.size(); ++position) {
+                        if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+                    }
+                    if (position < elements.size()) {
+                        listView.setSelection(position);
                     }
                 }
             });
@@ -227,22 +251,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     public void onStart() {
         super.onStart();
         if (elementClass != null && lastShowedFirstItemId > -1) {
-            final Long[] copyOfUnreadSet = unreadSet.toArray(new Long[unreadSet.size()]);
-            getHandler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    int position;
-                    int length = elements.size();
-                    for (position = 0; position < length; ++position) {
-                        if (commonDelegate.getId(elements.get(position)) == lastShowedFirstItemId) break;
-                    }
-                    if (position < length) {
-                        listView.setSelectionFromTop(position, lastShowedFirstItemY);
-                    }
-                    Collections.addAll(unreadSet, copyOfUnreadSet);
-                    updateUnreadNotifier();
-                }
-            }, 150);
+            int position;
+            int length = elements.size();
+            for (position = 0; position < length; ++position) {
+                if (commonDelegate.getId(elements.get(position)) == lastShowedFirstItemId) break;
+            }
+            if (position < length) {
+                listView.setSelectionFromTop(position, lastShowedFirstItemY);
+            }
+            updateUnreadNotifier();
         }
     }
 
@@ -257,7 +274,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
             }
         }
 
-        limitedTimeline = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_limited_timeline", false);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        limitedTimeline = sharedPreferences.getBoolean("pref_limited_timeline", false);
+
+        enableDoubleClickBlocker = sharedPreferences.getBoolean("pref_block_doubleclock", false);
+        blockingDoubleClock = false;
     }
 
     @Override
@@ -273,9 +294,22 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDetach() {
+        super.onDetach();
+        setListAdapter(null);
+        listView = null;
+        adapterWrap = null;
+        swipeRefreshLayout = null;
+        unreadNotifierView = null;
         connection.disconnect(getActivity());
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).unregistTwitterFragment(getArguments().getLong(EXTRA_ID));
+        }
+    }
+
+    public long getTabId() {
+        return getArguments().getLong(EXTRA_ID);
     }
 
     public String getTitle() {
@@ -290,7 +324,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     public List<AuthUserRecord> getBoundUsers() {
-        return users != null ? users : new ArrayList<AuthUserRecord>();
+        return users != null ? users : new ArrayList<>();
     }
 
     public int getMode() {
@@ -318,7 +352,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     protected StatusManager getStatusManager() {
-        return getService().getStatusManager();
+        if (getService() != null) {
+            return getService().getStatusManager();
+        } else {
+            return null;
+        }
     }
 
     protected Handler getHandler() {
@@ -345,12 +383,30 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         this.limitCount += limitCount;
     }
 
+    protected SwipeRefreshLayout getSwipeRefreshLayout() {
+        return swipeRefreshLayout;
+    }
+
     public void scrollToTop() {
-        getListView().setSelection(0);
+        try {
+            getListView().setSelection(0);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     public void scrollToBottom() {
-        getListView().setSelection(getListAdapter().getCount() - 1);
+        try {
+            getListView().setSelection(getListAdapter().getCount() - 1);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     protected void changeFooterProgress(boolean isLoading) {
@@ -366,16 +422,25 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     }
 
     protected void removeFooter() {
-        listView.removeFooterView(footerView);
+        if (listView != null) {
+            listView.removeFooterView(footerView);
+            notifyDataSetChanged();
+        }
     }
 
     @Override
     public final void onListItemClick(ListView l, View v, int position, long id) {
+        if (blockingDoubleClock) {
+            return;
+        }
+
         if (position < elements.size()) {
             //要素クリックイベントの呼び出し
-            onListItemClick(elements.get(position));
-        }
-        else if (position == elements.size() && !isLoading) {
+            if (onListItemClick(position, elements.get(position)) && enableDoubleClickBlocker) {
+                //次回onResumeまでクリックイベントを無視する
+                blockingDoubleClock = true;
+            }
+        } else if (position == elements.size() && !isLoading) {
             //フッタークリック
             for (AuthUserRecord user : users) {
                 executeLoader(LOADER_LOAD_MORE, user);
@@ -383,17 +448,17 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         }
     }
 
-    public abstract void onListItemClick(T clickedElement);
+    public abstract boolean onListItemClick(int position, T clickedElement);
 
     protected abstract void executeLoader(int requestMode, AuthUserRecord userRecord);
 
     public void onServiceConnected() {
-        twitter = getService().getTwitter();
         if (users.isEmpty()) {
             users.addAll(getService().getUsers());
         }
         if (adapterWrap != null) {
             adapterWrap.setUserExtras(getService().getUserExtras());
+            adapterWrap.setStatusManager(getService().getStatusManager());
         }
         limitCount = users.size() * 256;
     }
@@ -413,23 +478,31 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         return elements.size();
     }
 
+    @UiThread
     protected void insertElement(T element, int position) {
         if (!elements.contains(element)) {
             if (position < elements.size()) {
-                if (commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                boolean isFake = false;
+                isFake = isFakeStatus(element);
+                if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
                     return;
             }
             elements.add(position, element);
+            notifyDataSetChanged();
             if (isLimitedTimeline() && elements.size() > getLimitCount()) {
                 for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
                     unreadSet.remove(commonDelegate.getId(iterator.next()));
                     iterator.remove();
+                    notifyDataSetChanged();
                 }
+            }
+            if (listView == null) {
+                Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
+                return;
             }
             int firstPos = listView.getFirstVisiblePosition();
             View firstView = listView.getChildAt(0);
             int y = firstView != null? firstView.getTop() : 0;
-            adapterWrap.notifyDataSetChanged();
             if (elements.size() == 1 || firstPos == 0 && y > -1) {
                 listView.setSelection(0);
             } else {
@@ -440,7 +513,55 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
         }
     }
 
+    @UiThread
+    protected void insertElement2(T element) {
+        int position = prepareInsertStatus(element);
+        if (position < 0 || elements.contains(element)) {
+            return;
+        }
+
+        if (position < elements.size()) {
+            boolean isFake = isFakeStatus(element);
+            if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                return;
+        }
+        elements.add(position, element);
+        notifyDataSetChanged();
+        if (isLimitedTimeline() && elements.size() > getLimitCount()) {
+            for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
+                T e = iterator.next();
+                if (!isFakeStatus(e)) {
+                    unreadSet.remove(commonDelegate.getId(e));
+                    iterator.remove();
+                    notifyDataSetChanged();
+                }
+            }
+        }
+        if (listView == null) {
+            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
+            return;
+        }
+        int firstPos = listView.getFirstVisiblePosition();
+        View firstView = listView.getChildAt(0);
+        int y = firstView != null ? firstView.getTop() : 0;
+        if (elements.size() == 1 || firstPos == 0 && y > -1) {
+            Log.d("insertElement2", "Scroll Position = 0");
+            listView.setSelection(0);
+        } else if (position <= firstPos) {
+            Log.d("insertElement2", "Scroll Position = " + (firstPos + 1));
+            unreadSet.add(commonDelegate.getId(element));
+            listView.setSelectionFromTop(firstPos + 1, y);
+        } else {
+            Log.d("insertElement2", "Scroll Position = " + firstPos);
+        }
+        updateUnreadNotifier();
+    }
+
     protected void deleteElement(TwitterResponse element) {
+        if (listView == null) {
+            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ")");
+            return;
+        }
         long id = TweetCommon.newInstance(element.getClass()).getId(element);
         Iterator<T> iterator = elements.iterator();
         while (iterator.hasNext()) {
@@ -450,7 +571,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 View firstView = listView.getChildAt(0);
                 int y = firstView != null? firstView.getTop() : 0;
                 iterator.remove();
-                adapterWrap.notifyDataSetChanged();
+                notifyDataSetChanged();
                 if (elements.size() == 1 || firstPos == 0) {
                     listView.setSelection(0);
                 } else {
@@ -462,6 +583,20 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
                 }
                 break;
             }
+        }
+    }
+
+    protected void notifyDataSetChanged() {
+        if (adapterWrap != null && getActivity() != null) {
+            getActivity().runOnUiThread(adapterWrap::notifyDataSetChanged);
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        for (AuthUserRecord user : users) {
+            executeLoader(LOADER_LOAD_UPDATE, user);
+            ++refreshCounter;
         }
     }
 
@@ -491,7 +626,28 @@ public abstract class TwitterListFragment<T extends TwitterResponse> extends Lis
     protected void disableReload() {
         if (swipeRefreshLayout != null) {
             swipeRefreshLayout.setEnabled(false);
+            disabledReload = true;
         }
+    }
+
+    protected void disableReloadTemp() {
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setEnabled(false);
+        }
+    }
+
+    protected void enableReload() {
+        if (swipeRefreshLayout != null && !disabledReload) {
+            swipeRefreshLayout.setEnabled(true);
+        }
+    }
+
+    protected void setBlockingDoubleClock(boolean blockingDoubleClock) {
+        this.blockingDoubleClock = blockingDoubleClock;
+    }
+
+    private boolean isFakeStatus(T element) {
+        return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
     }
 
 }

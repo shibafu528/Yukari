@@ -11,6 +11,9 @@ public class Instagram extends LinkMedia {
 
     @Override
     protected String expandMediaURL(String browseURL) {
+        if (browseURL.startsWith("http://")) {
+            browseURL = browseURL.replace("http://", "https://");
+        }
         if (!browseURL.endsWith("/")) {
             browseURL += "/";
         }
@@ -20,6 +23,9 @@ public class Instagram extends LinkMedia {
 
     @Override
     protected String expandThumbURL(String browseURL) {
+        if (browseURL.startsWith("http://")) {
+            browseURL = browseURL.replace("http://", "https://");
+        }
         if (!browseURL.endsWith("/")) {
             browseURL += "/";
         }

@@ -6,30 +6,21 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import shibafu.yukari.common.bitmapcache.BitmapCache;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import shibafu.yukari.common.bitmapcache.BitmapCache;
+import java.util.*;
 
 /**
  * Created by shibafu on 14/03/04.
  */
 public class CacheCleanerService extends IntentService {
 
-    private static final Comparator<File> COMPARATOR = new Comparator<File>() {
-        @Override
-        public int compare(File lhs, File rhs) {
-            long sub = rhs.lastModified() - lhs.lastModified();
-            if      (sub > 0)  return 1;
-            else if (sub == 0) return 0;
-            else               return -1;
-        }
+    private static final Comparator<File> COMPARATOR = (lhs, rhs) -> {
+        long sub = rhs.lastModified() - lhs.lastModified();
+        if      (sub > 0)  return 1;
+        else if (sub == 0) return 0;
+        else               return -1;
     };
 
     public CacheCleanerService() {
@@ -59,11 +50,8 @@ public class CacheCleanerService extends IntentService {
         for (int i = 0; i < categories.length; ++i) {
             expirations.addAll(findExpirationCaches(new File(cacheRoot, categories[i]), limits[i] * 1024 * 1024));
         }
-        File[] tmpFiles = getExternalCacheDir().listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String filename) {
-                return filename.endsWith(".tmp");
-            }
+        File[] tmpFiles = getExternalCacheDir().listFiles((dir, filename) -> {
+            return filename.endsWith(".tmp");
         });
         expirations.addAll(Arrays.asList(tmpFiles));
 
@@ -78,7 +66,22 @@ public class CacheCleanerService extends IntentService {
         File[] filesArray = dir.listFiles();
         if (filesArray != null) {
             List<File> files = Arrays.asList(filesArray);
-            Collections.sort(files, COMPARATOR);
+            try {
+                Collections.sort(files, COMPARATOR);
+            } catch (IllegalArgumentException ex) {
+                /*
+                API 19以上で落ちることがあるが、失敗しても無理やり適当に処理する
+                IllegalArgumentException: Comparison method violates its general contract!
+                    at java.util.TimSort.mergeHi(TimSort.java:864)
+                    at java.util.TimSort.mergeAt(TimSort.java:481)
+                    at java.util.TimSort.mergeCollapse(TimSort.java:404)
+                    at java.util.TimSort.sort(TimSort.java:210)
+                    at java.util.TimSort.sort(TimSort.java:169)
+                    at java.util.Arrays.sort(Arrays.java:2023)
+                    at java.util.Collections.sort(Collections.java:1883)
+                 */
+                ex.printStackTrace();
+            }
 
             long totalSize = 0;
             for (File f : files) {

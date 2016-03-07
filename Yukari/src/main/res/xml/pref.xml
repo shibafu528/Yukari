@@ -5,7 +5,7 @@
         <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="機能設定">
+    <PreferenceCategory android:title="メイン画面の機能">
         <CheckBoxPreference
             android:key="pref_boot_screenon"
             android:title="デフォルトでスリープ防止"
@@ -19,18 +19,73 @@
             android:title="投稿ボタンを表示"
             android:summary="投稿画面を呼び出すボタンを表示します"/>
         <CheckBoxPreference
+            android:key="pref_quick_scroll_to_top"
+            android:title="先頭へぽっぴんジャンプ♪"
+            android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="ツイート詳細画面の機能">
+        <CheckBoxPreference
             android:key="pref_bottom_stack"
             android:title="メニューを下に寄せる"
             android:summary="ツイート詳細画面のメニューを下寄せにします"/>
         <CheckBoxPreference
-            android:key="pref_guard_nuisance"
-            android:title="流星プロテクト"
-            android:summary="お気に入り登録前に発言元クライアント次第で確認をとります"
+            android:key="pref_choose_reply_to"
+            android:title="返信先を確認する"
+            android:summary="複数メンションが含まれるツイートに返信する際、1人に返信するか、全員に返信するか確認します\n無効にしても、返信ボタン長押しで全員に返信できます"
             android:defaultValue="true"/>
         <CheckBoxPreference
             android:key="pref_narcist"
             android:title="ナルシストオプション"
             android:summary="自分のツイートをお気に入り登録できるようにします"/>
+        <CheckBoxPreference
+            android:key="pref_fav_with_quotes"
+            android:title="引用もまとめてお気に入り登録"
+            android:summary="引用されているツイートがある場合、まとめてお気に入り登録するオプションを表示します"/>
+        <CheckBoxPreference
+            android:key="pref_close_after_fav"
+            android:title="Fav/RT後にメニューを閉じる"
+            android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
+            android:defaultValue="true"/>
+        <ListPreference
+            android:key="pref_default_quote"
+            android:title="クイック引用"
+            android:summary="引用ボタンを長押しした時、どの文法で引用を行うか選択します"
+            android:entries="@array/pref_quote_entries"
+            android:entryValues="@array/pref_quote_values"
+            android:defaultValue="2"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="確認ダイアログ">
+        <CheckBoxPreference
+            android:key="pref_dialog_fav"
+            android:title="お気に入り登録"
+            android:summary="お気に入り登録前に実行するか確認を行います"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:key="pref_dialog_rt"
+            android:title="リツイート"
+            android:summary="リツイート前に実行するか確認を行います"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_dialog_favrt"
+            android:title="お気に入りに登録してRT"
+            android:summary="お気に入りに登録してRTする前に実行するか確認を行います"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_guard_nuisance"
+            android:title="流星プロテクト"
+            android:summary="お気に入り登録前に発言元クライアント次第で確認をとります\n通常の確認ダイアログとは別に独立して発動します"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_dialog_post"
+            android:title="投稿前に確認"
+            android:summary="ツイート前に実行するか確認を行います" />
+        <CheckBoxPreference
+            android:key="pref_dialog_cancel_post"
+            android:title="投稿画面を閉じる前に確認"
+            android:summary="ツイートキャンセル前に下書きに保存するか確認を行います"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
@@ -57,6 +112,10 @@
             android:inputType="number"
             android:defaultValue="18"
             android:maxLength="2"/>
+        <CheckBoxPreference
+            android:key="pref_mode_singleline"
+            android:title="ショート表示"
+            android:summary="表示をスクリーンネームと本文だけにします"/>
         <ListPreference
             android:key="pref_mode_multiline"
             android:title="複数行ツイートの表示方法"
@@ -108,7 +167,8 @@
         <CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="サムネイルのモザイク加工"
-            android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"/>
+            android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"
+            android:defaultValue="true"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="通知設定">
@@ -153,7 +213,7 @@
             android:key="pref_use_binded_user"
             android:title="タブのアカウントを使う"
             android:summary="表示中のタブに紐付いたアカウントが選ばれた状態で投稿画面を開きます\nマルチタイムラインと検索では機能しません"
-            android:defaultValue="false"/>
+            android:defaultValue="true"/>
         <ListPreference
             android:key="pref_upload_size"
             android:title="アップロード画像の圧縮"
@@ -221,20 +281,50 @@
         <CheckBoxPreference
             android:key="pref_limited_timeline"
             android:title="Limited TL"
-            android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします" />
+            android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします"
+            android:defaultValue="true"/>
         <CheckBoxPreference
             android:key="pref_remove_screenshot_subject"
             android:title="スクショ共有の本文を削除"
-            android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない" />
+            android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_block_doubleclock"
+            android:title="TLダブルクリックの防止"
+            android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
+        <CheckBoxPreference
+            android:key="pref_extended_touch_event"
+            android:title="TLタッチ拡張"
+            android:summary="TL上のタッチイベントを増やします"/>
+        <CheckBoxPreference
+            android:key="pref_disable_ipv6"
+            android:title="IPv6を無効化"
+            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします"/>
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
             android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません" />
+        <CheckBoxPreference
+            android:key="pref_enable_service"
+            android:title="Serviceの常駐"
+            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定しますが、RAMが解放されにくくなるのでマルチタスクには不利です"/>
+        <CheckBoxPreference
+            android:key="pref_remove_name_newline"
+            android:title="ユーザー名から改行文字を取り除く"
+            android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
+        <ListPreference
+            android:key="pref_lists_membership_finder"
+            android:title="リスト登録状態の確認方法"
+            android:summary="「リストへ追加/削除」でのチェック状態を取得する方法を指定します"
+            android:defaultValue="0"
+            android:entries="@array/pref_lists_membership_finder_entries"
+            android:entryValues="@array/pref_lists_membership_finder_values"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
         <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>
+        <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能"/>
         <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>
     </PreferenceCategory>
 </PreferenceScreen>

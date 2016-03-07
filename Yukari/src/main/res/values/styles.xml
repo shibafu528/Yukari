@@ -50,4 +50,5 @@
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
 
+    <style name="YukariAboutTheme" parent="YukariLightTheme"/>
 </resources>

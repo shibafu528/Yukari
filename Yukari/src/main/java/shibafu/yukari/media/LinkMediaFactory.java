@@ -53,10 +53,14 @@ public class LinkMediaFactory {
                 linkMedia = new D250g2(mediaURL);
             } else if ((mediaURL.endsWith("/") ? mediaURL.substring(0, mediaURL.length() - 1) : mediaURL).equals("http://totori.dip.jp")) {
                 linkMedia = new Totori(mediaURL);
+            } else if (mediaURL.contains("600eur.gochiusa.net")) {
+                linkMedia = new SixHundredEUR(mediaURL);
             } else if (mediaURL.contains("gyazo.com")) {
                 linkMedia = new Gyazo(mediaURL);
-            } else if (mediaURL.contains("sunoho.com/p/i")) {
+            } else if (mediaURL.contains("sunoho.com/p/i") || mediaURL.contains("gyazo.sunoho.com/i")) {
                 linkMedia = new Sunoho(mediaURL);
+            } else if (mediaURL.contains("nijie.info/view.php")) {
+                linkMedia = new Nijie(mediaURL);
             } else if (mediaURL.contains("img.ly/")) {
                 if (mediaURL.contains("img.ly/show/")) {
                     linkMedia = new SimplePicture(mediaURL);

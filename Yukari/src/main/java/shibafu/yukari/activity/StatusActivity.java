@@ -12,13 +12,12 @@ import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
-import shibafu.yukari.fragment.StatusActionFragment;
-import shibafu.yukari.fragment.StatusLinkFragment;
-import shibafu.yukari.fragment.StatusMainFragment;
+import shibafu.yukari.fragment.status.StatusActionFragment;
+import shibafu.yukari.fragment.status.StatusLinkFragment;
+import shibafu.yukari.fragment.status.StatusMainFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -38,35 +37,18 @@ public class StatusActivity extends FragmentYukariBase {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            default:
+            case "light":
                 setTheme(R.style.YukariLightTheme_Translucent);
                 break;
             case "dark":
                 setTheme(R.style.YukariDarkTheme_Translucent);
-                break;
-            case "zunko":
-                setTheme(R.style.ColorsTheme_Zunko_Translucent);
-                break;
-            case "maki":
-                setTheme(R.style.ColorsTheme_Maki_Translucent);
-                break;
-            case "aoi":
-                setTheme(R.style.ColorsTheme_Aoi_Translucent);
-                break;
-            case "akane":
-                setTheme(R.style.ColorsTheme_Akane_Translucent);
                 break;
         }
         super.onCreate(savedInstanceState, true);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);
 
-        findViewById(android.R.id.content).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        findViewById(android.R.id.content).setOnClickListener(v -> finish());
 
         Intent args = getIntent();
         status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
@@ -88,16 +70,13 @@ public class StatusActivity extends FragmentYukariBase {
         tweetView = findViewById(R.id.status_tweet);
         if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
                 || status.getInReplyToStatusId() > 0) {
-            tweetView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
-                    intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                    intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
-                            status.isRetweet()? status.getRetweetedStatus() : status);
-                    startActivity(intent);
-                }
+            tweetView.setOnClickListener(v -> {
+                Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
+                intent.putExtra(TweetListFragment.EXTRA_USER, user);
+                intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
+                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
+                        status.isRetweet()? status.getRetweetedStatus() : status);
+                startActivity(intent);
             });
         }
 
@@ -131,12 +110,7 @@ public class StatusActivity extends FragmentYukariBase {
     protected void onResume() {
         super.onResume();
         if (status != null) {
-            new Handler().post(new Runnable() {
-                @Override
-                public void run() {
-                    viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL);
-                }
-            });
+            new Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL));
         }
     }
 

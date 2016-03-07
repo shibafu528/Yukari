@@ -152,4 +152,45 @@
         <item>aoi</item>
         <item>akane</item>
     </string-array>
+
+    <string-array name="pref_quote_entries">
+        <item>非公式RT ( RT \@id: ... )</item>
+        <item>QT ( QT \@id: ... )</item>
+        <item>URLで引用 ( http://... )</item>
+        <item>RTしてから言及する ( ...＞RT )</item>
+        <item>FavRTしてから言及する ( ...＞RT )</item>
+    </string-array>
+
+    <string-array name="pref_quote_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <string-array name="j_yukari_fav_entries">
+        <item>ふぁぼっ★</item>
+        <item>いいねっ♥</item>
+        <item>すきっ♥</item>
+    </string-array>
+
+    <string-array name="j_yukari_fav_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="pref_lists_membership_finder_entries">
+        <item>全探索 (遅い)</item>
+        <item>APIで確認 (速い、15リスト/15分の制限)</item>
+        <item>確認しない (最速)</item>
+    </string-array>
+    
+    <string-array name="pref_lists_membership_finder_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>

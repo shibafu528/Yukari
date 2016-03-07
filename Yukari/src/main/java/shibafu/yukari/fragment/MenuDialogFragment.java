@@ -183,116 +183,83 @@ public class MenuDialogFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.dialog_menu, null);
 
         llActiveAccounts = (LinearLayout) v.findViewById(R.id.llMenuAccounts);
-        v.findViewById(R.id.llMenuAccountParent).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-                intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, activeAccounts);
-                startActivityForResult(intent, REQUEST_ACCOUNT);
-            }
+        v.findViewById(R.id.llMenuAccountParent).setOnClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, activeAccounts);
+            startActivityForResult(intent, REQUEST_ACCOUNT);
         });
 
         View profileMenu = v.findViewById(R.id.llMenuProfile);
-        profileMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_PROFILE);
-            }
+        profileMenu.setOnClickListener(v1 -> {
+            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+            startActivityForResult(intent, REQUEST_PROFILE);
         });
 
         View exitMenu = v.findViewById(R.id.llMenuExit);
-        exitMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-                ((MainActivity)getActivity()).showExitDialog();
-            }
+        exitMenu.setOnClickListener(v1 -> {
+            dismiss();
+            ((MainActivity)getActivity()).showExitDialog();
         });
 
         keepScreenOnImage = (ImageView) v.findViewById(R.id.ivMenuSleepIcon);
 
         View keepScreenOnMenu = v.findViewById(R.id.llMenuSleep);
-        keepScreenOnMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity activity = ((MainActivity) getActivity());
-                if (activity.isKeepScreenOn()) {
-                    activity.setKeepScreenOn(false);
-                    keepScreenOnImage.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
-                } else {
-                    activity.setKeepScreenOn(true);
-                    keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
-                }
+        keepScreenOnMenu.setOnClickListener(v1 -> {
+            MainActivity activity = ((MainActivity) getActivity());
+            if (activity.isKeepScreenOn()) {
+                activity.setKeepScreenOn(false);
+                keepScreenOnImage.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
+            } else {
+                activity.setKeepScreenOn(true);
+                keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
             }
         });
-        keepScreenOnMenu.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    MainActivity activity = ((MainActivity) getActivity());
-                    activity.setImmersive(!activity.isImmersive());
-                    Toast.makeText(getActivity(), "表示域拡張を" + ((activity.isImmersive()) ? "有効" : "無効") + "にしました", Toast.LENGTH_SHORT).show();
-                    return true;
-                }
-                return false;
+        keepScreenOnMenu.setOnLongClickListener(v1 -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                MainActivity activity = ((MainActivity) getActivity());
+                activity.setImmersive(!activity.isImmersive());
+                Toast.makeText(getActivity(), "表示域拡張を" + ((activity.isImmersive()) ? "有効" : "無効") + "にしました", Toast.LENGTH_SHORT).show();
+                return true;
             }
+            return false;
         });
 
         View bookmarkMenu = v.findViewById(R.id.llMenuBookmark);
-        bookmarkMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dismiss();
-                Intent intent = new Intent(getActivity(), MainActivity.class);
-                intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_BOOKMARK);
-                startActivity(intent);
-            }
+        bookmarkMenu.setOnClickListener(view -> {
+            dismiss();
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_BOOKMARK);
+            startActivity(intent);
         });
 
         View configMenu = v.findViewById(R.id.llMenuConfig);
-        configMenu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-                startActivity(new Intent(getActivity(), ConfigActivity.class));
-            }
+        configMenu.setOnClickListener(v1 -> {
+            dismiss();
+            startActivity(new Intent(getActivity(), ConfigActivity.class));
         });
 
         ImageButton ibReconnect = (ImageButton) v.findViewById(R.id.ibMenuReconnect);
-        ibReconnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
-                dismiss();
-                ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
-            }
+        ibReconnect.setOnClickListener(v1 -> {
+            Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
+            dismiss();
+            ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
         });
 
         ButterKnife.inject(this, v);
-        ButterKnife.apply(pluginViews, new ButterKnife.Action<View>() {
-            @Override
-            public void apply(View view, final int index) {
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                        startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
-                    }
-                });
-                view.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        Intent filter = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
-                        filter.addCategory("jp.r246.twicca.category.OWNER");
-                        Intent chooser = new Intent(getActivity(), IntentChooserActivity.class);
-                        chooser.putExtra(IntentChooserActivity.EXTRA_FILTER, filter);
-                        startActivityForResult(chooser, REQUEST_PLUGIN_CHOOSE.get(index));
-                        return true;
-                    }
-                });
-            }
+        ButterKnife.apply(pluginViews, (view, index) -> {
+            view.setOnClickListener(v1 -> {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
+            });
+            view.setOnLongClickListener(v1 -> {
+                Intent filter = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
+                filter.addCategory("jp.r246.twicca.category.OWNER");
+                Intent chooser = new Intent(getActivity(), IntentChooserActivity.class);
+                chooser.putExtra(IntentChooserActivity.EXTRA_FILTER, filter);
+                startActivityForResult(chooser, REQUEST_PLUGIN_CHOOSE.get(index));
+                return true;
+            });
         });
 
         updatePlugin(0, plugins[0]);
@@ -376,12 +343,7 @@ public class MenuDialogFragment extends DialogFragment {
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                 createAccountIconView();
                 //アクティブアカウントの再設定は別スレッドで行う
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts);
-                    }
-                }.run();
+                ((Runnable) () -> ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts)).run();
                 break;
             }
             default:

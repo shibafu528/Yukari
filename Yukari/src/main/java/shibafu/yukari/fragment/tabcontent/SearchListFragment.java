@@ -1,35 +1,34 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
-
-import java.util.Iterator;
-
+import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
-import shibafu.yukari.twitter.StatusManager;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.streaming.FilterStream;
-import twitter4j.DirectMessage;
+import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Query;
 import twitter4j.QueryResult;
-import twitter4j.Status;
+import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusManager.StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusListener {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
     private FilterStream.ParsedQuery parsedQuery;
-    private Query nextQuery;
+    private ReferenceHolder<Query> queryHolder = new ReferenceHolder<>();
     private boolean streaming;
 
     @Override
@@ -51,6 +50,24 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if (activity instanceof MainActivity) {
+            Bundle args = getArguments();
+            long id = args.getLong(EXTRA_ID);
+            queryHolder = ((MainActivity) activity).getSearchQuery(id);
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        if (isServiceBound() && getStatusManager() != null) {
+            getStatusManager().removeStatusListener(this);
+        }
+        super.onDetach();
+    }
+
+    @Override
     protected void executeLoader(int requestMode, AuthUserRecord userRecord) {
         SearchRESTLoader restLoader = new SearchRESTLoader(getDefaultRESTInterface());
         switch (requestMode) {
@@ -60,9 +77,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
                 restLoader.execute(restLoader.new Params(userRecord, searchQuery));
                 break;
             case LOADER_LOAD_MORE:
-                if (nextQuery != null) {
+                if (queryHolder.getReference() != null) {
                     addLimitCount(100);
-                    restLoader.execute(restLoader.new Params(userRecord, nextQuery));
+                    restLoader.execute(restLoader.new Params(userRecord, queryHolder.getReference()));
                 }
                 break;
         }
@@ -79,7 +96,9 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
     @Override
     public void onServiceDisconnected() {
-        getStatusManager().removeStatusListener(this);
+        if (getStatusManager() != null) {
+            getStatusManager().removeStatusListener(this);
+        }
     }
 
     @Override
@@ -97,7 +116,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
             getStatusManager().startFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
         }
         else {
-            getStatusManager().stopFilterStream(parsedQuery.getValidQuery());
+            getStatusManager().stopFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
         }
     }
 
@@ -108,88 +127,19 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
     @Override
     public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
-        if (users.contains(from) && !elements.contains(status)) {
+        if (users.contains(from) && !elements.contains(status) && status.getText().contains(parsedQuery.getValidQuery())) {
             if (getMode() == TabType.TABTYPE_MENTION &&
                     ( !status.isMentionedToMe() || status.isRetweet() )) return;
 
             if (muted) {
                 stash.add(status);
             }
-            else {
+            else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
                 final int position = prepareInsertStatus(status);
                 if (position > -1) {
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            insertElement(status, position);
-                        }
-                    });
+                    getHandler().post(() -> insertElement(status, position));
                 }
             }
-        }
-    }
-
-    @Override
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
-
-    @Override
-    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
-        switch (kind) {
-            case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        elements.clear();
-                        adapterWrap.notifyDataSetChanged();
-                    }
-                });
-                stash.clear();
-                break;
-            case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        adapterWrap.notifyDataSetChanged();
-                    }
-                });
-                break;
-            case StatusManager.UPDATE_DELETED:
-                getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        deleteElement(status);
-                    }
-                });
-                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
-                    if (iterator.next().getId() == status.getId()) {
-                        iterator.remove();
-                    }
-                }
-                break;
-            case StatusManager.UPDATE_FAVED:
-            case StatusManager.UPDATE_UNFAVED:
-                int position = 0;
-                for (; position < elements.size(); ++position) {
-                    if (elements.get(position).getId() == status.getId()) break;
-                }
-                if (position < elements.size()) {
-                    final int p = position;
-                    getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            elements.get(p).merge(status, from);
-                            adapterWrap.notifyDataSetChanged();
-                        }
-                    });
-                }
-                else {
-                    for (position = 0; position < stash.size(); ++position) {
-                        if (stash.get(position).getId() == status.getId()) break;
-                    }
-                    if (position < stash.size()) {
-                        stash.get(position).merge(status, from);
-                    }
-                }
         }
     }
 
@@ -230,12 +180,12 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
 
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
-            twitter.setOAuthAccessToken(params[0].getUserRecord().getAccessToken());
             try {
+                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
                 Query query = params[0].getQuery();
                 query.setCount(isNarrowMode ? 20 : 100);
                 QueryResult result = twitter.search(query);
-                nextQuery = result.nextQuery();
+                queryHolder.setReference(result.nextQuery());
                 return PRListFactory.create(result, params[0].getUserRecord());
             } catch (TwitterException e) {
                 e.printStackTrace();
@@ -246,7 +196,7 @@ public class SearchListFragment extends TweetListFragment implements StatusManag
         @Override
         protected void onPostExecute(PreformedResponseList<PreformedStatus> result) {
             super.onPostExecute(result);
-            if (nextQuery == null) {
+            if (queryHolder.getReference() == null) {
                 removeFooter();
             }
             setRefreshComplete();

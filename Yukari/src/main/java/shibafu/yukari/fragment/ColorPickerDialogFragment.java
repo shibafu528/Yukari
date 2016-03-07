@@ -2,7 +2,6 @@ package shibafu.yukari.fragment;
 
 import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
@@ -52,19 +51,16 @@ public class ColorPickerDialogFragment extends DialogFragment{
 
         return new AlertDialog.Builder(getActivity())
                 .setTitle("色を選択")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        ColorPickerCallback callback = null;
-                        if (getTargetFragment() != null && getTargetFragment() instanceof ColorPickerCallback) {
-                            callback = (ColorPickerCallback) getTargetFragment();
-                        } else if (getActivity() instanceof ColorPickerCallback) {
-                            callback = (ColorPickerCallback) getActivity();
-                        }
+                .setPositiveButton("OK", (dialog, which) -> {
+                    ColorPickerCallback callback = null;
+                    if (getTargetFragment() != null && getTargetFragment() instanceof ColorPickerCallback) {
+                        callback = (ColorPickerCallback) getTargetFragment();
+                    } else if (getActivity() instanceof ColorPickerCallback) {
+                        callback = (ColorPickerCallback) getActivity();
+                    }
 
-                        if (callback != null) {
-                            callback.onColorPicked(picker.getColor(), tag);
-                        }
+                    if (callback != null) {
+                        callback.onColorPicked(picker.getColor(), tag);
                     }
                 })
                 .setNegativeButton("キャンセル", null)

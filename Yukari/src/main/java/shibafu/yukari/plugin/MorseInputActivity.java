@@ -2,7 +2,6 @@ package shibafu.yukari.plugin;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
@@ -68,46 +67,34 @@ public class MorseInputActivity extends Activity {
                 tvPreview.setText(encode(s.toString()));
             }
         });
-        etInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                    imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
-                }
+        etInput.setOnFocusChangeListener((v1, hasFocus) -> {
+            if (hasFocus) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
             }
         });
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("モールス変換");
         builder.setView(v);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String out = encode(etInput.getText().toString());
-                Intent intent = new Intent();
-                intent.putExtra("replace_key", out);
-                setResult(RESULT_OK, intent);
-                finish();
-            }
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            String out = encode(etInput.getText().toString());
+            Intent intent = new Intent();
+            intent.putExtra("replace_key", out);
+            setResult(RESULT_OK, intent);
+            finish();
         });
-        builder.setNegativeButton("キャンセル", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                currentDialog = null;
-                setResult(RESULT_CANCELED);
-                finish();
-            }
+        builder.setNegativeButton("キャンセル", (dialog, which) -> {
+            dialog.dismiss();
+            currentDialog = null;
+            setResult(RESULT_CANCELED);
+            finish();
         });
-        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                dialog.dismiss();
-                currentDialog = null;
-                setResult(RESULT_CANCELED);
-                finish();
-            }
+        builder.setOnCancelListener(dialog -> {
+            dialog.dismiss();
+            currentDialog = null;
+            setResult(RESULT_CANCELED);
+            finish();
         });
 
         currentDialog = builder.create();

@@ -33,16 +33,13 @@ public class ProfileActivity extends ActionBarActivity{
         actionBar.setDisplayHomeAsUpEnabled(true);
 
         final FragmentManager manager = getSupportFragmentManager();
-        manager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                Fragment f = manager.findFragmentByTag("contain");
-                if (manager.getBackStackEntryCount() > 0 && f instanceof TwitterListFragment) {
-                    actionBar.show();
-                }
-                else {
-                    actionBar.hide();
-                }
+        manager.addOnBackStackChangedListener(() -> {
+            Fragment f = manager.findFragmentByTag("contain");
+            if (manager.getBackStackEntryCount() > 0 && f instanceof TwitterListFragment) {
+                actionBar.show();
+            }
+            else {
+                actionBar.hide();
             }
         });
 

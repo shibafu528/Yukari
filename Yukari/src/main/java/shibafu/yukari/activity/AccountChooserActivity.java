@@ -9,10 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -37,6 +35,8 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_SELECTED_USERS  = "selected_users";
     //複数選択を許可するか設定する
     public static final String EXTRA_MULTIPLE_CHOOSE = "multiple_choose";
+    //CKCSオーバライド済アカウントのみにフィルタする
+    public static final String EXTRA_FILTER_CONSUMER_OVERRODE = "consumer_overrode";
 
     public static final String EXTRA_SELECTED_USERSN = "selected_sn";
     public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
@@ -47,6 +47,7 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_METADATA = "meta";
 
     private boolean isMultipleChoose = false;
+    private boolean isFilterConsumerOverrode = false;
     private List<Long> defaultSelectedUserIds = new ArrayList<>();
 
     private Adapter adapter;
@@ -65,6 +66,7 @@ public class AccountChooserActivity extends ListYukariBase {
         }
 
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
+        isFilterConsumerOverrode = args.getBooleanExtra(EXTRA_FILTER_CONSUMER_OVERRODE, false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             setFinishOnTouchOutside(!isMultipleChoose);
@@ -88,15 +90,12 @@ public class AccountChooserActivity extends ListYukariBase {
         }
 
         if (isMultipleChoose) {
-            getListView().setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    for (int i = 0; i < dataList.size(); ++i) {
-                        dataList.get(i).checked = (i == position);
-                    }
-                    adapter.notifyDataSetChanged();
-                    return true;
+            getListView().setOnItemLongClickListener((parent, view, position, id) -> {
+                for (int i = 0; i < dataList.size(); ++i) {
+                    dataList.get(i).checked = (i == position);
                 }
+                adapter.notifyDataSetChanged();
+                return true;
             });
         }
     }
@@ -128,7 +127,9 @@ public class AccountChooserActivity extends ListYukariBase {
         boolean isSelected;
         for (AuthUserRecord userRecord : users) {
             isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
-            dataList.add(new Data(userRecord, isSelected));
+            if (!isFilterConsumerOverrode || !userRecord.isDefaultConsumer()) {
+                dataList.add(new Data(userRecord, isSelected));
+            }
         }
         adapter = new Adapter(AccountChooserActivity.this, dataList);
         setListAdapter(adapter);
@@ -157,7 +158,10 @@ public class AccountChooserActivity extends ListYukariBase {
     @Override
     public void onServiceConnected() {
         List<AuthUserRecord> users = getTwitterService().getUsers();
-        if (!isMultipleChoose && users.size() == 1) {
+        if (isFilterConsumerOverrode && !AuthUserRecord.canUseDissonanceFunctions(users)) {
+            setResult(RESULT_CANCELED);
+            finish();
+        } else if (!isMultipleChoose && users.size() == 1) {
             AuthUserRecord user = users.get(0);
             Intent result = new Intent();
             result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
@@ -166,8 +170,7 @@ public class AccountChooserActivity extends ListYukariBase {
             result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
-        }
-        else {
+        } else {
             createList();
         }
     }
@@ -232,12 +235,9 @@ public class AccountChooserActivity extends ListYukariBase {
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
                 vh.checkBox.setTag(position);
-                vh.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        int position = (Integer)buttonView.getTag();
-                        getItem(position).checked = isChecked;
-                    }
+                vh.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    int position1 = (Integer)buttonView.getTag();
+                    getItem(position1).checked = isChecked;
                 });
                 vh.checkBox.setChecked(d.checked);
             }

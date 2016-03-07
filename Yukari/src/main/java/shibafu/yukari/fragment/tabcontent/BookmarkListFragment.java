@@ -1,14 +1,14 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.StatusManager;
+import shibafu.yukari.twitter.statusmanager.StatusManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -21,7 +21,7 @@ public class BookmarkListFragment extends TweetListFragment {
         switch (requestMode) {
             case LOADER_LOAD_UPDATE:
                 elements.clear();
-                adapterWrap.notifyDataSetChanged();
+                notifyDataSetChanged();
                 clearUnreadNotifier();
             case LOADER_LOAD_INIT:
                 loader.execute();
@@ -55,7 +55,7 @@ public class BookmarkListFragment extends TweetListFragment {
 
         @Override
         protected List<Bookmark> doInBackground(Void... params) {
-            if (!isServiceBound()) return new ArrayList<>();
+            if (!isServiceBound() || getTwitterService() == null || getTwitterService().getDatabase() == null) return new ArrayList<>();
             return getTwitterService().getDatabase().getBookmarks();
         }
 
@@ -86,6 +86,7 @@ public class BookmarkListFragment extends TweetListFragment {
                     position = prepareInsertStatus(status);
                     if (position > -1) {
                         elements.add(position, status);
+                        notifyDataSetChanged();
                     }
                 }
                 else {
@@ -94,7 +95,6 @@ public class BookmarkListFragment extends TweetListFragment {
 
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
-            adapterWrap.notifyDataSetChanged();
             changeFooterProgress(false);
             setRefreshComplete();
         }
