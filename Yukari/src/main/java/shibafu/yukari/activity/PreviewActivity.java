@@ -10,20 +10,29 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.*;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.google.zxing.*;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
-import shibafu.yukari.af2015.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
@@ -35,7 +44,12 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -136,8 +150,8 @@ public class PreviewActivity extends FragmentYukariBase {
                             }
 
                             float distance = getDistance(event);
-                            float scale = (distance - pinchPrevDistance) /
-                                    FloatMath.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
+                            float scale = (float) ((distance - pinchPrevDistance) /
+                                                                Math.sqrt(displayWidth * displayWidth + displayHeight * displayHeight));
                             pinchPrevDistance = distance;
                             scale += 1;
                             scale = scale * scale;
@@ -214,7 +228,7 @@ public class PreviewActivity extends FragmentYukariBase {
             private float getDistance(MotionEvent event) {
                 float x = event.getX(0) - event.getX(1);
                 float y = event.getY(0) - event.getY(1);
-                return FloatMath.sqrt(x * x + y * y);
+                return (float) Math.sqrt(x * x + y * y);
             }
         });
 
