@@ -312,6 +312,13 @@
             android:key="pref_remove_name_newline"
             android:title="ユーザー名から改行文字を取り除く"
             android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
+        <ListPreference
+            android:key="pref_lists_membership_finder"
+            android:title="リスト登録状態の確認方法"
+            android:summary="「リストへ追加/削除」でのチェック状態を取得する方法を指定します"
+            android:defaultValue="0"
+            android:entries="@array/pref_lists_membership_finder_entries"
+            android:entryValues="@array/pref_lists_membership_finder_values"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">

@@ -172,4 +172,17 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+
+    <string-array name="pref_lists_membership_finder_entries">
+        <item>全探索 (遅い)</item>
+        <item>APIで確認 (速い、15リスト/15分の制限)</item>
+        <item>確認しない (最速)</item>
+    </string-array>
+    
+    <string-array name="pref_lists_membership_finder_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
 </resources>
