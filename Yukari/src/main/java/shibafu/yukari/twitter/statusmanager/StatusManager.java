@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.util.Pair;
@@ -676,7 +677,12 @@ public class StatusManager implements Releasable {
      * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
-    public long requestRestQuery(final String restTag, final AuthUserRecord userRecord, final RestQuery query, final long pagingMaxId, final boolean appendLoadMarker, final String loadMarkerTag) {
+    public long requestRestQuery(@NonNull final String restTag,
+                                 @NonNull final AuthUserRecord userRecord,
+                                 @NonNull final RestQuery query,
+                                 final long pagingMaxId,
+                                 final boolean appendLoadMarker,
+                                 final String loadMarkerTag) {
         final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
         final long taskKey = System.currentTimeMillis();
         ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {

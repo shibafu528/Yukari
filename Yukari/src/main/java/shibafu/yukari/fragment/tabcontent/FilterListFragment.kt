@@ -18,6 +18,7 @@ import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.ExceptionStatus
+import shibafu.yukari.twitter.statusimpl.FakeStatus
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
@@ -79,7 +80,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             TwitterListFragment.LOADER_LOAD_INIT -> {
                 swipeRefreshLayout.isRefreshing = true
                 sources.forEach { s ->
-                    loadingTaskKeys += statusManager.requestRestQuery(restTag, s.sourceAccount, s.getRestQuery(), -1, true, s.hashCode().toString())
+                    val userRecord = s.sourceAccount ?: return@forEach
+                    val restQuery = s.getRestQuery() ?: return@forEach
+                    loadingTaskKeys += statusManager.requestRestQuery(restTag,
+                            userRecord, restQuery,
+                            -1, true, s.hashCode().toString())
+                }
+                if (loadingTaskKeys.isEmpty()) {
+                    swipeRefreshLayout.isRefreshing = false
                 }
             }
             TwitterListFragment.LOADER_LOAD_UPDATE -> {
@@ -87,7 +95,14 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 else {
                     clearUnreadNotifier()
                     sources.forEach { s ->
-                        loadingTaskKeys += statusManager.requestRestQuery(restTag, s.sourceAccount, s.getRestQuery(), -1, true, s.hashCode().toString())
+                        val userRecord = s.sourceAccount ?: return@forEach
+                        val restQuery = s.getRestQuery() ?: return@forEach
+                        loadingTaskKeys += statusManager.requestRestQuery(restTag,
+                                userRecord, restQuery,
+                                -1, true, s.hashCode().toString())
+                    }
+                    if (loadingTaskKeys.isEmpty()) {
+                        swipeRefreshLayout.isRefreshing = false
                     }
                 }
             }
@@ -153,7 +168,11 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             if (loadMarkerStatus.taskKey < 0) {
                 getFilterQueryAwait().sources.firstOrNull { it.hashCode().toString() == loadMarkerStatus.tag }?.let {
                     // リクエストの発行
-                    val taskKey = statusManager.requestRestQuery(restTag, it.sourceAccount, it.getRestQuery(), loadMarkerStatus.id, true, it.hashCode().toString())
+                    val userRecord = it.sourceAccount ?: return@let
+                    val restQuery = it.getRestQuery() ?: return@let
+                    val taskKey = statusManager.requestRestQuery(restTag,
+                            userRecord, restQuery,
+                            loadMarkerStatus.id, true, it.hashCode().toString())
                     loadMarkerStatus.taskKey = taskKey
                     loadingTaskKeys += taskKey
                     queryingLoadMarkers.put(taskKey, loadMarkerStatus.id)
@@ -170,8 +189,10 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 }
             }
             return false
-        } else {
+        } else if (clickedElement?.baseStatus !is FakeStatus) {
             return super.onListItemClick(position, clickedElement)
+        } else {
+            return false
         }
     }
 
