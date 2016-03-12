@@ -304,12 +304,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
                     (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                     (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                int position = prepareInsertStatus(s);
-                if (position > -1) {
-                    elements.add(position, s);
-                    notifyDataSetChanged();
-                    it.remove();
-                }
+                insertElement2(s);
+                it.remove();
             }
         }
     };

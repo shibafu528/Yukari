@@ -138,10 +138,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     @Override
     public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {
         if (users.contains(from) && !elements.contains(directMessage)) {
-            final int position = prepareInsertStatus(directMessage);
-            if (position > -1) {
-                getHandler().post(() -> insertElement(directMessage, position));
-            }
+            getHandler().post(() -> insertElement2(directMessage));
         }
     }
 
@@ -383,13 +380,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         @Override
         protected void onPostExecute(List<DirectMessage> directMessages) {
             if (directMessages != null) {
-                int position;
                 for (DirectMessage message : directMessages) {
-                    position = prepareInsertStatus(message);
-                    if (position > -1) {
-                        elements.add(position, message);
-                        notifyDataSetChanged();
-                    }
+                    insertElement2(message);
                 }
             } else if (causedException != null &&
                     exceptionUser != null &&

@@ -1,13 +1,17 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.app.Activity;
-import android.content.*;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -31,7 +35,13 @@ import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
-import twitter4j.*;
+import twitter4j.Paging;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
+import twitter4j.UserList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -161,7 +171,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     public void onServiceConnected() {
         super.onServiceConnected();
         if (getMode() == TabType.TABTYPE_TRACE) {
-            AsyncTask<Status, Void, Void> task = new AsyncTask<Status, Void, Void>() {
+            AsyncTask<Status, PreformedStatus, Void> task = new AsyncTask<Status, PreformedStatus, Void>() {
                 @Override
                 protected Void doInBackground(twitter4j.Status... params) {
                     Twitter twitter = getTwitterService().getTwitter(getCurrentUser());
@@ -173,19 +183,18 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         try {
                             final twitter4j.Status reply = status = twitter.showStatus(status.getInReplyToStatusId());
                             final PreformedStatus ps = new PreformedStatus(reply, getCurrentUser());
-                            final int location = prepareInsertStatus(ps);
-                            if (location > -1) {
-                                getHandler().post(() -> {
-                                    elements.add(location, ps);
-                                    notifyDataSetChanged();
-                                });
-                            }
+                            publishProgress(ps);
                         } catch (TwitterException e) {
                             e.printStackTrace();
                             break;
                         }
                     }
                     return null;
+                }
+
+                @Override
+                protected void onProgressUpdate(PreformedStatus... values) {
+                    insertElement2(values[0]);
                 }
 
                 @Override
@@ -479,44 +488,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             if (muted) {
                 stash.add(status);
             } else {
-                final int position = prepareInsertStatus(status);
-                if (position > -1) {
-                    synchronized (asyncInsertWaitings) {
-                        if (asyncInsertWaitings.containsKey(status.getId())) {
-                            PreformedStatus redundant = asyncInsertWaitings.get(status.getId());
-                            if (redundant != null) {
-                                Log.d("Timeline_onStatus", "Redundant status : " + status.getId());
-                                redundant.merge(status);
-                            }
-                        } else {
-                            class RetryCounter {
-                                int count = 0;
-                            }
-                            final RetryCounter counter = new RetryCounter();
-                            class AsyncInsert implements Runnable {
-                                @Override
-                                public void run() {
-                                    if (listView == null) {
-                                        if (++counter.count > 20) {
-                                            Log.w("Timeline_onStatus", "ListView is null. DROPPED! (" + counter.count + ")");
-                                            return;
-                                        }
-                                        Log.w("Timeline_onStatus", "ListView is null. wait 100ms. (" + counter.count + ")");
-                                        getHandler().postDelayed(new AsyncInsert(), 100);
-                                        return;
-                                    }
-
-                                    insertElement(status, position);
-                                    synchronized (asyncInsertWaitings) {
-                                        asyncInsertWaitings.remove(status.getId());
-                                    }
-                                }
-                            }
-                            asyncInsertWaitings.put(status.getId(), status);
-                            getHandler().post(new AsyncInsert());
-                        }
-                    }
-                }
+                getHandler().post(() -> insertElement2(status));
             }
         }
     }

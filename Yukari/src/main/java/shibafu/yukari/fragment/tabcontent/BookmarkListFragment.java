@@ -68,7 +68,6 @@ public class BookmarkListFragment extends TweetListFragment {
         protected void onPostExecute(List<Bookmark> bookmarks) {
             Suppressor suppressor = getTwitterService().getSuppressor();
             boolean[] mute;
-            int position;
             for (Bookmark status : bookmarks) {
                 AuthUserRecord checkOwn = getTwitterService().isMyTweet(status);
                 if (checkOwn != null) {
@@ -83,11 +82,7 @@ public class BookmarkListFragment extends TweetListFragment {
                 if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    position = prepareInsertStatus(status);
-                    if (position > -1) {
-                        elements.add(position, status);
-                        notifyDataSetChanged();
-                    }
+                    insertElement2(status);
                 }
                 else {
                     stash.add(status);

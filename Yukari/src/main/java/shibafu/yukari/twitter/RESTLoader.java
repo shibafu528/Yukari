@@ -64,6 +64,7 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                 if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
+
                     position = loaderInterface.prepareInsertStatus(status);
                     if (position > -1) {
                         dest.add(position, status);
