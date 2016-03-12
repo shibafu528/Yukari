@@ -23,6 +23,7 @@ import twitter4j.User;
 import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -250,9 +251,21 @@ public class OAuthActivity extends YukariBase {
                     }
                     twitter = getTwitterService().getTwitterOrThrow(null);
                     twitter.setOAuthAccessToken(accessToken);
+                    List<AuthUserRecord> existsUsers = getTwitterService().getUsers();
 
                     AuthUserRecord userRecord = new AuthUserRecord(accessToken);
                     userRecord.isActive = true;
+                    if (existsUsers != null) {
+                        boolean foundPrimary = false;
+                        for (AuthUserRecord user : existsUsers) {
+                            if (user.isPrimary && user.NumericId != accessToken.getUserId()) {
+                                foundPrimary = true;
+                            }
+                        }
+                        if (!foundPrimary) {
+                            userRecord.isPrimary = true;
+                        }
+                    }
 
                     CentralDatabase database = getTwitterService().getDatabase();
                     database.addAccount(userRecord);
