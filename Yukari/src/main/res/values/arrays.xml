@@ -185,4 +185,24 @@
         <item>2</item>
     </string-array>
 
+    <string-array name="backup_location">
+        <item>ローカルストレージ</item>
+        <item>Google Drive</item>
+    </string-array>
+
+    <string-array name="backup_options">
+        <item>-- すべて選択 --</item>
+        <item>アカウント (認証情報, アカウントカラー)</item>
+        <item>タブ</item>
+        <item>ミュート</item>
+        <item>オートミュート</item>
+        <item>カラーラベル</item><!-- , 優先操作アカウント -->
+        <item>ブックマーク</item>
+        <item>下書き</item>
+        <item>検索履歴</item>
+        <item>ハッシュタグ履歴</item>
+        <item>テンプレート</item>
+        <item>その他の設定</item>
+    </string-array>
+
 </resources>

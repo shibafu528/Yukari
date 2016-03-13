@@ -175,6 +175,16 @@ public class ConfigActivity extends ActionBarYukariBase {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD")));
                 return true;
             });
+
+            findPreference("pref_export").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_EXPORT));
+                return false;
+            });
+
+            findPreference("pref_import").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_IMPORT));
+                return false;
+            });
         }
     }
 }

@@ -270,6 +270,15 @@
             android:defaultValue="16"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="設定のバックアップ">
+        <Preference
+            android:key="pref_export"
+            android:title="設定のエクスポート"/>
+        <Preference
+            android:key="pref_import"
+            android:title="設定のインポート"/>
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="実験中の機能">
         <CheckBoxPreference
             android:key="pref_show_received"

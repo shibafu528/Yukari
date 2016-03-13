@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            >
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="バックアップ先:"
+                android:id="@+id/textView7"
+                android:gravity="center_vertical"/>
+
+        <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:id="@+id/spinner"
+                    android:spinnerMode="dropdown"
+                    android:entries="@array/backup_location"
+                    android:layout_weight="1"/>
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="未設定 (上で何か選択して下さい)"
+                    android:id="@+id/tvLocation"
+                    android:ellipsize="end"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/frame"
+            android:layout_weight="1"/>
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="実行"
+            android:id="@+id/button2"
+            android:layout_gravity="center_horizontal"
+            />
+</LinearLayout>
