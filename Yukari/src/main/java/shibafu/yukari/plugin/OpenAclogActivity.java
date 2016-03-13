@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import twitter.share.lib.TwitterIntent;
-import twitter.share.lib.TwitterShare;
-import twitter.share.lib.intent.StatusIntent;
+import twitter.intent.TwitterIntent;
+import twitter.intent.TwitterShare;
+import twitter.intent.StatusIntent;
 
 /**
  * Created by shibafu on 14/03/27.
@@ -21,7 +21,7 @@ public class OpenAclogActivity extends Activity{
         String id;
         switch (intent.getAction()) {
             case TwitterIntent.ACTION_SHOW_STATUS:
-                StatusIntent statusIntent = (StatusIntent) TwitterShare.INSTANCE.getTwitterIntent(intent);
+                StatusIntent statusIntent = (StatusIntent) TwitterShare.getTwitterIntent(intent);
                 id = String.valueOf(statusIntent.getId());
                 break;
             default:
