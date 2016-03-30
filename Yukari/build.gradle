@@ -56,6 +56,7 @@ dependencies {
     compile 'twitter.intent:twitter-intent-t4j:1.0.0'
     compile fileTree(dir: './libs', includes: ['*.jar'])
     provided 'org.projectlombok:lombok:1.16.4'
+    compile project(':yukari-exvoice')
 
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -72,6 +73,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
+
+        ndkConfig.abiFilters = ['armeabi', 'armeabi-v7a']
     }
 
     compileOptions {

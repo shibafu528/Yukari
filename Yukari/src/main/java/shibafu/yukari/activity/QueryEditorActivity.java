@@ -10,6 +10,7 @@ import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import info.shibafu528.yukari.exvoice.MRuby;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.filter.FilterQuery;
@@ -56,19 +57,29 @@ public class QueryEditorActivity extends ActionBarYukariBase {
             public void afterTextChanged(Editable s) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
-                    try {
-                        List<AuthUserRecord> userRecords = null;
-                        if (isTwitterServiceBound() && getTwitterService() != null) {
-                            userRecords = getTwitterService().getUsers();
+                    if (s.toString().startsWith("#mrb\n")) {
+                        try {
+                            MRuby mrb = new MRuby();
+                            mrb.loadString(s.toString());
+                            mrb.close();
+                        } catch (Exception e) {
+                            compileStatus.setText(e.toString());
                         }
-                        if (userRecords == null) {
-                            userRecords = new ArrayList<>();
-                        }
+                    } else {
+                        try {
+                            List<AuthUserRecord> userRecords = null;
+                            if (isTwitterServiceBound() && getTwitterService() != null) {
+                                userRecords = getTwitterService().getUsers();
+                            }
+                            if (userRecords == null) {
+                                userRecords = new ArrayList<>();
+                            }
 
-                        FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
-                        compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
-                    } catch (FilterCompilerException | TokenizeException e) {
-                        compileStatus.setText(e.toString());
+                            FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
+                            compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
+                        } catch (FilterCompilerException | TokenizeException e) {
+                            compileStatus.setText(e.toString());
+                        }
                     }
                 }, 1500);
             }

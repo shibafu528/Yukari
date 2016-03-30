@@ -1,0 +1,39 @@
+apply plugin: 'com.android.model.library'
+
+model {
+    android {
+        compileSdkVersion = Integer.parseInt(COMPILE_SDK_VERSION)
+        buildToolsVersion = BUILD_TOOLS_VERSION
+
+        defaultConfig.with {
+            minSdkVersion.apiLevel = 9
+            targetSdkVersion.apiLevel = Integer.parseInt(TARGET_SDK_VERSION)
+            versionCode = 1
+            versionName = "1.0"
+        }
+    }
+    android.buildTypes {
+        debug {
+            ndk.with {
+                debuggable = true
+            }
+        }
+        release {
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-rules.pro'))
+        }
+    }
+    android.ndk {
+        moduleName = "exvoice"
+        CFlags.addAll(["-I${file("mruby/include")}".toString()])
+        ldLibs.addAll(["m", "android", "log", "mruby"])
+
+        abiFilters.addAll(["armeabi", "armeabi-v7a"])
+        ldFlags.add("-Lmruby/build/android-armeabi/lib".toString())
+        ldFlags.add("-Lmruby/build/android-armeabi-v7a/lib".toString())
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
