@@ -25,8 +25,8 @@ model {
     }
     android.ndk {
         moduleName = "exvoice"
-        CFlags.addAll(["-I${file("mruby/include")}".toString()])
-        ldLibs.addAll(["m", "android", "log", "mruby"])
+        CFlags.addAll(["-I${file("mruby/include")}".toString(), "-std=c99"])
+        ldLibs.addAll(["android", "log", "mruby"])
 
         abiFilters.addAll(["armeabi", "armeabi-v7a"])
         ldFlags.add("-Lmruby/build/android-armeabi/lib".toString())
