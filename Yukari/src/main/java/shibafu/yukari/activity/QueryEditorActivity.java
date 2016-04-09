@@ -59,7 +59,14 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                 handler.postDelayed(() -> {
                     if (s.toString().startsWith("#mrb\n")) {
                         try {
+                            final StringBuilder sb = new StringBuilder();
+                            final Handler handler = new Handler();
+
                             MRuby mrb = new MRuby();
+                            mrb.setPrintCallback(v -> {
+                                sb.append(v);
+                                handler.post(() -> compileStatus.setText("output => \n" + sb.toString()));
+                            });
                             mrb.loadString(s.toString());
                             mrb.close();
                         } catch (Exception e) {
