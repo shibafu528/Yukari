@@ -16,6 +16,7 @@ import android.view.View;
 
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 
+import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 
@@ -69,16 +70,19 @@ public class ConfigActivity extends ActionBarYukariBase {
 
             Preference aboutVersionPref = findPreference("pref_about_version");
             {
-                String summaryText = "";
+                StringBuilder summaryText = new StringBuilder();
                 PackageManager pm = getActivity().getPackageManager();
-                try{
+                // Yukari version
+                try {
                     PackageInfo packageInfo = pm.getPackageInfo(getActivity().getPackageName(), 0);
-                    summaryText += "Version " + packageInfo.versionName;
-                }catch(PackageManager.NameNotFoundException e){
-                    e.printStackTrace();
-                }
-                summaryText += "\nDeveloped by @shibafu528";
-                aboutVersionPref.setSummary(summaryText);
+                    summaryText.append("Version ").append(packageInfo.versionName);
+                } catch (PackageManager.NameNotFoundException ignored) {}
+                // Developer
+                summaryText.append("\nDeveloped by @shibafu528");
+                // exvoice version
+                summaryText.append("\n\nlibexvoice.so Build: ").append(BuildInfo.getBuildDateTime());
+                summaryText.append("\n    with ").append(BuildInfo.getMRubyDescription()).append(",\n        ").append(BuildInfo.getMRubyCopyright());
+                aboutVersionPref.setSummary(summaryText.toString());
             }
             aboutVersionPref.setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(getActivity(), AboutActivity.class));

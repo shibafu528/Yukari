@@ -1,12 +1,10 @@
 package info.shibafu528.yukari.exvoice;
 
-import android.util.Log;
-
 /**
  * Created by shibafu on 2016/03/28.
  */
 public class MRuby {
-    private long mrubyInstance;
+    private long mrubyInstancePointer;
     private PrintCallback printCallback;
 
     static {
@@ -14,15 +12,15 @@ public class MRuby {
     }
 
     public MRuby() {
-        mrubyInstance = n_open();
+        mrubyInstancePointer = n_open();
     }
 
     public void close() {
-        n_close(mrubyInstance);
+        n_close(mrubyInstancePointer);
     }
 
     public void loadString(String code) {
-        n_loadString(mrubyInstance, code);
+        n_loadString(mrubyInstancePointer, code);
     }
 
     public void setPrintCallback(PrintCallback printCallback) {
@@ -30,10 +28,13 @@ public class MRuby {
     }
 
     public void printStringCallback(String value) {
-        Log.d("exvoice-j", "printStringCallback: " + value);
         if (printCallback != null) {
             printCallback.print(value);
         }
+    }
+
+    /*package*/ long getMRubyInstancePointer() {
+        return mrubyInstancePointer;
     }
 
     private native long n_open();

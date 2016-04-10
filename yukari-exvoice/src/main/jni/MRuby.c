@@ -69,8 +69,11 @@ static mrb_value mrb_printstr(mrb_state *mrb, mrb_value self) {
         if (instance != NULL) {
             jstring jstr = (*env)->NewStringUTF(env, string);
             jclass jcls = (*env)->GetObjectClass(env, instance->javaInstance);
-            jmethodID jmid = (*env)->GetMethodID(env, jcls, "printStringCallback", "(Ljava/lang/String;)V");
-            (*env)->CallVoidMethod(env, instance->javaInstance, jmid, jstr);
+            static jmethodID jm_printStringCallback = NULL;
+            if (jm_printStringCallback == NULL) {
+                jm_printStringCallback = (*env)->GetMethodID(env, jcls, "printStringCallback", "(Ljava/lang/String;)V");
+            }
+            (*env)->CallVoidMethod(env, instance->javaInstance, jm_printStringCallback, jstr);
             (*env)->DeleteLocalRef(env, jstr);
             (*env)->DeleteLocalRef(env, jcls);
         }
