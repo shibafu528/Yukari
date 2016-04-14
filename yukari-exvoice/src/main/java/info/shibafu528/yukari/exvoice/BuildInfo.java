@@ -11,6 +11,12 @@ public final class BuildInfo {
     }
 
     /**
+     * exvoiceのABIを取得します。
+     * @return ABI
+     */
+    public static native String getABI();
+
+    /**
      * exvoiceのビルド日時を取得します。
      * @return ビルド日時
      */

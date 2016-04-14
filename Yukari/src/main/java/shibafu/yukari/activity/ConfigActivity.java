@@ -80,7 +80,7 @@ public class ConfigActivity extends ActionBarYukariBase {
                 // Developer
                 summaryText.append("\nDeveloped by @shibafu528");
                 // exvoice version
-                summaryText.append("\n\nlibexvoice.so Build: ").append(BuildInfo.getBuildDateTime());
+                summaryText.append("\n\nlibexvoice.so (").append(BuildInfo.getABI()).append(") Build: ").append(BuildInfo.getBuildDateTime());
                 summaryText.append("\n    with ").append(BuildInfo.getMRubyDescription()).append(",\n        ").append(BuildInfo.getMRubyCopyright());
                 aboutVersionPref.setSummary(summaryText.toString());
             }
