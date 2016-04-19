@@ -28,9 +28,11 @@ model {
         CFlags.addAll(["-I${file("mruby/include")}".toString(), "-std=c99"])
         ldLibs.addAll(["android", "log", "mruby"])
 
-        abiFilters.addAll(["armeabi", "armeabi-v7a"])
+        abiFilters.addAll(["armeabi", "armeabi-v7a", "arm64-v8a", "x86"])
         ldFlags.add("-Lmruby/build/android-armeabi/lib".toString())
         ldFlags.add("-Lmruby/build/android-armeabi-v7a/lib".toString())
+        ldFlags.add("-Lmruby/build/android-arm64/lib".toString())
+        ldFlags.add("-Lmruby/build/android-x86/lib".toString())
     }
 }
 

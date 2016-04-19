@@ -74,7 +74,7 @@ android {
         minSdkVersion 9
         targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
 
-        ndkConfig.abiFilters = ['armeabi', 'armeabi-v7a']
+        ndkConfig.abiFilters = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86']
     }
 
     compileOptions {
