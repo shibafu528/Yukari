@@ -4,24 +4,16 @@
 #include <mruby/compile.h>
 #include <mruby/string.h>
 #include <android/log.h>
+#include "MRuby.h"
 #include "jni_common.h"
 #include "exvoice_Android.h"
-
-typedef struct _MRubyInstance {
-    mrb_state* mrb;
-    jclass javaInstance;
-} MRubyInstance;
-
-typedef enum _MRubyInstanceManagerResult {
-    MRB_INSTANCE_SUCCESS,
-    MRB_INSTANCE_FAIL_ALLOC,
-    MRB_INSTANCE_FAIL_NOT_FOUND
-} MRubyInstanceManagerResult;
 
 #define MRB_INSTANCE_STORE_SIZE 16
 static MRubyInstance instances[MRB_INSTANCE_STORE_SIZE] = {};
 
-static MRubyInstance* findMRubyInstance(mrb_state *mrb) {
+jfieldID field_exvoice_MRuby_assetManager = NULL;
+
+MRubyInstance *findMRubyInstance(mrb_state *mrb) {
     for (int i = 0; i < MRB_INSTANCE_STORE_SIZE; i++) {
         if (instances[i].mrb == mrb) {
             return &instances[i];
@@ -30,7 +22,7 @@ static MRubyInstance* findMRubyInstance(mrb_state *mrb) {
     return NULL;
 }
 
-static MRubyInstanceManagerResult storeMRubyInstance(mrb_state *mrb, jclass instance) {
+MRubyInstanceManagerResult storeMRubyInstance(mrb_state *mrb, jclass instance) {
     for (int i = 0; i < MRB_INSTANCE_STORE_SIZE; i++) {
         if (instances[i].mrb == NULL) {
             JNIEnv *env = getJNIEnv();
@@ -43,7 +35,7 @@ static MRubyInstanceManagerResult storeMRubyInstance(mrb_state *mrb, jclass inst
     return MRB_INSTANCE_FAIL_ALLOC;
 }
 
-static MRubyInstanceManagerResult removeMRubyInstance(mrb_state *mrb) {
+MRubyInstanceManagerResult removeMRubyInstance(mrb_state *mrb) {
     for (int i = 0; i < MRB_INSTANCE_STORE_SIZE; i++) {
         if (instances[i].mrb == mrb) {
             JNIEnv *env = getJNIEnv();
@@ -94,6 +86,12 @@ JNIEXPORT jlong JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1open(JNIEnv
 
     // Store instances
     storeMRubyInstance(mrb, self);
+    {
+        // Get fieldID of MRuby.assetManager
+        jclass selfClass = (*env)->GetObjectClass(env, self);
+        field_exvoice_MRuby_assetManager = (*env)->GetFieldID(env, selfClass, "assetManager", "Landroid/content/res/AssetManager;");
+        (*env)->DeleteLocalRef(env, selfClass);
+    }
 
     return (jlong) mrb;
 }

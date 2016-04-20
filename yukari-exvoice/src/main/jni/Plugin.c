@@ -2,6 +2,7 @@
 #include <mruby.h>
 #include <mruby/value.h>
 #include <mruby/array.h>
+#include <mruby/string.h>
 #include <stddef.h>
 
 static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
@@ -22,7 +23,7 @@ static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj)
             // Long to Fixnum
             jmethodID longValue = (*env)->GetMethodID(env, objClass, "longValue", "()J");
             jlong val = (*env)->CallLongMethod(env, obj, longValue);
-            result = mrb_fixnum_value(val);
+            result = mrb_fixnum_value(val); // !! incompatible !!
         } else if ((*env)->IsInstanceOf(env, obj, floatClass)) {
             // Float to Float
             jmethodID floatValue = (*env)->GetMethodID(env, objClass, "floatValue", "()F");
@@ -56,6 +57,27 @@ static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj)
 
 static jobject convertMrbValueToJava(JNIEnv *env, mrb_value value) {
     // TODO: mrb_valueのタイプ判定をしてJavaオブジェクトを作る
+    switch (mrb_type(value)) {
+        case MRB_TT_STRING:
+            return (*env)->NewStringUTF(env, RSTRING_PTR(value));
+        case MRB_TT_FIXNUM: {
+            jclass intClass = (*env)->FindClass(env, "Ljava/lang/Integer;");
+            jmethodID intConstructor = (*env)->GetMethodID(env, intClass, "<init>", "(I)V");
+            jobject object = (*env)->NewObject(env, intClass, intConstructor, mrb_fixnum(value));
+
+            (*env)->DeleteLocalRef(env, intClass);
+            return object;
+        }
+        case MRB_TT_FLOAT: {
+            jclass doubleClass = (*env)->FindClass(env, "Ljava/lang/Double;");
+            jmethodID doubleConstructor = (*env)->GetMethodID(env, doubleClass, "<init>", "(D)V");
+            jobject object = (*env)->NewObject(env, doubleClass, doubleConstructor, mrb_float(value));
+
+            (*env)->DeleteLocalRef(env, doubleClass);
+            return object;
+        }
+    }
+    return NULL;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filtering(JNIEnv *env, jclass clazz, jobject mRuby, jstring eventName, jobjectArray args) {
@@ -68,7 +90,7 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
 
             (*env)->DeleteLocalRef(env, mRubyClass);
         }
-        mrb = (*env)->GetLongField(env, mRuby, mRubyInstancePointerFid);
+        mrb = (mrb_state*) (*env)->GetLongField(env, mRuby, mRubyInstancePointerFid);
     }
 
     struct RClass *pluggaloid = mrb_module_get(mrb, "Pluggaloid");
@@ -85,7 +107,7 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
 
     // Create filtering args array
     jsize argc = (*env)->GetArrayLength(env, args);
-    mrb_value *rArgs = mrb_calloc(mrb, 1 + argc, sizeof(mrb_value));
+    mrb_value *rArgs = mrb_calloc(mrb, (size_t) 1 + argc, sizeof(mrb_value));
     rArgs[0] = mrb_symbol_value(rEventName);
     for (int i = 0; i < argc; i++) {
         // Convert argument to mrb_value
@@ -95,7 +117,7 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
     }
 
     // Call filtering
-    mrb_value filteringResult = mrb_funcall_argv(mrb, mrb_obj_value(plugin), "filtering", 1 + argc, &rArgs);
+    mrb_value filteringResult = mrb_funcall_argv(mrb, mrb_obj_value(plugin), mrb_intern_cstr(mrb, "filtering"), 1 + argc, rArgs);
     mrb_free(mrb, rArgs);
 
     // Create Result Array

@@ -1,18 +1,22 @@
 package info.shibafu528.yukari.exvoice;
 
+import android.content.res.AssetManager;
+
 /**
  * Created by shibafu on 2016/03/28.
  */
 public class MRuby {
     private long mrubyInstancePointer;
+    private AssetManager assetManager;
     private PrintCallback printCallback;
 
     static {
         System.loadLibrary("exvoice");
     }
 
-    public MRuby() {
+    public MRuby(AssetManager assetManager) {
         mrubyInstancePointer = n_open();
+        this.assetManager = assetManager;
     }
 
     public void close() {

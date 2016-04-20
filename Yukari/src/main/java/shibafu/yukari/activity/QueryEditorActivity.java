@@ -61,7 +61,7 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                         try {
                             final StringBuilder sb = new StringBuilder();
 
-                            MRuby mrb = new MRuby();
+                            MRuby mrb = new MRuby(getAssets());
                             mrb.setPrintCallback(sb::append);
                             mrb.loadString(s.toString());
                             mrb.close();
