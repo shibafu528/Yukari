@@ -1,6 +1,10 @@
 #include <stddef.h>
 #include <jni.h>
+#include <mruby.h>
 #include <android/log.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include "MRuby.h"
 
 JavaVM *g_jvm;
 
@@ -19,4 +23,18 @@ JNIEnv* getJNIEnv() {
         return NULL;
     }
     return env;
+}
+
+AAssetManager* getAAssetManager(mrb_state *mrb) {
+    JNIEnv *env = getJNIEnv();
+    MRubyInstance *instance = findMRubyInstance(mrb);
+
+    AAssetManager *manager;
+    {
+        jobject assetManager = (*env)->GetObjectField(env, instance->javaInstance, field_exvoice_MRuby_assetManager);
+        manager = AAssetManager_fromJava(env, assetManager);
+
+        (*env)->DeleteLocalRef(env, assetManager);
+    }
+    return manager;
 }

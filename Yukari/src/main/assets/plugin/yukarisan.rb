@@ -6,7 +6,7 @@
 Plugin.create(:yukarisan) do
 
   # show_tweet => jp.r246.twicca.ACTION_SHOW_TWEET
-  twicca_action(:show_tweet, :yukarisan_reply, 'ゆかりさんする') do |extra|
+  twicca_action(:show_tweet, :yukarisan_reply, label: 'ゆかりさんする') do |extra|
     TweetActivity.intent(
         mode: :reply,
         text: "@#{extra[:user_screen_name]} ゆかりさんゆかりさん！！"
@@ -14,7 +14,7 @@ Plugin.create(:yukarisan) do
   end
 
   # edit_tweet => jp.r246.twicca.ACTION_EDIT_TWEET
-  twicca_action(:edit_tweet, :yukarisan, 'ゆかりさんする') do |extra|
+  twicca_action(:edit_tweet, :yukarisan, label: 'ゆかりさんする') do |extra|
     # Like Activity#setResult(resultCode, intent)
     {result_code: :ok, intent: {text: "ゆかりさんゆかりさん！！"}}
   end

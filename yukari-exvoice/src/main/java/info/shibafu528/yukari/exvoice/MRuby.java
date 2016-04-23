@@ -1,6 +1,7 @@
 package info.shibafu528.yukari.exvoice;
 
 import android.content.res.AssetManager;
+import android.util.Log;
 
 /**
  * Created by shibafu on 2016/03/28.
@@ -34,6 +35,8 @@ public class MRuby {
     public void printStringCallback(String value) {
         if (printCallback != null) {
             printCallback.print(value);
+        } else {
+            Log.d("exvoice(Java)", value);
         }
     }
 

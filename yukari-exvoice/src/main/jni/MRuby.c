@@ -78,11 +78,11 @@ JNIEXPORT jlong JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1open(JNIEnv
     mrb_state *mrb = mrb_open();
     __android_log_print(ANDROID_LOG_DEBUG, "exvoice", "open addr: %d", mrb);
 
-    // Initialize Objects
-    exvoice_init_android(mrb);
-
     // Override mruby-print Kernel.__printstr__
     mrb_define_module_function(mrb, mrb->kernel_module, "__printstr__", mrb_printstr, MRB_ARGS_REQ(1));
+
+    // Initialize Objects
+    exvoice_init_android(mrb);
 
     // Store instances
     storeMRubyInstance(mrb, self);
