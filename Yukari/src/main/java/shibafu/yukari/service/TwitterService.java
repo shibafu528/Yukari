@@ -25,6 +25,7 @@ import android.util.Log;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import info.shibafu528.yukari.exvoice.MRuby;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.Suppressor;
@@ -94,6 +95,9 @@ public class TwitterService extends Service{
 
     //Proxy Server
     private Pixiv.PixivProxy pixivProxy;
+
+    //MRuby VM
+    private MRuby mRuby;
 
     //ネットワーク管理
 
@@ -253,6 +257,10 @@ public class TwitterService extends Service{
             e.printStackTrace();
         }
 
+        //MRuby VMの初期化
+        mRuby = new MRuby(getAssets());
+        mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+
         //mikutter更新通知
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
             new SimpleAsyncTask() {
@@ -313,6 +321,8 @@ public class TwitterService extends Service{
         if (pixivProxy != null) {
             pixivProxy.stop();
         }
+
+        mRuby.close();
 
         stopForeground(true);
 

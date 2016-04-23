@@ -8,12 +8,11 @@ import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.util.AppContext;
 
 /**
  * Created by shibafu on 14/07/12.
  */
-public abstract class ListYukariBase extends ListActivity implements AppContext, TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
+public abstract class ListYukariBase extends ListActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
     private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
 
     @Override
