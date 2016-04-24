@@ -5,7 +5,7 @@
 #include <mruby/string.h>
 #include <stddef.h>
 
-static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
+mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
     mrb_value result = mrb_nil_value();
 
     jclass intClass = (*env)->FindClass(env, "Ljava/lang/Integer;");
@@ -41,7 +41,7 @@ static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj)
             const char *cstr = (*env)->GetStringUTFChars(env, str, NULL);
             result = mrb_str_new_cstr(mrb, cstr);
 
-            (*env)->ReleaseStringChars(env, str, cstr);
+            (*env)->ReleaseStringUTFChars(env, str, cstr);
             (*env)->DeleteLocalRef(env, str);
         }
     }
@@ -55,7 +55,7 @@ static mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj)
     return result;
 }
 
-static jobject convertMrbValueToJava(JNIEnv *env, mrb_value value) {
+jobject convertMrbValueToJava(JNIEnv *env, mrb_value value) {
     // TODO: mrb_valueのタイプ判定をしてJavaオブジェクトを作る
     switch (mrb_type(value)) {
         case MRB_TT_STRING:
@@ -102,7 +102,7 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
         const char *cEventName = (*env)->GetStringUTFChars(env, eventName, NULL);
         rEventName = mrb_intern_cstr(mrb, cEventName);
 
-        (*env)->ReleaseStringChars(env, eventName, cEventName);
+        (*env)->ReleaseStringUTFChars(env, eventName, cEventName);
     }
 
     // Create filtering args array

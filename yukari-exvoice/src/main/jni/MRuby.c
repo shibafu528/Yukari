@@ -8,6 +8,9 @@
 #include "jni_common.h"
 #include "exvoice_Android.h"
 
+mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj);
+jobject convertMrbValueToJava(JNIEnv *env, mrb_value value);
+
 #define MRB_INSTANCE_STORE_SIZE 16
 static MRubyInstance instances[MRB_INSTANCE_STORE_SIZE] = {};
 
@@ -97,13 +100,25 @@ JNIEXPORT jlong JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1open(JNIEnv
 }
 
 JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1close(JNIEnv *env, jobject self, jlong mrb) {
+    __android_log_print(ANDROID_LOG_DEBUG, "exvoice", "close addr: %d", mrb);
+
     removeMRubyInstance((mrb_state*) mrb);
     mrb_close((mrb_state*) mrb);
 }
 
-JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1loadString(JNIEnv *env, jobject self, jlong mrb, jstring code) {
+JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1loadString(JNIEnv *env, jobject self, jlong mrb, jstring code, jboolean echo) {
     const char *codeBytes = (*env)->GetStringUTFChars(env, code, NULL);
-    __android_log_print(ANDROID_LOG_DEBUG, "exvoice", "mrb_load_string\n%s", codeBytes);
+    if (echo == JNI_TRUE) {
+        __android_log_print(ANDROID_LOG_DEBUG, "exvoice", "mrb_load_string\n%s", codeBytes);
+    }
     mrb_load_string((mrb_state*) mrb, codeBytes);
-    (*env)->ReleaseStringChars(env, code, codeBytes);
+    (*env)->ReleaseStringUTFChars(env, code, codeBytes);
+}
+
+JNIEXPORT jobject JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1callTopLevelFunc(JNIEnv *env, jobject self, jlong pMrb, jstring name) {
+    mrb_state *mrb = (mrb_state*) pMrb;
+    const char *cName = (*env)->GetStringUTFChars(env, name, NULL);
+    mrb_value returnValue = mrb_funcall(mrb, mrb_obj_value(mrb->top_self), cName, 0, NULL);
+    (*env)->ReleaseStringUTFChars(env, name, cName);
+    return convertMrbValueToJava(env, returnValue);
 }

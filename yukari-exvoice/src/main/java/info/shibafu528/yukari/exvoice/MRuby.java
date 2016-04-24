@@ -15,17 +15,50 @@ public class MRuby {
         System.loadLibrary("exvoice");
     }
 
+    /**
+     * MRubyのVMを初期化し、使用可能な状態にします。
+     * @param assetManager
+     */
     public MRuby(AssetManager assetManager) {
         mrubyInstancePointer = n_open();
         this.assetManager = assetManager;
     }
 
+    /**
+     * MRubyのVMをシャットダウンします。
+     */
     public void close() {
+        if (mrubyInstancePointer == 0) {
+            throw new IllegalStateException("MRuby VM was already closed.");
+        }
         n_close(mrubyInstancePointer);
+        mrubyInstancePointer = 0;
     }
 
+    /**
+     * 引数として渡された文字列をRubyプログラムとしてトップレベルのコンテキストで実行します。
+     * @param code Rubyプログラム
+     */
     public void loadString(String code) {
-        n_loadString(mrubyInstancePointer, code);
+        loadString(code, true);
+    }
+
+    /**
+     * 引数として渡された文字列をRubyプログラムとしてトップレベルのコンテキストで実行します。
+     * @param code Rubyプログラム
+     * @param echo 入力をLogcat上にエコーします
+     */
+    public void loadString(String code, boolean echo) {
+        n_loadString(mrubyInstancePointer, code, echo);
+    }
+
+    /**
+     * 指定の名前のメソッドをトップレベルから検索し実行します。
+     * @param name メソッド名
+     * @return メソッドの返り値
+     */
+    public Object callTopLevelFunc(String name) {
+        return n_callTopLevelFunc(mrubyInstancePointer, name);
     }
 
     public void setPrintCallback(PrintCallback printCallback) {
@@ -47,7 +80,8 @@ public class MRuby {
     private native long n_open();
     private native void n_close(long mrb);
 
-    private native void n_loadString(long mrb, String code);
+    private native void n_loadString(long mrb, String code, boolean echo);
+    private native Object n_callTopLevelFunc(long mrb, String name);
 
     public interface PrintCallback {
         void print(String value);

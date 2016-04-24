@@ -4,17 +4,13 @@
 #include <mruby/class.h>
 #include <mruby/variable.h>
 #include <android/asset_manager.h>
-#include <android/log.h>
 #include "jni_common.h"
-
-#define log_d(mrb,v) mrb_funcall((mrb), mrb_obj_value((mrb)->kernel_module), "p", 1, (v))
 
 static void assetdir_free(mrb_state *mrb, void *ptr) {
     AAssetDir *dir = ptr;
     if (dir != NULL) {
         AAssetDir_close(dir);
     }
-    mrb_free(mrb, dir);
 }
 const static struct mrb_data_type mrb_assetdir_type = {"AssetDir", assetdir_free};
 

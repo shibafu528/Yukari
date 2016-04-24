@@ -98,6 +98,7 @@ public class TwitterService extends Service{
 
     //MRuby VM
     private MRuby mRuby;
+    private Thread mRubyThread;
 
     //ネットワーク管理
 
@@ -260,6 +261,26 @@ public class TwitterService extends Service{
         //MRuby VMの初期化
         mRuby = new MRuby(getAssets());
         mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+        mRubyThread = new Thread(() -> {
+            try {
+                //noinspection InfiniteLoopStatement
+                long count = 0;
+                while (true) {
+                    mRuby.callTopLevelFunc("tick");
+                    Thread.sleep(500);
+
+                    if (count++ % 20 == 0) {
+                        mRuby.loadString("Plugin.call(:event_test)", false);
+                    }
+                    if (count >= Long.MAX_VALUE) {
+                        count = 0;
+                    }
+                }
+            } catch (InterruptedException e) {
+                Log.d("ExVoiceRunner", "Interrupt!");
+            }
+        }, "ExVoiceRunner");
+        mRubyThread.start();
 
         //mikutter更新通知
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
@@ -322,7 +343,10 @@ public class TwitterService extends Service{
             pixivProxy.stop();
         }
 
+        mRubyThread.interrupt();
+        mRubyThread = null;
         mRuby.close();
+        mRuby = null;
 
         stopForeground(true);
 
