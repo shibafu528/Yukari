@@ -1,15 +1,23 @@
 package info.shibafu528.yukari.exvoice;
 
+import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by shibafu on 2016/03/28.
  */
 public class MRuby {
     private long mrubyInstancePointer;
+    private Context context;
     private AssetManager assetManager;
     private PrintCallback printCallback;
+    private Map<String, Plugin> plugins = new HashMap<>();
 
     static {
         System.loadLibrary("exvoice");
@@ -17,11 +25,12 @@ public class MRuby {
 
     /**
      * MRubyのVMを初期化し、使用可能な状態にします。
-     * @param assetManager
+     * @param context
      */
-    public MRuby(AssetManager assetManager) {
+    public MRuby(Context context) {
         mrubyInstancePointer = n_open();
-        this.assetManager = assetManager;
+        this.context = context;
+        this.assetManager = context.getAssets();
     }
 
     /**
@@ -61,6 +70,26 @@ public class MRuby {
         return n_callTopLevelFunc(mrubyInstancePointer, name);
     }
 
+    /**
+     * プラグインを登録し、使用可能な状態にします。
+     * @param clazz プラグインクラス
+     */
+    public void registerPlugin(Class<? extends Plugin> clazz) {
+        try {
+            Constructor<? extends Plugin> constructor = clazz.getConstructor(MRuby.class);
+            Plugin plugin = constructor.newInstance(this);
+            plugins.put(plugin.getSlug(), plugin);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void setPrintCallback(PrintCallback printCallback) {
         this.printCallback = printCallback;
     }
@@ -75,6 +104,12 @@ public class MRuby {
 
     /*package*/ long getMRubyInstancePointer() {
         return mrubyInstancePointer;
+    }
+    /*package*/ Context getContext() {
+        return context;
+    }
+    /*package*/ Plugin getPlugin(String slug) {
+        return plugins.get(slug);
     }
 
     private native long n_open();

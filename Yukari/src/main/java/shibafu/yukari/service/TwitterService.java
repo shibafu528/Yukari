@@ -259,22 +259,14 @@ public class TwitterService extends Service{
         }
 
         //MRuby VMの初期化
-        mRuby = new MRuby(getAssets());
+        mRuby = new MRuby(getApplicationContext());
         mRuby.loadString("Android.require_assets 'bootstrap.rb'");
         mRubyThread = new Thread(() -> {
             try {
                 //noinspection InfiniteLoopStatement
-                long count = 0;
                 while (true) {
                     mRuby.callTopLevelFunc("tick");
                     Thread.sleep(500);
-
-                    if (count++ % 20 == 0) {
-                        mRuby.loadString("Plugin.call(:event_test)", false);
-                    }
-                    if (count >= Long.MAX_VALUE) {
-                        count = 0;
-                    }
                 }
             } catch (InterruptedException e) {
                 Log.d("ExVoiceRunner", "Interrupt!");

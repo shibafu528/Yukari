@@ -6,15 +6,17 @@
 #include <android/log.h>
 #include "MRuby.h"
 #include "jni_common.h"
+#include "jni_converter.h"
 #include "exvoice_Android.h"
-
-mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj);
-jobject convertMrbValueToJava(JNIEnv *env, mrb_value value);
 
 #define MRB_INSTANCE_STORE_SIZE 16
 static MRubyInstance instances[MRB_INSTANCE_STORE_SIZE] = {};
 
-jfieldID field_exvoice_MRuby_assetManager = NULL;
+jfieldID field_MRuby_context = NULL;
+jfieldID field_MRuby_assetManager = NULL;
+jfieldID field_MRuby_mrubyInstancePointer = NULL;
+
+jmethodID method_MRuby_getPlugin = NULL;
 
 MRubyInstance *findMRubyInstance(mrb_state *mrb) {
     for (int i = 0; i < MRB_INSTANCE_STORE_SIZE; i++) {
@@ -90,9 +92,11 @@ JNIEXPORT jlong JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1open(JNIEnv
     // Store instances
     storeMRubyInstance(mrb, self);
     {
-        // Get fieldID of MRuby.assetManager
         jclass selfClass = (*env)->GetObjectClass(env, self);
-        field_exvoice_MRuby_assetManager = (*env)->GetFieldID(env, selfClass, "assetManager", "Landroid/content/res/AssetManager;");
+        // Get fieldID of MRuby.context
+        field_MRuby_context = (*env)->GetFieldID(env, selfClass, "context", "Landroid/content/Context;");
+        // Get fieldID of MRuby.assetManager
+        field_MRuby_assetManager = (*env)->GetFieldID(env, selfClass, "assetManager", "Landroid/content/res/AssetManager;");
         (*env)->DeleteLocalRef(env, selfClass);
     }
 
@@ -120,5 +124,5 @@ JNIEXPORT jobject JNICALL Java_info_shibafu528_yukari_exvoice_MRuby_n_1callTopLe
     const char *cName = (*env)->GetStringUTFChars(env, name, NULL);
     mrb_value returnValue = mrb_funcall(mrb, mrb_obj_value(mrb->top_self), cName, 0, NULL);
     (*env)->ReleaseStringUTFChars(env, name, cName);
-    return convertMrbValueToJava(env, returnValue);
+    return convertMrbValueToJava(env, mrb, returnValue);
 }

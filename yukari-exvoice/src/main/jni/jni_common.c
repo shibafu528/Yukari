@@ -25,13 +25,20 @@ JNIEnv* getJNIEnv() {
     return env;
 }
 
+jobject getContext(mrb_state *mrb) {
+    JNIEnv *env = getJNIEnv();
+    MRubyInstance *instance = findMRubyInstance(mrb);
+
+    return (*env)->GetObjectField(env, instance->javaInstance, field_MRuby_context);
+}
+
 AAssetManager* getAAssetManager(mrb_state *mrb) {
     JNIEnv *env = getJNIEnv();
     MRubyInstance *instance = findMRubyInstance(mrb);
 
     AAssetManager *manager;
     {
-        jobject assetManager = (*env)->GetObjectField(env, instance->javaInstance, field_exvoice_MRuby_assetManager);
+        jobject assetManager = (*env)->GetObjectField(env, instance->javaInstance, field_MRuby_assetManager);
         manager = AAssetManager_fromJava(env, assetManager);
 
         (*env)->DeleteLocalRef(env, assetManager);

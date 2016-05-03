@@ -11,6 +11,7 @@
 extern JavaVM *g_jvm;
 
 JNIEnv* getJNIEnv();
+jobject getContext(mrb_state *mrb);
 AAssetManager* getAAssetManager(mrb_state *mrb);
 
 #endif //YUKARI_EXVOICE_JNI_COMMON_H
