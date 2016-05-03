@@ -5,6 +5,7 @@
 #include <mruby/hash.h>
 #include <mruby/string.h>
 #include <mruby/proc.h>
+#include <mruby/error.h>
 #include <stddef.h>
 #include <android/log.h>
 #include "MRuby.h"
@@ -165,12 +166,22 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
     mrb_free(mrb, rArgs);
 
     if (mrb_exception_p(filteringResult)) {
-        jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
-        mrb_value ins = mrb_inspect(mrb, filteringResult);
-        (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
+        struct RClass *filterError = mrb_class_get_under(mrb, mrb_module_get(mrb, "Pluggaloid"), "FilterError");
+        if (mrb_exc_ptr(filteringResult)->c == filterError) {
+            jclass exceptionClass = (*env)->FindClass(env, "info/shibafu528/yukari/exvoice/FilterException");
+            mrb_value ins = mrb_inspect(mrb, filteringResult);
+            (*env)->ThrowNew(env, exceptionClass, mrb_str_to_cstr(mrb, ins));
+
+            (*env)->DeleteLocalRef(env, exceptionClass);
+        } else {
+            jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+            mrb_value ins = mrb_inspect(mrb, filteringResult);
+            (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
+
+            (*env)->DeleteLocalRef(env, runtimeExceptionClass);
+        }
 
         mrb->exc = 0;
-        (*env)->DeleteLocalRef(env, runtimeExceptionClass);
         return NULL;
     }
 

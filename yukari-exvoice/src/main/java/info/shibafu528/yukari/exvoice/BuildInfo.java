@@ -4,11 +4,11 @@ package info.shibafu528.yukari.exvoice;
  * Created by shibafu on 2016/04/10.
  */
 public final class BuildInfo {
-    private BuildInfo() {}
-
     static {
         System.loadLibrary("exvoice");
     }
+
+    private BuildInfo() {}
 
     /**
      * exvoiceのABIを取得します。

@@ -13,15 +13,15 @@ import java.util.Map;
  * Created by shibafu on 2016/03/28.
  */
 public class MRuby {
+    static {
+        System.loadLibrary("exvoice");
+    }
+
     private long mrubyInstancePointer;
     private Context context;
     private AssetManager assetManager;
     private PrintCallback printCallback;
     private Map<String, Plugin> plugins = new HashMap<>();
-
-    static {
-        System.loadLibrary("exvoice");
-    }
 
     /**
      * MRubyのVMを初期化し、使用可能な状態にします。
@@ -105,9 +105,11 @@ public class MRuby {
     /*package*/ long getMRubyInstancePointer() {
         return mrubyInstancePointer;
     }
+
     /*package*/ Context getContext() {
         return context;
     }
+
     /*package*/ Plugin getPlugin(String slug) {
         return plugins.get(slug);
     }
