@@ -145,6 +145,38 @@ JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_addEventListen
     (*env)->DeleteLocalRef(env, mRubyObject);
 }
 
+JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_call(JNIEnv *env, jclass clazz, jobject mRuby, jstring eventName, jobjectArray args) {
+    mrb_state *mrb = getField_MRuby_mrubyInstancePointer(env, mRuby);
+
+    struct RClass *plugin = mrb_class_get_under(mrb, mrb_module_get(mrb, "Pluggaloid"), "Plugin");
+
+    // Create call args array
+    jsize argc = (*env)->GetArrayLength(env, args);
+    mrb_value *rArgs = mrb_calloc(mrb, (size_t) 1 + argc, sizeof(mrb_value));
+    rArgs[0] = mrb_symbol_value(convertJstringToSymbol(env, mrb, eventName));
+    for (int i = 0; i < argc; i++) {
+        // Convert argument to mrb_value
+        jobject obj = (*env)->GetObjectArrayElement(env, args, i);
+        rArgs[i + 1] = convertJavaToMrbValue(env, mrb, obj);
+        (*env)->DeleteLocalRef(env, obj);
+    }
+
+    // Call event
+    mrb_value result = mrb_funcall_argv(mrb, mrb_obj_value(plugin), mrb_intern_cstr(mrb, "call"), 1 + argc, rArgs);
+    mrb_free(mrb, rArgs);
+
+    if (mrb_exception_p(result)) {
+        jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        mrb_value ins = mrb_inspect(mrb, result);
+        (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
+
+        (*env)->DeleteLocalRef(env, runtimeExceptionClass);
+
+        mrb->exc = 0;
+        return NULL;
+    }
+}
+
 JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filtering(JNIEnv *env, jclass clazz, jobject mRuby, jstring eventName, jobjectArray args) {
     mrb_state *mrb = getField_MRuby_mrubyInstancePointer(env, mRuby);
 

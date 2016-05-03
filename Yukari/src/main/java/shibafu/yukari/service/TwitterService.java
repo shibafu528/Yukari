@@ -37,6 +37,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
+import shibafu.yukari.plugin.SamplePlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -261,6 +262,7 @@ public class TwitterService extends Service{
         //MRuby VMの初期化
         mRuby = new MRuby(getApplicationContext());
         mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+        mRuby.registerPlugin(SamplePlugin.class);
         mRubyThread = new Thread(() -> {
             try {
                 //noinspection InfiniteLoopStatement
