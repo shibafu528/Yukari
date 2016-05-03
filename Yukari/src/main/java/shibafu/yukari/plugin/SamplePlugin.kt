@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import info.shibafu528.yukari.exvoice.Event
+import info.shibafu528.yukari.exvoice.Filter
 import info.shibafu528.yukari.exvoice.MRuby
 import info.shibafu528.yukari.exvoice.Plugin
 import shibafu.yukari.activity.TweetActivity
@@ -27,4 +28,7 @@ class SamplePlugin(mRuby: MRuby) : Plugin(mRuby, "java_sample") {
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
+
+    @Filter("java_sample")
+    fun filterJavaSample(arg1: String): Array<Any> = arrayOf("pyaaaaaaaaaaaaaaaaaaaaaaaaa " + arg1)
 }

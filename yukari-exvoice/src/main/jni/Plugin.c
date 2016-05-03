@@ -45,6 +45,17 @@ static inline void call_Plugin_onEvent(JNIEnv *env, jobject self, jstring eventN
     (*env)->CallVoidMethod(env, self, method_Plugin_onEvent, eventName, args);
 }
 
+static inline jobjectArray call_Plugin_filter(JNIEnv *env, jobject self, jstring eventName, jobjectArray args) {
+    static jmethodID method_Plugin_filter = NULL;
+    if (method_Plugin_filter == NULL) {
+        jclass selfClass = (*env)->GetObjectClass(env, self);
+        method_Plugin_filter = (*env)->GetMethodID(env, selfClass, "filter", "(Ljava/lang/String;[Ljava/lang/Object;)[Ljava/lang/Object;");
+
+        (*env)->DeleteLocalRef(env, selfClass);
+    }
+    return (jobjectArray) (*env)->CallObjectMethod(env, self, method_Plugin_filter, eventName, args);
+}
+
 static inline mrb_sym convertJstringToSymbol(JNIEnv *env, mrb_state *mrb, jstring str) {
     const char *cstr = (*env)->GetStringUTFChars(env, str, NULL);
     mrb_sym sym = mrb_intern_cstr(mrb, cstr);
@@ -140,6 +151,69 @@ JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_addEventListen
     mrb_funcall_with_block(mrb, rPlugin, mrb_intern_cstr(mrb, "add_event"), 1, &rEventName, mrb_obj_value(proc));
 
     __android_log_print(ANDROID_LOG_DEBUG, "exvoice-Plugin", "register native event %s%s", mrb_str_to_cstr(mrb, mrb_inspect(mrb, rSlug)), mrb_str_to_cstr(mrb, mrb_inspect(mrb, rEventName)));
+
+    // Release references
+    (*env)->DeleteLocalRef(env, mRubyObject);
+}
+
+static mrb_value addEventFilter_callback(mrb_state *mrb, mrb_value self) {
+    JNIEnv *env = getJNIEnv();
+    mrb_value rSlug = mrb_proc_cfunc_env_get(mrb, 0);
+    mrb_value rEventName = mrb_proc_cfunc_env_get(mrb, 1);
+    MRubyInstance *instance = findMRubyInstance(mrb);
+    jstring jSlug = convertMrbValueToJava(env, mrb, rSlug);
+    jobject jPlugin = call_MRuby_getPlugin(env, instance->javaInstance, jSlug);
+
+    mrb_value *rArgs;
+    mrb_int rArgc;
+    mrb_get_args(mrb, "*", &rArgs, &rArgc);
+
+    jclass objectClass = (*env)->FindClass(env, "java/lang/Object");
+    jobjectArray jArgs = (*env)->NewObjectArray(env, rArgc, objectClass, NULL);
+    for (int i = 0; i < rArgc; i++) {
+        (*env)->SetObjectArrayElement(env, jArgs, i, convertMrbValueToJava(env, mrb, rArgs[i]));
+    }
+
+    jstring jEventName = convertMrbValueToJava(env, mrb, rEventName);
+    jobjectArray jResult = call_Plugin_filter(env, jPlugin, jEventName, jArgs);
+    mrb_value rResult = convertJavaToMrbValue(env, mrb, jResult);
+
+    (*env)->DeleteLocalRef(env, objectClass);
+    (*env)->DeleteLocalRef(env, jSlug);
+    (*env)->DeleteLocalRef(env, jPlugin);
+    (*env)->DeleteLocalRef(env, jArgs);
+    (*env)->DeleteLocalRef(env, jEventName);
+    (*env)->DeleteLocalRef(env, jResult);
+    return rResult;
+}
+
+JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_addEventFilterNative(JNIEnv *env, jobject self, jstring eventName) {
+    // Get mrb_state
+    jobject mRubyObject = getField_Plugin_mRuby(env, self);
+    mrb_state *mrb = getField_MRuby_mrubyInstancePointer(env, mRubyObject);
+
+    // Get this.slug
+    mrb_value rSlug;
+    {
+        jstring slug = getField_Plugin_slug(env, self);
+        rSlug = mrb_symbol_value(convertJstringToSymbol(env, mrb, slug));
+
+        (*env)->DeleteLocalRef(env, slug);
+    }
+
+    // String -> Symbol
+    mrb_value rEventName = mrb_symbol_value(convertJstringToSymbol(env, mrb, eventName));
+
+    // Find Plugin
+    struct RClass *plugin = mrb_class_get_under(mrb, mrb_module_get(mrb, "Pluggaloid"), "Plugin");
+    mrb_value rPlugin = mrb_funcall(mrb, mrb_obj_value(plugin), "[]", 1, rSlug);
+
+    // Register filter
+    mrb_value procEnv[] = { rSlug, rEventName };
+    struct RProc *proc = mrb_proc_new_cfunc_with_env(mrb, addEventFilter_callback, 2, procEnv);
+    mrb_funcall_with_block(mrb, rPlugin, mrb_intern_cstr(mrb, "add_event_filter"), 1, &rEventName, mrb_obj_value(proc));
+
+    __android_log_print(ANDROID_LOG_DEBUG, "exvoice-Plugin", "register native filter %s%s", mrb_str_to_cstr(mrb, mrb_inspect(mrb, rSlug)), mrb_str_to_cstr(mrb, mrb_inspect(mrb, rEventName)));
 
     // Release references
     (*env)->DeleteLocalRef(env, mRubyObject);
