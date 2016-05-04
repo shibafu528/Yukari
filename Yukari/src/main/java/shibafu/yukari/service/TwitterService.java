@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Debug;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -62,9 +63,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -100,6 +104,8 @@ public class TwitterService extends Service{
     //MRuby VM
     private MRuby mRuby;
     private Thread mRubyThread;
+    private StringBuffer mRubyStdOut = new StringBuffer();
+    private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
     //ネットワーク管理
 
@@ -259,11 +265,42 @@ public class TwitterService extends Service{
             e.printStackTrace();
         }
 
-        //MRuby VMの初期化
+        // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
+            // MRuby VMの初期化
             mRuby = new MRuby(getApplicationContext());
+            // 標準出力をLogcatとStringBufferにリダイレクト
+            mRuby.setPrintCallback(value -> {
+                if (value == null || value.length() == 0 || "\n".equals(value)) {
+                    return;
+                }
+                Log.d("ExVoice (TS)", value);
+                mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": ").append(value).append("\n");
+            });
+            // ブートストラップの実行およびバンドルRubyプラグインのロード
             mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+            // Javaプラグインのロード
             mRuby.registerPlugin(SamplePlugin.class);
+            // ユーザプラグインのロード
+            // TODO: ホワイトリストが必要だよねー
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                File pluginDir = new File(getExternalFilesDir(null), "plugin");
+                if (pluginDir.exists() && !pluginDir.isDirectory()) {
+                    showToast("[Yukari exvoice]\nプラグインディレクトリのあるべき場所にファイルがあります。どかしていただけますか？");
+                } else {
+                    // プラグインディレクトリがなければ作っておく
+                    if (!pluginDir.exists()) {
+                        pluginDir.mkdirs();
+                    }
+                    // プラグインファイルを探索してロード
+                    com.annimon.stream.Stream.of(pluginDir.listFiles(pathname -> pathname.isFile() && pathname.getName().endsWith(".rb")))
+                            .forEach(value -> {
+                                mRuby.printStringCallback("Require: " + value.getAbsolutePath());
+                                mRuby.loadString("require '" + value.getAbsolutePath() + "'");
+                            });
+                }
+            }
+            // クロックの供給開始
             mRubyThread = new Thread(() -> {
                 try {
                     //noinspection InfiniteLoopStatement
@@ -828,5 +865,9 @@ public class TwitterService extends Service{
 
         } catch (IOException ignore) {}
         return null;
+    }
+
+    public StringBuffer getmRubyStdOut() {
+        return mRubyStdOut;
     }
 }

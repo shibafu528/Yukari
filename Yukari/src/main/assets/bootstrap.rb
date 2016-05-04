@@ -15,7 +15,7 @@ def bootstrap
 
   # Load bundle plugins
   plugins.sort.each do |path|
-    Android::Log.d "Require: #{path}"
+    puts "Require: #{path}"
     Android.require_assets path
   end
 end
@@ -26,19 +26,21 @@ def tick
 
     span = Time.now.to_f - $last_ticked.to_f
     Android::Log.d "yukari-exvoice: tick! +#{span} sec, #{Delayer.size} job(s)" if span >= 0.6 || Delayer.size > 0
+
+    Plugin.call :tick
     Delayer.run until Delayer.empty?
 
     $last_ticked = Time.now
   rescue Exception => e
-    Android::Log.d e.inspect
-    Android::Log.d e.backtrace.map{|v| "\t" + v}.join("\n")
+    puts e.inspect
+    puts e.backtrace.map{|v| "\t" + v}.join("\n")
   end
 end
 
 begin
   bootstrap
-  Android::Log.d 'welcome to yukari-exvoice'
+  puts 'welcome to yukari-exvoice'
 rescue Exception => e
-  Android::Log.d e.inspect
-  Android::Log.d e.backtrace.map{|v| "\t" + v}.join("\n")
+  puts e.inspect
+  puts e.backtrace.map{|v| "\t" + v}.join("\n")
 end
