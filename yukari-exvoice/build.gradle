@@ -13,11 +13,13 @@ model {
         }
     }
     android.buildTypes {
+        /*
         debug {
             ndk.with {
                 debuggable = true
             }
         }
+        */
         release {
             minifyEnabled = false
             proguardFiles.add(file('proguard-rules.pro'))
@@ -25,7 +27,7 @@ model {
     }
     android.ndk {
         moduleName = "exvoice"
-        CFlags.addAll(["-I${file("mruby/include")}".toString(), "-std=c99", "-g"])
+        CFlags.addAll(["-I${file("mruby/include")}".toString(), "-std=c99"])
         ldLibs.addAll(["android", "log", "mruby"])
 
         abiFilters.addAll(["armeabi", "armeabi-v7a", "arm64-v8a", "x86"])
@@ -38,5 +40,4 @@ model {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.annimon:stream:1.0.8'
 }

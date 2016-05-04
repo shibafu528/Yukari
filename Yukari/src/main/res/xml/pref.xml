@@ -321,6 +321,28 @@
             android:entryValues="@array/pref_lists_membership_finder_values"/>
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="プラグインエンジン (実験中)">
+        <CheckBoxPreference
+            android:key="pref_enable_exvoice"
+            android:title="プラグインエンジンを有効にする"
+            android:summary="mruby-pluggaloidベースのプラグインエンジンを有効にします(※要再起動)"
+            android:defaultValue="false"/>
+        <Preference
+            android:key="pref_exvoice_loadpath"
+            android:title="ロードパス (※固定)"
+            android:summary="/sdcard/Android/data/shibafu.yukari/files/plugin"/>
+        <Preference
+            android:key="pref_exvoice_whitelist"
+            android:title="ホワイトリスト設定"
+            android:summary="実行を許可するユーザプラグインを設定します"/>
+        <Preference
+            android:key="pref_exvoice_stdout"
+            android:title="標準出力ビューア"
+            android:summary="プラグインが標準出力に書き込んだ内容を表示します"/>
+        <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて"/>
+        <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
         <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>

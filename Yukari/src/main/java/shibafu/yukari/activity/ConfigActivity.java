@@ -68,6 +68,14 @@ public class ConfigActivity extends ActionBarYukariBase {
             Preference immersivePref = findPreference("pref_boot_immersive");
             immersivePref.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
 
+            Preference exvoiceVersionPref = findPreference("pref_exvoice_version");
+            {
+                String summaryText = "libexvoice.so (" + BuildInfo.getABI() + ") Build: " + BuildInfo.getBuildDateTime() +
+                        "\n  with " + BuildInfo.getMRubyDescription() + ",\n    " + BuildInfo.getMRubyCopyright();
+                // exvoice version
+                exvoiceVersionPref.setSummary(summaryText);
+            }
+
             Preference aboutVersionPref = findPreference("pref_about_version");
             {
                 StringBuilder summaryText = new StringBuilder();
@@ -79,9 +87,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                 } catch (PackageManager.NameNotFoundException ignored) {}
                 // Developer
                 summaryText.append("\nDeveloped by @shibafu528");
-                // exvoice version
-                summaryText.append("\n\nlibexvoice.so (").append(BuildInfo.getABI()).append(") Build: ").append(BuildInfo.getBuildDateTime());
-                summaryText.append("\n    with ").append(BuildInfo.getMRubyDescription()).append(",\n        ").append(BuildInfo.getMRubyCopyright());
                 aboutVersionPref.setSummary(summaryText.toString());
             }
             aboutVersionPref.setOnPreferenceClickListener(preference -> {

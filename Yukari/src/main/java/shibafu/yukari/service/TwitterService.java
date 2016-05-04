@@ -26,7 +26,6 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import info.shibafu528.yukari.exvoice.MRuby;
-import info.shibafu528.yukari.exvoice.Plugin;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.Suppressor;
@@ -44,7 +43,6 @@ import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
-import shibafu.yukari.util.ObjectInspector;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.IDs;
@@ -262,21 +260,23 @@ public class TwitterService extends Service{
         }
 
         //MRuby VMの初期化
-        mRuby = new MRuby(getApplicationContext());
-        mRuby.loadString("Android.require_assets 'bootstrap.rb'");
-        mRuby.registerPlugin(SamplePlugin.class);
-        mRubyThread = new Thread(() -> {
-            try {
-                //noinspection InfiniteLoopStatement
-                while (true) {
-                    mRuby.callTopLevelFunc("tick");
-                    Thread.sleep(500);
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
+            mRuby = new MRuby(getApplicationContext());
+            mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+            mRuby.registerPlugin(SamplePlugin.class);
+            mRubyThread = new Thread(() -> {
+                try {
+                    //noinspection InfiniteLoopStatement
+                    while (true) {
+                        mRuby.callTopLevelFunc("tick");
+                        Thread.sleep(500);
+                    }
+                } catch (InterruptedException e) {
+                    Log.d("ExVoiceRunner", "Interrupt!");
                 }
-            } catch (InterruptedException e) {
-                Log.d("ExVoiceRunner", "Interrupt!");
-            }
-        }, "ExVoiceRunner");
-        mRubyThread.start();
+            }, "ExVoiceRunner");
+            mRubyThread.start();
+        }
 
         //mikutter更新通知
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
@@ -339,10 +339,14 @@ public class TwitterService extends Service{
             pixivProxy.stop();
         }
 
-        mRubyThread.interrupt();
-        mRubyThread = null;
-        mRuby.close();
-        mRuby = null;
+        if (mRubyThread != null) {
+            mRubyThread.interrupt();
+            mRubyThread = null;
+        }
+        if (mRuby != null) {
+            mRuby.close();
+            mRuby = null;
+        }
 
         stopForeground(true);
 
