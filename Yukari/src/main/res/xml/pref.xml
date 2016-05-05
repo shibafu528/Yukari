@@ -331,10 +331,10 @@
             android:key="pref_exvoice_loadpath"
             android:title="ロードパス (※固定)"
             android:summary="/sdcard/Android/data/shibafu.yukari/files/plugin"/>
-        <Preference
+        <!--<Preference
             android:key="pref_exvoice_whitelist"
             android:title="ホワイトリスト設定"
-            android:summary="実行を許可するユーザプラグインを設定します"/>
+            android:summary="実行を許可するユーザプラグインを設定します"/>-->
         <Preference
             android:key="pref_exvoice_stdout"
             android:title="標準出力ビューア"
