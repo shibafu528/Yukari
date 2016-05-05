@@ -230,7 +230,7 @@ public class TweetPreprocessor {
                         Object proc = commands.get(command.replaceFirst("^::", ""));
                         try {
                             if (proc != null && proc instanceof ProcWrapper) {
-                                return (String) ((ProcWrapper) proc).exec(input);
+                                return (String) ((ProcWrapper) proc).exec(input.replace(command, "").trim());
                             }
                         } finally {
                             for (Object procWrapper : commands.values()) {
