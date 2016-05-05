@@ -18,4 +18,9 @@ Plugin.create(:yukarisan) do
     # Like Activity#setResult(resultCode, intent)
     {result_code: :ok, intent: {text: 'ゆかりさんゆかりさん！！'}}
   end
+
+  # ::ykrb
+  post_command :ykrb do |text|
+    'ゆかりさんゆかりさん！！ (from yukarisan.rb)'
+  end
 end

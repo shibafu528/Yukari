@@ -8,11 +8,14 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.widget.Toast;
+import info.shibafu528.yukari.exvoice.Plugin;
+import info.shibafu528.yukari.exvoice.ProcWrapper;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.CommandsPrefActivity;
 import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -20,6 +23,7 @@ import twitter4j.TwitterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -213,6 +217,32 @@ public class TweetPreprocessor {
     public static String preprocess(@NotNull TweetPreprocessorDepends depends, @Nullable String input) {
         if (input != null && input.startsWith("::")) {
             String command = input.split(" ")[0];
+            // プラグインからマッチング
+            if (depends.getActivity().isTwitterServiceBound()) {
+                TwitterService service = depends.getActivity().getTwitterService();
+                if (service != null && service.getmRuby() != null) {
+                    // プラグインからコマンドを取得
+                    Object[] result = Plugin.filtering(service.getmRuby(), "post_command", new LinkedHashMap());
+                    if (result != null && result[0] instanceof Map) {
+                        Map commands = (Map) result[0];
+
+                        // マッチするコマンドがあればProcを実行
+                        Object proc = commands.get(command.replaceFirst("^::", ""));
+                        try {
+                            if (proc != null && proc instanceof ProcWrapper) {
+                                return (String) ((ProcWrapper) proc).exec(input);
+                            }
+                        } finally {
+                            for (Object procWrapper : commands.values()) {
+                                if (procWrapper instanceof ProcWrapper) {
+                                    ((ProcWrapper) procWrapper).dispose();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // ビルトインプリプロセッサからマッチング
             TweetPreprocessorAction action = COMMANDS.get(command);
             if (action != null) {
                 return action.preprocess(depends, input.replace(command, "").trim());

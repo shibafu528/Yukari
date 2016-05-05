@@ -3,6 +3,7 @@
 #include <mruby/array.h>
 #include <mruby/hash.h>
 #include <mruby/string.h>
+#include <mruby/proc.h>
 #include <stddef.h>
 
 static jfieldID boolean_TRUE = NULL;
@@ -24,6 +25,8 @@ static jmethodID map_entry_getValue = NULL;
 static jmethodID set_iterator = NULL;
 static jmethodID iterator_hasNext = NULL;
 static jmethodID iterator_next = NULL;
+
+static jmethodID procWrapper_constructor = NULL;
 
 mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
     mrb_value result = mrb_nil_value();
@@ -242,6 +245,17 @@ jobject convertMrbValueToJava(JNIEnv *env, mrb_state *mrb, mrb_value value) {
 
             (*env)->DeleteLocalRef(env, linkedHashMapClass);
             return map;
+        }
+        case MRB_TT_PROC: {
+            jclass procWrapperClass = (*env)->FindClass(env, "info/shibafu528/yukari/exvoice/ProcWrapper");
+            if (procWrapper_constructor == NULL) {
+                procWrapper_constructor = (*env)->GetMethodID(env, procWrapperClass, "<init>", "(JJ)V");
+            }
+            mrb_gc_register(mrb, value);
+            jobject object = (*env)->NewObject(env, procWrapperClass, procWrapper_constructor, mrb, mrb_proc_ptr(value));
+
+            (*env)->DeleteLocalRef(env, procWrapperClass);
+            return object;
         }
         default:
             return (*env)->NewStringUTF(env, RSTRING_PTR(mrb_obj_as_string(mrb, value)));

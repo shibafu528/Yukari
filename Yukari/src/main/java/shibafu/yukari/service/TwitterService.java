@@ -867,6 +867,10 @@ public class TwitterService extends Service{
         return null;
     }
 
+    public MRuby getmRuby() {
+        return mRuby;
+    }
+
     public StringBuffer getmRubyStdOut() {
         return mRubyStdOut;
     }
