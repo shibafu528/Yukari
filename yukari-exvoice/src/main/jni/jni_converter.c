@@ -252,7 +252,7 @@ jobject convertMrbValueToJava(JNIEnv *env, mrb_state *mrb, mrb_value value) {
                 procWrapper_constructor = (*env)->GetMethodID(env, procWrapperClass, "<init>", "(JJ)V");
             }
             mrb_gc_register(mrb, value);
-            jobject object = (*env)->NewObject(env, procWrapperClass, procWrapper_constructor, mrb, mrb_proc_ptr(value));
+            jobject object = (*env)->NewObject(env, procWrapperClass, procWrapper_constructor, (jlong) mrb, (jlong) mrb_proc_ptr(value));
 
             (*env)->DeleteLocalRef(env, procWrapperClass);
             return object;

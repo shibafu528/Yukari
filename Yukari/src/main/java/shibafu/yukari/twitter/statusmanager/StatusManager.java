@@ -2,10 +2,12 @@ package shibafu.yukari.twitter.statusmanager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.util.LongSparseArray;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -67,7 +69,16 @@ import java.util.regex.PatternSyntaxException;
  * Created by shibafu on 14/03/08.
  */
 public class StatusManager implements Releasable {
-    private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
+    static {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            // アタシポンコツアンドロイド
+            receivedStatuses = new LruCache<>(128);
+        } else {
+            receivedStatuses = new LruCache<>(512);
+        }
+    }
+
+    private static LruCache<Long, PreformedStatus> receivedStatuses;
 
     private static final boolean PUT_STREAM_LOG = false;
 
@@ -416,7 +427,7 @@ public class StatusManager implements Releasable {
             }
         }
 
-        receivedStatuses.clear();
+        receivedStatuses.evictAll();
 
         notifier.release();
         userUpdateDelayer.shutdown();
@@ -598,7 +609,7 @@ public class StatusManager implements Releasable {
         handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
-    public static LongSparseArray<PreformedStatus> getReceivedStatuses() {
+    public static LruCache<Long, PreformedStatus> getReceivedStatuses() {
         return receivedStatuses;
     }
 
@@ -639,7 +650,7 @@ public class StatusManager implements Releasable {
         }
 
         for (Long id : preformedStatus.getQuoteEntities()) {
-            if (receivedStatuses.indexOfKey(id) < 0) {
+            if (receivedStatuses.get(id) == null) {
                 new TwitterAsyncTask<Params>(context) {
 
                     @Override

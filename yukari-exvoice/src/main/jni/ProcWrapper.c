@@ -35,7 +35,7 @@ JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_ProcWrapper_disposeNa
 JNIEXPORT jobject JNICALL Java_info_shibafu528_yukari_exvoice_ProcWrapper_execNative(JNIEnv *env, jobject self, jlong jMRubyPointer, jobjectArray jArgs) {
     mrb_state *mrb = (mrb_state *) jMRubyPointer;
     jlong rProcPointer = getField_ProcWrapper_rProcPointer(env, self);
-    mrb_value rProc = mrb_obj_value(rProcPointer);
+    mrb_value rProc = mrb_obj_value((struct RProc *) rProcPointer);
 
     // Create args array
     jsize argc = (*env)->GetArrayLength(env, jArgs);

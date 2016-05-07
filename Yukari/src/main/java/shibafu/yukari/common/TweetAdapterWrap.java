@@ -664,7 +664,7 @@ public class TweetAdapterWrap {
                         viewHolder.flInclude.setVisibility(View.VISIBLE);
                         for (int i = 0; i < qeSize; i++) {
                             Long quoteId = quoteEntities.get(i);
-                            if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
+                            if (StatusManager.getReceivedStatuses().get(quoteId) != null) {
                                 View tv = View.inflate(getContext(),
                                         getPreferences().getBoolean("pref_mode_singleline", false)?
                                                 R.layout.row_tweet_single : R.layout.row_tweet,
