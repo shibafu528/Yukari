@@ -20,4 +20,9 @@ Plugin.create(:event_test) do
       puts "filter returns: #{myself}"
     }
   end
+
+  twicca_action(:show_tweet, :test_show_tweet, label: 'Pluggaloidテスト') do |extra|
+    p extra
+    Plugin.call :toast, "@#{extra['user_screen_name']}: #{extra['text']}"
+  end
 end

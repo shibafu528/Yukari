@@ -15,6 +15,8 @@ import android.text.ClipboardManager
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.ProcWrapper
 import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.activity.StatusActivity
@@ -44,6 +46,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
     private val user: AuthUserRecord by lazy { arguments.getSerializable(StatusActivity.EXTRA_USER) as AuthUserRecord }
 
     private var itemList: List<StatusAction> = emptyList()
+    private var isLoadedPluggaloid = false
 
     private val itemTemplates: List<Pair<StatusAction, () -> Boolean>> = listOf(
             Action("ブラウザで開く") {
@@ -112,6 +115,18 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         listView.isStackFromBottom = defaultSharedPreferences.getBoolean("pref_bottom_stack", false)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Pluggaloidアクションのアンロード
+        itemList.forEach {
+            if (it is PluggaloidPluginAction) {
+                it.dispose()
+            }
+        }
+        itemList = itemList.filterNot { it is PluggaloidPluginAction }
+        isLoadedPluggaloid = false
+    }
+
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         itemList[position].onClick()
     }
@@ -135,7 +150,31 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         startActivity(muteOption.toIntent(activity))
     }
 
-    override fun onServiceConnected() {}
+    override fun onServiceConnected() {
+        // Pluggaloidアクションのロード
+        if (!isLoadedPluggaloid) {
+            val pluggaloidActions: List<PluggaloidPluginAction> =
+                    if (status.sourceUser.isProtected || twitterService == null || twitterService.getmRuby() == null) {
+                        emptyList()
+                    } else {
+                        val plugins = Plugin.filtering(twitterService.getmRuby(), "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
+                        if (plugins != null && plugins is Map<*, *>) {
+                            plugins.entries.mapNotNull {
+                                if (it.key is String && it.value is Map<*, *>) {
+                                    PluggaloidPluginAction(it.value as Map<*, *>)
+                                } else {
+                                    null
+                                }
+                            }
+                        } else {
+                            emptyList()
+                        }
+                    }
+            itemList += pluggaloidActions
+            listAdapter = ArrayAdapter<StatusAction>(activity, android.R.layout.simple_list_item_1, itemList)
+            isLoadedPluggaloid = true
+        }
+    }
 
     override fun onServiceDisconnected() {}
 
@@ -200,6 +239,41 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } catch (e: ActivityNotFoundException) {
                 showToast("プラグインの起動に失敗しました\nアプリが削除されましたか？")
             }
+        }
+    }
+
+    /**
+     * Pluggaloid Pluginとの相互運用コマンドクラス
+     */
+    private inner class PluggaloidPluginAction(args: Map<*, *>) : StatusAction() {
+        val slug: String = args["slug"]?.toString() ?: "missing_slug"
+        val exec: ProcWrapper? = args["exec"] as? ProcWrapper
+        override val label: String = args["label"]?.toString() ?: slug
+
+        override fun onClick() {
+            if (exec != null) {
+                val extra = mapOf<String, String>(
+                        "id" to status.id.toString(),
+                        "created_at" to status.createdAt.time.toString(),
+                        "user_screen_name" to status.user.screenName,
+                        "user_name" to status.user.name,
+                        "user_id" to status.user.id.toString(),
+                        "user_profile_image_url" to status.user.profileImageURL,
+                        "user_profile_image_url_mini" to status.user.miniProfileImageURL,
+                        "user_profile_image_url_normal" to status.user.originalProfileImageURL,
+                        "user_profile_image_url_bigger" to status.user.biggerProfileImageURL,
+                        "in_reply_to_status_id" to status.inReplyToStatusId.toString(),
+                        "source" to status.source,
+                        "text" to status.text
+                )
+                exec.exec(extra)
+            } else {
+                showToast("Procの実行に失敗しました\ntwicca_action :$slug の宣言で適切なブロックを渡していますか？")
+            }
+        }
+
+        fun dispose() {
+            exec?.dispose()
         }
     }
 
