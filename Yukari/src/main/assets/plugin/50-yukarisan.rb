@@ -10,7 +10,7 @@ Plugin.create(:yukarisan) do
     Plugin.call(:intent,
                 activity: :TweetActivity,
                 mode: :reply,
-                text: "@#{extra[:user_screen_name]} ゆかりさんゆかりさん！！")
+                text: "@#{extra['user_screen_name']} ゆかりさんゆかりさん！！")
   end
 
   # edit_tweet => jp.r246.twicca.ACTION_EDIT_TWEET
