@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -45,11 +46,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
 import com.twitter.Validator;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
+import info.shibafu528.yukari.exvoice.Plugin;
+import info.shibafu528.yukari.exvoice.ProcWrapper;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
@@ -78,9 +83,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -198,6 +205,12 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     //初期状態のスナップショット
     private TweetDraft initialDraft;
+
+    //プラグインエリア
+    private LinearLayout llTweetExtra;
+
+    //Pluggaloidロード状態
+    private boolean isLoadedPluggaloid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -684,7 +697,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         query.addCategory(Intent.CATEGORY_DEFAULT);
         List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
         Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
-        LinearLayout llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
+        llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
         final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
         for (ResolveInfo ri : plugins) {
             ImageButton imageButton = new ImageButton(this);
@@ -997,6 +1010,22 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     .putString("pref_saved_tags", json)
                     .commit();
         }
+        // Pluggaloidプラグインの解放
+        if (isLoadedPluggaloid) {
+            int count = llTweetExtra.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = llTweetExtra.getChildAt(i);
+                if (child != null) {
+                    Object tag = child.getTag();
+                    if (tag instanceof ProcWrapper) {
+                        ((ProcWrapper) tag).dispose();
+                        llTweetExtra.removeViewAt(i--);
+                        --count;
+                    }
+                }
+            }
+            isLoadedPluggaloid = false;
+        }
         super.onStop();
     }
 
@@ -1173,6 +1202,95 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
             ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
             shortUrlLength = apiConfiguration.getShortURLLength();
+        }
+
+        //Pluggaloidプラグインのバインド
+        if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
+            Object[] result = Plugin.filtering(getTwitterService().getmRuby(), "twicca_action_edit_tweet", new HashMap());
+            if (result != null && result[0] instanceof Map) {
+                Stream.of(((Map) result[0]).values()).filter(o -> o instanceof Map).forEach(o -> {
+                    Map entry = (Map) o;
+                    final String slug = Optional.ofNullable((String) entry.get("slug")).orElse("missing_slug");
+                    final String label = Optional.ofNullable((String) entry.get("label")).orElse(slug);
+                    final ProcWrapper exec = (ProcWrapper) entry.get("exec");
+                    final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
+                    {
+                        ImageButton imageButton = new ImageButton(this);
+                        Bitmap sourceIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_tweet);
+                        imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
+                        imageButton.setTag(exec);
+                        imageButton.setOnClickListener(v -> {
+                            Map<String, String> extra = new LinkedHashMap<>();
+
+                            String text = etInput.getText().toString();
+                            extra.put("text", text);
+
+                            Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
+                            String prefix = "";
+                            if (prefixMatcher.find()) {
+                                StringBuilder sb = new StringBuilder();
+                                for (int i = 0; i < prefixMatcher.groupCount(); i++) {
+                                    sb.append(prefixMatcher.group(i+1));
+                                }
+                                prefix = sb.toString();
+                            }
+                            extra.put("prefix", prefix);
+
+                            Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
+                            String suffix = "";
+                            if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
+                                suffix = suffixMatcher.group(1);
+                            }
+                            extra.put("suffix", suffix);
+
+                            Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
+                            Matcher userInputMatcher = userInputPattern.matcher(text);
+                            if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
+                                extra.put("user_input", userInputMatcher.group(1));
+                            }
+                            else {
+                                extra.put("user_input", "");
+                            }
+
+                            if (status != null) {
+                                extra.put("in_reply_to_status_id", String.valueOf(status.getId()));
+                            }
+                            extra.put("cursor", String.valueOf(etInput.getSelectionStart()));
+
+                            if (exec != null) {
+                                Object r = exec.exec(extra);
+                                if (r instanceof Map) {
+                                    Map rm = (Map) r;
+                                    String resultCode = (String) rm.get("result_code");
+                                    Map intent = (Map) rm.get("intent");
+                                    if ("ok".equals(resultCode) && intent != null) {
+                                        String t = (String) intent.get("text");
+                                        Integer cursor = (Integer) intent.get("cursor");
+                                        if (t != null) {
+                                            etInput.setText(t);
+                                        }
+                                        if (cursor != null) {
+                                            etInput.setSelection(cursor);
+                                        }
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(),
+                                        String.format("Procの実行に失敗しました\ntwicca_action :%s の宣言で適切なブロックを渡していますか？", slug),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        imageButton.setOnLongClickListener(v -> {
+                            Toast toast = Toast.makeText(TweetActivity.this, label, Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, 0, -128);
+                            toast.show();
+                            return true;
+                        });
+                        llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                    }
+                });
+                isLoadedPluggaloid = true;
+            }
         }
     }
 
