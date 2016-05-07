@@ -67,6 +67,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
+import twitter4j.Query;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
@@ -138,20 +139,20 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            Toast.makeText(this, getString(R.string.error_storage_not_found), Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), getString(R.string.error_storage_not_found), Toast.LENGTH_LONG).show();
             finish();
             return;
         }
         else {
             try {
-                if (FontAsset.checkFontFileExist(this, FontAsset.FONT_NAME)) {
-                    Typeface.createFromFile(FontAsset.getFontFileExtPath(this, FontAsset.FONT_NAME));
+                if (FontAsset.checkFontFileExist(getApplicationContext(), FontAsset.FONT_NAME)) {
+                    Typeface.createFromFile(FontAsset.getFontFileExtPath(getApplicationContext(), FontAsset.FONT_NAME));
                 } else throw new FileNotFoundException("Font asset not found.");
             } catch (FileNotFoundException | RuntimeException e) {
                 if (e instanceof RuntimeException) {
-                    Toast.makeText(this, getString(R.string.error_broken_font), Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), getString(R.string.error_broken_font), Toast.LENGTH_LONG).show();
                 }
-                Intent intent = new Intent(this, AssetExtractActivity.class);
+                Intent intent = new Intent(getApplicationContext(), AssetExtractActivity.class);
                 startActivity(intent);
                 finish();
                 return;
@@ -167,7 +168,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         //スリープ防止設定
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
 
         //表示域拡張設定
@@ -230,7 +231,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         currentPage.scrollToBottom();
                         return true;
                     case 2:
-                        startActivity(new Intent(MainActivity.this, TabEditActivity.class));
+                        startActivity(new Intent(getApplicationContext(), TabEditActivity.class));
                         return true;
                 }
                 return false;
@@ -249,7 +250,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             popupMenu.setOnMenuItemClickListener(menuItem -> {
                 switch (menuItem.getItemId()) {
                     case R.id.action_save_search: {
-                        Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), AccountChooserActivity.class);
                         startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
                         break;
                     }
@@ -259,10 +260,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         break;
                     }
                     case R.id.action_search_users:
-                        startActivity(new Intent(MainActivity.this, UserSearchActivity.class));
+                        startActivity(new Intent(getApplicationContext(), UserSearchActivity.class));
                         break;
                     case R.id.action_query:
-                        startActivityForResult(new Intent(MainActivity.this, QueryEditorActivity.class), REQUEST_QUERY);
+                        startActivityForResult(new Intent(getApplicationContext(), QueryEditorActivity.class), REQUEST_QUERY);
                         break;
                 }
                 return false;
@@ -308,7 +309,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         });
         ibClose.setOnClickListener(view -> {
             if (currentPage.isCloseable()) {
-                Toast.makeText(MainActivity.this, "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -351,7 +352,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         });
         ibSelectAccount.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, AccountChooserActivity.class);
+            Intent intent = new Intent(getApplicationContext(), AccountChooserActivity.class);
             startActivityForResult(intent, REQUEST_QPOST_CHOOSE_ACCOUNT);
         });
         etTweet.setOnKeyListener((view, i, keyEvent) -> {
@@ -403,7 +404,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 break;
             case MotionEvent.ACTION_UP:
                 if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
-                    Intent intent = new Intent(MainActivity.this, TweetActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
                     if (sharedPreferences.getBoolean("pref_use_binded_user", false)
                             && currentPage != null
                             && currentPage instanceof DefaultTweetListFragment
@@ -511,6 +512,17 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         tabPagerAdapter = null;
         viewPager = null;
         imm = null;
+        sharedPreferences = null;
+
+        for (ArrayList<? extends TwitterResponse> list : pageElements.values()) {
+            list.clear();
+        }
+        pageElements.clear();
+        for (LongSparseArray<Long> array : lastStatusIdsArrays.values()) {
+            array.clear();
+        }
+        lastStatusIdsArrays.clear();
+        searchQueries.clear();
     }
 
     @Override
@@ -859,7 +871,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     public void onServiceConnected() {
         if (getTwitterService().getUsers().isEmpty()) {
-            Intent intent = new Intent(MainActivity.this, OAuthActivity.class);
+            Intent intent = new Intent(getApplicationContext(), OAuthActivity.class);
             intent.putExtra(OAuthActivity.EXTRA_REBOOT, true);
             startActivityForResult(intent, REQUEST_OAUTH);
             finish();
@@ -870,11 +882,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             if (selectedAccount == null) {
                 selectedAccount = getTwitterService().getPrimaryUser();
                 if (selectedAccount == null) {
-                    Toast.makeText(MainActivity.this, "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
                     enableQuickPost = false;
                 }
                 else if (ibSelectAccount == null) {
-                    Toast.makeText(MainActivity.this, "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
                     enableQuickPost = false;
                 }
                 else {

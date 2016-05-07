@@ -301,6 +301,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         adapterWrap = null;
         swipeRefreshLayout = null;
         unreadNotifierView = null;
+        swipeActionStatusView = null;
+        swipeActionInfoLabel = null;
+        footerView = null;
+        footerProgress = null;
+        footerText = null;
         connection.disconnect(getActivity());
 
         if (getActivity() instanceof MainActivity) {
@@ -412,12 +417,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     protected void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
-            footerProgress.setVisibility(View.VISIBLE);
-            footerText.setText("loading");
+            if (footerProgress != null) footerProgress.setVisibility(View.VISIBLE);
+            if (footerText != null) footerText.setText("loading");
         }
         else {
-            footerProgress.setVisibility(View.INVISIBLE);
-            footerText.setText("more");
+            if (footerProgress != null) footerProgress.setVisibility(View.INVISIBLE);
+            if (footerText != null) footerText.setText("more");
         }
     }
 
