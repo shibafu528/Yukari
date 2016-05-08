@@ -6,33 +6,43 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.text.TextUtils;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.GeoLocation;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Shibafu on 13/08/07.
  */
+@EqualsAndHashCode
 public class TweetDraft implements Serializable{
 
-    private ArrayList<AuthUserRecord> writers = new ArrayList<>();
-    private String text;
-    private long dateTime;
-    private long inReplyTo;
-    private boolean isQuoted;
-    private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
-    private boolean useGeoLocation;
-    private double geoLatitude;
-    private double geoLongitude;
-    private boolean isPossiblySensitive;
-    private boolean isDirectMessage;
-    private boolean isFailedDelivery;
-    private String messageTarget;
+    @Getter @Setter private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+    @Getter @Setter private String text;
+    @Getter @Setter private long dateTime;
+    @Getter @Setter private long inReplyTo;
+    @Getter @Setter private boolean isQuoted;
+    @Getter private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
+    @Getter @Setter private boolean useGeoLocation;
+    @Getter @Setter private double geoLatitude;
+    @Getter @Setter private double geoLongitude;
+    @Getter @Setter private boolean isPossiblySensitive;
+    @Getter @Setter private boolean isDirectMessage;
+    @Getter @Setter private boolean isFailedDelivery;
+    @Getter @Setter private String messageTarget;
 
     public TweetDraft(ArrayList<AuthUserRecord> writers, String text, long dateTime, long inReplyTo,
                       boolean isQuoted, List<Uri> attachedPictures,
@@ -174,34 +184,6 @@ public class TweetDraft implements Serializable{
         this.messageTarget = messageTarget;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-    }
-
-    public long getInReplyTo() {
-        return inReplyTo;
-    }
-
-    public void setInReplyTo(long inReplyTo) {
-        this.inReplyTo = inReplyTo;
-    }
-
-    public boolean isQuoted() {
-        return isQuoted;
-    }
-
-    public void setQuoted(boolean isQuoted) {
-        this.isQuoted = isQuoted;
-    }
-
-    public List<Uri> getAttachedPictures() {
-        return attachedPictures;
-    }
-
     public ArrayList<String> getStringAttachedPictures() {
         ArrayList<String> list = new ArrayList<>();
         for (Uri u : attachedPictures) {
@@ -210,80 +192,8 @@ public class TweetDraft implements Serializable{
         return list;
     }
 
-    public double getGeoLatitude() {
-        return geoLatitude;
-    }
-
-    public void setGeoLatitude(double geoLatitude) {
-        this.geoLatitude = geoLatitude;
-    }
-
-    public double getGeoLongitude() {
-        return geoLongitude;
-    }
-
-    public void setGeoLongitude(double geoLongitude) {
-        this.geoLongitude = geoLongitude;
-    }
-
-    public boolean isPossiblySensitive() {
-        return isPossiblySensitive;
-    }
-
-    public void setPossiblySensitive(boolean isPossiblySensitive) {
-        this.isPossiblySensitive = isPossiblySensitive;
-    }
-
-    public boolean isDirectMessage() {
-        return isDirectMessage;
-    }
-
-    public void setDirectMessage(boolean isDirectMessage) {
-        this.isDirectMessage = isDirectMessage;
-    }
-
-    public boolean isFailedDelivery() {
-        return isFailedDelivery;
-    }
-
-    public void setFailedDelivery(boolean isFailedDelivery) {
-        this.isFailedDelivery = isFailedDelivery;
-    }
-
-    public long getDateTime() {
-        return dateTime;
-    }
-
-    public void setDateTime(long dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public boolean isUseGeoLocation() {
-        return useGeoLocation;
-    }
-
-    public void setUseGeoLocation(boolean useGeoLocation) {
-        this.useGeoLocation = useGeoLocation;
-    }
-
-    public ArrayList<AuthUserRecord> getWriters() {
-        return writers;
-    }
-
-    public void setWriters(ArrayList<AuthUserRecord> writers) {
-        this.writers = writers;
-    }
-
     public void addWriter(AuthUserRecord user) {
         writers.add(user);
-    }
-
-    public String getMessageTarget() {
-        return messageTarget;
-    }
-
-    public void setMessageTarget(String messageTarget) {
-        this.messageTarget = messageTarget;
     }
 
     public Intent getTweetIntent(Context context) {
@@ -330,51 +240,6 @@ public class TweetDraft implements Serializable{
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TweetDraft that = (TweetDraft) o;
-
-        if (dateTime != that.dateTime) return false;
-        if (inReplyTo != that.inReplyTo) return false;
-        if (isQuoted != that.isQuoted) return false;
-        if (useGeoLocation != that.useGeoLocation) return false;
-        if (Double.compare(that.geoLatitude, geoLatitude) != 0) return false;
-        if (Double.compare(that.geoLongitude, geoLongitude) != 0) return false;
-        if (isPossiblySensitive != that.isPossiblySensitive) return false;
-        if (isDirectMessage != that.isDirectMessage) return false;
-        if (isFailedDelivery != that.isFailedDelivery) return false;
-        if (!writers.equals(that.writers)) return false;
-        if (!text.equals(that.text)) return false;
-        if (!attachedPictures.equals(that.attachedPictures)) return false;
-        return !(messageTarget != null ? !messageTarget.equals(that.messageTarget) : that.messageTarget != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result;
-        long temp;
-        result = writers.hashCode();
-        result = 31 * result + text.hashCode();
-        result = 31 * result + (int) (dateTime ^ (dateTime >>> 32));
-        result = 31 * result + (int) (inReplyTo ^ (inReplyTo >>> 32));
-        result = 31 * result + (isQuoted ? 1 : 0);
-        result = 31 * result + attachedPictures.hashCode();
-        result = 31 * result + (useGeoLocation ? 1 : 0);
-        temp = Double.doubleToLongBits(geoLatitude);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(geoLongitude);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (isPossiblySensitive ? 1 : 0);
-        result = 31 * result + (isDirectMessage ? 1 : 0);
-        result = 31 * result + (isFailedDelivery ? 1 : 0);
-        result = 31 * result + (messageTarget != null ? messageTarget.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public Object clone() {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -388,53 +253,24 @@ public class TweetDraft implements Serializable{
         }
     }
 
+    @Accessors(chain = true)
     public static class Builder {
-        private ArrayList<AuthUserRecord> writers = new ArrayList<>();
-        private String text;
-        private long dateTime = System.currentTimeMillis();
-        private long inReplyTo = -1;
-        private boolean isQuoted;
-        private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
-        private boolean useGeoLocation;
+        @Setter private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+        @Setter private String text;
+        @Setter private long dateTime = System.currentTimeMillis();
+        @Setter private long inReplyTo = -1;
+        @Setter private boolean isQuoted;
+        @Setter private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
+        @Setter private boolean useGeoLocation;
         private double geoLatitude;
         private double geoLongitude;
-        private boolean isPossiblySensitive;
-        private boolean isDirectMessage;
-        private boolean isFailedDelivery;
-        private String messageTarget;
-
-        public Builder setWriters(ArrayList<AuthUserRecord> writers) {
-            this.writers = writers;
-            return this;
-        }
+        @Setter private boolean isPossiblySensitive;
+        @Setter private boolean isDirectMessage;
+        @Setter private boolean isFailedDelivery;
+        @Setter private String messageTarget;
 
         public Builder addWriter(AuthUserRecord writer) {
             this.writers.add(writer);
-            return this;
-        }
-
-        public Builder setText(String text) {
-            this.text = text;
-            return this;
-        }
-
-        public Builder setDateTime(long dateTime) {
-            this.dateTime = dateTime;
-            return this;
-        }
-
-        public Builder setInReplyTo(long inReplyTo) {
-            this.inReplyTo = inReplyTo;
-            return this;
-        }
-
-        public Builder setQuoted(boolean isQuoted) {
-            this.isQuoted = isQuoted;
-            return this;
-        }
-
-        public Builder setAttachedPictures(ArrayList<Uri> attachedPictures) {
-            this.attachedPictures = attachedPictures;
             return this;
         }
 
@@ -443,34 +279,9 @@ public class TweetDraft implements Serializable{
             return this;
         }
 
-        public Builder setUseGeoLocation(boolean useGeoLocation) {
-            this.useGeoLocation = useGeoLocation;
-            return this;
-        }
-
         public Builder setGeoLocation(double latitude, double longitude) {
             this.geoLatitude = latitude;
             this.geoLongitude = longitude;
-            return this;
-        }
-
-        public Builder setPossiblySensitive(boolean isPossiblySensitive) {
-            this.isPossiblySensitive = isPossiblySensitive;
-            return this;
-        }
-
-        public Builder setDirectMessage(boolean isDirectMessage) {
-            this.isDirectMessage = isDirectMessage;
-            return this;
-        }
-
-        public Builder setFailedDelivery(boolean isFailedDelivery) {
-            this.isFailedDelivery = isFailedDelivery;
-            return this;
-        }
-
-        public Builder setMessageTarget(String messageTarget) {
-            this.messageTarget = messageTarget;
             return this;
         }
 
