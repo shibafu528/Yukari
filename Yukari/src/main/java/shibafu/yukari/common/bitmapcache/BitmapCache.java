@@ -77,12 +77,6 @@ public class BitmapCache {
         Log.d("BitmapCache", "Disposed cache map");
     }
 
-    @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
-        dispose();
-    }
-
     /**
      * メモリキャッシュから画像を取得します。<br>
      * メモリ上に存在していない場合は null を返します。
