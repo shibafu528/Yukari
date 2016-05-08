@@ -125,6 +125,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int REQUEST_DIALOG_TEMPLATE = 0x03;
     private static final int REQUEST_DIALOG_POST = 0x04;
     private static final int REQUEST_DIALOG_BACK = 0x05;
+    private static final int REQUEST_DIALOG_HASH_CATEGORY = 0x06;
+    private static final int REQUEST_DIALOG_HASH_VALUE = 0x07;
+    private static final int REQUEST_DIALOG_DRAFT_MENU = 0x08;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -552,51 +555,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         // ハッシュタグ入力ボタン
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
         ibHash.setOnClickListener(v -> {
-            AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
-                    .setTitle("ハッシュタグ入力")
-                    .setOnCancelListener(dialog1 -> {
-                        dialog1.dismiss();
-                        currentDialog = null;
-                    })
-                    .setItems(new String[]{"入力履歴から", "タイムラインから"}, (dialog1, which) -> {
-                        dialog1.dismiss();
-                        currentDialog = null;
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
-                        final String[] hashtags;
-                        switch (which) {
-                            case 0:
-                                builder.setTitle("ハッシュタグ入力履歴");
-                                hashtags = usedHashes.getAll().toArray(new String[usedHashes.getAll().size()]);
-                                break;
-                            case 1:
-                                builder.setTitle("TLで見かけたハッシュタグ");
-                                hashtags = getTwitterService().getHashCache();
-                                break;
-                            default:
-                                return;
-                        }
-                        builder.setItems(hashtags, (dialog2, which1) -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-
-                            etInput.getText().append(" ").append(hashtags[which1]);
-                        });
-                        builder.setNegativeButton("キャンセル", (dialog2, which1) -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-                        });
-                        builder.setOnCancelListener(dialog2 -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-                        });
-                        AlertDialog ad = builder.create();
-                        ad.show();
-                        currentDialog = ad;
-                    })
-                    .create();
-            dialog.show();
-            currentDialog = dialog;
+            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                    REQUEST_DIALOG_HASH_CATEGORY, "ハッシュタグ入力", null, null, null, "入力履歴から", "タイムラインから");
+            dialogFragment.show(getSupportFragmentManager(), "hashtagCategory");
         });
         ibHash.setOnLongClickListener(v -> {
             appendTextInto(" #");
@@ -635,47 +596,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         // 下書きメニュー
         ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
         ibDraft.setOnClickListener(v -> {
-            AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
-                    .setTitle("下書きメニュー")
-                    .setOnCancelListener(dialog -> {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    })
-                    .setItems(new String[] {"下書きを保存", "下書きを開く", "入力欄をクリア"}, (dialog, which) -> {
-                        dialog.dismiss();
-                        currentDialog = null;
-
-                        switch (which) {
-                            case 0: {
-                                if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
-                                    Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
-                                }
-                                else {
-                                    getTwitterService().getDatabase().updateDraft(getTweetDraft());
-                                    Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
-                                }
-                                break;
-                            }
-                            case 1: {
-                                DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
-                                draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
-                                break;
-                            }
-                            case 2: {
-                                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                                        REQUEST_DIALOG_CLEAR,
-                                        "確認",
-                                        "入力中の文章をすべて削除してもよろしいですか？",
-                                        "OK",
-                                        "キャンセル");
-                                dialogFragment.show(getSupportFragmentManager(), "dialog");
-                                break;
-                            }
-                        }
-                    })
-                    .create();
-            ad.show();
-            currentDialog = ad;
+            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                    REQUEST_DIALOG_DRAFT_MENU, "下書きメニュー", null, null, null, "下書きを保存", "下書きを開く", "入力欄をクリア");
+            dialogFragment.show(getSupportFragmentManager(), "draftMenu");
         });
     }
 
@@ -753,32 +676,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 String text = etInput.getText().toString();
                 intent.putExtra(Intent.EXTRA_TEXT, text);
 
-                Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
-                String prefix = "";
-                if (prefixMatcher.find()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < prefixMatcher.groupCount(); i++) {
-                        sb.append(prefixMatcher.group(i+1));
-                    }
-                    prefix = sb.toString();
-                }
-                intent.putExtra("prefix", prefix);
-
-                Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
-                String suffix = "";
-                if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
-                    suffix = suffixMatcher.group(1);
-                }
-                intent.putExtra("suffix", suffix);
-
-                Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
-                Matcher userInputMatcher = userInputPattern.matcher(text);
-                if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
-                    intent.putExtra("user_input", userInputMatcher.group(1));
-                }
-                else {
-                    intent.putExtra("user_input", "");
-                }
+                TwiccaParameterHelper paramHelper = new TwiccaParameterHelper(text);
+                intent.putExtra("prefix", paramHelper.prefix);
+                intent.putExtra("suffix", paramHelper.suffix);
+                intent.putExtra("user_input", paramHelper.userInput);
 
                 if (status != null) {
                     intent.putExtra("in_reply_to_status_id", status.getId());
@@ -1258,32 +1159,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             String text = etInput.getText().toString();
                             extra.put("text", text);
 
-                            Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
-                            String prefix = "";
-                            if (prefixMatcher.find()) {
-                                StringBuilder sb = new StringBuilder();
-                                for (int i = 0; i < prefixMatcher.groupCount(); i++) {
-                                    sb.append(prefixMatcher.group(i+1));
-                                }
-                                prefix = sb.toString();
-                            }
-                            extra.put("prefix", prefix);
-
-                            Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
-                            String suffix = "";
-                            if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
-                                suffix = suffixMatcher.group(1);
-                            }
-                            extra.put("suffix", suffix);
-
-                            Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
-                            Matcher userInputMatcher = userInputPattern.matcher(text);
-                            if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
-                                extra.put("user_input", userInputMatcher.group(1));
-                            }
-                            else {
-                                extra.put("user_input", "");
-                            }
+                            TwiccaParameterHelper paramHelper = new TwiccaParameterHelper(text);
+                            extra.put("prefix", paramHelper.prefix);
+                            extra.put("suffix", paramHelper.suffix);
+                            extra.put("user_input", paramHelper.userInput);
 
                             if (status != null) {
                                 extra.put("in_reply_to_status_id", String.valueOf(status.getId()));
@@ -1369,6 +1248,57 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     etInput.setText(value);
                 }
                 break;
+            case REQUEST_DIALOG_HASH_CATEGORY:
+                if (which > -1) {
+                    SimpleListDialogFragment dialogFragment;
+                    switch (which) {
+                        case 0:
+                            dialogFragment = SimpleListDialogFragment.newInstance(
+                                    REQUEST_DIALOG_HASH_VALUE, "ハッシュタグ入力履歴", null, null, "キャンセル", usedHashes.getAll());
+                            break;
+                        case 1:
+                            dialogFragment = SimpleListDialogFragment.newInstance(
+                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", getTwitterService().getHashCache());
+                            break;
+                        default:
+                            return;
+                    }
+                    dialogFragment.show(getSupportFragmentManager(), "hashtagValue");
+                }
+                break;
+            case REQUEST_DIALOG_HASH_VALUE:
+                if (value != null) {
+                    etInput.getText().append(" ").append(value);
+                }
+                break;
+            case REQUEST_DIALOG_DRAFT_MENU:
+                switch (which) {
+                    case 0: {
+                        if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
+                            Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
+                        } else {
+                            getTwitterService().getDatabase().updateDraft(getTweetDraft());
+                            Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    }
+                    case 1: {
+                        DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
+                        draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
+                        break;
+                    }
+                    case 2: {
+                        SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                                REQUEST_DIALOG_CLEAR,
+                                "確認",
+                                "入力中の文章をすべて削除してもよろしいですか？",
+                                "OK",
+                                "キャンセル");
+                        dialogFragment.show(getSupportFragmentManager(), "dialog");
+                        break;
+                    }
+                }
+                break;
         }
     }
 
@@ -1384,6 +1314,36 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 list.add(ap.uri);
             }
             return list;
+        }
+    }
+
+    private static class TwiccaParameterHelper {
+        public String prefix;
+        public String suffix;
+        public String userInput;
+
+        TwiccaParameterHelper(String text) {
+            Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
+            if (prefixMatcher.find()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < prefixMatcher.groupCount(); i++) {
+                    sb.append(prefixMatcher.group(i+1));
+                }
+                prefix = sb.toString();
+            }
+
+            Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
+            if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
+                suffix = suffixMatcher.group(1);
+            }
+
+            Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
+            Matcher userInputMatcher = userInputPattern.matcher(text);
+            if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
+                userInput = userInputMatcher.group(1);
+            } else {
+                userInput = "";
+            }
         }
     }
 }
