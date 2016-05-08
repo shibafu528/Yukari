@@ -1333,6 +1333,17 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
     }
 
+    @Override
+    public void onDialogChose(int requestCode, int which, String value) {
+        switch (requestCode) {
+            case REQUEST_DIALOG_TEMPLATE:
+                if (which > -1) {
+                    etInput.setText(templateStrings.get(which));
+                }
+                break;
+        }
+    }
+
     private static class AttachPicture {
         public Uri uri = null;
         public int width = -1;

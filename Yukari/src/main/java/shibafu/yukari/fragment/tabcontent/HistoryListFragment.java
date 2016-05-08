@@ -90,7 +90,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
     }
 
     @Override
-    public void onDialogChose(int requestCode, int which) {
+    public void onDialogChose(int requestCode, int which, String value) {
         if (requestCode == 0) {
             Intent intent = new Intent();
             switch (which) {
