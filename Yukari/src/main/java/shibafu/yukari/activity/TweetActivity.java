@@ -46,6 +46,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
@@ -140,7 +141,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private TextView tvCount;
     private int tweetCountLimit = TWEET_COUNT_LIMIT;
     private int tweetCount = TWEET_COUNT_LIMIT;
-    private int reservedCount = 0;
 
     //DMフラグ
     private boolean isDirectMessage = false;
@@ -151,6 +151,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private boolean isComposerMode = false;
 
     //添付プレビュー
+    private ImageButton ibAttach;
+    private ImageButton ibCamera;
     private LinearLayout llTweetAttachParent;
     private LinearLayout llTweetAttachInner;
 
@@ -199,9 +201,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     //最近使ったハッシュタグ
     private UsedHashes usedHashes;
-
-    //定型文入力 一時変数
-    private List<String> templateStrings;
 
     //初期状態のスナップショット
     private TweetDraft initialDraft;
@@ -450,8 +449,73 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             return true;
         });
 
-        //各種サービスボタンの設定
-        ImageButton ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
+        // アクションエリアの初期化
+        initializeActions();
+
+        // プラグインエリアの初期化
+        initializeEditPlugins();
+
+        //DM判定
+        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
+        if (isDirectMessage) {
+            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
+            //表題変更
+            ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
+            //ボタン無効化と表示変更
+            ibAttach.setEnabled(false);
+            ibCamera.setEnabled(false);
+            btnPost.setText("Send");
+            //文字数上限変更
+            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
+            updateTweetCount();
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            setFinishOnTouchOutside(false);
+        }
+
+        // 初期化完了時点での下書き状況のスナップショット
+        initialDraft = (TweetDraft) getTweetDraft().clone();
+    }
+
+    /**
+     * アクションエリアの初期化
+     */
+    private void initializeActions() {
+        // ギャラリーボタン
+        ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
+        ibAttach.setOnClickListener(v -> {
+            //添付上限判定
+            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
+            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
+            startActivityForResult(intent, REQUEST_GALLERY);
+            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+        });
+        ibAttach.setOnLongClickListener(view -> {
+            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
+                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                if (c != null) {
+                    if (c.moveToLast()) {
+                        long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
+                        attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
+                        Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
+                    }
+                    c.close();
+                }
+            }
+            return true;
+        });
+
+        // カメラボタン
+        ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
         ibCamera.setOnClickListener(v -> {
             //添付上限判定
             if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
@@ -484,33 +548,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
             startActivityForResult(intent, REQUEST_CAMERA);
         });
-        ImageButton ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
-        ibAttach.setOnClickListener(v -> {
-            //添付上限判定
-            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
-            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
-            startActivityForResult(intent, REQUEST_GALLERY);
-            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
-        });
-        ibAttach.setOnLongClickListener(view -> {
-            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
-                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
-                if (c.moveToLast()) {
-                    long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
-                    attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
-                }
-                c.close();
-                Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
-            }
-            return true;
-        });
+
+        // ハッシュタグ入力ボタン
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
         ibHash.setOnClickListener(v -> {
             AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
@@ -541,7 +580,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             dialog2.dismiss();
                             currentDialog = null;
 
-                            etInput.getText().append(" " + hashtags[which1]);
+                            etInput.getText().append(" ").append(hashtags[which1]);
                         });
                         builder.setNegativeButton("キャンセル", (dialog2, which1) -> {
                             dialog2.dismiss();
@@ -563,17 +602,37 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             appendTextInto(" #");
             return true;
         });
-        ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
-        ibVoice.setOnClickListener(v -> {
-            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
-            try {
-                startActivityForResult(intent, REQUEST_VOICE);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
+
+        // 草ボタン
+        ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
+        ibGrasses.setOnClickListener(v -> {
+            int start = etInput.getSelectionStart();
+            int end = etInput.getSelectionEnd();
+            if (start < 0 || end < 0 || start == end) {
+                appendTextInto("ｗ");
+            }
+            else {
+                String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
+                char[] chr = text.toCharArray();
+                int grass = text.length() - 1;
+                StringBuilder sb = new StringBuilder();
+                for (char c : chr) {
+                    sb.append(c);
+                    if (grass > 0) {
+                        sb.append("ｗ");
+                        --grass;
+                    }
+                }
+                text = sb.toString();
+                etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
             }
         });
+
+        // 三点リーダボタン
+        ImageButton ibSanten = (ImageButton) findViewById(R.id.ibTweetSanten);
+        ibSanten.setOnClickListener(v -> appendTextInto("…"));
+
+        // 下書きメニュー
         ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
         ibDraft.setOnClickListener(v -> {
             AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
@@ -618,8 +677,42 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             ad.show();
             currentDialog = ad;
         });
+    }
 
-        //各種エクストラボタンの設定
+    /**
+     * プラグインエリアの初期化
+     */
+    private void initializeEditPlugins() {
+        // スクリーンネーム入力支援
+        ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
+        ibSNPicker.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
+            startActivityForResult(intent, REQUEST_SNPICKER);
+        });
+
+        // 音声入力
+        ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
+        ibVoice.setOnClickListener(v -> {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
+            try {
+                startActivityForResult(intent, REQUEST_VOICE);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // モールス入力
+        ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
+        {
+            ibMorse.setOnClickListener(v -> {
+                Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
+                startActivityForResult(intent, REQUEST_NOWPLAYING);
+            });
+        }
+
+        // これ聴いてるんだからねっ！連携
         final PackageManager pm = getPackageManager();
         ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
         {
@@ -636,63 +729,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 e.printStackTrace();
             }
         }
-        ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
-        {
-            ibMorse.setOnClickListener(v -> {
-                Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
-                startActivityForResult(intent, REQUEST_NOWPLAYING);
-            });
-        }
-        ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
-        ibGrasses.setOnClickListener(v -> {
-            int start = etInput.getSelectionStart();
-            int end = etInput.getSelectionEnd();
-            if (start < 0 || end < 0 || start == end) {
-                appendTextInto("ｗ");
-            }
-            else {
-                String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
-                char[] chr = text.toCharArray();
-                int grass = text.length() - 1;
-                StringBuilder sb = new StringBuilder();
-                for (char c : chr) {
-                    sb.append(c);
-                    if (grass > 0) {
-                        sb.append("ｗ");
-                        --grass;
-                    }
-                }
-                text = sb.toString();
-                etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
-            }
-        });
-        ImageButton ibSanten = (ImageButton) findViewById(R.id.ibTweetSanten);
-        ibSanten.setOnClickListener(v -> appendTextInto("…"));
-        ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
-        ibSNPicker.setOnClickListener(v -> {
-            Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
-            startActivityForResult(intent, REQUEST_SNPICKER);
-        });
 
-
-        //DM判定
-        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
-        if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
-            //表題変更
-            ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
-            //ボタン無効化と表示変更
-            ibAttach.setEnabled(false);
-            ibCamera.setEnabled(false);
-            btnPost.setText("Send");
-            //文字数上限変更
-            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
-            updateTweetCount();
-        }
-
-
-        //プラグインロード
+        // twiccaプラグインのロード
         Intent query = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
         query.addCategory(Intent.CATEGORY_DEFAULT);
         List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
@@ -758,12 +796,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             });
             llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(false);
-        }
-
-        // 初期化完了時点での下書き状況のスナップショット
-        initialDraft = (TweetDraft) getTweetDraft().clone();
     }
 
     private void postTweet() {
@@ -811,12 +843,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             switch (command) {
                 case "::te": {
                     List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
-                    templateStrings = new ArrayList<>();
-                    for (Template template : templates) {
-                        templateStrings.add(template.getValue());
-                    }
                     SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
-                            REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル", templateStrings
+                            REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル",
+                            Stream.of(templates).map(Template::getValue).collect(Collectors.toList())
                     );
                     dialogFragment.show(getSupportFragmentManager(), "template");
                     return;
@@ -882,12 +911,16 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private int updateTweetCount() {
-        int count = new Validator().getTweetLength(etInput.getText().toString());
+        // 画像添付による文字数の予約 (URL1つ + スペース)
+        int reservedCount;
         if (attachPictures.size() > 0) {
             reservedCount = shortUrlLength + 1;
         } else {
             reservedCount = 0;
         }
+
+        // 入力の文字数をカウント
+        int count = new Validator().getTweetLength(etInput.getText().toString());
         tweetCount = tweetCountLimit - count - reservedCount;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
@@ -1311,11 +1344,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     btnPost.performClick();
                 }
                 break;
-            case REQUEST_DIALOG_TEMPLATE:
-                if (which > -1) {
-                    etInput.setText(templateStrings.get(which));
-                }
-                break;
             case REQUEST_DIALOG_POST:
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     postTweet();
@@ -1337,8 +1365,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     public void onDialogChose(int requestCode, int which, String value) {
         switch (requestCode) {
             case REQUEST_DIALOG_TEMPLATE:
-                if (which > -1) {
-                    etInput.setText(templateStrings.get(which));
+                if (value != null) {
+                    etInput.setText(value);
                 }
                 break;
         }
