@@ -371,46 +371,46 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
         }
         etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
-        int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
-        if (mode == MODE_REPLY || mode == MODE_QUOTE) {
-            if (mode == MODE_REPLY) {
+        switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
+            case MODE_REPLY:
                 etInput.setSelection(etInput.getText().length());
-            }
-            final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            if (status == null && inReplyTo > -1) {
-                TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
-                tvTitle.setText("Reply >> loading...");
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        try {
-                            while (!isTwitterServiceBound()) {
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException ignore) {}
-                            }
-                            Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
-                            if (twitter != null) {
-                                status = twitter.showStatus(inReplyTo);
-                            }
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
+                /* fall through */
+            case MODE_QUOTE: {
+                final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+                if (status == null && inReplyTo > -1) {
+                    TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
+                    tvTitle.setText("Reply >> loading...");
+                    new SimpleAsyncTask() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            try {
+                                while (!isTwitterServiceBound()) {
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException ignore) {}
+                                }
+                                Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
+                                if (twitter != null) {
+                                    status = twitter.showStatus(inReplyTo);
+                                }
+                            } catch (TwitterException ignored) {}
+                            return null;
                         }
-                        return null;
-                    }
 
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        showQuotedStatus();
-                    }
-                }.executeParallel();
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            showQuotedStatus();
+                        }
+                    }.executeParallel();
+                } else if (status != null) {
+                    showQuotedStatus();
+                }
+                break;
             }
-            else if (status != null) {
-                showQuotedStatus();
-            }
-        } else if (mode == MODE_COMPOSE) {
-            isComposerMode = true;
-            ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
+            case MODE_COMPOSE:
+                isComposerMode = true;
+                ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
+                break;
         }
 
         //添付エリアの設定
