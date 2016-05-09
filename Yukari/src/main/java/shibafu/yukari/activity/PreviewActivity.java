@@ -532,15 +532,21 @@ public class PreviewActivity extends FragmentYukariBase {
     }
 
     private void processZxing() {
-        int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-        LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
-        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
         try {
-            Result result = new MultiFormatReader().decode(binaryBitmap);
-            llQrText.setVisibility(View.VISIBLE);
-            tvQrText.setText(result.getText());
-        } catch (NotFoundException e) {
+            int[] pixels = new int[image.getWidth() * image.getHeight()];
+            image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+            LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+            try {
+                Result result = new MultiFormatReader().decode(binaryBitmap);
+                llQrText.setVisibility(View.VISIBLE);
+                tvQrText.setText(result.getText());
+            } catch (NotFoundException e) {
+                llQrText.setVisibility(View.GONE);
+            }
+        } catch (OutOfMemoryError e) {
+            // そんなこともある
+            System.gc();
             llQrText.setVisibility(View.GONE);
         }
     }
