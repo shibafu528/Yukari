@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.widget.ImageView;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -57,7 +58,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                     options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
-                    options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE)? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
+                    options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();
