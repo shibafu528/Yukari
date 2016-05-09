@@ -573,6 +573,14 @@ public class PreviewActivity extends FragmentYukariBase {
         if (loaderTask != null) {
             loaderTask.cancel(true);
         }
+        if (imageView != null) {
+            imageView.setImageDrawable(null);
+            imageView = null;
+        }
+        if (image != null && !image.isRecycled()) {
+            image.recycle();
+            System.gc();
+        }
     }
 
     private void updateMatrix() {
