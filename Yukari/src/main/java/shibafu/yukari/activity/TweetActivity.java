@@ -327,7 +327,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         String defaultText;
         if (isWebIntent) {
             String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
-            String paramText = dataArg.getQueryParameter("text").replaceAll("%0[dD]", "\r").replaceAll("%0[aA]", "\n");
+            String paramText = Optional.ofNullable(dataArg.getQueryParameter("text")).orElse("").replaceAll("%0[dD]", "\r").replaceAll("%0[aA]", "\n");
             String paramUrl = dataArg.getQueryParameter("url");
             String paramHashtags = dataArg.getQueryParameter("hashtags");
 
