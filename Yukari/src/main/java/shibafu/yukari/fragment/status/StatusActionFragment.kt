@@ -127,6 +127,13 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         isLoadedPluggaloid = false
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        childFragmentManager.fragments?.forEach {
+            it.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         itemList[position].onClick()
     }
