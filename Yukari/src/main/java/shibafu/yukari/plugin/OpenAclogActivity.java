@@ -29,7 +29,7 @@ public class OpenAclogActivity extends Activity{
                 break;
         }
 
-        Uri uri = Uri.withAppendedPath(Uri.parse("http://aclog.koba789.com/i"), id);
+        Uri uri = Uri.withAppendedPath(Uri.parse("http://aclog.rhe.jp/i"), id);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
         finish();
     }
