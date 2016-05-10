@@ -56,7 +56,7 @@ public class TwitterUtil {
         if (screenName.startsWith("@")) {
             screenName = screenName.substring(1);
         }
-        return "http://aclog.koba789.com/" + screenName + "/timeline";
+        return "http://aclog.rhe.jp/" + screenName + "/timeline";
     }
 
     public static String getTwilogURL(String screenName) {
