@@ -1,0 +1,62 @@
+# encoding: utf-8
+Android::require_assets 'yukamiku/compatmodel.rb'
+
+# Message互換クラス
+class Message < CompatModel
+
+  # args format
+  # key     | value(class)
+  #---------+--------------
+  # id      | id of status(mixed)
+  # entity  | entity(mixed)
+  # message | posted text(String)
+  # tags    | kind of message(Array)
+  # user    | user who post this message(User or Hash or mixed(User IDNumber))
+  # reciver | recive user(User)
+  # replyto | source message(Message or mixed(Status ID))
+  # retweet | retweet to this message(Message or StatusID)
+  # post    | post object(Service)
+  # image   | image(URL or Image object)
+
+  self.keys = [
+      [:id, :int, true],         # ID
+      [:message, :string, true], # Message description
+      [:user, User, true],       # Send by user
+      [:receiver, User],         # Send to user
+      [:replyto, Message],       # Reply to this message
+      [:retweet, Message],       # ReTweet to this message
+      [:source, :string],        # using client
+      [:geo, :string],           # geotag
+      [:exact, :bool],           # true if complete data
+      [:created, :time],         # posted time
+      [:modified, :time],        # updated time
+  ]
+
+  def initialize(value)
+    super(value)
+  end
+
+  def idname
+    user[:idname]
+  end
+
+  def system?
+    self[:system]
+  end
+
+  def protected?
+    if retweet?
+      retweet_ancestor.protected?
+    else
+      user.protected?
+    end
+  end
+
+  def verified?
+    user.verified?
+  end
+
+  def user
+    self[:user]
+  end
+end
