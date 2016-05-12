@@ -14,6 +14,7 @@ class CompatModel
 
   def initialize(args)
     @value = args.dup
+    validate
   end
 
   def fetch(key)
@@ -21,6 +22,11 @@ class CompatModel
   end
 
   alias [] fetch
+
+  def []=(key, value)
+    @value[key.to_sym] = value
+    value
+  end
 
   def id
     @value[:id]
@@ -52,5 +58,20 @@ class CompatModel
 
   def to_hash
     @value.dup
+  end
+
+  def validate
+    raise RuntimeError, "argument is #{@value}, not Hash" if not @value.is_a?(Hash)
+    self.class.keys.each { |column|
+      key, type, required = *column
+      begin
+        Model.cast(self.fetch(key), type, required)
+      rescue InvalidTypeError => e
+        estr = e.to_s + "\nin #{self.fetch(key).inspect} of #{key}"
+        warn estr
+        warn @value.inspect
+        raise InvalidTypeError, estr
+      end
+    }
   end
 end

@@ -1,6 +1,12 @@
 # encoding: utf-8
+Android.require_assets 'yukamiku/mikuenv.rb'
+Android.require_assets 'yukamiku/user.rb'
 Android.require_assets 'yukamiku/message.rb'
 Android.require_assets 'yukamiku/gui.rb'
+
+module Plugin::YukaMiku
+
+end
 
 #
 # ゆかミクは尊い (mikutter互換のDSLを提供するプラグインです)
