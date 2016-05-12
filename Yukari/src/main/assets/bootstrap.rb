@@ -18,16 +18,27 @@ def bootstrap
     puts "Require: #{path}"
     Android.require_assets path
   end
+
+  # Initialize global variables
+  $tick_counter = 0
+
+  # Call :boot event
+  Plugin.call :boot
 end
 
 def tick
   begin
     $last_ticked ||= Time.now
+    $tick_counter = $tick_counter + 1
 
     span = Time.now.to_f - $last_ticked.to_f
     Android::Log.d "yukari-exvoice: tick! +#{span} sec, #{Delayer.size} job(s)" if span >= 0.6 || Delayer.size > 0
 
     Plugin.call :tick
+    if $tick_counter >= 120
+      Plugin.call :period
+      $tick_counter = 0
+    end
     Delayer.run until Delayer.empty?
 
     $last_ticked = Time.now
