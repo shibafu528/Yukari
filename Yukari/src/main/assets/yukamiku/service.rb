@@ -64,10 +64,19 @@ class Service
   def update(options = {})
     raise ':message is nil' if options[:message].nil?
 
-    Plugin.call(:intent,
-                activity: :TweetActivity,
-                mode: :tweet,
-                text: options[:message])
+    unless options[:replyto].nil?
+      Plugin.call(:intent,
+                  activity: :TweetActivity,
+                  mode: :reply,
+                  in_reply_to: options[:replyto].id,
+                  text: options[:message])
+    else
+      Plugin.call(:intent,
+                  activity: :TweetActivity,
+                  mode: :tweet,
+                  text: options[:message])
+    end
+
   end
 
   alias post update
