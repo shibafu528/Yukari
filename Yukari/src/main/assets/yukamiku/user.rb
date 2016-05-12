@@ -1,8 +1,8 @@
 # encoding: utf-8
-Android::require_assets 'yukamiku/compatmodel.rb'
+Android.require_assets 'yukamiku/compatmodel.rb'
 
 # User互換クラス
-class User < CompatModel
+class User < Retriever::Model
 
   # args format
   # key     | value

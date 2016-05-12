@@ -1,8 +1,8 @@
 # encoding: utf-8
-Android::require_assets 'yukamiku/compatmodel.rb'
+Android.require_assets 'yukamiku/compatmodel.rb'
 
 # Message互換クラス
-class Message < CompatModel
+class Message < Retriever::Model
 
   # args format
   # key     | value(class)
@@ -19,17 +19,17 @@ class Message < CompatModel
   # image   | image(URL or Image object)
 
   self.keys = [
-      [:id, :int, true],         # ID
+      [:id, :string, true], # ID
       [:message, :string, true], # Message description
-      [:user, User, true],       # Send by user
-      [:receiver, User],         # Send to user
-      [:replyto, Message],       # Reply to this message
-      [:retweet, Message],       # ReTweet to this message
-      [:source, :string],        # using client
-      [:geo, :string],           # geotag
-      [:exact, :bool],           # true if complete data
-      [:created, :time],         # posted time
-      [:modified, :time],        # updated time
+      [:user, User, true], # Send by user
+      [:receiver, User], # Send to user
+      [:replyto, Message], # Reply to this message
+      [:retweet, Message], # ReTweet to this message
+      [:source, :string], # using client
+      [:geo, :string], # geotag
+      [:exact, :bool], # true if complete data
+      [:created, :time], # posted time
+      [:modified, :time], # updated time
   ]
 
   def initialize(value)
@@ -58,5 +58,15 @@ class Message < CompatModel
 
   def user
     self[:user]
+  end
+
+  def has_receive_message?
+    !!self[:replyto]
+  end
+
+  alias reply? has_receive_message?
+
+  def retweet?
+    !!self[:retweet]
   end
 end

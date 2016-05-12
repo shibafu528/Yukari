@@ -22,7 +22,7 @@ module CHIConfig
 
   CACHE = File.join(CONFROOT, 'cache')
 
-  PLUGIN_PATH = File.expand_path(File.join(File.dirname(__FILE__), "plugin"))
+  PLUGIN_PATH = File.join(CONFROOT, 'plugin')
 
   AutoTag = false
 
@@ -30,7 +30,7 @@ module CHIConfig
 
   REVISION = 9999
 
-  VERSION = [3,3,9, REVISION]
+  VERSION = [3, 3, 9, REVISION]
 end
 
 module Environment
@@ -106,7 +106,35 @@ module Environment
 
   end
 
-  # このソフトのバージョン。
   VERSION = Version.new(*CHIConfig::VERSION)
 
+end
+
+def notice(msg)
+  log "notice", msg
+end
+
+def warn(msg)
+  log "warning", msg
+end
+
+def error(msg)
+  log "error", msg
+end
+
+def log(prefix, object)
+  begin
+    msg = "#{prefix}: #{object}"
+    msg += "\nfrom " + object.backtrace.join("\nfrom ") if object.is_a? Exception
+
+    if msg.is_a? Exception
+      puts msg.to_s
+      puts msg.backtrace.join("\n")
+    else
+      puts msg
+    end
+  rescue Exception => e
+    puts "critical!: #{e.to_s}"
+    puts e.backtrace.join("\n")
+  end
 end

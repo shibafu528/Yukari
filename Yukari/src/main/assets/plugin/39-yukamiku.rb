@@ -3,9 +3,45 @@ Android.require_assets 'yukamiku/mikuenv.rb'
 Android.require_assets 'yukamiku/user.rb'
 Android.require_assets 'yukamiku/message.rb'
 Android.require_assets 'yukamiku/gui.rb'
+Android.require_assets 'yukamiku/service.rb'
 
 module Plugin::YukaMiku
+  class << self
 
+    # twicca extrasをmikutter messageに変換する。
+    # @param [Hash] extra twicca extras
+    # @return [Message] mikutter message
+    def to_message(extra)
+      value = {
+          id: extra['id'],
+          message: extra['text'],
+          user: to_user(extra),
+          receiver: nil,
+          replyto: nil,
+          retweet: nil,
+          source: extra['source'],
+          geo: "#{extra['latitude']}, #{extra['longitude']}",
+          exact: false,
+          created: nil, #extra['created_at'],
+          modified: nil #extra['created_at']
+      }
+      Message.new(value)
+    end
+
+    # twicca extrasをmikutter userに変換する
+    # @param [Hash] extra twicca extras
+    # @return [User] mikutter user
+    def to_user(extra)
+      value = {
+          id: extra['user_id'],
+          idname: extra['user_screen_name'],
+          name: extra['user_name'],
+          profile_image_url: extra['user_profile_image_url_bigger']
+      }
+      User.new(value)
+    end
+
+  end
 end
 
 #
@@ -27,23 +63,23 @@ Plugin.create :yukamiku do
     # 近い機能を持つDSLに振り分ける
     case miku_command[:role]
       when :timeline
-        puts "mikutter_command #{slug}(role:#{miku_command}) => twicca_action :show_tweet"
+        puts "mikutter_command #{slug}(role: :timeline) => twicca_action :show_tweet"
 
         twicca_action(:show_tweet, slug, miku_command) do |extra|
-          opt = Plugin::GUI::Event.new(:contextmenu, nil, [extra])
+          opt = Plugin::GUI::Event.new(:contextmenu, nil, [Plugin::YukaMiku.to_message(extra)])
           exec.call(opt)
         end
 
       when :postbox
-        puts "mikutter_command #{slug}(role:#{miku_command}) => twicca_action :edit_tweet"
+        puts "mikutter_command #{slug}(role: :postbox) => twicca_action :edit_tweet"
 
         twicca_action(:edit_tweet, slug, miku_command) do |extra|
-          opt = Plugin::GUI::Event.new(:contextmenu, nil, [extra])
+          opt = Plugin::GUI::Event.new(:contextmenu, nil, [Plugin::YukaMiku.to_message(extra)])
           exec.call(opt)
         end
 
       else
-        puts "mikutter_command #{slug}(role:#{miku_command[:role]}) is not compatible."
+        puts "mikutter_command #{slug}(role: #{miku_command[:role]}) is not compatible."
     end
   end
 
