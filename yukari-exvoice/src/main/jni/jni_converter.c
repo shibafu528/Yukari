@@ -38,8 +38,9 @@ mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
     jclass doubleClass = (*env)->FindClass(env, "java/lang/Double");
     jclass arrayClass = (*env)->FindClass(env, "[Ljava/lang/Object;");
     jclass mapClass = (*env)->FindClass(env, "java/util/Map");
-    jclass objClass = (*env)->GetObjectClass(env, obj);
     if (obj != NULL) {
+        jclass objClass = (*env)->GetObjectClass(env, obj);
+
         if ((*env)->IsInstanceOf(env, obj, booleanClass)) {
             // Boolean to TrueClass/FalseClass
             if (boolean_equals == NULL) {
@@ -146,6 +147,8 @@ mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
             (*env)->ReleaseStringUTFChars(env, str, cstr);
             (*env)->DeleteLocalRef(env, str);
         }
+
+        (*env)->DeleteLocalRef(env, objClass);
     }
 
     (*env)->DeleteLocalRef(env, booleanClass);
@@ -155,7 +158,6 @@ mrb_value convertJavaToMrbValue(JNIEnv *env, mrb_state *mrb, jobject obj) {
     (*env)->DeleteLocalRef(env, doubleClass);
     (*env)->DeleteLocalRef(env, arrayClass);
     (*env)->DeleteLocalRef(env, mapClass);
-    (*env)->DeleteLocalRef(env, objClass);
 
     return result;
 }
