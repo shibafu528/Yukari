@@ -2,6 +2,12 @@
 # Yukari; exVoice
 # mrubyとPluggaloidを使用したモバイル向けプラグインサブシステム
 
+class String
+  def ascii_only?
+    !(self =~ /[^\x00-\x7f]/)
+  end unless method_defined? :ascii_only?
+end
+
 def bootstrap
   # Initialize Pluggaloid
   Delayer.default = Delayer.generate_class(priority: [:high, :normal, :low], default: :normal)
