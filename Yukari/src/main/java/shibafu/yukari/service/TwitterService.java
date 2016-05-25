@@ -39,7 +39,6 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
-import shibafu.yukari.plugin.SamplePlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -281,7 +280,6 @@ public class TwitterService extends Service{
             // ブートストラップの実行およびバンドルRubyプラグインのロード
             mRuby.loadString("Android.require_assets 'bootstrap.rb'");
             // Javaプラグインのロード
-            mRuby.registerPlugin(SamplePlugin.class);
             mRuby.registerPlugin(AndroidCompatPlugin.class);
             // ユーザプラグインのロード
             // TODO: ホワイトリストが必要だよねー
