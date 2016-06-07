@@ -67,7 +67,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
-import twitter4j.Query;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
@@ -388,7 +387,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ibSendTweet.setOnClickListener(view -> postTweet());
 
         ImageView ivTweet = (ImageView) findViewById(R.id.ivTweet);
-        ivTweet.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, TweetActivity.class)));
+        ivTweet.setOnClickListener(v -> startTweetActivity());
     }
 
     @OnTouch({R.id.tweetgesture, R.id.llMainFooterRight, R.id.flStreamState, R.id.tvMainTab,
@@ -404,21 +403,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 break;
             case MotionEvent.ACTION_UP:
                 if (isTouchTweet && Math.abs(tweetGestureYStart - tweetGestureY) > 80) {
-                    Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
-                    if (sharedPreferences.getBoolean("pref_use_binded_user", false)
-                            && currentPage != null
-                            && currentPage instanceof DefaultTweetListFragment
-                            && currentPage.getBoundUsers().size() == 1) {
-                        switch (currentPage.getMode()) {
-                            case TabType.TABTYPE_HOME:
-                            case TabType.TABTYPE_MENTION:
-                            case TabType.TABTYPE_DM:
-                            case TabType.TABTYPE_LIST:
-                                intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
-                                break;
-                        }
-                    }
-                    startActivity(intent);
+                    startTweetActivity();
                     return true;
                 }
                 break;
@@ -546,6 +531,32 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
             menuDialogFragment.show(getSupportFragmentManager(), "menu");
             return true;
+        }
+        else if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_1:
+                    startTweetActivity();
+                    return true;
+                case KeyEvent.KEYCODE_2:
+                    currentPage.scrollToTop();
+                    return true;
+                case KeyEvent.KEYCODE_5:
+                    currentPage.scrollToOldestUnread();
+                    return true;
+                case KeyEvent.KEYCODE_8:
+                    currentPage.scrollToBottom();
+                    return true;
+                case KeyEvent.KEYCODE_STAR:
+                    if (event.isLongPress()) {
+                        ibClose.performLongClick();
+                    } else {
+                        ibClose.performClick();
+                    }
+                    return true;
+                case KeyEvent.KEYCODE_0:
+                    (findViewById(R.id.ibSearch)).performClick();
+                    return true;
+            }
         }
         return super.dispatchKeyEvent(event);
     }
@@ -697,6 +708,24 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
             }
         }
+    }
+
+    private void startTweetActivity() {
+        Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
+        if (sharedPreferences.getBoolean("pref_use_binded_user", false)
+                && currentPage != null
+                && currentPage instanceof DefaultTweetListFragment
+                && currentPage.getBoundUsers().size() == 1) {
+            switch (currentPage.getMode()) {
+                case TabType.TABTYPE_HOME:
+                case TabType.TABTYPE_MENTION:
+                case TabType.TABTYPE_DM:
+                case TabType.TABTYPE_LIST:
+                    intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
+                    break;
+            }
+        }
+        startActivity(intent);
     }
 
     private void postTweet() {

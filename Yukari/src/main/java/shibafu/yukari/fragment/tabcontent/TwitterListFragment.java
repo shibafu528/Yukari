@@ -212,18 +212,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             }
 
             unreadNotifierView.setOnClickListener(v -> {
-                if (unreadSet.isEmpty()) {
-                    listView.setSelection(0);
-                } else {
-                    Long lastUnreadId = Collections.min(unreadSet);
-                    int position;
-                    for (position = 0; position < elements.size(); ++position) {
-                        if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
-                    }
-                    if (position < elements.size()) {
-                        listView.setSelection(position);
-                    }
-                }
+                scrollToOldestUnread();
             });
 
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -410,6 +399,21 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             e.printStackTrace();
             if (getActivity() != null && getActivity().getApplicationContext() != null) {
                 Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void scrollToOldestUnread() {
+        if (unreadSet.isEmpty()) {
+            listView.setSelection(0);
+        } else {
+            Long lastUnreadId = Collections.min(unreadSet);
+            int position;
+            for (position = 0; position < elements.size(); ++position) {
+                if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+            }
+            if (position < elements.size()) {
+                listView.setSelection(position);
             }
         }
     }
