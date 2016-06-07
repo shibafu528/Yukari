@@ -34,9 +34,9 @@ public class LinkMediaFactory {
                 linkMedia = new Lockerz(mediaURL);
             } else if (mediaURL.contains("photozou.jp")) {
                 linkMedia = new Photozou(mediaURL);
-            } else if (mediaURL.contains("nico.ms/im") || mediaURL.contains("seiga.nicovideo.jp/seiga/im")) {
+            } else if (mediaURL.contains("nico.ms/im") || mediaURL.contains("seiga.nicovideo.jp/seiga/im") || mediaURL.contains("sp.seiga.nicovideo.jp/seiga/#!/im")) {
                 linkMedia = new NicoSeiga(mediaURL);
-            } else if ((mediaURL.contains("www.nicovideo.jp/watch") || mediaURL.contains("nico.ms/"))
+            } else if ((mediaURL.contains("www.nicovideo.jp/watch") || mediaURL.contains("nico.ms/") || mediaURL.contains("sp.nicovideo.jp/watch"))
                     && (mediaURL.contains("/sm") || mediaURL.contains("/nm"))) {
                 linkMedia = new NicoVideo(mediaURL);
             } else if (mediaURL.contains("www.youtube.com/watch?") || mediaURL.contains("youtu.be/")) {
