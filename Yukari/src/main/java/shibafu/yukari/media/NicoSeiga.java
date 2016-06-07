@@ -11,13 +11,13 @@ public class NicoSeiga extends LinkMedia {
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://(seiga\\.nicovideo\\.jp\\/seiga|nico\\.ms)\\/im(\\d+)", "http://lohas.nicoseiga.jp/thumb/%2l?");
+        ImageMatch matcher = new ImageMatch("http://((?:sp\\.)?seiga\\.nicovideo\\.jp/seiga(?:/#!)?|nico\\.ms)/im(\\d+)", "http://lohas.nicoseiga.jp/thumb/%2l?");
         return matcher.getFullPageUrl(browseURL);
     }
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://(seiga\\.nicovideo\\.jp\\/seiga|nico\\.ms)\\/im(\\d+)", "http://lohas.nicoseiga.jp/thumb/%2i?");
+        ImageMatch matcher = new ImageMatch("http://((?:sp\\.)?seiga\\.nicovideo\\.jp/seiga(?:/#!)?|nico\\.ms)/im(\\d+)", "http://lohas.nicoseiga.jp/thumb/%2i?");
         return matcher.getFullPageUrl(browseURL);
     }
 
