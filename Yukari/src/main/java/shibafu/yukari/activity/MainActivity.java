@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -301,7 +302,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
                 pageList.remove(current);
                 onTabChanged(current - 1);
-                viewPager.setAdapter(new TabPagerAdapter(getSupportFragmentManager()));
+                tabPagerAdapter = new TabPagerAdapter(getSupportFragmentManager());
+                viewPager.setAdapter(tabPagerAdapter);
                 viewPager.setCurrentItem(current - 1);
                 return true;
             } else return false;
@@ -802,10 +804,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         TabInfo tabInfo = pageList.get(position);
 
         tvTabText.setText(tabInfo.getTitle());
-        WeakReference<TwitterListFragment> reference = tabRegistry.get(tabInfo.getId());
-        if (reference != null && reference.get() != null) {
-            currentPage = reference.get();
-        }
+        currentPage = tabPagerAdapter.instantiateItem(position);
 
         if (currentPage != null) {
             if (currentPage.isCloseable()) {
@@ -970,5 +969,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             return pageList.get(position).getTitle();
         }
 
+        public TwitterListFragment instantiateItem(int position) {
+            return (TwitterListFragment) super.instantiateItem(viewPager, position);
+        }
+
+        public TwitterListFragment instantiateItem() {
+            return (TwitterListFragment) super.instantiateItem(viewPager, viewPager.getCurrentItem());
+        }
     }
 }

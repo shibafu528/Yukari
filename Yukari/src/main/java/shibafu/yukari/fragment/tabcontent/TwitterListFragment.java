@@ -211,14 +211,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     break;
             }
 
-            unreadNotifierView.setOnClickListener(v -> {
-                scrollToOldestUnread();
-            });
+            unreadNotifierView.setOnClickListener(v -> scrollToOldestUnread());
 
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) {
-                }
+                public void onScrollStateChanged(AbsListView view, int scrollState) {}
 
                 @Override
                 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
@@ -404,16 +401,23 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     public void scrollToOldestUnread() {
-        if (unreadSet.isEmpty()) {
-            listView.setSelection(0);
-        } else {
-            Long lastUnreadId = Collections.min(unreadSet);
-            int position;
-            for (position = 0; position < elements.size(); ++position) {
-                if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+        try {
+            if (unreadSet.isEmpty()) {
+                getListView().setSelection(0);
+            } else {
+                Long lastUnreadId = Collections.min(unreadSet);
+                int position;
+                for (position = 0; position < elements.size(); ++position) {
+                    if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+                }
+                if (position < elements.size()) {
+                    getListView().setSelection(position);
+                }
             }
-            if (position < elements.size()) {
-                listView.setSelection(position);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
