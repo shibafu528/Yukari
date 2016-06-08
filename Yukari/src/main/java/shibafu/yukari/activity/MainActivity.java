@@ -558,6 +558,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 case KeyEvent.KEYCODE_0:
                     (findViewById(R.id.ibSearch)).performClick();
                     return true;
+                case KeyEvent.KEYCODE_F3:
+                    currentPage.scrollToPrevPage();
+                    return true;
+                case KeyEvent.KEYCODE_F4:
+                    currentPage.scrollToNextPage();
+                    return true;
             }
         }
         return super.dispatchKeyEvent(event);

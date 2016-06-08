@@ -422,6 +422,32 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    public void scrollToPrevPage() {
+        try {
+            ListView listView = getListView();
+            listView.smoothScrollBy(-listView.getHeight(), 100);
+            listView.setSelection(listView.getFirstVisiblePosition());
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void scrollToNextPage() {
+        try {
+            ListView listView = getListView();
+            listView.smoothScrollBy(listView.getHeight(), 100);
+            listView.setSelection(listView.getFirstVisiblePosition());
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     protected void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
