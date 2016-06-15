@@ -674,20 +674,24 @@ public class StatusMainFragment extends TwitterFragment{
 
     @Override
     public void onServiceConnected() {
-        if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
-                !sharedPreferences.getBoolean("pref_narcist", false)) {
-            //自分のツイートの場合
-            ibFavorite.setEnabled(false);
-            ibFavRt.setEnabled(false);
-        }
-        if ((!status.isRetweet() && status.getUser().isProtected()) ||
-                (status.isRetweet() && status.getRetweetedStatus().getUser().isProtected())) {
+        if (status.getOriginStatus().getUser().isProtected()) {
             //鍵postの場合
             ibRetweet.setEnabled(false);
             ibFavRt.setEnabled(false);
             limitedQuote = true;
         } else {
             limitedQuote = false;
+        }
+        if (getTwitterService().isMyTweet(status) != null) {
+            //自分のツイートの場合
+            ibRetweet.setEnabled(true);
+            if (sharedPreferences.getBoolean("pref_narcist", false)) {
+                ibFavorite.setEnabled(true);
+                ibFavRt.setEnabled(true);
+            } else {
+                ibFavorite.setEnabled(false);
+                ibFavRt.setEnabled(false);
+            }
         }
         loadProfileImage();
     }
