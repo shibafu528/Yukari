@@ -2,6 +2,7 @@ package shibafu.yukari.media;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -13,6 +14,7 @@ public class LinkMediaFactory {
             return size() > 32;
         }
     };
+    private static final Pattern irasutoyaPattern = Pattern.compile("www\\.irasutoya\\.com/\\d{4}/\\d{2}/blog-post_\\d+\\.html");
 
     public static synchronized LinkMedia newInstance(String mediaURL) {
         LinkMedia linkMedia = instanceQueue.get(mediaURL);
@@ -61,6 +63,8 @@ public class LinkMediaFactory {
                 linkMedia = new Sunoho(mediaURL);
             } else if (mediaURL.contains("nijie.info/view.php")) {
                 linkMedia = new Nijie(mediaURL);
+            } else if (irasutoyaPattern.matcher(mediaURL).find()) {
+                linkMedia = new Irasutoya(mediaURL);
             } else if (mediaURL.contains("img.ly/")) {
                 if (mediaURL.contains("img.ly/show/")) {
                     linkMedia = new SimplePicture(mediaURL);
