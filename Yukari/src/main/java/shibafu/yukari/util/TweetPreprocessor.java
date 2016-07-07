@@ -12,6 +12,7 @@ import info.shibafu528.yukari.exvoice.Plugin;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.CommandsPrefActivity;
+import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
@@ -204,6 +205,12 @@ public class TweetPreprocessor {
                 sb.append(c);
             }
             return sb.toString();
+        });
+        COMMANDS.put("::conf", (depends, input) -> {
+            depends.getActivity().startActivity(new Intent(depends.getActivity().getApplicationContext(), ConfigActivity.class));
+            depends.getActivity().setResult(Activity.RESULT_OK);
+            depends.getActivity().finish();
+            return null;
         });
     }
 
