@@ -137,6 +137,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         setContentView(R.layout.activity_main);
 
         imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(getApplicationContext(), getString(R.string.error_storage_not_found), Toast.LENGTH_LONG).show();
@@ -168,7 +169,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         //スリープ防止設定
-        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
 
         //表示域拡張設定
@@ -278,7 +278,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             menuDialogFragment.show(getSupportFragmentManager(), "menu");
         });
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            if (ViewConfiguration.get(this).hasPermanentMenuKey()) {
+            if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
                 ibMenu.setVisibility(View.GONE);
             }
         }
