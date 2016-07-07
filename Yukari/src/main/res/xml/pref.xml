@@ -319,6 +319,10 @@
             android:defaultValue="0"
             android:entries="@array/pref_lists_membership_finder_entries"
             android:entryValues="@array/pref_lists_membership_finder_values"/>
+        <CheckBoxPreference
+            android:key="pref_show_menubutton"
+            android:title="メニューボタンを表示"
+            android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
