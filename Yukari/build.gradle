@@ -54,7 +54,7 @@ dependencies {
     compile 'com.annimon:stream:1.0.8'
     compile 'twitter.intent:twitter-intent-core:1.0,0'
     compile 'twitter.intent:twitter-intent-t4j:1.0.0'
-//    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
+    //debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     compile fileTree(dir: './libs', includes: ['*.jar'])
     provided 'org.projectlombok:lombok:1.16.4'
     compile project(':yukari-exvoice')
@@ -105,9 +105,9 @@ android {
     }
 }
 
-//-- Kotlin --
+//>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.2'
+    ext.kotlin_version = '1.0.3'
     repositories {
         mavenCentral()
     }
@@ -118,7 +118,7 @@ buildscript {
 repositories {
     mavenCentral()
 }
-//^^ Kotlin ^^
+//<<-- Kotlin --
 
 retrolambda {
     jdk System.getenv("JAVA8_HOME")
