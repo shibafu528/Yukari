@@ -240,7 +240,7 @@ JNIEXPORT void JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_call(JNIEnv *e
     mrb_free(mrb, rArgs);
 
     if (mrb_exception_p(result)) {
-        jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        jclass runtimeExceptionClass = (*env)->FindClass(env, "info/shibafu528/yukari/exvoice/MRubyException");
         mrb_value ins = mrb_inspect(mrb, result);
         (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
 
@@ -280,7 +280,7 @@ JNIEXPORT jobjectArray JNICALL Java_info_shibafu528_yukari_exvoice_Plugin_filter
 
             (*env)->DeleteLocalRef(env, exceptionClass);
         } else {
-            jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+            jclass runtimeExceptionClass = (*env)->FindClass(env, "info/shibafu528/yukari/exvoice/MRubyException");
             mrb_value ins = mrb_inspect(mrb, filteringResult);
             (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
 

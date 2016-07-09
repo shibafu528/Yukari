@@ -16,10 +16,23 @@ public class ProcWrapper {
         this.rProcPointer = rProcPointer;
     }
 
+    /**
+     * ブロックをMRuby上で評価します。
+     * @param args ブロックに渡す引数
+     * @return ブロックの返り値
+     * @exception MRubyException MRuby上で例外が発生した場合、この例外でラップされます。
+     */
     public Object exec(Object... args) {
         return execNative(this.mRubyInstancePointer, args);
     }
 
+    /**
+     * MRubyのインスタンスを明示的に指定し、ブロックをMRuby上で評価します。
+     * @param mRuby {@link MRuby} のインスタンス
+     * @param args ブロックに渡す引数
+     * @return ブロックの返り値
+     * @exception MRubyException MRuby上で例外が発生した場合、この例外でラップされます。
+     */
     public Object execWithContext(MRuby mRuby, Object... args) {
         return execNative(mRuby.getMRubyInstancePointer(), args);
     }

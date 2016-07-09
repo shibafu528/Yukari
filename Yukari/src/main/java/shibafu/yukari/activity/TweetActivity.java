@@ -54,6 +54,7 @@ import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
 import com.twitter.Validator;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
+import info.shibafu528.yukari.exvoice.MRubyException;
 import info.shibafu528.yukari.exvoice.Plugin;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
 import shibafu.yukari.R;
@@ -1170,21 +1171,28 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                             extra.put("cursor", String.valueOf(etInput.getSelectionStart()));
 
                             if (exec != null) {
-                                Object r = exec.exec(extra);
-                                if (r instanceof Map) {
-                                    Map rm = (Map) r;
-                                    String resultCode = (String) rm.get("result_code");
-                                    Map intent = (Map) rm.get("intent");
-                                    if ("ok".equals(resultCode) && intent != null) {
-                                        String t = (String) intent.get("text");
-                                        Integer cursor = (Integer) intent.get("cursor");
-                                        if (t != null) {
-                                            etInput.setText(t);
-                                        }
-                                        if (cursor != null) {
-                                            etInput.setSelection(cursor);
+                                try {
+                                    Object r = exec.exec(extra);
+                                    if (r instanceof Map) {
+                                        Map rm = (Map) r;
+                                        String resultCode = (String) rm.get("result_code");
+                                        Map intent = (Map) rm.get("intent");
+                                        if ("ok".equals(resultCode) && intent != null) {
+                                            String t = (String) intent.get("text");
+                                            Integer cursor = (Integer) intent.get("cursor");
+                                            if (t != null) {
+                                                etInput.setText(t);
+                                            }
+                                            if (cursor != null) {
+                                                etInput.setSelection(cursor);
+                                            }
                                         }
                                     }
+                                } catch (MRubyException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(),
+                                            String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                            Toast.LENGTH_LONG).show();
                                 }
                             } else {
                                 Toast.makeText(getApplicationContext(),

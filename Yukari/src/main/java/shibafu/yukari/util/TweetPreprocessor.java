@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.widget.Toast;
+import info.shibafu528.yukari.exvoice.MRubyException;
 import info.shibafu528.yukari.exvoice.Plugin;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
 import org.jetbrains.annotations.NotNull;
@@ -229,23 +230,37 @@ public class TweetPreprocessor {
                 TwitterService service = depends.getActivity().getTwitterService();
                 if (service != null && service.getmRuby() != null) {
                     // プラグインからコマンドを取得
-                    Object[] result = Plugin.filtering(service.getmRuby(), "post_command", new LinkedHashMap());
-                    if (result != null && result[0] instanceof Map) {
-                        Map commands = (Map) result[0];
+                    try {
+                        Object[] result = Plugin.filtering(service.getmRuby(), "post_command", new LinkedHashMap());
+                        if (result != null && result[0] instanceof Map) {
+                            Map commands = (Map) result[0];
 
-                        // マッチするコマンドがあればProcを実行
-                        Object proc = commands.get(command.replaceFirst("^::", ""));
-                        try {
-                            if (proc != null && proc instanceof ProcWrapper) {
-                                return (String) ((ProcWrapper) proc).exec(input.replace(command, "").trim());
-                            }
-                        } finally {
-                            for (Object procWrapper : commands.values()) {
-                                if (procWrapper instanceof ProcWrapper) {
-                                    ((ProcWrapper) procWrapper).dispose();
+                            // マッチするコマンドがあればProcを実行
+                            Object proc = commands.get(command.replaceFirst("^::", ""));
+                            try {
+                                if (proc != null && proc instanceof ProcWrapper) {
+                                    return (String) ((ProcWrapper) proc).exec(input.replace(command, "").trim());
+                                }
+                            } catch (MRubyException e) {
+                                e.printStackTrace();
+                                Toast.makeText(depends.getActivity().getApplicationContext(),
+                                        String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                        Toast.LENGTH_LONG).show();
+                                return input;
+                            } finally {
+                                for (Object procWrapper : commands.values()) {
+                                    if (procWrapper instanceof ProcWrapper) {
+                                        ((ProcWrapper) procWrapper).dispose();
+                                    }
                                 }
                             }
                         }
+                    } catch (MRubyException e) {
+                        e.printStackTrace();
+                        Toast.makeText(depends.getActivity().getApplicationContext(),
+                                String.format("プラグインの呼び出し中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                Toast.LENGTH_LONG).show();
+                        return input;
                     }
                 }
             }

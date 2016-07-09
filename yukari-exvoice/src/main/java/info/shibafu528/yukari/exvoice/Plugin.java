@@ -41,6 +41,7 @@ public abstract class Plugin {
      * @param mRuby {@link MRuby} のインスタンス
      * @param eventName イベント名
      * @param args 引数
+     * @exception MRubyException MRuby上で例外が発生した場合、この例外でラップされます。
      */
     public static native void call(MRuby mRuby, String eventName, Object... args);
 
@@ -51,6 +52,7 @@ public abstract class Plugin {
      * @param args 引数
      * @return フィルタされた結果の配列
      * @exception FilterException 引数の数が途中で変化した場合に発生します。
+     * @exception MRubyException MRuby上で例外が発生した場合、この例外でラップされます。
      */
     public static native Object[] filtering(MRuby mRuby, String eventName, Object... args);
 

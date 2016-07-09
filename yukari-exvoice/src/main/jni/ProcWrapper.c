@@ -53,7 +53,7 @@ JNIEXPORT jobject JNICALL Java_info_shibafu528_yukari_exvoice_ProcWrapper_execNa
 
     // Rescue
     if (mrb_exception_p(rResult)) {
-        jclass runtimeExceptionClass = (*env)->FindClass(env, "java/lang/RuntimeException");
+        jclass runtimeExceptionClass = (*env)->FindClass(env, "info/shibafu528/yukari/exvoice/MRubyException");
         mrb_value ins = mrb_inspect(mrb, rResult);
         (*env)->ThrowNew(env, runtimeExceptionClass, mrb_str_to_cstr(mrb, ins));
 

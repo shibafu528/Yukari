@@ -15,6 +15,8 @@ import android.text.ClipboardManager
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
+import info.shibafu528.yukari.exvoice.MRubyException
 import info.shibafu528.yukari.exvoice.Plugin
 import info.shibafu528.yukari.exvoice.ProcWrapper
 import shibafu.yukari.R
@@ -164,7 +166,13 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                     if (status.sourceUser.isProtected || twitterService == null || twitterService.getmRuby() == null) {
                         emptyList()
                     } else {
-                        val plugins = Plugin.filtering(twitterService.getmRuby(), "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
+                        val plugins = try {
+                            Plugin.filtering(twitterService.getmRuby(), "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
+                        } catch (e: MRubyException) {
+                            e.printStackTrace()
+                            showToast("プラグインの呼び出し中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
+                            null
+                        }
                         if (plugins != null && plugins is Map<*, *>) {
                             plugins.entries.mapNotNull {
                                 if (it.key is String && it.value is Map<*, *>) {
@@ -273,7 +281,12 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                         "source" to status.source,
                         "text" to status.text
                 )
-                exec.exec(extra)
+                try {
+                    exec.exec(extra)
+                } catch (e: MRubyException) {
+                    e.printStackTrace()
+                    showToast("Procの実行中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
+                }
             } else {
                 showToast("Procの実行に失敗しました\ntwicca_action :$slug の宣言で適切なブロックを渡していますか？")
             }
