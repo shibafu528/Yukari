@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="68"
+    android:versionCode="69"
     android:versionName="1.3.0.308α (lilium 160707)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
