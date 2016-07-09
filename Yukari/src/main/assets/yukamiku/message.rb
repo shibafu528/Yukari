@@ -69,4 +69,19 @@ class Message < Retriever::Model
   def retweet?
     !!self[:retweet]
   end
+
+  def post(other, &proc)
+    other[:replyto] = self
+    other[:receiver] = self[:user]
+
+    # TODO: mikutterではプライマリサービスが必ず優先されるけど、y4aでは代表ユーザ[PreformedStatus#getRepresentUser()]を使ったほうがいいんじゃないかな
+    service = Service.primary
+    if service.is_a? Service
+      service.post(other)
+    end
+  end
+
+  def message
+    self
+  end
 end
