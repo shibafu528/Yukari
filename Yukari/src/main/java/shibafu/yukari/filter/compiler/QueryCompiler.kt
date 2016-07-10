@@ -1,14 +1,20 @@
 package shibafu.yukari.filter.compiler
 
 import shibafu.yukari.filter.FilterQuery
+import shibafu.yukari.filter.sexp.AddOperatorNode
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.DivideOperatorNode
 import shibafu.yukari.filter.sexp.EqualsNode
+import shibafu.yukari.filter.sexp.ListNode
+import shibafu.yukari.filter.sexp.MultiplyOperatorNode
 import shibafu.yukari.filter.sexp.NotEqualsNode
 import shibafu.yukari.filter.sexp.NotNode
 import shibafu.yukari.filter.sexp.OrNode
+import shibafu.yukari.filter.sexp.QuoteNode
 import shibafu.yukari.filter.sexp.RegexNode
 import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.SubtractOperatorNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.All
@@ -226,6 +232,12 @@ public final class QueryCompiler {
                             "noteq", "neq", "!=", "/=" -> NotEqualsNode(paramList)
                             "contains", "in" -> ContainsNode(paramList)
                             "regex", "re", "rg" -> RegexNode(paramList)
+                            "list" -> ListNode(paramList)
+                            "quote" -> QuoteNode(paramList)
+                            "+" -> AddOperatorNode(paramList)
+                            "-" -> SubtractOperatorNode(paramList)
+                            "*" -> MultiplyOperatorNode(paramList)
+                            "/" -> DivideOperatorNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }
                     }

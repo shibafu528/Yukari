@@ -94,8 +94,17 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
 /**
  * リストノード
  */
-public class QuoteNode(override val children: List<SNode>) : SNode {
+public class ListNode(override val children: List<SNode>) : SNode {
 
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>)
             = children.map { it.evaluate(status, userRecords) }
+}
+
+/**
+ * Quoteノード
+ */
+public class QuoteNode(override val children: List<SNode>) : SNode {
+
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>)
+            = children
 }

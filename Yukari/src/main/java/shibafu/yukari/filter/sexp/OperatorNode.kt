@@ -116,6 +116,9 @@ public class RegexNode(override val children: List<SNode>) : SNode {
     }
 }
 
+/**
+ * 加算関数ノード
+ */
 public class AddOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
     override var value: Any? = null
 
@@ -124,7 +127,79 @@ public class AddOperatorNode(override val children: List<SNode>) : SNode, Factor
     override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
         value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r + v})
 
-        return true;
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 減算関数ノード
+ */
+public class SubtractOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r - v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 乗算関数ノード
+ */
+public class MultiplyOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r * v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 除算関数ノード
+ */
+public class DivideOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r / v})
+
+        return value as Long
     }
 
     override fun toString(): String {
