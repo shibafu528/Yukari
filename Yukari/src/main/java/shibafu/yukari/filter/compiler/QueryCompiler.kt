@@ -7,6 +7,7 @@ import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.DivideOperatorNode
 import shibafu.yukari.filter.sexp.EqualsNode
 import shibafu.yukari.filter.sexp.ListNode
+import shibafu.yukari.filter.sexp.ModuloOperatorNode
 import shibafu.yukari.filter.sexp.MultiplyOperatorNode
 import shibafu.yukari.filter.sexp.NotEqualsNode
 import shibafu.yukari.filter.sexp.NotNode
@@ -238,6 +239,7 @@ public final class QueryCompiler {
                             "-" -> SubtractOperatorNode(paramList)
                             "*" -> MultiplyOperatorNode(paramList)
                             "/" -> DivideOperatorNode(paramList)
+                            "%", "mod" -> ModuloOperatorNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }
                     }

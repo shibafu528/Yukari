@@ -211,3 +211,27 @@ public class DivideOperatorNode(override val children: List<SNode>) : SNode, Fac
     }
 
 }
+
+/**
+ * 剰余演算関数ノード
+ */
+public class ModuloOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+        value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r % v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
