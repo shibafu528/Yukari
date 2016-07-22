@@ -241,6 +241,10 @@
             android:key="pref_search_minus_rt"
             android:title="RTを除外"
             android:summary="リツイートを検索対象から除外します"/>
+        <CheckBoxPreference
+            android:key="pref_search_with_lookup"
+            android:title="検索結果を2回取得する"
+            android:summary="2種類の方法を組み合わせて検索することで、検索結果の内容の欠落(例えば複数枚の画像)を補完します\nただし通信量と待ち時間が増加します"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="キャッシュ設定">
