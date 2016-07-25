@@ -1,12 +1,8 @@
 package shibafu.yukari.media;
 
-import java.io.BufferedReader;
+import org.jsoup.Jsoup;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -24,41 +20,18 @@ public class XVideos extends LinkMedia {
 
     @Override
     protected String expandThumbURL(final String browseURL) {
-        final String[] thumbURL = new String[1];
-        Thread thread = new Thread(() -> {
+        return fetchSynced(() -> {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(browseURL).openConnection();
-                conn.setReadTimeout(10000);
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                try {
-                    String s;
-                    while ((s = br.readLine()) != null) {
-                        if (s.contains("class=\"thumb\"")) {
-                            Pattern pattern = Pattern.compile(".*<img src=\"(http://.+\\.jpg)\" .*/>.*");
-                            Matcher m = pattern.matcher(s);
-                            if (m.find()) {
-                                thumbURL[0] = m.group(1);
-                                return;
-                            }
-                        }
-                    }
-                } finally {
-                    br.close();
-                    conn.disconnect();
-                }
+                return Jsoup.connect(browseURL)
+                        .timeout(10000)
+                        .get()
+                        .select("meta[property=og:image]")
+                        .attr("content");
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            thumbURL[0] = null;
+            return null;
         });
-        thread.start();
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return thumbURL[0];
     }
 
     @Override
