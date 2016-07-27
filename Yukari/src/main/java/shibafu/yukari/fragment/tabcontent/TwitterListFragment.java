@@ -554,6 +554,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     @UiThread
     protected void insertElement2(T element) {
+        insertElement2(element, false);
+    }
+
+    @UiThread
+    protected void insertElement2(T element, boolean useScrollLock) {
         int position = prepareInsertStatus(element);
         if (position < 0 || elements.contains(element)) {
             return;
@@ -583,7 +588,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         int firstPos = listView.getFirstVisiblePosition();
         View firstView = listView.getChildAt(0);
         int y = firstView != null ? firstView.getTop() : 0;
-        if (elements.size() == 1 || firstPos == 0 && y > -1) {
+        if (!useScrollLock && (elements.size() == 1 || firstPos == 0 && y > -1)) {
             Log.d("insertElement2", "Scroll Position = 0");
             listView.setSelection(0);
         } else if (position <= firstPos) {
