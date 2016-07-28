@@ -534,7 +534,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
         private boolean isNarrowMode;
 
-        protected DefaultRESTLoader(RESTLoaderInterface loaderInterface) {
+        protected DefaultRESTLoader(RESTLoaderInterfaceBase loaderInterface) {
             super(loaderInterface);
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
             isNarrowMode = sp.getBoolean("pref_narrow", false);

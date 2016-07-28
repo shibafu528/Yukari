@@ -54,6 +54,7 @@ import twitter4j.UserMentionEntity;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -734,6 +735,7 @@ public class StatusManager implements Releasable {
                     if (isCancelled()) return null;
 
                     // StreamManagerに流す
+                    Collections.reverse(responseList);
                     for (twitter4j.Status status : responseList) {
                         listener.onStatus(stream, status);
                     }

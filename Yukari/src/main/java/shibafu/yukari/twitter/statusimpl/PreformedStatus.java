@@ -588,6 +588,11 @@ public class PreformedStatus implements Status{
         return hashtags;
     }
 
+    @Override
+    public String toString() {
+        return String.format("[%s]@%s: %s", getClass().getSimpleName(), getUser().getScreenName(), getText());
+    }
+
     private static class HashMapEx<K, V> extends HashMap<K, V> {
         private final Object mutex = this;
 

@@ -15,20 +15,27 @@ import java.util.List;
  * Created by shibafu on 14/02/13.
  */
 public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends ParallelAsyncTask<P, Void, T> {
-    public interface RESTLoaderInterface {
+    public interface RESTLoaderInterfaceBase {
         TwitterService getService();
         List<PreformedStatus> getStatuses();
         List<PreformedStatus> getStash();
-        void notifyDataSetChanged();
-        int prepareInsertStatus(PreformedStatus status);
         void changeFooterProgress(boolean isLoading);
     }
 
-    private RESTLoaderInterface loaderInterface;
+    public interface RESTLoaderInterface extends RESTLoaderInterfaceBase {
+        void notifyDataSetChanged();
+        int prepareInsertStatus(PreformedStatus status);
+    }
+
+    public interface RESTLoaderInterface2 extends RESTLoaderInterfaceBase {
+        void insertElement(PreformedStatus status);
+    }
+
+    private RESTLoaderInterfaceBase loaderInterface;
     protected TwitterException exception;
     protected AuthUserRecord exceptionUser;
 
-    protected RESTLoader(RESTLoaderInterface loaderInterface) {
+    protected RESTLoader(RESTLoaderInterfaceBase loaderInterface) {
         this.loaderInterface = loaderInterface;
     }
 
@@ -65,10 +72,14 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
 
-                    position = loaderInterface.prepareInsertStatus(status);
-                    if (position > -1) {
-                        dest.add(position, status);
-                        loaderInterface.notifyDataSetChanged();
+                    if (loaderInterface instanceof RESTLoaderInterface) {
+                        position = ((RESTLoaderInterface) loaderInterface).prepareInsertStatus(status);
+                        if (position > -1) {
+                            dest.add(position, status);
+                            ((RESTLoaderInterface) loaderInterface).notifyDataSetChanged();
+                        }
+                    } else {
+                        ((RESTLoaderInterface2) loaderInterface).insertElement(status);
                     }
                 }
                 else {

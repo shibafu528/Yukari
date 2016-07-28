@@ -424,8 +424,35 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     };
 
-    protected RESTLoader.RESTLoaderInterface getDefaultRESTInterface() {
-        return defaultRESTInterface;
+    private RESTLoader.RESTLoaderInterface2 defaultRESTInterface2 = new RESTLoader.RESTLoaderInterface2() {
+        @Override
+        public TwitterService getService() {
+            return TweetListFragment.this.getService();
+        }
+
+        @Override
+        public List<PreformedStatus> getStatuses() {
+            return elements;
+        }
+
+        @Override
+        public List<PreformedStatus> getStash() {
+            return stash;
+        }
+
+        @Override
+        public void insertElement(PreformedStatus status) {
+            TweetListFragment.this.insertElement2(status, true);
+        }
+
+        @Override
+        public void changeFooterProgress(boolean isLoading) {
+            TweetListFragment.this.changeFooterProgress(isLoading);
+        }
+    };
+
+    protected RESTLoader.RESTLoaderInterfaceBase getDefaultRESTInterface() {
+        return defaultRESTInterface2;
     }
 
 }

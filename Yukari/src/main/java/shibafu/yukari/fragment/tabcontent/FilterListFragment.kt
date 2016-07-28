@@ -20,10 +20,12 @@ import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.ExceptionStatus
 import shibafu.yukari.twitter.statusimpl.FakeStatus
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus
+import shibafu.yukari.twitter.statusimpl.MetaStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
+import shibafu.yukari.util.putDebugLog
 import twitter4j.DirectMessage
 import twitter4j.Status
 
@@ -206,12 +208,12 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
         when {
             muted -> {
-//                putDebugLog("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
+                putDebugLog("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
                 stash.add(status)
             }
             else -> {
-                handler.post { insertElement2(status) }
-//                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
+                handler.post { insertElement2(status, status is MetaStatus && "RestStream" == status.metadata) }
+                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
     }
@@ -236,7 +238,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                         }
                         queryingLoadMarkers.remove(status.taskKey)
                     }
-//                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
                     if (loadingTaskKeys.isEmpty()) {
                         handler.post { setRefreshComplete() }
                     }

@@ -172,7 +172,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
         private boolean isNarrowMode;
         private boolean useLookupApi;
 
-        protected SearchRESTLoader(RESTLoaderInterface loaderInterface) {
+        protected SearchRESTLoader(RESTLoaderInterfaceBase loaderInterface) {
             super(loaderInterface);
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
             isNarrowMode = sp.getBoolean("pref_narrow", false);
