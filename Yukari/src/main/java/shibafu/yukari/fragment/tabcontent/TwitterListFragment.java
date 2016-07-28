@@ -61,6 +61,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     public static final int LOADER_LOAD_MORE   = 1;
     public static final int LOADER_LOAD_UPDATE = 2;
 
+    private static final boolean USE_INSERT_LOG = false;
+
     //Elements List
     private Class<T> elementClass;
     protected ArrayList<T> elements = new ArrayList<>();
@@ -223,7 +225,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
                 @Override
                 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                    Log.d("onScroll", "(reset) lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+                    if (USE_INSERT_LOG) {
+                        Log.d("onScroll", "(reset) lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+                    }
                     lockedScrollId = -1;
                     if (elementClass != null) {
                         for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
@@ -595,7 +599,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         View firstView = listView.getChildAt(0);
         int y = firstView != null ? firstView.getTop() : 0;
         if (!useScrollLock && (elements.size() == 1 || firstPos == 0 && y > -1)) {
-            Log.d("insertElement2", "Scroll Position = 0 (Top) ... " + element);
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = 0 (Top) ... " + element);
+            }
             listView.setSelection(0);
         } else if (lockedScrollId > -1) {
             for (int i = 0; i < elements.size(); i++) {
@@ -606,36 +612,46 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     }
                 }
             }
-            Log.d("insertElement2", "Scroll Position = " + firstPos + " (Locked strict) ... " + element);
-            if (firstPos > 0) {
-                Log.d("insertElement2", "    " + (firstPos - 1)+ " : ... " + elements.get(firstPos - 1));
-            }
-            Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-            if (firstPos + 1 < elements.size()) {
-                Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+
+            //noinspection Duplicates
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = " + firstPos + " (Locked strict) ... " + element);
+                if (firstPos > 0) {
+                    Log.d("insertElement2", "    " + (firstPos - 1) + " : ... " + elements.get(firstPos - 1));
+                }
+                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
+                if (firstPos + 1 < elements.size()) {
+                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+                }
             }
         } else if (position <= firstPos) {
-            Log.d("insertElement2", "Scroll Position = " + (firstPos + 1) + " (Locked) ... " + element);
-            Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-            if (firstPos + 1 < elements.size()) {
-                Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = " + (firstPos + 1) + " (Locked) ... " + element);
+                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
+                if (firstPos + 1 < elements.size()) {
+                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+                }
+                if (firstPos + 2 < elements.size()) {
+                    Log.d("insertElement2", "    " + (firstPos + 2) + " : ... " + elements.get(firstPos + 2));
+                }
             }
-            if (firstPos + 2 < elements.size()) {
-                Log.d("insertElement2", "    " + (firstPos + 2) + " : ... " + elements.get(firstPos + 2));
-            }
+
             unreadSet.add(commonDelegate.getId(element));
             listView.setSelectionFromTop(firstPos + 1, y);
 
             lockedScrollId = commonDelegate.getId(firstPos + 1 < elements.size() ? elements.get(firstPos + 1) : element);
             lockedYPosition = y;
         } else {
-            Log.d("insertElement2", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
-            if (firstPos > 0) {
-                Log.d("insertElement2", "    " + (firstPos - 1)+ " : ... " + elements.get(firstPos - 1));
-            }
-            Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-            if (firstPos + 1 < elements.size()) {
-                Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+            //noinspection Duplicates
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
+                if (firstPos > 0) {
+                    Log.d("insertElement2", "    " + (firstPos - 1) + " : ... " + elements.get(firstPos - 1));
+                }
+                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
+                if (firstPos + 1 < elements.size()) {
+                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+                }
             }
         }
         updateUnreadNotifier();
