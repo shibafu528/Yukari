@@ -205,7 +205,7 @@ public class FakeStatus implements Status {
 
         @Override
         public String getScreenName() {
-            return "";
+            return "**FakeStatus**";
         }
 
         @Override
