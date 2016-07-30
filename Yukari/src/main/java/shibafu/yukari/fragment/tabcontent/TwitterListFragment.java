@@ -121,9 +121,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     //TweetCommon Delegate
     private TweetCommonDelegate commonDelegate;
 
-    //DoubleClock Blocker
+    //DoubleClick Blocker
     private boolean enableDoubleClickBlocker;
-    private boolean blockingDoubleClock;
+    private boolean blockingDoubleClick;
 
     //Scroll Lock
     private long lockedScrollId = -1;
@@ -285,7 +285,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         limitedTimeline = sharedPreferences.getBoolean("pref_limited_timeline", false);
 
         enableDoubleClickBlocker = sharedPreferences.getBoolean("pref_block_doubleclock", false);
-        blockingDoubleClock = false;
+        blockingDoubleClick = false;
     }
 
     @Override
@@ -490,7 +490,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     @Override
     public final void onListItemClick(ListView l, View v, int position, long id) {
-        if (blockingDoubleClock) {
+        if (blockingDoubleClick) {
             return;
         }
 
@@ -498,7 +498,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             //要素クリックイベントの呼び出し
             if (onListItemClick(position, elements.get(position)) && enableDoubleClickBlocker) {
                 //次回onResumeまでクリックイベントを無視する
-                blockingDoubleClock = true;
+                blockingDoubleClick = true;
             }
         } else if (position == elements.size() && !isLoading) {
             //フッタークリック
@@ -742,8 +742,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
-    protected void setBlockingDoubleClock(boolean blockingDoubleClock) {
-        this.blockingDoubleClock = blockingDoubleClock;
+    protected void setBlockingDoubleClick(boolean blockingDoubleClick) {
+        this.blockingDoubleClick = blockingDoubleClick;
     }
 
     private boolean isFakeStatus(T element) {

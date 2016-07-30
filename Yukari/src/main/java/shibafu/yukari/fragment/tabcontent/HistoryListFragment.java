@@ -107,7 +107,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
                     startActivity(intent);
                     break;
                 case DialogInterface.BUTTON_NEGATIVE:
-                    setBlockingDoubleClock(false);
+                    setBlockingDoubleClick(false);
                     break;
             }
         }
