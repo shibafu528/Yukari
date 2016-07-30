@@ -25,6 +25,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus
 import shibafu.yukari.twitter.statusmanager.StatusListener
 import shibafu.yukari.twitter.statusmanager.StatusManager
+import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 import twitter4j.DirectMessage
 import twitter4j.Status
@@ -212,7 +213,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 stash.add(status)
             }
             else -> {
-                handler.post { insertElement2(status, status is MetaStatus && "RestStream" == status.metadata) }
+                val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
+                handler.post { insertElement2(status, useScrollLock && status is MetaStatus && "RestStream" == status.metadata) }
                 putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
