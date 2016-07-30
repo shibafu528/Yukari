@@ -24,6 +24,8 @@ public class LinkMediaFactory {
                 linkMedia = new Twimg(mediaURL);
             } else if (mediaURL.contains("pbs.twimg.com/tweet_video/") || mediaURL.contains("video.twimg.com")) {
                 linkMedia = new TwitterVideo(mediaURL);
+            } else if (RouterCake.ORIGIN_URL.equals(mediaURL)) {
+                linkMedia = new RouterCake(mediaURL);
             } else if (mediaURL.contains("/yfrog.com")) {
                 linkMedia = new YFrog(mediaURL);
             } else if (mediaURL.contains("p.twipple.jp")) {
