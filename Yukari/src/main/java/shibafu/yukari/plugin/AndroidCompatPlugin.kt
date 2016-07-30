@@ -23,8 +23,12 @@ class AndroidCompatPlugin(mRuby: MRuby) : Plugin(mRuby, "android_compat") {
         val extras = Bundle()
         options.forEach { entry ->
             val v = entry.value ?: return@forEach
-            when (v.javaClass) {
-                String::class.java -> extras.putString(entry.key, v.toString())
+            when (v) {
+                is String -> extras.putString(entry.key, v.toString())
+                is Long -> when (v) {
+                    in Int.MIN_VALUE..Int.MAX_VALUE -> extras.putInt(entry.key, v.toInt())
+                    else -> extras.putLong(entry.key, v)
+                }
             }
         }
 

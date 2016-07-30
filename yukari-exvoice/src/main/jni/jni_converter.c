@@ -10,8 +10,8 @@ static jfieldID boolean_TRUE = NULL;
 static jfieldID boolean_FALSE = NULL;
 
 static jmethodID boolean_equals = NULL;
-static jmethodID integer_constructor = NULL;
 static jmethodID integer_intValue = NULL;
+static jmethodID long_constructor = NULL;
 static jmethodID long_longValue = NULL;
 static jmethodID float_floatValue = NULL;
 static jmethodID double_constructor = NULL;
@@ -192,13 +192,13 @@ jobject convertMrbValueToJava(JNIEnv *env, mrb_state *mrb, mrb_value value) {
         case MRB_TT_SYMBOL:
             return (*env)->NewStringUTF(env, mrb_sym2name(mrb, mrb_symbol(value)));
         case MRB_TT_FIXNUM: {
-            jclass intClass = (*env)->FindClass(env, "java/lang/Integer");
-            if (integer_constructor == NULL) {
-                integer_constructor = (*env)->GetMethodID(env, intClass, "<init>", "(I)V");
+            jclass longClass = (*env)->FindClass(env, "java/lang/Long");
+            if (long_constructor == NULL) {
+                long_constructor = (*env)->GetMethodID(env, longClass, "<init>", "(J)V");
             }
-            jobject object = (*env)->NewObject(env, intClass, integer_constructor, mrb_fixnum(value));
+            jobject object = (*env)->NewObject(env, longClass, long_constructor, mrb_fixnum(value));
 
-            (*env)->DeleteLocalRef(env, intClass);
+            (*env)->DeleteLocalRef(env, longClass);
             return object;
         }
         case MRB_TT_FLOAT: {

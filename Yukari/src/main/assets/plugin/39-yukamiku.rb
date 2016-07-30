@@ -14,11 +14,11 @@ module Plugin::YukaMiku
     # @return [Message] mikutter message
     def to_message(extra)
       value = {
-          id: extra['id'],
+          id: extra['id'].to_i,
           message: extra['text'],
           user: to_user(extra),
           receiver: nil,
-          replyto: nil,
+          replyto: extra['in_reply_to_status_id'].to_i,
           retweet: nil,
           source: extra['source'],
           geo: "#{extra['latitude']}, #{extra['longitude']}",
