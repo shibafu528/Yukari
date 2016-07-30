@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
@@ -61,7 +63,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     public static final int LOADER_LOAD_MORE   = 1;
     public static final int LOADER_LOAD_UPDATE = 2;
 
-    private static final boolean USE_INSERT_LOG = false;
+    private static final boolean USE_INSERT_LOG = true;
 
     //Elements List
     private Class<T> elementClass;
@@ -126,6 +128,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     //Scroll Lock
     private long lockedScrollId = -1;
     private int lockedYPosition = 0;
+    private Handler scrollUnlockHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if (USE_INSERT_LOG) {
+                Log.d("scrollUnlockHandler", "(reset) lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+            }
+            lockedScrollId = -1;
+        }
+    };
 
     private Handler handler = new Handler();
 
@@ -226,9 +237,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 @Override
                 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                     if (USE_INSERT_LOG) {
-                        Log.d("onScroll", "(reset) lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+                        Log.d("onScroll", "called. lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
                     }
-                    lockedScrollId = -1;
+
                     if (elementClass != null) {
                         for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
                             T element = elements.get(firstVisibleItem);
@@ -599,59 +610,48 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         View firstView = listView.getChildAt(0);
         int y = firstView != null ? firstView.getTop() : 0;
         if (!useScrollLock && (elements.size() == 1 || firstPos == 0 && y > -1)) {
+            listView.setSelection(0);
+
             if (USE_INSERT_LOG) {
                 Log.d("insertElement2", "Scroll Position = 0 (Top) ... " + element);
             }
-            listView.setSelection(0);
         } else if (lockedScrollId > -1) {
             for (int i = 0; i < elements.size(); i++) {
-                if (commonDelegate.getId(elements.get(i)) == lockedScrollId) {
+                if (commonDelegate.getId(elements.get(i)) <= lockedScrollId) {
                     listView.setSelectionFromTop(i, y);
                     if (position < i) {
                         unreadSet.add(commonDelegate.getId(element));
                     }
-                }
-            }
 
-            //noinspection Duplicates
-            if (USE_INSERT_LOG) {
-                Log.d("insertElement2", "Scroll Position = " + firstPos + " (Locked strict) ... " + element);
-                if (firstPos > 0) {
-                    Log.d("insertElement2", "    " + (firstPos - 1) + " : ... " + elements.get(firstPos - 1));
-                }
-                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-                if (firstPos + 1 < elements.size()) {
-                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
+                    scrollUnlockHandler.removeCallbacksAndMessages(null);
+                    scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200);
+
+                    if (USE_INSERT_LOG) {
+                        Log.d("insertElement2", "Scroll Position = " + i + " (Locked strict) ... " + element);
+                        dumpAroundTweets(i);
+                    }
+                    break;
                 }
             }
         } else if (position <= firstPos) {
-            if (USE_INSERT_LOG) {
-                Log.d("insertElement2", "Scroll Position = " + (firstPos + 1) + " (Locked) ... " + element);
-                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-                if (firstPos + 1 < elements.size()) {
-                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
-                }
-                if (firstPos + 2 < elements.size()) {
-                    Log.d("insertElement2", "    " + (firstPos + 2) + " : ... " + elements.get(firstPos + 2));
-                }
-            }
-
             unreadSet.add(commonDelegate.getId(element));
             listView.setSelectionFromTop(firstPos + 1, y);
 
             lockedScrollId = commonDelegate.getId(firstPos + 1 < elements.size() ? elements.get(firstPos + 1) : element);
             lockedYPosition = y;
+
+            scrollUnlockHandler.removeCallbacksAndMessages(null);
+            scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200);
+
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = " + (firstPos + 1) + " (Locked) ... " + element);
+                dumpAroundTweets(firstPos);
+                Log.d("insertElement2", "    lockedScrollId = " + lockedScrollId + " ... " + (firstPos + 1 < elements.size() ? elements.get(firstPos + 1) : element));
+            }
         } else {
-            //noinspection Duplicates
             if (USE_INSERT_LOG) {
                 Log.d("insertElement2", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
-                if (firstPos > 0) {
-                    Log.d("insertElement2", "    " + (firstPos - 1) + " : ... " + elements.get(firstPos - 1));
-                }
-                Log.d("insertElement2", "    " + firstPos + " : ... " + elements.get(firstPos));
-                if (firstPos + 1 < elements.size()) {
-                    Log.d("insertElement2", "    " + (firstPos + 1) + " : ... " + elements.get(firstPos + 1));
-                }
+                dumpAroundTweets(firstPos);
             }
         }
         updateUnreadNotifier();
@@ -748,6 +748,16 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     private boolean isFakeStatus(T element) {
         return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
+    }
+
+    private void dumpAroundTweets(int position) {
+        if (position > 0) {
+            Log.d("dumpAroundTweets", "    " + (position - 1) + " : ... " + elements.get(position - 1));
+        }
+        Log.d("dumpAroundTweets", "    " + position + " : ... " + elements.get(position));
+        if (position + 1 < elements.size()) {
+            Log.d("dumpAroundTweets", "    " + (position + 1) + " : ... " + elements.get(position + 1));
+        }
     }
 
 }
