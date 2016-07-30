@@ -734,7 +734,6 @@ public class StatusManager implements Releasable {
                     if (isCancelled()) return null;
 
                     // StreamManagerに流す
-//                    Collections.reverse(responseList);
                     for (twitter4j.Status status : responseList) {
                         listener.onStatus(stream, status);
                     }
