@@ -54,7 +54,6 @@ import twitter4j.UserMentionEntity;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -735,7 +734,7 @@ public class StatusManager implements Releasable {
                     if (isCancelled()) return null;
 
                     // StreamManagerに流す
-                    Collections.reverse(responseList);
+//                    Collections.reverse(responseList);
                     for (twitter4j.Status status : responseList) {
                         listener.onStatus(stream, status);
                     }
@@ -768,8 +767,14 @@ public class StatusManager implements Releasable {
                                     Toast.LENGTH_SHORT).show();
                             break;
                         default:
+                            String template;
+                            if (exception.isCausedByNetworkIssue()) {
+                                template = "[@%s]\n通信エラー: %d:%d\n%s";
+                            } else {
+                                template = "[@%s]\nエラー: %d:%d\n%s";
+                            }
                             Toast.makeText(context,
-                                    String.format("[@%s]\n通信エラー: %d:%d\n%s",
+                                    String.format(template,
                                             userRecord.ScreenName,
                                             exception.getStatusCode(),
                                             exception.getErrorCode(),
