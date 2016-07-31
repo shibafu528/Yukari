@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -20,6 +21,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import lombok.Value;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
@@ -62,6 +64,13 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     public static final int LOADER_LOAD_INIT   = 0;
     public static final int LOADER_LOAD_MORE   = 1;
     public static final int LOADER_LOAD_UPDATE = 2;
+
+    /** {@link PrepareInsertResultCode} : 同時に返すpositionに挿入可能 */
+    protected static final int PREPARE_INSERT_ALLOWED = 0;
+    /** {@link PrepareInsertResultCode} : 既に同一の要素が存在している(挿入禁止) */
+    protected static final int PREPARE_INSERT_DUPLICATED = -1;
+    /** {@link PrepareInsertResultCode} : 同一要素があったためマージを行った(Viewの制御のみ必要) */
+    protected static final int PREPARE_INSERT_MERGED = -2;
 
     private static final boolean USE_INSERT_LOG = true;
 
@@ -126,7 +135,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private boolean blockingDoubleClick;
 
     //Scroll Lock
-    private long lockedScrollId = -1;
+    protected long lockedScrollId = -1;
     private int lockedYPosition = 0;
     private Handler scrollUnlockHandler = new Handler(Looper.getMainLooper()) {
         @Override
@@ -523,19 +532,19 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         limitCount = users.size() * 256;
     }
 
-    protected int prepareInsertStatus(T status) {
+    protected PrepareInsertResult prepareInsertStatus(T status) {
         //挿入位置の探索と追加
         T storedStatus;
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
             if (commonDelegate.getId(status) == commonDelegate.getId(storedStatus)) {
-                return -1;
+                return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             }
             else if (commonDelegate.getId(status) > commonDelegate.getId(storedStatus)) {
-                return i;
+                return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
             }
         }
-        return elements.size();
+        return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, elements.size());
     }
 
     @UiThread
@@ -580,28 +589,33 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     @UiThread
     protected void insertElement2(T element, boolean useScrollLock) {
-        int position = prepareInsertStatus(element);
-        if (position < 0 || elements.contains(element)) {
+        PrepareInsertResult prepareInsert = prepareInsertStatus(element);
+        int position = prepareInsert.getPosition();
+        if (prepareInsert.getResultCode() == PREPARE_INSERT_DUPLICATED) {
             return;
-        }
-
-        if (position < elements.size()) {
-            boolean isFake = isFakeStatus(element);
-            if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
-                return;
-        }
-        elements.add(position, element);
-        notifyDataSetChanged();
-        if (isLimitedTimeline() && elements.size() > getLimitCount()) {
-            for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
-                T e = iterator.next();
-                if (!isFakeStatus(e)) {
-                    unreadSet.remove(commonDelegate.getId(e));
-                    iterator.remove();
-                    notifyDataSetChanged();
+        } else if (prepareInsert.getResultCode() == PREPARE_INSERT_MERGED) {
+            notifyDataSetChanged();
+        } else if (!elements.contains(element)) {
+            if (position < elements.size()) {
+                boolean isFake = isFakeStatus(element);
+                if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                    return;
+            }
+            elements.add(position, element);
+            notifyDataSetChanged();
+            if (isLimitedTimeline() && elements.size() > getLimitCount()) {
+                for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
+                    T e = iterator.next();
+                    if (!isFakeStatus(e)) {
+                        unreadSet.remove(commonDelegate.getId(e));
+                        iterator.remove();
+                        notifyDataSetChanged();
+                    }
                 }
             }
+
         }
+
         if (listView == null) {
             Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
             return;
@@ -659,7 +673,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     protected void deleteElement(TwitterResponse element) {
         if (listView == null) {
-            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ")");
+            Log.w("deleteElement", "ListView is null. DROPPED! (" + element + ")");
             return;
         }
         long id = TweetCommon.newInstance(element.getClass()).getId(element);
@@ -674,6 +688,13 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 notifyDataSetChanged();
                 if (elements.size() == 1 || firstPos == 0) {
                     listView.setSelection(0);
+                } else if (lockedScrollId > -1) {
+                    for (int i = 0; i < elements.size(); i++) {
+                        if (commonDelegate.getId(elements.get(i)) <= lockedScrollId) {
+                            listView.setSelectionFromTop(i, y);
+                            break;
+                        }
+                    }
                 } else {
                     listView.setSelectionFromTop(firstPos - (firstId < id? 1 : 0), y);
                 }
@@ -760,4 +781,21 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    /**
+     * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の結果を格納します。
+     */
+    @Value
+    protected static class PrepareInsertResult {
+        /** 処理結果を表します。*/
+        @PrepareInsertResultCode private int resultCode;
+
+        /** 要素の挿入先positionを表します。 */
+        private int position;
+    }
+
+    /**
+     * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の処理結果を表します。
+     */
+    @IntDef({PREPARE_INSERT_ALLOWED, PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_MERGED})
+    protected @interface PrepareInsertResultCode {}
 }

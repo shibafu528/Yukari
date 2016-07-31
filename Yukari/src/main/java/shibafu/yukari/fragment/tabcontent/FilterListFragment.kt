@@ -230,13 +230,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                 if (status.tag.equals(restTag)) {
                     loadingTaskKeys.remove(status.taskKey)
                     if (queryingLoadMarkers.indexOfKey(status.taskKey) > -1) {
-                        val iterator = elements.iterator()
-                        while (iterator.hasNext()) {
-                            val e = iterator.next()
-                            if (e.baseStatus is LoadMarkerStatus && (e.baseStatus as LoadMarkerStatus).taskKey == status.taskKey) {
-                                iterator.remove()
-                                notifyDataSetChanged()
-                            }
+                        elements.firstOrNull { it.baseStatus is LoadMarkerStatus && (it.baseStatus as LoadMarkerStatus).taskKey == status.taskKey }?.let {
+                            handler.post { deleteElement(it) }
                         }
                         queryingLoadMarkers.remove(status.taskKey)
                     }

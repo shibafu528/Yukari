@@ -311,7 +311,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     };
 
     @Override
-    protected int prepareInsertStatus(PreformedStatus status) {
+    protected PrepareInsertResult prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
         AuthUserRecord owner = getService().isMyTweet(status);
         if (owner != null) {
@@ -319,7 +319,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
         //挿入位置の探索と追加
         PreformedStatus storedStatus;
-        long searchingAnchorId = -1;
+        long searchingAnchorId = PREPARE_INSERT_DUPLICATED;
         if (status.getBaseStatusClass() == LoadMarkerStatus.class) {
             searchingAnchorId = ((LoadMarkerStatus) status.getBaseStatus()).getAnchorTweetId();
         }
@@ -327,20 +327,21 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             storedStatus = elements.get(i);
             if (searchingAnchorId == storedStatus.getId()) {
                 Log.d("TweetListFragment", "prepareInsertStatus : Detected anchor status. " + searchingAnchorId);
-                return -1;
+                return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             } else if (status.getId() == storedStatus.getId()) {
                 if (FakeStatus.class.isAssignableFrom(status.getBaseStatusClass())) {
-                    return i;
+                    return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
                 } else {
                     storedStatus.merge(status);
-                    notifyDataSetChanged();
-                    return -1;
+                    //notifyDataSetChanged();
+                    //return -1;
+                    return new PrepareInsertResult(PREPARE_INSERT_MERGED, i);
                 }
             } else if (status.getId() > storedStatus.getId()) {
-                return i;
+                return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
             }
         }
-        return elements.size();
+        return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, elements.size());
     }
 
     //StatusListener用のデフォルト実装
@@ -415,7 +416,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         @Override
         public int prepareInsertStatus(PreformedStatus status) {
-            return TweetListFragment.this.prepareInsertStatus(status);
+            return TweetListFragment.this.prepareInsertStatus(status).getPosition();
         }
 
         @Override
@@ -425,6 +426,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     };
 
     private RESTLoader.RESTLoaderInterface2 defaultRESTInterface2 = new RESTLoader.RESTLoaderInterface2() {
+        private boolean useScrollLock = false;
+
         @Override
         public TwitterService getService() {
             return TweetListFragment.this.getService();
@@ -442,7 +445,10 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         @Override
         public void insertElement(PreformedStatus status) {
-            TweetListFragment.this.insertElement2(status, true);
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                useScrollLock = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_lock_scroll_after_reload", false);
+            }
+            TweetListFragment.this.insertElement2(status, useScrollLock);
         }
 
         @Override
