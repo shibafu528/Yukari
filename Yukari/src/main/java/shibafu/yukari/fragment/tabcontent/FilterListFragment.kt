@@ -209,13 +209,13 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
 
         when {
             muted -> {
-                putDebugLog("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("FilterListFragment", "[$filterRawQuery] onStatus : Muted ... $status")
                 stash.add(status)
             }
             else -> {
                 val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
                 handler.post { insertElement2(status, useScrollLock && status is MetaStatus && "RestStream" == status.metadata) }
-                putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }
     }
@@ -235,7 +235,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                         }
                         queryingLoadMarkers.remove(status.taskKey)
                     }
-                    putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${status.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
                     if (loadingTaskKeys.isEmpty()) {
                         handler.post { setRefreshComplete() }
                     }

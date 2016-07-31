@@ -72,7 +72,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     /** {@link PrepareInsertResultCode} : 同一要素があったためマージを行った(Viewの制御のみ必要) */
     protected static final int PREPARE_INSERT_MERGED = -2;
 
-    private static final boolean USE_INSERT_LOG = true;
+    protected static final boolean USE_INSERT_LOG = false;
 
     //Elements List
     private Class<T> elementClass;
