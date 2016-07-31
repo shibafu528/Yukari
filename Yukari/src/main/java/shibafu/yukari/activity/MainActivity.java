@@ -952,7 +952,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         public Fragment getItem(int i) {
             TabInfo tabInfo = pageList.get(i);
 
-            TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo);
+            TwitterListFragment fragment;
+            if (sharedPreferences.getBoolean("pref_use_strict_filter", false)) {
+                fragment = TweetListFragmentFactory.newInstanceWithFilter(tabInfo);
+            } else {
+                fragment = TweetListFragmentFactory.newInstance(tabInfo);
+            }
             switch (tabInfo.getType()) {
                 case TabType.TABTYPE_TRACK:
                     //現状ここに行き着くことってそんなに無い気がする

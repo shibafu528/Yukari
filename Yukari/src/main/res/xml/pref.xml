@@ -331,6 +331,10 @@
             android:key="pref_show_menubutton"
             android:title="メニューボタンを表示"
             android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
+        <CheckBoxPreference
+            android:key="pref_use_strict_filter"
+            android:title="フィルタTLのシステムを全体で使う"
+            android:summary="フィルタタブ以外も、同じ意味のクエリを持つフィルタタブとして処理するようにします。\n同じ意味のソースが存在するタブのみ適用されます。"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="プラグインエンジン (実験中)">
