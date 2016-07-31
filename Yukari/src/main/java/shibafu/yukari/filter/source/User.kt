@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/07/26.
  */
-public class User(override val sourceAccount: AuthUserRecord?, val target: String) : FilterSource {
+public data class User(override val sourceAccount: AuthUserRecord?, val target: String) : FilterSource {
     private val targetId: Long? = if (target.startsWith("#")) target.substring(1).toLong() else null
 
     override fun getRestQuery() = RestQuery { twitter, paging ->

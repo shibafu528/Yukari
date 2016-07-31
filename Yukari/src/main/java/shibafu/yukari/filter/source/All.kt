@@ -9,7 +9,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/06/07.
  */
-public class All : FilterSource {
+public data class All(private val pseudo: Unit = Unit) : FilterSource {
     override val sourceAccount: AuthUserRecord? = null
 
     override fun getRestQuery() = null

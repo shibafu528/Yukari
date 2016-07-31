@@ -1,7 +1,12 @@
 package shibafu.yukari.filter.source
 
 import android.content.Context
-import shibafu.yukari.filter.sexp.*
+import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.NotNode
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
@@ -11,7 +16,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/07/26.
  */
-public class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
+public data class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getRestQuery() = RestQuery { twitter, paging -> twitter.getMentionsTimeline(paging) }
 
