@@ -648,19 +648,32 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 }
             }
         } else if (position <= firstPos) {
-            unreadSet.add(commonDelegate.getId(element));
-            listView.setSelectionFromTop(firstPos + 1, y);
+            if (elements.size() <= 1 && isFakeStatus(element)) {
+                // 要素数1の時にマーカーを掴むとずっと下にスクロールされてしまうので回避する
+            } else {
+                int lockedPosition = firstPos + 1;
+                if (lockedPosition < elements.size()) {
+                    if (isFakeStatus(elements.get(lockedPosition))) {
+                        lockedPosition = firstPos;
+                    }
+                } else {
+                    lockedPosition = firstPos;
+                }
 
-            lockedScrollId = commonDelegate.getId(firstPos + 1 < elements.size() ? elements.get(firstPos + 1) : element);
-            lockedYPosition = y;
+                unreadSet.add(commonDelegate.getId(element));
+                listView.setSelectionFromTop(lockedPosition, y);
 
-            scrollUnlockHandler.removeCallbacksAndMessages(null);
-            scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200);
+                lockedScrollId = commonDelegate.getId(elements.get(lockedPosition));
+                lockedYPosition = y;
 
-            if (USE_INSERT_LOG) {
-                Log.d("insertElement2", "Scroll Position = " + (firstPos + 1) + " (Locked) ... " + element);
-                dumpAroundTweets(firstPos);
-                Log.d("insertElement2", "    lockedScrollId = " + lockedScrollId + " ... " + (firstPos + 1 < elements.size() ? elements.get(firstPos + 1) : element));
+                scrollUnlockHandler.removeCallbacksAndMessages(null);
+                scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200);
+
+                if (USE_INSERT_LOG) {
+                    Log.d("insertElement2", "Scroll Position = " + lockedPosition + " (Locked) ... " + element);
+                    dumpAroundTweets(firstPos);
+                    Log.d("insertElement2", "    lockedScrollId = " + lockedScrollId + " ... " + elements.get(lockedPosition));
+                }
             }
         } else {
             if (USE_INSERT_LOG) {
