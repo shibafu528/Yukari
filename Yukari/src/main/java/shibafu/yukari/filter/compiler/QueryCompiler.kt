@@ -97,11 +97,18 @@ public final class QueryCompiler {
                 }
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
-                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>): List<T> {
-                    if (args.isEmpty()) throw FilterCompilerException("アカウントが指定されていません。", type)
+                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>, requiredArgs: Boolean = false): List<T> {
+                    val screenNames = if (args.isEmpty()) {
+                        if (requiredArgs) {
+                            throw FilterCompilerException("アカウントが指定されていません。", type)
+                        }
+                        userRecords.map { Token(TokenType.STRING, 0, it.ScreenName) }
+                    } else {
+                        args
+                    }
 
                     val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
-                    return args.map { p ->
+                    return screenNames.map { p ->
                         constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
                                 ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
                     }
