@@ -241,7 +241,24 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
-                public void onScrollStateChanged(AbsListView view, int scrollState) {}
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                    switch (scrollState) {
+                        case SCROLL_STATE_FLING:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = FLING");
+                            // ユーザ操作によるスクロールが行われる時は、スクロールロックを解除
+                            lockedScrollId = -1;
+                            break;
+                        case SCROLL_STATE_IDLE:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = IDLE");
+                            break;
+                        case SCROLL_STATE_TOUCH_SCROLL:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = TOUCH_SCROLL");
+                            break;
+                        default:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = " + scrollState);
+                            break;
+                    }
+                }
 
                 @Override
                 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
