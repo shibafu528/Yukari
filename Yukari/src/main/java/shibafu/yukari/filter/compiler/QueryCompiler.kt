@@ -23,6 +23,7 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
 import shibafu.yukari.filter.source.Mention
 import shibafu.yukari.filter.source.User
+import shibafu.yukari.filter.source.List as ListSource
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -148,6 +149,7 @@ public final class QueryCompiler {
                         "home" -> createFiltersWithAuthArguments(Home::class.java)
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
                         "user" -> createFiltersWithListArguments(User::class.java, 1, "(受信ユーザ/)対象ユーザ")
+                        "list" -> createFiltersWithListArguments(ListSource::class.java, 2, "(受信ユーザ/)ユーザ/リスト名")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
