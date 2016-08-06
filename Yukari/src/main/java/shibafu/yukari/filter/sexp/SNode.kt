@@ -1,15 +1,12 @@
 package shibafu.yukari.filter.sexp
 
-import shibafu.yukari.twitter.AuthUserRecord
-import twitter4j.TwitterResponse
-
 /**
  * 式ノード
  */
 public interface SNode {
-    val children: List<SNode>;
+    val children: List<SNode>
 
-    fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
+    fun evaluate(context: EvaluateContext): Any
 
     fun toExpression(): String {
         val sb = StringBuilder("( ")
@@ -37,7 +34,7 @@ public interface FactorNode {
 public class ValueNode(override var value: Any?) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any = value ?: false
+    override fun evaluate(context: EvaluateContext): Any = value ?: false
 
     override fun toString(): String {
         return toExpression()
@@ -56,7 +53,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
 
     override val children: List<SNode> = emptyList()
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+    override fun evaluate(context: EvaluateContext): Any {
         //TODO: これ評価毎にメソッド探索してませんか？コスト高くないですか？
         tailrec fun invoke(pathList: List<String>, target: Any?): Any? {
             if (target == null) return null
@@ -75,9 +72,9 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
         val pathList = path.split('.')
         value = if (path.startsWith('@')) {
             val screenName = pathList.first().substring(1)
-            userRecords.firstOrNull{ it.ScreenName.equals(screenName) }.let { invoke(pathList.drop(1), it) }
+            context.userRecords.firstOrNull{ it.ScreenName.equals(screenName) }.let { invoke(pathList.drop(1), it) }
         } else {
-            invoke(pathList, status)
+            invoke(pathList, context.status)
         }
         return value ?: false
     }
@@ -96,8 +93,8 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
  */
 public class ListNode(override val children: List<SNode>) : SNode {
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>)
-            = children.map { it.evaluate(status, userRecords) }
+    override fun evaluate(context: EvaluateContext)
+            = children.map { it.evaluate(context) }
 }
 
 /**
@@ -105,6 +102,6 @@ public class ListNode(override val children: List<SNode>) : SNode {
  */
 public class QuoteNode(override val children: List<SNode>) : SNode {
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>)
+    override fun evaluate(context: EvaluateContext)
             = children
 }
