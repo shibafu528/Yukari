@@ -1,11 +1,16 @@
 package shibafu.yukari.filter
 
 import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.EqualsNode
 import shibafu.yukari.filter.sexp.EvaluateContext
 import shibafu.yukari.filter.sexp.OrNode
 import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.statusimpl.MetaStatus
+import shibafu.yukari.twitter.streaming.RestStream
 import twitter4j.TwitterResponse
 
 /**
@@ -29,9 +34,23 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      */
     public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>, variables: Map<String, Any?> = emptyMap()): Boolean
             = AndNode(
-                OrNode(sources.map {
-                    it.filterUserStream()
-                }),
+                OrNode(
+                    // RESTレスポンスは通す
+                    AndNode(
+                        EqualsNode(
+                            VariableNode("class.simpleName"),
+                            ValueNode(MetaStatus::class.java.simpleName)
+                        ),
+                        EqualsNode(
+                            VariableNode("metadata"),
+                            ValueNode(RestStream::class.java.simpleName)
+                        )
+                    ),
+                    // UserStreamレスポンスは各ソースのフィルタを通す
+                    OrNode(sources.map {
+                        it.filterUserStream()
+                    })
+                ),
                 rootNode
             ).evaluate(EvaluateContext(target, userRecords).apply { this.variables.putAll(variables) }).equals(true)
 

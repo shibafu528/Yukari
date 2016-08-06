@@ -21,6 +21,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -81,7 +82,7 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                             }
 
                             FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
-                            compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
+                            compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>(), new HashMap<>()));
                         } catch (FilterCompilerException | TokenizeException e) {
                             compileStatus.setText(e.toString());
                         }

@@ -77,6 +77,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -697,7 +698,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
                         for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
                             TwitterResponse element = iterator.next();
-                            if (!query.evaluate(element, users)) {
+                            if (!query.evaluate(element, users, new HashMap<>())) {
                                 iterator.remove();
                             }
                         }
