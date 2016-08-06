@@ -15,5 +15,5 @@ class EvaluateContext(val status: TwitterResponse, val userRecords: List<AuthUse
      *
      * この表に格納されている値は [VariableNode] において "$key" の形で参照することが出来ます。
      */
-    var variables: MutableMap<String, Any> = mutableMapOf()
+    var variables: MutableMap<String, Any?> = mutableMapOf()
 }

@@ -73,6 +73,13 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
         value = if (path.startsWith('@')) {
             val screenName = pathList.first().substring(1)
             context.userRecords.firstOrNull{ it.ScreenName.equals(screenName) }.let { invoke(pathList.drop(1), it) }
+        } else if (path.startsWith('$')) {
+            val variable = context.variables[path.substring(1)]
+            if (variable == null || pathList.size == 1) {
+                variable
+            } else {
+                invoke(pathList.drop(1), variable)
+            }
         } else {
             invoke(pathList, context.status)
         }

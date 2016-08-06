@@ -1,6 +1,7 @@
 package shibafu.yukari.filter
 
 import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.EvaluateContext
 import shibafu.yukari.filter.sexp.OrNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.source.FilterSource
@@ -23,14 +24,15 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      * ツイートやメッセージをコンパイルされたクエリ式で評価します。
      * @param target 評価対象
      * @param userRecords ユーザアカウント (評価時にアカウント変数として使用されます)
+     * @param variables 変数
      * @return クエリ式の評価結果 (抽出であれば、真となったら表示するのが妥当です)
      */
-    public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>): Boolean
+    public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>, variables: Map<String, Any?> = emptyMap()): Boolean
             = AndNode(
                 OrNode(sources.map {
                     it.filterUserStream()
                 }),
                 rootNode
-            ).evaluate(target, userRecords).equals(true)
+            ).evaluate(EvaluateContext(target, userRecords).apply { this.variables.putAll(variables) }).equals(true)
 
 }
