@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -30,8 +31,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
+import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.PreviewActivity;
@@ -74,6 +78,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
+
+    private static final int REQUEST_PRIORITY_ACCOUNT = 1;
 
     private final static long A_DAY = 24 * 60 * 60 * 1000;
     private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -198,11 +204,39 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             menuList.add("ミュートする");
             menuList.add("カラーラベルを設定");
 
+            final boolean isOwnAccount;
             if ((loadHolder != null && loadHolder.targetUser != null && loadHolder.targetUser.getId() == user.NumericId) ||
                     (targetId >= 0 && targetId == user.NumericId) ||
                     (selfLoadId && selfLoadName.equals(user.ScreenName))) {
+                isOwnAccount = true;
+
                 menuList.add("プロフィール編集");
                 menuList.add("ブロックリスト");
+            } else if (getTwitterService() != null) {
+                isOwnAccount = false;
+
+                long id;
+                if (targetId >= 0) {
+                    id = targetId;
+                } else if (loadHolder != null && loadHolder.targetUser != null) {
+                    id = loadHolder.targetUser.getId();
+                } else {
+                    id = -1;
+                }
+
+                if (id >= -1) {
+                    List<UserExtras> userExtras = getTwitterService().getUserExtras();
+                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
+                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
+                    if (priorityAccount != null) {
+                        menuList.add("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
+                        menuList.add("優先アカウントを解除");
+                    } else {
+                        menuList.add("優先アカウントを設定 (未設定)");
+                    }
+                }
+            } else {
+                isOwnAccount = false;
             }
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -292,24 +326,34 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     }
                     case 8:
                     {
-                        Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
-                        intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
-                        startActivity(intent);
+                        if (isOwnAccount) {
+                            Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
+                            intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
+                            startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                            startActivityForResult(intent, REQUEST_PRIORITY_ACCOUNT);
+                        }
                         break;
                     }
                     case 9:
                     {
-                        FriendListFragment fragment = new FriendListFragment();
-                        Bundle args1 = new Bundle();
-                        args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
-                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
-                        fragment.setArguments(args1);
-                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment, "contain");
-                        transaction.addToBackStack(null);
-                        transaction.commit();
+                        if (isOwnAccount) {
+                            FriendListFragment fragment = new FriendListFragment();
+                            Bundle args1 = new Bundle();
+                            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
+                            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                            args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
+                            fragment.setArguments(args1);
+                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                            transaction.replace(R.id.frame, fragment, "contain");
+                            transaction.addToBackStack(null);
+                            transaction.commit();
+                        } else {
+                            getTwitterService().setPriority(loadHolder.targetUser.getId(), null);
+                            Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                     }
                 }
@@ -778,6 +822,20 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             for (Fragment fragment : fragments) {
                 fragment.onActivityResult(requestCode, resultCode, data);
             }
+        }
+
+        switch (requestCode) {
+            case REQUEST_PRIORITY_ACCOUNT:
+                if (resultCode == Activity.RESULT_OK) {
+                    AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
+                        getTwitterService().setPriority(loadHolder.targetUser.getId(), userRecord);
+                        Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "予期せぬ理由で、優先アカウントの設定に失敗しました", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
         }
     }
 

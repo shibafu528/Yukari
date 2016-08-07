@@ -8,6 +8,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import shibafu.yukari.R;
@@ -17,6 +19,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
@@ -316,6 +319,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         AuthUserRecord owner = getService().isMyTweet(status);
         if (owner != null) {
             status.setOwner(owner);
+        } else if (getService() != null) {
+            //優先アカウントチェック
+            List<UserExtras> userExtras = getTwitterService().getUserExtras();
+            Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+            if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                status.setOwner(first.get().getPriorityAccount());
+            }
         }
         //挿入位置の探索と追加
         PreformedStatus storedStatus;

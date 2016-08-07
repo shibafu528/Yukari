@@ -1,11 +1,13 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import com.annimon.stream.Collectors;
+import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
@@ -74,11 +76,18 @@ public class BookmarkListFragment extends TweetListFragment {
             List<Long> stashedIDs = Stream.of(stash).map(twitter4j.Status::getId).collect(Collectors.toList());
 
             Suppressor suppressor = getTwitterService().getSuppressor();
+            List<UserExtras> userExtras = getTwitterService().getUserExtras();
+
             boolean[] mute;
             for (Bookmark status : bookmarks) {
                 AuthUserRecord checkOwn = getTwitterService().isMyTweet(status);
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
+                } else {
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                        status.setOwner(first.get().getPriorityAccount());
+                    }
                 }
 
                 mute = suppressor.decision(status);

@@ -254,10 +254,8 @@ public class PreformedStatus implements Status{
 
     //外部でオーナー判定した時に代表ユーザを上書きするためのメソッド
     public void setOwner(AuthUserRecord ownerUser) {
-        if (status.getUser().getId() == ownerUser.NumericId) {
-            representUser = ownerUser;
-            addReceivedUserIfNotExist(ownerUser);
-        }
+        representUser = ownerUser;
+        addReceivedUserIfNotExist(ownerUser);
     }
 
     private static String replaceAllEntities(Status status) {

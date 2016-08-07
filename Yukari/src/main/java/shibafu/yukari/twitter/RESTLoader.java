@@ -1,9 +1,12 @@
 package shibafu.yukari.twitter;
 
 import android.widget.Toast;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
@@ -55,12 +58,18 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
             List<PreformedStatus> dest = loaderInterface.getStatuses();
             List<PreformedStatus> stash = loaderInterface.getStash();
             Suppressor suppressor = loaderInterface.getService().getSuppressor();
+            List<UserExtras> userExtras = loaderInterface.getService().getUserExtras();
             int position;
             boolean[] mute;
             for (PreformedStatus status : result) {
                 AuthUserRecord checkOwn = loaderInterface.getService().isMyTweet(status);
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
+                } else {
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                        status.setOwner(first.get().getPriorityAccount());
+                    }
                 }
 
                 mute = suppressor.decision(status);
