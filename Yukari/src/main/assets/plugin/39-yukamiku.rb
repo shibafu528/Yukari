@@ -67,17 +67,29 @@ Plugin.create :yukamiku do
         puts "mikutter_command #{slug}(role: :timeline) => twicca_action :show_tweet"
 
         twicca_action(:show_tweet, slug, miku_command) do |extra|
-          opt = Plugin::GUI::Event.new(:contextmenu, nil, [Plugin::YukaMiku.to_message(extra)])
+          opt = Plugin::GUI::Event.new(:contextmenu, Plugin[:gtk].widgetof(:timeline), [Plugin::YukaMiku.to_message(extra)])
 
           # Postboxの変化を監視するために現在値を保持
           postbox = Plugin[:gtk].widgetof(:postbox)
-          postbox_before = postbox.widget_post.buffer.text
+          postbox_before_text = postbox.widget_post.buffer.text
+          postbox_before_options = postbox.options
 
           exec.call(opt)
 
           # Postboxの内容が変化していたらツイート画面を出す
-          if postbox.widget_post.buffer.text != postbox_before
+          if postbox.widget_post.buffer.text != postbox_before_text
             Plugin.call(:intent, activity: :TweetActivity, mode: :tweet, text: postbox.widget_post.buffer.text)
+          elsif postbox.options != postbox_before_options
+            call_opt = {activity: :TweetActivity, text: [postbox.options[:header], postbox.options[:footer]].join(' ').strip}
+
+            if postbox.options.has_key? :to
+              call_opt[:mode] = :reply
+              call_opt[:in_reply_to] = postbox.options[:to][:id]
+            else
+              call_opt[:mode] = :tweet
+            end
+
+            Plugin.call(:intent, call_opt)
           end
         end
 
@@ -85,7 +97,7 @@ Plugin.create :yukamiku do
         puts "mikutter_command #{slug}(role: :postbox) => twicca_action :edit_tweet"
 
         twicca_action(:edit_tweet, slug, miku_command) do |extra|
-          opt = Plugin::GUI::Event.new(:contextmenu, :postbox, [])
+          opt = Plugin::GUI::Event.new(:contextmenu, Plugin[:gtk].widgetof(:postbox), [])
 
           # Postboxに現在の入力内容を投入する
           postbox = Plugin[:gtk].widgetof(:postbox)
