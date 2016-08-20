@@ -305,9 +305,13 @@
             android:title="TLタッチ拡張"
             android:summary="TL上のタッチイベントを増やします"/>
         <CheckBoxPreference
+            android:key="pref_force_http1"
+            android:title="http1.1を優先使用"
+            android:summary="高速なプロトコルを使用せず、旧来のプロトコルで通信が行われるようにします(※要再起動)"/>
+        <CheckBoxPreference
             android:key="pref_disable_ipv6"
             android:title="IPv6を無効化"
-            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします"/>
+            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします(※要再起動)"/>
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
