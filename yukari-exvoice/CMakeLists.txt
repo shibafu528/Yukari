@@ -1,3 +1,5 @@
+# for CLion Project
+# NOT build script
 cmake_minimum_required(VERSION 3.5)
 project(yukari_exvoice)
 
@@ -8,7 +10,7 @@ include_directories(
         ${PROJECT_SOURCE_DIR}/mruby/include
         $ENV{JAVA_HOME}/include
         $ENV{JAVA_HOME}/include/win32
-        c:/local/android-ndk-r11b/platforms/android-24/arch-arm/usr/include
+        $ENV{ANDROID_NDK_HOME}/platforms/android-24/arch-arm/usr/include
 )
 
 file(GLOB jni_sources "src/main/jni/*.c")
