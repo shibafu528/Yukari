@@ -204,6 +204,11 @@ public class FakeStatus implements Status {
         }
 
         @Override
+        public String getEmail() {
+            return "";
+        }
+
+        @Override
         public String getScreenName() {
             return "**FakeStatus**";
         }

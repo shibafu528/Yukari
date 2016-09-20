@@ -14,7 +14,7 @@ repositories {
 
 ext {
     playServicesVersion = '6.5.87'
-    twitter4jVersion = '4.0.4'
+    twitter4jVersion = '4.0.5'
 }
 
 dependencies {

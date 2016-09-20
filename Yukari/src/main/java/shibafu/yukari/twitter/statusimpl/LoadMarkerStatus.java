@@ -59,6 +59,11 @@ public class LoadMarkerStatus extends FakeStatus {
             }
 
             @Override
+            public String getEmail() {
+                return "";
+            }
+
+            @Override
             public String getScreenName() {
                 return "**load marker**";
             }
