@@ -4,3 +4,6 @@
 [submodule "twpfparser"]
 	path = twpfparser
 	url = git@github.com:shibafu528/twpfparser.git
+[submodule "yukari-exvoice"]
+	path = yukari-exvoice
+	url = git@github.com:shibafu528/yukari-exvoice.git
