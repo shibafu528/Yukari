@@ -477,6 +477,7 @@ public class TweetAdapterWrap {
             if (mode == MODE_PREVIEW) {
                 viewHolder.tvName.setTextColor(Color.BLACK);
                 viewHolder.tvTimestamp.setTextColor(Color.BLACK);
+                viewHolder.tvReceived.setTextColor(Color.BLACK);
             }
 
             if (preferences.getBoolean("pref_show_received", false)) {
