@@ -10,6 +10,9 @@ repositories {
     maven {
         url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
     }
+    maven {
+        url "https://jitpack.io"
+    }
 }
 
 ext {
@@ -35,11 +38,16 @@ dependencies {
     compile project(':GalleryMultiPicker:library')
 
     // Twitter4J
-    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-async:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-async:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
+    compile "com.github.takke.twitter4j:twitter4j-core:support_extended_tweets-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-async:support_extended_tweets-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-media-support:support_extended_tweets-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-stream:support_extended_tweets-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-http2-support:support_extended_tweets-SNAPSHOT"
 
     // パーサ
     compile 'com.google.code.gson:gson:2.3'
@@ -53,7 +61,9 @@ dependencies {
     compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
     compile 'com.annimon:stream:1.0.8'
     compile 'twitter.intent:twitter-intent-core:1.0,0'
-    compile 'twitter.intent:twitter-intent-t4j:1.0.0'
+    compile 'twitter.intent:twitter-intent-t4j:1.0.0', {
+        exclude group: 'org.twitter4j', module: 'twitter4j-core'
+    }
     //debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     compile fileTree(dir: './libs', includes: ['*.jar'])
     provided 'org.projectlombok:lombok:1.16.4'

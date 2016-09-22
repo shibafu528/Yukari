@@ -308,6 +308,16 @@ public class PreformedStatus implements Status{
         return text;
     }
 
+    @Override
+    public int getDisplayTextRangeStart() {
+        return status.getDisplayTextRangeStart();
+    }
+
+    @Override
+    public int getDisplayTextRangeEnd() {
+        return status.getDisplayTextRangeEnd();
+    }
+
     public String getPlainText() {
         return status.getText();
     }

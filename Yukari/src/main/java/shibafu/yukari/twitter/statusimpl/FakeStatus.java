@@ -33,6 +33,16 @@ public class FakeStatus implements Status {
     }
 
     @Override
+    public int getDisplayTextRangeStart() {
+        return 0;
+    }
+
+    @Override
+    public int getDisplayTextRangeEnd() {
+        return getText().length() - 1;
+    }
+
+    @Override
     public String getSource() {
         return "";
     }
