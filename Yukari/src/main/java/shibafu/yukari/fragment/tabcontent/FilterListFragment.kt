@@ -162,7 +162,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     override fun setRefreshComplete() {
-        swipeRefreshLayout.isRefreshing = false
+        swipeRefreshLayout?.isRefreshing = false
     }
 
     override fun onListItemClick(position: Int, clickedElement: PreformedStatus?): Boolean {
