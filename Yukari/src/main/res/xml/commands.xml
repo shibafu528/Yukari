@@ -72,6 +72,10 @@
             android:title="大草原モード"
             android:summary="TLを草原にします"/>
         <CheckBoxPreference
+            android:key="j_cicada"
+            android:title="セミモード"
+            android:summary="TLを夏にします"/>
+        <CheckBoxPreference
             android:key="j_fullmute"
             android:title="ハイパーミュート"
             android:summary="それはハイパーミュート、どれほどのものかは使ってみればわかる。"/>

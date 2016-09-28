@@ -309,6 +309,13 @@ public class TweetAdapterWrap {
         public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
         public static final int MODE_INCLUDE = 128;
 
+        private static final String[] SEMI_CRY = {
+                "ｼﾞｼﾞ…ｼﾞｼﾞｼﾞｼﾞ…………ﾐﾐﾐﾐﾐﾐﾝﾐﾝﾐﾝ!!!",
+                "ミーーーン↑↑ｗｗｗｗｗミンミンミンミン↑↑ｗｗｗｗｗｗｗｗミーーーン↓↓ｗｗｗｗｗ",
+                "ｱーーｼｬｯｼｬｯｼｬｯｼｬｯｼｬｯﾝﾎﾞｫｵｵーーｼｯ\nﾂｸﾂｸﾎﾞｫｵｵーｼｯ　ﾂｸﾂｸﾎﾞｫｵｵーｼｯ\nﾂｸﾂｸﾎﾞｫｵｵーｼｯ　ﾂｸﾂｸﾎﾞｫｵｵーｼｯ\nﾂｸﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ\nｳｨｨｨｲｲｲｲｲｲｨｨｨｨｨｨーー……",
+                "ｼﾞｰｰｰｰｰｰｰｰｰｰｰﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼ\nｼﾞｰｰｰｰｰｰｰｰｰｰｰﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼ\nｼｰｰｰｰｰｰｰｰｰｰｰ"
+        };
+
         private Context context;
         private List<AuthUserRecord> userRecords;
         private List<UserExtras> userExtras;
@@ -417,6 +424,9 @@ public class TweetAdapterWrap {
                         .replaceAll("[？?]", "？wwwwwwwwwwwwwwwwwwww")
                         .replaceAll("[^＾][~〜]+", "＾〜〜〜〜wwwwwwwwwww");
                 viewHolder.tvText.setTextColor(Color.parseColor("#0b5b12"));
+            }
+            if (preferences.getBoolean("j_cicada", false)) {
+                text = SEMI_CRY[Math.abs(text.hashCode()) % SEMI_CRY.length];
             }
             if (mode == MODE_DEFAULT) {
                 if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
