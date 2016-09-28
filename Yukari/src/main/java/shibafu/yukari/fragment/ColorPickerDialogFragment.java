@@ -2,14 +2,13 @@ package shibafu.yukari.fragment;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
-
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.OpacityBar;
 import com.larswerkman.holocolorpicker.SVBar;
-
 import shibafu.yukari.R;
 
 /**
@@ -21,7 +20,7 @@ public class ColorPickerDialogFragment extends DialogFragment{
 
     private String tag;
 
-    public static interface ColorPickerCallback {
+    public interface ColorPickerCallback {
         void onColorPicked(int color, String tag);
     }
 
@@ -39,6 +38,9 @@ public class ColorPickerDialogFragment extends DialogFragment{
         Bundle args = getArguments();
         tag = args.getString(ARG_TAG);
         int color = args.getInt(ARG_COLOR);
+        if (color == 0) {
+            color = Color.RED;
+        }
 
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_color, null);
         final ColorPicker picker = (ColorPicker) v.findViewById(R.id.picker);
