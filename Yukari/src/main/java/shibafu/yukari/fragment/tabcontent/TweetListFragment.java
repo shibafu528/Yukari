@@ -129,7 +129,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         break;
                                     }
                                     case SWIPE_ACTION_FAVORITE:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断
@@ -154,7 +154,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         }.execute(swipeActionStatusGrabbed);
                                         break;
                                     case SWIPE_ACTION_FAVRT:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断

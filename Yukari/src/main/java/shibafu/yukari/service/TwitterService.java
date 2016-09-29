@@ -794,7 +794,14 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     public AuthUserRecord isMyTweet(Status status) {
+        return isMyTweet(status, false);
+    }
+
+    public AuthUserRecord isMyTweet(Status status, boolean checkOriginUser) {
         if (users == null) return null;
+        if (checkOriginUser) {
+            status = status.isRetweet() ? status.getRetweetedStatus() : status;
+        }
         for (int i = 0; i < users.size(); ++i) {
             AuthUserRecord aur = users.get(i);
             if (status.getUser().getId() == aur.NumericId) {

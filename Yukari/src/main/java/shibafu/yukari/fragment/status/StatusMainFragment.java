@@ -682,7 +682,7 @@ public class StatusMainFragment extends TwitterFragment{
         } else {
             limitedQuote = false;
         }
-        if (getTwitterService().isMyTweet(status) != null) {
+        if (getTwitterService().isMyTweet(status, true) != null) {
             //自分のツイートの場合
             ibRetweet.setEnabled(true);
             if (sharedPreferences.getBoolean("pref_narcist", false)) {
