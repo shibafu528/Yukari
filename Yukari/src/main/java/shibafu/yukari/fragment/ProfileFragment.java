@@ -353,6 +353,11 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         } else {
                             getTwitterService().setPriority(loadHolder.targetUser.getId(), null);
                             Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
+
+                            user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
+                            if (user == null) {
+                                user = getTwitterService().getPrimaryUser();
+                            }
                         }
                         break;
                     }
@@ -831,6 +836,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
                         getTwitterService().setPriority(loadHolder.targetUser.getId(), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
+
+                        user = userRecord;
                     } else {
                         Toast.makeText(getActivity(), "予期せぬ理由で、優先アカウントの設定に失敗しました", Toast.LENGTH_SHORT).show();
                     }
