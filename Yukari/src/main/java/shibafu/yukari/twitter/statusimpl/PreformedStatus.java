@@ -126,10 +126,13 @@ public class PreformedStatus implements Status{
                     if (mediaEntity.getVideoVariants().length > 0) {
                         boolean removedExistsUrl = false;
 
+                        ExtendedMediaEntity.Variant largest = null;
                         for (ExtendedMediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
                             if (!variant.getContentType().startsWith("video/")) continue;
 
-                            mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
+                            if (largest == null || largest.getBitrate() < variant.getBitrate()) {
+                                largest = variant;
+                            }
                             if (!removedExistsUrl) {
                                 for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
                                     if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
@@ -139,6 +142,9 @@ public class PreformedStatus implements Status{
 
                                 removedExistsUrl = true;
                             }
+                        }
+                        if (largest != null) {
+                            mediaLinkList.add(new TwitterVideo(largest.getUrl(), mediaEntity.getMediaURLHttps()));
                         }
                     }
                     break;
