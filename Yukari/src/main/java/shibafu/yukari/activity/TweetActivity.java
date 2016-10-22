@@ -446,9 +446,12 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
         });
         btnPost.setOnLongClickListener(v -> {
-            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
-            );
+            SimpleAlertDialogFragment dialogFragment = new SimpleAlertDialogFragment.Builder(REQUEST_DIALOG_YUKARIN)
+                    .setMessage("ゆっかりーん？")
+                    .setPositive("\\ﾕｯｶﾘｰﾝ/")
+                    .setNegative("(メ'ω')No")
+                    .setDisableCaps(true)
+                    .build();
             dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
             return true;
         });
