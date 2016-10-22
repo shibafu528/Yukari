@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
@@ -23,7 +24,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
-public class StatusActivity extends FragmentYukariBase {
+public class StatusActivity extends FragmentYukariBase implements StatusUI {
 
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
@@ -52,7 +53,11 @@ public class StatusActivity extends FragmentYukariBase {
 
         Intent args = getIntent();
         status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
-        user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
+        if (savedInstanceState != null) {
+            user = (AuthUserRecord) savedInstanceState.getSerializable(EXTRA_USER);
+        } else {
+            user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
+        }
 
         if (status == null) {
             Toast.makeText(this, "なんですかこのツイートは、読めないのですけど...", Toast.LENGTH_SHORT).show();
@@ -107,6 +112,12 @@ public class StatusActivity extends FragmentYukariBase {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(EXTRA_USER, user);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         if (status != null) {
@@ -122,16 +133,30 @@ public class StatusActivity extends FragmentYukariBase {
     @Override
     public void onServiceDisconnected() {}
 
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    @Override
+    public PreformedStatus getStatus() {
+        return status;
+    }
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+    @Override
+    public AuthUserRecord getUserRecord() {
+        return user;
+    }
+
+    @Override
+    public void setUserRecord(AuthUserRecord userRecord) {
+        this.user = userRecord;
+    }
+
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            Fragment f = null;
-            Bundle b = new Bundle();
+            Fragment f;
             switch (position) {
                 case 0:
                     f = new StatusLinkFragment();
@@ -142,7 +167,10 @@ public class StatusActivity extends FragmentYukariBase {
                 case 2:
                     f = new StatusActionFragment();
                     break;
+                default:
+                    return null;
             }
+            Bundle b = new Bundle();
             b.putSerializable(EXTRA_STATUS, status);
             b.putSerializable(EXTRA_USER, user);
             f.setArguments(b);
