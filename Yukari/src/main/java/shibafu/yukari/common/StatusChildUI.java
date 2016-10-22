@@ -32,4 +32,6 @@ public interface StatusChildUI {
             ((StatusUI) getActivity()).setUserRecord(userRecord);
         }
     }
+
+    default void onUserChanged(AuthUserRecord userRecord) {}
 }

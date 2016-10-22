@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.fragment.status.StatusActionFragment;
@@ -23,6 +24,8 @@ import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+
+import java.util.List;
 
 public class StatusActivity extends FragmentYukariBase implements StatusUI {
 
@@ -128,6 +131,11 @@ public class StatusActivity extends FragmentYukariBase implements StatusUI {
     @Override
     public void onServiceConnected() {
         viewConverter.setUserExtras(getTwitterService().getUserExtras());
+
+        AuthUserRecord priorityUser = getTwitterService().getPriority(status.getOriginStatus().getUser().getId());
+        if (priorityUser != null) {
+            setUserRecord(priorityUser);
+        }
     }
 
     @Override
@@ -146,6 +154,14 @@ public class StatusActivity extends FragmentYukariBase implements StatusUI {
     @Override
     public void setUserRecord(AuthUserRecord userRecord) {
         this.user = userRecord;
+        List<Fragment> fragments = getSupportFragmentManager().getFragments();
+        if (fragments != null) {
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof StatusChildUI) {
+                    ((StatusChildUI) fragment).onUserChanged(userRecord);
+                }
+            }
+        }
     }
 
     private class SectionsPagerAdapter extends FragmentPagerAdapter {

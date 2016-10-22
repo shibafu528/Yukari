@@ -595,7 +595,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 getActivity().finish();
             } else if (requestCode == REQUEST_CHANGE) {
                 setUserRecord((AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
-                loadProfileImage();
             } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
@@ -673,6 +672,11 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 }
             }.executeParallel(user.NumericId);
         }
+    }
+
+    @Override
+    public void onUserChanged(AuthUserRecord userRecord) {
+        loadProfileImage();
     }
 
     @Override

@@ -585,6 +585,16 @@ public class TwitterService extends Service{
         database.updateRecord(extras);
     }
 
+    @Nullable
+    public AuthUserRecord getPriority(long id) {
+        for (UserExtras userExtra : userExtras) {
+            if (userExtra.getId() == id) {
+                return userExtra.getPriorityAccount();
+            }
+        }
+        return null;
+    }
+
     public List<UserExtras> getUserExtras() {
         return userExtras;
     }
