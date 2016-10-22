@@ -99,9 +99,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                        ((status.isRetweet()) ? status.getRetweetedStatus().getUser().getScreenName()
-                                : status.getUser().getScreenName()) + " ");
+                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
 
@@ -113,11 +111,8 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 {
-                    StringBuilder ids = new StringBuilder(
-                            String.format("@%s ",
-                                    ((status.isRetweet()) ?
-                                            status.getRetweetedStatus().getUser().getScreenName()
-                                            : status.getUser().getScreenName())));
+                    StringBuilder ids = new StringBuilder();
+                    ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
                     for (UserMentionEntity entity : status.getUserMentionEntities()) {
                         if (!ids.toString().contains("@" + entity.getScreenName())
                                 && !entity.getScreenName().equals(user.ScreenName)) {
@@ -289,7 +284,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             dialog.dismiss();
                             currentDialog = null;
                             Intent intent = new Intent(getActivity(), MainActivity.class);
-                            String query = String.format("\"%s\" -RT", status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                            String query = String.format("\"%s\" -RT", status.getOriginStatus().getPlainText());
                             intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query);
                             startActivity(intent);
                         })
