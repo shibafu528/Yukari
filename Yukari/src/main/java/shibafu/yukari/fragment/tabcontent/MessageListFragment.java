@@ -86,7 +86,6 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         Collections.addAll(lastClickedEntities, clickedElement.getUserMentionEntities());
         Collections.addAll(lastClickedEntities, clickedElement.getURLEntities());
         Collections.addAll(lastClickedEntities, clickedElement.getMediaEntities());
-        Collections.addAll(lastClickedEntities, clickedElement.getExtendedMediaEntities());
         Collections.addAll(lastClickedEntities, clickedElement.getHashtagEntities());
         MessageMenuDialogFragment dialogFragment = MessageMenuDialogFragment.newInstance(clickedElement, lastClickedEntities);
         dialogFragment.setTargetFragment(this, 1);
