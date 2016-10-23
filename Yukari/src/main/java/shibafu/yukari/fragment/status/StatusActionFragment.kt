@@ -113,8 +113,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         listView.isStackFromBottom = defaultSharedPreferences.getBoolean("pref_bottom_stack", false)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onStop() {
         // Pluggaloidアクションのアンロード
         itemList.forEach {
             if (it is PluggaloidPluginAction) {
@@ -123,6 +122,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         }
         itemList = itemList.filterNot { it is PluggaloidPluginAction }
         isLoadedPluggaloid = false
+
+        super.onStop()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
