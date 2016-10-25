@@ -742,27 +742,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             inputText = preprocessedInput;
         }
 
-        // TODO: いずれ廃止する
-        if (etInput.getText().toString().startsWith("::")) {
-            String input = etInput.getText().toString();
-            String command = input.split(" ")[0];
-            switch (command) {
-                case "::te": {
-                    List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
-                    SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
-                            REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル",
-                            Stream.of(templates).map(Template::getValue).collect(Collectors.toList())
-                    );
-                    dialogFragment.show(getSupportFragmentManager(), "template");
-                    return;
-                }
-                case "::td": {
-                    startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
-                    return;
-                }
-            }
-        }
-
         //ドラフトを作成
         TweetDraft draft = getTweetDraft();
         draft.setText(inputText);

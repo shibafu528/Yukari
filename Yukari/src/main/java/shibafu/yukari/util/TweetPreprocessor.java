@@ -213,6 +213,14 @@ public class TweetPreprocessor {
             depends.getActivity().finish();
             return null;
         });
+        COMMANDS.put("::te", (depends, input) -> {
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::te は廃止されました", Toast.LENGTH_SHORT).show();
+            return null;
+        });
+        COMMANDS.put("::td", (depends, input) -> {
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::td は廃止されました", Toast.LENGTH_SHORT).show();
+            return null;
+        });
     }
 
     /**

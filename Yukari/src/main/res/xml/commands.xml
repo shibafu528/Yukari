@@ -54,12 +54,6 @@
             android:title="::yk"
             android:summary="ゆかりさんゆかりさん！！(n回目)"/>
         <Preference
-            android:title="::te"
-            android:summary="定型文を呼び出します"/>
-        <Preference
-            android:title="::td"
-            android:summary="定型文を登録・編集します"/>
-        <Preference
             android:title="::rev &lt;TEXT&gt;"
             android:summary="&lt;TEXT&gt;を逆に並び替えます (ゆかり→りかゆ)"/>
         <Preference
