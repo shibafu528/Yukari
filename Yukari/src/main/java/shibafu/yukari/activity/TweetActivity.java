@@ -816,24 +816,16 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private int updateTweetCount() {
-        // 画像添付による文字数の予約 (URL1つ + スペース)
-        int reservedCount;
-        if (attachPictures.size() > 0) {
-            reservedCount = shortUrlLength + 1;
-        } else {
-            reservedCount = 0;
-        }
-
         // 入力の文字数をカウント
         int count = new Validator().getTweetLength(etInput.getText().toString());
-        tweetCount = tweetCountLimit - count - reservedCount;
+        tweetCount = tweetCountLimit - count;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
         } else {
             tvCount.setTextColor(tweetCountColor);
         }
-        return count + reservedCount;
+        return count;
     }
 
     @Override
