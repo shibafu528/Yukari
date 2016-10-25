@@ -76,7 +76,7 @@ public class TwitterUtil {
             status = status.getRetweetedStatus();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("http://twitter.com/");
+        sb.append("https://twitter.com/");
         sb.append(status.getUser().getScreenName());
         sb.append("/status/");
         sb.append(status.getId());
