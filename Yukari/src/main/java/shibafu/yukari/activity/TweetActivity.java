@@ -137,6 +137,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
+    private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
 
     private static final Extractor EXTRACTOR = new Extractor();
 
@@ -171,7 +172,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private SharedPreferences sp;
 
     //短縮URLの文字数
-    private int shortUrlLength = 22;
+    private int shortUrlLength = 23;
 
     //最大添付数
     private int maxMediaPerUpload = 4;
@@ -816,16 +817,24 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private int updateTweetCount() {
+        // カウント対象外の添付URL判定
+        int attachmentUrlCount;
+        if (attachPictures.isEmpty() && PATTERN_QUOTE.matcher(etInput.getText().toString()).find()) {
+            attachmentUrlCount = shortUrlLength + 1;
+        } else {
+            attachmentUrlCount = 0;
+        }
+
         // 入力の文字数をカウント
         int count = new Validator().getTweetLength(etInput.getText().toString());
-        tweetCount = tweetCountLimit - count;
+        tweetCount = tweetCountLimit - count + attachmentUrlCount;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
         } else {
             tvCount.setTextColor(tweetCountColor);
         }
-        return count;
+        return count - attachmentUrlCount;
     }
 
     @Override
