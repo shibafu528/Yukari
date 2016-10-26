@@ -30,8 +30,8 @@ public class BitmapCache {
 
     static {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            PROFILE_ICON_CACHE_SIZE = 4 * 1024 * 1024;
-            IMAGE_CACHE_SIZE = 4 * 1024 * 1024;
+            PROFILE_ICON_CACHE_SIZE = 2 * 1024 * 1024;
+            IMAGE_CACHE_SIZE = 2 * 1024 * 1024;
         } else {
             PROFILE_ICON_CACHE_SIZE = 8 * 1024 * 1024;
             IMAGE_CACHE_SIZE = 8 * 1024 * 1024;
