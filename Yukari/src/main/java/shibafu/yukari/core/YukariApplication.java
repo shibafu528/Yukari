@@ -2,6 +2,7 @@ package shibafu.yukari.core;
 
 import android.app.Application;
 import android.preference.PreferenceManager;
+import com.squareup.leakcanary.LeakCanary;
 import twitter4j.AlternativeHttpClientImpl;
 
 /**
@@ -12,6 +13,10 @@ public class YukariApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            return;
+        }
+        LeakCanary.install(this);
 
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_disable_ipv6", false)) {
             java.lang.System.setProperty("java.net.preferIPv4Stack", "true");

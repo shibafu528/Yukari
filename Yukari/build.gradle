@@ -18,6 +18,7 @@ repositories {
 ext {
     playServicesVersion = '6.5.87'
     twitter4jVersion = '4.0.5'
+    leakCanaryVersion = '1.5'
 }
 
 dependencies {
@@ -64,7 +65,9 @@ dependencies {
     compile 'twitter.intent:twitter-intent-t4j:1.0.0', {
         exclude group: 'org.twitter4j', module: 'twitter4j-core'
     }
-    //debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
+    debugCompile "com.squareup.leakcanary:leakcanary-android:$leakCanaryVersion"
+    releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
+    testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
     compile fileTree(dir: './libs', includes: ['*.jar'])
     provided 'org.projectlombok:lombok:1.16.4'
     compile project(':yukari-exvoice')
