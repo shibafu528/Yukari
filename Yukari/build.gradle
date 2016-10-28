@@ -120,7 +120,7 @@ android {
 
 //>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.2-1'
+    ext.kotlin_version = '1.0.4'
     repositories {
         mavenCentral()
     }
