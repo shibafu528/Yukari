@@ -28,7 +28,6 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -60,6 +59,7 @@ import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
+import shibafu.yukari.fragment.tabcontent.StreamToggleable;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.PostService;
@@ -296,9 +296,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 if (reference != null) {
                     tabFragment = reference.get();
                 }
-                if (tabFragment instanceof SearchListFragment &&
-                        ((SearchListFragment) tabFragment).isStreaming()) {
-                    ((SearchListFragment) tabFragment).setStreaming(false);
+                if (tabFragment instanceof StreamToggleable &&
+                        ((StreamToggleable) tabFragment).isStreaming()) {
+                    ((StreamToggleable) tabFragment).setStreaming(false);
                 }
 
                 pageList.remove(current);
@@ -316,9 +316,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         });
 
         ibStream.setOnClickListener(view -> {
-            if (currentPage instanceof SearchListFragment) {
-                boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
-                ((SearchListFragment) currentPage).setStreaming(isStreaming);
+            if (currentPage instanceof StreamToggleable) {
+                boolean isStreaming = !((StreamToggleable) currentPage).isStreaming();
+                ((StreamToggleable) currentPage).setStreaming(isStreaming);
                 if (isStreaming) {
                     ibStream.setImageResource(R.drawable.ic_play);
                 }
@@ -819,9 +819,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             } else {
                 ibClose.setVisibility(View.INVISIBLE);
             }
-            if (currentPage instanceof SearchListFragment) {
+            if (currentPage instanceof StreamToggleable) {
                 ibStream.setVisibility(View.VISIBLE);
-                if (((SearchListFragment) currentPage).isStreaming()) {
+                if (((StreamToggleable) currentPage).isStreaming()) {
                     ibStream.setImageResource(R.drawable.ic_play);
                 } else {
                     ibStream.setImageResource(R.drawable.ic_pause);

@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusListener, StreamToggleable {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
