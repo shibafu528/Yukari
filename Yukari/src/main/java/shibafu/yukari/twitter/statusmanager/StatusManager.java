@@ -97,6 +97,7 @@ public class StatusManager implements Releasable {
     @AutoRelease private TwitterService service;
     @AutoRelease private Suppressor suppressor;
     private List<AutoMuteConfig> autoMuteConfigs;
+    private LongSparseArray<Pattern> autoMutePatternCache = new LongSparseArray<>();
 
     @AutoRelease private Context context;
     @AutoRelease private SharedPreferences sharedPreferences;
@@ -301,13 +302,22 @@ public class StatusManager implements Releasable {
                             case AutoMuteConfig.MATCH_PARTIAL:
                                 match = preformedStatus.getText().contains(config.getQuery());
                                 break;
-                            case AutoMuteConfig.MATCH_REGEX:
-                                try {
-                                    Pattern pattern = Pattern.compile(config.getQuery());
+                            case AutoMuteConfig.MATCH_REGEX: {
+                                Pattern pattern = autoMutePatternCache.get(config.getId());
+                                if (pattern == null && autoMutePatternCache.indexOfKey(config.getId()) < 0) {
+                                    try {
+                                        pattern = Pattern.compile(config.getQuery());
+                                        autoMutePatternCache.put(config.getId(), pattern);
+                                    } catch (PatternSyntaxException ignore) {
+                                        autoMutePatternCache.put(config.getId(), null);
+                                    }
+                                }
+                                if (pattern != null) {
                                     Matcher matcher = pattern.matcher(preformedStatus.getText());
                                     match = matcher.find();
-                                } catch (PatternSyntaxException ignore) {}
+                                }
                                 break;
+                            }
                         }
                         if (match) {
                             autoMute = config;
@@ -645,6 +655,16 @@ public class StatusManager implements Releasable {
 
     public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
         this.autoMuteConfigs = autoMuteConfigs;
+        autoMutePatternCache.clear();
+        for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
+            if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
+                try {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), Pattern.compile(autoMuteConfig.getQuery()));
+                } catch (PatternSyntaxException e) {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), null);
+                }
+            }
+        }
     }
 
     public void loadQuotedEntities(PreformedStatus preformedStatus) {
