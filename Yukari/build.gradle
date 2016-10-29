@@ -13,6 +13,9 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
+    maven {
+        url 'https://dl.bintray.com/kotlin/kotlin-eap/'
+    }
 }
 
 ext {
@@ -25,7 +28,6 @@ dependencies {
     // Support & Play Services
     compile 'com.android.support:appcompat-v7:20.0.0'
     compile 'com.android.support:support-v4:25.0.0'
-    compile 'com.android.support:support-annotations:24.2.1'
     compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
     compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
@@ -82,12 +84,12 @@ dependencies {
 }
 
 android {
-    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion 25
+    buildToolsVersion '25.0.0'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
+        targetSdkVersion 22
 
         ndkConfig.abiFilters = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86']
     }
@@ -121,9 +123,12 @@ android {
 
 //>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.4'
+    ext.kotlin_version = '1.0.5-eap-83'
     repositories {
         mavenCentral()
+        maven {
+            url 'https://dl.bintray.com/kotlin/kotlin-eap/'
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"

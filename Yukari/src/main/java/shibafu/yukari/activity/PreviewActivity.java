@@ -112,7 +112,7 @@ public class PreviewActivity extends FragmentYukariBase {
             private float dragStartX, dragStartY, dragPrevX, dragPrevY;
             private boolean begunDrag = false;
 
-            private float pinchPrevDistance;
+            private double pinchPrevDistance;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -135,9 +135,8 @@ public class PreviewActivity extends FragmentYukariBase {
                                 isShowPanel = false;
                             }
 
-                            float distance = getDistance(event);
-                            float scale = (distance - pinchPrevDistance) /
-                                    FloatMath.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
+                            double distance = getDistance(event);
+                            double scale = (distance - pinchPrevDistance) / Math.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
                             pinchPrevDistance = distance;
                             scale += 1;
                             scale = scale * scale;
@@ -146,11 +145,11 @@ public class PreviewActivity extends FragmentYukariBase {
                             matrix.getValues(matrixValues);
                             float nowScale = matrixValues[Matrix.MSCALE_X];
                             if (nowScale * scale > minScale) {
-                                matrix.postScale(scale, scale);
-                                matrix.postTranslate(-(displayWidth * scale - displayWidth) / 2,
-                                        -(displayHeight * scale - displayHeight) / 2);
-                                matrix.postTranslate(-(displayWidth/2 - displayWidth/2) * scale, 0);
-                                matrix.postTranslate(0, -(displayHeight/2 - displayHeight/2) * scale);
+                                matrix.postScale((float) scale, (float) scale);
+                                matrix.postTranslate((float) -(displayWidth * scale - displayWidth) / 2,
+                                        (float) -(displayHeight * scale - displayHeight) / 2);
+                                matrix.postTranslate((float) (-(displayWidth/2 - displayWidth/2) * scale), 0);
+                                matrix.postTranslate(0, (float) (-(displayHeight/2 - displayHeight/2) * scale));
                                 updateMatrix();
                             }
                         }
@@ -211,10 +210,10 @@ public class PreviewActivity extends FragmentYukariBase {
                 return true;
             }
 
-            private float getDistance(MotionEvent event) {
+            private double getDistance(MotionEvent event) {
                 float x = event.getX(0) - event.getX(1);
                 float y = event.getY(0) - event.getY(1);
-                return FloatMath.sqrt(x * x + y * y);
+                return Math.sqrt(x * x + y * y);
             }
         });
 
