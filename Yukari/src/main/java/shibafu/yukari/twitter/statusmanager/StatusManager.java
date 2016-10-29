@@ -81,6 +81,7 @@ public class StatusManager implements Releasable {
     private static LruCache<Long, PreformedStatus> receivedStatuses;
 
     private static final boolean PUT_STREAM_LOG = false;
+    private static final long RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
@@ -105,7 +106,7 @@ public class StatusManager implements Releasable {
     @AutoRelease private StatusNotifier notifier;
 
     //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
-    private LongSparseArray<PreformedStatus> retweetResponseStandBy = new LongSparseArray<>();
+    private LongSparseArray<Pair<PreformedStatus, Long>> retweetResponseStandBy = new LongSparseArray<>();
 
     //キャッシュ
     private HashCache hashCache;
@@ -328,16 +329,19 @@ public class StatusManager implements Releasable {
                             (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                             (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
                     PreformedStatus deliverStatus = new MetaStatus(preformedStatus, from.getClass().getSimpleName());
-                    PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
+                    Pair<PreformedStatus, Long> standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
                     if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
                             !preformedStatus.isRetweet() &&
                             standByStatus != null && !preformedStatus.getText().startsWith("@")) {
                         //Status is RT-Respond
                         retweetResponseStandBy.remove(preformedStatus.getUser().getId());
-                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
+                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus.first);
                         if (!(from instanceof RestStream)) {
                             notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
                         }
+                    } else if (standByStatus != null && standByStatus.second + RESPONSE_STAND_BY_EXPIRES < System.currentTimeMillis()) {
+                        //期限切れ
+                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
                     }
                     pushEventQueue(from, new StatusEventBuffer(user, deliverStatus, muted), false);
 
@@ -350,7 +354,7 @@ public class StatusManager implements Releasable {
                             createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
                             //Put Response Stand-By
-                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
+                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), Pair.create(preformedStatus, System.currentTimeMillis()));
                         } else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
                             UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                             for (UserMentionEntity ume : userMentionEntities) {
