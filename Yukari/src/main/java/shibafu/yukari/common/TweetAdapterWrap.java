@@ -551,10 +551,10 @@ public class TweetAdapterWrap {
                     Calendar calendar = Calendar.getInstance();
                     hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)];
                 }
-                hidden |= st.isCensoredThumbs();
+                hidden |= st.getOriginStatus().isCensoredThumbs();
 
                 if (!hidden || getPreferences().getBoolean("pref_prev_mosaic", false)) {
-                    List<LinkMedia> mediaList = st.getMediaLinkList();
+                    List<LinkMedia> mediaList = st.getOriginStatus().getMediaLinkList();
                     int mlSize = mediaList.size();
                     if (mlSize > 0) {
                         viewHolder.llAttach.setVisibility(View.VISIBLE);
