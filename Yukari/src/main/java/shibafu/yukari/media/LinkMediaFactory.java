@@ -34,8 +34,6 @@ public class LinkMediaFactory {
                 linkMedia = new XVideos(mediaURL);
             } else if (mediaURL.contains("instagr.am/p/") || mediaURL.contains("instagram.com/p/")) {
                 linkMedia = new Instagram(mediaURL);
-            } else if (mediaURL.contains("lockerz.com")) {
-                linkMedia = new Lockerz(mediaURL);
             } else if (mediaURL.contains("photozou.jp")) {
                 linkMedia = new Photozou(mediaURL);
             } else if (mediaURL.contains("nico.ms/im") || mediaURL.contains("seiga.nicovideo.jp/seiga/im") || mediaURL.contains("sp.seiga.nicovideo.jp/seiga/#!/im")) {
