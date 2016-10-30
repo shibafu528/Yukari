@@ -26,8 +26,6 @@ public class LinkMediaFactory {
                 linkMedia = new TwitterVideo(mediaURL);
             } else if (RouterCake.ORIGIN_URL.equals(mediaURL)) {
                 linkMedia = new RouterCake(mediaURL);
-            } else if (mediaURL.contains("/yfrog.com")) {
-                linkMedia = new YFrog(mediaURL);
             } else if (mediaURL.contains("p.twipple.jp")) {
                 linkMedia = new Twipple(mediaURL);
             } else if (mediaURL.contains("xvideos.com")) {
