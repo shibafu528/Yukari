@@ -16,14 +16,18 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
+import android.widget.AbsListView;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
@@ -33,7 +37,11 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.GeoLocation;
+import twitter4j.Status;
+import twitter4j.TwitterResponse;
+import twitter4j.User;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -567,10 +575,6 @@ public class TweetAdapterWrap {
                                 iv = new ImageView(getContext());
                                 iv.setId(i);
                                 viewHolder.llAttach.addView(iv, lpThumb);
-                            }
-                            else if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) {
-                                iv.setVisibility(View.GONE);
-                                continue;
                             }
                             else {
                                 iv.setVisibility(View.VISIBLE);

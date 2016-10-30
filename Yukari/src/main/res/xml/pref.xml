@@ -164,11 +164,6 @@
             android:title="時間を指定してサムネ非表示"
             android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
         <CheckBoxPreference
-            android:key="pref_prev_mstrin"
-            android:title="飯テロ.inサムネイル展開"
-            android:summary="飯テロ.inのURLでもサムネイルを表示しようとします"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="サムネイルのモザイク加工"
             android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"

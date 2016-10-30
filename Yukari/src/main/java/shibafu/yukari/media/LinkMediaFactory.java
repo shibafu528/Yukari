@@ -45,8 +45,6 @@ public class LinkMediaFactory {
                 linkMedia = new NicoVideo(mediaURL);
             } else if (mediaURL.contains("www.youtube.com/watch?") || mediaURL.contains("youtu.be/")) {
                 linkMedia = new YouTube(mediaURL);
-            } else if (mediaURL.contains("/mstr.in/photos/")) {
-                linkMedia = new Meshi(mediaURL);
             } else if (mediaURL.contains("/vine.co/v/")) {
                 linkMedia = new Vine(mediaURL);
             } else if (mediaURL.contains("pixiv.net/member_illust.php")) {
