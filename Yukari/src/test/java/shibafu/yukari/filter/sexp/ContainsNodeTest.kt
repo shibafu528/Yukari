@@ -16,7 +16,7 @@ public class ContainsNodeTest {
                 ValueNode("yukari")
         )
         val containsNode = ContainsNode(children)
-        val result = containsNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Boolean
+        val result = containsNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Boolean
 
         assertEquals(true, result)
     }
@@ -27,7 +27,7 @@ public class ContainsNodeTest {
                 ValueNode("yukari")
         )
         val containsNode = ContainsNode(children)
-        val result = containsNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Boolean
+        val result = containsNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Boolean
 
         assertEquals(true, result)
     }
@@ -38,7 +38,7 @@ public class ContainsNodeTest {
                 ValueNode("miku")
         )
         val containsNode = ContainsNode(children)
-        val result = containsNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Boolean
+        val result = containsNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Boolean
 
         assertNotEquals(true, result)
     }

@@ -14,7 +14,7 @@ class AddOperatorNodeTest {
                 ValueNode(1)
         )
         val addOperatorNode = AddOperatorNode(children)
-        val result = addOperatorNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Long
+        val result = addOperatorNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Long
 
         assertEquals(1, result)
     }
@@ -25,7 +25,7 @@ class AddOperatorNodeTest {
                 ValueNode(2)
         )
         val addOperatorNode = AddOperatorNode(children)
-        val result = addOperatorNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Long
+        val result = addOperatorNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Long
 
         assertEquals(3, result)
     }
@@ -36,7 +36,7 @@ class AddOperatorNodeTest {
                 ValueNode(-2)
         )
         val addOperatorNode = AddOperatorNode(children)
-        val result = addOperatorNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Long
+        val result = addOperatorNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Long
 
         assertEquals(-1, result)
     }
@@ -48,7 +48,7 @@ class AddOperatorNodeTest {
                 ValueNode(3)
         )
         val addOperatorNode = AddOperatorNode(children)
-        val result = addOperatorNode.evaluate(FakeTextStatus(0, ""), emptyList()) as Long
+        val result = addOperatorNode.evaluate(EvaluateContext(FakeTextStatus(0, ""), emptyList())) as Long
 
         assertEquals(6, result)
     }

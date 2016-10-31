@@ -1,6 +1,7 @@
 package shibafu.yukari.filter.compiler
 
 import org.junit.Test
+import shibafu.yukari.filter.sexp.EvaluateContext
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
@@ -109,13 +110,15 @@ public class QueryCompilerTest {
     }
 
     private fun evaluateFake(snode: SNode) : Any {
-        val result = snode.evaluate(FakeStatus(0), emptyList())
+        val context = EvaluateContext(FakeStatus(0), emptyList())
+        val result = snode.evaluate(context)
         println(snode)
         return result
     }
 
     private fun evaluateFake(snode: SNode, text: String) : Any {
-        val result = snode.evaluate(FakeTextStatus(0, text), emptyList())
+        val context = EvaluateContext(FakeTextStatus(0, text), emptyList())
+        val result = snode.evaluate(context)
         println(snode)
         return result
     }
