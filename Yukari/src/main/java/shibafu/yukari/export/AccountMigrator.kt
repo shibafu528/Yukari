@@ -8,7 +8,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 class AccountMigrator : ConfigFileMigrator<AuthUserRecord> {
     override val latestVersion: Int = 1
 
-    constructor() : super({
+    constructor() : super(AuthUserRecord::class.java, {
 //        version(1) {}
     })
 }
