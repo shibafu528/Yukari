@@ -1,9 +1,17 @@
 package shibafu.yukari.export
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.internal.UnsafeAllocator
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonWriter
+import shibafu.yukari.common.TabInfo
+import shibafu.yukari.common.TweetDraft
+import shibafu.yukari.database.AutoMuteConfig
+import shibafu.yukari.database.Bookmark
+import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.SearchHistory
+import shibafu.yukari.database.UserExtras
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.StringWriter
 import java.math.BigDecimal
@@ -93,7 +101,14 @@ object ConfigFileUtility {
      * データクラスとマイグレータの対応マップ
      */
     private var filters: Map<Class<*>, ConfigFileMigrator<*>> = mapOf(
-            AuthUserRecord::class.java to AccountMigrator()
+            AuthUserRecord::class.java to AccountMigrator(),
+            TabInfo::class.java to TabInfoMigrator(),
+            MuteConfig::class.java to MuteConfigMigrator(),
+            AutoMuteConfig::class.java to AutoMuteConfigMigrator(),
+            UserExtras::class.java to UserExtrasMigrator(),
+            Bookmark.SerializeEntity::class.java to BookmarkMigrator(),
+            TweetDraft::class.java to TweetDraftMigrator(),
+            SearchHistory::class.java to SearchHistoryMigrator()
     )
 
     /**
