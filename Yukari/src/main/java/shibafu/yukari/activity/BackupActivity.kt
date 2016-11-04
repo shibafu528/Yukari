@@ -1,8 +1,13 @@
 package shibafu.yukari.activity
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Process
 import android.preference.PreferenceManager
 import android.support.v4.app.ListFragment
 import android.support.v4.util.SparseArrayCompat
@@ -26,6 +31,7 @@ import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.export.ConfigFileUtility
+import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set
@@ -36,13 +42,15 @@ import java.io.FileOutputStream
 /**
  * Created by shibafu on 2016/03/13.
  */
-class BackupActivity : ActionBarYukariBase() {
+class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener {
     companion object {
         const val EXTRA_MODE = "mode"
         const val EXTRA_MODE_IMPORT = 0
         const val EXTRA_MODE_EXPORT = 1
 
         private const val FRAGMENT_TAG = "backup"
+
+        private const val DIALOG_IMPORT_FINISHED = 1
     }
 
     val spLocation: Spinner by lazy { findViewById(R.id.spinner) as Spinner }
@@ -78,7 +86,10 @@ class BackupActivity : ActionBarYukariBase() {
 
         when (intent.getIntExtra(EXTRA_MODE, EXTRA_MODE_EXPORT)) {
             EXTRA_MODE_IMPORT -> {
-
+                SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
+                        "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
+                        "OK", null)
+                        .show(supportFragmentManager, "import_finished")
             }
             EXTRA_MODE_EXPORT -> {
                 if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED || Environment.getExternalStorageDirectory() == null) {
@@ -133,9 +144,31 @@ class BackupActivity : ActionBarYukariBase() {
         }
     }
 
-    override fun onServiceConnected() {}
+    override fun onServiceConnected() {
+        showToast("インポート・エクスポート画面を使用している間、UserStreamは切断されます。")
+        twitterService.statusManager.stopAsync()
+    }
 
     override fun onServiceDisconnected() {}
+
+    override fun onDialogChose(requestCode: Int, which: Int) {
+        when (requestCode) {
+            DIALOG_IMPORT_FINISHED -> {
+                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val setAlarm: AlarmManager.(Int, Long, PendingIntent) -> Unit
+                        = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                            AlarmManager::set
+                        } else {
+                            AlarmManager::setExact
+                        }
+                alarmManager.setAlarm(AlarmManager.RTC_WAKEUP,
+                        System.currentTimeMillis() + 1000,
+                        PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
+                moveTaskToBack(true)
+                Process.killProcess(Process.myPid())
+            }
+        }
+    }
 
     class BackupFragment : ListFragment() {
         val checkedStates = SparseArrayCompat<Boolean>()
