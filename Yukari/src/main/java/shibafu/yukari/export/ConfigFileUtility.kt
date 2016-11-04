@@ -1,8 +1,6 @@
 package shibafu.yukari.export
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.internal.UnsafeAllocator
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonWriter
 import shibafu.yukari.common.TabInfo
@@ -14,7 +12,6 @@ import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.StringWriter
-import java.math.BigDecimal
 
 /**
  * 設定データのマイグレーション処理を定義し、その機能を提供します。
@@ -30,12 +27,12 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
     private val migrator: Map<Int, (MutableMap<String, Any?>) -> Unit> = MigratorBuilder().let { it.setup(); it.migrator }
 
     /**
-     * 設定データを最新のバージョンにマイグレーションしてから、POJOに変換します。
+     * 設定データを最新のバージョンにマイグレーションします。
      * @param config 設定データ
      * @param version 設定データのバージョン
-     * @return 設定データのPOJO
+     * @return 設定データ
      */
-    fun toLatestDataObject(config: MutableMap<String, Any?>, version: Int): T {
+    fun toLatestDataObject(config: MutableMap<String, Any?>, version: Int): MutableMap<String, Any?> {
         // バージョン番号チェック
         if (version > latestVersion) {
             throw IncompatibleConfigVersionException("未対応バージョンのデータが指定されています。")
@@ -50,33 +47,7 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
             }
         }
 
-        // POJOへの変換
-        val result = UnsafeAllocator.create().newInstance(clazz)
-        config.forEach { entry ->
-            try {
-                val field = clazz.getDeclaredField(entry.key)
-                field.isAccessible = true
-
-                if (field.type.isPrimitive) {
-                    val decimal = lazy { BigDecimal(entry.value.toString()) }
-                    when (field.type.name) {
-                        "int" -> field.setInt(result, decimal.value.toInt())
-                        "long" -> field.setLong(result, decimal.value.toLong())
-                        "short" -> field.setShort(result, decimal.value.toShort())
-                        "float" -> field.setFloat(result, decimal.value.toFloat())
-                        "double" -> field.setDouble(result, decimal.value.toDouble())
-                        "char" -> field.setChar(result, entry.value.toString().first())
-                        "byte" -> field.setByte(result, decimal.value.toByte())
-                    }
-                } else {
-                    field.set(result, entry.value)
-                }
-            } catch (ignored: NoSuchFieldException) {
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        return result
+        return config
     }
 
     protected class MigratorBuilder {
@@ -117,7 +88,7 @@ object ConfigFileUtility {
      * @param items 設定データ
      * @return JSON
      */
-    fun <T> exportToJson(clazz: Class<T>, items: List<T>): String {
+    fun <T> exportToJson(clazz: Class<T>, items: List<Map<String, Any?>>): String {
         val filter = filters[clazz] ?: return ""
         val writer = StringWriter()
         JsonWriter(writer).use { json ->
@@ -127,7 +98,7 @@ object ConfigFileUtility {
             json.value(filter.latestVersion)
 
             json.name(clazz.simpleName)
-            Gson().toJson(items, object : TypeToken<List<T>>() {}.type, json)
+            Gson().toJson(items, object : TypeToken<List<Map<String, Any?>>>() {}.type, json)
 
             json.endObject()
         }
@@ -145,7 +116,7 @@ object ConfigFileUtility {
      * @throws InvalidJsonException JSONに必要な情報が含まれていない場合など、不適切なJSONであった場合にスローされます。
      */
     @Throws(InvalidJsonException::class)
-    fun <T> importFromJson(clazz: Class<T>, json: String): List<T> {
+    fun <T> importFromJson(clazz: Class<T>, json: String): List<MutableMap<String, Any?>> {
         @Suppress("UNCHECKED_CAST")
         val filter = filters[clazz] as? ConfigFileMigrator<T> ?: throw IllegalArgumentException("invalid argument 'clazz' : $clazz")
 

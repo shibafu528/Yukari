@@ -21,6 +21,7 @@ import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.UsedHashes
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
+import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.UserExtras
@@ -85,20 +86,20 @@ class BackupActivity : ActionBarYukariBase() {
                     return
                 }
 
-                val service = twitterService
-                val database = service.database
+                val database = twitterService.database
 
                 val exports = mutableMapOf<String, String>()
                 fragment.checkedStates.forEach { i, b ->
+                    @Suppress("UNCHECKED_CAST")
                     when (i) {
-                        1 -> exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, service.users)
-                        2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.tabs)
-                        3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecords(MuteConfig::class.java))
-                        4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecords(AutoMuteConfig::class.java))
-                        5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecords(UserExtras::class.java))
-                        6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.bookmarks.map { it.serialize() })
-                        7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.drafts)
-                        8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.searchHistories)
+                        1 -> exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
+                        2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
+                        3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
+                        4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
+                        5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
+                        6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
+                        7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
+                        8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
                         9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
                         10 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
                     }
