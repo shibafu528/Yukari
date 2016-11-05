@@ -19,6 +19,7 @@ import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Spinner
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.TabInfo
@@ -27,6 +28,7 @@ import shibafu.yukari.common.UsedHashes
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.CentralDatabase
+import shibafu.yukari.database.DBRecord
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.UserExtras
@@ -37,6 +39,8 @@ import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set
 import shibafu.yukari.util.showToast
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
 /**
@@ -84,21 +88,100 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         val fragment = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)
         if (fragment !is BackupFragment) throw RuntimeException("fragment type mismatched")
 
+        if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED || Environment.getExternalStorageDirectory() == null) {
+            showToast("SDカードが挿入されていないか、ストレージ領域を正しく認識できていません。")
+            return
+        }
+
+        val database = twitterService.database
         when (intent.getIntExtra(EXTRA_MODE, EXTRA_MODE_EXPORT)) {
             EXTRA_MODE_IMPORT -> {
+                database.beginTransaction()
+                try {
+                    val readFile: (String) -> String = when (spLocation.selectedItemPosition) {
+                        0 -> lambda@ { fileName ->
+                            // import from file
+                            val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
+                            if (!directory.exists()) {
+                                directory.mkdirs()
+                            }
+
+                            val file = File(directory, fileName)
+                            if (!file.exists()) {
+                                throw FileNotFoundException("not found : $fileName")
+                            }
+                            FileInputStream(file).use {
+                                it.reader().use {
+                                    return@lambda it.readText()
+                                }
+                            }
+                        }
+                        1 -> lambda@ { fileName ->
+                            // import from Google Drive
+                            return@lambda ""
+                        }
+                        else -> throw RuntimeException("invalid location choose")
+                    }
+
+                    fun <F, T : DBRecord> importIntoDatabase(from: Class<F>, to: Class<T>, json: String)
+                            = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json))
+                    fun <F> importIntoDatabase(from: Class<F>, to: String, json: String)
+                            = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json))
+
+                    fragment.checkedStates.forEach { i, b ->
+                        try {
+                            when (i) {
+                                1 -> importIntoDatabase(AuthUserRecord::class.java, AuthUserRecord::class.java, readFile("accounts.json"))
+                                2 -> importIntoDatabase(TabInfo::class.java, TabInfo::class.java, readFile("tabs.json"))
+                                3 -> importIntoDatabase(MuteConfig::class.java, MuteConfig::class.java, readFile("mute.json"))
+                                4 -> importIntoDatabase(AutoMuteConfig::class.java, AutoMuteConfig::class.java, readFile("automute.json"))
+                                5 -> importIntoDatabase(UserExtras::class.java, UserExtras::class.java, readFile("user_extras.json"))
+                                6 -> importIntoDatabase(Bookmark.SerializeEntity::class.java, Bookmark::class.java, readFile("bookmarks.json"))
+                                7 -> importIntoDatabase(TweetDraft::class.java, CentralDatabase.TABLE_DRAFTS, readFile("drafts.json"))
+                                8 -> importIntoDatabase(SearchHistory::class.java, SearchHistory::class.java, readFile("draftsearch_history.json"))
+                                9 -> {
+                                    val records: List<String> = Gson().fromJson(readFile("used_tags.json"), object : TypeToken<List<String>>() {}.type)
+                                    val usedHashes = UsedHashes(applicationContext)
+                                    records.forEach { usedHashes.put(it) }
+                                    usedHashes.save(applicationContext)
+                                }
+                                10 -> {
+                                    val records: Map<String, Any?> = Gson().fromJson(readFile("prefs.json"), object : TypeToken<Map<String, Any?>>() {}.type)
+                                    val spEdit = PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+                                    records.forEach {
+                                        var value = it.value
+                                        if (value is Double) {
+                                            if (value - Math.floor(value) == 0.0) {
+                                                value = value.toInt()
+                                            } else {
+                                                value = value.toFloat()
+                                            }
+                                        }
+                                        when (value) {
+                                            is String -> spEdit.putString(it.key, value)
+                                            is Long -> spEdit.putLong(it.key, value)
+                                            is Int -> spEdit.putInt(it.key, value)
+                                            is Float -> spEdit.putFloat(it.key, value)
+                                            is Boolean -> spEdit.putBoolean(it.key, value)
+                                        }
+                                    }
+                                    spEdit.apply()
+                                }
+                            }
+                        } catch (e: FileNotFoundException) {}
+                    }
+
+                    database.setTransactionSuccessful()
+                } finally {
+                    database.endTransaction()
+                }
+
                 SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
                         "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
                         "OK", null)
                         .show(supportFragmentManager, "import_finished")
             }
             EXTRA_MODE_EXPORT -> {
-                if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED || Environment.getExternalStorageDirectory() == null) {
-                    showToast("SDカードが挿入されていないか、ストレージ領域を正しく認識できていません。")
-                    return
-                }
-
-                val database = twitterService.database
-
                 val exports = mutableMapOf<String, String>()
                 fragment.checkedStates.forEach { i, b ->
                     @Suppress("UNCHECKED_CAST")
