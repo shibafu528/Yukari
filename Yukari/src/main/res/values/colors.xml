@@ -2,7 +2,7 @@
 <resources>
     <drawable name="preview_bg">#99000000</drawable>
 
-    <color name="key_color">#ff7849ba</color>
+    <color name="key_color">#7849ba</color>
     <drawable name="key_color">#ff7849ba</drawable>
     <drawable name="status_bar_color">#cc7849ba</drawable>
 
@@ -10,7 +10,7 @@
     <drawable name="bg_retweet">#bad7dffd</drawable>
     <color name="bg_mention">#baEDB3DD</color>
     <drawable name="bg_mention">#baEDB3DD</drawable>
-    <color name="bg_own">#baEFDCFF</color>
+    <color name="bg_own">#baefdcff</color>
     <drawable name="bg_own">#baEFDCFF</drawable>
 
     <color name="bg_retweet_d">#ba363358</color>
