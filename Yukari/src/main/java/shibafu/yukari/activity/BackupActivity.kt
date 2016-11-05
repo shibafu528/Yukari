@@ -59,6 +59,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         private const val FRAGMENT_TAG = "backup"
 
         private const val DIALOG_IMPORT_FINISHED = 1
+        private const val DIALOG_EXPORT_FINISHED = 2
     }
 
     val spLocation: Spinner by lazy { findViewById(R.id.spinner) as Spinner }
@@ -218,47 +219,69 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 }.execute()
             }
             EXTRA_MODE_EXPORT -> {
-                val exports = mutableMapOf<String, String>()
-                fragment.checkedStates.forEach { i, b ->
-                    @Suppress("UNCHECKED_CAST")
-                    when (i) {
-                        1 -> exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
-                        2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
-                        3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
-                        4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
-                        5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
-                        6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
-                        7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
-                        8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
-                        9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
-                        10 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
-                    }
-                }
+                object : SimpleAsyncTask() {
+                    private var progressFragment: DialogFragment? = null
 
-                exports.forEach { entry ->
-                    when (spLocation.selectedItemPosition) {
-                        0 -> {
-                            // export to file
-                            val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
-                            if (!directory.exists()) {
-                                directory.mkdirs()
+                    override fun doInBackground(vararg p0: Void?): Void? {
+                        val exports = mutableMapOf<String, String>()
+                        fragment.checkedStates.forEach { i, b ->
+                            @Suppress("UNCHECKED_CAST")
+                            when (i) {
+                                1 -> exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
+                                2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
+                                3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
+                                4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
+                                5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
+                                6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
+                                7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
+                                8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
+                                9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
+                                10 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
                             }
+                        }
 
-                            val file = File(directory, entry.key)
-                            FileOutputStream(file).use {
-                                it.writer().use {
-                                    it.write(entry.value)
-                                    it.flush()
+                        exports.forEach { entry ->
+                            when (spLocation.selectedItemPosition) {
+                                0 -> {
+                                    // export to file
+                                    val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
+                                    if (!directory.exists()) {
+                                        directory.mkdirs()
+                                    }
+
+                                    val file = File(directory, entry.key)
+                                    FileOutputStream(file).use {
+                                        it.writer().use {
+                                            it.write(entry.value)
+                                            it.flush()
+                                        }
+                                    }
+                                }
+                                1 -> {
+                                    // export to Google Drive
                                 }
                             }
                         }
-                        1 -> {
-                            // export to Google Drive
-                        }
-                    }
-                }
 
-                showToast("設定をエクスポートしました。")
+                        return null
+                    }
+
+                    override fun onPreExecute() {
+                        super.onPreExecute()
+                        progressFragment = MaintenanceActivity.SimpleProgressDialogFragment.newInstance(null, "エクスポート中...", true, false)
+                        progressFragment?.show(supportFragmentManager, "progress")
+                    }
+
+                    override fun onPostExecute(result: Void?) {
+                        super.onPostExecute(result)
+                        progressFragment?.dismiss()
+                        progressFragment = null
+                        SimpleAlertDialogFragment.newInstance(DIALOG_EXPORT_FINISHED,
+                                "エクスポート完了", "エクスポートが完了しました。",
+                                "OK", null)
+                                .show(supportFragmentManager, "export_finished")
+                    }
+                }.execute()
             }
         }
     }
