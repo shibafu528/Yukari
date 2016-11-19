@@ -1,8 +1,13 @@
 package shibafu.yukari.media;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -19,13 +24,7 @@ public class Nijie extends LinkMedia {
     protected String expandMediaURL(final String browseURL) {
         return fetchSynced(() -> {
             try {
-                return Jsoup.connect(browseURL.replace("http://", "https://"))
-                        .timeout(10000)
-                        .userAgent(USER_AGENT)
-                        .get()
-                        .select("meta[property=og:image]")
-                        .attr("content")
-                        .replace("/sp", "");
+                return findPictureUrl(browseURL, false);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -37,12 +36,7 @@ public class Nijie extends LinkMedia {
     protected String expandThumbURL(final String browseURL) {
         return fetchSynced(() -> {
             try {
-                return Jsoup.connect(browseURL.replace("http://", "https://"))
-                        .timeout(10000)
-                        .userAgent(USER_AGENT)
-                        .get()
-                        .select("meta[property=og:image]")
-                        .attr("content");
+                return findPictureUrl(browseURL, true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -53,5 +47,30 @@ public class Nijie extends LinkMedia {
     @Override
     public boolean canPreview() {
         return true;
+    }
+
+    private String findPictureUrl(String browseURL, boolean isThumbnail) throws IOException {
+        Elements elements = Jsoup.connect(browseURL.replace("http://", "https://"))
+                .timeout(10000)
+                .userAgent(USER_AGENT)
+                .get()
+                .select("script[type$=json]");
+        if (elements == null || elements.size() < 1) {
+            return null;
+        }
+
+        Gson gson = new Gson();
+        for (Element element : elements) {
+            Map<String, ?> m = gson.fromJson(element.html().trim(), new TypeToken<Map<String, ?>>() {}.getType());
+            if (m.containsKey("thumbnailUrl")) {
+                String thumbnailUrl = m.get("thumbnailUrl").toString();
+                if (isThumbnail) {
+                    return thumbnailUrl;
+                } else {
+                    return thumbnailUrl.replaceFirst("nijie\\.info/.*/nijie_picture/", "nijie.info/nijie_picture/");
+                }
+            }
+        }
+        return null;
     }
 }

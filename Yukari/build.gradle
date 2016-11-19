@@ -13,9 +13,6 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
-    maven {
-        url 'https://dl.bintray.com/kotlin/kotlin-eap/'
-    }
 }
 
 ext {
@@ -91,7 +88,9 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
 
-        ndkConfig.abiFilters = ['armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86']
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
 
     compileOptions {
@@ -123,12 +122,9 @@ android {
 
 //>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.5-eap-83'
+    ext.kotlin_version = '1.0.5'
     repositories {
         mavenCentral()
-        maven {
-            url 'https://dl.bintray.com/kotlin/kotlin-eap/'
-        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
