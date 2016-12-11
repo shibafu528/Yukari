@@ -46,7 +46,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
@@ -63,7 +62,6 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.database.Template;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
@@ -140,6 +138,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
 
     private static final Extractor EXTRACTOR = new Extractor();
+
+    //タイトル部
+    private TextView tvTitle;
 
     //入力欄カウント系
     private EditText etInput;
@@ -239,18 +240,20 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         //最近使ったハッシュタグのロード
         usedHashes = new UsedHashes(getApplicationContext());
 
+        //Viewの初期化
+        initializeViews();
+
+        //IMEの表示設定
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+        //ウィンドウ外のタッチで閉じないようにする
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            setFinishOnTouchOutside(false);
+        }
+
         //Extraを取得
         final Intent args = getIntent();
         Uri dataArg = args.getData();
-
-        //アカウント表示の設定
-        tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
-        tvTweetBy.setOnClickListener(v -> {
-            Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
-            startActivityForResult(intent, REQUEST_ACCOUTS);
-        });
 
         //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
         AuthUserRecord user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
@@ -275,56 +278,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             isWebIntent = true;
         }
 
-        //IMEの表示設定
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-
-        //テキストエリアの設定
-        tvCount = (TextView) findViewById(R.id.tvTweetCount);
-        tvCount.setOnLongClickListener(v -> {
-            etInput.append(StringUtil.getVersionInfo(getApplicationContext()));
-            return true;
-        });
-        etInput = (EditText) findViewById(R.id.etTweetInput);
-        etInput.setTypeface(FontAsset.getInstance(this).getFont());
-        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
-        etInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                String text = s.toString();
-                int count = updateTweetCount();
-
-                if (ibSNPicker != null) {
-                    if (count > 0 && etInput.getSelectionStart() > 0 &&
-                            text.charAt(etInput.getSelectionStart() - 1) == '@') {
-                        ibSNPicker.setVisibility(View.VISIBLE);
-                    } else {
-                        ibSNPicker.setVisibility(View.GONE);
-                    }
-                }
-
-                // 装飾の除去
-                Object[] spanned = s.getSpans(0, s.length(), Object.class);
-                if (spanned != null) {
-                    for (Object o : spanned) {
-                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
-                            s.removeSpan(o);
-                        }
-                    }
-                }
-            }
-        });
-        etInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
-            }
-        });
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
         String defaultText;
         if (isWebIntent) {
@@ -383,7 +336,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             case MODE_QUOTE: {
                 final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
                 if (status == null && inReplyTo > -1) {
-                    TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
                     tvTitle.setText("Reply >> loading...");
                     new SimpleAsyncTask() {
                         @Override
@@ -414,13 +366,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
             case MODE_COMPOSE:
                 isComposerMode = true;
-                ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
+                tvTitle.setText("Compose");
                 break;
         }
-
-        //添付エリアの設定
-        llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
-        llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
 
         //添付データがある場合は設定する
         ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
@@ -433,6 +381,90 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 attachPicture(Uri.parse(s));
             }
         }
+
+        //DM判定
+        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
+        if (isDirectMessage) {
+            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
+            //表題変更
+            tvTitle.setText("DirectMessage to @" + directMessageDestSN);
+            //ボタン無効化と表示変更
+            ibAttach.setEnabled(false);
+            ibCamera.setEnabled(false);
+            btnPost.setText("Send");
+            //文字数上限変更
+            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
+            updateTweetCount();
+        }
+
+        // 初期化完了時点での下書き状況のスナップショット
+        initialDraft = (TweetDraft) getTweetDraft().clone();
+    }
+
+    /**
+     * ビューの初期化
+     */
+    private void initializeViews() {
+        //タイトル部の設定
+        tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
+
+        //アカウント表示の設定
+        tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
+        tvTweetBy.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
+            startActivityForResult(intent, REQUEST_ACCOUTS);
+        });
+
+        //テキストエリアの設定
+        tvCount = (TextView) findViewById(R.id.tvTweetCount);
+        tvCount.setOnLongClickListener(v -> {
+            etInput.append(StringUtil.getVersionInfo(getApplicationContext()));
+            return true;
+        });
+        etInput = (EditText) findViewById(R.id.etTweetInput);
+        etInput.setTypeface(FontAsset.getInstance(this).getFont());
+        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
+        etInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String text = s.toString();
+                int count = updateTweetCount();
+
+                if (ibSNPicker != null) {
+                    if (count > 0 && etInput.getSelectionStart() > 0 &&
+                            text.charAt(etInput.getSelectionStart() - 1) == '@') {
+                        ibSNPicker.setVisibility(View.VISIBLE);
+                    } else {
+                        ibSNPicker.setVisibility(View.GONE);
+                    }
+                }
+
+                // 装飾の除去
+                Object[] spanned = s.getSpans(0, s.length(), Object.class);
+                if (spanned != null) {
+                    for (Object o : spanned) {
+                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
+                            s.removeSpan(o);
+                        }
+                    }
+                }
+            }
+        });
+        etInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
 
         //投稿ボタンの設定
         btnPost = (Button) findViewById(R.id.btnTweet);
@@ -457,34 +489,15 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             return true;
         });
 
+        //添付エリアの設定
+        llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
+        llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
+
         // アクションエリアの初期化
         initializeActions();
 
         // プラグインエリアの初期化
         initializeEditPlugins();
-
-        //DM判定
-        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
-        if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
-            //表題変更
-            ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
-            //ボタン無効化と表示変更
-            ibAttach.setEnabled(false);
-            ibCamera.setEnabled(false);
-            btnPost.setText("Send");
-            //文字数上限変更
-            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
-            updateTweetCount();
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(false);
-        }
-
-        // 初期化完了時点での下書き状況のスナップショット
-        initialDraft = (TweetDraft) getTweetDraft().clone();
     }
 
     /**
@@ -786,7 +799,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private void showQuotedStatus() {
-        TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
         if (status != null) {
             Status s = status.isRetweet()? status.getRetweetedStatus() : status;
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
