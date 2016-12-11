@@ -91,12 +91,12 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener{
+public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
 
-    public static final int MODE_TWEET   = 0;
-    public static final int MODE_REPLY   = 1;
-    public static final int MODE_DM      = 2;
-    public static final int MODE_QUOTE   = 3;
+    public static final int MODE_TWEET = 0;
+    public static final int MODE_REPLY = 1;
+    public static final int MODE_DM = 2;
+    public static final int MODE_QUOTE = 3;
     public static final int MODE_COMPOSE = 4;
 
     public static final String EXTRA_MODE = "mode";
@@ -262,8 +262,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             useStoredWriters = false;
             writers = argWriters;
             updateWritersView();
-        }
-        else if (user != null) {
+        } else if (user != null) {
             useStoredWriters = false;
             writers.add(user);
             updateWritersView();
@@ -306,15 +305,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
             if (args.hasExtra(Intent.EXTRA_TITLE)) {
                 defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
-            }
-            else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
+            } else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
                 defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
             }
         } else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
         if (sp.getBoolean("pref_save_tags", false)) {
-            List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>(){}.getType());
+            List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>() {}.getType());
             if (!tags.isEmpty()) {
                 StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText) ? "" : defaultText);
                 sb.append(" ");
@@ -328,7 +326,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 defaultText = sb.toString();
             }
         }
-        etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
+        etInput.setText((defaultText != null) ? defaultText : sp.getString("pref_tweet_footer", ""));
         switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
             case MODE_REPLY:
                 etInput.setSelection(etInput.getText().length());
@@ -375,8 +373,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
             attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
-        }
-        else if (mediaUri != null) {
+        } else if (mediaUri != null) {
             for (String s : mediaUri) {
                 attachPicture(Uri.parse(s));
             }
@@ -514,7 +511,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
             Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
             intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.YukariLightTheme : R.style.YukariDarkTheme);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
             startActivityForResult(intent, REQUEST_GALLERY);
@@ -589,8 +586,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             int end = etInput.getSelectionEnd();
             if (start < 0 || end < 0 || start == end) {
                 appendTextInto("ｗ");
-            }
-            else {
+            } else {
                 String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
                 char[] chr = text.toCharArray();
                 int grass = text.length() - 1;
@@ -680,7 +676,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
         for (ResolveInfo ri : plugins) {
             ImageButton imageButton = new ImageButton(this);
-            Bitmap sourceIcon = ((BitmapDrawable)ri.activityInfo.loadIcon(pm)).getBitmap();
+            Bitmap sourceIcon = ((BitmapDrawable) ri.activityInfo.loadIcon(pm)).getBitmap();
             imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
             imageButton.setTag(ri);
             imageButton.setOnClickListener(v -> {
@@ -770,8 +766,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             Intent intent = new Intent();
             intent.putExtra(EXTRA_DRAFT, draft);
             setResult(RESULT_OK, intent);
-        }
-        else {
+        } else {
             //サービスに投げる
             Intent intent = PostService.newIntent(TweetActivity.this, draft);
             startService(intent);
@@ -789,8 +784,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         StringBuilder sb = new StringBuilder();
         if (writers.size() < 1) {
             sb.append(">> SELECT ACCOUNT(S)");
-        }
-        else for (int i = 0; i < writers.size(); ++i) {
+        } else for (int i = 0; i < writers.size(); ++i) {
             if (i > 0) sb.append("\n");
             sb.append("@");
             sb.append(writers.get(i).ScreenName);
@@ -800,7 +794,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     private void showQuotedStatus() {
         if (status != null) {
-            Status s = status.isRetweet()? status.getRetweetedStatus() : status;
+            Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
         } else {
             tvTitle.setText("Reply >> load failed. (deleted or temporary error)");
@@ -838,8 +832,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         attachPicture((Uri) uri);
                     }
                     break;
-                case REQUEST_CAMERA:
-                {
+                case REQUEST_CAMERA: {
                     if (data != null && data.getData() != null) {
                         //getDataでUriが返ってくる端末用
                         //フィールドは手に入ったUriで上書き
@@ -854,13 +847,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     cameraTemp = null;
                     break;
                 }
-                case REQUEST_VOICE:
-                {
+                case REQUEST_VOICE: {
                     List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     if (results.size() > 0) {
                         appendTextInto(results.get(0));
-                    }
-                    else {
+                    } else {
                         Toast.makeText(TweetActivity.this, "認識に失敗しました", Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -876,18 +867,15 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     etInput.setText(data.getStringExtra(Intent.EXTRA_TEXT));
                     etInput.setSelection(data.getIntExtra("cursor", etInput.getSelectionStart()));
                     break;
-                case REQUEST_ACCOUTS:
-                {
+                case REQUEST_ACCOUTS: {
                     writers = (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                     updateWritersView();
                     break;
                 }
             }
-        }
-        else if (resultCode == RESULT_CANCELED) {
+        } else if (resultCode == RESULT_CANCELED) {
             switch (requestCode) {
-                case REQUEST_CAMERA:
-                {
+                case REQUEST_CAMERA: {
                     try {
                         ContentResolver resolver = getContentResolver();
                         Cursor c = resolver.query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
@@ -1034,8 +1022,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (maxMediaPerUpload == 1 && attachPictures.size() >= 1) {
             llTweetAttachInner.removeView(attachPictures.get(0).imageView);
             attachPictures.set(0, pic);
-        }
-        else {
+        } else {
             attachPictures.add(pic);
         }
         llTweetAttachInner.addView(pic.imageView);
@@ -1130,7 +1117,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
         if (apiConfiguration != null) {
             maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
-            ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+            ((TextView) findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
             shortUrlLength = apiConfiguration.getShortURLLength();
         }
 
@@ -1330,7 +1317,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             if (prefixMatcher.find()) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < prefixMatcher.groupCount(); i++) {
-                    sb.append(prefixMatcher.group(i+1));
+                    sb.append(prefixMatcher.group(i + 1));
                 }
                 prefix = sb.toString();
             }
