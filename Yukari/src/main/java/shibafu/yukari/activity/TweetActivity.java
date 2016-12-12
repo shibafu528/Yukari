@@ -79,6 +79,8 @@ import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -145,16 +147,16 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
-    private int tweetCountLimit = TWEET_COUNT_LIMIT;
+    @NeedSaveState private int tweetCountLimit = TWEET_COUNT_LIMIT;
     private int tweetCount = TWEET_COUNT_LIMIT;
 
     //DMフラグ
-    private boolean isDirectMessage = false;
-    private long directMessageDestId;
-    private String directMessageDestSN;
+    @NeedSaveState private boolean isDirectMessage = false;
+    @NeedSaveState private long directMessageDestId;
+    @NeedSaveState private String directMessageDestSN;
 
     //編集モード
-    private boolean isComposerMode = false;
+    @NeedSaveState private boolean isComposerMode = false;
 
     //添付プレビュー
     private ImageButton ibAttach;
@@ -163,12 +165,12 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private LinearLayout llTweetAttachInner;
 
     //Writer指定
-    private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+    @NeedSaveState private ArrayList<AuthUserRecord> writers = new ArrayList<>();
     //アカウントのWriter指定を使用する(Writerアカウント指定呼び出しの場合は折る)
-    private boolean useStoredWriters = true;
+    @NeedSaveState private boolean useStoredWriters = true;
 
     private Status status;
-    private List<AttachPicture> attachPictures = new ArrayList<>();
+    @NeedSaveState private List<AttachPicture> attachPictures = new ArrayList<>();
 
     private SharedPreferences sp;
 
@@ -179,7 +181,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private int maxMediaPerUpload = 4;
 
     //撮影用の一時変数
-    private Uri cameraTemp;
+    @NeedSaveState private Uri cameraTemp;
 
     private AlertDialog currentDialog;
 
@@ -209,7 +211,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private UsedHashes usedHashes;
 
     //初期状態のスナップショット
-    private TweetDraft initialDraft;
+    @NeedSaveState private TweetDraft initialDraft;
 
     //プラグインエリア
     private LinearLayout llTweetExtra;
@@ -253,6 +255,23 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         //Extraを取得
         final Intent args = getIntent();
+
+        //statusを取得する (EXTRA_STATUS)
+        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
+
+        if (savedInstanceState != null) {
+            restoreState(savedInstanceState);
+        } else {
+            initializeState();
+        }
+    }
+
+    /**
+     * 起動パラメータを基に初期化
+     */
+    private void initializeState() {
+        //Extraを取得
+        final Intent args = getIntent();
         Uri dataArg = args.getData();
 
         //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
@@ -267,9 +286,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             writers.add(user);
             updateWritersView();
         }
-
-        //statusを取得する (EXTRA_STATUS)
-        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
 
         //WebIntent判定
         boolean isWebIntent = false;
@@ -642,29 +658,25 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
         // モールス入力
         ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
-        {
-            ibMorse.setOnClickListener(v -> {
-                Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
-                startActivityForResult(intent, REQUEST_NOWPLAYING);
-            });
-        }
+        ibMorse.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
+            startActivityForResult(intent, REQUEST_NOWPLAYING);
+        });
 
         // これ聴いてるんだからねっ！連携
         final PackageManager pm = getPackageManager();
         ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
-        {
-            try {
-                final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
-                ibNowPlay.setVisibility(View.VISIBLE);
-                ibNowPlay.setOnClickListener(v -> {
-                    Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
-                    intent.addCategory("com.adamrocker.android.simeji.REPLACE");
-                    intent.setPackage(ai.packageName);
-                    startActivityForResult(intent, REQUEST_NOWPLAYING);
-                });
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
+        try {
+            final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
+            ibNowPlay.setVisibility(View.VISIBLE);
+            ibNowPlay.setOnClickListener(v -> {
+                Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
+                intent.addCategory("com.adamrocker.android.simeji.REPLACE");
+                intent.setPackage(ai.packageName);
+                startActivityForResult(intent, REQUEST_NOWPLAYING);
+            });
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
 
         // twiccaプラグインのロード
@@ -711,6 +723,41 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             });
             llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         }
+    }
+
+    private void restoreState(Bundle state) {
+        tweetCountLimit = state.getInt("tweetCountLimit");
+        isDirectMessage = state.getBoolean("isDirectMessage");
+        directMessageDestId = state.getLong("directMessageDestId");
+        directMessageDestSN = state.getString("directMessageDestSN");
+        isComposerMode = state.getBoolean("isComposerMode");
+        writers = (ArrayList<AuthUserRecord>) state.getSerializable("writers");
+        useStoredWriters = state.getBoolean("useStoredWriters");
+        cameraTemp = state.getParcelable("cameraTemp");
+        initialDraft = (TweetDraft) state.getSerializable("initialDraft");
+        Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
+
+        updateWritersView();
+        updateTweetCount();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("tweetCountLimit", tweetCountLimit);
+        outState.putBoolean("isDirectMessage", isDirectMessage);
+        outState.putLong("directMessageDestId", directMessageDestId);
+        outState.putString("directMessageDestSN", directMessageDestSN);
+        outState.putBoolean("isComposerMode", isComposerMode);
+        outState.putSerializable("writers", writers);
+        outState.putBoolean("useStoredWriters", useStoredWriters);
+        outState.putParcelable("cameraTemp", cameraTemp);
+        outState.putSerializable("initialDraft", initialDraft);
+        ArrayList<Uri> attachPictureUris = new ArrayList<>();
+        for (AttachPicture picture : attachPictures) {
+            attachPictureUris.add(picture.uri);
+        }
+        outState.putParcelableArrayList("attachPictureUris", attachPictureUris);
     }
 
     private void postTweet() {
@@ -1336,4 +1383,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
         }
     }
+
+    /**
+     * 状態を保存する必要があるかメモするためだけの存在。正直いらねえ。
+     */
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface NeedSaveState {}
 }
