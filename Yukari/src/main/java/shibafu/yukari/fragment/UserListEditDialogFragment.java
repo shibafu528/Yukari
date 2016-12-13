@@ -174,7 +174,7 @@ public class UserListEditDialogFragment extends DialogFragment {
                             }
 
                             if (listener != null) {
-                                listener.onDialogChose(requestCode, DialogInterface.BUTTON_POSITIVE);
+                                listener.onDialogChose(requestCode, DialogInterface.BUTTON_POSITIVE, null);
                             }
                         }
                     }

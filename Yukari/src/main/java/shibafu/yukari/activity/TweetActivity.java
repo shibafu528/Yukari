@@ -1247,7 +1247,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     public void onServiceDisconnected() {}
 
     @Override
-    public void onDialogChose(int requestCode, int which) {
+    public void onDialogChose(int requestCode, int which, Bundle extras) {
         switch (requestCode) {
             case REQUEST_DIALOG_CLEAR:
                 if (which == DialogInterface.BUTTON_POSITIVE) {

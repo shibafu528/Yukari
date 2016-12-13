@@ -213,7 +213,7 @@ public class MuteActivity extends ActionBarYukariBase{
         }
 
         @Override
-        public void onDialogChose(int requestCode, int which) {
+        public void onDialogChose(int requestCode, int which, Bundle extras) {
             if (which == DialogInterface.BUTTON_POSITIVE) {
                 switch (requestCode) {
                     case DIALOG_DELETE:

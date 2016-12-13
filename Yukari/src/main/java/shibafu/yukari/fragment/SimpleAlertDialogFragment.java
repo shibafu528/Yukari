@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
 import android.widget.Button;
@@ -25,9 +26,10 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     public static final String ARG_NEUTRAL = "neutral";
     public static final String ARG_NEGATIVE = "negative";
     public static final String ARG_DISABLE_CAPS = "disable_caps";
+    public static final String ARG_EXTRAS = "extras";
 
     public interface OnDialogChoseListener {
-        void onDialogChose(int requestCode, int which);
+        void onDialogChose(int requestCode, int which, @Nullable Bundle extras);
     }
 
     @Deprecated
@@ -162,7 +164,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
             }
 
             if (listener != null) {
-                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i);
+                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, getArguments().getBundle(ARG_EXTRAS));
             }
         }
     }
@@ -184,6 +186,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         String neutral;
         String negative;
         boolean disableCaps;
+        Bundle extras;
 
         public SimpleAlertDialogFragment build() {
             SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
@@ -196,6 +199,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
             args.putString(ARG_NEUTRAL, neutral);
             args.putString(ARG_NEGATIVE, negative);
             args.putBoolean(ARG_DISABLE_CAPS, disableCaps);
+            args.putBundle(ARG_EXTRAS, extras);
             fragment.setArguments(args);
             return fragment;
         }

@@ -137,7 +137,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         itemList[position].onClick()
     }
 
-    override fun onDialogChose(requestCode: Int, which: Int) {
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             REQUEST_DELETE -> if (which == DialogInterface.BUTTON_POSITIVE) {
                 ParallelAsyncTask.executeParallel {

@@ -412,7 +412,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     }
 
     @Override
-    public void onDialogChose(int requestCode, int which) {
+    public void onDialogChose(int requestCode, int which, Bundle extras) {
         if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
             new ThrowableTwitterAsyncTask<Long, Void>(this) {
 

@@ -293,7 +293,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
 
     override fun onServiceDisconnected() {}
 
-    override fun onDialogChose(requestCode: Int, which: Int) {
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             DIALOG_IMPORT_FINISHED -> {
                 val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
