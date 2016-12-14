@@ -111,7 +111,7 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#ff8b8b8b"
             android:textSize="11sp"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
         <ImageView
             android:id="@+id/tweet_faved"
@@ -126,13 +126,13 @@
             android:id="@+id/tweet_include"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/tweet_timestamp"
+            android:layout_alignLeft="@+id/tweet_receive"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_alignStart="@+id/tweet_timestamp"
-            android:layout_below="@+id/tweet_timestamp"
+            android:layout_alignStart="@id/tweet_receive"
+            android:layout_below="@+id/tweet_receive"
             android:orientation="vertical"
-            android:visibility="gone" />
+            android:visibility="gone"/>
 
     </RelativeLayout>
 

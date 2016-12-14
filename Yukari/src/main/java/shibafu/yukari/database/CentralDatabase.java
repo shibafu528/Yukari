@@ -3,21 +3,24 @@ package shibafu.yukari.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorWindow;
+import android.database.sqlite.SQLiteCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import shibafu.yukari.common.TabInfo;
+import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import shibafu.yukari.common.TabInfo;
-import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.TweetDraft;
-import shibafu.yukari.twitter.AuthUserRecord;
+import java.util.Map;
 
 /**
  * Created by Shibafu on 13/12/18.
@@ -838,6 +841,77 @@ public class CentralDatabase {
             throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
         }
         db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
+    }
+
+    public List<Map> getRecordMaps(Class<? extends DBRecord> clz) {
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        return getRecordMaps(annotation.value());
+    }
+
+    public List<Map> getRecordMaps(String tableName) {
+        List<Map> result = new ArrayList<>();
+        Cursor cursor = db.query(tableName, null, null, null, null, null, null);
+        try {
+            if (cursor.moveToFirst()) do {
+                Map<String, Object> m = new HashMap<>();
+                CursorWindow window = ((SQLiteCursor) cursor).getWindow();
+
+                for (String column : cursor.getColumnNames()) {
+                    int columnIndex = cursor.getColumnIndex(column);
+
+                    if (window.isNull(cursor.getPosition(), columnIndex)) {
+                        m.put(column, null);
+                    } else if (window.isLong(cursor.getPosition(), columnIndex)) {
+                        m.put(column, cursor.getLong(columnIndex));
+                    } else if (window.isFloat(cursor.getPosition(), columnIndex)) {
+                        m.put(column, cursor.getDouble(columnIndex));
+                    } else if (window.isString(cursor.getPosition(), columnIndex)) {
+                        m.put(column, cursor.getString(columnIndex));
+                    } else if (window.isBlob(cursor.getPosition(), columnIndex)) {
+                        m.put(column, cursor.getBlob(columnIndex));
+                    }
+                }
+
+                result.add(m);
+            } while (cursor.moveToNext());
+        } finally {
+            cursor.close();
+        }
+        return result;
+    }
+
+    public void importRecordMaps(Class<? extends DBRecord> clz, List<Map> records) {
+        DBTable annotation = clz.getAnnotation(DBTable.class);
+        if (annotation == null) {
+            throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
+        }
+        importRecordMaps(annotation.value(), records);
+    }
+
+    public void importRecordMaps(String tableName, List<Map> records) {
+        db.delete(tableName, null, null);
+        for (Map<String, ?> record : records) {
+            ContentValues values = new ContentValues();
+
+            for (Map.Entry<String, ?> entry : record.entrySet()) {
+                if (entry.getValue() == null) {
+                    values.putNull(entry.getKey());
+                } else if (entry.getValue() instanceof Long || entry.getValue() instanceof Integer) {
+                    values.put(entry.getKey(), (Long) entry.getValue());
+                } else if (entry.getValue() instanceof Float || entry.getValue() instanceof Double) {
+                    values.put(entry.getKey(), (Double) entry.getValue());
+                } else if (entry.getValue() instanceof String) {
+                    values.put(entry.getKey(), (String) entry.getValue());
+                } else if (entry.getValue() instanceof byte[]) {
+                    values.put(entry.getKey(), (byte[]) entry.getValue());
+                }
+            }
+
+            db.insert(tableName, null, values);
+        }
     }
 
     @Deprecated

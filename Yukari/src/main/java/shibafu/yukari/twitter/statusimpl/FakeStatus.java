@@ -33,6 +33,16 @@ public class FakeStatus implements Status {
     }
 
     @Override
+    public int getDisplayTextRangeStart() {
+        return 0;
+    }
+
+    @Override
+    public int getDisplayTextRangeEnd() {
+        return getText().length() - 1;
+    }
+
+    @Override
     public String getSource() {
         return "";
     }
@@ -173,11 +183,6 @@ public class FakeStatus implements Status {
     }
 
     @Override
-    public ExtendedMediaEntity[] getExtendedMediaEntities() {
-        return new ExtendedMediaEntity[0];
-    }
-
-    @Override
     public SymbolEntity[] getSymbolEntities() {
         return new SymbolEntity[0];
     }
@@ -204,8 +209,13 @@ public class FakeStatus implements Status {
         }
 
         @Override
-        public String getScreenName() {
+        public String getEmail() {
             return "";
+        }
+
+        @Override
+        public String getScreenName() {
+            return "**FakeStatus**";
         }
 
         @Override

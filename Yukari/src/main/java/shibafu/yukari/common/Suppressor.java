@@ -1,7 +1,9 @@
 package shibafu.yukari.common;
 
+import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.MuteMatch;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.User;
 
@@ -21,6 +23,7 @@ public class Suppressor {
     private LongList blockedIDs = new LongList();
     private LongList mutedIDs = new LongList();
     private LongList noRetweetIDs = new LongList();
+    private LongSparseArray<Pattern> patternCache = new LongSparseArray<>();
 
     private static final Comparator<Long> COMPARATOR = (lhs, rhs) -> {
         if (lhs.equals(rhs)) return 0;
@@ -30,6 +33,16 @@ public class Suppressor {
 
     public void setConfigs(List<MuteConfig> configs) {
         this.configs = configs;
+        patternCache.clear();
+        for (MuteConfig config : configs) {
+            if (!config.expired() && config.getMatch() == MuteMatch.MATCH_REGEX) {
+                try {
+                    patternCache.put(config.getId(), Pattern.compile(config.getQuery()));
+                } catch (PatternSyntaxException ignore) {
+                    patternCache.put(config.getId(), null);
+                }
+            }
+        }
         Log.d("Suppressor", "Loaded " + configs.size() + " MuteConfigs");
     }
 
@@ -105,13 +118,22 @@ public class Suppressor {
                 case MuteConfig.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX:
-                    try {
-                        Pattern pattern = Pattern.compile(config.getQuery());
+                case MuteConfig.MATCH_REGEX: {
+                    Pattern pattern = patternCache.get(config.getId());
+                    if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
+                        try {
+                            pattern = Pattern.compile(config.getQuery());
+                            patternCache.put(config.getId(), pattern);
+                        } catch (PatternSyntaxException ignore) {
+                            patternCache.put(config.getId(), null);
+                        }
+                    }
+                    if (pattern != null) {
                         Matcher matcher = pattern.matcher(source);
                         match = matcher.find();
-                    } catch (PatternSyntaxException ignore) {}
+                    }
                     break;
+                }
             }
             if (match) {
                 result[mute] = true;
@@ -153,13 +175,22 @@ public class Suppressor {
                 case MuteConfig.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX:
-                    try {
-                        Pattern pattern = Pattern.compile(config.getQuery());
+                case MuteConfig.MATCH_REGEX: {
+                    Pattern pattern = patternCache.get(config.getId());
+                    if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
+                        try {
+                            pattern = Pattern.compile(config.getQuery());
+                            patternCache.put(config.getId(), pattern);
+                        } catch (PatternSyntaxException ignore) {
+                            patternCache.put(config.getId(), null);
+                        }
+                    }
+                    if (pattern != null) {
                         Matcher matcher = pattern.matcher(source);
                         match = matcher.find();
-                    } catch (PatternSyntaxException ignore) {}
+                    }
                     break;
+                }
             }
             if (match) {
                 result[config.getMute()] = true;

@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.IntDef;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -18,7 +21,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import shibafu.yukari.af2015.R;
+import lombok.Value;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -60,6 +64,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     public static final int LOADER_LOAD_INIT   = 0;
     public static final int LOADER_LOAD_MORE   = 1;
     public static final int LOADER_LOAD_UPDATE = 2;
+
+    /** {@link PrepareInsertResultCode} : 同時に返すpositionに挿入可能 */
+    protected static final int PREPARE_INSERT_ALLOWED = 0;
+    /** {@link PrepareInsertResultCode} : 既に同一の要素が存在している(挿入禁止) */
+    protected static final int PREPARE_INSERT_DUPLICATED = -1;
+    /** {@link PrepareInsertResultCode} : 同一要素があったためマージを行った(Viewの制御のみ必要) */
+    protected static final int PREPARE_INSERT_MERGED = -2;
+
+    protected static final boolean USE_INSERT_LOG = false;
 
     //Elements List
     private Class<T> elementClass;
@@ -117,9 +130,22 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     //TweetCommon Delegate
     private TweetCommonDelegate commonDelegate;
 
-    //DoubleClock Blocker
+    //DoubleClick Blocker
     private boolean enableDoubleClickBlocker;
-    private boolean blockingDoubleClock;
+    private boolean blockingDoubleClick;
+
+    //Scroll Lock
+    protected long lockedScrollId = -1;
+    private int lockedYPosition = 0;
+    private Handler scrollUnlockHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            if (USE_INSERT_LOG) {
+                Log.d("scrollUnlockHandler", "(reset) lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+            }
+            lockedScrollId = -1;
+        }
+    };
 
     private Handler handler = new Handler();
 
@@ -211,28 +237,35 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     break;
             }
 
-            unreadNotifierView.setOnClickListener(v -> {
-                if (unreadSet.isEmpty()) {
-                    listView.setSelection(0);
-                } else {
-                    Long lastUnreadId = Collections.min(unreadSet);
-                    int position;
-                    for (position = 0; position < elements.size(); ++position) {
-                        if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
-                    }
-                    if (position < elements.size()) {
-                        listView.setSelection(position);
-                    }
-                }
-            });
+            unreadNotifierView.setOnClickListener(v -> scrollToOldestUnread());
 
             getListView().setOnScrollListener(new AbsListView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(AbsListView view, int scrollState) {
+                    switch (scrollState) {
+                        case SCROLL_STATE_FLING:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = FLING");
+                            // ユーザ操作によるスクロールが行われる時は、スクロールロックを解除
+                            lockedScrollId = -1;
+                            break;
+                        case SCROLL_STATE_IDLE:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = IDLE");
+                            break;
+                        case SCROLL_STATE_TOUCH_SCROLL:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = TOUCH_SCROLL");
+                            break;
+                        default:
+                            if (USE_INSERT_LOG) Log.d("onScrollStateChanged", "scrollStateChanged = " + scrollState);
+                            break;
+                    }
                 }
 
                 @Override
                 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    if (USE_INSERT_LOG) {
+                        Log.d("onScroll", "called. lockedScrollId = " + lockedScrollId + ", y = " + lockedYPosition);
+                    }
+
                     if (elementClass != null) {
                         for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
                             T element = elements.get(firstVisibleItem);
@@ -278,7 +311,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         limitedTimeline = sharedPreferences.getBoolean("pref_limited_timeline", false);
 
         enableDoubleClickBlocker = sharedPreferences.getBoolean("pref_block_doubleclock", false);
-        blockingDoubleClock = false;
+        blockingDoubleClick = false;
     }
 
     @Override
@@ -301,6 +334,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         adapterWrap = null;
         swipeRefreshLayout = null;
         unreadNotifierView = null;
+        swipeActionStatusView = null;
+        swipeActionInfoLabel = null;
+        footerView = null;
+        footerProgress = null;
+        footerText = null;
         connection.disconnect(getActivity());
 
         if (getActivity() instanceof MainActivity) {
@@ -409,15 +447,63 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    public void scrollToOldestUnread() {
+        try {
+            if (unreadSet.isEmpty()) {
+                getListView().setSelection(0);
+            } else {
+                Long lastUnreadId = Collections.min(unreadSet);
+                int position;
+                for (position = 0; position < elements.size(); ++position) {
+                    if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
+                }
+                if (position < elements.size()) {
+                    getListView().setSelection(position);
+                }
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void scrollToPrevPage() {
+        try {
+            ListView listView = getListView();
+            listView.smoothScrollBy(-listView.getHeight(), 100);
+            listView.setSelection(listView.getFirstVisiblePosition());
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void scrollToNextPage() {
+        try {
+            ListView listView = getListView();
+            listView.smoothScrollBy(listView.getHeight(), 100);
+            listView.setSelection(listView.getFirstVisiblePosition());
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                Toast.makeText(getActivity().getApplicationContext(), e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     protected void changeFooterProgress(boolean isLoading) {
         this.isLoading = isLoading;
         if (isLoading) {
-            footerProgress.setVisibility(View.VISIBLE);
-            footerText.setText("loading");
+            if (footerProgress != null) footerProgress.setVisibility(View.VISIBLE);
+            if (footerText != null) footerText.setText("loading");
         }
         else {
-            footerProgress.setVisibility(View.INVISIBLE);
-            footerText.setText("more");
+            if (footerProgress != null) footerProgress.setVisibility(View.INVISIBLE);
+            if (footerText != null) footerText.setText("more");
         }
     }
 
@@ -430,7 +516,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     @Override
     public final void onListItemClick(ListView l, View v, int position, long id) {
-        if (blockingDoubleClock) {
+        if (blockingDoubleClick) {
             return;
         }
 
@@ -438,7 +524,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             //要素クリックイベントの呼び出し
             if (onListItemClick(position, elements.get(position)) && enableDoubleClickBlocker) {
                 //次回onResumeまでクリックイベントを無視する
-                blockingDoubleClock = true;
+                blockingDoubleClick = true;
             }
         } else if (position == elements.size() && !isLoading) {
             //フッタークリック
@@ -463,19 +549,19 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         limitCount = users.size() * 256;
     }
 
-    protected int prepareInsertStatus(T status) {
+    protected PrepareInsertResult prepareInsertStatus(T status) {
         //挿入位置の探索と追加
         T storedStatus;
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
             if (commonDelegate.getId(status) == commonDelegate.getId(storedStatus)) {
-                return -1;
+                return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             }
             else if (commonDelegate.getId(status) > commonDelegate.getId(storedStatus)) {
-                return i;
+                return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
             }
         }
-        return elements.size();
+        return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, elements.size());
     }
 
     @UiThread
@@ -515,28 +601,38 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     @UiThread
     protected void insertElement2(T element) {
-        int position = prepareInsertStatus(element);
-        if (position < 0 || elements.contains(element)) {
-            return;
-        }
+        insertElement2(element, false);
+    }
 
-        if (position < elements.size()) {
-            boolean isFake = isFakeStatus(element);
-            if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
-                return;
-        }
-        elements.add(position, element);
-        notifyDataSetChanged();
-        if (isLimitedTimeline() && elements.size() > getLimitCount()) {
-            for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
-                T e = iterator.next();
-                if (!isFakeStatus(e)) {
-                    unreadSet.remove(commonDelegate.getId(e));
-                    iterator.remove();
-                    notifyDataSetChanged();
+    @UiThread
+    protected void insertElement2(T element, boolean useScrollLock) {
+        PrepareInsertResult prepareInsert = prepareInsertStatus(element);
+        int position = prepareInsert.getPosition();
+        if (prepareInsert.getResultCode() == PREPARE_INSERT_DUPLICATED) {
+            return;
+        } else if (prepareInsert.getResultCode() == PREPARE_INSERT_MERGED) {
+            notifyDataSetChanged();
+        } else if (!elements.contains(element)) {
+            if (position < elements.size()) {
+                boolean isFake = isFakeStatus(element);
+                if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
+                    return;
+            }
+            elements.add(position, element);
+            notifyDataSetChanged();
+            if (isLimitedTimeline() && elements.size() > getLimitCount()) {
+                for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
+                    T e = iterator.next();
+                    if (!isFakeStatus(e)) {
+                        unreadSet.remove(commonDelegate.getId(e));
+                        iterator.remove();
+                        notifyDataSetChanged();
+                    }
                 }
             }
+
         }
+
         if (listView == null) {
             Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
             return;
@@ -544,22 +640,70 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         int firstPos = listView.getFirstVisiblePosition();
         View firstView = listView.getChildAt(0);
         int y = firstView != null ? firstView.getTop() : 0;
-        if (elements.size() == 1 || firstPos == 0 && y > -1) {
-            Log.d("insertElement2", "Scroll Position = 0");
+        if (!useScrollLock && (elements.size() == 1 || firstPos == 0 && y > -1)) {
             listView.setSelection(0);
+
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = 0 (Top) ... " + element);
+            }
+        } else if (lockedScrollId > -1) {
+            for (int i = 0; i < elements.size(); i++) {
+                if (commonDelegate.getId(elements.get(i)) <= lockedScrollId) {
+                    listView.setSelectionFromTop(i, y);
+                    if (position < i) {
+                        unreadSet.add(commonDelegate.getId(element));
+                    }
+
+                    scrollUnlockHandler.removeCallbacksAndMessages(null);
+                    scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200);
+
+                    if (USE_INSERT_LOG) {
+                        Log.d("insertElement2", "Scroll Position = " + i + " (Locked strict) ... " + element);
+                        dumpAroundTweets(i);
+                    }
+                    break;
+                }
+            }
         } else if (position <= firstPos) {
-            Log.d("insertElement2", "Scroll Position = " + (firstPos + 1));
-            unreadSet.add(commonDelegate.getId(element));
-            listView.setSelectionFromTop(firstPos + 1, y);
+            if (elements.size() <= 1 && isFakeStatus(element)) {
+                // 要素数1の時にマーカーを掴むとずっと下にスクロールされてしまうので回避する
+            } else {
+                int lockedPosition = firstPos + 1;
+                if (lockedPosition < elements.size()) {
+                    if (isFakeStatus(elements.get(lockedPosition))) {
+                        lockedPosition = firstPos;
+                    }
+                } else {
+                    lockedPosition = firstPos;
+                }
+
+                unreadSet.add(commonDelegate.getId(element));
+                listView.setSelectionFromTop(lockedPosition, y);
+
+                lockedScrollId = commonDelegate.getId(elements.get(lockedPosition));
+                lockedYPosition = y;
+
+                scrollUnlockHandler.removeCallbacksAndMessages(null);
+                scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200);
+
+                if (USE_INSERT_LOG) {
+                    Log.d("insertElement2", "Scroll Position = " + lockedPosition + " (Locked) ... " + element);
+                    dumpAroundTweets(firstPos);
+                    Log.d("insertElement2", "    lockedScrollId = " + lockedScrollId + " ... " + elements.get(lockedPosition));
+                }
+            }
         } else {
-            Log.d("insertElement2", "Scroll Position = " + firstPos);
+            if (USE_INSERT_LOG) {
+                Log.d("insertElement2", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
+                dumpAroundTweets(firstPos);
+            }
         }
         updateUnreadNotifier();
     }
 
     protected void deleteElement(TwitterResponse element) {
         if (listView == null) {
-            Log.w("insertElement", "ListView is null. DROPPED! (" + element + ")");
+            Log.w("deleteElement", "ListView is null. DROPPED! (" + element + ")");
             return;
         }
         long id = TweetCommon.newInstance(element.getClass()).getId(element);
@@ -574,6 +718,13 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 notifyDataSetChanged();
                 if (elements.size() == 1 || firstPos == 0) {
                     listView.setSelection(0);
+                } else if (lockedScrollId > -1) {
+                    for (int i = 0; i < elements.size(); i++) {
+                        if (commonDelegate.getId(elements.get(i)) <= lockedScrollId) {
+                            listView.setSelectionFromTop(i, y);
+                            break;
+                        }
+                    }
                 } else {
                     listView.setSelectionFromTop(firstPos - (firstId < id? 1 : 0), y);
                 }
@@ -642,12 +793,39 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
-    protected void setBlockingDoubleClock(boolean blockingDoubleClock) {
-        this.blockingDoubleClock = blockingDoubleClock;
+    protected void setBlockingDoubleClick(boolean blockingDoubleClick) {
+        this.blockingDoubleClick = blockingDoubleClick;
     }
 
     private boolean isFakeStatus(T element) {
         return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
     }
 
+    private void dumpAroundTweets(int position) {
+        if (position > 0) {
+            Log.d("dumpAroundTweets", "    " + (position - 1) + " : ... " + elements.get(position - 1));
+        }
+        Log.d("dumpAroundTweets", "    " + position + " : ... " + elements.get(position));
+        if (position + 1 < elements.size()) {
+            Log.d("dumpAroundTweets", "    " + (position + 1) + " : ... " + elements.get(position + 1));
+        }
+    }
+
+    /**
+     * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の結果を格納します。
+     */
+    @Value
+    protected static class PrepareInsertResult {
+        /** 処理結果を表します。*/
+        @PrepareInsertResultCode private int resultCode;
+
+        /** 要素の挿入先positionを表します。 */
+        private int position;
+    }
+
+    /**
+     * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の処理結果を表します。
+     */
+    @IntDef({PREPARE_INSERT_ALLOWED, PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_MERGED})
+    protected @interface PrepareInsertResultCode {}
 }

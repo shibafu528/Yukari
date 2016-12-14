@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by shibafu on 14/03/26.
@@ -45,6 +47,8 @@ public class PostService extends IntentService{
     public static final String EXTRA_REMOTE_INPUT = "remoteInput";
     public static final int FLAG_FAVORITE  = 0x01;
     public static final int FLAG_RETWEET   = 0x02;
+
+    private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
 
     private NotificationManager nm;
     private Bitmap icon;
@@ -125,8 +129,28 @@ public class PostService extends IntentService{
             }
         }
 
+        //投稿用データの準備
+        StatusUpdate update;
+        {
+            String text = draft.getText();
+            String attachmentUrl = null;
+
+            //画像添付なしで、ツイートを引用している場合は1つだけattachmentUrlに移動させる
+            if (draft.getAttachedPictures().isEmpty()) {
+                Matcher attachmentMatcher = PATTERN_QUOTE.matcher(draft.getText());
+                if (attachmentMatcher.find()) {
+                    attachmentUrl = attachmentMatcher.group().trim();
+                    text = attachmentMatcher.replaceAll("");
+                }
+            }
+
+            update = new StatusUpdate(text);
+            if (attachmentUrl != null) {
+                update.setAttachmentUrl(attachmentUrl);
+            }
+        }
+
         //順次投稿
-        StatusUpdate update = new StatusUpdate(draft.getText());
         int error = 0;
         for (int i = 0; i < writers.size(); ++i) {
             AuthUserRecord userRecord = writers.get(i);

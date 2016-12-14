@@ -4,11 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-
 import shibafu.yukari.twitter.TwitterUtil;
-import twitter.share.lib.TwitterIntent;
-import twitter.share.lib.TwitterShare;
-import twitter.share.lib.intent.UserIntent;
+import twitter.intent.TwitterIntent;
+import twitter.intent.TwitterShare;
+import twitter.intent.UserIntent;
 
 /**
  * Created by shibafu on 15/01/07.
@@ -28,8 +27,8 @@ public class UserPluginActivity extends Activity {
         String screenName;
         switch (intent.getAction()) {
             case TwitterIntent.ACTION_SHOW_USER:
-                UserIntent userIntent = (UserIntent) TwitterShare.INSTANCE.getTwitterIntent(intent);
-                screenName = userIntent.getScreen_name();
+                UserIntent userIntent = (UserIntent) TwitterShare.getTwitterIntent(intent);
+                screenName = userIntent.getScreenName();
                 break;
             default:
                 screenName = intent.getStringExtra(Intent.EXTRA_TEXT);

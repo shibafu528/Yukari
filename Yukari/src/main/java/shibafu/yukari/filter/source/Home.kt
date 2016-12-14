@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/07/26.
  */
-public class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
+public data class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getRestQuery() = RestQuery { twitter, paging -> twitter.getHomeTimeline(paging) }
 

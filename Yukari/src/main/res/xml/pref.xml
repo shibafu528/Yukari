@@ -86,6 +86,10 @@
             android:title="投稿画面を閉じる前に確認"
             android:summary="ツイートキャンセル前に下書きに保存するか確認を行います"
             android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_dialog_swipe"
+            android:title="TLタッチ拡張時に確認"
+            android:summary="TLタッチ拡張による各種クイック操作時に確認を行います"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="表示設定">
@@ -159,11 +163,6 @@
             android:key="pref_prev_time"
             android:title="時間を指定してサムネ非表示"
             android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
-        <CheckBoxPreference
-            android:key="pref_prev_mstrin"
-            android:title="飯テロ.inサムネイル展開"
-            android:summary="飯テロ.inのURLでもサムネイルを表示しようとします"
-            android:defaultValue="true"/>
         <CheckBoxPreference
             android:key="pref_prev_mosaic"
             android:title="サムネイルのモザイク加工"
@@ -241,6 +240,10 @@
             android:key="pref_search_minus_rt"
             android:title="RTを除外"
             android:summary="リツイートを検索対象から除外します"/>
+        <CheckBoxPreference
+            android:key="pref_search_with_lookup"
+            android:title="検索結果を2回取得する"
+            android:summary="2種類の方法を組み合わせて検索することで、検索結果の内容の欠落(例えば複数枚の画像)を補完します\nただし通信量と待ち時間が増加します"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="キャッシュ設定">
@@ -265,6 +268,15 @@
             android:entries="@array/pref_cache_size_entries"
             android:entryValues="@array/pref_cache_size_values"
             android:defaultValue="16"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="設定のバックアップ">
+        <Preference
+            android:key="pref_export"
+            android:title="設定のエクスポート"/>
+        <Preference
+            android:key="pref_import"
+            android:title="設定のインポート"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="実験中の機能">
@@ -297,9 +309,13 @@
             android:title="TLタッチ拡張"
             android:summary="TL上のタッチイベントを増やします"/>
         <CheckBoxPreference
+            android:key="pref_force_http1"
+            android:title="http1.1を優先使用"
+            android:summary="高速なプロトコルを使用せず、旧来のプロトコルで通信が行われるようにします(※要再起動)"/>
+        <CheckBoxPreference
             android:key="pref_disable_ipv6"
             android:title="IPv6を無効化"
-            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします"/>
+            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします(※要再起動)"/>
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
@@ -319,6 +335,40 @@
             android:defaultValue="0"
             android:entries="@array/pref_lists_membership_finder_entries"
             android:entryValues="@array/pref_lists_membership_finder_values"/>
+        <CheckBoxPreference
+            android:key="pref_show_menubutton"
+            android:title="メニューボタンを表示"
+            android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
+        <CheckBoxPreference
+            android:key="pref_use_strict_filter"
+            android:title="フィルタTLのシステムを全体で使う"
+            android:summary="フィルタタブ以外も、同じ意味のクエリを持つフィルタタブとして処理するようにします。\n同じ意味のソースが存在するタブのみ適用されます。"/>
+        <CheckBoxPreference
+            android:key="pref_lock_scroll_after_reload"
+            android:title="フィルタTL再読込後スクロール位置を保持"
+            android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="プラグインエンジン (実験中)">
+        <CheckBoxPreference
+            android:key="pref_enable_exvoice"
+            android:title="プラグインエンジンを有効にする"
+            android:summary="mruby-pluggaloidベースのプラグインエンジンを有効にします(※要再起動)"
+            android:defaultValue="false"/>
+        <Preference
+            android:key="pref_exvoice_loadpath"
+            android:title="ロードパス (※固定)"
+            android:summary="/sdcard/Android/data/shibafu.yukari/files/plugin"/>
+        <!--<Preference
+            android:key="pref_exvoice_whitelist"
+            android:title="ホワイトリスト設定"
+            android:summary="実行を許可するユーザプラグインを設定します"/>-->
+        <Preference
+            android:key="pref_exvoice_stdout"
+            android:title="標準出力ビューア"
+            android:summary="プラグインが標準出力に書き込んだ内容を表示します"/>
+        <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて"/>
+        <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">

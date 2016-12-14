@@ -8,11 +8,16 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.widget.Toast;
+import info.shibafu528.yukari.exvoice.MRubyException;
+import info.shibafu528.yukari.exvoice.Plugin;
+import info.shibafu528.yukari.exvoice.ProcWrapper;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.CommandsPrefActivity;
+import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -20,6 +25,7 @@ import twitter4j.TwitterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -201,6 +207,20 @@ public class TweetPreprocessor {
             }
             return sb.toString();
         });
+        COMMANDS.put("::conf", (depends, input) -> {
+            depends.getActivity().startActivity(new Intent(depends.getActivity().getApplicationContext(), ConfigActivity.class));
+            depends.getActivity().setResult(Activity.RESULT_OK);
+            depends.getActivity().finish();
+            return null;
+        });
+        COMMANDS.put("::te", (depends, input) -> {
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::te は廃止されました", Toast.LENGTH_SHORT).show();
+            return null;
+        });
+        COMMANDS.put("::td", (depends, input) -> {
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::td は廃止されました", Toast.LENGTH_SHORT).show();
+            return null;
+        });
     }
 
     /**
@@ -213,6 +233,46 @@ public class TweetPreprocessor {
     public static String preprocess(@NotNull TweetPreprocessorDepends depends, @Nullable String input) {
         if (input != null && input.startsWith("::")) {
             String command = input.split(" ")[0];
+            // プラグインからマッチング
+            if (depends.getActivity().isTwitterServiceBound()) {
+                TwitterService service = depends.getActivity().getTwitterService();
+                if (service != null && service.getmRuby() != null) {
+                    // プラグインからコマンドを取得
+                    try {
+                        Object[] result = Plugin.filtering(service.getmRuby(), "post_command", new LinkedHashMap());
+                        if (result != null && result[0] instanceof Map) {
+                            Map commands = (Map) result[0];
+
+                            // マッチするコマンドがあればProcを実行
+                            Object proc = commands.get(command.replaceFirst("^::", ""));
+                            try {
+                                if (proc != null && proc instanceof ProcWrapper) {
+                                    return (String) ((ProcWrapper) proc).exec(input.replace(command, "").trim());
+                                }
+                            } catch (MRubyException e) {
+                                e.printStackTrace();
+                                Toast.makeText(depends.getActivity().getApplicationContext(),
+                                        String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                        Toast.LENGTH_LONG).show();
+                                return input;
+                            } finally {
+                                for (Object procWrapper : commands.values()) {
+                                    if (procWrapper instanceof ProcWrapper) {
+                                        ((ProcWrapper) procWrapper).dispose();
+                                    }
+                                }
+                            }
+                        }
+                    } catch (MRubyException e) {
+                        e.printStackTrace();
+                        Toast.makeText(depends.getActivity().getApplicationContext(),
+                                String.format("プラグインの呼び出し中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                Toast.LENGTH_LONG).show();
+                        return input;
+                    }
+                }
+            }
+            // ビルトインプリプロセッサからマッチング
             TweetPreprocessorAction action = COMMANDS.get(command);
             if (action != null) {
                 return action.preprocess(depends, input.replace(command, "").trim());

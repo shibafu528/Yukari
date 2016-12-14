@@ -10,29 +10,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.RGBLuminanceSource;
-import com.google.zxing.Result;
+import com.google.zxing.*;
 import com.google.zxing.common.HybridBinarizer;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
-import shibafu.yukari.af2015.R;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
@@ -44,12 +35,7 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -126,7 +112,7 @@ public class PreviewActivity extends FragmentYukariBase {
             private float dragStartX, dragStartY, dragPrevX, dragPrevY;
             private boolean begunDrag = false;
 
-            private float pinchPrevDistance;
+            private double pinchPrevDistance;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -149,9 +135,8 @@ public class PreviewActivity extends FragmentYukariBase {
                                 isShowPanel = false;
                             }
 
-                            float distance = getDistance(event);
-                            float scale = (float) ((distance - pinchPrevDistance) /
-                                                                Math.sqrt(displayWidth * displayWidth + displayHeight * displayHeight));
+                            double distance = getDistance(event);
+                            double scale = (distance - pinchPrevDistance) / Math.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
                             pinchPrevDistance = distance;
                             scale += 1;
                             scale = scale * scale;
@@ -160,11 +145,11 @@ public class PreviewActivity extends FragmentYukariBase {
                             matrix.getValues(matrixValues);
                             float nowScale = matrixValues[Matrix.MSCALE_X];
                             if (nowScale * scale > minScale) {
-                                matrix.postScale(scale, scale);
-                                matrix.postTranslate(-(displayWidth * scale - displayWidth) / 2,
-                                        -(displayHeight * scale - displayHeight) / 2);
-                                matrix.postTranslate(-(displayWidth/2 - displayWidth/2) * scale, 0);
-                                matrix.postTranslate(0, -(displayHeight/2 - displayHeight/2) * scale);
+                                matrix.postScale((float) scale, (float) scale);
+                                matrix.postTranslate((float) -(displayWidth * scale - displayWidth) / 2,
+                                        (float) -(displayHeight * scale - displayHeight) / 2);
+                                matrix.postTranslate((float) (-(displayWidth/2 - displayWidth/2) * scale), 0);
+                                matrix.postTranslate(0, (float) (-(displayHeight/2 - displayHeight/2) * scale));
                                 updateMatrix();
                             }
                         }
@@ -225,10 +210,10 @@ public class PreviewActivity extends FragmentYukariBase {
                 return true;
             }
 
-            private float getDistance(MotionEvent event) {
+            private double getDistance(MotionEvent event) {
                 float x = event.getX(0) - event.getX(1);
                 float y = event.getY(0) - event.getY(1);
-                return (float) Math.sqrt(x * x + y * y);
+                return Math.sqrt(x * x + y * y);
             }
         });
 
@@ -546,16 +531,26 @@ public class PreviewActivity extends FragmentYukariBase {
     }
 
     private void processZxing() {
-        int[] pixels = new int[image.getWidth() * image.getHeight()];
-        image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-        LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
-        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
-        try {
-            Result result = new MultiFormatReader().decode(binaryBitmap);
-            llQrText.setVisibility(View.VISIBLE);
-            tvQrText.setText(result.getText());
-        } catch (NotFoundException e) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             llQrText.setVisibility(View.GONE);
+        } else {
+            try {
+                int[] pixels = new int[image.getWidth() * image.getHeight()];
+                image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+                LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
+                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
+                try {
+                    Result result = new MultiFormatReader().decode(binaryBitmap);
+                    llQrText.setVisibility(View.VISIBLE);
+                    tvQrText.setText(result.getText());
+                } catch (NotFoundException e) {
+                    llQrText.setVisibility(View.GONE);
+                }
+            } catch (OutOfMemoryError e) {
+                // そんなこともある
+                System.gc();
+                llQrText.setVisibility(View.GONE);
+            }
         }
     }
 
@@ -580,6 +575,14 @@ public class PreviewActivity extends FragmentYukariBase {
         super.onDestroy();
         if (loaderTask != null) {
             loaderTask.cancel(true);
+        }
+        if (imageView != null) {
+            imageView.setImageDrawable(null);
+            imageView = null;
+        }
+        if (image != null && !image.isRecycled()) {
+            image.recycle();
+            System.gc();
         }
     }
 

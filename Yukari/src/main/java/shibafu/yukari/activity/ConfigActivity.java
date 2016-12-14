@@ -16,7 +16,8 @@ import android.view.View;
 
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 
-import shibafu.yukari.af2015.R;
+import info.shibafu528.yukari.exvoice.BuildInfo;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 
 /**
@@ -67,18 +68,34 @@ public class ConfigActivity extends ActionBarYukariBase {
             Preference immersivePref = findPreference("pref_boot_immersive");
             immersivePref.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
 
+            Preference exvoiceVersionPref = findPreference("pref_exvoice_version");
+            {
+                String summaryText = "libexvoice.so (" + BuildInfo.getABI() + ") Build: " + BuildInfo.getBuildDateTime() +
+                        "\n  with " + BuildInfo.getMRubyDescription() + ",\n    " + BuildInfo.getMRubyCopyright();
+                // exvoice version
+                exvoiceVersionPref.setSummary(summaryText);
+            }
+            findPreference("pref_exvoice_stdout").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), PluggaloidOutputActivity.class));
+                return true;
+            });
+            findPreference("pref_exvoice_document").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6")));
+                return true;
+            });
+
             Preference aboutVersionPref = findPreference("pref_about_version");
             {
-                String summaryText = "";
+                StringBuilder summaryText = new StringBuilder();
                 PackageManager pm = getActivity().getPackageManager();
-                try{
+                // Yukari version
+                try {
                     PackageInfo packageInfo = pm.getPackageInfo(getActivity().getPackageName(), 0);
-                    summaryText += "Version " + packageInfo.versionName;
-                }catch(PackageManager.NameNotFoundException e){
-                    e.printStackTrace();
-                }
-                summaryText += "\nDeveloped by @shibafu528";
-                aboutVersionPref.setSummary(summaryText);
+                    summaryText.append("Version ").append(packageInfo.versionName);
+                } catch (PackageManager.NameNotFoundException ignored) {}
+                // Developer
+                summaryText.append("\nDeveloped by @shibafu528");
+                aboutVersionPref.setSummary(summaryText.toString());
             }
             aboutVersionPref.setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(getActivity(), AboutActivity.class));
@@ -151,11 +168,21 @@ public class ConfigActivity extends ActionBarYukariBase {
 
             findPreference("pref_repair_bookmark").setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(getActivity(), BookmarkRepairActivity.class));
-                return false;
+                return true;
             });
 
             findPreference("pref_about_faq").setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD")));
+                return true;
+            });
+
+            findPreference("pref_export").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_EXPORT));
+                return false;
+            });
+
+            findPreference("pref_import").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_IMPORT));
                 return false;
             });
         }

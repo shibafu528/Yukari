@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="tweet"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher_tweet_r"
+        android:shortcutShortLabel="@string/title_activity_tweet"
+        android:shortcutLongLabel="@string/title_activity_tweet"
+        android:shortcutDisabledMessage="@string/title_activity_tweet">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.TweetActivity"/>
+        <categories android:name="android.shortcut.conversation"/>
+    </shortcut>
+</shortcuts>

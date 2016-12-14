@@ -35,7 +35,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @InjectView(R.id.listView) ListView listView;
     @InjectView(R.id.progressBar) ProgressBar progressBar;
 
-    private static final int REQUEST_CHOOSE = 1;
+    private static final int REQUEST_CHOOSE = 1 << 8;
     private static final String ARG_TARGET_USER = "target";
 
     private User targetUser;
@@ -168,7 +168,11 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     @OnClick(R.id.llMenuAccountParent)
     void onClickTitle() {
-        startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
+        if (getTargetFragment() != null) {
+            getTargetFragment().startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
+        } else {
+            startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
+        }
     }
 
     @OnItemClick(R.id.listView)

@@ -1,7 +1,5 @@
 package shibafu.yukari.filter.sexp
 
-import shibafu.yukari.twitter.AuthUserRecord
-import twitter4j.TwitterResponse
 import java.util.regex.Pattern
 
 /**
@@ -10,13 +8,13 @@ import java.util.regex.Pattern
 public class EqualsNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+    override fun evaluate(context: EvaluateContext): Any {
         if (children.isEmpty()) return false
 
-        val first = children.first().evaluate(status, userRecords)
+        val first = children.first().evaluate(context)
         return when (children.size) {
             1 -> first.equals(true)
-            else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
+            else -> children.drop(1).all { first.equals(it.evaluate(context)) }
         }
     }
 }
@@ -27,13 +25,13 @@ public class EqualsNode(override val children: List<SNode>) : SNode {
 public class NotEqualsNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
+    override fun evaluate(context: EvaluateContext): Any {
         if (children.isEmpty()) return true
 
-        val first = children.first().evaluate(status, userRecords)
+        val first = children.first().evaluate(context)
         return !when (children.size) {
             1 -> first.equals(true)
-            else -> children.drop(1).all { first.equals(it.evaluate(status, userRecords)) }
+            else -> children.drop(1).all { first.equals(it.evaluate(context)) }
         }
     }
 }
@@ -44,8 +42,8 @@ public class NotEqualsNode(override val children: List<SNode>) : SNode {
 public class NotNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        return !(children.first().evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true)});
+    override fun evaluate(context: EvaluateContext): Any {
+        return !(children.first().evaluate(context).let { if (it is Boolean) it else it.equals(true)});
     }
 }
 
@@ -55,8 +53,8 @@ public class NotNode(override val children: List<SNode>) : SNode {
 public class AndNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
-            = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.all { it }
+    override fun evaluate(context: EvaluateContext): Any
+            = children.map { it.evaluate(context).let { if (it is Boolean) it else it.equals(true) } }.all { it }
 }
 
 /**
@@ -65,8 +63,8 @@ public class AndNode(override val children: List<SNode>) : SNode {
 public class OrNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any
-            = children.map { it.evaluate(status, userRecords).let { if (it is Boolean) it else it.equals(true) } }.any { it }
+    override fun evaluate(context: EvaluateContext): Any
+            = children.map { it.evaluate(context).let { if (it is Boolean) it else it.equals(true) } }.any { it }
 }
 
 /**
@@ -75,8 +73,8 @@ public class OrNode(override val children: List<SNode>) : SNode {
 public class ContainsNode(override val children: List<SNode>) : SNode {
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        val ev = children.map { it.evaluate(status, userRecords) }
+    override fun evaluate(context: EvaluateContext): Any {
+        val ev = children.map { it.evaluate(context) }
 
         if (ev.size != 2) return false
 
@@ -100,8 +98,8 @@ public class RegexNode(override val children: List<SNode>) : SNode {
 
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        val ev = children.map { it.evaluate(status, userRecords) }
+    override fun evaluate(context: EvaluateContext): Any {
+        val ev = children.map { it.evaluate(context) }
         if (ev.size != 2 || ev.any { it !is String }) return false
 
         val source = ev.first() as String
@@ -116,15 +114,114 @@ public class RegexNode(override val children: List<SNode>) : SNode {
     }
 }
 
+/**
+ * 加算関数ノード
+ */
 public class AddOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
     override var value: Any? = null
 
     constructor(vararg children: SNode) : this(children.asList())
 
-    override fun evaluate(status: TwitterResponse, userRecords: List<AuthUserRecord>): Any {
-        value = children.map { it.evaluate(status, userRecords).toString().toLong() }.fold(0L, {r, v -> r + v})
+    override fun evaluate(context: EvaluateContext): Any {
+        value = children.map { it.evaluate(context).toString().toLong() }.fold(0L, {r, v -> r + v})
 
-        return true;
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 減算関数ノード
+ */
+public class SubtractOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(context: EvaluateContext): Any {
+        value = children.map { it.evaluate(context).toString().toLong() }.fold(0L, {r, v -> r - v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 乗算関数ノード
+ */
+public class MultiplyOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(context: EvaluateContext): Any {
+        value = children.map { it.evaluate(context).toString().toLong() }.fold(0L, {r, v -> r * v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 除算関数ノード
+ */
+public class DivideOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(context: EvaluateContext): Any {
+        value = children.map { it.evaluate(context).toString().toLong() }.fold(0L, {r, v -> r / v})
+
+        return value as Long
+    }
+
+    override fun toString(): String {
+        return toExpression()
+    }
+
+    override fun toExpression(): String {
+        return super<FactorNode>.toExpression()
+    }
+
+}
+
+/**
+ * 剰余演算関数ノード
+ */
+public class ModuloOperatorNode(override val children: List<SNode>) : SNode, FactorNode {
+    override var value: Any? = null
+
+    constructor(vararg children: SNode) : this(children.asList())
+
+    override fun evaluate(context: EvaluateContext): Any {
+        value = children.map { it.evaluate(context).toString().toLong() }.fold(0L, {r, v -> r % v})
+
+        return value as Long
     }
 
     override fun toString(): String {

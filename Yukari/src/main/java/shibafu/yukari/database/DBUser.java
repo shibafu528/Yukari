@@ -2,6 +2,10 @@ package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import twitter4j.RateLimitStatus;
+import twitter4j.Status;
+import twitter4j.URLEntity;
+import twitter4j.User;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,11 +13,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Date;
-
-import twitter4j.RateLimitStatus;
-import twitter4j.Status;
-import twitter4j.URLEntity;
-import twitter4j.User;
 
 /**
  * Created by Shibafu on 13/12/20.
@@ -137,6 +136,11 @@ public class DBUser implements User, DBRecord {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getEmail() {
+        return "";
     }
 
     @Override

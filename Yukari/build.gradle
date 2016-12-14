@@ -3,61 +3,94 @@ apply plugin: 'kotlin-android'
 apply plugin: 'me.tatarka.retrolambda'
 
 repositories {
+    mavenCentral()
     maven {
         url 'http://shibafu528.github.io/totoridipjp4J/build/repo'
     }
+    maven {
+        url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
+    }
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+ext {
+    playServicesVersion = '6.5.87'
+    twitter4jVersion = '4.0.5'
+    leakCanaryVersion = '1.5'
 }
 
 dependencies {
+    // Support & Play Services
     compile 'com.android.support:appcompat-v7:22.1.+'
-    compile 'com.android.support:support-v4:22.2.+'
-    compile 'com.google.android.gms:play-services-plus:6.5.87'
-    compile 'com.google.android.gms:play-services-drive:6.5.87'
+    compile 'com.android.support:support-v4:25.0.1'
+    compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
+    compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
-    compile 'com.google.code.gson:gson:2.3'
-    compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
+    // UI互換
     compile 'com.nineoldandroids:library:2.4.0'
-
-    //appcompat-v7:21に非対応のため、しばらくは対応パッチの当たった版を使う
-    //compile 'com.doomonafireball.betterpickers:library:1.5.+'
-    compile project(':betterpickers')
-
-    def t4j_version = '4.0.4'
-    compile "org.twitter4j:twitter4j-core:$t4j_version"
-    compile "org.twitter4j:twitter4j-async:$t4j_version"
-    compile "org.twitter4j:twitter4j-media-support:$t4j_version"
-    compile "org.twitter4j:twitter4j-stream:$t4j_version"
-    compile "org.twitter4j:twitter4j-http2-support:$t4j_version"
-
-    compile 'com.twitter:twitter-text:1.6.1'
-    compile 'org.jsoup:jsoup:1.8.3'
-    compile 'com.google.zxing:javase:3.2.1'
-
-    compile 'com.larswerkman:HoloColorPicker:1.4'
-
     compile 'com.github.machinarius:preferencefragment:0.1.1'
 
-    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
-
+    // UI追加
+    compile 'com.larswerkman:HoloColorPicker:1.4'
+    //compile 'com.doomonafireball.betterpickers:library:1.5.+'
+    compile project(':betterpickers')
     compile project(':GalleryMultiPicker:library')
+
+    // Twitter4J
+//    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-async:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
+//    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
+    compile "com.github.takke.twitter4j:twitter4j-core:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-async:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-media-support:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-stream:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-http2-support:master_based_dev-SNAPSHOT"
+
+    // パーサ
+    compile 'com.google.code.gson:gson:2.3'
+    compile 'org.jsoup:jsoup:1.8.3'
+    compile 'com.google.zxing:javase:3.2.1'
+    compile 'com.twitter:twitter-text:1.13.0'
+    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
     compile project(':twpfparser')
 
+    // いろいろ
+    compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
+    compile 'com.annimon:stream:1.0.8'
+    compile 'twitter.intent:twitter-intent-core:1.0,0'
+    compile 'twitter.intent:twitter-intent-t4j:1.0.0', {
+        exclude group: 'org.twitter4j', module: 'twitter4j-core'
+    }
+    debugCompile "com.squareup.leakcanary:leakcanary-android:$leakCanaryVersion"
+    releaseCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
+    testCompile "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
     compile fileTree(dir: './libs', includes: ['*.jar'])
+    provided 'org.projectlombok:lombok:1.16.4'
+    compile project(':yukari-exvoice')
+
+    // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
+    // Test
     testCompile 'junit:junit:4.12'
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-
-    provided 'org.projectlombok:lombok:1.16.4'
 }
 
 android {
-    compileSdkVersion Integer.parseInt(COMPILE_SDK_VERSION)
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion 25
+    buildToolsVersion '25.0.1'
 
     defaultConfig {
         minSdkVersion 9
-        targetSdkVersion Integer.parseInt(TARGET_SDK_VERSION)
+        targetSdkVersion 22
+
+        ndk {
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
     }
 
     compileOptions {
@@ -87,9 +120,9 @@ android {
     }
 }
 
-//-- Kotlin --
+//>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.0'
+    ext.kotlin_version = '1.0.5'
     repositories {
         mavenCentral()
     }
@@ -100,7 +133,7 @@ buildscript {
 repositories {
     mavenCentral()
 }
-//^^ Kotlin ^^
+//<<-- Kotlin --
 
 retrolambda {
     jdk System.getenv("JAVA8_HOME")

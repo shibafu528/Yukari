@@ -68,7 +68,7 @@
             android:layout_marginTop="8dp"
             android:background="#9eee">
 
-            <com.loopj.android.image.SmartImageView
+            <ImageView
                 android:id="@+id/ivProfileIcon"
                 android:layout_width="72dp"
                 android:layout_height="72dp"

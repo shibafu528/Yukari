@@ -1,7 +1,6 @@
 package shibafu.yukari.fragment.base;
 
 import android.support.v4.app.Fragment;
-
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;

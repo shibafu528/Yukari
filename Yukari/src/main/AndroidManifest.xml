@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="shibafu.yukari.af2015"
+    package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="64"
-    android:versionName="feature/material base 1.2.5.281" >
+    android:versionCode="78"
+    android:versionName="feature/material base 1.3.2.342" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,7 +17,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         android:largeHeap="true"
-        android:name="shibafu.yukari.core.YukariApplication">
+        android:name=".core.YukariApplication">
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version"/>
 
@@ -37,8 +37,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari.af2015/hash" />
+                <data android:mimeType="vnd.shibafu.yukari/hash" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts"/>
         </activity>
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
@@ -56,10 +59,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name="shibafu.yukari.service.TwitterService" />
-        <service android:name="shibafu.yukari.service.AsyncCommandService"/>
+        <service android:name=".service.TwitterService" />
+        <service android:name=".service.AsyncCommandService"/>
         <service
-            android:name="shibafu.yukari.service.CacheCleanerService"
+            android:name=".service.CacheCleanerService"
             android:process=":cleaner"/>
 
         <activity
@@ -77,7 +80,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.TweetShortcutActivity"
+            android:name=".activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
             android:icon="@drawable/ic_launcher_tweet"
             android:theme="@style/AppThemeTranslucent">
@@ -85,7 +88,7 @@
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
         </activity>
-        <service android:name="shibafu.yukari.service.PostService"/>
+        <service android:name=".service.PostService"/>
 
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
@@ -93,7 +96,7 @@
             android:theme="@style/YukariLightTheme.Translucent" >
         </activity>
         <activity
-            android:name="shibafu.yukari.activity.IntentActivity"
+            android:name=".activity.IntentActivity"
             android:theme="@android:style/Theme.NoDisplay" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -139,13 +142,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari.af2015/user" />
+                <data android:mimeType="vnd.shibafu.yukari/user" />
             </intent-filter>
         </activity>
 
         <provider
             android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="shibafu.yukari.af2015.link"
+            android:authorities="shibafu.yukari.link"
             android:exported="false" />
 
         <!-- 未実装Intentはここに飛ばせ -->
@@ -155,7 +158,7 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.plugin.MorseInputActivity"
+            android:name=".plugin.MorseInputActivity"
             android:icon="@drawable/ic_launcher_morse"
             android:label="@string/title_morse_input"
             android:theme="@style/AppThemeTranslucent" >
@@ -167,58 +170,58 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.SNPickerActivity"
+            android:name=".activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
             android:theme="@style/YukariLightDialogTheme">
         </activity>
 
-        <receiver android:name="shibafu.yukari.receiver.StubReceiver"/>
+        <receiver android:name=".receiver.StubReceiver"/>
 
         <activity
-            android:name="shibafu.yukari.activity.TraceActivity"
+            android:name=".activity.TraceActivity"
             android:theme="@style/AppDialogThemeWhenLarge"
             android:label="Trace" />
 
         <activity
-            android:name="shibafu.yukari.activity.PreviewActivity"
+            android:name=".activity.PreviewActivity"
             android:theme="@style/AppThemeTranslucentBg"/>
         <activity
-            android:name="shibafu.yukari.activity.MoviePreviewActivity"
+            android:name=".activity.MoviePreviewActivity"
             android:theme="@style/AppThemeTranslucentBg"/>
 
         <activity
-            android:name="shibafu.yukari.activity.AccountChooserActivity"
+            android:name=".activity.AccountChooserActivity"
             android:theme="@style/YukariDialogTheme"
             android:label="@string/title_activity_accountchooser"/>
 
         <activity
-            android:name="shibafu.yukari.activity.AccountManageActivity"
+            android:name=".activity.AccountManageActivity"
             android:label="@string/title_activity_accountmanage"/>
 
         <activity
-            android:name="shibafu.yukari.activity.ConfigActivity"
+            android:name=".activity.ConfigActivity"
             android:label="@string/title_activity_config"/>
 
         <activity
-            android:name="shibafu.yukari.activity.MuteActivity"
+            android:name=".activity.MuteActivity"
             android:label="@string/title_activity_mute"/>
 
         <activity
-            android:name="shibafu.yukari.activity.AutoMuteActivity"
+            android:name=".activity.AutoMuteActivity"
             android:label="@string/title_activity_auto_mute"/>
 
         <activity
-            android:name="shibafu.yukari.activity.FontSelectorActivity"
+            android:name=".activity.FontSelectorActivity"
             android:label="@string/title_activity_font_selector"/>
 
-        <activity android:name="shibafu.yukari.activity.CommandsPrefActivity"/>
+        <activity android:name=".activity.CommandsPrefActivity"/>
 
         <activity
-            android:name="shibafu.yukari.activity.LicenseActivity"
+            android:name=".activity.LicenseActivity"
             android:label="@string/title_activity_about" />
 
         <activity
-            android:name="shibafu.yukari.activity.ProfileEditActivity"
+            android:name=".activity.ProfileEditActivity"
             android:label="@string/title_activity_profile_edit"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:uiOptions="splitActionBarWhenNarrow">
@@ -228,11 +231,11 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.TabEditActivity"
+            android:name=".activity.TabEditActivity"
             android:label="@string/title_activity_column_edit" />
 
         <activity
-            android:name="shibafu.yukari.plugin.OpenAclogActivity"
+            android:name=".plugin.OpenAclogActivity"
             android:label="@string/title_activity_open_aclog">
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
@@ -242,11 +245,11 @@
         </activity>
         
         <activity
-            android:name="shibafu.yukari.plugin.UserPluginActivity"
+            android:name=".plugin.UserPluginActivity"
             android:theme="@style/AppThemeTranslucent"/>
         <activity-alias
-            android:name="shibafu.yukari.plugin.OpenTwilogActivity"
-            android:targetActivity="shibafu.yukari.plugin.UserPluginActivity"
+            android:name=".plugin.OpenTwilogActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
             android:label="@string/title_activity_open_twilog"
             android:icon="@drawable/ic_twilog">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
@@ -266,8 +269,8 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name="shibafu.yukari.plugin.OpenFavstarActivity"
-            android:targetActivity="shibafu.yukari.plugin.UserPluginActivity"
+            android:name=".plugin.OpenFavstarActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
             android:label="@string/title_activity_open_favstar"
             android:icon="@drawable/ic_favorite_m">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
@@ -287,8 +290,8 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
-            android:name="shibafu.yukari.plugin.OpenAclogUserActivity"
-            android:targetActivity="shibafu.yukari.plugin.UserPluginActivity"
+            android:name=".plugin.OpenAclogUserActivity"
+            android:targetActivity=".plugin.UserPluginActivity"
             android:label="@string/title_activity_open_aclog_user"
             android:icon="@drawable/ic_aclog">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="aclog"/>
@@ -309,14 +312,14 @@
         </activity-alias>
 
         <activity
-            android:name="shibafu.yukari.activity.UserSearchActivity"
+            android:name=".activity.UserSearchActivity"
             android:theme="@style/YukariSearchTheme"
             android:label="@string/title_activity_user_search"
             android:windowSoftInputMode="adjustResize"/>
 
         <activity
-            android:name="shibafu.yukari.activity.MaintenanceActivity"
-            android:label="Maintenance Mode" />
+            android:name=".activity.MaintenanceActivity"
+            android:label="@string/title_activity_maintenance" />
 
         <activity
             android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
@@ -331,7 +334,7 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.TwpfActivity"
+            android:name=".activity.TwpfActivity"
             android:label="@string/title_activity_twpf">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
@@ -343,23 +346,34 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.IntentChooserActivity"
+            android:name=".activity.IntentChooserActivity"
             android:theme="@style/YukariDarkDialogTheme"/>
 
-        <activity android:name="shibafu.yukari.activity.BookmarkRepairActivity"/>
+        <activity android:name=".activity.BookmarkRepairActivity"/>
 
         <activity
-            android:name="shibafu.yukari.activity.AboutActivity"
+            android:name=".activity.AboutActivity"
             android:theme="@style/YukariAboutTheme"
             android:screenOrientation="portrait"/>
 
         <activity
-            android:name="shibafu.yukari.activity.TemplateEditActivity"
+            android:name=".activity.TemplateEditActivity"
             android:label="@string/title_activity_template_edit"/>
 
-        <activity android:name="shibafu.yukari.activity.QueryEditorActivity"
+        <activity android:name=".activity.QueryEditorActivity"
                   android:windowSoftInputMode="adjustResize"
                   android:label="@string/title_activity_query_editor"/>
+
+        <activity
+            android:name=".activity.PluggaloidOutputActivity"
+            android:label="@string/title_activity_pluggaloid_output"/>
+
+        <activity
+                android:name=".activity.BackupActivity"
+                android:label="@string/title_activity_backup"/>
+
+        <activity
+            android:name=".activity.WelcomeActivity"/>
    </application>
 
 </manifest>

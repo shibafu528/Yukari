@@ -1,13 +1,19 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -20,8 +26,6 @@ public class BookmarkListFragment extends TweetListFragment {
         BookmarkLoader loader = new BookmarkLoader();
         switch (requestMode) {
             case LOADER_LOAD_UPDATE:
-                elements.clear();
-                notifyDataSetChanged();
                 clearUnreadNotifier();
             case LOADER_LOAD_INIT:
                 loader.execute();
@@ -66,13 +70,24 @@ public class BookmarkListFragment extends TweetListFragment {
 
         @Override
         protected void onPostExecute(List<Bookmark> bookmarks) {
+            // はい、調子乗ってブクマ見るやろ お前ほんまに覚えとけよ ガチで消したるからな
+            // ほんまにキレタ 絶対許さん お前のID控えたからな
+            List<Long> shownIDs = Stream.of(elements).map(twitter4j.Status::getId).collect(Collectors.toList());
+            List<Long> stashedIDs = Stream.of(stash).map(twitter4j.Status::getId).collect(Collectors.toList());
+
             Suppressor suppressor = getTwitterService().getSuppressor();
+            List<UserExtras> userExtras = getTwitterService().getUserExtras();
+
             boolean[] mute;
-            int position;
             for (Bookmark status : bookmarks) {
                 AuthUserRecord checkOwn = getTwitterService().isMyTweet(status);
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
+                } else {
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                        status.setOwner(first.get().getPriorityAccount());
+                    }
                 }
 
                 mute = suppressor.decision(status);
@@ -83,18 +98,39 @@ public class BookmarkListFragment extends TweetListFragment {
                 if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    position = prepareInsertStatus(status);
-                    if (position > -1) {
-                        elements.add(position, status);
-                        notifyDataSetChanged();
+                    insertElement2(status);
+
+                    if (shownIDs.contains(status.getId())) {
+                        shownIDs.remove(status.getId());
                     }
-                }
-                else {
+                } else {
                     stash.add(status);
+
+                    if (stashedIDs.contains(status.getId())) {
+                        stashedIDs.remove(status.getId());
+                    }
                 }
 
                 StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
+
+            List<PreformedStatus> removeStatuses = new ArrayList<>();
+            // ConcurrentModify対策で別のコレクションに移す
+            for (PreformedStatus status : elements) {
+                if (shownIDs.contains(status.getId())) {
+                    removeStatuses.add(status);
+                }
+            }
+            for (PreformedStatus status : removeStatuses) {
+                deleteElement(status);
+            }
+
+            for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
+                if (stashedIDs.contains(iterator.next().getId())) {
+                    iterator.remove();
+                }
+            }
+
             changeFooterProgress(false);
             setRefreshComplete();
         }

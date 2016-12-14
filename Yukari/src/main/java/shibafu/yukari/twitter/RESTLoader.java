@@ -1,9 +1,12 @@
 package shibafu.yukari.twitter;
 
 import android.widget.Toast;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
@@ -15,20 +18,27 @@ import java.util.List;
  * Created by shibafu on 14/02/13.
  */
 public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends ParallelAsyncTask<P, Void, T> {
-    public interface RESTLoaderInterface {
+    public interface RESTLoaderInterfaceBase {
         TwitterService getService();
         List<PreformedStatus> getStatuses();
         List<PreformedStatus> getStash();
-        void notifyDataSetChanged();
-        int prepareInsertStatus(PreformedStatus status);
         void changeFooterProgress(boolean isLoading);
     }
 
-    private RESTLoaderInterface loaderInterface;
+    public interface RESTLoaderInterface extends RESTLoaderInterfaceBase {
+        void notifyDataSetChanged();
+        int prepareInsertStatus(PreformedStatus status);
+    }
+
+    public interface RESTLoaderInterface2 extends RESTLoaderInterfaceBase {
+        void insertElement(PreformedStatus status);
+    }
+
+    private RESTLoaderInterfaceBase loaderInterface;
     protected TwitterException exception;
     protected AuthUserRecord exceptionUser;
 
-    protected RESTLoader(RESTLoaderInterface loaderInterface) {
+    protected RESTLoader(RESTLoaderInterfaceBase loaderInterface) {
         this.loaderInterface = loaderInterface;
     }
 
@@ -48,12 +58,18 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
             List<PreformedStatus> dest = loaderInterface.getStatuses();
             List<PreformedStatus> stash = loaderInterface.getStash();
             Suppressor suppressor = loaderInterface.getService().getSuppressor();
+            List<UserExtras> userExtras = loaderInterface.getService().getUserExtras();
             int position;
             boolean[] mute;
             for (PreformedStatus status : result) {
                 AuthUserRecord checkOwn = loaderInterface.getService().isMyTweet(status);
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
+                } else {
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                        status.setOwner(first.get().getPriorityAccount());
+                    }
                 }
 
                 mute = suppressor.decision(status);
@@ -64,10 +80,15 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                 if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    position = loaderInterface.prepareInsertStatus(status);
-                    if (position > -1) {
-                        dest.add(position, status);
-                        loaderInterface.notifyDataSetChanged();
+
+                    if (loaderInterface instanceof RESTLoaderInterface) {
+                        position = ((RESTLoaderInterface) loaderInterface).prepareInsertStatus(status);
+                        if (position > -1) {
+                            dest.add(position, status);
+                            ((RESTLoaderInterface) loaderInterface).notifyDataSetChanged();
+                        }
+                    } else {
+                        ((RESTLoaderInterface2) loaderInterface).insertElement(status);
                     }
                 }
                 else {

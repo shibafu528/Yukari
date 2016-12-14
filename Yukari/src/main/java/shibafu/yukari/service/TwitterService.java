@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Debug;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -25,7 +26,8 @@ import android.util.Log;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-import shibafu.yukari.af2015.R;
+import info.shibafu528.yukari.exvoice.MRuby;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -36,6 +38,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.Pixiv;
+import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -60,9 +63,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -94,6 +100,12 @@ public class TwitterService extends Service{
 
     //Proxy Server
     private Pixiv.PixivProxy pixivProxy;
+
+    //MRuby VM
+    private MRuby mRuby;
+    private Thread mRubyThread;
+    private StringBuffer mRubyStdOut = new StringBuffer();
+    private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
     //ネットワーク管理
 
@@ -127,7 +139,7 @@ public class TwitterService extends Service{
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
-            StatusManager.getReceivedStatuses().clear();
+            StatusManager.getReceivedStatuses().evictAll();
             statusManager.sendFakeBroadcast("onWipe", new Class[]{});
         }
     };
@@ -253,6 +265,56 @@ public class TwitterService extends Service{
             e.printStackTrace();
         }
 
+        // MRuby
+        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
+            // MRuby VMの初期化
+            mRuby = new MRuby(getApplicationContext());
+            // 標準出力をLogcatとStringBufferにリダイレクト
+            mRuby.setPrintCallback(value -> {
+                if (value == null || value.length() == 0 || "\n".equals(value)) {
+                    return;
+                }
+                Log.d("ExVoice (TS)", value);
+                mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": ").append(value).append("\n");
+            });
+            // ブートストラップの実行およびバンドルRubyプラグインのロード
+            mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+            // Javaプラグインのロード
+            mRuby.registerPlugin(AndroidCompatPlugin.class);
+            // ユーザプラグインのロード
+            // TODO: ホワイトリストが必要だよねー
+            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                File pluginDir = new File(getExternalFilesDir(null), "plugin");
+                if (pluginDir.exists() && !pluginDir.isDirectory()) {
+                    showToast("[Yukari exvoice]\nプラグインディレクトリのあるべき場所にファイルがあります。どかしていただけますか？");
+                } else {
+                    // プラグインディレクトリがなければ作っておく
+                    if (!pluginDir.exists()) {
+                        pluginDir.mkdirs();
+                    }
+                    // プラグインファイルを探索してロード
+                    com.annimon.stream.Stream.of(pluginDir.listFiles(pathname -> pathname.isFile() && pathname.getName().endsWith(".rb")))
+                            .forEach(value -> {
+                                mRuby.printStringCallback("Require: " + value.getAbsolutePath());
+                                mRuby.loadString("require '" + value.getAbsolutePath() + "'");
+                            });
+                }
+            }
+            // クロックの供給開始
+            mRubyThread = new Thread(() -> {
+                try {
+                    //noinspection InfiniteLoopStatement
+                    while (true) {
+                        mRuby.callTopLevelFunc("tick");
+                        Thread.sleep(500);
+                    }
+                } catch (InterruptedException e) {
+                    Log.d("ExVoiceRunner", "Interrupt!");
+                }
+            }, "ExVoiceRunner");
+            mRubyThread.start();
+        }
+
         //mikutter更新通知
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
             new SimpleAsyncTask() {
@@ -314,6 +376,15 @@ public class TwitterService extends Service{
             pixivProxy.stop();
         }
 
+        if (mRubyThread != null) {
+            mRubyThread.interrupt();
+            mRubyThread = null;
+        }
+        if (mRuby != null) {
+            mRuby.close();
+            mRuby = null;
+        }
+
         stopForeground(true);
 
         startService(new Intent(this, CacheCleanerService.class));
@@ -368,12 +439,13 @@ public class TwitterService extends Service{
     }
 
     public AuthUserRecord getPrimaryUser() {
-        if (users != null) {
+        if (users != null && !users.isEmpty()) {
             for (AuthUserRecord userRecord : users) {
                 if (userRecord.isPrimary) {
                     return userRecord;
                 }
             }
+            return users.get(0);
         }
         return null;
     }
@@ -511,6 +583,16 @@ public class TwitterService extends Service{
             userExtras.add(extras);
         }
         database.updateRecord(extras);
+    }
+
+    @Nullable
+    public AuthUserRecord getPriority(long id) {
+        for (UserExtras userExtra : userExtras) {
+            if (userExtra.getId() == id) {
+                return userExtra.getPriorityAccount();
+            }
+        }
+        return null;
     }
 
     public List<UserExtras> getUserExtras() {
@@ -722,7 +804,14 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     public AuthUserRecord isMyTweet(Status status) {
+        return isMyTweet(status, false);
+    }
+
+    public AuthUserRecord isMyTweet(Status status, boolean checkOriginUser) {
         if (users == null) return null;
+        if (checkOriginUser) {
+            status = status.isRetweet() ? status.getRetweetedStatus() : status;
+        }
         for (int i = 0; i < users.size(); ++i) {
             AuthUserRecord aur = users.get(i);
             if (status.getUser().getId() == aur.NumericId) {
@@ -793,5 +882,13 @@ public class TwitterService extends Service{
 
         } catch (IOException ignore) {}
         return null;
+    }
+
+    public MRuby getmRuby() {
+        return mRuby;
+    }
+
+    public StringBuffer getmRubyStdOut() {
+        return mRubyStdOut;
     }
 }

@@ -41,6 +41,11 @@ public class LoadMarkerStatus extends FakeStatus {
     }
 
     @Override
+    public String getText() {
+        return String.format("Anchor ID = %d, UID = %d, Tag = %s, TaskKey = %d", anchorTweetId, userId, tag, taskKey);
+    }
+
+    @Override
     public User getUser() {
         return new User() {
             @Override
@@ -54,8 +59,13 @@ public class LoadMarkerStatus extends FakeStatus {
             }
 
             @Override
-            public String getScreenName() {
+            public String getEmail() {
                 return "";
+            }
+
+            @Override
+            public String getScreenName() {
+                return "**load marker**";
             }
 
             @Override

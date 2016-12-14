@@ -36,4 +36,23 @@ public class TwitterVideo extends LinkMedia{
     public boolean canPreview() {
         return true;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        TwitterVideo that = (TwitterVideo) o;
+
+        return videoURL.equals(that.videoURL);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + videoURL.hashCode();
+        return result;
+    }
 }

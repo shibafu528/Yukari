@@ -5,11 +5,11 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.Nullable;
+import info.shibafu528.yukari.exvoice.BuildInfo;
+import shibafu.yukari.R;
 
 import java.util.Calendar;
 import java.util.Date;
-
-import shibafu.yukari.af2015.R;
 
 /**
  * Created by Shibafu on 14/01/12.
@@ -84,6 +84,11 @@ public class StringUtil {
             e.printStackTrace();
             sb.append(" unknown ver/");
         }
+        sb.append("exvoice ");
+        sb.append(BuildInfo.getABI());
+        sb.append("(");
+        sb.append(BuildInfo.getBuildDateTime());
+        sb.append(")/");
         sb.append(Build.MANUFACTURER);
         sb.append("/");
         sb.append(Build.MODEL);

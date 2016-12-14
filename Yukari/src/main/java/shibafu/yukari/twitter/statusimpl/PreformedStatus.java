@@ -6,7 +6,6 @@ import shibafu.yukari.media.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.ExtendedMediaEntity;
 import twitter4j.GeoLocation;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -117,19 +116,19 @@ public class PreformedStatus implements Status{
         }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
-            mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
-        }
-        for (ExtendedMediaEntity mediaEntity : status.getExtendedMediaEntities()) {
             switch (mediaEntity.getType()) {
                 case "video":
                 case "animated_gif":
                     if (mediaEntity.getVideoVariants().length > 0) {
                         boolean removedExistsUrl = false;
 
-                        for (ExtendedMediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
+                        MediaEntity.Variant largest = null;
+                        for (MediaEntity.Variant variant : mediaEntity.getVideoVariants()) {
                             if (!variant.getContentType().startsWith("video/")) continue;
 
-                            mediaLinkList.add(new TwitterVideo(variant.getUrl(), mediaEntity.getMediaURLHttps()));
+                            if (largest == null || largest.getBitrate() < variant.getBitrate()) {
+                                largest = variant;
+                            }
                             if (!removedExistsUrl) {
                                 for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
                                     if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
@@ -139,6 +138,9 @@ public class PreformedStatus implements Status{
 
                                 removedExistsUrl = true;
                             }
+                        }
+                        if (largest != null) {
+                            mediaLinkList.add(new TwitterVideo(largest.getUrl(), mediaEntity.getMediaURLHttps()));
                         }
                     }
                     break;
@@ -177,10 +179,10 @@ public class PreformedStatus implements Status{
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
-        //extended_entitiesを後から取得できた場合
-        if (this.status.getExtendedMediaEntities().length < status.getExtendedMediaEntities().length
-                && status.getExtendedMediaEntities().length > 1) {
-            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+        //media_entitiesを後から取得できた場合
+        if (this.status.getMediaEntities().length < status.getMediaEntities().length
+                && status.getMediaEntities().length > 1) {
+            for (MediaEntity mediaEntity : status.getMediaEntities()) {
                 mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
             }
         }
@@ -213,10 +215,10 @@ public class PreformedStatus implements Status{
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();
-        //extended_entitiesを後から取得できた場合
-        if (this.status.getExtendedMediaEntities().length < status.getExtendedMediaEntities().length
-                && status.getExtendedMediaEntities().length > 1) {
-            for (MediaEntity mediaEntity : status.getExtendedMediaEntities()) {
+        //media_entitiesを後から取得できた場合
+        if (this.status.getMediaEntities().length < status.getMediaEntities().length
+                && status.getMediaEntities().length > 1) {
+            for (MediaEntity mediaEntity : status.getMediaEntities()) {
                 mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
             }
         }
@@ -254,10 +256,8 @@ public class PreformedStatus implements Status{
 
     //外部でオーナー判定した時に代表ユーザを上書きするためのメソッド
     public void setOwner(AuthUserRecord ownerUser) {
-        if (status.getUser().getId() == ownerUser.NumericId) {
-            representUser = ownerUser;
-            addReceivedUserIfNotExist(ownerUser);
-        }
+        representUser = ownerUser;
+        addReceivedUserIfNotExist(ownerUser);
     }
 
     private static String replaceAllEntities(Status status) {
@@ -308,6 +308,16 @@ public class PreformedStatus implements Status{
     @Override
     public String getText() {
         return text;
+    }
+
+    @Override
+    public int getDisplayTextRangeStart() {
+        return status.getDisplayTextRangeStart();
+    }
+
+    @Override
+    public int getDisplayTextRangeEnd() {
+        return status.getDisplayTextRangeEnd();
     }
 
     public String getPlainText() {
@@ -473,11 +483,6 @@ public class PreformedStatus implements Status{
     }
 
     @Override
-    public ExtendedMediaEntity[] getExtendedMediaEntities() {
-        return status.getExtendedMediaEntities();
-    }
-
-    @Override
     public SymbolEntity[] getSymbolEntities() {
         return status.getSymbolEntities();
     }
@@ -586,6 +591,11 @@ public class PreformedStatus implements Status{
 
     public List<String> getHashtags() {
         return hashtags;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s]@%s: %s", getClass().getSimpleName(), getUser().getScreenName(), getText());
     }
 
     private static class HashMapEx<K, V> extends HashMap<K, V> {

@@ -16,7 +16,7 @@ public class NicoVideo extends LinkMedia {
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("http://(www\\.nicovideo\\.jp\\/watch|nico\\.ms)\\/[sn][mo](\\d+)", "http://tn-skr$.smilevideo.jp/smile?i=%2");
+        ImageMatch matcher = new ImageMatch("http://((?:www|sp)\\.nicovideo\\.jp\\/watch|nico\\.ms)\\/[sn][mo]([1-9]\\d*)", "http://tn-skr$.smilevideo.jp/smile?i=%2");
         String url = matcher.getFullPageUrl(browseURL);
         if (url == null) return null;
         return url.replace("$", String.valueOf((Integer.valueOf(matcher.getMatchGroup()[1]) % 4) + 1));

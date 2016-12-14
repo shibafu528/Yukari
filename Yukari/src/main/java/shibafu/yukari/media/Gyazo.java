@@ -1,8 +1,8 @@
 package shibafu.yukari.media;
 
-import android.net.Uri;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,10 +20,10 @@ public class Gyazo extends LinkMedia{
 
     public Gyazo(String mediaURL) {
         super(mediaURL);
-        this.mediaUrl = this.thumbUrl = mediaURL;
+        this.mediaUrl = this.thumbUrl = mediaURL.replace("http://", "https://");
         Thread thread = new Thread(() -> {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL("https://api.gyazo.com/api/oembed/?url=" + mediaURL).openConnection();
+                HttpURLConnection conn = (HttpURLConnection) new URL(mediaURL + ".json").openConnection();
                 conn.setReadTimeout(10000);
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 StringBuilder sb = new StringBuilder();
@@ -37,9 +37,9 @@ public class Gyazo extends LinkMedia{
                     conn.disconnect();
                 }
 
-                GyazoOEmbed embed = new Gson().fromJson(sb.toString(), GyazoOEmbed.class);
-                this.mediaUrl = embed.url;
-                this.thumbUrl = "https://gyazo.com/thumb/" + Uri.parse(embed.url).getLastPathSegment();
+                GyazoResponse response = new Gson().fromJson(sb.toString(), GyazoResponse.class);
+                this.mediaUrl = response.url;
+                this.thumbUrl = response.thumbUrl;
             } catch (IOException | JsonSyntaxException e) {
                 e.printStackTrace();
             }
@@ -77,7 +77,9 @@ public class Gyazo extends LinkMedia{
         return true;
     }
 
-    private static class GyazoOEmbed {
+    private static class GyazoResponse {
         public String url;
+        @SerializedName("thumb_url")
+        public String thumbUrl;
     }
 }

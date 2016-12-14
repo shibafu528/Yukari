@@ -133,7 +133,7 @@ public class TemplateEditActivity extends ActionBarYukariBase {
         }
 
         @Override
-        public void onDialogChose(int requestCode, int which) {
+        public void onDialogChose(int requestCode, int which, Bundle extras) {
             if (which == DialogInterface.BUTTON_POSITIVE && requestCode == DIALOG_DELETE && deleteReserve != null) {
                 getDatabase().deleteRecord(deleteReserve);
                 reloadList();

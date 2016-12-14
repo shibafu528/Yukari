@@ -16,6 +16,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -45,18 +46,22 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
 import com.twitter.Validator;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
-import shibafu.yukari.af2015.R;
+import info.shibafu528.yukari.exvoice.MRubyException;
+import info.shibafu528.yukari.exvoice.Plugin;
+import info.shibafu528.yukari.exvoice.ProcWrapper;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.database.Template;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
@@ -74,22 +79,26 @@ import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener{
+public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
 
-    public static final int MODE_TWEET   = 0;
-    public static final int MODE_REPLY   = 1;
-    public static final int MODE_DM      = 2;
-    public static final int MODE_QUOTE   = 3;
+    public static final int MODE_TWEET = 0;
+    public static final int MODE_REPLY = 1;
+    public static final int MODE_DM = 2;
+    public static final int MODE_QUOTE = 3;
     public static final int MODE_COMPOSE = 4;
 
     public static final String EXTRA_MODE = "mode";
@@ -117,6 +126,9 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int REQUEST_DIALOG_TEMPLATE = 0x03;
     private static final int REQUEST_DIALOG_POST = 0x04;
     private static final int REQUEST_DIALOG_BACK = 0x05;
+    private static final int REQUEST_DIALOG_HASH_CATEGORY = 0x06;
+    private static final int REQUEST_DIALOG_HASH_VALUE = 0x07;
+    private static final int REQUEST_DIALOG_DRAFT_MENU = 0x08;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -125,46 +137,51 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
+    private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
 
     private static final Extractor EXTRACTOR = new Extractor();
+
+    //タイトル部
+    private TextView tvTitle;
 
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
-    private int tweetCountLimit = TWEET_COUNT_LIMIT;
+    @NeedSaveState private int tweetCountLimit = TWEET_COUNT_LIMIT;
     private int tweetCount = TWEET_COUNT_LIMIT;
-    private int reservedCount = 0;
 
     //DMフラグ
-    private boolean isDirectMessage = false;
-    private long directMessageDestId;
-    private String directMessageDestSN;
+    @NeedSaveState private boolean isDirectMessage = false;
+    @NeedSaveState private long directMessageDestId;
+    @NeedSaveState private String directMessageDestSN;
 
     //編集モード
-    private boolean isComposerMode = false;
+    @NeedSaveState private boolean isComposerMode = false;
 
     //添付プレビュー
+    private ImageButton ibAttach;
+    private ImageButton ibCamera;
     private LinearLayout llTweetAttachParent;
     private LinearLayout llTweetAttachInner;
 
     //Writer指定
-    private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+    @NeedSaveState private ArrayList<AuthUserRecord> writers = new ArrayList<>();
     //アカウントのWriter指定を使用する(Writerアカウント指定呼び出しの場合は折る)
-    private boolean useStoredWriters = true;
+    @NeedSaveState private boolean useStoredWriters = true;
 
     private Status status;
-    private List<AttachPicture> attachPictures = new ArrayList<>();
+    @NeedSaveState private List<AttachPicture> attachPictures = new ArrayList<>();
 
     private SharedPreferences sp;
 
     //短縮URLの文字数
-    private int shortUrlLength = 22;
+    private int shortUrlLength = 23;
 
     //最大添付数
     private int maxMediaPerUpload = 4;
 
     //撮影用の一時変数
-    private Uri cameraTemp;
+    @NeedSaveState private Uri cameraTemp;
 
     private AlertDialog currentDialog;
 
@@ -193,11 +210,14 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     //最近使ったハッシュタグ
     private UsedHashes usedHashes;
 
-    //定型文入力 一時変数
-    private List<String> templateStrings;
-
     //初期状態のスナップショット
-    private TweetDraft initialDraft;
+    @NeedSaveState private TweetDraft initialDraft;
+
+    //プラグインエリア
+    private LinearLayout llTweetExtra;
+
+    //Pluggaloidロード状態
+    private boolean isLoadedPluggaloid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -222,9 +242,185 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         //最近使ったハッシュタグのロード
         usedHashes = new UsedHashes(getApplicationContext());
 
+        //Viewの初期化
+        initializeViews();
+
+        //IMEの表示設定
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+
+        //ウィンドウ外のタッチで閉じないようにする
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            setFinishOnTouchOutside(false);
+        }
+
+        //Extraを取得
+        final Intent args = getIntent();
+
+        //statusを取得する (EXTRA_STATUS)
+        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
+
+        if (savedInstanceState != null) {
+            restoreState(savedInstanceState);
+        } else {
+            initializeState();
+        }
+    }
+
+    /**
+     * 起動パラメータを基に初期化
+     */
+    private void initializeState() {
         //Extraを取得
         final Intent args = getIntent();
         Uri dataArg = args.getData();
+
+        //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
+        AuthUserRecord user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
+        ArrayList<AuthUserRecord> argWriters = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_WRITERS);
+        if (argWriters != null) {
+            useStoredWriters = false;
+            writers = argWriters;
+            updateWritersView();
+        } else if (user != null) {
+            useStoredWriters = false;
+            writers.add(user);
+            updateWritersView();
+        }
+
+        //WebIntent判定
+        boolean isWebIntent = false;
+        if (dataArg != null && dataArg.getHost().equals("twitter.com")) {
+            isWebIntent = true;
+        }
+
+        //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
+        String defaultText;
+        if (isWebIntent) {
+            String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
+            String paramText = Optional.ofNullable(dataArg.getQueryParameter("text")).orElse("").replaceAll("%0[dD]", "\r").replaceAll("%0[aA]", "\n");
+            String paramUrl = dataArg.getQueryParameter("url");
+            String paramHashtags = dataArg.getQueryParameter("hashtags");
+
+            StringBuilder sb = new StringBuilder(paramText);
+            if (paramUrl != null) {
+                sb.append(" ");
+                sb.append(paramUrl);
+            }
+            if (paramHashtags != null) {
+                String[] tags = paramHashtags.split(",");
+                for (String t : tags) {
+                    sb.append(" #");
+                    sb.append(t);
+                }
+            }
+            defaultText = sb.toString();
+        } else if (Intent.ACTION_SEND.equals(args.getAction())) {
+            defaultText = args.getDataString();
+            if (defaultText == null) {
+                defaultText = args.getStringExtra(Intent.EXTRA_TEXT);
+            }
+            if (args.hasExtra(Intent.EXTRA_TITLE)) {
+                defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
+            } else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
+                defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
+            }
+        } else {
+            defaultText = args.getStringExtra(EXTRA_TEXT);
+        }
+        if (sp.getBoolean("pref_save_tags", false)) {
+            List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>() {}.getType());
+            if (!tags.isEmpty()) {
+                StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText) ? "" : defaultText);
+                sb.append(" ");
+                for (String tag : tags) {
+                    if (sb.length() > 1) {
+                        sb.append(" ");
+                    }
+                    sb.append("#");
+                    sb.append(tag);
+                }
+                defaultText = sb.toString();
+            }
+        }
+        etInput.setText((defaultText != null) ? defaultText : sp.getString("pref_tweet_footer", ""));
+        switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
+            case MODE_REPLY:
+                etInput.setSelection(etInput.getText().length());
+                /* fall through */
+            case MODE_QUOTE: {
+                final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+                if (status == null && inReplyTo > -1) {
+                    tvTitle.setText("Reply >> loading...");
+                    new SimpleAsyncTask() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            try {
+                                while (!isTwitterServiceBound()) {
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException ignore) {}
+                                }
+                                Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
+                                if (twitter != null) {
+                                    status = twitter.showStatus(inReplyTo);
+                                }
+                            } catch (TwitterException ignored) {}
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            showQuotedStatus();
+                        }
+                    }.executeParallel();
+                } else if (status != null) {
+                    showQuotedStatus();
+                }
+                break;
+            }
+            case MODE_COMPOSE:
+                isComposerMode = true;
+                tvTitle.setText("Compose");
+                break;
+        }
+
+        //添付データがある場合は設定する
+        ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
+        if (args.getAction() != null && args.getType() != null &&
+                args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
+            attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
+        } else if (mediaUri != null) {
+            for (String s : mediaUri) {
+                attachPicture(Uri.parse(s));
+            }
+        }
+
+        //DM判定
+        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
+        if (isDirectMessage) {
+            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
+            //表題変更
+            tvTitle.setText("DirectMessage to @" + directMessageDestSN);
+            //ボタン無効化と表示変更
+            ibAttach.setEnabled(false);
+            ibCamera.setEnabled(false);
+            btnPost.setText("Send");
+            //文字数上限変更
+            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
+            updateTweetCount();
+        }
+
+        // 初期化完了時点での下書き状況のスナップショット
+        initialDraft = (TweetDraft) getTweetDraft().clone();
+    }
+
+    /**
+     * ビューの初期化
+     */
+    private void initializeViews() {
+        //タイトル部の設定
+        tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
 
         //アカウント表示の設定
         tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
@@ -234,32 +430,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
             startActivityForResult(intent, REQUEST_ACCOUTS);
         });
-
-        //ユーザー指定がある場合は表示する (EXTRA_USER, EXTRA_WRITERS)
-        AuthUserRecord user = (AuthUserRecord) args.getSerializableExtra(EXTRA_USER);
-        ArrayList<AuthUserRecord> argWriters = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_WRITERS);
-        if (argWriters != null) {
-            useStoredWriters = false;
-            writers = argWriters;
-            updateWritersView();
-        }
-        else if (user != null) {
-            useStoredWriters = false;
-            writers.add(user);
-            updateWritersView();
-        }
-
-        //statusを取得する (EXTRA_STATUS)
-        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
-
-        //WebIntent判定
-        boolean isWebIntent = false;
-        if (dataArg != null && dataArg.getHost().equals("twitter.com")) {
-            isWebIntent = true;
-        }
-
-        //IMEの表示設定
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         //テキストエリアの設定
         tvCount = (TextView) findViewById(R.id.tvTweetCount);
@@ -308,114 +478,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
             }
         });
-        //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
-        String defaultText;
-        if (isWebIntent) {
-            String paramInReplyTo = dataArg.getQueryParameter("in_reply_to");
-            String paramText = dataArg.getQueryParameter("text").replaceAll("%0[dD]", "\r").replaceAll("%0[aA]", "\n");
-            String paramUrl = dataArg.getQueryParameter("url");
-            String paramHashtags = dataArg.getQueryParameter("hashtags");
-
-            StringBuilder sb = new StringBuilder(paramText);
-            if (paramUrl != null) {
-                sb.append(" ");
-                sb.append(paramUrl);
-            }
-            if (paramHashtags != null) {
-                String[] tags = paramHashtags.split(",");
-                for (String t : tags) {
-                    sb.append(" #");
-                    sb.append(t);
-                }
-            }
-            defaultText = sb.toString();
-        } else if (Intent.ACTION_SEND.equals(args.getAction())) {
-            defaultText = args.getDataString();
-            if (defaultText == null) {
-                defaultText = args.getStringExtra(Intent.EXTRA_TEXT);
-            }
-            if (args.hasExtra(Intent.EXTRA_TITLE)) {
-                defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
-            }
-            else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
-                defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
-            }
-        } else {
-            defaultText = args.getStringExtra(EXTRA_TEXT);
-        }
-        if (sp.getBoolean("pref_save_tags", false)) {
-            List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>(){}.getType());
-            if (!tags.isEmpty()) {
-                StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText) ? "" : defaultText);
-                sb.append(" ");
-                for (String tag : tags) {
-                    if (sb.length() > 1) {
-                        sb.append(" ");
-                    }
-                    sb.append("#");
-                    sb.append(tag);
-                }
-                defaultText = sb.toString();
-            }
-        }
-        etInput.setText((defaultText != null)?defaultText : sp.getString("pref_tweet_footer", ""));
-        int mode = args.getIntExtra(EXTRA_MODE, MODE_TWEET);
-        if (mode == MODE_REPLY || mode == MODE_QUOTE) {
-            if (mode == MODE_REPLY) {
-                etInput.setSelection(etInput.getText().length());
-            }
-            final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            if (status == null && inReplyTo > -1) {
-                TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
-                tvTitle.setText("Reply >> loading...");
-                new SimpleAsyncTask() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        try {
-                            while (!isTwitterServiceBound()) {
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException ignore) {}
-                            }
-                            Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
-                            if (twitter != null) {
-                                status = twitter.showStatus(inReplyTo);
-                            }
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void aVoid) {
-                        showQuotedStatus();
-                    }
-                }.executeParallel();
-            }
-            else if (status != null) {
-                showQuotedStatus();
-            }
-        } else if (mode == MODE_COMPOSE) {
-            isComposerMode = true;
-            ((TextView)findViewById(R.id.tvTweetTitle)).setText("Compose");
-        }
-
-        //添付エリアの設定
-        llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
-        llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
-
-        //添付データがある場合は設定する
-        ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
-        if (args.getAction() != null && args.getType() != null &&
-                args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
-        }
-        else if (mediaUri != null) {
-            for (String s : mediaUri) {
-                attachPicture(Uri.parse(s));
-            }
-        }
 
         //投稿ボタンの設定
         btnPost = (Button) findViewById(R.id.btnTweet);
@@ -430,15 +492,64 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
         });
         btnPost.setOnLongClickListener(v -> {
-            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    REQUEST_DIALOG_YUKARIN, null, "ゆっかりーん？", "\\ﾕｯｶﾘｰﾝ/", "(メ'ω')No"
-            );
+            SimpleAlertDialogFragment dialogFragment = new SimpleAlertDialogFragment.Builder(REQUEST_DIALOG_YUKARIN)
+                    .setMessage("ゆっかりーん？")
+                    .setPositive("\\ﾕｯｶﾘｰﾝ/")
+                    .setNegative("(メ'ω')No")
+                    .setDisableCaps(true)
+                    .build();
             dialogFragment.show(getSupportFragmentManager(), "yukarindlg");
             return true;
         });
 
-        //各種サービスボタンの設定
-        ImageButton ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
+        //添付エリアの設定
+        llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
+        llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
+
+        // アクションエリアの初期化
+        initializeActions();
+
+        // プラグインエリアの初期化
+        initializeEditPlugins();
+    }
+
+    /**
+     * アクションエリアの初期化
+     */
+    private void initializeActions() {
+        // ギャラリーボタン
+        ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
+        ibAttach.setOnClickListener(v -> {
+            //添付上限判定
+            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
+            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
+            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
+            startActivityForResult(intent, REQUEST_GALLERY);
+            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+        });
+        ibAttach.setOnLongClickListener(view -> {
+            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
+                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+                if (c != null) {
+                    if (c.moveToLast()) {
+                        long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
+                        attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
+                        Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
+                    }
+                    c.close();
+                }
+            }
+            return true;
+        });
+
+        // カメラボタン
+        ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
         ibCamera.setOnClickListener(v -> {
             //添付上限判定
             if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
@@ -471,173 +582,27 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
             startActivityForResult(intent, REQUEST_CAMERA);
         });
-        ImageButton ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
-        ibAttach.setOnClickListener(v -> {
-            //添付上限判定
-            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
-            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, theme.equals("light")? R.style.YukariLightTheme : R.style.YukariDarkTheme);
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
-            startActivityForResult(intent, REQUEST_GALLERY);
-            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
-        });
-        ibAttach.setOnLongClickListener(view -> {
-            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
-                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
-                if (c.moveToLast()) {
-                    long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
-                    attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
-                }
-                c.close();
-                Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
-            }
-            return true;
-        });
+
+        // ハッシュタグ入力ボタン
         ImageButton ibHash = (ImageButton) findViewById(R.id.ibTweetSetHash);
         ibHash.setOnClickListener(v -> {
-            AlertDialog dialog = new AlertDialog.Builder(TweetActivity.this)
-                    .setTitle("ハッシュタグ入力")
-                    .setOnCancelListener(dialog1 -> {
-                        dialog1.dismiss();
-                        currentDialog = null;
-                    })
-                    .setItems(new String[]{"入力履歴から", "タイムラインから"}, (dialog1, which) -> {
-                        dialog1.dismiss();
-                        currentDialog = null;
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(TweetActivity.this);
-                        final String[] hashtags;
-                        switch (which) {
-                            case 0:
-                                builder.setTitle("ハッシュタグ入力履歴");
-                                hashtags = usedHashes.getAll().toArray(new String[usedHashes.getAll().size()]);
-                                break;
-                            case 1:
-                                builder.setTitle("TLで見かけたハッシュタグ");
-                                hashtags = getTwitterService().getHashCache();
-                                break;
-                            default:
-                                return;
-                        }
-                        builder.setItems(hashtags, (dialog2, which1) -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-
-                            etInput.getText().append(" " + hashtags[which1]);
-                        });
-                        builder.setNegativeButton("キャンセル", (dialog2, which1) -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-                        });
-                        builder.setOnCancelListener(dialog2 -> {
-                            dialog2.dismiss();
-                            currentDialog = null;
-                        });
-                        AlertDialog ad = builder.create();
-                        ad.show();
-                        currentDialog = ad;
-                    })
-                    .create();
-            dialog.show();
-            currentDialog = dialog;
+            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                    REQUEST_DIALOG_HASH_CATEGORY, "ハッシュタグ入力", null, null, null, "入力履歴から", "タイムラインから");
+            dialogFragment.show(getSupportFragmentManager(), "hashtagCategory");
         });
         ibHash.setOnLongClickListener(v -> {
             appendTextInto(" #");
             return true;
         });
-        ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
-        ibVoice.setOnClickListener(v -> {
-            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
-            try {
-                startActivityForResult(intent, REQUEST_VOICE);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
-            }
-        });
-        ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
-        ibDraft.setOnClickListener(v -> {
-            AlertDialog ad = new AlertDialog.Builder(TweetActivity.this)
-                    .setTitle("下書きメニュー")
-                    .setOnCancelListener(dialog -> {
-                        dialog.dismiss();
-                        currentDialog = null;
-                    })
-                    .setItems(new String[] {"下書きを保存", "下書きを開く", "入力欄をクリア"}, (dialog, which) -> {
-                        dialog.dismiss();
-                        currentDialog = null;
 
-                        switch (which) {
-                            case 0: {
-                                if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
-                                    Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
-                                }
-                                else {
-                                    getTwitterService().getDatabase().updateDraft(getTweetDraft());
-                                    Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
-                                }
-                                break;
-                            }
-                            case 1: {
-                                DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
-                                draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
-                                break;
-                            }
-                            case 2: {
-                                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                                        REQUEST_DIALOG_CLEAR,
-                                        "確認",
-                                        "入力中の文章をすべて削除してもよろしいですか？",
-                                        "OK",
-                                        "キャンセル");
-                                dialogFragment.show(getSupportFragmentManager(), "dialog");
-                                break;
-                            }
-                        }
-                    })
-                    .create();
-            ad.show();
-            currentDialog = ad;
-        });
-
-        //各種エクストラボタンの設定
-        final PackageManager pm = getPackageManager();
-        ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
-        {
-            try {
-                final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
-                ibNowPlay.setVisibility(View.VISIBLE);
-                ibNowPlay.setOnClickListener(v -> {
-                    Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
-                    intent.addCategory("com.adamrocker.android.simeji.REPLACE");
-                    intent.setPackage(ai.packageName);
-                    startActivityForResult(intent, REQUEST_NOWPLAYING);
-                });
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
-        {
-            ibMorse.setOnClickListener(v -> {
-                Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
-                startActivityForResult(intent, REQUEST_NOWPLAYING);
-            });
-        }
+        // 草ボタン
         ImageButton ibGrasses = (ImageButton) findViewById(R.id.ibTweetGrasses);
         ibGrasses.setOnClickListener(v -> {
             int start = etInput.getSelectionStart();
             int end = etInput.getSelectionEnd();
             if (start < 0 || end < 0 || start == end) {
                 appendTextInto("ｗ");
-            }
-            else {
+            } else {
                 String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
                 char[] chr = text.toCharArray();
                 int grass = text.length() - 1;
@@ -653,42 +618,77 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
             }
         });
+
+        // 三点リーダボタン
         ImageButton ibSanten = (ImageButton) findViewById(R.id.ibTweetSanten);
         ibSanten.setOnClickListener(v -> appendTextInto("…"));
+
+        // 下書きメニュー
+        ImageButton ibDraft = (ImageButton) findViewById(R.id.ibTweetDraft);
+        ibDraft.setOnClickListener(v -> {
+            SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
+                    REQUEST_DIALOG_DRAFT_MENU, "下書きメニュー", null, null, null, "下書きを保存", "下書きを開く", "入力欄をクリア");
+            dialogFragment.show(getSupportFragmentManager(), "draftMenu");
+        });
+    }
+
+    /**
+     * プラグインエリアの初期化
+     */
+    private void initializeEditPlugins() {
+        // スクリーンネーム入力支援
         ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
         ibSNPicker.setOnClickListener(v -> {
             Intent intent = new Intent(TweetActivity.this, SNPickerActivity.class);
             startActivityForResult(intent, REQUEST_SNPICKER);
         });
 
+        // 音声入力
+        ImageButton ibVoice = (ImageButton) findViewById(R.id.ibTweetVoiceInput);
+        ibVoice.setOnClickListener(v -> {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
+            try {
+                startActivityForResult(intent, REQUEST_VOICE);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(TweetActivity.this, "音声入力が組み込まれていません", Toast.LENGTH_SHORT).show();
+            }
+        });
 
-        //DM判定
-        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
-        if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
-            //表題変更
-            ((TextView)findViewById(R.id.tvTweetTitle)).setText("DirectMessage to @" + directMessageDestSN);
-            //ボタン無効化と表示変更
-            ibAttach.setEnabled(false);
-            ibCamera.setEnabled(false);
-            btnPost.setText("Send");
-            //文字数上限変更
-            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
-            updateTweetCount();
+        // モールス入力
+        ImageButton ibMorse = (ImageButton) findViewById(R.id.ibTweetMorseInput);
+        ibMorse.setOnClickListener(v -> {
+            Intent intent = new Intent(TweetActivity.this, MorseInputActivity.class);
+            startActivityForResult(intent, REQUEST_NOWPLAYING);
+        });
+
+        // これ聴いてるんだからねっ！連携
+        final PackageManager pm = getPackageManager();
+        ImageButton ibNowPlay = (ImageButton) findViewById(R.id.ibTweetNowPlaying);
+        try {
+            final ApplicationInfo ai = pm.getApplicationInfo("biz.Fairysoft.KoreKiiteru", 0);
+            ibNowPlay.setVisibility(View.VISIBLE);
+            ibNowPlay.setOnClickListener(v -> {
+                Intent intent = new Intent("com.adamrocker.android.simeji.ACTION_INTERCEPT");
+                intent.addCategory("com.adamrocker.android.simeji.REPLACE");
+                intent.setPackage(ai.packageName);
+                startActivityForResult(intent, REQUEST_NOWPLAYING);
+            });
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
         }
 
-
-        //プラグインロード
+        // twiccaプラグインのロード
         Intent query = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
         query.addCategory(Intent.CATEGORY_DEFAULT);
         List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
         Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
-        LinearLayout llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
+        llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
         final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
         for (ResolveInfo ri : plugins) {
             ImageButton imageButton = new ImageButton(this);
-            Bitmap sourceIcon = ((BitmapDrawable)ri.activityInfo.loadIcon(pm)).getBitmap();
+            Bitmap sourceIcon = ((BitmapDrawable) ri.activityInfo.loadIcon(pm)).getBitmap();
             imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
             imageButton.setTag(ri);
             imageButton.setOnClickListener(v -> {
@@ -702,32 +702,10 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 String text = etInput.getText().toString();
                 intent.putExtra(Intent.EXTRA_TEXT, text);
 
-                Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
-                String prefix = "";
-                if (prefixMatcher.find()) {
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < prefixMatcher.groupCount(); i++) {
-                        sb.append(prefixMatcher.group(i+1));
-                    }
-                    prefix = sb.toString();
-                }
-                intent.putExtra("prefix", prefix);
-
-                Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
-                String suffix = "";
-                if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
-                    suffix = suffixMatcher.group(1);
-                }
-                intent.putExtra("suffix", suffix);
-
-                Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
-                Matcher userInputMatcher = userInputPattern.matcher(text);
-                if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
-                    intent.putExtra("user_input", userInputMatcher.group(1));
-                }
-                else {
-                    intent.putExtra("user_input", "");
-                }
+                TwiccaParameterHelper paramHelper = new TwiccaParameterHelper(text);
+                intent.putExtra("prefix", paramHelper.prefix);
+                intent.putExtra("suffix", paramHelper.suffix);
+                intent.putExtra("user_input", paramHelper.userInput);
 
                 if (status != null) {
                     intent.putExtra("in_reply_to_status_id", status.getId());
@@ -745,12 +723,41 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             });
             llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(false);
-        }
+    }
 
-        // 初期化完了時点での下書き状況のスナップショット
-        initialDraft = (TweetDraft) getTweetDraft().clone();
+    private void restoreState(Bundle state) {
+        tweetCountLimit = state.getInt("tweetCountLimit");
+        isDirectMessage = state.getBoolean("isDirectMessage");
+        directMessageDestId = state.getLong("directMessageDestId");
+        directMessageDestSN = state.getString("directMessageDestSN");
+        isComposerMode = state.getBoolean("isComposerMode");
+        writers = (ArrayList<AuthUserRecord>) state.getSerializable("writers");
+        useStoredWriters = state.getBoolean("useStoredWriters");
+        cameraTemp = state.getParcelable("cameraTemp");
+        initialDraft = (TweetDraft) state.getSerializable("initialDraft");
+        Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
+
+        updateWritersView();
+        updateTweetCount();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("tweetCountLimit", tweetCountLimit);
+        outState.putBoolean("isDirectMessage", isDirectMessage);
+        outState.putLong("directMessageDestId", directMessageDestId);
+        outState.putString("directMessageDestSN", directMessageDestSN);
+        outState.putBoolean("isComposerMode", isComposerMode);
+        outState.putSerializable("writers", writers);
+        outState.putBoolean("useStoredWriters", useStoredWriters);
+        outState.putParcelable("cameraTemp", cameraTemp);
+        outState.putSerializable("initialDraft", initialDraft);
+        ArrayList<Uri> attachPictureUris = new ArrayList<>();
+        for (AttachPicture picture : attachPictures) {
+            attachPictureUris.add(picture.uri);
+        }
+        outState.putParcelableArrayList("attachPictureUris", attachPictureUris);
     }
 
     private void postTweet() {
@@ -791,30 +798,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             inputText = preprocessedInput;
         }
 
-        // TODO: いずれ廃止する
-        if (etInput.getText().toString().startsWith("::")) {
-            String input = etInput.getText().toString();
-            String command = input.split(" ")[0];
-            switch (command) {
-                case "::te": {
-                    List<Template> templates = getTwitterService().getDatabase().getRecords(Template.class);
-                    templateStrings = new ArrayList<>();
-                    for (Template template : templates) {
-                        templateStrings.add(template.getValue());
-                    }
-                    SimpleListDialogFragment dialogFragment = SimpleListDialogFragment.newInstance(
-                            REQUEST_DIALOG_TEMPLATE, "定型文入力", null, null, "キャンセル", templateStrings
-                    );
-                    dialogFragment.show(getSupportFragmentManager(), "template");
-                    return;
-                }
-                case "::td": {
-                    startActivity(new Intent(getApplicationContext(), TemplateEditActivity.class));
-                    return;
-                }
-            }
-        }
-
         //ドラフトを作成
         TweetDraft draft = getTweetDraft();
         draft.setText(inputText);
@@ -830,8 +813,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             Intent intent = new Intent();
             intent.putExtra(EXTRA_DRAFT, draft);
             setResult(RESULT_OK, intent);
-        }
-        else {
+        } else {
             //サービスに投げる
             Intent intent = PostService.newIntent(TweetActivity.this, draft);
             startService(intent);
@@ -849,8 +831,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         StringBuilder sb = new StringBuilder();
         if (writers.size() < 1) {
             sb.append(">> SELECT ACCOUNT(S)");
-        }
-        else for (int i = 0; i < writers.size(); ++i) {
+        } else for (int i = 0; i < writers.size(); ++i) {
             if (i > 0) sb.append("\n");
             sb.append("@");
             sb.append(writers.get(i).ScreenName);
@@ -859,9 +840,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private void showQuotedStatus() {
-        TextView tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
         if (status != null) {
-            Status s = status.isRetweet()? status.getRetweetedStatus() : status;
+            Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
         } else {
             tvTitle.setText("Reply >> load failed. (deleted or temporary error)");
@@ -869,20 +849,24 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     }
 
     private int updateTweetCount() {
-        int count = new Validator().getTweetLength(etInput.getText().toString());
-        if (attachPictures.size() > 0) {
-            reservedCount = shortUrlLength + 1;
+        // カウント対象外の添付URL判定
+        int attachmentUrlCount;
+        if (attachPictures.isEmpty() && PATTERN_QUOTE.matcher(etInput.getText().toString()).find()) {
+            attachmentUrlCount = shortUrlLength + 1;
         } else {
-            reservedCount = 0;
+            attachmentUrlCount = 0;
         }
-        tweetCount = tweetCountLimit - count - reservedCount;
+
+        // 入力の文字数をカウント
+        int count = new Validator().getTweetLength(etInput.getText().toString());
+        tweetCount = tweetCountLimit - count + attachmentUrlCount;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
         } else {
             tvCount.setTextColor(tweetCountColor);
         }
-        return count + reservedCount;
+        return count - attachmentUrlCount;
     }
 
     @Override
@@ -895,8 +879,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                         attachPicture((Uri) uri);
                     }
                     break;
-                case REQUEST_CAMERA:
-                {
+                case REQUEST_CAMERA: {
                     if (data != null && data.getData() != null) {
                         //getDataでUriが返ってくる端末用
                         //フィールドは手に入ったUriで上書き
@@ -911,13 +894,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     cameraTemp = null;
                     break;
                 }
-                case REQUEST_VOICE:
-                {
+                case REQUEST_VOICE: {
                     List<String> results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     if (results.size() > 0) {
                         appendTextInto(results.get(0));
-                    }
-                    else {
+                    } else {
                         Toast.makeText(TweetActivity.this, "認識に失敗しました", Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -933,18 +914,15 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     etInput.setText(data.getStringExtra(Intent.EXTRA_TEXT));
                     etInput.setSelection(data.getIntExtra("cursor", etInput.getSelectionStart()));
                     break;
-                case REQUEST_ACCOUTS:
-                {
+                case REQUEST_ACCOUTS: {
                     writers = (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                     updateWritersView();
                     break;
                 }
             }
-        }
-        else if (resultCode == RESULT_CANCELED) {
+        } else if (resultCode == RESULT_CANCELED) {
             switch (requestCode) {
-                case REQUEST_CAMERA:
-                {
+                case REQUEST_CAMERA: {
                     try {
                         ContentResolver resolver = getContentResolver();
                         Cursor c = resolver.query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
@@ -996,6 +974,22 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     .edit()
                     .putString("pref_saved_tags", json)
                     .commit();
+        }
+        // Pluggaloidプラグインの解放
+        if (isLoadedPluggaloid) {
+            int count = llTweetExtra.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View child = llTweetExtra.getChildAt(i);
+                if (child != null) {
+                    Object tag = child.getTag();
+                    if (tag instanceof ProcWrapper) {
+                        ((ProcWrapper) tag).dispose();
+                        llTweetExtra.removeViewAt(i--);
+                        --count;
+                    }
+                }
+            }
+            isLoadedPluggaloid = false;
         }
         super.onStop();
     }
@@ -1075,8 +1069,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         if (maxMediaPerUpload == 1 && attachPictures.size() >= 1) {
             llTweetAttachInner.removeView(attachPictures.get(0).imageView);
             attachPictures.set(0, pic);
-        }
-        else {
+        } else {
             attachPictures.add(pic);
         }
         llTweetAttachInner.addView(pic.imageView);
@@ -1171,8 +1164,82 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
         if (apiConfiguration != null) {
             maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
-            ((TextView)findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
+            ((TextView) findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
             shortUrlLength = apiConfiguration.getShortURLLength();
+        }
+
+        //Pluggaloidプラグインのバインド
+        if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
+            Object[] result = Plugin.filtering(getTwitterService().getmRuby(), "twicca_action_edit_tweet", new HashMap());
+            if (result != null && result[0] instanceof Map) {
+                Stream.of(((Map) result[0]).values()).filter(o -> o instanceof Map).forEach(o -> {
+                    Map entry = (Map) o;
+                    final String slug = Optional.ofNullable((String) entry.get("slug")).orElse("missing_slug");
+                    final String label = Optional.ofNullable((String) entry.get("label")).orElse(slug);
+                    final ProcWrapper exec = (ProcWrapper) entry.get("exec");
+                    final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
+                    {
+                        ImageButton imageButton = new ImageButton(this);
+                        Bitmap sourceIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_tweet);
+                        imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
+                        imageButton.setTag(exec);
+                        imageButton.setOnClickListener(v -> {
+                            Map<String, String> extra = new LinkedHashMap<>();
+
+                            String text = etInput.getText().toString();
+                            extra.put("text", text);
+
+                            TwiccaParameterHelper paramHelper = new TwiccaParameterHelper(text);
+                            extra.put("prefix", paramHelper.prefix);
+                            extra.put("suffix", paramHelper.suffix);
+                            extra.put("user_input", paramHelper.userInput);
+
+                            if (status != null) {
+                                extra.put("in_reply_to_status_id", String.valueOf(status.getId()));
+                            }
+                            extra.put("cursor", String.valueOf(etInput.getSelectionStart()));
+
+                            if (exec != null) {
+                                try {
+                                    Object r = exec.exec(extra);
+                                    if (r instanceof Map) {
+                                        Map rm = (Map) r;
+                                        String resultCode = (String) rm.get("result_code");
+                                        Map intent = (Map) rm.get("intent");
+                                        if ("ok".equals(resultCode) && intent != null) {
+                                            String t = (String) intent.get("text");
+                                            Integer cursor = (Integer) intent.get("cursor");
+                                            if (t != null) {
+                                                etInput.setText(t);
+                                            }
+                                            if (cursor != null) {
+                                                etInput.setSelection(cursor);
+                                            }
+                                        }
+                                    }
+                                } catch (MRubyException e) {
+                                    e.printStackTrace();
+                                    Toast.makeText(getApplicationContext(),
+                                            String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
+                                            Toast.LENGTH_LONG).show();
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(),
+                                        String.format("Procの実行に失敗しました\ntwicca_action :%s の宣言で適切なブロックを渡していますか？", slug),
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        imageButton.setOnLongClickListener(v -> {
+                            Toast toast = Toast.makeText(TweetActivity.this, label, Toast.LENGTH_LONG);
+                            toast.setGravity(Gravity.CENTER, 0, -128);
+                            toast.show();
+                            return true;
+                        });
+                        llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                    }
+                });
+                isLoadedPluggaloid = true;
+            }
         }
     }
 
@@ -1180,7 +1247,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     public void onServiceDisconnected() {}
 
     @Override
-    public void onDialogChose(int requestCode, int which) {
+    public void onDialogChose(int requestCode, int which, Bundle extras) {
         switch (requestCode) {
             case REQUEST_DIALOG_CLEAR:
                 if (which == DialogInterface.BUTTON_POSITIVE) {
@@ -1191,11 +1258,6 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     etInput.setText("＼ﾕｯｶﾘｰﾝ／");
                     btnPost.performClick();
-                }
-                break;
-            case REQUEST_DIALOG_TEMPLATE:
-                if (which > -1) {
-                    etInput.setText(templateStrings.get(which));
                 }
                 break;
             case REQUEST_DIALOG_POST:
@@ -1215,6 +1277,68 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         }
     }
 
+    @Override
+    public void onDialogChose(int requestCode, int which, String value) {
+        switch (requestCode) {
+            case REQUEST_DIALOG_TEMPLATE:
+                if (value != null) {
+                    etInput.setText(value);
+                }
+                break;
+            case REQUEST_DIALOG_HASH_CATEGORY:
+                if (which > -1) {
+                    SimpleListDialogFragment dialogFragment;
+                    switch (which) {
+                        case 0:
+                            dialogFragment = SimpleListDialogFragment.newInstance(
+                                    REQUEST_DIALOG_HASH_VALUE, "ハッシュタグ入力履歴", null, null, "キャンセル", usedHashes.getAll());
+                            break;
+                        case 1:
+                            dialogFragment = SimpleListDialogFragment.newInstance(
+                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", getTwitterService().getHashCache());
+                            break;
+                        default:
+                            return;
+                    }
+                    dialogFragment.show(getSupportFragmentManager(), "hashtagValue");
+                }
+                break;
+            case REQUEST_DIALOG_HASH_VALUE:
+                if (value != null) {
+                    etInput.getText().append(" ").append(value);
+                }
+                break;
+            case REQUEST_DIALOG_DRAFT_MENU:
+                switch (which) {
+                    case 0: {
+                        if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
+                            Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
+                        } else {
+                            getTwitterService().getDatabase().updateDraft(getTweetDraft());
+                            Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                    }
+                    case 1: {
+                        DraftDialogFragment draftDialogFragment = new DraftDialogFragment();
+                        draftDialogFragment.show(getSupportFragmentManager(), "draftDialog");
+                        break;
+                    }
+                    case 2: {
+                        SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                                REQUEST_DIALOG_CLEAR,
+                                "確認",
+                                "入力中の文章をすべて削除してもよろしいですか？",
+                                "OK",
+                                "キャンセル");
+                        dialogFragment.show(getSupportFragmentManager(), "dialog");
+                        break;
+                    }
+                }
+                break;
+        }
+    }
+
     private static class AttachPicture {
         public Uri uri = null;
         public int width = -1;
@@ -1229,4 +1353,40 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             return list;
         }
     }
+
+    private static class TwiccaParameterHelper {
+        public String prefix;
+        public String suffix;
+        public String userInput;
+
+        TwiccaParameterHelper(String text) {
+            Matcher prefixMatcher = PATTERN_PREFIX.matcher(text);
+            if (prefixMatcher.find()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < prefixMatcher.groupCount(); i++) {
+                    sb.append(prefixMatcher.group(i + 1));
+                }
+                prefix = sb.toString();
+            }
+
+            Matcher suffixMatcher = PATTERN_SUFFIX.matcher(text);
+            if (suffixMatcher.find() && suffixMatcher.groupCount() > 0) {
+                suffix = suffixMatcher.group(1);
+            }
+
+            Pattern userInputPattern = Pattern.compile(prefix + "(.+)" + suffix);
+            Matcher userInputMatcher = userInputPattern.matcher(text);
+            if (userInputMatcher.find() && userInputMatcher.groupCount() > 0) {
+                userInput = userInputMatcher.group(1);
+            } else {
+                userInput = "";
+            }
+        }
+    }
+
+    /**
+     * 状態を保存する必要があるかメモするためだけの存在。正直いらねえ。
+     */
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface NeedSaveState {}
 }

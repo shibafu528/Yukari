@@ -323,7 +323,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     }
 
     @Override
-    public void onDialogChose(final int requestCode, int which) {
+    public void onDialogChose(final int requestCode, int which, Bundle extras) {
         if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
             new ThrowableTwitterAsyncTask<Long, Void>(this) {
 

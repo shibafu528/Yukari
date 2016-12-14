@@ -1,14 +1,21 @@
 package shibafu.yukari.filter.compiler
 
 import shibafu.yukari.filter.FilterQuery
+import shibafu.yukari.filter.sexp.AddOperatorNode
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.DivideOperatorNode
 import shibafu.yukari.filter.sexp.EqualsNode
+import shibafu.yukari.filter.sexp.ListNode
+import shibafu.yukari.filter.sexp.ModuloOperatorNode
+import shibafu.yukari.filter.sexp.MultiplyOperatorNode
 import shibafu.yukari.filter.sexp.NotEqualsNode
 import shibafu.yukari.filter.sexp.NotNode
 import shibafu.yukari.filter.sexp.OrNode
+import shibafu.yukari.filter.sexp.QuoteNode
 import shibafu.yukari.filter.sexp.RegexNode
 import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.SubtractOperatorNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.All
@@ -16,6 +23,7 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
 import shibafu.yukari.filter.source.Mention
 import shibafu.yukari.filter.source.User
+import shibafu.yukari.filter.source.List as ListSource
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -90,11 +98,18 @@ public final class QueryCompiler {
                 }
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
-                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>): List<T> {
-                    if (args.isEmpty()) throw FilterCompilerException("アカウントが指定されていません。", type)
+                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>, requiredArgs: Boolean = false): List<T> {
+                    val screenNames = if (args.isEmpty()) {
+                        if (requiredArgs) {
+                            throw FilterCompilerException("アカウントが指定されていません。", type)
+                        }
+                        userRecords.map { Token(TokenType.STRING, 0, it.ScreenName) }
+                    } else {
+                        args
+                    }
 
                     val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
-                    return args.map { p ->
+                    return screenNames.map { p ->
                         constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
                                 ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
                     }
@@ -134,6 +149,7 @@ public final class QueryCompiler {
                         "home" -> createFiltersWithAuthArguments(Home::class.java)
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
                         "user" -> createFiltersWithListArguments(User::class.java, 1, "(受信ユーザ/)対象ユーザ")
+                        "list" -> createFiltersWithListArguments(ListSource::class.java, 2, "(受信ユーザ/)ユーザ/リスト名")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
@@ -226,6 +242,13 @@ public final class QueryCompiler {
                             "noteq", "neq", "!=", "/=" -> NotEqualsNode(paramList)
                             "contains", "in" -> ContainsNode(paramList)
                             "regex", "re", "rg" -> RegexNode(paramList)
+                            "list" -> ListNode(paramList)
+                            "quote" -> QuoteNode(paramList)
+                            "+" -> AddOperatorNode(paramList)
+                            "-" -> SubtractOperatorNode(paramList)
+                            "*" -> MultiplyOperatorNode(paramList)
+                            "/" -> DivideOperatorNode(paramList)
+                            "%", "mod" -> ModuloOperatorNode(paramList)
                             else -> throw FilterCompilerException("未定義の関数呼び出しです。", funcToken)
                         }
                     }

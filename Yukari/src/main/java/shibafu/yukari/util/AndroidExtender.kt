@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
+import android.support.v4.util.SparseArrayCompat
 import android.util.Log
 import android.widget.Toast
 
@@ -91,4 +92,22 @@ public fun Fragment.putDebugLog(s: String) {
  */
 public fun Fragment.putDebugLog(s: String, vararg param: Any) {
     Log.d(LOG_TAG, java.lang.String.format(s, *param))
+}
+
+public fun <T> SparseArrayCompat<T>.forEach(operation: (Int, T) -> Unit) {
+    for (i in 0..size()-1) {
+        operation(keyAt(i), valueAt(i))
+    }
+}
+
+public fun <T, R> SparseArrayCompat<T>.map(operation: (Int, T) -> R): List<R> {
+    var mappedValues = emptyList<R>()
+    for (i in 0..size()-1) {
+        mappedValues += operation(keyAt(i), valueAt(i))
+    }
+    return mappedValues
+}
+
+public operator fun <T> SparseArrayCompat<T>.set(key: Int, value: T) {
+    this.put(key, value)
 }

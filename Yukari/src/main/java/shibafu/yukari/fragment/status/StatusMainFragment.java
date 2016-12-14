@@ -23,6 +23,7 @@ import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
@@ -42,7 +43,7 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/02.
  */
-public class StatusMainFragment extends TwitterFragment{
+public class StatusMainFragment extends TwitterFragment implements StatusChildUI {
 
     private static final int REQUEST_REPLY     = 0x00;
     private static final int REQUEST_RETWEET   = 0x01;
@@ -64,7 +65,6 @@ public class StatusMainFragment extends TwitterFragment{
     };
 
     private PreformedStatus status = null;
-    private AuthUserRecord user = null;
 
     // URL引用のみを許可
     private boolean limitedQuote = false;
@@ -84,7 +84,6 @@ public class StatusMainFragment extends TwitterFragment{
         View v = inflater.inflate(R.layout.fragment_status_main, container, false);
         Bundle b = getArguments();
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
-        user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -97,26 +96,23 @@ public class StatusMainFragment extends TwitterFragment{
 
             void replyToSender() {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                        ((status.isRetweet()) ? status.getRetweetedStatus().getUser().getScreenName()
-                                : status.getUser().getScreenName()) + " ");
+                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
                 startActivityForResult(intent, REQUEST_REPLY);
             }
 
             void replyToAllMentions() {
+                AuthUserRecord user = getUserRecord();
+
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_USER, user);
                 intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                 {
-                    StringBuilder ids = new StringBuilder(
-                            String.format("@%s ",
-                                    ((status.isRetweet()) ?
-                                            status.getRetweetedStatus().getUser().getScreenName()
-                                            : status.getUser().getScreenName())));
+                    StringBuilder ids = new StringBuilder();
+                    ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
                     for (UserMentionEntity entity : status.getUserMentionEntities()) {
                         if (!ids.toString().contains("@" + entity.getScreenName())
                                 && !entity.getScreenName().equals(user.ScreenName)) {
@@ -133,7 +129,7 @@ public class StatusMainFragment extends TwitterFragment{
 
             boolean beginQuoteTweet(int which) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                 intent.putExtra(TweetActivity.EXTRA_STATUS, status);
                 if (which < 3) {
                     intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
@@ -180,7 +176,7 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(v1 -> {
-            if (!(status.isMentionedTo(user) && status.getUserMentionEntities().length == 1) &&
+            if (!(status.isMentionedTo(getUserRecord()) && status.getUserMentionEntities().length == 1) &&
                     status.getUserMentionEntities().length > 0 && sharedPreferences.getBoolean("pref_choose_reply_to", true)) {
                 PopupMenu popupMenu = new PopupMenu(getActivity(), v1);
                 popupMenu.inflate(R.menu.reply_to);
@@ -207,7 +203,7 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibRetweet = (ImageButton) v.findViewById(R.id.ib_state_retweet);
         ibRetweet.setOnClickListener(v1 -> {
-            Intent intent = AsyncCommandService.createRetweet(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+            Intent intent = AsyncCommandService.createRetweet(getActivity().getApplicationContext(), status.getOriginStatus().getId(), getUserRecord());
 
             if (sharedPreferences.getBoolean("pref_dialog_rt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
@@ -250,6 +246,8 @@ public class StatusMainFragment extends TwitterFragment{
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
             private void createFavorite(boolean withQuotes) {
+                AuthUserRecord user = getUserRecord();
+
                 Intent intent = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
                 getActivity().startService(intent);
 
@@ -286,7 +284,7 @@ public class StatusMainFragment extends TwitterFragment{
                             dialog.dismiss();
                             currentDialog = null;
                             Intent intent = new Intent(getActivity(), MainActivity.class);
-                            String query = String.format("\"%s\" -RT", status.isRetweet() ? status.getRetweetedStatus().getPlainText() : status.getPlainText());
+                            String query = String.format("\"%s\" -RT", status.getOriginStatus().getPlainText());
                             intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query);
                             startActivity(intent);
                         })
@@ -410,7 +408,7 @@ public class StatusMainFragment extends TwitterFragment{
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
         ibFavRt.setOnClickListener(v1 -> {
-            Intent intent = AsyncCommandService.createFavRT(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
+            Intent intent = AsyncCommandService.createFavRT(getActivity().getApplicationContext(), status.getOriginStatus().getId(), getUserRecord());
 
             if (sharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                 AlertDialog ad = new AlertDialog.Builder(getActivity())
@@ -455,7 +453,7 @@ public class StatusMainFragment extends TwitterFragment{
             //引用制限時
             if (limitedQuote) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                 intent.putExtra(TweetActivity.EXTRA_STATUS, status);
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
                 intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
@@ -509,8 +507,8 @@ public class StatusMainFragment extends TwitterFragment{
         });
 
         ibAccount = (ImageButton) v.findViewById(R.id.ib_state_account);
-        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
-            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
+        if (getUserRecord().getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) getUserRecord().getSessionTemporary("OriginalProfileImageUrl"));
         }
         ibAccount.setOnClickListener(v1 -> {
             Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
@@ -596,8 +594,7 @@ public class StatusMainFragment extends TwitterFragment{
                         status.getId()));
                 getActivity().finish();
             } else if (requestCode == REQUEST_CHANGE) {
-                user = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                loadProfileImage();
+                setUserRecord((AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
             } else {
                 final ArrayList<AuthUserRecord> actionUsers =
                         (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
@@ -634,6 +631,11 @@ public class StatusMainFragment extends TwitterFragment{
     }
 
     private void loadProfileImage() {
+        final AuthUserRecord user = getUserRecord();
+        if (user == null) {
+            return;
+        }
+
         if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
             ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
         } else {
@@ -673,21 +675,30 @@ public class StatusMainFragment extends TwitterFragment{
     }
 
     @Override
+    public void onUserChanged(AuthUserRecord userRecord) {
+        loadProfileImage();
+    }
+
+    @Override
     public void onServiceConnected() {
-        if (getTwitterService().isMyTweet(status) != null && !status.isRetweet() &&
-                !sharedPreferences.getBoolean("pref_narcist", false)) {
-            //自分のツイートの場合
-            ibFavorite.setEnabled(false);
-            ibFavRt.setEnabled(false);
-        }
-        if ((!status.isRetweet() && status.getUser().isProtected()) ||
-                (status.isRetweet() && status.getRetweetedStatus().getUser().isProtected())) {
+        if (status.getOriginStatus().getUser().isProtected()) {
             //鍵postの場合
             ibRetweet.setEnabled(false);
             ibFavRt.setEnabled(false);
             limitedQuote = true;
         } else {
             limitedQuote = false;
+        }
+        if (getTwitterService().isMyTweet(status, true) != null) {
+            //自分のツイートの場合
+            ibRetweet.setEnabled(true);
+            if (sharedPreferences.getBoolean("pref_narcist", false)) {
+                ibFavorite.setEnabled(true);
+                ibFavRt.setEnabled(true);
+            } else {
+                ibFavorite.setEnabled(false);
+                ibFavRt.setEnabled(false);
+            }
         }
         loadProfileImage();
     }

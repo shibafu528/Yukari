@@ -2,7 +2,8 @@ package shibafu.yukari.twitter;
 
 import android.content.Context;
 
-import shibafu.yukari.af2015.R;
+import android.support.annotation.NonNull;
+import shibafu.yukari.R;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -11,18 +12,13 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterUtil {
 
-    @Deprecated
     /**
      * <b>TwitterService上での初期化以外で呼び出さないこと。</b>
      * それ以外の場所ではTwitterServiceをバインドし取得すること。
      */
+    @Deprecated
 	public static Twitter getTwitterInstance(Context context) {
-		String consumer_key = context.getString(R.string.twitter_consumer_key);
-		String consumer_secret = context.getString(R.string.twitter_consumer_secret);
-
-        ConfigurationBuilder configuration = new ConfigurationBuilder();
-        configuration.setOAuthConsumerKey(consumer_key);
-        configuration.setOAuthConsumerSecret(consumer_secret);
+        ConfigurationBuilder configuration = getConfigurationBuilder(context);
 
 		TwitterFactory factory = new TwitterFactory(configuration.build());
         return factory.getInstance();
@@ -34,14 +30,21 @@ public class TwitterUtil {
      * @return TwitterFactory instance
      */
     public static TwitterFactory getTwitterFactory(Context context) {
+        ConfigurationBuilder configuration = getConfigurationBuilder(context);
+
+        return new TwitterFactory(configuration.build());
+    }
+
+    @NonNull
+    private static ConfigurationBuilder getConfigurationBuilder(Context context) {
         String consumer_key = context.getString(R.string.twitter_consumer_key);
         String consumer_secret = context.getString(R.string.twitter_consumer_secret);
 
         ConfigurationBuilder configuration = new ConfigurationBuilder();
         configuration.setOAuthConsumerKey(consumer_key);
         configuration.setOAuthConsumerSecret(consumer_secret);
-
-        return new TwitterFactory(configuration.build());
+        configuration.setTweetModeExtended(true);
+        return configuration;
     }
 
     //<editor-fold desc="外部サービスURL生成">
@@ -56,7 +59,7 @@ public class TwitterUtil {
         if (screenName.startsWith("@")) {
             screenName = screenName.substring(1);
         }
-        return "http://aclog.koba789.com/" + screenName + "/timeline";
+        return "http://aclog.rhe.jp/" + screenName + "/timeline";
     }
 
     public static String getTwilogURL(String screenName) {
@@ -73,7 +76,7 @@ public class TwitterUtil {
             status = status.getRetweetedStatus();
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("http://twitter.com/");
+        sb.append("https://twitter.com/");
         sb.append(status.getUser().getScreenName());
         sb.append("/status/");
         sb.append(status.getId());

@@ -36,6 +36,10 @@
     <string name="title_activity_twpf">ツイフィール ビューア</string>
     <string name="title_activity_template_edit">定型文設定</string>
     <string name="title_activity_query_editor">Query Editor</string>
+    <string name="title_activity_pluggaloid_output">標準出力ビューア</string>
+    <string name="title_activity_backup">設定のインポート・エクスポート</string>
+    <string name="title_activity_backup_import">設定のインポート</string>
+    <string name="title_activity_backup_export">設定のエクスポート</string>
 
     <string name="drive_error_connect">Driveとの接続に失敗しました</string>
     <string name="drive_importing">インポート中…</string>

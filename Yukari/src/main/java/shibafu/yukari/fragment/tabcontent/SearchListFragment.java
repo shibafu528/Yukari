@@ -20,10 +20,12 @@ import twitter4j.QueryResult;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
+import java.util.List;
+
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusListener {
+public class SearchListFragment extends TweetListFragment implements StatusListener, StreamToggleable {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
@@ -135,10 +137,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
                 stash.add(status);
             }
             else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
-                final int position = prepareInsertStatus(status);
-                if (position > -1) {
-                    getHandler().post(() -> insertElement(status, position));
-                }
+                getHandler().post(() -> insertElement2(status));
             }
         }
     }
@@ -171,11 +170,13 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
         }
 
         private boolean isNarrowMode;
+        private boolean useLookupApi;
 
-        protected SearchRESTLoader(RESTLoaderInterface loaderInterface) {
+        protected SearchRESTLoader(RESTLoaderInterfaceBase loaderInterface) {
             super(loaderInterface);
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
             isNarrowMode = sp.getBoolean("pref_narrow", false);
+            useLookupApi = sp.getBoolean("pref_search_with_lookup", false);
         }
 
         @Override
@@ -186,7 +187,17 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
                 query.setCount(isNarrowMode ? 20 : 100);
                 QueryResult result = twitter.search(query);
                 queryHolder.setReference(result.nextQuery());
-                return PRListFactory.create(result, params[0].getUserRecord());
+
+                if (useLookupApi) {
+                    List<twitter4j.Status> tweets = result.getTweets();
+                    long[] ids = new long[tweets.size()];
+                    for (int i = 0; i < ids.length; i++) {
+                        ids[i] = tweets.get(i).getId();
+                    }
+                    return PRListFactory.create(twitter.lookup(ids), params[0].getUserRecord());
+                } else {
+                    return PRListFactory.create(result, params[0].getUserRecord());
+                }
             } catch (TwitterException e) {
                 e.printStackTrace();
             }

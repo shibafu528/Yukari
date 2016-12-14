@@ -50,4 +50,34 @@ public class TweetListFragmentFactory {
 
         return fragment;
     }
+
+    public static TwitterListFragment newInstanceWithFilter(TabInfo tabInfo) {
+        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
+        StringBuilder query = new StringBuilder();
+        switch (tabInfo.getType()) {
+            case TabType.TABTYPE_HOME:
+                query.append("from home");
+                if (tabInfo.getBindAccount() != null) {
+                    query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
+                }
+                break;
+            case TabType.TABTYPE_MENTION:
+                query.append("from mention");
+                if (tabInfo.getBindAccount() != null) {
+                    query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
+                }
+                break;
+            default:
+                return newInstance(tabInfo);
+        }
+        Bundle b = new Bundle();
+        b.putString(FilterListFragment.EXTRA_FILTER_QUERY, query.toString());
+        b.putLong(TweetListFragment.EXTRA_ID, tabInfo.getId());
+        b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
+        b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());
+        b.putSerializable(TweetListFragment.EXTRA_USER, tabInfo.getBindAccount());
+        fragment.setArguments(b);
+
+        return fragment;
+    }
 }

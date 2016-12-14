@@ -16,14 +16,18 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.*;
-import shibafu.yukari.af2015.R;
+import android.widget.AbsListView;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.Meshi;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
@@ -33,7 +37,11 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.GeoLocation;
+import twitter4j.Status;
+import twitter4j.TwitterResponse;
+import twitter4j.User;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -309,6 +317,13 @@ public class TweetAdapterWrap {
         public static final int MODE_PREVIEW = 2; //サムネイル非表示強制、モノクロ
         public static final int MODE_INCLUDE = 128;
 
+        private static final String[] SEMI_CRY = {
+                "ｼﾞｼﾞ…ｼﾞｼﾞｼﾞｼﾞ…………ﾐﾐﾐﾐﾐﾐﾝﾐﾝﾐﾝ!!!",
+                "ミーーーン↑↑ｗｗｗｗｗミンミンミンミン↑↑ｗｗｗｗｗｗｗｗミーーーン↓↓ｗｗｗｗｗ",
+                "ｱーーｼｬｯｼｬｯｼｬｯｼｬｯｼｬｯﾝﾎﾞｫｵｵーーｼｯ\nﾂｸﾂｸﾎﾞｫｵｵーｼｯ　ﾂｸﾂｸﾎﾞｫｵｵーｼｯ\nﾂｸﾂｸﾎﾞｫｵｵーｼｯ　ﾂｸﾂｸﾎﾞｫｵｵーｼｯ\nﾂｸﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ　ﾂｸｳｨーﾖーｯ\nｳｨｨｨｲｲｲｲｲｲｨｨｨｨｨｨーー……",
+                "ｼﾞｰｰｰｰｰｰｰｰｰｰｰﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼ\nｼﾞｰｰｰｰｰｰｰｰｰｰｰﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼﾜｼ\nｼｰｰｰｰｰｰｰｰｰｰｰ"
+        };
+
         private Context context;
         private List<AuthUserRecord> userRecords;
         private List<UserExtras> userExtras;
@@ -418,6 +433,9 @@ public class TweetAdapterWrap {
                         .replaceAll("[^＾][~〜]+", "＾〜〜〜〜wwwwwwwwwww");
                 viewHolder.tvText.setTextColor(Color.parseColor("#0b5b12"));
             }
+            if (preferences.getBoolean("j_cicada", false)) {
+                text = SEMI_CRY[Math.abs(text.hashCode()) % SEMI_CRY.length];
+            }
             if (mode == MODE_DEFAULT) {
                 if ((multilineMode & CONFIG_OMISSION_RETURNS) == CONFIG_OMISSION_RETURNS) {
                     text = text.replace('\n', ' ');
@@ -477,6 +495,7 @@ public class TweetAdapterWrap {
             if (mode == MODE_PREVIEW) {
                 viewHolder.tvName.setTextColor(Color.BLACK);
                 viewHolder.tvTimestamp.setTextColor(Color.BLACK);
+                viewHolder.tvReceived.setTextColor(Color.BLACK);
             }
 
             if (preferences.getBoolean("pref_show_received", false)) {
@@ -540,10 +559,10 @@ public class TweetAdapterWrap {
                     Calendar calendar = Calendar.getInstance();
                     hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)];
                 }
-                hidden |= st.isCensoredThumbs();
+                hidden |= st.getOriginStatus().isCensoredThumbs();
 
                 if (!hidden || getPreferences().getBoolean("pref_prev_mosaic", false)) {
-                    List<LinkMedia> mediaList = st.getMediaLinkList();
+                    List<LinkMedia> mediaList = st.getOriginStatus().getMediaLinkList();
                     int mlSize = mediaList.size();
                     if (mlSize > 0) {
                         viewHolder.llAttach.setVisibility(View.VISIBLE);
@@ -556,10 +575,6 @@ public class TweetAdapterWrap {
                                 iv = new ImageView(getContext());
                                 iv.setId(i);
                                 viewHolder.llAttach.addView(iv, lpThumb);
-                            }
-                            else if (!getPreferences().getBoolean("pref_prev_mstrin", true) && media instanceof Meshi) {
-                                iv.setVisibility(View.GONE);
-                                continue;
                             }
                             else {
                                 iv.setVisibility(View.VISIBLE);
@@ -664,7 +679,7 @@ public class TweetAdapterWrap {
                         viewHolder.flInclude.setVisibility(View.VISIBLE);
                         for (int i = 0; i < qeSize; i++) {
                             Long quoteId = quoteEntities.get(i);
-                            if (StatusManager.getReceivedStatuses().indexOfKey(quoteId) > -1) {
+                            if (StatusManager.getReceivedStatuses().get(quoteId) != null) {
                                 View tv = View.inflate(getContext(),
                                         getPreferences().getBoolean("pref_mode_singleline", false)?
                                                 R.layout.row_tweet_single : R.layout.row_tweet,

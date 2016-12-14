@@ -2,9 +2,12 @@ package shibafu.yukari.twitter.statusmanager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.util.LongSparseArray;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
@@ -66,9 +69,19 @@ import java.util.regex.PatternSyntaxException;
  * Created by shibafu on 14/03/08.
  */
 public class StatusManager implements Releasable {
-    private static LongSparseArray<PreformedStatus> receivedStatuses = new LongSparseArray<>(512);
+    static {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+            // アタシポンコツアンドロイド
+            receivedStatuses = new LruCache<>(128);
+        } else {
+            receivedStatuses = new LruCache<>(512);
+        }
+    }
+
+    private static LruCache<Long, PreformedStatus> receivedStatuses;
 
     private static final boolean PUT_STREAM_LOG = false;
+    private static final long RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
@@ -84,6 +97,7 @@ public class StatusManager implements Releasable {
     @AutoRelease private TwitterService service;
     @AutoRelease private Suppressor suppressor;
     private List<AutoMuteConfig> autoMuteConfigs;
+    private LongSparseArray<Pattern> autoMutePatternCache = new LongSparseArray<>();
 
     @AutoRelease private Context context;
     @AutoRelease private SharedPreferences sharedPreferences;
@@ -93,7 +107,7 @@ public class StatusManager implements Releasable {
     @AutoRelease private StatusNotifier notifier;
 
     //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
-    private LongSparseArray<PreformedStatus> retweetResponseStandBy = new LongSparseArray<>();
+    private LongSparseArray<Pair<PreformedStatus, Long>> retweetResponseStandBy = new LongSparseArray<>();
 
     //キャッシュ
     private HashCache hashCache;
@@ -288,13 +302,22 @@ public class StatusManager implements Releasable {
                             case AutoMuteConfig.MATCH_PARTIAL:
                                 match = preformedStatus.getText().contains(config.getQuery());
                                 break;
-                            case AutoMuteConfig.MATCH_REGEX:
-                                try {
-                                    Pattern pattern = Pattern.compile(config.getQuery());
+                            case AutoMuteConfig.MATCH_REGEX: {
+                                Pattern pattern = autoMutePatternCache.get(config.getId());
+                                if (pattern == null && autoMutePatternCache.indexOfKey(config.getId()) < 0) {
+                                    try {
+                                        pattern = Pattern.compile(config.getQuery());
+                                        autoMutePatternCache.put(config.getId(), pattern);
+                                    } catch (PatternSyntaxException ignore) {
+                                        autoMutePatternCache.put(config.getId(), null);
+                                    }
+                                }
+                                if (pattern != null) {
                                     Matcher matcher = pattern.matcher(preformedStatus.getText());
                                     match = matcher.find();
-                                } catch (PatternSyntaxException ignore) {}
+                                }
                                 break;
+                            }
                         }
                         if (match) {
                             autoMute = config;
@@ -316,16 +339,19 @@ public class StatusManager implements Releasable {
                             (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                             (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
                     PreformedStatus deliverStatus = new MetaStatus(preformedStatus, from.getClass().getSimpleName());
-                    PreformedStatus standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
+                    Pair<PreformedStatus, Long> standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
                     if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
                             !preformedStatus.isRetweet() &&
                             standByStatus != null && !preformedStatus.getText().startsWith("@")) {
                         //Status is RT-Respond
                         retweetResponseStandBy.remove(preformedStatus.getUser().getId());
-                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus);
+                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus.first);
                         if (!(from instanceof RestStream)) {
                             notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
                         }
+                    } else if (standByStatus != null && standByStatus.second + RESPONSE_STAND_BY_EXPIRES < System.currentTimeMillis()) {
+                        //期限切れ
+                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
                     }
                     pushEventQueue(from, new StatusEventBuffer(user, deliverStatus, muted), false);
 
@@ -338,7 +364,7 @@ public class StatusManager implements Releasable {
                             createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
                             //Put Response Stand-By
-                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), preformedStatus);
+                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), Pair.create(preformedStatus, System.currentTimeMillis()));
                         } else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
                             UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
                             for (UserMentionEntity ume : userMentionEntities) {
@@ -415,7 +441,7 @@ public class StatusManager implements Releasable {
             }
         }
 
-        receivedStatuses.clear();
+        receivedStatuses.evictAll();
 
         notifier.release();
         userUpdateDelayer.shutdown();
@@ -597,7 +623,7 @@ public class StatusManager implements Releasable {
         handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
-    public static LongSparseArray<PreformedStatus> getReceivedStatuses() {
+    public static LruCache<Long, PreformedStatus> getReceivedStatuses() {
         return receivedStatuses;
     }
 
@@ -629,6 +655,16 @@ public class StatusManager implements Releasable {
 
     public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
         this.autoMuteConfigs = autoMuteConfigs;
+        autoMutePatternCache.clear();
+        for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
+            if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
+                try {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), Pattern.compile(autoMuteConfig.getQuery()));
+                } catch (PatternSyntaxException e) {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), null);
+                }
+            }
+        }
     }
 
     public void loadQuotedEntities(PreformedStatus preformedStatus) {
@@ -638,7 +674,7 @@ public class StatusManager implements Releasable {
         }
 
         for (Long id : preformedStatus.getQuoteEntities()) {
-            if (receivedStatuses.indexOfKey(id) < 0) {
+            if (receivedStatuses.get(id) == null) {
                 new TwitterAsyncTask<Params>(context) {
 
                     @Override
@@ -676,7 +712,12 @@ public class StatusManager implements Releasable {
      * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
-    public long requestRestQuery(final String restTag, final AuthUserRecord userRecord, final RestQuery query, final long pagingMaxId, final boolean appendLoadMarker, final String loadMarkerTag) {
+    public long requestRestQuery(@NonNull final String restTag,
+                                 @NonNull final AuthUserRecord userRecord,
+                                 @NonNull final RestQuery query,
+                                 final long pagingMaxId,
+                                 final boolean appendLoadMarker,
+                                 final String loadMarkerTag) {
         final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
         final long taskKey = System.currentTimeMillis();
         ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
@@ -749,8 +790,14 @@ public class StatusManager implements Releasable {
                                     Toast.LENGTH_SHORT).show();
                             break;
                         default:
+                            String template;
+                            if (exception.isCausedByNetworkIssue()) {
+                                template = "[@%s]\n通信エラー: %d:%d\n%s";
+                            } else {
+                                template = "[@%s]\nエラー: %d:%d\n%s";
+                            }
                             Toast.makeText(context,
-                                    String.format("[@%s]\n通信エラー: %d:%d\n%s",
+                                    String.format(template,
                                             userRecord.ScreenName,
                                             exception.getStatusCode(),
                                             exception.getErrorCode(),

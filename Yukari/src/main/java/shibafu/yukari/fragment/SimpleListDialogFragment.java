@@ -21,8 +21,8 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
     public static final String ARG_POSITIVE = "possitive";
     public static final String ARG_NEGATIVE = "negative";
 
-    public static interface OnDialogChoseListener {
-        void onDialogChose(int requestCode, int which);
+    public interface OnDialogChoseListener {
+        void onDialogChose(int requestCode, int which, String value);
     }
 
     public static SimpleListDialogFragment newInstance(
@@ -109,7 +109,8 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
             }
 
             if (listener != null) {
-                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i);
+                String[] items = getArguments().getStringArray(ARG_ITEMS);
+                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, items == null || i < 0 || items.length <= i ? null : items[i]);
             }
         }
     }

@@ -15,16 +15,19 @@ import android.text.ClipboardManager
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
+import info.shibafu528.yukari.exvoice.MRubyException
+import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.ProcWrapper
+import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
-import shibafu.yukari.activity.StatusActivity
-import shibafu.yukari.af2015.R
+import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
-import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.defaultSharedPreferences
@@ -35,15 +38,13 @@ import java.util.regex.Pattern
 /**
  * Created by shibafu on 2016/02/05.
  */
-public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener, StatusChildUI {
     companion object {
         private const val REQUEST_DELETE = 0
     }
 
-    private val status: PreformedStatus by lazy { arguments.getSerializable(StatusActivity.EXTRA_STATUS) as PreformedStatus }
-    private val user: AuthUserRecord by lazy { arguments.getSerializable(StatusActivity.EXTRA_USER) as AuthUserRecord }
-
     private var itemList: List<StatusAction> = emptyList()
+    private var isLoadedPluggaloid = false
 
     private val itemTemplates: List<Pair<StatusAction, () -> Boolean>> = listOf(
             Action("ブラウザで開く") {
@@ -65,21 +66,21 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } visibleWhen { status !is Bookmark },
 
             Action("リストへ追加/削除") {
-                ListRegisterDialogFragment.newInstance(status.sourceUser).let {
+                ListRegisterDialogFragment.newInstance(status!!.sourceUser).let {
                     it.setTargetFragment(this, 0)
                     it.show(childFragmentManager, "register")
                 }
             } visibleWhen { true },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance(status, this).show(childFragmentManager, "mute")
+                MuteMenuDialogFragment.newInstance(status!!, this).show(childFragmentManager, "mute")
             } visibleWhen { true },
 
             Action("ツイートを削除") {
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", "ツイートを削除しますか？", "OK", "キャンセル")
                 dialog.setTargetFragment(this, REQUEST_DELETE)
                 dialog.show(fragmentManager, "delete")
-            } visibleWhen { status is Bookmark || status.user.id == user.NumericId }
+            } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
     )
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -95,7 +96,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         super.onActivityCreated(savedInstanceState)
 
         val plugins: List<TwiccaPluginAction> =
-                if (status.sourceUser.isProtected) {
+                if (status?.sourceUser?.isProtected ?: true) {
                     emptyList()
                 } else {
                     val query = Intent("jp.r246.twicca.ACTION_SHOW_TWEET").addCategory(Intent.CATEGORY_DEFAULT)
@@ -112,18 +113,38 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         listView.isStackFromBottom = defaultSharedPreferences.getBoolean("pref_bottom_stack", false)
     }
 
+    override fun onStop() {
+        // Pluggaloidアクションのアンロード
+        itemList.forEach {
+            if (it is PluggaloidPluginAction) {
+                it.dispose()
+            }
+        }
+        itemList = itemList.filterNot { it is PluggaloidPluginAction }
+        isLoadedPluggaloid = false
+
+        super.onStop()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        childFragmentManager.fragments?.forEach {
+            it.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
         itemList[position].onClick()
     }
 
-    override fun onDialogChose(requestCode: Int, which: Int) {
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             REQUEST_DELETE -> if (which == DialogInterface.BUTTON_POSITIVE) {
                 ParallelAsyncTask.executeParallel {
                     if (this.status is Bookmark) {
                         twitterService.database.deleteRecord(this.status as Bookmark)
                     } else {
-                        twitterService.destroyStatus(user, this.status.id)
+                        twitterService.destroyStatus(userRecord, this.status?.id ?: return@executeParallel)
                     }
                 }
                 activity.finish()
@@ -135,7 +156,37 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         startActivity(muteOption.toIntent(activity))
     }
 
-    override fun onServiceConnected() {}
+    override fun onServiceConnected() {
+        // Pluggaloidアクションのロード
+        if (!isLoadedPluggaloid) {
+            val pluggaloidActions: List<PluggaloidPluginAction> =
+                    if (status?.sourceUser?.isProtected ?: true || twitterService == null || twitterService.getmRuby() == null) {
+                        emptyList()
+                    } else {
+                        val plugins = try {
+                            Plugin.filtering(twitterService.getmRuby(), "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
+                        } catch (e: MRubyException) {
+                            e.printStackTrace()
+                            showToast("プラグインの呼び出し中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
+                            null
+                        }
+                        if (plugins != null && plugins is Map<*, *>) {
+                            plugins.entries.mapNotNull {
+                                if (it.key is String && it.value is Map<*, *>) {
+                                    PluggaloidPluginAction(it.value as Map<*, *>)
+                                } else {
+                                    null
+                                }
+                            }
+                        } else {
+                            emptyList()
+                        }
+                    }
+            itemList += pluggaloidActions
+            listAdapter = ArrayAdapter<StatusAction>(activity, android.R.layout.simple_list_item_1, itemList)
+            isLoadedPluggaloid = true
+        }
+    }
 
     override fun onServiceDisconnected() {}
 
@@ -170,6 +221,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         override val label: String = resolveInfo.activityInfo.loadLabel(activity.packageManager).toString()
 
         override fun onClick() {
+            val status = this@StatusActionFragment.status ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+
             val intent = Intent("jp.r246.twicca.ACTION_SHOW_TWEET")
                 .addCategory(Intent.CATEGORY_DEFAULT)
                 .setPackage(resolveInfo.activityInfo.packageName)
@@ -200,6 +253,48 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } catch (e: ActivityNotFoundException) {
                 showToast("プラグインの起動に失敗しました\nアプリが削除されましたか？")
             }
+        }
+    }
+
+    /**
+     * Pluggaloid Pluginとの相互運用コマンドクラス
+     */
+    private inner class PluggaloidPluginAction(args: Map<*, *>) : StatusAction() {
+        val slug: String = args["slug"]?.toString() ?: "missing_slug"
+        val exec: ProcWrapper? = args["exec"] as? ProcWrapper
+        override val label: String = args["label"]?.toString() ?: slug
+
+        override fun onClick() {
+            if (exec != null) {
+                val status = this@StatusActionFragment.status ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+
+                val extra = mapOf<String, String>(
+                        "id" to status.id.toString(),
+                        "created_at" to status.createdAt.time.toString(),
+                        "user_screen_name" to status.user.screenName,
+                        "user_name" to status.user.name,
+                        "user_id" to status.user.id.toString(),
+                        "user_profile_image_url" to status.user.profileImageURL,
+                        "user_profile_image_url_mini" to status.user.miniProfileImageURL,
+                        "user_profile_image_url_normal" to status.user.originalProfileImageURL,
+                        "user_profile_image_url_bigger" to status.user.biggerProfileImageURL,
+                        "in_reply_to_status_id" to status.inReplyToStatusId.toString(),
+                        "source" to status.source,
+                        "text" to status.text
+                )
+                try {
+                    exec.exec(extra)
+                } catch (e: MRubyException) {
+                    e.printStackTrace()
+                    showToast("Procの実行中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
+                }
+            } else {
+                showToast("Procの実行に失敗しました\ntwicca_action :$slug の宣言で適切なブロックを渡していますか？")
+            }
+        }
+
+        fun dispose() {
+            exec?.dispose()
         }
     }
 

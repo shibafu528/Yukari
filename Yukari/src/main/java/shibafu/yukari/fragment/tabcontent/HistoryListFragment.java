@@ -85,16 +85,12 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
     @Override
     public void onUpdatedStatus(AuthUserRecord from, int kind, Status status) {
         if (kind == StatusManager.UPDATE_NOTIFY && status instanceof HistoryStatus) {
-            final HistoryStatus historyStatus = (HistoryStatus) status;
-            final int position = prepareInsertStatus(historyStatus);
-            if (position > -1) {
-                getHandler().post(() -> insertElement(historyStatus, position));
-            }
+            getHandler().post(() -> insertElement2((HistoryStatus) status));
         }
     }
 
     @Override
-    public void onDialogChose(int requestCode, int which) {
+    public void onDialogChose(int requestCode, int which, String value) {
         if (requestCode == 0) {
             Intent intent = new Intent();
             switch (which) {
@@ -111,7 +107,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
                     startActivity(intent);
                     break;
                 case DialogInterface.BUTTON_NEGATIVE:
-                    setBlockingDoubleClock(false);
+                    setBlockingDoubleClick(false);
                     break;
             }
         }

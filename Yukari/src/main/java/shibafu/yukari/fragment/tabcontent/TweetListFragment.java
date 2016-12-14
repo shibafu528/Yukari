@@ -1,13 +1,17 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import com.annimon.stream.Optional;
+import com.annimon.stream.Stream;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import shibafu.yukari.af2015.R;
@@ -17,6 +21,8 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
@@ -35,10 +41,17 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public abstract class TweetListFragment extends TwitterListFragment<PreformedStatus> {
+public abstract class TweetListFragment extends TwitterListFragment<PreformedStatus> implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
     //Mute Stash
     protected ArrayList<PreformedStatus> stash = new ArrayList<>();
+
+    //RequestId衝突回避用のシフト数
+    private static final int REQUEST_D_SHIFT = 16;
+    private static final int REQUEST_D_SWIPE_ACTION_FAVORITE = 3 << REQUEST_D_SHIFT;
+    private static final int REQUEST_D_SWIPE_ACTION_RETWEET = 4 << REQUEST_D_SHIFT;
+    private static final int REQUEST_D_SWIPE_ACTION_FAVRT = 5 << REQUEST_D_SHIFT;
+    private static final String REQUEST_D_BUNDLE_STATUS = "status";
 
     //SwipeAction PopupWindow
     private static final int SWIPE_ACTION_CANCEL = 0;
@@ -114,6 +127,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                 swipeActionInfoLabel.setText(swipeActionStatusGrabbed.getRepresentUser().ScreenName + SWIPE_ACTION_MESSAGES[swipeActionSelected]);
                                 break;
                             case MotionEvent.ACTION_UP:
+                                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                                 switch(swipeActionSelected) {
                                     case SWIPE_ACTION_REPLY: {
                                         Intent intent = new Intent(getActivity(), TweetActivity.class);
@@ -126,47 +140,87 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         break;
                                     }
                                     case SWIPE_ACTION_FAVORITE:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
-                                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断
                                                 break;
                                             }
                                         }
-                                        new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                            @Override
-                                            protected TwitterException doInBackground(PreformedStatus... params) {
-                                                getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
-                                                return null;
-                                            }
-                                        }.execute(swipeActionStatusGrabbed);
+                                        if (sp.getBoolean("pref_dialog_swipe", false) && sp.getBoolean("pref_dialog_fav", false)) {
+                                            Bundle extras = new Bundle();
+                                            extras.putSerializable(REQUEST_D_BUNDLE_STATUS, swipeActionStatusGrabbed);
+                                            SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment.Builder(REQUEST_D_SWIPE_ACTION_FAVORITE)
+                                                    .setTitle("確認")
+                                                    .setMessage("お気に入り登録しますか？")
+                                                    .setPositive("OK")
+                                                    .setNegative("キャンセル")
+                                                    .setExtras(extras)
+                                                    .build();
+                                            fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_FAVORITE);
+                                            fragment.show(getFragmentManager(), null);
+                                        } else {
+                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                                                @Override
+                                                protected TwitterException doInBackground(PreformedStatus... params) {
+                                                    getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                                                    return null;
+                                                }
+                                            }.execute(swipeActionStatusGrabbed);
+                                        }
                                         break;
                                     case SWIPE_ACTION_RETWEET:
-                                        new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                            @Override
-                                            protected TwitterException doInBackground(PreformedStatus... params) {
-                                                getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
-                                                return null;
-                                            }
-                                        }.execute(swipeActionStatusGrabbed);
+                                        if (sp.getBoolean("pref_dialog_swipe", false) && sp.getBoolean("pref_dialog_rt", true)) {
+                                            Bundle extras = new Bundle();
+                                            extras.putSerializable(REQUEST_D_BUNDLE_STATUS, swipeActionStatusGrabbed);
+                                            SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment.Builder(REQUEST_D_SWIPE_ACTION_RETWEET)
+                                                    .setTitle("確認")
+                                                    .setMessage("リツイートしますか？")
+                                                    .setPositive("OK")
+                                                    .setNegative("キャンセル")
+                                                    .setExtras(extras)
+                                                    .build();
+                                            fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_RETWEET);
+                                            fragment.show(getFragmentManager(), null);
+                                        } else {
+                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                                                @Override
+                                                protected TwitterException doInBackground(PreformedStatus... params) {
+                                                    getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                                                    return null;
+                                                }
+                                            }.execute(swipeActionStatusGrabbed);
+                                        }
                                         break;
                                     case SWIPE_ACTION_FAVRT:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed) != null) {
-                                            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断
                                                 break;
                                             }
                                         }
 
-                                        new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                            @Override
-                                            protected TwitterException doInBackground(PreformedStatus... params) {
-                                                getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
-                                                getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
-                                                return null;
-                                            }
-                                        }.execute(swipeActionStatusGrabbed);
+                                        if (sp.getBoolean("pref_dialog_swipe", false) && sp.getBoolean("pref_dialog_favrt", true)) {
+                                            Bundle extras = new Bundle();
+                                            extras.putSerializable(REQUEST_D_BUNDLE_STATUS, swipeActionStatusGrabbed);
+                                            SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment.Builder(REQUEST_D_SWIPE_ACTION_FAVRT)
+                                                    .setTitle("確認")
+                                                    .setMessage("お気に入りに登録してRTしますか？")
+                                                    .setPositive("OK")
+                                                    .setNegative("キャンセル")
+                                                    .setExtras(extras)
+                                                    .build();
+                                            fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_FAVRT);
+                                            fragment.show(getFragmentManager(), null);
+                                        } else {
+                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                                                @Override
+                                                protected TwitterException doInBackground(PreformedStatus... params) {
+                                                    getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                                                    getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                                                    return null;
+                                                }
+                                            }.execute(swipeActionStatusGrabbed);
+                                        }
                                         break;
                                 }
                                 dismissSwipeActionStatusView();
@@ -304,26 +358,29 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
                     (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                     (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                int position = prepareInsertStatus(s);
-                if (position > -1) {
-                    elements.add(position, s);
-                    notifyDataSetChanged();
-                    it.remove();
-                }
+                insertElement2(s);
+                it.remove();
             }
         }
     };
 
     @Override
-    protected int prepareInsertStatus(PreformedStatus status) {
+    protected PrepareInsertResult prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
         AuthUserRecord owner = getService().isMyTweet(status);
         if (owner != null) {
             status.setOwner(owner);
+        } else if (getService() != null) {
+            //優先アカウントチェック
+            List<UserExtras> userExtras = getTwitterService().getUserExtras();
+            Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+            if (first.isPresent() && first.get().getPriorityAccount() != null) {
+                status.setOwner(first.get().getPriorityAccount());
+            }
         }
         //挿入位置の探索と追加
         PreformedStatus storedStatus;
-        long searchingAnchorId = -1;
+        long searchingAnchorId = PREPARE_INSERT_DUPLICATED;
         if (status.getBaseStatusClass() == LoadMarkerStatus.class) {
             searchingAnchorId = ((LoadMarkerStatus) status.getBaseStatus()).getAnchorTweetId();
         }
@@ -331,20 +388,21 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             storedStatus = elements.get(i);
             if (searchingAnchorId == storedStatus.getId()) {
                 Log.d("TweetListFragment", "prepareInsertStatus : Detected anchor status. " + searchingAnchorId);
-                return -1;
+                return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             } else if (status.getId() == storedStatus.getId()) {
                 if (FakeStatus.class.isAssignableFrom(status.getBaseStatusClass())) {
-                    return i;
+                    return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
                 } else {
                     storedStatus.merge(status);
-                    notifyDataSetChanged();
-                    return -1;
+                    //notifyDataSetChanged();
+                    //return -1;
+                    return new PrepareInsertResult(PREPARE_INSERT_MERGED, i);
                 }
             } else if (status.getId() > storedStatus.getId()) {
-                return i;
+                return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
             }
         }
-        return elements.size();
+        return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, elements.size());
     }
 
     //StatusListener用のデフォルト実装
@@ -396,6 +454,46 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     }
 
+    @Override
+    public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+        if (which == DialogInterface.BUTTON_POSITIVE && extras != null) {
+            PreformedStatus status;
+            switch (requestCode) {
+                case REQUEST_D_SWIPE_ACTION_FAVORITE:
+                    status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
+                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                        @Override
+                        protected TwitterException doInBackground(PreformedStatus... params) {
+                            getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                            return null;
+                        }
+                    }.execute(status);
+                    break;
+                case REQUEST_D_SWIPE_ACTION_RETWEET:
+                    status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
+                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                        @Override
+                        protected TwitterException doInBackground(PreformedStatus... params) {
+                            getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                            return null;
+                        }
+                    }.execute(status);
+                    break;
+                case REQUEST_D_SWIPE_ACTION_FAVRT:
+                    status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
+                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
+                        @Override
+                        protected TwitterException doInBackground(PreformedStatus... params) {
+                            getTwitterService().createFavorite(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                            getTwitterService().retweetStatus(params[0].getRepresentUser(), params[0].getOriginStatus().getId());
+                            return null;
+                        }
+                    }.execute(status);
+                    break;
+            }
+        }
+    }
+
     private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
         @Override
         public TwitterService getService() {
@@ -419,7 +517,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         @Override
         public int prepareInsertStatus(PreformedStatus status) {
-            return TweetListFragment.this.prepareInsertStatus(status);
+            return TweetListFragment.this.prepareInsertStatus(status).getPosition();
         }
 
         @Override
@@ -428,8 +526,40 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     };
 
-    protected RESTLoader.RESTLoaderInterface getDefaultRESTInterface() {
-        return defaultRESTInterface;
+    private RESTLoader.RESTLoaderInterface2 defaultRESTInterface2 = new RESTLoader.RESTLoaderInterface2() {
+        private boolean useScrollLock = false;
+
+        @Override
+        public TwitterService getService() {
+            return TweetListFragment.this.getService();
+        }
+
+        @Override
+        public List<PreformedStatus> getStatuses() {
+            return elements;
+        }
+
+        @Override
+        public List<PreformedStatus> getStash() {
+            return stash;
+        }
+
+        @Override
+        public void insertElement(PreformedStatus status) {
+            if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                useScrollLock = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_lock_scroll_after_reload", false);
+            }
+            TweetListFragment.this.insertElement2(status, useScrollLock);
+        }
+
+        @Override
+        public void changeFooterProgress(boolean isLoading) {
+            TweetListFragment.this.changeFooterProgress(isLoading);
+        }
+    };
+
+    protected RESTLoader.RESTLoaderInterfaceBase getDefaultRESTInterface() {
+        return defaultRESTInterface2;
     }
 
 }

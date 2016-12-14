@@ -32,6 +32,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
@@ -51,7 +52,7 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/02.
  */
-public class StatusLinkFragment extends ListFragment{
+public class StatusLinkFragment extends ListFragment implements StatusChildUI {
 
     private static final int TYPE_URL       = 0x01;
     private static final int TYPE_URL_MEDIA = 0x20;
@@ -66,7 +67,6 @@ public class StatusLinkFragment extends ListFragment{
     private static final int TYPE_USER_PROFILE = TYPE_USER | 0x04;
 
     private PreformedStatus status = null;
-    private AuthUserRecord user = null;
     private List<LinkRow> list;
 
     @Override
@@ -88,14 +88,13 @@ public class StatusLinkFragment extends ListFragment{
 
         Bundle b = getArguments();
         status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
-        Status rt_status = null;
-        boolean rt = false;
+        Status retweetStatus = null;
+        boolean isRetweet = false;
         if (status.isRetweet()) {
-            rt = true;
-            rt_status = status;
+            isRetweet = true;
+            retweetStatus = status;
             status = status.getRetweetedStatus();
         }
-        user = (AuthUserRecord) b.getSerializable(StatusActivity.EXTRA_USER);
 
         PackageManager pm = getActivity().getPackageManager();
 
@@ -129,8 +128,8 @@ public class StatusLinkFragment extends ListFragment{
         if (status.getInReplyToStatusId() > -1) {
             list.add(new LinkRow("会話をたどる", TYPE_TRACE, 0, null, false));
         }
-        if (rt) {
-            User u = rt_status.getUser();
+        if (isRetweet) {
+            User u = retweetStatus.getUser();
             list.add(new LinkRow("返信", TYPE_USER_REPLY, u.getId(), u.getScreenName(), true));
             list.add(new LinkRow("DMを送る", TYPE_USER_DM, u.getId(), u.getScreenName(), false));
             list.add(new LinkRow("ユーザー情報を見る", TYPE_USER_PROFILE, u.getId(), u.getScreenName(), false));
@@ -173,7 +172,7 @@ public class StatusLinkFragment extends ListFragment{
                     case TYPE_USER_REPLY:
                     case TYPE_USER_DM: {
                         Intent intent = new Intent(getActivity(), TweetActivity.class);
-                        intent.putExtra(TweetActivity.EXTRA_USER, user);
+                        intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                         if (lr.type == TYPE_USER_REPLY) {
                             intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + lr.targetUserSN + " ");
                             intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
@@ -187,7 +186,7 @@ public class StatusLinkFragment extends ListFragment{
                     }
                     case TYPE_USER_PROFILE: {
                         Intent intent = new Intent(getActivity(), ProfileActivity.class);
-                        intent.putExtra(ProfileActivity.EXTRA_USER, user);
+                        intent.putExtra(ProfileActivity.EXTRA_USER, getUserRecord());
                         intent.putExtra(ProfileActivity.EXTRA_TARGET, lr.targetUser);
                         startActivity(intent);
                         break;
@@ -260,7 +259,7 @@ public class StatusLinkFragment extends ListFragment{
                                     dialog.dismiss();
 
                                     Intent intent = new Intent(getActivity(), TweetActivity.class);
-                                    intent.putExtra(TweetActivity.EXTRA_USER, user);
+                                    intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
                                     intent.putExtra(TweetActivity.EXTRA_TEXT, " " + lr.text);
                                     startActivity(intent);
                                 })
@@ -280,7 +279,7 @@ public class StatusLinkFragment extends ListFragment{
                     }
                     case TYPE_TRACE: {
                         Intent intent = new Intent(getActivity(), TraceActivity.class);
-                        intent.putExtra(TweetListFragment.EXTRA_USER, user);
+                        intent.putExtra(TweetListFragment.EXTRA_USER, getUserRecord());
                         intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
                         intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status);
                         startActivity(intent);
@@ -331,6 +330,8 @@ public class StatusLinkFragment extends ListFragment{
         }
 
         public void executeIntent(boolean grantName) {
+            AuthUserRecord user = getUserRecord();
+
             Intent intent = new Intent(ACTION_LINK_ACCEL, uri);
             intent.setPackage(resolveInfo.activityInfo.packageName);
             intent.setClassName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name);

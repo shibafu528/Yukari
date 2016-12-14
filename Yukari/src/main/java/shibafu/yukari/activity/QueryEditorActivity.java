@@ -10,7 +10,8 @@ import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import shibafu.yukari.af2015.R;
+import info.shibafu528.yukari.exvoice.MRuby;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
@@ -20,6 +21,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -56,19 +58,34 @@ public class QueryEditorActivity extends ActionBarYukariBase {
             public void afterTextChanged(Editable s) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
-                    try {
-                        List<AuthUserRecord> userRecords = null;
-                        if (isTwitterServiceBound() && getTwitterService() != null) {
-                            userRecords = getTwitterService().getUsers();
-                        }
-                        if (userRecords == null) {
-                            userRecords = new ArrayList<>();
-                        }
+                    if (s.toString().startsWith("#mrb\n")) {
+                        try {
+                            final StringBuilder sb = new StringBuilder();
 
-                        FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
-                        compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>()));
-                    } catch (FilterCompilerException | TokenizeException e) {
-                        compileStatus.setText(e.toString());
+                            MRuby mrb = new MRuby(getApplicationContext());
+                            mrb.setPrintCallback(sb::append);
+                            mrb.loadString(s.toString());
+                            mrb.close();
+
+                            compileStatus.setText("output => \n" + sb.toString());
+                        } catch (Exception e) {
+                            compileStatus.setText(e.toString());
+                        }
+                    } else {
+                        try {
+                            List<AuthUserRecord> userRecords = null;
+                            if (isTwitterServiceBound() && getTwitterService() != null) {
+                                userRecords = getTwitterService().getUsers();
+                            }
+                            if (userRecords == null) {
+                                userRecords = new ArrayList<>();
+                            }
+
+                            FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
+                            compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>(), new HashMap<>()));
+                        } catch (FilterCompilerException | TokenizeException e) {
+                            compileStatus.setText(e.toString());
+                        }
                     }
                 }, 1500);
             }
