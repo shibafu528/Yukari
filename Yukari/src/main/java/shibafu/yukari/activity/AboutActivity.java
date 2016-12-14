@@ -13,20 +13,18 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import combu.combudashi.GLRenderUtil2D;
+import combu.combudashi.GLTexture2D;
+import combu.framehelper.FPSManager;
+import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
-
-import combu.combudashi.GLRenderUtil2D;
-import combu.combudashi.GLTexture2D;
-import combu.framehelper.FPSManager;
-import shibafu.yukari.af2015.R;
-import shibafu.yukari.activity.base.ActionBarYukariBase;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import static combu.combudashi.GLRenderUtilCore.AlphaBlendingUtil;
 import static combu.combudashi.GLRenderUtilCore.makeFloatBuffer;

@@ -18,7 +18,7 @@ import android.widget.Toast;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import lombok.AllArgsConstructor;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;

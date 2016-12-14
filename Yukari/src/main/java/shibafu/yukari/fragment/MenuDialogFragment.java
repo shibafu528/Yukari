@@ -37,7 +37,7 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectViews;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.IntentChooserActivity;

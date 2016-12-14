@@ -17,7 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import shibafu.yukari.util.MorseCodec;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 
 /**
  * Created by Shibafu on 13/08/14.

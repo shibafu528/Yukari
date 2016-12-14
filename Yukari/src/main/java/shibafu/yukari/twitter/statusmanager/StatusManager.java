@@ -13,7 +13,7 @@ import android.util.Pair;
 import android.widget.Toast;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.Suppressor;

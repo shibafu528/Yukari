@@ -24,7 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;

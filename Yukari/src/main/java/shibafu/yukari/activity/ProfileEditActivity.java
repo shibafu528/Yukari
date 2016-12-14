@@ -23,7 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;

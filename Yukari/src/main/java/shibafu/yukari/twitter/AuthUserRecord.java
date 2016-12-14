@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;

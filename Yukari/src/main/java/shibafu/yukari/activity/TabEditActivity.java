@@ -15,7 +15,7 @@ import android.view.*;
 import android.widget.*;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;

@@ -3,7 +3,7 @@ package shibafu.yukari.util;
 import android.app.Activity;
 import android.preference.PreferenceManager;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 
 /**
  * Created by shibafu on 15/03/26.

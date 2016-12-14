@@ -35,7 +35,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.SearchHistory;

@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.util.ThemeUtil;
 

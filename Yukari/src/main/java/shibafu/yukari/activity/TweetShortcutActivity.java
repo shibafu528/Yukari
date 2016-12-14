@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 
 /**
  * Created by shibafu on 14/02/01.

@@ -10,7 +10,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 
 /**
  * TL上の画像ロードのためのクラス。

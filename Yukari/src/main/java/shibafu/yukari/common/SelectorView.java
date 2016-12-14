@@ -9,7 +9,7 @@ import android.graphics.drawable.StateListDrawable;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 
 /**
  * Created by shibafu on 15/03/29.

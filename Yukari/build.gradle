@@ -85,6 +85,7 @@ android {
     buildToolsVersion '25.0.1'
 
     defaultConfig {
+        applicationId "shibafu.yukari"
         minSdkVersion 9
         targetSdkVersion 22
 
@@ -109,6 +110,11 @@ android {
         abortOnError false
     }
 
+    productFlavors {
+        material {
+            applicationId "shibafu.yukari.material"
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false

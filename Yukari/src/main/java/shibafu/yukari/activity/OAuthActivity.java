@@ -11,7 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.YukariBase;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;

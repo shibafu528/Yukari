@@ -14,7 +14,7 @@ import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;

@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import info.shibafu528.twpfparser.TwiProfile;
 import info.shibafu528.twpfparser.TwiProfileFactory;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;

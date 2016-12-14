@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;

@@ -22,7 +22,7 @@
             android:value="@integer/google_play_services_version"/>
 
         <activity
-            android:name="shibafu.yukari.activity.MainActivity"
+            android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask">
@@ -37,7 +37,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/hash" />
+                <data android:mimeType="vnd.${applicationId}/hash" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
@@ -142,13 +142,13 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/user" />
+                <data android:mimeType="vnd.${applicationId}/user" />
             </intent-filter>
         </activity>
 
         <provider
             android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="shibafu.yukari.link"
+            android:authorities="${applicationId}.link"
             android:exported="false" />
 
         <!-- 未実装Intentはここに飛ばせ -->

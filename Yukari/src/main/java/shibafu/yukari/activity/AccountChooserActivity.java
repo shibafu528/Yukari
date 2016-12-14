@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import shibafu.yukari.activity.base.ListYukariBase;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;

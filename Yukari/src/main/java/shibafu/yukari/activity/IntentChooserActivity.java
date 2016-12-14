@@ -19,7 +19,7 @@ import android.widget.TextView;
 import java.util.Collections;
 import java.util.List;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.util.ThemeUtil;
 
 /**

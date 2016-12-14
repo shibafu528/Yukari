@@ -17,7 +17,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.util.Log;
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;

@@ -11,7 +11,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import shibafu.yukari.af2015.R
+import shibafu.yukari.R
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler

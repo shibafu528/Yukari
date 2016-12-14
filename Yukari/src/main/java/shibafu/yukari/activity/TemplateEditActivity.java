@@ -19,7 +19,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import shibafu.yukari.af2015.R;
+import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.Template;

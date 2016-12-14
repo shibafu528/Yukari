@@ -15,8 +15,8 @@ public class LinkProvider extends ContentProvider{
 
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
-        URI_MATCHER.addURI("shibafu.yukari.af2015.link", "user/*", 1);
-        URI_MATCHER.addURI("shibafu.yukari.af2015.link", "hash/*", 2);
+        URI_MATCHER.addURI("shibafu.yukari.link", "user/*", 1);
+        URI_MATCHER.addURI("shibafu.yukari.link", "hash/*", 2);
     }
 
     @Override
@@ -33,9 +33,9 @@ public class LinkProvider extends ContentProvider{
     public String getType(Uri uri) {
         switch (URI_MATCHER.match(uri)) {
             case 1:
-                return "vnd.shibafu.yukari.af2015/user";
+                return "vnd.shibafu.yukari/user";
             case 2:
-                return "vnd.shibafu.yukari.af2015/hash";
+                return "vnd.shibafu.yukari/hash";
             default:
                 throw new IllegalArgumentException("Unknown URL:" + uri);
         }

@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import shibafu.yukari.af2015.BuildConfig
+import shibafu.yukari.BuildConfig
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putErrorLog
