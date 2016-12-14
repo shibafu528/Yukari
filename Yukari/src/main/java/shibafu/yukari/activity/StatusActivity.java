@@ -47,6 +47,18 @@ public class StatusActivity extends FragmentYukariBase implements StatusUI {
             case "dark":
                 setTheme(R.style.YukariDarkTheme_Translucent);
                 break;
+            case "zunko":
+                setTheme(R.style.ColorsTheme_Zunko_Translucent);
+                break;
+            case "maki":
+                setTheme(R.style.ColorsTheme_Maki_Translucent);
+                break;
+            case "aoi":
+                setTheme(R.style.ColorsTheme_Aoi_Translucent);
+                break;
+            case "akane":
+                setTheme(R.style.ColorsTheme_Akane_Translucent);
+                break;
         }
         super.onCreate(savedInstanceState, true);
         requestWindowFeature(Window.FEATURE_NO_TITLE);

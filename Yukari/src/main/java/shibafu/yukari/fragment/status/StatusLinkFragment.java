@@ -73,7 +73,7 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 view.setBackgroundResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":
