@@ -86,7 +86,7 @@ android {
 
     defaultConfig {
         applicationId "shibafu.yukari"
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 22
 
         ndk {
