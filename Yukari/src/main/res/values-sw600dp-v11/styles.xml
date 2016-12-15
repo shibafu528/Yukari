@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppDialogThemeWhenLarge" parent="YukariLightTheme">
+    <style name="AppDialogThemeWhenLarge" parent="ColorsTheme.Light">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@android:drawable/dialog_holo_light_frame</item>
         <item name="android:windowFrame">@null</item>
@@ -12,7 +12,7 @@
         <item name="android:windowCloseOnTouchOutside">true</item>
     </style>
 
-    <style name="AppDialogThemeWhenLarge.Dark" parent="YukariDarkTheme">
+    <style name="AppDialogThemeWhenLarge.Dark" parent="ColorsTheme.Dark">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@android:drawable/dialog_holo_dark_frame</item>
         <item name="android:windowFrame">@null</item>

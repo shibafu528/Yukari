@@ -44,6 +44,7 @@
     <color name="count_error">#f00</color>
     <color name="count_error_d">#f44</color>
     <color name="key_color_accent">#ea80fc</color>
+    <color name="key_color_light">#B394E0</color>
 
     <color name="zunko_primary">#4CAF50</color>
     <color name="zunko_primary_dark">#388E3C</color>

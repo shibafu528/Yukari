@@ -81,7 +81,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":

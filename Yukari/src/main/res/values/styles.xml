@@ -4,7 +4,7 @@
         Base application theme, dependent on API level. This theme is replaced
         by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
     -->
-    <style name="AppBaseTheme" parent="YukariLightTheme">
+    <style name="AppBaseTheme" parent="ColorsTheme.Light">
         <!--
             Theme customizations available in newer API levels can go in
             res/values-vXX/styles.xml, while customizations related to
@@ -12,10 +12,10 @@
         -->
     </style>
 
-    <style name="VertAnimationTheme" parent="YukariLightDialogTheme">
+    <style name="VertAnimationTheme" parent="ColorsTheme.Light.Dialog">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
-    <style name="VertAnimationTheme.Dark" parent="YukariDarkDialogTheme">
+    <style name="VertAnimationTheme.Dark" parent="ColorsTheme.Dark.Dialog">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
     <style name="Animation" parent="android:Animation" />
@@ -38,17 +38,17 @@
         <item name="tweetTextColor">#000</item>
     </style>
 
-    <style name="AppDialogThemeWhenLarge" parent="YukariLightTheme"/>
-    <style name="AppDialogThemeWhenLarge.Dark" parent="YukariDarkTheme"/>
+    <style name="AppDialogThemeWhenLarge" parent="ColorsTheme.Light"/>
+    <style name="AppDialogThemeWhenLarge.Dark" parent="ColorsTheme.Dark"/>
 
     <!-- Application theme. -->
     <style name="AppTheme" parent="AppBaseTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 
-    <style name="YukariSearchTheme" parent="YukariLightTheme">
+    <style name="YukariSearchTheme" parent="ColorsTheme.Light">
         <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
     </style>
 
-    <style name="YukariAboutTheme" parent="YukariLightTheme"/>
+    <style name="YukariAboutTheme" parent="ColorsTheme.Light"/>
 </resources>

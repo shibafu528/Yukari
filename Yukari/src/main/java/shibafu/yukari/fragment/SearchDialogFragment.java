@@ -100,11 +100,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
             case "light":
-                dialog.getContext().setTheme(R.style.YukariLightDialogTheme);
+                dialog.getContext().setTheme(R.style.ColorsTheme_Light_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":
-                dialog.getContext().setTheme(R.style.YukariDarkDialogTheme);
+                dialog.getContext().setTheme(R.style.ColorsTheme_Dark_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
                 break;
             case "zunko":

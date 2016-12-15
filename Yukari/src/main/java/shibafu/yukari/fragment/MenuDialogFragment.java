@@ -27,16 +27,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import butterknife.ButterKnife;
 import butterknife.InjectViews;
+import com.google.gson.Gson;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
@@ -51,6 +44,11 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -110,7 +108,7 @@ public class MenuDialogFragment extends DialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
                 break;
             case "dark":
@@ -290,7 +288,7 @@ public class MenuDialogFragment extends DialogFragment {
         try {
             Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
+                default:
                     icon.setImageDrawable(res.getDrawable(plugin.getLightIconId()));
                     break;
                 case "dark":

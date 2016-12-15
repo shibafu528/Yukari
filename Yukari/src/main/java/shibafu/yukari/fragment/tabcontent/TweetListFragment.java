@@ -87,7 +87,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         if (swipeActionStatusView != null) {
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
+                default:
                     swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_holo_light);
                     break;
                 case "dark":

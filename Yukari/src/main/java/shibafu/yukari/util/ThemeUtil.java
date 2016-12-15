@@ -12,10 +12,10 @@ public class ThemeUtil {
     public static void setActivityTheme(Activity activity) {
         switch (PreferenceManager.getDefaultSharedPreferences(activity).getString("pref_theme", "light")) {
             case "light":
-                activity.setTheme(R.style.YukariLightTheme);
+                activity.setTheme(R.style.ColorsTheme_Light);
                 break;
             case "dark":
-                activity.setTheme(R.style.YukariDarkTheme);
+                activity.setTheme(R.style.ColorsTheme_Dark);
                 break;
             case "zunko":
                 activity.setTheme(R.style.ColorsTheme_Zunko);
@@ -35,10 +35,10 @@ public class ThemeUtil {
     public static void setDialogTheme(Activity activity) {
         switch (PreferenceManager.getDefaultSharedPreferences(activity).getString("pref_theme", "light")) {
             case "light":
-                activity.setTheme(R.style.YukariLightDialogTheme);
+                activity.setTheme(R.style.ColorsTheme_Light_Dialog);
                 break;
             case "dark":
-                activity.setTheme(R.style.YukariDarkDialogTheme);
+                activity.setTheme(R.style.ColorsTheme_Dark_Dialog);
                 break;
             case "zunko":
                 activity.setTheme(R.style.ColorsTheme_Zunko_Dialog);
