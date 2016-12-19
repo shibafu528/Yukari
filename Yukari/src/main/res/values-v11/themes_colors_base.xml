@@ -44,6 +44,8 @@
     </style>
 
     <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowBackground">@drawable/dialog_full_material_light</item>
+
         <item name="tweetTextColor">#000</item>
         <item name="tweetPressColor">?attr/colorPrimaryLight</item>
         <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
@@ -124,6 +126,8 @@
     </style>
 
     <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/dialog_full_material_dark</item>
+
         <item name="tweetTextColor">#fff</item>
         <item name="tweetPressColor">?attr/colorPrimary</item>
         <item name="tweetFocusColor">?attr/colorPrimary</item>

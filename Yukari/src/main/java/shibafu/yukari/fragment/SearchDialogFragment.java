@@ -101,27 +101,27 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
             case "light":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Light_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Dark_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
             case "zunko":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "maki":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "aoi":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "akane":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dialog);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);

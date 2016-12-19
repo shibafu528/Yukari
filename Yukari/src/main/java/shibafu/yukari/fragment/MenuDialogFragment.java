@@ -109,10 +109,10 @@ public class MenuDialogFragment extends DialogFragment {
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
             default:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
         }
 

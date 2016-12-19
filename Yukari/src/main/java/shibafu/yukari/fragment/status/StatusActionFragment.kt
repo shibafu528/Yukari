@@ -87,8 +87,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         super.onViewCreated(view, savedInstanceState)
 
         when (defaultSharedPreferences.getString("pref_theme", "light")) {
-            "dark" -> view?.setBackgroundResource(R.drawable.dialog_full_holo_dark)
-            else -> view?.setBackgroundResource(R.drawable.dialog_full_holo_light)
+            "dark" -> view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
+            else -> view?.setBackgroundResource(R.drawable.dialog_full_material_light)
         }
     }
 

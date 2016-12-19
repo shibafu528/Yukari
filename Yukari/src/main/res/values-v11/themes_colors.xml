@@ -32,7 +32,7 @@
     <style name="ColorsTheme.Light.Translucent" parent="ColorsTheme.Light">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
     </style>
 
     <style name="ColorsTheme.Light.Dialog.VertAnimation" parent="ColorsTheme.Light.Dialog">
@@ -68,7 +68,7 @@
     <style name="ColorsTheme.Dark.Translucent" parent="ColorsTheme.Dark">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_dark</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
     </style>
 
     <style name="ColorsTheme.Dark.Dialog.VertAnimation" parent="ColorsTheme.Dark.Dialog">
@@ -101,7 +101,7 @@
     <style name="ColorsTheme.Zunko.Translucent" parent="ColorsTheme.Zunko">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
     </style>
 
     <style name="ColorsTheme.Zunko.Dialog.VertAnimation" parent="ColorsTheme.Zunko.Dialog">
@@ -135,7 +135,7 @@
     <style name="ColorsTheme.Maki.Translucent" parent="ColorsTheme.Maki">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
     </style>
 
     <style name="ColorsTheme.Maki.Dialog.VertAnimation" parent="ColorsTheme.Maki.Dialog">
@@ -169,7 +169,7 @@
     <style name="ColorsTheme.Aoi.Translucent" parent="ColorsTheme.Aoi">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
     </style>
 
     <style name="ColorsTheme.Aoi.Dialog.VertAnimation" parent="ColorsTheme.Aoi.Dialog">
@@ -203,7 +203,7 @@
     <style name="ColorsTheme.Akane.Translucent" parent="ColorsTheme.Akane">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_holo_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
     </style>
 
     <style name="ColorsTheme.Akane.Dialog.VertAnimation" parent="ColorsTheme.Akane.Dialog">

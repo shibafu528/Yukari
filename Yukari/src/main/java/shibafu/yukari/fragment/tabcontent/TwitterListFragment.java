@@ -230,10 +230,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         if (unreadNotifierView != null) {
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
                 default:
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_material_light);
                     break;
                 case "dark":
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_material_dark);
                     break;
             }
 
