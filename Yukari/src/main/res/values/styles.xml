@@ -26,16 +26,41 @@
         <item name="android:activityCloseExitAnimation">@anim/activity_tweet_close_exit</item>
     </style>
 
-    <style name="AppThemeTranslucent" parent="android:Theme.Light.NoTitleBar">
+    <style name="AppThemeTranslucent" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">@color/bg_press</item>
+        <item name="tweetFocusColor">@color/bg_press</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
     </style>
 
-    <style name="AppThemeTranslucentBg" parent="android:Theme.Light.NoTitleBar">
+    <style name="AppThemeTranslucent.Dark" parent="android:Theme.Holo.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">@color/bg_press</item>
+        <item name="tweetFocusColor">@color/bg_press</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
+    </style>
+
+    <style name="AppThemeTranslucentBg" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
         <item name="android:progressBarStyleHorizontal">@style/ProgressBarTranslucentBGTheme</item>
         <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">@color/bg_press</item>
+        <item name="tweetFocusColor">@color/bg_press</item>
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
     </style>
 
     <style name="AppDialogThemeWhenLarge" parent="ColorsTheme.Light"/>
@@ -47,7 +72,7 @@
     </style>
 
     <style name="YukariSearchTheme" parent="ColorsTheme.Light">
-        <item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>
+        <!--<item name="actionBarWidgetTheme">@style/YukariDarkTheme</item>-->
     </style>
 
     <style name="YukariAboutTheme" parent="ColorsTheme.Light"/>

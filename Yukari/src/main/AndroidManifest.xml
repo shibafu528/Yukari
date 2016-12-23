@@ -93,7 +93,7 @@
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
             android:label="@string/title_activity_status"
-            android:theme="@style/YukariLightTheme.Translucent" >
+            android:theme="@style/ColorsTheme.Light.Translucent" >
         </activity>
         <activity
             android:name=".activity.IntentActivity"
@@ -172,7 +172,7 @@
         <activity
             android:name=".activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
-            android:theme="@style/YukariLightDialogTheme">
+            android:theme="@style/ColorsTheme.Light.Dialog">
         </activity>
 
         <receiver android:name=".receiver.StubReceiver"/>
@@ -191,7 +191,7 @@
 
         <activity
             android:name=".activity.AccountChooserActivity"
-            android:theme="@style/YukariDialogTheme"
+            android:theme="@style/ColorsTheme.Light.Dialog"
             android:label="@string/title_activity_accountchooser"/>
 
         <activity
@@ -347,7 +347,7 @@
 
         <activity
             android:name=".activity.IntentChooserActivity"
-            android:theme="@style/YukariDarkDialogTheme"/>
+            android:theme="@style/ColorsTheme.Dark.Dialog"/>
 
         <activity android:name=".activity.BookmarkRepairActivity"/>
 

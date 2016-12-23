@@ -3,11 +3,9 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <style name="ProgressBarTranslucentBGTheme" parent="android:Widget.ProgressBar.Horizontal">
+  <style name="ProgressBarTranslucentBGTheme" parent="android:Widget.Holo.ProgressBar.Horizontal">
       <item name="android:progressDrawable">@drawable/translucentbgtheme_progress_horizontal_holo_dark</item>
       <item name="android:indeterminateDrawable">@drawable/translucentbgtheme_progress_indeterminate_horizontal_holo_dark</item>
-      <item name="android:minHeight">16dip</item>
-      <item name="android:maxHeight">16dip</item>
   </style>
 
 </resources>

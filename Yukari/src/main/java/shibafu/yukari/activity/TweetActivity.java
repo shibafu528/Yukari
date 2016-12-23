@@ -539,7 +539,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             }
             Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
             intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.YukariLightTheme : R.style.YukariDarkTheme);
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.ColorsTheme_Light : R.style.ColorsTheme_Dark);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
             startActivityForResult(intent, REQUEST_GALLERY);
