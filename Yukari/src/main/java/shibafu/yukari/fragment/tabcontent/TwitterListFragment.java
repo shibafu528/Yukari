@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.ColorRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
@@ -35,6 +36,7 @@ import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.TwitterResponse;
 
 import java.util.ArrayList;
@@ -113,6 +115,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private SwipeRefreshLayout swipeRefreshLayout;
     private int refreshCounter;
     private boolean disabledReload;
+    @ColorRes private int swipeRefreshColor;
 
     //SwipeAction PopupWindow
     protected View swipeActionStatusView;
@@ -170,6 +173,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
             ((MainActivity) activity).registTwitterFragment(id, this);
         }
+        swipeRefreshColor = AttrUtil.resolveAttribute(activity.getTheme(), R.attr.colorPrimary);
     }
 
     @Override
@@ -195,7 +199,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
+        swipeRefreshLayout.setColorSchemeResources(swipeRefreshColor);
         swipeRefreshLayout.setOnRefreshListener(this);
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
