@@ -10,17 +10,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.*;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.google.zxing.*;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.FragmentYukariBase;
@@ -35,7 +43,12 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -68,7 +81,6 @@ public class PreviewActivity extends FragmentYukariBase {
     private int displayHeight;
     private TweetAdapterWrap.ViewConverter viewConverter;
 
-    @InjectView(R.id.pbPreview) ProgressBar loadProgress;
     @InjectView(R.id.tvPreviewProgress) TextView loadProgressText;
     @InjectView(R.id.tvPreviewProgress2) TextView loadProgressText2;
 
@@ -392,7 +404,6 @@ public class PreviewActivity extends FragmentYukariBase {
             protected void onProgressUpdate(Object... values) {
                 Callback callback = (Callback) values[0];
                 int progress = callback.received * 100 / callback.contentLength;
-                loadProgress.setProgress(progress);
                 long elapsed = (callback.currentTime - callback.beginTime) / 1000;
                 if (elapsed < 1) {
                     elapsed = 1;
@@ -414,7 +425,6 @@ public class PreviewActivity extends FragmentYukariBase {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
-                loadProgress.setVisibility(View.GONE);
                 loadProgressText.setVisibility(View.GONE);
                 loadProgressText2.setVisibility(View.GONE);
 
