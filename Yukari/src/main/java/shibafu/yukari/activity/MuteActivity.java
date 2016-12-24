@@ -1,6 +1,5 @@
 package shibafu.yukari.activity;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,6 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,20 +29,13 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.doomonafireball.betterpickers.calendardatepicker.CalendarDatePickerDialog;
-import com.doomonafireball.betterpickers.radialtimepicker.RadialTimePickerDialog;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
+import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
@@ -50,6 +43,11 @@ import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.util.StringUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/04/22.
@@ -433,17 +431,17 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            CalendarDatePickerDialog dialog = CalendarDatePickerDialog.newInstance(
-                    (calendarDatePickerDialog, i, i2, i3) -> {
+            CalendarDatePickerDialogFragment dialog = new CalendarDatePickerDialogFragment()
+                    .setOnDateSetListener((calendarDatePickerDialog, i, i2, i3) -> {
                         Calendar c1 = Calendar.getInstance();
                         c1.setTimeInMillis(expirationTimeMillis);
                         c1.set(i, i2, i3);
                         expirationTimeMillis = c1.getTimeInMillis();
                         updateExpire();
-                    },
-                    c.get(Calendar.YEAR),
-                    c.get(Calendar.MONTH),
-                    c.get(Calendar.DAY_OF_MONTH));
+                    })
+                    .setDoneText("OK")
+                    .setCancelText("キャンセル")
+                    .setPreselectedDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
             dialog.show(getFragmentManager(), null);
         }
 
@@ -454,19 +452,21 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            RadialTimePickerDialog dialog = RadialTimePickerDialog.newInstance(
-                    (dialog1, hourOfDay, minute) -> {
+            RadialTimePickerDialogFragment dialog = new RadialTimePickerDialogFragment()
+                    .setOnTimeSetListener((dialog1, hourOfDay, minute) -> {
                         Calendar c1 = Calendar.getInstance();
                         c1.setTimeInMillis(expirationTimeMillis);
                         c1.set(Calendar.HOUR_OF_DAY, hourOfDay);
                         c1.set(Calendar.MINUTE, minute);
                         expirationTimeMillis = c1.getTimeInMillis();
                         updateExpire();
-                    },
-                    c.get(Calendar.HOUR_OF_DAY),
-                    c.get(Calendar.MINUTE),
-                    DateFormat.is24HourFormat(getActivity())
-            );
+                    })
+                    .setDoneText("OK")
+                    .setCancelText("キャンセル")
+                    .setStartTime(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+            if (DateFormat.is24HourFormat(getActivity())) {
+                dialog.setForced24hFormat();
+            }
             dialog.show(getFragmentManager(), null);
         }
     }

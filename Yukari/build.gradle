@@ -33,8 +33,7 @@ dependencies {
 
     // UI追加
     compile 'com.larswerkman:HoloColorPicker:1.4'
-    //compile 'com.doomonafireball.betterpickers:library:1.5.+'
-    compile project(':betterpickers')
+    compile 'com.code-troopers.betterpickers:library:3.1.0'
     compile project(':GalleryMultiPicker:library')
 
     // Twitter4J

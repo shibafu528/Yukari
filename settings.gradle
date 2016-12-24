@@ -1,5 +1,4 @@
 include ':Yukari'
 include ':yukari-exvoice'
 include ':GalleryMultiPicker:library'
-include ':betterpickers'
 include ':twpfparser'
