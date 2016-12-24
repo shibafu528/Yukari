@@ -41,6 +41,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
@@ -204,7 +205,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColorResource(R.color.key_color);
+        tabStrip.setTabIndicatorColorResource(AttrUtil.resolveAttribute(getActivity().getTheme(), R.attr.colorPrimary));
 
         return v;
     }
