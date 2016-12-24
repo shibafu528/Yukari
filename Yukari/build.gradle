@@ -108,11 +108,6 @@ android {
         abortOnError false
     }
 
-    productFlavors {
-        material {
-            applicationId "shibafu.yukari.material"
-        }
-    }
     buildTypes {
         release {
             minifyEnabled false

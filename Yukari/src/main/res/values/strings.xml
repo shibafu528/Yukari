@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Yukari +C</string>
+    <string name="app_name">Yukari</string>
 
-    <string name="twitter_consumer_key">WJT72762WljrKwhdkaYOnY77x</string>
-    <string name="twitter_consumer_secret">Lk3yUkverFMCd0wlaExQ80IlwEZo8LZP65lLqsY2w6xE3mPr9F</string>
+    <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
+    <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
 
     <string name="activity_animation_duration">300</string>
 
