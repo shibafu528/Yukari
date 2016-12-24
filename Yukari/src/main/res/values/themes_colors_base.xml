@@ -41,6 +41,8 @@
         <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="listSortableHandleDrawable">@drawable/sortable_light</item>
     </style>
 
     <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
@@ -123,6 +125,8 @@
         <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="listSortableHandleDrawable">@drawable/sortable_dark</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
