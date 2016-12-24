@@ -1,5 +1,7 @@
 package shibafu.yukari.fragment.status;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -15,8 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.animation.PropertyValuesHolder;
 import lombok.AllArgsConstructor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;

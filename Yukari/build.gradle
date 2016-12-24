@@ -29,7 +29,6 @@ dependencies {
     compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
     // UI互換
-    compile 'com.nineoldandroids:library:2.4.0'
     compile 'com.github.machinarius:preferencefragment:0.1.1'
 
     // UI追加
