@@ -190,10 +190,11 @@
             android:id="@+id/etTweetInput"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="-4dp"
             android:layout_weight="1"
             android:paddingLeft="8dp"
-            android:singleLine="true"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:maxLines="1"/>
 
         <shibafu.yukari.common.SelectorView
             android:layout_width="48dp"
