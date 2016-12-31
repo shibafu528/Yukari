@@ -36,7 +36,6 @@
         <item name="android:colorAccent">@color/key_color_accent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="android:progressBarStyleHorizontal">@style/ProgressBarTranslucentBGTheme</item>
         <item name="tweetTextColor">#000</item>
         <item name="tweetPressColor">@color/bg_press</item>
         <item name="tweetFocusColor">@color/bg_press</item>
