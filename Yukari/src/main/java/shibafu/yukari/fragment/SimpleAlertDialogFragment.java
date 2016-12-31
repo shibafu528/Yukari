@@ -1,12 +1,11 @@
 package shibafu.yukari.fragment;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.widget.Button;
 import lombok.RequiredArgsConstructor;
@@ -114,7 +113,7 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         Dialog dialog = builder.create();
 
         // 大文字化対策
-        if (disableCaps && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (disableCaps) {
             dialog.setOnShowListener(d -> {
                 View[] views = new View[]{
                         dialog.findViewById(android.R.id.button1),
