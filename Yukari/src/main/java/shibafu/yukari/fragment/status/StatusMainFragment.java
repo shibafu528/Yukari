@@ -87,93 +87,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-        class LocalFunction {
-            void closeAfterFavorite() {
-                if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
-                    getActivity().finish();
-                }
-            }
-
-            void replyToSender() {
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
-                startActivityForResult(intent, REQUEST_REPLY);
-            }
-
-            void replyToAllMentions() {
-                AuthUserRecord user = getUserRecord();
-
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                {
-                    StringBuilder ids = new StringBuilder();
-                    ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
-                    for (UserMentionEntity entity : status.getUserMentionEntities()) {
-                        if (!ids.toString().contains("@" + entity.getScreenName())
-                                && !entity.getScreenName().equals(user.ScreenName)) {
-                            ids.append("@");
-                            ids.append(entity.getScreenName());
-                            ids.append(" ");
-                        }
-                    }
-
-                    intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
-                }
-                startActivityForResult(intent, REQUEST_REPLY);
-            }
-
-            boolean beginQuoteTweet(int which) {
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
-                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
-                if (which < 3) {
-                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
-                    switch (which) {
-                        case 0:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                            break;
-                        case 1:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                            break;
-                        case 2:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                            break;
-                    }
-                    startActivityForResult(intent, REQUEST_QUOTE);
-                } else {
-                    int request = -1;
-                    switch (which) {
-                        case 3:
-                            if (!ibRetweet.isEnabled()) {
-                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                            request = REQUEST_RT_QUOTE;
-                            break;
-                        case 4:
-                            if (!ibFavRt.isEnabled()) {
-                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                            request = REQUEST_FRT_QUOTE;
-                            break;
-                    }
-                    if (request > -1) {
-                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                        intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
-                        startActivityForResult(intent, request);
-                    }
-                }
-                return true;
-            }
-        }
-        final LocalFunction local = new LocalFunction();
-
         ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(v1 -> {
             if (!(status.isMentionedTo(getUserRecord()) && status.getUserMentionEntities().length == 1) &&
@@ -183,21 +96,21 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 popupMenu.setOnMenuItemClickListener(menuItem -> {
                     switch (menuItem.getItemId()) {
                         case R.id.action_reply_to_sender:
-                            local.replyToSender();
+                            replyToSender();
                             return true;
                         case R.id.action_reply_to_all_mentions:
-                            local.replyToAllMentions();
+                            replyToAllMentions();
                             return true;
                     }
                     return false;
                 });
                 popupMenu.show();
             } else {
-                local.replyToSender();
+                replyToSender();
             }
         });
         ibReply.setOnLongClickListener(v1 -> {
-            local.replyToAllMentions();
+            replyToAllMentions();
             return true;
         });
 
@@ -214,7 +127,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             getActivity().startService(intent);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
                             dialog.dismiss();
@@ -229,7 +142,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 currentDialog = ad;
             } else {
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
         });
         ibRetweet.setOnLongClickListener(v1 -> {
@@ -278,7 +191,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             createFavorite(false);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNeutralButton("本文で検索", (dialog, which) -> {
                             dialog.dismiss();
@@ -314,7 +227,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                                     nuisanceGuard();
                                 } else {
                                     createFavorite(false);
-                                    local.closeAfterFavorite();
+                                    closeAfterFavorite();
                                 }
                             })
                             .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -333,7 +246,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         nuisanceGuard();
                     } else {
                         createFavorite(false);
-                        local.closeAfterFavorite();
+                        closeAfterFavorite();
                     }
                 }
             }
@@ -341,7 +254,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
             private void doUnfavorite(final AuthUserRecord userRecord) {
                 Intent intent = AsyncCommandService.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
 
             @AllArgsConstructor
@@ -358,7 +271,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 if (sharedPreferences.getBoolean("pref_fav_with_quotes", false) && !status.getQuoteEntities().isEmpty()) {
                     items.add(new Action("引用もまとめてお気に入り登録", () -> {
                         createFavorite(true);
-                        local.closeAfterFavorite();
+                        closeAfterFavorite();
                     }));
                 }
 
@@ -419,7 +332,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             getActivity().startService(intent);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
                             dialog.dismiss();
@@ -434,7 +347,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 currentDialog = ad;
             } else {
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
         });
         ibFavRt.setOnLongClickListener(v1 -> {
@@ -477,7 +390,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         dialog.dismiss();
                         currentDialog = null;
 
-                        local.beginQuoteTweet(which);
+                        beginQuoteTweet(which);
                     });
             AlertDialog ad = builder.create();
             ad.show();
@@ -485,7 +398,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         });
         ibQuote.setOnLongClickListener(v1 -> {
             int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote", "2"));
-            if (local.beginQuoteTweet(defaultQuote)) {
+            if (beginQuoteTweet(defaultQuote)) {
                 Toast toast = Toast.makeText(getActivity(), getResources().getStringArray(R.array.pref_quote_entries)[defaultQuote], Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
@@ -630,6 +543,38 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         }
     }
 
+    @Override
+    public void onUserChanged(AuthUserRecord userRecord) {
+        loadProfileImage();
+    }
+
+    @Override
+    public void onServiceConnected() {
+        if (status.getOriginStatus().getUser().isProtected()) {
+            //鍵postの場合
+            ibRetweet.setEnabled(false);
+            ibFavRt.setEnabled(false);
+            limitedQuote = true;
+        } else {
+            limitedQuote = false;
+        }
+        if (getTwitterService().isMyTweet(status, true) != null) {
+            //自分のツイートの場合
+            ibRetweet.setEnabled(true);
+            if (sharedPreferences.getBoolean("pref_narcist", false)) {
+                ibFavorite.setEnabled(true);
+                ibFavRt.setEnabled(true);
+            } else {
+                ibFavorite.setEnabled(false);
+                ibFavRt.setEnabled(false);
+            }
+        }
+        loadProfileImage();
+    }
+
+    @Override
+    public void onServiceDisconnected() {}
+
     private void loadProfileImage() {
         final AuthUserRecord user = getUserRecord();
         if (user == null) {
@@ -674,37 +619,87 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         }
     }
 
-    @Override
-    public void onUserChanged(AuthUserRecord userRecord) {
-        loadProfileImage();
+    private void closeAfterFavorite() {
+        if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
+            getActivity().finish();
+        }
     }
 
-    @Override
-    public void onServiceConnected() {
-        if (status.getOriginStatus().getUser().isProtected()) {
-            //鍵postの場合
-            ibRetweet.setEnabled(false);
-            ibFavRt.setEnabled(false);
-            limitedQuote = true;
-        } else {
-            limitedQuote = false;
+    private void replyToSender() {
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
+        intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
+        startActivityForResult(intent, REQUEST_REPLY);
+    }
+
+    private void replyToAllMentions() {
+        AuthUserRecord user = getUserRecord();
+
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, user);
+        intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+        {
+            StringBuilder ids = new StringBuilder();
+            ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
+            for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                if (!ids.toString().contains("@" + entity.getScreenName())
+                        && !entity.getScreenName().equals(user.ScreenName)) {
+                    ids.append("@");
+                    ids.append(entity.getScreenName());
+                    ids.append(" ");
+                }
+            }
+
+            intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
         }
-        if (getTwitterService().isMyTweet(status, true) != null) {
-            //自分のツイートの場合
-            ibRetweet.setEnabled(true);
-            if (sharedPreferences.getBoolean("pref_narcist", false)) {
-                ibFavorite.setEnabled(true);
-                ibFavRt.setEnabled(true);
-            } else {
-                ibFavorite.setEnabled(false);
-                ibFavRt.setEnabled(false);
+        startActivityForResult(intent, REQUEST_REPLY);
+    }
+
+    private boolean beginQuoteTweet(int which) {
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+        if (which < 3) {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+            switch (which) {
+                case 0:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                    break;
+                case 1:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                    break;
+                case 2:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                    break;
+            }
+            startActivityForResult(intent, REQUEST_QUOTE);
+        } else {
+            int request = -1;
+            switch (which) {
+                case 3:
+                    if (!ibRetweet.isEnabled()) {
+                        Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    request = REQUEST_RT_QUOTE;
+                    break;
+                case 4:
+                    if (!ibFavRt.isEnabled()) {
+                        Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    request = REQUEST_FRT_QUOTE;
+                    break;
+            }
+            if (request > -1) {
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
+                startActivityForResult(intent, request);
             }
         }
-        loadProfileImage();
-    }
-
-    @Override
-    public void onServiceDisconnected() {
-
+        return true;
     }
 }
