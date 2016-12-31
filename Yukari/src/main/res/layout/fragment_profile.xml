@@ -3,6 +3,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fillViewport="false"
     android:orientation="vertical">
 
@@ -33,8 +34,9 @@
             android:id="@+id/ibProfileSearch"
             android:layout_width="wrap_content"
             android:layout_height="48dp"
-            android:layout_below="@+id/progressBar"
+            android:layout_below="@+id/ivProfileHeader"
             android:layout_gravity="center"
+            android:layout_marginTop="4dp"
             android:layout_toRightOf="@+id/ibProfileMenu"
             android:src="?attr/searchButtonDrawable"/>
 
@@ -301,16 +303,18 @@
                 android:text="#" />
         </LinearLayout>
 
-        <ProgressBar
+        <com.rey.material.widget.ProgressView
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
+            app:pv_circular="true"
+            app:pv_autostart="true"
+            app:pv_progressMode="indeterminate"
+            app:pv_progressStyle="@style/Material.Drawable.CircularProgress"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="4dp"
             android:layout_below="@+id/ivProfileHeader"
-            android:layout_marginTop="-7dp"
-            android:indeterminate="true" />
+            android:layout_toLeftOf="@+id/btnProfileFollow"/>
 
         <FrameLayout
                 android:layout_width="fill_parent"

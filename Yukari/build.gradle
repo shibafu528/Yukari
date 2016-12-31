@@ -25,10 +25,12 @@ dependencies {
     // Support & Play Services
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.android.support:support-v4:25.1.0'
+    compile 'com.android.support:multidex:1.0.1'
     compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
     compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
     // UI互換
+    compile 'com.github.rey5137:material:1.2.4'
     compile 'com.github.machinarius:preferencefragment:0.1.1'
 
     // UI追加
@@ -86,6 +88,8 @@ android {
         applicationId "shibafu.yukari"
         minSdkVersion 14
         targetSdkVersion 22
+
+        multiDexEnabled true
 
         ndk {
             abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'

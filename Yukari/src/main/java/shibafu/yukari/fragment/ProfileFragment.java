@@ -28,7 +28,6 @@ import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.annimon.stream.Optional;
@@ -101,7 +100,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
 
-    private ProgressBar progressBar;
+    private View progressBar;
     private AsyncTask<Void, Void, LoadHolder> initialLoadTask = null;
     private ProfileLoader profileLoadTask;
 
@@ -121,7 +120,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
         }
 
-        progressBar = (ProgressBar) v.findViewById(R.id.progressBar);
+        progressBar = v.findViewById(R.id.progressBar);
 
         ivProfileIcon = (ImageView)v.findViewById(R.id.ivProfileIcon);
         ivProfileIcon.setOnClickListener(v1 -> {
