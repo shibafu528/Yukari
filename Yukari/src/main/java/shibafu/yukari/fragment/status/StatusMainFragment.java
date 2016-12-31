@@ -463,7 +463,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("引用形式を選択");
-            builder.setNeutralButton("キャンセル", (dialog, which) -> {
+            builder.setNegativeButton("キャンセル", (dialog, which) -> {
                 dialog.dismiss();
                 currentDialog = null;
             });
