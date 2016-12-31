@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.support.v4.util.LongSparseArray
 import android.util.Log
 import android.view.View
-import android.widget.ProgressBar
 import android.widget.TextView
 import shibafu.yukari.R
 import shibafu.yukari.filter.FilterQuery
@@ -184,7 +183,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                     val visiblePosition = position - listView.firstVisiblePosition
                     if (visiblePosition > -1) {
                         val view: View? = listView.getChildAt(visiblePosition)
-                        (view?.findViewById(R.id.pbLoading) as? ProgressBar)?.visibility = View.VISIBLE
+                        (view?.findViewById(R.id.pbLoading) as? View)?.visibility = View.VISIBLE
                         (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
                     }
                     // Debug Log

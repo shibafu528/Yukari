@@ -19,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import lombok.Value;
@@ -123,7 +122,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     //Footer View
     private View footerView;
-    private ProgressBar footerProgress;
+    private View footerProgress;
     private TextView footerText;
     private boolean isLoading = false;
 
@@ -220,7 +219,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         listView = getListView();
 
         footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
-        footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
+        footerProgress = footerView.findViewById(R.id.pbLoading);
         footerText = (TextView) footerView.findViewById(R.id.tvLoading);
         getListView().addFooterView(footerView);
 

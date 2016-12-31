@@ -53,6 +53,9 @@
     <style name="AppThemeTranslucentBg" parent="android:Theme.Holo.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
         <item name="tweetTextColor">#000</item>
         <item name="tweetPressColor">@color/bg_press</item>
         <item name="tweetFocusColor">@color/bg_press</item>
@@ -75,4 +78,16 @@
     </style>
 
     <style name="YukariAboutTheme" parent="ColorsTheme.Light"/>
+
+    <style name="Yukari.Material.Drawable.CircularProgress" parent="Material.Drawable.CircularProgress">
+        <item name="cpd_strokeColor">?attr/colorAccent</item>
+        <item name="cpd_strokeSize">5dp</item>
+    </style>
+
+    <style name="Yukari.Material.CircularProgress" parent="">
+        <item name="pv_circular">true</item>
+        <item name="pv_autostart">true</item>
+        <item name="pv_progressMode">indeterminate</item>
+        <item name="pv_progressStyle">@style/Yukari.Material.Drawable.CircularProgress</item>
+    </style>
 </resources>

@@ -20,7 +20,6 @@ import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.PreviewActivity;
@@ -192,7 +191,7 @@ public class TweetAdapterWrap {
 
                     LoadMarkerStatus loadMarker = (LoadMarkerStatus) ((PreformedStatus) item).getBaseStatus();
 
-                    ProgressBar progressBar = (ProgressBar) convertView.findViewById(R.id.pbLoading);
+                    View progressBar = convertView.findViewById(R.id.pbLoading);
                     TextView textView = (TextView) convertView.findViewById(R.id.tvLoading);
 
                     if (statusManager != null && statusManager.get() != null && statusManager.get().isWorkingRestQuery(loadMarker.getTaskKey())) {
