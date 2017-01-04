@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="pref_enable_exvoice"
+        android:title="プラグインエンジンを有効にする"
+        android:summary="mruby-pluggaloidベースのプラグインエンジンを有効にします(※要再起動)"
+        android:defaultValue="false"/>
+    <Preference
+        android:key="pref_exvoice_loadpath"
+        android:title="ロードパス (※固定)"
+        android:summary="/sdcard/Android/data/shibafu.yukari/files/plugin"/>
+    <!--<Preference
+        android:key="pref_exvoice_whitelist"
+        android:title="ホワイトリスト設定"
+        android:summary="実行を許可するユーザプラグインを設定します"/>-->
+    <Preference
+        android:key="pref_exvoice_stdout"
+        android:title="標準出力ビューア"
+        android:summary="プラグインが標準出力に書き込んだ内容を表示します">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.PluggaloidOutputActivity"/>
+    </Preference>
+    <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"/>
+    </Preference>
+    <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
+</PreferenceScreen>

@@ -1,403 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="アカウント">
-        <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.AccountManageActivity"/>
-        </Preference>
-    </PreferenceCategory>
+    <Preference android:title="アカウント管理">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.AccountManageActivity"/>
+    </Preference>
 
-    <PreferenceCategory android:title="メイン画面の機能">
-        <CheckBoxPreference
-            android:key="pref_boot_screenon"
-            android:title="デフォルトでスリープ防止"
-            android:summary="アプリ起動時にスリープ防止をオンにします"/>
-        <CheckBoxPreference
-            android:key="pref_boot_immersive"
-            android:title="デフォルトで表示域拡張"
-            android:summary="アプリ起動時に表示域拡張をオンにします(※Android 4.4以上でのみ有効)"/>
-        <CheckBoxPreference
-            android:key="pref_show_tweetbutton"
-            android:title="投稿ボタンを表示"
-            android:summary="投稿画面を呼び出すボタンを表示します"/>
-        <CheckBoxPreference
-            android:key="pref_quick_scroll_to_top"
-            android:title="先頭へぽっぴんジャンプ♪"
-            android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
-    </PreferenceCategory>
+    <Preference android:title="表示設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="appearance"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="ツイート詳細画面の機能">
-        <CheckBoxPreference
-            android:key="pref_bottom_stack"
-            android:title="メニューを下に寄せる"
-            android:summary="ツイート詳細画面のメニューを下寄せにします"/>
-        <CheckBoxPreference
-            android:key="pref_choose_reply_to"
-            android:title="返信先を確認する"
-            android:summary="複数メンションが含まれるツイートに返信する際、1人に返信するか、全員に返信するか確認します\n無効にしても、返信ボタン長押しで全員に返信できます"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_narcist"
-            android:title="ナルシストオプション"
-            android:summary="自分のツイートをお気に入り登録できるようにします"/>
-        <CheckBoxPreference
-            android:key="pref_fav_with_quotes"
-            android:title="引用もまとめてお気に入り登録"
-            android:summary="引用されているツイートがある場合、まとめてお気に入り登録するオプションを表示します"/>
-        <CheckBoxPreference
-            android:key="pref_close_after_fav"
-            android:title="Fav/RT後にメニューを閉じる"
-            android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
-            android:defaultValue="true"/>
-        <ListPreference
-            android:key="pref_default_quote"
-            android:title="クイック引用"
-            android:summary="引用ボタンを長押しした時、どの文法で引用を行うか選択します"
-            android:entries="@array/pref_quote_entries"
-            android:entryValues="@array/pref_quote_values"
-            android:defaultValue="2"/>
-    </PreferenceCategory>
+    <Preference android:title="機能設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="function"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="確認ダイアログ">
-        <CheckBoxPreference
-            android:key="pref_dialog_fav"
-            android:title="お気に入り登録"
-            android:summary="お気に入り登録前に実行するか確認を行います"
-            android:defaultValue="false"/>
-        <CheckBoxPreference
-            android:key="pref_dialog_rt"
-            android:title="リツイート"
-            android:summary="リツイート前に実行するか確認を行います"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_dialog_favrt"
-            android:title="お気に入りに登録してRT"
-            android:summary="お気に入りに登録してRTする前に実行するか確認を行います"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_guard_nuisance"
-            android:title="流星プロテクト"
-            android:summary="お気に入り登録前に発言元クライアント次第で確認をとります\n通常の確認ダイアログとは別に独立して発動します"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_dialog_post"
-            android:title="投稿前に確認"
-            android:summary="ツイート前に実行するか確認を行います" />
-        <CheckBoxPreference
-            android:key="pref_dialog_cancel_post"
-            android:title="投稿画面を閉じる前に確認"
-            android:summary="ツイートキャンセル前に下書きに保存するか確認を行います"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_dialog_swipe"
-            android:title="TLタッチ拡張時に確認"
-            android:summary="TLタッチ拡張による各種クイック操作時に確認を行います"/>
-    </PreferenceCategory>
+    <Preference android:title="投稿設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="post"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="表示設定">
-        <ListPreference
-            android:key="pref_theme"
-            android:title="テーマ設定"
-            android:summary="アプリの外観を設定します(※要再起動)"
-            android:entries="@array/pref_theme_entries"
-            android:entryValues="@array/pref_theme_values"
-            android:defaultValue="light"/>
-        <EditTextPreference
-            android:key="pref_font_timeline"
-            android:title="文字サイズの設定"
-            android:summary="タイムライン上の文字サイズを設定します"
-            android:dialogTitle="文字サイズの設定 (デフォルト:14)"
-            android:inputType="number"
-            android:defaultValue="14"
-            android:maxLength="2"/>
-        <EditTextPreference
-            android:key="pref_font_input"
-            android:title="入力文字サイズの設定"
-            android:summary="投稿画面上の文字サイズを設定します"
-            android:dialogTitle="入力文字サイズの設定 (デフォルト:18)"
-            android:inputType="number"
-            android:defaultValue="18"
-            android:maxLength="2"/>
-        <CheckBoxPreference
-            android:key="pref_mode_singleline"
-            android:title="ショート表示"
-            android:summary="表示をスクリーンネームと本文だけにします"/>
-        <ListPreference
-            android:key="pref_mode_multiline"
-            android:title="複数行ツイートの表示方法"
-            android:summary="改行を含むツイートを省略する設定をします"
-            android:entries="@array/pref_mode_multiline_entries"
-            android:entryValues="@array/pref_mode_multiline_values"
-            android:defaultValue="0"/>
-        <CheckBoxPreference
-            android:key="pref_shorten_repeat_text"
-            android:title="反復ツイートの圧縮"
-            android:summary="4行以上同じ文章が続いているツイートを圧縮します"/>
-        <Preference
-            android:key="pref_font"
-            android:title="フォント設定"
-            android:summary="タイムラインのフォントを選択します">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.FontSelectorActivity"/>
-        </Preference>
-    </PreferenceCategory>
+    <Preference android:title="フィルタ設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="filter"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="フィルタ設定">
-        <Preference
-            android:key="pref_mute"
-            android:title="ミュート設定"
-            android:summary="条件を指定してツイートや通知などを非表示にします">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.MuteActivity"/>
-        </Preference>
-        <Preference
-            android:key="pref_auto_mute"
-            android:title="オートミュート設定"
-            android:summary="指定した条件にヒットする発言をしたユーザを1時間ミュートする設定を行います">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.AutoMuteActivity"/>
-        </Preference>
-        <CheckBoxPreference
-            android:key="pref_filter_official"
-            android:defaultValue="true"
-            android:title="非表示ユーザをフィルタ"
-            android:summary="ブロック済みユーザや、公式アプリのミュート・リツイート非表示設定を反映します(※要再起動)"/>
-    </PreferenceCategory>
+    <Preference android:title="操作確認設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="dialog"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="サムネイル設定">
-        <CheckBoxPreference
-            android:key="pref_prev_enable"
-            android:title="サムネイルを表示"
-            android:summary="ツイートに含まれるメディアのサムネイルを表示します"
-            android:defaultValue="true"/>
-        <Preference
-            android:key="pref_prev_time"
-            android:title="時間を指定してサムネ非表示"
-            android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
-        <CheckBoxPreference
-            android:key="pref_prev_mosaic"
-            android:title="サムネイルのモザイク加工"
-            android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"
-            android:defaultValue="true"/>
-    </PreferenceCategory>
+    <Preference android:title="通知設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="notify"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="通知設定">
-        <shibafu.yukari.common.NotificationPreference
-            android:key="pref_notif_mention"
-            android:title="メンション通知"
-            android:summary="返信(@ツイート)を受信した際に通知します"
-            android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
-            android:key="pref_notif_rt"
-            android:title="リツイート通知"
-            android:summary="リツイートされた際に通知します"
-            android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
-            android:key="pref_notif_fav"
-            android:title="お気に入り通知"
-            android:summary="ツイートがお気に入りに追加された際に通知します"
-            android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
-            android:key="pref_notif_dm"
-            android:title="メッセージ通知"
-            android:summary="ダイレクトメッセージを受信した際に通知します"
-            android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
-            android:key="pref_notif_respond"
-            android:title="RTレスポンス通知"
-            android:summary="RTに対する反応を受信した際に通知します"
-            android:defaultValue="0"/>
-        <CheckBoxPreference
-            android:key="pref_notif_connectivity"
-            android:title="ストリーミング通信状態通知"
-            android:summary="ストリーミングに接続・切断された時にメッセージを表示します"
-            android:defaultValue="true"/>
-    </PreferenceCategory>
+    <Preference android:title="検索設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="search"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="投稿設定">
-        <CheckBoxPreference
-            android:key="pref_save_tags"
-            android:title="実況モード"
-            android:summary="最後に入力したハッシュタグを保持します"/>
-        <CheckBoxPreference
-            android:key="pref_use_binded_user"
-            android:title="タブのアカウントを使う"
-            android:summary="表示中のタブに紐付いたアカウントが選ばれた状態で投稿画面を開きます\nマルチタイムラインと検索では機能しません"
-            android:defaultValue="true"/>
-        <ListPreference
-            android:key="pref_upload_size"
-            android:title="アップロード画像の圧縮"
-            android:summary="長辺の長さが設定値を超える場合にリサイズします"
-            android:entries="@array/pref_upload_size_entries"
-            android:entryValues="@array/pref_upload_size_values"
-            android:defaultValue="960"/>
-        <EditTextPreference
-            android:key="pref_tweet_footer"
-            android:title="フッター設定"
-            android:summary="ツイート末尾に自動挿入する文字列を設定します"/>
-        <EditTextPreference
-            android:key="pref_quote_comment_footer"
-            android:title="RTしてから言及のフッター"
-            android:summary="「RTしてから言及」使用時に入力欄に自動挿入する文字列を設定します"
-            android:defaultValue=" ＞RT"/>
-    </PreferenceCategory>
+    <Preference android:title="詳細設定">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="expert"/>
+        </intent>
+    </Preference>
 
-    <PreferenceCategory android:title="検索設定">
-        <CheckBoxPreference
-            android:key="pref_search_ja"
-            android:title="日本語のツイートのみ"
-            android:summary="検索対象のツイートを日本語のものに絞り込みます"/>
-        <CheckBoxPreference
-            android:key="pref_search_minus_rt"
-            android:title="RTを除外"
-            android:summary="リツイートを検索対象から除外します"/>
-        <CheckBoxPreference
-            android:key="pref_search_with_lookup"
-            android:title="検索結果を2回取得する"
-            android:summary="2種類の方法を組み合わせて検索することで、検索結果の内容の欠落(例えば複数枚の画像)を補完します\nただし通信量と待ち時間が増加します"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="キャッシュ設定">
-        <ListPreference
-            android:key="pref_icon_cache_size"
-            android:title="アイコンキャッシュ容量"
-            android:summary="プロフィール画像のキャッシュ"
-            android:entries="@array/pref_cache_size_entries"
-            android:entryValues="@array/pref_cache_size_values"
-            android:defaultValue="4"/>
-        <ListPreference
-            android:key="pref_picture_cache_size"
-            android:title="ピクチャキャッシュ容量"
-            android:summary="サムネイル・プロフィールヘッダー画像のキャッシュ"
-            android:entries="@array/pref_cache_size_entries"
-            android:entryValues="@array/pref_cache_size_values"
-            android:defaultValue="8"/>
-        <ListPreference
-            android:key="pref_preview_cache_size"
-            android:title="プレビューキャッシュ容量"
-            android:summary="プレビュー時のフルサイズ画像のキャッシュ"
-            android:entries="@array/pref_cache_size_entries"
-            android:entryValues="@array/pref_cache_size_values"
-            android:defaultValue="16"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="設定のバックアップ">
-        <Preference
-            android:key="pref_export"
-            android:title="設定のエクスポート"/>
-        <Preference
-            android:key="pref_import"
-            android:title="設定のインポート"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="実験中の機能">
-        <CheckBoxPreference
-            android:key="pref_show_received"
-            android:title="受信アカウントの表示"
-            android:summary="ツイートを受信したアカウントを表示します"
-            android:defaultValue="false" />
-        <CheckBoxPreference
-            android:key="pref_narrow"
-            android:title="ナローモード(仮)"
-            android:summary="TLのアイコン品質とREST APIでの受信件数を落とします"
-            android:defaultValue="false" />
-        <CheckBoxPreference
-            android:key="pref_limited_timeline"
-            android:title="Limited TL"
-            android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_remove_screenshot_subject"
-            android:title="スクショ共有の本文を削除"
-            android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない"
-            android:defaultValue="true"/>
-        <CheckBoxPreference
-            android:key="pref_block_doubleclock"
-            android:title="TLダブルクリックの防止"
-            android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
-        <CheckBoxPreference
-            android:key="pref_extended_touch_event"
-            android:title="TLタッチ拡張"
-            android:summary="TL上のタッチイベントを増やします"/>
-        <CheckBoxPreference
-            android:key="pref_force_http1"
-            android:title="http1.1を優先使用"
-            android:summary="高速なプロトコルを使用せず、旧来のプロトコルで通信が行われるようにします(※要再起動)"/>
-        <CheckBoxPreference
-            android:key="pref_disable_ipv6"
-            android:title="IPv6を無効化"
-            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします(※要再起動)"/>
-        <Preference
-            android:key="pref_repair_bookmark"
-            android:title="ブックマークの修復"
-            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
-        </Preference>
-        <CheckBoxPreference
-            android:key="pref_enable_service"
-            android:title="Serviceの常駐"
-            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定しますが、RAMが解放されにくくなるのでマルチタスクには不利です"/>
-        <CheckBoxPreference
-            android:key="pref_remove_name_newline"
-            android:title="ユーザー名から改行文字を取り除く"
-            android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
-        <ListPreference
-            android:key="pref_lists_membership_finder"
-            android:title="リスト登録状態の確認方法"
-            android:summary="「リストへ追加/削除」でのチェック状態を取得する方法を指定します"
-            android:defaultValue="0"
-            android:entries="@array/pref_lists_membership_finder_entries"
-            android:entryValues="@array/pref_lists_membership_finder_values"/>
-        <CheckBoxPreference
-            android:key="pref_show_menubutton"
-            android:title="メニューボタンを表示"
-            android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
-        <CheckBoxPreference
-            android:key="pref_use_strict_filter"
-            android:title="フィルタTLのシステムを全体で使う"
-            android:summary="フィルタタブ以外も、同じ意味のクエリを持つフィルタタブとして処理するようにします。\n同じ意味のソースが存在するタブのみ適用されます。"/>
-        <CheckBoxPreference
-            android:key="pref_lock_scroll_after_reload"
-            android:title="フィルタTL再読込後スクロール位置を保持"
-            android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="プラグインエンジン (実験中)">
-        <CheckBoxPreference
-            android:key="pref_enable_exvoice"
-            android:title="プラグインエンジンを有効にする"
-            android:summary="mruby-pluggaloidベースのプラグインエンジンを有効にします(※要再起動)"
-            android:defaultValue="false"/>
-        <Preference
-            android:key="pref_exvoice_loadpath"
-            android:title="ロードパス (※固定)"
-            android:summary="/sdcard/Android/data/shibafu.yukari/files/plugin"/>
-        <!--<Preference
-            android:key="pref_exvoice_whitelist"
-            android:title="ホワイトリスト設定"
-            android:summary="実行を許可するユーザプラグインを設定します"/>-->
-        <Preference
-            android:key="pref_exvoice_stdout"
-            android:title="標準出力ビューア"
-            android:summary="プラグインが標準出力に書き込んだ内容を表示します">
-            <intent
-                android:targetPackage="shibafu.yukari"
-                android:targetClass="shibafu.yukari.activity.PluggaloidOutputActivity"/>
-        </Preference>
-        <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて">
-            <intent
-                android:action="android.intent.action.VIEW"
-                android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"/>
-        </Preference>
-        <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
-    </PreferenceCategory>
+    <Preference android:title="プラグインエンジン (実験中)">
+        <intent
+            android:targetPackage="shibafu.yukari"
+            android:targetClass="shibafu.yukari.activity.ConfigActivity">
+            <extra
+                android:name="category"
+                android:value="plugin"/>
+        </intent>
+    </Preference>
 
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="Yukari for Android">

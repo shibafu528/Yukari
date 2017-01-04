@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <CheckBoxPreference
+        android:key="pref_search_ja"
+        android:title="日本語のツイートのみ"
+        android:summary="検索対象のツイートを日本語のものに絞り込みます"/>
+    <CheckBoxPreference
+        android:key="pref_search_minus_rt"
+        android:title="RTを除外"
+        android:summary="リツイートを検索対象から除外します"/>
+    <CheckBoxPreference
+        android:key="pref_search_with_lookup"
+        android:title="検索結果を2回取得する"
+        android:summary="2種類の方法を組み合わせて検索することで、検索結果の内容の欠落(例えば複数枚の画像)を補完します\nただし通信量と待ち時間が増加します"/>
+</PreferenceScreen>
