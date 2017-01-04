@@ -5,17 +5,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.view.MenuItem;
 import android.view.View;
-
 import com.github.machinarius.preferencefragment.PreferenceFragment;
-
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
@@ -59,32 +55,16 @@ public class ConfigActivity extends ActionBarYukariBase {
         @Override
         public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
-            Preference accountManagePref = findPreference("pref_accounts");
-            accountManagePref.setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), AccountManageActivity.class));
-                return true;
-            });
 
-            Preference immersivePref = findPreference("pref_boot_immersive");
-            immersivePref.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
+            findPreference("pref_boot_immersive").setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
 
-            Preference exvoiceVersionPref = findPreference("pref_exvoice_version");
             {
                 String summaryText = "libexvoice.so (" + BuildInfo.getABI() + ") Build: " + BuildInfo.getBuildDateTime() +
                         "\n  with " + BuildInfo.getMRubyDescription() + ",\n    " + BuildInfo.getMRubyCopyright();
                 // exvoice version
-                exvoiceVersionPref.setSummary(summaryText);
+                findPreference("pref_exvoice_version").setSummary(summaryText);
             }
-            findPreference("pref_exvoice_stdout").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), PluggaloidOutputActivity.class));
-                return true;
-            });
-            findPreference("pref_exvoice_document").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6")));
-                return true;
-            });
 
-            Preference aboutVersionPref = findPreference("pref_about_version");
             {
                 StringBuilder summaryText = new StringBuilder();
                 PackageManager pm = getActivity().getPackageManager();
@@ -95,16 +75,9 @@ public class ConfigActivity extends ActionBarYukariBase {
                 } catch (PackageManager.NameNotFoundException ignored) {}
                 // Developer
                 summaryText.append("\nDeveloped by @shibafu528");
-                aboutVersionPref.setSummary(summaryText.toString());
+                findPreference("pref_about_version").setSummary(summaryText.toString());
             }
-            aboutVersionPref.setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), AboutActivity.class));
-                return true;
-            });
-            findPreference("pref_about_licenses").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), LicenseActivity.class));
-                return true;
-            });
+
             findPreference("pref_about_feedback").setOnPreferenceClickListener(preference -> {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 String text = " #yukari4a @yukari4a";
@@ -123,8 +96,7 @@ public class ConfigActivity extends ActionBarYukariBase {
                 return true;
             });
 
-            Preference prevTimePref = findPreference("pref_prev_time");
-            prevTimePref.setOnPreferenceClickListener(preference -> {
+            findPreference("pref_prev_time").setOnPreferenceClickListener(preference -> {
                 final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 int selectedFlags = sp.getInt("pref_prev_time", 0);
                 final boolean[] selectedStates = new boolean[24];
@@ -148,31 +120,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                             selectedStates[which] = isChecked;
                         });
                 builder.create().show();
-                return true;
-            });
-
-            findPreference("pref_mute").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), MuteActivity.class));
-                return true;
-            });
-
-            findPreference("pref_auto_mute").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), AutoMuteActivity.class));
-                return true;
-            });
-
-            findPreference("pref_font").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), FontSelectorActivity.class));
-                return true;
-            });
-
-            findPreference("pref_repair_bookmark").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), BookmarkRepairActivity.class));
-                return true;
-            });
-
-            findPreference("pref_about_faq").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD")));
                 return true;
             });
 

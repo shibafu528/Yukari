@@ -2,7 +2,11 @@
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="アカウント">
-        <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います"/>
+        <Preference android:key="pref_accounts" android:title="アカウント管理" android:summary="アカウントの追加や削除、プライマリ設定を行います">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.AccountManageActivity"/>
+        </Preference>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="メイン画面の機能">
@@ -134,18 +138,30 @@
         <Preference
             android:key="pref_font"
             android:title="フォント設定"
-            android:summary="タイムラインのフォントを選択します"/>
+            android:summary="タイムラインのフォントを選択します">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.FontSelectorActivity"/>
+        </Preference>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="フィルタ設定">
         <Preference
             android:key="pref_mute"
             android:title="ミュート設定"
-            android:summary="条件を指定してツイートや通知などを非表示にします"/>
+            android:summary="条件を指定してツイートや通知などを非表示にします">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.MuteActivity"/>
+        </Preference>
         <Preference
             android:key="pref_auto_mute"
             android:title="オートミュート設定"
-            android:summary="指定した条件にヒットする発言をしたユーザを1時間ミュートする設定を行います"/>
+            android:summary="指定した条件にヒットする発言をしたユーザを1時間ミュートする設定を行います">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.AutoMuteActivity"/>
+        </Preference>
         <CheckBoxPreference
             android:key="pref_filter_official"
             android:defaultValue="true"
@@ -319,7 +335,11 @@
         <Preference
             android:key="pref_repair_bookmark"
             android:title="ブックマークの修復"
-            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません" />
+            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
+        </Preference>
         <CheckBoxPreference
             android:key="pref_enable_service"
             android:title="Serviceの常駐"
@@ -366,15 +386,35 @@
         <Preference
             android:key="pref_exvoice_stdout"
             android:title="標準出力ビューア"
-            android:summary="プラグインが標準出力に書き込んだ内容を表示します"/>
-        <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて"/>
+            android:summary="プラグインが標準出力に書き込んだ内容を表示します">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.PluggaloidOutputActivity"/>
+        </Preference>
+        <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"/>
+        </Preference>
         <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="アプリについて">
-        <Preference android:key="pref_about_version" android:title="Yukari for Android"/>
-        <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス"/>
-        <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能"/>
+        <Preference android:key="pref_about_version" android:title="Yukari for Android">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.AboutActivity"/>
+        </Preference>
+        <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.LicenseActivity"/>
+        </Preference>
+        <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD"/>
+        </Preference>
         <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>
     </PreferenceCategory>
 </PreferenceScreen>
