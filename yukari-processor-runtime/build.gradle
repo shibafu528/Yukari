@@ -8,6 +8,7 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'com.google.android:android:4.0.1.2'
 }
 
 def defaultEncoding = 'UTF-8'
