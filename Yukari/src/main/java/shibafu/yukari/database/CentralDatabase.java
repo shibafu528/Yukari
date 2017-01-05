@@ -30,7 +30,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 14;
+    public static final int DB_VER = 15;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -132,9 +132,9 @@ public class CentralDatabase {
     public static final String COL_AUTO_MUTE_QUERY = "Query";
 
     //Templateテーブル
-    public static final String TABLE_TEMPLATE = "Template";
-    public static final String COL_TEMPLATE_ID = "_id";
-    public static final String COL_TEMPLATE_VALUE = "Value";
+    @Deprecated private static final String TABLE_TEMPLATE = "Template";
+    @Deprecated private static final String COL_TEMPLATE_ID = "_id";
+    @Deprecated private static final String COL_TEMPLATE_VALUE = "Value";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -258,11 +258,6 @@ public class CentralDatabase {
                             COL_AUTO_MUTE_MATCH + " INTEGER, " +
                             COL_AUTO_MUTE_QUERY + " TEXT)"
             );
-            db.execSQL(
-                    "CREATE TABLE " + TABLE_TEMPLATE + " (" +
-                            COL_TEMPLATE_ID + " INTEGER PRIMARY KEY, " +
-                            COL_TEMPLATE_VALUE + " TEXT)"
-            );
         }
 
         @Override
@@ -383,6 +378,9 @@ public class CentralDatabase {
                                 COL_TEMPLATE_VALUE + " TEXT)"
                 );
                 ++oldVersion;
+            }
+            if (oldVersion == 14) {
+                db.execSQL("DROP TABLE " + TABLE_TEMPLATE);
             }
         }
     }

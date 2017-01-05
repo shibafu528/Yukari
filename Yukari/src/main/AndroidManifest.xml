@@ -356,10 +356,6 @@
             android:theme="@style/YukariAboutTheme"
             android:screenOrientation="portrait"/>
 
-        <activity
-            android:name=".activity.TemplateEditActivity"
-            android:label="@string/title_activity_template_edit"/>
-
         <activity android:name=".activity.QueryEditorActivity"
                   android:windowSoftInputMode="adjustResize"
                   android:label="@string/title_activity_query_editor"/>
