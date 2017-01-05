@@ -72,6 +72,9 @@ dependencies {
     provided 'org.projectlombok:lombok:1.16.4'
     compile project(':yukari-exvoice')
 
+    compile project(':yukari-processor-runtime')
+    annotationProcessor project(':yukari-processor')
+
     // Kotlin
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
@@ -105,6 +108,7 @@ android {
     // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
 
     lintOptions {

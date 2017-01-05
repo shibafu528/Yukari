@@ -11,6 +11,8 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
+import info.shibafu528.yukari.processor.autorelease.AutoRelease;
+import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
@@ -38,7 +40,6 @@ import shibafu.yukari.twitter.streaming.RestStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
-import shibafu.yukari.util.AutoRelease;
 import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
@@ -94,17 +95,17 @@ public class StatusManager implements Releasable {
 
     private static final String LOG_TAG = "StatusManager";
 
-    @AutoRelease private TwitterService service;
-    @AutoRelease private Suppressor suppressor;
+    @AutoRelease TwitterService service;
+    @AutoRelease Suppressor suppressor;
     private List<AutoMuteConfig> autoMuteConfigs;
     private LongSparseArray<Pattern> autoMutePatternCache = new LongSparseArray<>();
 
-    @AutoRelease private Context context;
-    @AutoRelease private SharedPreferences sharedPreferences;
+    @AutoRelease Context context;
+    @AutoRelease SharedPreferences sharedPreferences;
     private Handler handler;
 
     //通知マネージャ
-    @AutoRelease private StatusNotifier notifier;
+    @AutoRelease StatusNotifier notifier;
 
     //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
     private LongSparseArray<Pair<PreformedStatus, Long>> retweetResponseStandBy = new LongSparseArray<>();
@@ -446,7 +447,7 @@ public class StatusManager implements Releasable {
         notifier.release();
         userUpdateDelayer.shutdown();
 
-        Releasable.super.release();
+        AutoReleaser.release(this);
     }
 
     private CentralDatabase getDatabase() {
