@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="83"
@@ -31,7 +32,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -43,6 +44,7 @@
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts"/>
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
             android:label="@string/title_activity_oauth"
@@ -79,6 +81,7 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
@@ -88,6 +91,7 @@
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
         </activity>
+
         <service android:name=".service.PostService"/>
 
         <activity
@@ -95,6 +99,7 @@
             android:label="@string/title_activity_status"
             android:theme="@style/ColorsTheme.Light.Translucent" >
         </activity>
+
         <activity
             android:name=".activity.IntentActivity"
             android:theme="@android:style/Theme.NoDisplay" >
@@ -128,15 +133,17 @@
                 <data android:scheme="yukari" android:host="command" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.AssetExtractActivity"
             android:label="@string/title_activity_assetextract"
             android:configChanges="orientation|screenSize">
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
             android:label="@string/title_activity_profile">
-            <intent-filter>
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -150,12 +157,6 @@
             android:name="shibafu.yukari.provider.LinkProvider"
             android:authorities="${applicationId}.link"
             android:exported="false" />
-
-        <!-- 未実装Intentはここに飛ばせ -->
-        <activity
-            android:name="shibafu.yukari.activity.NotFoundStubActivity"
-            android:theme="@android:style/Theme.NoDisplay">
-        </activity>
 
         <activity
             android:name=".plugin.MorseInputActivity"
@@ -174,8 +175,6 @@
             android:label="@string/title_activity_snpicker"
             android:theme="@style/ColorsTheme.Light.Dialog">
         </activity>
-
-        <receiver android:name=".receiver.StubReceiver"/>
 
         <activity
             android:name=".activity.TraceActivity"
@@ -325,12 +324,6 @@
             android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
             android:label="@string/title_activity_picture_chooser"
             android:uiOptions="splitActionBarWhenNarrow">
-            <meta-data
-                android:name="android.support.UI_OPTIONS"
-                android:value="splitActionBarWhenNarrow" />
-            <meta-data
-                android:name="info.shibafu528.gallerymultipicker.ICON_THEME"
-                android:value="dark"/>
         </activity>
 
         <activity
@@ -340,6 +333,7 @@
                 <action android:name="android.intent.action.VIEW"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data android:scheme="http" android:host="twpf.jp"/>
             </intent-filter>
