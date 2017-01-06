@@ -814,6 +814,18 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    public String getRestTag() {
+        return "";
+    }
+
+    public String getSubscribeIdentifier() {
+        Bundle args = getArguments();
+        if (args.containsKey(TwitterListFragment.EXTRA_ID)) {
+            return String.valueOf(args.getLong(TwitterListFragment.EXTRA_ID));
+        }
+        return this.toString();
+    }
+
     /**
      * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の結果を格納します。
      */
