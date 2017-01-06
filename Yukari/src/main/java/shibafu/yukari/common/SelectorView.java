@@ -25,8 +25,8 @@ public class SelectorView extends FrameLayout {
     public SelectorView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.SelectorView);
-        Drawable onPressed = array.getDrawable(0);
-        Drawable onFocused = array.getDrawable(1);
+        Drawable onPressed = array.getDrawable(R.styleable.SelectorView_on_pressed);
+        Drawable onFocused = array.getDrawable(R.styleable.SelectorView_on_focused);
         background = new StateListDrawable();
         background.addState(new int[]{android.R.attr.state_pressed}, onPressed);
         background.addState(new int[]{android.R.attr.state_focused}, onFocused);
