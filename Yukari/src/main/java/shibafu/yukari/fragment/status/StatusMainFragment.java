@@ -24,6 +24,7 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.StatusChildUI;
+import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
@@ -574,6 +575,28 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
     @Override
     public void onServiceDisconnected() {}
+
+    @Nullable
+    private PreformedStatus getStatus() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getStatus();
+        }
+        return null;
+    }
+
+    @Nullable
+    private AuthUserRecord getUserRecord() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getUserRecord();
+        }
+        return null;
+    }
+
+    private void setUserRecord(AuthUserRecord userRecord) {
+        if (getActivity() instanceof StatusUI) {
+            ((StatusUI) getActivity()).setUserRecord(userRecord);
+        }
+    }
 
     private void loadProfileImage() {
         final AuthUserRecord user = getUserRecord();

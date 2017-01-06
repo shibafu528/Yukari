@@ -22,12 +22,14 @@ import info.shibafu528.yukari.exvoice.ProcWrapper
 import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.common.StatusChildUI
+import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.defaultSharedPreferences
@@ -82,6 +84,30 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                 dialog.show(fragmentManager, "delete")
             } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
     )
+
+    private val status: PreformedStatus?
+        get() {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                return activity.status
+            }
+            return null
+        }
+
+    private var userRecord: AuthUserRecord?
+        get() {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                return activity.userRecord
+            }
+            return null
+        }
+        set(value) {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                activity.userRecord = value
+            }
+        }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -155,6 +181,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
     private fun onSelectedMuteOption(muteOption: QuickMuteOption) {
         startActivity(muteOption.toIntent(activity))
     }
+
+    override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
     override fun onServiceConnected() {
         // Pluggaloidアクションのロード
