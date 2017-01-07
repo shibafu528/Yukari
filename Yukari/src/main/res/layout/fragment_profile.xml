@@ -51,7 +51,7 @@
                     android:layout_below="@+id/ivProfileIcon"
                     android:layout_alignLeft="@+id/ivProfileIcon"
                     android:layout_marginTop="8dp"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
                     android:text="User Name"
                     android:textColor="@android:color/white"
                     android:autoLink="none"/>
@@ -107,55 +107,56 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageButton
-            android:id="@+id/ibProfileMenu"
-            android:layout_width="54dp"
-            android:layout_height="48dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center"
-            android:layout_marginTop="4dp"
-            android:layout_marginLeft="8dp"
-            android:src="?attr/menuButtonDrawable" />
-
-        <ImageButton
-            android:id="@+id/ibProfileSearch"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:layout_alignTop="@+id/ibProfileMenu"
-            android:layout_toRightOf="@+id/ibProfileMenu"
-            android:src="?attr/searchButtonDrawable"/>
-
-        <ImageView
-            android:id="@+id/imageView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
-            android:layout_below="@+id/ibProfileMenu"
-            android:layout_marginTop="4dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:scaleType="fitXY"
-            android:src="@android:drawable/divider_horizontal_textfield" />
-
         <GridView
             android:id="@+id/gvProfileCommands"
             android:layout_width="wrap_content"
             android:layout_height="130dp"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignRight="@+id/imageView2"
-            android:layout_below="@+id/imageView2"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
             android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
             android:numColumns="2" />
+
+        <LinearLayout
+            android:id="@+id/llProfileBio"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_marginTop="7dp"
+            android:orientation="vertical"
+            android:layout_below="@+id/gvProfileCommands"
+            android:layout_alignLeft="@+id/gvProfileCommands"
+            android:layout_alignRight="@+id/gvProfileCommands">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BIO"
+                android:textColor="#505050" />
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:layout_marginTop="2dp"
+                android:scaleType="fitXY"
+                android:src="@android:drawable/divider_horizontal_textfield" />
+
+            <TextView
+                android:id="@+id/tvProfileBio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="" />
+            <!--android:autoLink="web|email|map"-->
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/llProfileLocation"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignRight="@+id/imageView2"
+            android:layout_alignLeft="@+id/gvProfileCommands"
+            android:layout_alignRight="@+id/gvProfileCommands"
             android:layout_below="@+id/llProfileBio"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -186,8 +187,8 @@
             android:id="@+id/llProfileWeb"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignRight="@+id/imageView2"
+            android:layout_alignLeft="@+id/gvProfileCommands"
+            android:layout_alignRight="@+id/gvProfileCommands"
             android:layout_below="@+id/llProfileLocation"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -218,8 +219,8 @@
             android:id="@+id/llProfileSince"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignRight="@+id/imageView2"
+            android:layout_alignLeft="@+id/gvProfileCommands"
+            android:layout_alignRight="@+id/gvProfileCommands"
             android:layout_below="@+id/llProfileWeb"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -249,8 +250,8 @@
             android:id="@+id/llProfileUserId"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/imageView2"
-            android:layout_alignRight="@+id/imageView2"
+            android:layout_alignLeft="@+id/gvProfileCommands"
+            android:layout_alignRight="@+id/gvProfileCommands"
             android:layout_below="@+id/llProfileSince"
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"
@@ -298,39 +299,6 @@
                     android:visibility="gone"
                     android:enabled="false"/>
         </FrameLayout>
-
-        <LinearLayout
-            android:id="@+id/llProfileBio"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginTop="7dp"
-            android:orientation="vertical"
-            android:layout_below="@+id/gvProfileCommands"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignStart="@+id/gvProfileCommands">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="BIO"
-                android:textColor="#505050" />
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
-
-            <TextView
-                android:id="@+id/tvProfileBio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="" />
-            <!--android:autoLink="web|email|map"-->
-        </LinearLayout>
-
 
     </RelativeLayout>
 

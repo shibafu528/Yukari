@@ -28,12 +28,13 @@ import android.text.Html;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,7 +78,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback, ColorPickerDialogFragment.ColorPickerCallback{
+public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback, ColorPickerDialogFragment.ColorPickerCallback, Toolbar.OnMenuItemClickListener {
 
     // TODO:画面回転とかが加わるとたまに「ユーザー情報の取得に失敗」メッセージを出力して復帰に失敗するみたい
 
@@ -100,8 +101,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage, btnOwakareBlock;
-    private ImageButton ibMenu, ibSearch;
     private ImageView ivUserColor;
+    private Toolbar toolbar;
     private AppBarLayout appBarLayout;
     private CollapsingToolbarLayout ctLayout;
 
@@ -113,7 +114,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ProfileLoader profileLoadTask;
 
     private LoadDialogFragment currentProgress;
-    private AlertDialog currentDialog;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -128,8 +128,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
         }
 
-        Toolbar toolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        toolbar = (Toolbar) v.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.profile);
+        toolbar.setOnMenuItemClickListener(this);
 
         progressBar = v.findViewById(R.id.progressBar);
 
@@ -200,195 +201,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.setArguments(args1);
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
-        });
-
-        ibMenu = (ImageButton) v.findViewById(R.id.ibProfileMenu);
-        ibMenu.setOnClickListener(v1 -> {
-            List<String> menuList = new ArrayList<>();
-            menuList.add("ツイートを送る");
-            menuList.add("DMを送る");
-            menuList.add("ブラウザで開く");
-            menuList.add("保存しているリスト");
-            menuList.add("追加されているリスト");
-            menuList.add("リストへ追加/削除");
-            menuList.add("ミュートする");
-            menuList.add("カラーラベルを設定");
-
-            final boolean isOwnAccount;
-            if ((loadHolder != null && loadHolder.targetUser != null && loadHolder.targetUser.getId() == user.NumericId) ||
-                    (targetId >= 0 && targetId == user.NumericId) ||
-                    (selfLoadId && selfLoadName.equals(user.ScreenName))) {
-                isOwnAccount = true;
-
-                menuList.add("プロフィール編集");
-                menuList.add("ブロックリスト");
-            } else if (getTwitterService() != null) {
-                isOwnAccount = false;
-
-                long id;
-                if (targetId >= 0) {
-                    id = targetId;
-                } else if (loadHolder != null && loadHolder.targetUser != null) {
-                    id = loadHolder.targetUser.getId();
-                } else {
-                    id = -1;
-                }
-
-                if (id >= -1) {
-                    List<UserExtras> userExtras = getTwitterService().getUserExtras();
-                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
-                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
-                    if (priorityAccount != null) {
-                        menuList.add("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
-                        menuList.add("優先アカウントを解除");
-                    } else {
-                        menuList.add("優先アカウントを設定 (未設定)");
-                    }
-                }
-            } else {
-                isOwnAccount = false;
-            }
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setItems(menuList.toArray(new String[menuList.size()]), (dialog, which) -> {
-                dialog.dismiss();
-                switch (which) {
-                    case 0:
-                    {
-                        Intent intent = new Intent(getActivity(), TweetActivity.class);
-                        intent.putExtra(TweetActivity.EXTRA_USER, user);
-                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + loadHolder.targetUser.getScreenName() + " ");
-                        startActivity(intent);
-                        break;
-                    }
-                    case 1:
-                    {
-                        Intent intent = new Intent(getActivity(), TweetActivity.class);
-                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                        intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
-                        intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
-                        startActivity(intent);
-                        break;
-                    }
-                    case 2:
-                    {
-                        Intent intent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        break;
-                    }
-                    case 3:
-                    {
-                        UserListFragment fragment = new UserListFragment();
-                        Bundle args1 = new Bundle();
-                        args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
-                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args1.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
-                        fragment.setArguments(args1);
-                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment, "contain");
-                        transaction.addToBackStack(null);
-                        transaction.commit();
-                        break;
-                    }
-                    case 4:
-                    {
-                        UserListFragment fragment = new UserListFragment();
-                        Bundle args1 = new Bundle();
-                        args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
-                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args1.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
-                        fragment.setArguments(args1);
-                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment, "contain");
-                        transaction.addToBackStack(null);
-                        transaction.commit();
-                        break;
-                    }
-                    case 5:
-                    {
-                        ListRegisterDialogFragment dialogFragment =
-                                ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
-                        dialogFragment.setTargetFragment(ProfileFragment.this, 1);
-                        dialogFragment.show(getChildFragmentManager(), "list");
-                        break;
-                    }
-                    case 6:
-                    {
-                        MuteMenuDialogFragment dialogFragment =
-                                MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
-                        dialogFragment.show(getChildFragmentManager(), "mute");
-                        break;
-                    }
-                    case 7:
-                    {
-                        ColorPickerDialogFragment dialogFragment =
-                                ColorPickerDialogFragment.newInstance(
-                                        getTargetUserColor(), "colorLabel"
-                                );
-                        dialogFragment.setTargetFragment(ProfileFragment.this, 2);
-                        dialogFragment.show(getChildFragmentManager(), "colorLabel");
-                        break;
-                    }
-                    case 8:
-                    {
-                        if (isOwnAccount) {
-                            Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
-                            intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
-                            startActivity(intent);
-                        } else {
-                            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                            startActivityForResult(intent, REQUEST_PRIORITY_ACCOUNT);
-                        }
-                        break;
-                    }
-                    case 9:
-                    {
-                        if (isOwnAccount) {
-                            FriendListFragment fragment = new FriendListFragment();
-                            Bundle args1 = new Bundle();
-                            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
-                            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                            args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
-                            fragment.setArguments(args1);
-                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                            transaction.replace(R.id.frame, fragment, "contain");
-                            transaction.addToBackStack(null);
-                            transaction.commit();
-                        } else {
-                            getTwitterService().setPriority(loadHolder.targetUser.getId(), null);
-                            Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
-
-                            user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
-                            if (user == null) {
-                                user = getTwitterService().getPrimaryUser();
-                            }
-                        }
-                        break;
-                    }
-                }
-                currentDialog = null;
-            });
-            builder.setOnCancelListener(dialog -> {
-                dialog.dismiss();
-                currentDialog = null;
-            });
-            AlertDialog ad = builder.create();
-            ad.show();
-            currentDialog = ad;
-        });
-        ibSearch = (ImageButton) v.findViewById(R.id.ibProfileSearch);
-        ibSearch.setOnClickListener(v1 -> {
-            if (loadHolder != null && loadHolder.targetUser != null) {
-                Intent intent = new Intent(getActivity(), MainActivity.class);
-                intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "@" + loadHolder.targetUser.getScreenName());
-                startActivity(intent);
-            }
         });
 
         gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
@@ -652,6 +464,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 getActivity().getWindow().setStatusBarColor(backgroundColor);
             }
         }
+
+        updateMenuItems();
     }
 
     @Override
@@ -664,10 +478,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     public void onResume() {
         super.onResume();
         getActivity().setTitle("プロフィール");
-
-        if (currentDialog != null) {
-            currentDialog.show();
-        }
     }
 
     @Override
@@ -864,6 +674,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
                         getTwitterService().setPriority(loadHolder.targetUser.getId(), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
+                        updateMenuItems();
 
                         user = userRecord;
                     } else {
@@ -895,6 +706,173 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             //TODO: 遅延処理にすべきかなあ
             Toast.makeText(getActivity().getApplicationContext(), "カラーラベル設定に失敗しました", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void updateMenuItems() {
+        Menu menu = toolbar.getMenu();
+        if ((loadHolder != null && loadHolder.targetUser != null && loadHolder.targetUser.getId() == user.NumericId) ||
+                (targetId >= 0 && targetId == user.NumericId) ||
+                (selfLoadId && selfLoadName.equals(user.ScreenName))) {
+            menu.findItem(R.id.action_edit_profile).setVisible(true);
+            menu.findItem(R.id.action_block_list).setVisible(true);
+
+            menu.findItem(R.id.action_set_priority).setVisible(false);
+            menu.findItem(R.id.action_unset_priority).setVisible(false);
+        } else {
+            long id;
+            if (targetId >= 0) {
+                id = targetId;
+            } else if (loadHolder != null && loadHolder.targetUser != null) {
+                id = loadHolder.targetUser.getId();
+            } else {
+                id = -1;
+            }
+
+            if (id >= -1) {
+                List<UserExtras> userExtras = getTwitterService().getUserExtras();
+                Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
+                AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
+                if (priorityAccount != null) {
+                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
+                    menu.findItem(R.id.action_unset_priority).setVisible(true);
+                } else {
+                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
+                    menu.findItem(R.id.action_unset_priority).setVisible(false);
+                }
+            }
+
+            menu.findItem(R.id.action_edit_profile).setVisible(false);
+            menu.findItem(R.id.action_block_list).setVisible(false);
+        }
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        if (loadHolder == null || loadHolder.targetUser == null) {
+            Toast.makeText(getContext(), "何か調子が悪いみたいです。画面を一度開き直してみてください。", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+
+        switch (item.getItemId()) {
+            case R.id.action_search: {
+                Intent intent = new Intent(getActivity(), MainActivity.class);
+                intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "@" + loadHolder.targetUser.getScreenName());
+                startActivity(intent);
+                return true;
+            }
+            case R.id.action_send_mention: {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, user);
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + loadHolder.targetUser.getScreenName() + " ");
+                startActivity(intent);
+                return true;
+            }
+            case R.id.action_send_message: {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
+                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
+                intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
+                startActivity(intent);
+                return true;
+            }
+            case R.id.action_browser: {
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("http://twitter.com/" + loadHolder.targetUser.getScreenName()));
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                return true;
+            }
+            case R.id.action_following_list: {
+                UserListFragment fragment = new UserListFragment();
+                Bundle args1 = new Bundle();
+                args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
+                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                args1.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
+                fragment.setArguments(args1);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.addToBackStack(null);
+                transaction.commit();
+                return true;
+            }
+            case R.id.action_membership_list: {
+                UserListFragment fragment = new UserListFragment();
+                Bundle args1 = new Bundle();
+                args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
+                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                args1.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
+                fragment.setArguments(args1);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.addToBackStack(null);
+                transaction.commit();
+                return true;
+            }
+            case R.id.action_manage_list: {
+                ListRegisterDialogFragment dialogFragment =
+                        ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
+                dialogFragment.setTargetFragment(ProfileFragment.this, 1);
+                dialogFragment.show(getChildFragmentManager(), "list");
+                return true;
+            }
+            case R.id.action_mute: {
+                MuteMenuDialogFragment dialogFragment =
+                        MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
+                dialogFragment.show(getChildFragmentManager(), "mute");
+                return true;
+            }
+            case R.id.action_set_color_label: {
+                ColorPickerDialogFragment dialogFragment =
+                        ColorPickerDialogFragment.newInstance(
+                                getTargetUserColor(), "colorLabel"
+                        );
+                dialogFragment.setTargetFragment(ProfileFragment.this, 2);
+                dialogFragment.show(getChildFragmentManager(), "colorLabel");
+                return true;
+            }
+            case R.id.action_edit_profile: {
+                Intent intent = new Intent(getActivity(), ProfileEditActivity.class);
+                intent.putExtra(ProfileEditActivity.EXTRA_USER, user);
+                startActivity(intent);
+                return true;
+            }
+            case R.id.action_block_list: {
+                FriendListFragment fragment = new FriendListFragment();
+                Bundle args1 = new Bundle();
+                args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
+                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
+                fragment.setArguments(args1);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.addToBackStack(null);
+                transaction.commit();
+                return true;
+            }
+            case R.id.action_set_priority: {
+                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                startActivityForResult(intent, REQUEST_PRIORITY_ACCOUNT);
+                return true;
+            }
+            case R.id.action_unset_priority: {
+                getTwitterService().setPriority(loadHolder.targetUser.getId(), null);
+                Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
+
+                user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
+                if (user == null) {
+                    user = getTwitterService().getPrimaryUser();
+                }
+
+                updateMenuItems();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private class Command {
