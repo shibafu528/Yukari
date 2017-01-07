@@ -7,15 +7,23 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.util.Linkify;
 import android.util.Log;
@@ -24,7 +32,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -32,7 +39,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -95,7 +101,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
     private Button btnFollowManage, btnOwakareBlock;
     private ImageButton ibMenu, ibSearch;
-    private FrameLayout flIconBack;
+    private ImageView ivUserColor;
+    private AppBarLayout appBarLayout;
+    private CollapsingToolbarLayout ctLayout;
 
     private GridView gridCommands;
     private CommandAdapter commandAdapter;
@@ -119,6 +127,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             selfLoadId = true;
             selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
         }
+
+        Toolbar toolbar = (Toolbar) v.findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.profile);
 
         progressBar = v.findViewById(R.id.progressBar);
 
@@ -145,7 +156,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         });
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);
-        flIconBack = (FrameLayout) v.findViewById(R.id.frameLayout);
+        ivUserColor = (ImageView) v.findViewById(R.id.ivProfileUserColor);
 
         tvName = (TextView) v.findViewById(R.id.tvProfileName);
         tvScreenName = (TextView) v.findViewById(R.id.tvProfileScreenName);
@@ -432,6 +443,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         });
 
+        appBarLayout = (AppBarLayout) v.findViewById(R.id.appBarLayout);
+        ctLayout = (CollapsingToolbarLayout) v.findViewById(R.id.collapsingToolbarLayout);
+
         return v;
     }
 
@@ -543,7 +557,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         }
 
-        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), ivProfileIcon, holder.targetUser.getBiggerProfileImageURLHttps());
+        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), ivProfileIcon, holder.targetUser.getOriginalProfileImageURLHttps());
         if (loadHolder.targetUser.getProfileBannerMobileURL() != null) {
             ImageLoaderTask.loadBitmap(getActivity().getApplicationContext(), ivHeader, holder.targetUser.getProfileBannerMobileURL());
         }
@@ -622,7 +636,22 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         commandAdapter.getItem(3).strBottom = String.valueOf(holder.targetUser.getFollowersCount());
         commandAdapter.notifyDataSetChanged();
 
-        flIconBack.setBackgroundColor(getTargetUserColor());
+        ivUserColor.setBackgroundColor(getTargetUserColor());
+        if (holder.targetUser.getProfileLinkColor() != null) {
+            int backgroundColor = Color.parseColor("#" + holder.targetUser.getProfileLinkColor());
+            appBarLayout.setBackgroundColor(backgroundColor);
+            ctLayout.setContentScrimColor(backgroundColor);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setBackgroundDrawable(new ColorDrawable(backgroundColor));
+
+                backgroundColor = Color.rgb(
+                        (int) (Color.red(backgroundColor) * 0.8),
+                        (int) (Color.green(backgroundColor) * 0.8),
+                        (int) (Color.blue(backgroundColor) * 0.8));
+                getActivity().getWindow().setStatusBarColor(backgroundColor);
+            }
+        }
     }
 
     @Override
@@ -993,7 +1022,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     public static class UpdateDialogFragment extends DialogFragment {
         private boolean dismissRequest;
 
-        @NotNull
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             ProgressDialog pd = new ProgressDialog(getActivity());

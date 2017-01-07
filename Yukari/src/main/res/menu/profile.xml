@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item android:title="フォロー管理" app:showAsAction="always" app:actionLayout="@layout/menu_profile_manage_follow"/>
+    <item android:title="スクリーンネームで検索" app:showAsAction="always" android:icon="@drawable/ic_search_d"/>
+    <item android:title="ツイートを送る"/>
+    <item android:title="DMを送る"/>
+    <item android:title="ブラウザで開く"/>
+    <item android:title="保存しているリスト"/>
+    <item android:title="追加されているリスト"/>
+    <item android:title="リストへ追加/削除"/>
+    <item android:title="ミュートする"/>
+    <item android:title="カラーラベルを設定"/>
+    <item android:title="プロフィール編集"/>
+    <item android:title="ブロックリスト"/>
+    <item android:title="優先アカウントを設定 (未設定)"/>
+    <item android:title="優先アカウントを解除"/>
+</menu>
