@@ -107,27 +107,235 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <GridView
-            android:id="@+id/gvProfileCommands"
-            android:layout_width="wrap_content"
-            android:layout_height="130dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentRight="true"
+        <Space
+            android:id="@+id/centerHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_centerHorizontal="true"/>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileTweets"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/centerHorizontal"
             android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true"
             android:layout_marginTop="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:numColumns="2" />
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/ivProfileTweetsIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:src="?attr/profileTweetsDrawable"/>
+
+                <TextView
+                    android:id="@+id/tvProfileTweetsCount"
+                    android:text="0"
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/ivProfileTweetsIcon"
+                    android:layout_alignTop="@+id/ivProfileTweetsIcon"
+                    android:layout_alignBottom="@+id/ivProfileTweetsIcon"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:gravity="center_vertical"/>
+
+                <TextView
+                    android:text="Tweets"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvProfileTweetsCount"
+                    android:layout_alignLeft="@+id/tvProfileTweetsCount"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"/>
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileFavorites"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/centerHorizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="16dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/ivProfileFavoritesIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:src="?attr/profileFavoritesDrawable"/>
+
+                <TextView
+                    android:id="@+id/tvProfileFavoritesCount"
+                    android:text="0"
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/ivProfileFavoritesIcon"
+                    android:layout_alignTop="@+id/ivProfileFavoritesIcon"
+                    android:layout_alignBottom="@+id/ivProfileFavoritesIcon"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:gravity="center_vertical"/>
+
+                <TextView
+                    android:text="Favorites"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvProfileFavoritesCount"
+                    android:layout_alignLeft="@+id/tvProfileFavoritesCount"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"/>
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileFollows"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cvProfileTweets"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/centerHorizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginRight="4dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/ivProfileFollowsIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:src="?attr/profileFollowsDrawable"/>
+
+                <TextView
+                    android:id="@+id/tvProfileFollowsCount"
+                    android:text="0"
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/ivProfileFollowsIcon"
+                    android:layout_alignTop="@+id/ivProfileFollowsIcon"
+                    android:layout_alignBottom="@+id/ivProfileFollowsIcon"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:gravity="center_vertical"/>
+
+                <TextView
+                    android:text="Follows"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvProfileFollowsCount"
+                    android:layout_alignLeft="@+id/tvProfileFollowsCount"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"/>
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileFollowers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cvProfileFavorites"
+            android:layout_alignLeft="@+id/centerHorizontal"
+            android:layout_alignRight="@+id/cvProfileFavorites"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="4dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp">
+
+                <ImageView
+                    android:id="@+id/ivProfileFollowersIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
+                    android:src="?attr/profileFollowersDrawable"/>
+
+                <TextView
+                    android:id="@+id/tvProfileFollowersCount"
+                    android:text="0"
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/ivProfileFollowersIcon"
+                    android:layout_alignTop="@+id/ivProfileFollowersIcon"
+                    android:layout_alignBottom="@+id/ivProfileFollowersIcon"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:gravity="center_vertical"/>
+
+                <TextView
+                    android:text="Followers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvProfileFollowersCount"
+                    android:layout_alignLeft="@+id/tvProfileFollowersCount"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"/>
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
 
         <LinearLayout
             android:id="@+id/llProfileBio"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_marginTop="7dp"
+            android:layout_marginTop="8dp"
             android:orientation="vertical"
-            android:layout_below="@+id/gvProfileCommands"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignRight="@+id/gvProfileCommands">
+            android:layout_below="@+id/cvProfileFollows"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/cvProfileFavorites">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -155,8 +363,8 @@
             android:id="@+id/llProfileLocation"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignRight="@+id/gvProfileCommands"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/cvProfileFavorites"
             android:layout_below="@+id/llProfileBio"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -187,8 +395,8 @@
             android:id="@+id/llProfileWeb"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignRight="@+id/gvProfileCommands"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/cvProfileFavorites"
             android:layout_below="@+id/llProfileLocation"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -219,8 +427,8 @@
             android:id="@+id/llProfileSince"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignRight="@+id/gvProfileCommands"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/cvProfileFavorites"
             android:layout_below="@+id/llProfileWeb"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
@@ -250,8 +458,8 @@
             android:id="@+id/llProfileUserId"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/gvProfileCommands"
-            android:layout_alignRight="@+id/gvProfileCommands"
+            android:layout_alignLeft="@+id/cvProfileTweets"
+            android:layout_alignRight="@+id/cvProfileFavorites"
             android:layout_below="@+id/llProfileSince"
             android:layout_marginBottom="16dp"
             android:layout_marginTop="16dp"

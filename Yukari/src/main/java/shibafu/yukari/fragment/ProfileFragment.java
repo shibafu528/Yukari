@@ -32,9 +32,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,7 +60,6 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.util.AttrUtil;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -100,14 +97,13 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ImageView ivProfileIcon, ivHeader;
     private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
+    private View cvTweets, cvFavorites, cvFollows, cvFollowers;
+    private TextView tvTweetsCount, tvFavoritesCount, tvFollowsCount, tvFollowersCount;
     private Button btnFollowManage, btnOwakareBlock;
     private ImageView ivUserColor;
     private Toolbar toolbar;
     private AppBarLayout appBarLayout;
     private CollapsingToolbarLayout ctLayout;
-
-    private GridView gridCommands;
-    private CommandAdapter commandAdapter;
 
     private View progressBar;
     private AsyncTask<Void, Void, LoadHolder> initialLoadTask = null;
@@ -168,6 +164,79 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         tvUserId = (TextView) v.findViewById(R.id.tvProfileUserId);
         tvUserId.setText("#" + targetId);
 
+        cvTweets = v.findViewById(R.id.cvProfileTweets);
+        cvTweets.setOnClickListener(view -> {
+            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
+            Bundle args1 = new Bundle();
+
+            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
+            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
+
+            fragment.setArguments(args1);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+        cvFavorites = v.findViewById(R.id.cvProfileFavorites);
+        cvFavorites.setOnClickListener(view -> {
+            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
+            Bundle args1 = new Bundle();
+
+            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
+            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
+
+            fragment.setArguments(args1);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+        cvFollows = v.findViewById(R.id.cvProfileFollows);
+        cvFollows.setOnClickListener(view -> {
+            Fragment fragment = new FriendListFragment();
+            Bundle args1 = new Bundle();
+
+            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
+            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
+
+            fragment.setArguments(args1);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+        cvFollowers = v.findViewById(R.id.cvProfileFollowers);
+        cvFollowers.setOnClickListener(view -> {
+            Fragment fragment = new FriendListFragment();
+            Bundle args1 = new Bundle();
+
+            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
+            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
+
+            fragment.setArguments(args1);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.addToBackStack(null);
+            transaction.commit();
+        });
+        tvTweetsCount = (TextView) v.findViewById(R.id.tvProfileTweetsCount);
+        tvFavoritesCount = (TextView) v.findViewById(R.id.tvProfileFavoritesCount);
+        tvFollowsCount = (TextView) v.findViewById(R.id.tvProfileFollowsCount);
+        tvFollowersCount = (TextView) v.findViewById(R.id.tvProfileFollowersCount);
+
         btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
         btnFollowManage.setOnClickListener(view -> {
             FollowDialogFragment fragment = new FollowDialogFragment();
@@ -203,58 +272,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.show(getFragmentManager(), "follow");
         });
 
-        gridCommands = (GridView) v.findViewById(R.id.gvProfileCommands);
-        gridCommands.setOnItemClickListener((parent, view, position, id) -> {
-            if (position < 0 || position > 3) return;
-            Fragment fragment = null;
-            Bundle args1 = new Bundle();
-            switch (position) {
-                case 0:
-                {
-                    fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
-                    args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
-                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                    args1.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
-                    break;
-                }
-                case 1:
-                {
-                    fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
-                    args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
-                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                    args1.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
-                    break;
-                }
-                case 2:
-                {
-                    fragment = new FriendListFragment();
-                    args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
-                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                    args1.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
-                    break;
-                }
-                case 3:
-                {
-                    fragment = new FriendListFragment();
-                    args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
-                    args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                    args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                    args1.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
-                    break;
-                }
-            }
-            if (fragment != null) {
-                fragment.setArguments(args1);
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame, fragment, "contain");
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
-        });
-
         appBarLayout = (AppBarLayout) v.findViewById(R.id.appBarLayout);
         ctLayout = (CollapsingToolbarLayout) v.findViewById(R.id.collapsingToolbarLayout);
 
@@ -264,19 +281,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        List<Command> commands = new ArrayList<>();
-        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
-                R.attr.profileTweetsDrawable), "Tweets", "0"));
-        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
-                R.attr.profileFavoritesDrawable), "Favorites", "0"));
-        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
-                R.attr.profileFollowsDrawable), "Follows", "0"));
-        commands.add(new Command(AttrUtil.resolveAttribute(getActivity().getTheme(),
-                R.attr.profileFollowersDrawable), "Followers", "0"));
-
-        commandAdapter = new CommandAdapter(getActivity(), commands);
-        gridCommands.setAdapter(commandAdapter);
 
         if (savedInstanceState != null) {
             loadHolder = savedInstanceState.getParcelable("loadHolder");
@@ -442,11 +446,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         }
         tvUserId.setText("#" + holder.targetUser.getId());
 
-        commandAdapter.getItem(0).strBottom = String.valueOf(holder.targetUser.getStatusesCount());
-        commandAdapter.getItem(1).strBottom = String.valueOf(holder.targetUser.getFavouritesCount());
-        commandAdapter.getItem(2).strBottom = String.valueOf(holder.targetUser.getFriendsCount());
-        commandAdapter.getItem(3).strBottom = String.valueOf(holder.targetUser.getFollowersCount());
-        commandAdapter.notifyDataSetChanged();
+        tvTweetsCount.setText(String.valueOf(holder.targetUser.getStatusesCount()));
+        tvFavoritesCount.setText(String.valueOf(holder.targetUser.getFavouritesCount()));
+        tvFollowsCount.setText(String.valueOf(holder.targetUser.getFriendsCount()));
+        tvFollowersCount.setText(String.valueOf(holder.targetUser.getFollowersCount()));
 
         ivUserColor.setBackgroundColor(getTargetUserColor());
         if (holder.targetUser.getProfileLinkColor() != null) {
@@ -873,48 +876,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         }
 
         return false;
-    }
-
-    private class Command {
-        public int iconId;
-        public String strTop;
-        public String strBottom;
-
-        private Command(int iconId, String strTop, String strBottom) {
-            this.iconId = iconId;
-            this.strTop = strTop;
-            this.strBottom = strBottom;
-        }
-    }
-
-    private class CommandAdapter extends ArrayAdapter<Command> {
-
-        public CommandAdapter(Context context, List<Command> objects) {
-            super(context, R.layout.view_2linebutton, objects);
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View v = convertView;
-
-            if (v == null) {
-                LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                v = inflater.inflate(R.layout.view_2linebutton, null);
-            }
-
-            Command c = getItem(position);
-            if (c != null) {
-                ImageView ivIcon = (ImageView) v.findViewById(R.id.lineButtonImage);
-                ivIcon.setImageResource(c.iconId);
-
-                TextView tvTop = (TextView) v.findViewById(R.id.lineButtonText);
-                tvTop.setText(c.strTop);
-                TextView tvBottom = (TextView) v.findViewById(R.id.lineButtonCount);
-                tvBottom.setText(c.strBottom);
-            }
-
-            return v;
-        }
     }
 
     private static class LoadHolder implements Parcelable{
