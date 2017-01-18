@@ -327,164 +327,169 @@
 
         </android.support.v7.widget.CardView>
 
-        <LinearLayout
-            android:id="@+id/llProfileBio"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical"
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileBio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/cvProfileFollows"
             android:layout_alignLeft="@+id/cvProfileTweets"
-            android:layout_alignRight="@+id/cvProfileFavorites">
+            android:layout_alignRight="@id/cvProfileFavorites"
+            android:layout_marginTop="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="BIO"
-                android:textColor="#505050" />
-
-            <ImageView
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
+                android:padding="8dp">
 
-            <TextView
-                android:id="@+id/tvProfileBio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="" />
-            <!--android:autoLink="web|email|map"-->
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tvProfileBioHeader"
+                    android:text="自己紹介"
+                    android:textSize="16sp"
+                    android:textColor="#de000000"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
-        <LinearLayout
-            android:id="@+id/llProfileLocation"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+                <TextView
+                    android:id="@+id/tvProfileBio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tvProfileBioHeader"
+                    android:layout_marginTop="7dp"/>
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileDetail"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cvProfileBio"
             android:layout_alignLeft="@+id/cvProfileTweets"
-            android:layout_alignRight="@+id/cvProfileFavorites"
-            android:layout_below="@+id/llProfileBio"
+            android:layout_alignRight="@id/cvProfileFavorites"
             android:layout_marginTop="16dp"
-            android:orientation="vertical">
+            android:layout_marginBottom="8dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="LOCATION"
-                android:textColor="#505050" />
-
-            <ImageView
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
+                android:padding="8dp">
 
-            <TextView
-                android:id="@+id/tvProfileLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autoLink="web|email"
-                android:text="" />
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/ivProfileLocation"
+                    app:srcCompat="@drawable/ic_location_on_primary_dark_24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
-        <LinearLayout
-            android:id="@+id/llProfileWeb"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/cvProfileTweets"
-            android:layout_alignRight="@+id/cvProfileFavorites"
-            android:layout_below="@+id/llProfileLocation"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical">
+                <TextView
+                    android:id="@+id/tvProfileLocation"
+                    android:autoLink="web|email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/ivProfileLocation"
+                    android:layout_alignTop="@+id/ivProfileLocation"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:minHeight="24dp"
+                    android:gravity="center_vertical"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="WEB"
-                android:textColor="#505050" />
+                <ImageView
+                    android:id="@+id/ivProfileLocationDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@+id/tvProfileLocation"
+                    android:layout_alignLeft="@+id/tvProfileLocation"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="fitXY"
+                    android:src="@android:drawable/divider_horizontal_textfield" />
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
+                <ImageView
+                    android:id="@+id/ivProfileWeb"
+                    app:srcCompat="@drawable/ic_link_primary_dark_24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileLocationDivider"/>
 
-            <TextView
-                android:id="@+id/tvProfileWeb"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autoLink="web|email|map"
-                android:text="" />
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tvProfileWeb"
+                    android:autoLink="web|email|map"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileLocationDivider"
+                    android:layout_alignTop="@+id/ivProfileWeb"
+                    android:layout_toRightOf="@+id/ivProfileWeb"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:minHeight="24dp"
+                    android:gravity="center_vertical"/>
 
-        <LinearLayout
-            android:id="@+id/llProfileSince"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/cvProfileTweets"
-            android:layout_alignRight="@+id/cvProfileFavorites"
-            android:layout_below="@+id/llProfileWeb"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/ivProfileWebDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@+id/tvProfileWeb"
+                    android:layout_alignLeft="@+id/tvProfileWeb"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="fitXY"
+                    android:src="@android:drawable/divider_horizontal_textfield" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SINCE"
-                android:textColor="#505050" />
+                <ImageView
+                    android:id="@+id/ivProfileSince"
+                    app:srcCompat="@drawable/ic_insert_invitation_primary_dark_24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileWebDivider"/>
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
+                <TextView
+                    android:id="@+id/tvProfileSince"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileWebDivider"
+                    android:layout_alignTop="@+id/ivProfileSince"
+                    android:layout_toRightOf="@+id/ivProfileSince"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:minHeight="24dp"
+                    android:gravity="center_vertical"/>
 
-            <TextView
-                android:id="@+id/tvProfileSince"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="" />
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/ivProfileSinceDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@+id/tvProfileSince"
+                    android:layout_alignLeft="@+id/tvProfileSince"
+                    android:layout_marginBottom="8dp"
+                    android:layout_marginTop="8dp"
+                    android:scaleType="fitXY"
+                    android:src="@android:drawable/divider_horizontal_textfield" />
 
-        <LinearLayout
-            android:id="@+id/llProfileUserId"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_alignLeft="@+id/cvProfileTweets"
-            android:layout_alignRight="@+id/cvProfileFavorites"
-            android:layout_below="@+id/llProfileSince"
-            android:layout_marginBottom="16dp"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical">
+                <ImageView
+                    android:id="@+id/ivProfileUserId"
+                    app:srcCompat="@drawable/ic_person_primary_dark_24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileSinceDivider"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="USER ID"
-                android:textColor="#505050" />
+                <TextView
+                    android:id="@+id/tvProfileUserId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ivProfileSinceDivider"
+                    android:layout_alignTop="@+id/ivProfileUserId"
+                    android:layout_toRightOf="@+id/ivProfileUserId"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginLeft="8dp"
+                    android:minHeight="24dp"
+                    android:gravity="center_vertical"/>
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@android:drawable/divider_horizontal_textfield" />
+            </RelativeLayout>
 
-            <TextView
-                android:id="@+id/tvProfileUserId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="#" />
-        </LinearLayout>
+        </android.support.v7.widget.CardView>
 
         <FrameLayout
                 android:layout_width="fill_parent"
