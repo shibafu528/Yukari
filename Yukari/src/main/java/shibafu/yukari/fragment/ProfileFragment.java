@@ -18,7 +18,6 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -103,7 +102,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ImageView ivUserColor;
     private Toolbar toolbar;
     private AppBarLayout appBarLayout;
-    private CollapsingToolbarLayout ctLayout;
+    private View headerLayout;
 
     private View progressBar;
     private AsyncTask<Void, Void, LoadHolder> initialLoadTask = null;
@@ -273,7 +272,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         });
 
         appBarLayout = (AppBarLayout) v.findViewById(R.id.appBarLayout);
-        ctLayout = (CollapsingToolbarLayout) v.findViewById(R.id.collapsingToolbarLayout);
+        headerLayout = v.findViewById(R.id.headerLayout);
 
         return v;
     }
@@ -455,16 +454,16 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         if (holder.targetUser.getProfileLinkColor() != null) {
             int backgroundColor = Color.parseColor("#" + holder.targetUser.getProfileLinkColor());
             appBarLayout.setBackgroundColor(backgroundColor);
-            ctLayout.setContentScrimColor(backgroundColor);
+            headerLayout.setBackgroundColor(backgroundColor);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().setBackgroundDrawable(new ColorDrawable(backgroundColor));
 
-                backgroundColor = Color.rgb(
+                int statusBackgroundColor = Color.rgb(
                         (int) (Color.red(backgroundColor) * 0.8),
                         (int) (Color.green(backgroundColor) * 0.8),
                         (int) (Color.blue(backgroundColor) * 0.8));
-                getActivity().getWindow().setStatusBarColor(backgroundColor);
+                getActivity().getWindow().setStatusBarColor(statusBackgroundColor);
             }
         }
 

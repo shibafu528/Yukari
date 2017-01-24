@@ -11,90 +11,87 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/collapsingToolbarLayout"
+        <RelativeLayout
+            android:id="@+id/headerLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="?attr/colorPrimary"
-            app:titleEnabled="false">
+            android:layout_height="wrap_content"
+            android:minHeight="128dp"
+            android:background="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <RelativeLayout
+            <ImageView
+                android:id="@+id/ivProfileHeader"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:id="@+id/ivProfileHeader"
-                    android:layout_width="match_parent"
-                    android:layout_height="180dp"
-                    android:background="#000"
-                    android:scaleType="fitCenter"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentRight="true"/>
-
-                <ImageView
-                    android:id="@+id/ivProfileIcon"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:layout_below="@+id/ivProfileHeader"
-                    android:layout_marginTop="-32dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/icon_background"
-                    android:src="@drawable/yukatterload" />
-
-                <TextView
-                    android:id="@+id/tvProfileName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/ivProfileIcon"
-                    android:layout_alignLeft="@+id/ivProfileIcon"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="User Name"
-                    android:textColor="@android:color/white"
-                    android:autoLink="none"/>
-
-                <ImageView
-                    android:id="@+id/ivProfileProtected"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/tvProfileName"
-                    android:layout_alignTop="@+id/tvProfileName"
-                    android:layout_alignBottom="@+id/tvProfileName"
-                    android:layout_marginLeft="2dp"
-                    android:src="@drawable/ic_secure_d"
-                    android:visibility="gone" />
-
-                <TextView
-                    android:id="@+id/tvProfileScreenName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvProfileName"
-                    android:layout_alignLeft="@+id/tvProfileName"
-                    android:layout_marginTop="4dp"
-                    android:paddingBottom="8dp"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="\uff20ScreenName"
-                    android:textColor="@android:color/white"
-                    android:autoLink="none"/>
-
-                <ImageView
-                    android:id="@+id/ivProfileUserColor"
-                    android:layout_width="4dp"
-                    android:layout_height="0dp"
-                    android:layout_below="@+id/ivProfileHeader"
-                    android:layout_alignBottom="@+id/tvProfileScreenName"/>
-            </RelativeLayout>
+                android:layout_height="180dp"
+                android:background="#000"
+                android:scaleType="centerCrop"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentRight="true"/>
 
             <android.support.v7.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:layout_below="@+id/ivProfileHeader"
+                android:layout_marginTop="4dp"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_collapseMode="pin"/>
-        </android.support.design.widget.CollapsingToolbarLayout>
+
+            <ImageView
+                android:id="@+id/ivProfileIcon"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_below="@+id/ivProfileHeader"
+                android:layout_marginTop="-32dp"
+                android:layout_marginLeft="16dp"
+                android:layout_gravity="center"
+                android:background="@drawable/icon_background"
+                android:src="@drawable/yukatterload" />
+
+            <TextView
+                android:id="@+id/tvProfileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/ivProfileIcon"
+                android:layout_marginTop="8dp"
+                android:layout_marginLeft="16dp"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="User Name"
+                android:textColor="@android:color/white"
+                android:autoLink="none"/>
+
+            <ImageView
+                android:id="@+id/ivProfileProtected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/tvProfileName"
+                android:layout_alignTop="@+id/tvProfileName"
+                android:layout_alignBottom="@+id/tvProfileName"
+                android:layout_marginLeft="2dp"
+                android:src="@drawable/ic_secure_d"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tvProfileScreenName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tvProfileName"
+                android:layout_alignLeft="@+id/tvProfileName"
+                android:layout_marginTop="4dp"
+                android:paddingBottom="8dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="\uff20ScreenName"
+                android:textColor="@android:color/white"
+                android:autoLink="none"/>
+
+            <ImageView
+                android:id="@+id/ivProfileUserColor"
+                android:layout_width="4dp"
+                android:layout_height="0dp"
+                android:layout_below="@+id/ivProfileHeader"
+                android:layout_alignBottom="@+id/tvProfileScreenName"/>
+        </RelativeLayout>
 
     </android.support.design.widget.AppBarLayout>
 
