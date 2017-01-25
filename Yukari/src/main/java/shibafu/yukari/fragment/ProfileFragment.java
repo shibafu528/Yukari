@@ -272,6 +272,33 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         });
 
         appBarLayout = (AppBarLayout) v.findViewById(R.id.appBarLayout);
+        appBarLayout.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+            final int threshold = (int) (appBarLayout.getTotalScrollRange() * 0.8);
+            final int absOffset = Math.abs(verticalOffset);
+            if (threshold < absOffset) {
+                final float overflowHeight = (float) appBarLayout.getTotalScrollRange() * 0.2f;
+                final float progress = (float)(absOffset - threshold) / overflowHeight;
+                final float scale = 1.0f - 0.5f * progress;
+                final float translate = overflowHeight * 0.5f * progress;
+                ivProfileIcon.animate()
+                        .scaleX(scale)
+                        .scaleY(scale)
+                        .translationX(-translate)
+                        .translationY(translate)
+                        .setDuration(0)
+                        .start();
+            } else {
+                ivProfileIcon.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .translationX(0.0f)
+                        .translationY(0.0f)
+                        .setDuration(0)
+                        .start();
+            }
+            Log.d(ProfileFragment.class.getSimpleName(), "verticalOffset = " + verticalOffset);
+            Log.d(ProfileFragment.class.getSimpleName(), "totalScrollRange = " + appBarLayout.getTotalScrollRange());
+        });
         headerLayout = v.findViewById(R.id.headerLayout);
 
         return v;

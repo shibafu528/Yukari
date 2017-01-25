@@ -15,7 +15,7 @@
             android:id="@+id/headerLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="128dp"
+            android:minHeight="132dp"
             android:background="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
