@@ -16,7 +16,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -99,18 +98,6 @@ public class TweetAdapterWrap {
 
     public void setStatusManager(StatusManager statusManager) {
         this.statusManager = new WeakReference<>(statusManager);
-    }
-
-    public static class RecycleListener implements AbsListView.RecyclerListener {
-
-        @Override
-        public void onMovedToScrapHeap(View view) {
-            if (view.getTag(R.string.key_viewholder) != null &&
-                    view.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
-                TweetViewHolder viewHolder = (TweetViewHolder) view.getTag(R.string.key_viewholder);
-                viewHolder.recycleImageViews();
-            }
-        }
     }
 
     private class TweetAdapter extends BaseAdapter {
@@ -221,14 +208,11 @@ public class TweetAdapterWrap {
         ImageView ivUserColor;
 
         private static final List<Field> textViews = new ArrayList<>();
-        private static final List<Field> imageViews = new ArrayList<>();
 
         static {
             for (Field field : TweetViewHolder.class.getDeclaredFields()) {
                 if (field.getName().startsWith("tv")) {
                     textViews.add(field);
-                } else if (field.getName().startsWith("iv")) {
-                    imageViews.add(field);
                 }
             }
         }
@@ -272,35 +256,6 @@ public class TweetAdapterWrap {
             }
         }
 
-        public void recycleImageViews() {
-            //ImageViewを全て解放
-            for (Field field : imageViews) {
-                try {
-                    ((ImageView) field.get(this)).setImageDrawable(null);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-            //Attachを全て解放
-            if (llAttach != null) {
-                for (int i = 0; i < llAttach.getChildCount(); ++i) {
-                    View v = llAttach.getChildAt(i);
-                    if (v != null && v instanceof ImageView) {
-                        ((ImageView) v).setImageDrawable(null);
-                    }
-                }
-            }
-            //Includeを全て解放
-            if (flInclude != null) {
-                for (int i = 0; i < flInclude.getChildCount(); ++i) {
-                    View v = flInclude.getChildAt(i);
-                    if (v != null && v.getTag(R.string.key_viewholder) != null &&
-                            v.getTag(R.string.key_viewholder) instanceof TweetViewHolder) {
-                        ((TweetViewHolder) v.getTag(R.string.key_viewholder)).recycleImageViews();
-                    }
-                }
-            }
-        }
     }
 
     public static abstract class ViewConverter {
