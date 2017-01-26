@@ -13,6 +13,10 @@
     <attr name="profileFavoritesDrawable" format="reference"/>
     <attr name="profileFollowsDrawable" format="reference"/>
     <attr name="profileFollowersDrawable" format="reference"/>
+    <attr name="profileLocationDrawable" format="reference"/>
+    <attr name="profileWebDrawable" format="reference"/>
+    <attr name="profileSinceDrawable" format="reference"/>
+    <attr name="profileUserIdDrawable" format="reference"/>
     <attr name="menuProfileDrawable" format="reference"/>
     <attr name="menuTwilogDrawable" format="reference"/>
     <attr name="menuFavstarDrawable" format="reference"/>

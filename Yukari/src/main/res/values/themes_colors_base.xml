@@ -17,7 +17,10 @@
         <item name="profileFavoritesDrawable">@drawable/ic_prof_favorite</item>
         <item name="profileFollowsDrawable">@drawable/ic_prof_follow</item>
         <item name="profileFollowersDrawable">@drawable/ic_prof_follower</item>
-
+        <item name="profileLocationDrawable">@drawable/ic_location_on_primary_dark_24dp</item>
+        <item name="profileWebDrawable">@drawable/ic_link_primary_dark_24dp</item>
+        <item name="profileSinceDrawable">@drawable/ic_insert_invitation_primary_dark_24dp</item>
+        <item name="profileUserIdDrawable">@drawable/ic_person_primary_dark_24dp</item>
 
         <item name="menuProfileDrawable">@drawable/ic_profile</item>
         <item name="menuTwilogDrawable">@drawable/ic_twilog</item>
@@ -101,6 +104,10 @@
         <item name="profileFavoritesDrawable">@drawable/ic_prof_favorite_d</item>
         <item name="profileFollowsDrawable">@drawable/ic_prof_follow_d</item>
         <item name="profileFollowersDrawable">@drawable/ic_prof_follower_d</item>
+        <item name="profileLocationDrawable">@drawable/ic_location_on_primary_light_24dp</item>
+        <item name="profileWebDrawable">@drawable/ic_link_primary_light_24dp</item>
+        <item name="profileSinceDrawable">@drawable/ic_insert_invitation_primary_light_24dp</item>
+        <item name="profileUserIdDrawable">@drawable/ic_person_primary_light_24dp</item>
 
 
         <item name="menuProfileDrawable">@drawable/ic_profile_d</item>

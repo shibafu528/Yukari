@@ -339,10 +339,10 @@
                 android:padding="8dp">
 
                 <TextView
+                    style="?android:attr/textAppearanceLarge"
                     android:id="@+id/tvProfileBioHeader"
                     android:text="自己紹介"
                     android:textSize="16sp"
-                    android:textColor="#de000000"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
@@ -373,7 +373,7 @@
 
                 <ImageView
                     android:id="@+id/ivProfileLocation"
-                    app:srcCompat="@drawable/ic_location_on_primary_dark_24dp"
+                    app:srcCompat="?attr/profileLocationDrawable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
@@ -403,7 +403,7 @@
 
                 <ImageView
                     android:id="@+id/ivProfileWeb"
-                    app:srcCompat="@drawable/ic_link_primary_dark_24dp"
+                    app:srcCompat="?attr/profileWebDrawable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/ivProfileLocationDivider"/>
@@ -435,7 +435,7 @@
 
                 <ImageView
                     android:id="@+id/ivProfileSince"
-                    app:srcCompat="@drawable/ic_insert_invitation_primary_dark_24dp"
+                    app:srcCompat="?attr/profileSinceDrawable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/ivProfileWebDivider"/>
@@ -466,7 +466,7 @@
 
                 <ImageView
                     android:id="@+id/ivProfileUserId"
-                    app:srcCompat="@drawable/ic_person_primary_dark_24dp"
+                    app:srcCompat="?attr/profileUserIdDrawable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/ivProfileSinceDivider"/>
