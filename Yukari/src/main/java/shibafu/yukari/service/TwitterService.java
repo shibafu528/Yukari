@@ -140,7 +140,7 @@ public class TwitterService extends Service{
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
             StatusManager.getReceivedStatuses().evictAll();
-            statusManager.sendFakeBroadcast("onWipe", new Class[]{});
+            statusManager.onWipe();
         }
     };
 

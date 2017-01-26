@@ -52,8 +52,6 @@ import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserMentionEntity;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -122,8 +120,464 @@ public class StatusManager implements Releasable {
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<>();
     private Map<AuthUserRecord, FilterStream> filterMap = new HashMap<>();
-    private StreamListener listener = new StreamListener() {
+    private StreamListenerEx listener = new StreamListenerEx();
 
+    private SyncReference<List<StatusListener>> statusListeners = new SyncReference<>(new ArrayList<>());
+    private SyncReference<Map<String, Pair<StatusListener, Queue<EventBuffer>>>> statusBuffer = new SyncReference<>(new HashMap<>());
+    private SyncReference<List<EventBuffer>> updateBuffer = new SyncReference<>(new ArrayList<>());
+
+    private UserUpdateDelayer userUpdateDelayer;
+
+    public StatusManager(TwitterService service) {
+        this.context = this.service = service;
+
+        this.suppressor = service.getSuppressor();
+        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        this.handler = new Handler();
+
+        //通知マネージャの開始
+        notifier = new StatusNotifier(service);
+
+        //ハッシュタグキャッシュのロード
+        hashCache = new HashCache(context);
+
+        //遅延処理スレッドの開始
+        userUpdateDelayer = new UserUpdateDelayer(service.getDatabase());
+    }
+
+    @Override
+    public void release() {
+        streamUsers.clear();
+        statusListeners.sync(List::clear);
+        statusBuffer.sync(Map::clear);
+
+        for (ParallelAsyncTask<Void, Void, Void> task : workingRestQueries.values()) {
+            if (task != null && !task.isCancelled()) {
+                task.cancel(true);
+            }
+        }
+
+        receivedStatuses.evictAll();
+
+        notifier.release();
+        userUpdateDelayer.shutdown();
+
+        AutoReleaser.release(this);
+    }
+
+    private CentralDatabase getDatabase() {
+        return service == null ? null : service.getDatabase();
+    }
+
+    public HashCache getHashCache() {
+        return hashCache;
+    }
+
+    public ArrayList<AuthUserRecord> getActiveUsers() {
+        ArrayList<AuthUserRecord> activeUsers = new ArrayList<>();
+        for (StreamUser su : streamUsers) {
+            activeUsers.add(su.getUserRecord());
+        }
+        return activeUsers;
+    }
+
+    public int getStreamUsersCount() {
+        return streamUsers.size();
+    }
+
+    //<editor-fold desc="Connectivity">
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public void start() {
+        Log.d(LOG_TAG, "call start");
+
+        for (StreamUser u : streamUsers) {
+            u.start();
+        }
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().start();
+        }
+
+        isStarted = true;
+    }
+
+    public void stop() {
+        Log.d(LOG_TAG, "call stop");
+
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().stop();
+        }
+        for (StreamUser su : streamUsers) {
+            su.stop();
+        }
+
+        isStarted = false;
+    }
+
+    public void startAsync() {
+        ParallelAsyncTask.executeParallel(this::start);
+    }
+
+    public void stopAsync() {
+        ParallelAsyncTask.executeParallel(this::stop);
+    }
+
+    public void shutdownAll() {
+        Log.d(LOG_TAG, "call shutdownAll");
+
+        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
+            e.getValue().stop();
+        }
+        for (StreamUser su : streamUsers) {
+            su.stop();
+        }
+
+        release();
+    }
+
+    public void startUserStream(AuthUserRecord userRecord) {
+        StreamUser su = new StreamUser(context, userRecord);
+        su.setListener(listener);
+        streamUsers.add(su);
+        if (isStarted) {
+            su.start();
+        }
+    }
+
+    public void stopUserStream(AuthUserRecord userRecord) {
+        for (Iterator<StreamUser> iterator = streamUsers.iterator(); iterator.hasNext(); ) {
+            StreamUser su = iterator.next();
+            if (su.getUserRecord().equals(userRecord)) {
+                su.stop();
+                iterator.remove();
+                break;
+            }
+        }
+    }
+
+    public void startFilterStream(String query, AuthUserRecord manager) {
+        FilterStream filterStream = FilterStream.getInstance(context, manager);
+        filterStream.setListener(listener);
+        filterStream.addQuery(query);
+        filterMap.put(manager, filterStream);
+        if (isStarted) {
+            if (1 < filterStream.getQueryCount()) {
+                // 再起動
+                filterStream.stop();
+            }
+            filterStream.start();
+            showToast("Start FilterStream:" + query);
+        }
+    }
+
+    public void stopFilterStream(String query, AuthUserRecord manager) {
+        if (filterMap.containsKey(manager)) {
+            FilterStream filterStream = filterMap.get(manager);
+            filterStream.stop();
+            filterStream.removeQuery(query);
+            if (0 < filterStream.getQueryCount()) {
+                // 再起動
+                filterStream.start();
+            } else {
+                filterMap.remove(manager);
+            }
+            showToast("Stop FilterStream:" + query);
+        }
+    }
+
+    public void reconnectAsync() {
+        SimpleAsyncTask.execute(() -> {
+            for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
+                e.getValue().stop();
+                e.getValue().start();
+            }
+
+            for (final StreamUser su : streamUsers) {
+                su.stop();
+                su.start();
+            }
+        });
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="Subscribe">
+    public void addStatusListener(final StatusListener l) {
+        if (statusListeners != null && !statusListeners.syncReturn(s -> s.contains(l))){
+            statusListeners.sync(s -> s.add(l));
+            Log.d("TwitterService", "Added StatusListener : " + l.getSubscribeIdentifier());
+            if (statusBuffer.syncReturn(s -> s.containsKey(l.getSubscribeIdentifier()))) {
+                Queue<EventBuffer> eventBuffers = statusBuffer.syncReturn(s -> s.get(l.getSubscribeIdentifier())).second;
+                statusBuffer.sync(s -> s.remove(l.getSubscribeIdentifier()));
+                Log.d("TwitterService", "SubID:" + l.getSubscribeIdentifier() + " -> バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
+                while (!eventBuffers.isEmpty()) {
+                    eventBuffers.poll().sendBufferedEvent(l);
+                }
+            } else {
+                Integer size = updateBuffer.syncReturn(List::size);
+                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", size));
+                updateBuffer.sync(u -> {
+                    for (EventBuffer eventBuffer : u) {
+                        eventBuffer.sendBufferedEvent(l);
+                    }
+                });
+            }
+        }
+    }
+
+    public void removeStatusListener(final StatusListener l) {
+        if (statusListeners != null && statusListeners.syncReturn(s -> s.contains(l))) {
+            statusListeners.sync(s -> s.remove(l));
+            Log.d("TwitterService", "Removed StatusListener : " + l.getSubscribeIdentifier());
+            statusBuffer.sync(s -> s.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedBlockingQueue<>())));
+        }
+    }
+    //</editor-fold>
+
+    private void showToast(final String text) {
+        handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());
+    }
+
+    public static LruCache<Long, PreformedStatus> getReceivedStatuses() {
+        return receivedStatuses;
+    }
+
+    public void onWipe() {
+        if (listener != null) {
+            for (StreamUser streamUser : streamUsers) {
+                listener.onWipe(streamUser);
+            }
+            for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
+                listener.onWipe(entry.getValue());
+            }
+        }
+    }
+
+    public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
+        this.autoMuteConfigs = autoMuteConfigs;
+        autoMutePatternCache.clear();
+        for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
+            if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
+                try {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), Pattern.compile(autoMuteConfig.getQuery()));
+                } catch (PatternSyntaxException e) {
+                    autoMutePatternCache.put(autoMuteConfig.getId(), null);
+                }
+            }
+        }
+    }
+
+    public void loadQuotedEntities(PreformedStatus preformedStatus) {
+        @Value class Params {
+            long id;
+            AuthUserRecord userRecord;
+        }
+
+        for (Long id : preformedStatus.getQuoteEntities()) {
+            if (receivedStatuses.get(id) == null) {
+                new TwitterAsyncTask<Params>(context) {
+
+                    @Override
+                    protected TwitterException doInBackground(@NotNull Params... params) {
+                        AuthUserRecord userRecord = params[0].getUserRecord();
+                        Twitter twitter = service.getTwitter(userRecord);
+                        if (twitter != null) {
+                            try {
+                                twitter4j.Status s = twitter.showStatus(params[0].getId());
+                                receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return e;
+                            }
+                        }
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(TwitterException e) {
+                        for (StreamUser streamUser : streamUsers) {
+                            listener.onForceUpdateUI(streamUser);
+                        }
+                        for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
+                            listener.onForceUpdateUI(entry.getValue());
+                        }
+                    }
+                }.executeParallel(new Params(id, preformedStatus.getRepresentUser()));
+            }
+        }
+    }
+
+    /**
+     * 非同期RESTリクエストを開始します。結果はストリーミングと同一のインターフェースで配信されます。
+     * @param restTag 通信結果の配信用タグ
+     * @param userRecord 使用するアカウント
+     * @param query RESTリクエストクエリ
+     * @param pagingMaxId {@link Paging#maxId} に設定する値、負数の場合は設定しない
+     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
+     * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
+     * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
+     */
+    public long requestRestQuery(@NonNull final String restTag,
+                                 @NonNull final AuthUserRecord userRecord,
+                                 @NonNull final RestQuery query,
+                                 final long pagingMaxId,
+                                 final boolean appendLoadMarker,
+                                 final String loadMarkerTag) {
+        final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
+        final long taskKey = System.currentTimeMillis();
+        ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
+            private TwitterException exception;
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, restTag, query.getClass().getName()));
+
+                Stream stream = new RestStream(context, userRecord, restTag);
+                Twitter twitter = service.getTwitter(userRecord);
+                if (twitter == null) {
+                    return null;
+                }
+
+                try {
+                    Paging paging = new Paging();
+                    if (!isNarrowMode) paging.setCount(60);
+                    if (-1 < pagingMaxId) paging.setMaxId(pagingMaxId);
+
+                    List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
+                    if (responseList == null) {
+                        responseList = new ArrayList<>();
+                    }
+                    if (appendLoadMarker) {
+                        LoadMarkerStatus markerStatus;
+
+                        if (responseList.isEmpty()) {
+                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId, loadMarkerTag);
+                        } else {
+                            twitter4j.Status last = responseList.get(responseList.size() - 1);
+                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId, loadMarkerTag);
+                        }
+
+                        responseList.add(0, markerStatus);
+                    }
+
+                    if (isCancelled()) return null;
+
+                    // StreamManagerに流す
+                    for (twitter4j.Status status : responseList) {
+                        listener.onStatus(stream, status);
+                    }
+
+                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size()));
+                } catch (TwitterException e) {
+                    e.printStackTrace();
+                    exception = e;
+                } finally {
+                    listener.onRestCompleted(stream, taskKey);
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void result) {
+                workingRestQueries.remove(taskKey);
+                if (exception != null) {
+                    switch (exception.getStatusCode()) {
+                        case 429:
+                            Toast.makeText(context,
+                                    String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
+                                            userRecord.ScreenName,
+                                            exception.getRateLimitStatus().getSecondsUntilReset() / 60,
+                                            exception.getRateLimitStatus().getSecondsUntilReset() % 60),
+                                    Toast.LENGTH_SHORT).show();
+                            break;
+                        default:
+                            String template;
+                            if (exception.isCausedByNetworkIssue()) {
+                                template = "[@%s]\n通信エラー: %d:%d\n%s";
+                            } else {
+                                template = "[@%s]\nエラー: %d:%d\n%s";
+                            }
+                            Toast.makeText(context,
+                                    String.format(template,
+                                            userRecord.ScreenName,
+                                            exception.getStatusCode(),
+                                            exception.getErrorCode(),
+                                            exception.getErrorMessage()),
+                                    Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                }
+            }
+        };
+        task.executeParallel();
+        workingRestQueries.put(taskKey, task);
+        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, restTag));
+
+        return taskKey;
+    }
+
+    /**
+     * 非同期RESTリクエストの実行状態を取得します。
+     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, RestQuery, long, boolean, String)} の返り値
+     * @return 実行中かつ中断されていなければ true
+     */
+    public boolean isWorkingRestQuery(long taskKey) {
+        return workingRestQueries.containsKey(taskKey) && !workingRestQueries.get(taskKey).isCancelled();
+    }
+
+    /**
+     * 参照をラップし、同期操作を行う機能を提供します。
+     * @param <T> 参照の型
+     */
+    private static class SyncReference<T> {
+        private final Object mutex = this;
+        private T reference;
+
+        public SyncReference(T reference) {
+            this.reference = reference;
+        }
+
+        /**
+         * ラップされている参照を取得します。<b>このメソッドは同期化されません。</b>
+         * @return ラップされている参照
+         */
+        public T getReference() {
+            return reference;
+        }
+
+        /**
+         * ラップされている参照に対して、関数型インターフェースを適用します。
+         * @param lambda 適用する関数
+         */
+        public void sync(Consumer<T> lambda) {
+            synchronized (mutex) {
+                lambda.accept(reference);
+            }
+        }
+
+        /**
+         * ラップされている参照に対して関数型インターフェースを適用し、結果を取得します。
+         * @param lambda 適用する関数
+         * @param <Result> 結果の型
+         * @return 関数の返り値
+         */
+        public <Result> Result syncReturn(Function<T, Result> lambda) {
+            synchronized (mutex) {
+                return lambda.apply(reference);
+            }
+        }
+    }
+
+    private interface Consumer<T> {
+        void accept(T value);
+    }
+
+    private interface Function<T, R> {
+        R apply(T value);
+    }
+
+    private class StreamListenerEx implements StreamListener {
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
@@ -405,475 +859,6 @@ public class StatusManager implements Releasable {
                 }
             }
         }
-    };
-
-    private SyncReference<List<StatusListener>> statusListeners = new SyncReference<>(new ArrayList<>());
-    private SyncReference<Map<String, Pair<StatusListener, Queue<EventBuffer>>>> statusBuffer = new SyncReference<>(new HashMap<>());
-    private SyncReference<List<EventBuffer>> updateBuffer = new SyncReference<>(new ArrayList<>());
-
-    private UserUpdateDelayer userUpdateDelayer;
-
-    public StatusManager(TwitterService service) {
-        this.context = this.service = service;
-
-        this.suppressor = service.getSuppressor();
-        this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        this.handler = new Handler();
-
-        //通知マネージャの開始
-        notifier = new StatusNotifier(service);
-
-        //ハッシュタグキャッシュのロード
-        hashCache = new HashCache(context);
-
-        //遅延処理スレッドの開始
-        userUpdateDelayer = new UserUpdateDelayer(service.getDatabase());
-    }
-
-    @Override
-    public void release() {
-        streamUsers.clear();
-        statusListeners.sync(List::clear);
-        statusBuffer.sync(Map::clear);
-
-        for (ParallelAsyncTask<Void, Void, Void> task : workingRestQueries.values()) {
-            if (task != null && !task.isCancelled()) {
-                task.cancel(true);
-            }
-        }
-
-        receivedStatuses.evictAll();
-
-        notifier.release();
-        userUpdateDelayer.shutdown();
-
-        AutoReleaser.release(this);
-    }
-
-    private CentralDatabase getDatabase() {
-        return service == null ? null : service.getDatabase();
-    }
-
-    public HashCache getHashCache() {
-        return hashCache;
-    }
-
-    public ArrayList<AuthUserRecord> getActiveUsers() {
-        ArrayList<AuthUserRecord> activeUsers = new ArrayList<>();
-        for (StreamUser su : streamUsers) {
-            activeUsers.add(su.getUserRecord());
-        }
-        return activeUsers;
-    }
-
-    public int getStreamUsersCount() {
-        return streamUsers.size();
-    }
-
-    //<editor-fold desc="Connectivity">
-    public boolean isStarted() {
-        return isStarted;
-    }
-
-    public void start() {
-        Log.d(LOG_TAG, "call start");
-
-        for (StreamUser u : streamUsers) {
-            u.start();
-        }
-        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
-            e.getValue().start();
-        }
-
-        isStarted = true;
-    }
-
-    public void stop() {
-        Log.d(LOG_TAG, "call stop");
-
-        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
-            e.getValue().stop();
-        }
-        for (StreamUser su : streamUsers) {
-            su.stop();
-        }
-
-        isStarted = false;
-    }
-
-    public void startAsync() {
-        ParallelAsyncTask.executeParallel(this::start);
-    }
-
-    public void stopAsync() {
-        ParallelAsyncTask.executeParallel(this::stop);
-    }
-
-    public void shutdownAll() {
-        Log.d(LOG_TAG, "call shutdownAll");
-
-        for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
-            e.getValue().stop();
-        }
-        for (StreamUser su : streamUsers) {
-            su.stop();
-        }
-
-        release();
-    }
-
-    public void startUserStream(AuthUserRecord userRecord) {
-        StreamUser su = new StreamUser(context, userRecord);
-        su.setListener(listener);
-        streamUsers.add(su);
-        if (isStarted) {
-            su.start();
-        }
-    }
-
-    public void stopUserStream(AuthUserRecord userRecord) {
-        for (Iterator<StreamUser> iterator = streamUsers.iterator(); iterator.hasNext(); ) {
-            StreamUser su = iterator.next();
-            if (su.getUserRecord().equals(userRecord)) {
-                su.stop();
-                iterator.remove();
-                break;
-            }
-        }
-    }
-
-    public void startFilterStream(String query, AuthUserRecord manager) {
-        FilterStream filterStream = FilterStream.getInstance(context, manager);
-        filterStream.setListener(listener);
-        filterStream.addQuery(query);
-        filterMap.put(manager, filterStream);
-        if (isStarted) {
-            if (1 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.stop();
-            }
-            filterStream.start();
-            showToast("Start FilterStream:" + query);
-        }
-    }
-
-    public void stopFilterStream(String query, AuthUserRecord manager) {
-        if (filterMap.containsKey(manager)) {
-            FilterStream filterStream = filterMap.get(manager);
-            filterStream.stop();
-            filterStream.removeQuery(query);
-            if (0 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.start();
-            } else {
-                filterMap.remove(manager);
-            }
-            showToast("Stop FilterStream:" + query);
-        }
-    }
-
-    public void reconnectAsync() {
-        SimpleAsyncTask.execute(() -> {
-            for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
-                e.getValue().stop();
-                e.getValue().start();
-            }
-
-            for (final StreamUser su : streamUsers) {
-                su.stop();
-                su.start();
-            }
-        });
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="Subscribe">
-    public void addStatusListener(final StatusListener l) {
-        if (statusListeners != null && !statusListeners.syncReturn(s -> s.contains(l))){
-            statusListeners.sync(s -> s.add(l));
-            Log.d("TwitterService", "Added StatusListener : " + l.getSubscribeIdentifier());
-            if (statusBuffer.syncReturn(s -> s.containsKey(l.getSubscribeIdentifier()))) {
-                Queue<EventBuffer> eventBuffers = statusBuffer.syncReturn(s -> s.get(l.getSubscribeIdentifier())).second;
-                statusBuffer.sync(s -> s.remove(l.getSubscribeIdentifier()));
-                Log.d("TwitterService", "SubID:" + l.getSubscribeIdentifier() + " -> バッファ内に" + eventBuffers.size() + "件のツイートが保持されています.");
-                while (!eventBuffers.isEmpty()) {
-                    eventBuffers.poll().sendBufferedEvent(l);
-                }
-            } else {
-                Integer size = updateBuffer.syncReturn(List::size);
-                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", size));
-                updateBuffer.sync(u -> {
-                    for (EventBuffer eventBuffer : u) {
-                        eventBuffer.sendBufferedEvent(l);
-                    }
-                });
-            }
-        }
-    }
-
-    public void removeStatusListener(final StatusListener l) {
-        if (statusListeners != null && statusListeners.syncReturn(s -> s.contains(l))) {
-            statusListeners.sync(s -> s.remove(l));
-            Log.d("TwitterService", "Removed StatusListener : " + l.getSubscribeIdentifier());
-            statusBuffer.sync(s -> s.put(l.getSubscribeIdentifier(), Pair.create(l, new LinkedBlockingQueue<>())));
-        }
-    }
-    //</editor-fold>
-
-    private void showToast(final String text) {
-        handler.post(() -> Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT).show());
-    }
-
-    public static LruCache<Long, PreformedStatus> getReceivedStatuses() {
-        return receivedStatuses;
-    }
-
-    @SuppressWarnings("TryWithIdenticalCatches")
-    public void sendFakeBroadcast(String methodName, Class[] argTypes, Object... args) {
-        try {
-            Class[] newArgTypes = new Class[argTypes.length+1];
-            newArgTypes[0] = Stream.class;
-            System.arraycopy(argTypes, 0, newArgTypes, 1, argTypes.length);
-            Method m = listener.getClass().getMethod(methodName, newArgTypes);
-            Object[] newArgs = new Object[args.length+1];
-            System.arraycopy(args, 0, newArgs, 1, args.length);
-            for (StreamUser streamUser : streamUsers) {
-                newArgs[0] = streamUser;
-                m.invoke(listener, newArgs);
-            }
-            for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
-                newArgs[0] = entry.getValue();
-                m.invoke(listener, newArgs);
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
-        this.autoMuteConfigs = autoMuteConfigs;
-        autoMutePatternCache.clear();
-        for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
-            if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
-                try {
-                    autoMutePatternCache.put(autoMuteConfig.getId(), Pattern.compile(autoMuteConfig.getQuery()));
-                } catch (PatternSyntaxException e) {
-                    autoMutePatternCache.put(autoMuteConfig.getId(), null);
-                }
-            }
-        }
-    }
-
-    public void loadQuotedEntities(PreformedStatus preformedStatus) {
-        @Value class Params {
-            long id;
-            AuthUserRecord userRecord;
-        }
-
-        for (Long id : preformedStatus.getQuoteEntities()) {
-            if (receivedStatuses.get(id) == null) {
-                new TwitterAsyncTask<Params>(context) {
-
-                    @Override
-                    protected TwitterException doInBackground(@NotNull Params... params) {
-                        AuthUserRecord userRecord = params[0].getUserRecord();
-                        Twitter twitter = service.getTwitter(userRecord);
-                        if (twitter != null) {
-                            try {
-                                twitter4j.Status s = twitter.showStatus(params[0].getId());
-                                receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                                return e;
-                            }
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(TwitterException e) {
-                        sendFakeBroadcast("onForceUpdateUI", new Class[]{});
-                    }
-                }.executeParallel(new Params(id, preformedStatus.getRepresentUser()));
-            }
-        }
-    }
-
-    /**
-     * 非同期RESTリクエストを開始します。結果はストリーミングと同一のインターフェースで配信されます。
-     * @param restTag 通信結果の配信用タグ
-     * @param userRecord 使用するアカウント
-     * @param query RESTリクエストクエリ
-     * @param pagingMaxId {@link Paging#maxId} に設定する値、負数の場合は設定しない
-     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
-     * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
-     * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
-     */
-    public long requestRestQuery(@NonNull final String restTag,
-                                 @NonNull final AuthUserRecord userRecord,
-                                 @NonNull final RestQuery query,
-                                 final long pagingMaxId,
-                                 final boolean appendLoadMarker,
-                                 final String loadMarkerTag) {
-        final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
-        final long taskKey = System.currentTimeMillis();
-        ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
-            private TwitterException exception;
-
-            @Override
-            protected Void doInBackground(Void... params) {
-                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, restTag, query.getClass().getName()));
-
-                Stream stream = new RestStream(context, userRecord, restTag);
-                Twitter twitter = service.getTwitter(userRecord);
-                if (twitter == null) {
-                    return null;
-                }
-
-                try {
-                    Paging paging = new Paging();
-                    if (!isNarrowMode) paging.setCount(60);
-                    if (-1 < pagingMaxId) paging.setMaxId(pagingMaxId);
-
-                    List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
-                    if (responseList == null) {
-                        responseList = new ArrayList<>();
-                    }
-                    if (appendLoadMarker) {
-                        LoadMarkerStatus markerStatus;
-
-                        if (responseList.isEmpty()) {
-                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId, loadMarkerTag);
-                        } else {
-                            twitter4j.Status last = responseList.get(responseList.size() - 1);
-                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId, loadMarkerTag);
-                        }
-
-                        responseList.add(0, markerStatus);
-                    }
-
-                    if (isCancelled()) return null;
-
-                    // StreamManagerに流す
-                    for (twitter4j.Status status : responseList) {
-                        listener.onStatus(stream, status);
-                    }
-
-                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size()));
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    exception = e;
-                } finally {
-                    try {
-                        listener.getClass().getMethod("onRestCompleted", Stream.class, Long.class).invoke(listener, stream, taskKey);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Exception in reflection call", e);
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                workingRestQueries.remove(taskKey);
-                if (exception != null) {
-                    switch (exception.getStatusCode()) {
-                        case 429:
-                            Toast.makeText(context,
-                                    String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
-                                            userRecord.ScreenName,
-                                            exception.getRateLimitStatus().getSecondsUntilReset() / 60,
-                                            exception.getRateLimitStatus().getSecondsUntilReset() % 60),
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-                        default:
-                            String template;
-                            if (exception.isCausedByNetworkIssue()) {
-                                template = "[@%s]\n通信エラー: %d:%d\n%s";
-                            } else {
-                                template = "[@%s]\nエラー: %d:%d\n%s";
-                            }
-                            Toast.makeText(context,
-                                    String.format(template,
-                                            userRecord.ScreenName,
-                                            exception.getStatusCode(),
-                                            exception.getErrorCode(),
-                                            exception.getErrorMessage()),
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-                    }
-                }
-            }
-        };
-        task.executeParallel();
-        workingRestQueries.put(taskKey, task);
-        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, restTag));
-
-        return taskKey;
-    }
-
-    /**
-     * 非同期RESTリクエストの実行状態を取得します。
-     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, RestQuery, long, boolean, String)} の返り値
-     * @return 実行中かつ中断されていなければ true
-     */
-    public boolean isWorkingRestQuery(long taskKey) {
-        return workingRestQueries.containsKey(taskKey) && !workingRestQueries.get(taskKey).isCancelled();
-    }
-
-    /**
-     * 参照をラップし、同期操作を行う機能を提供します。
-     * @param <T> 参照の型
-     */
-    private static class SyncReference<T> {
-        private final Object mutex = this;
-        private T reference;
-
-        public SyncReference(T reference) {
-            this.reference = reference;
-        }
-
-        /**
-         * ラップされている参照を取得します。<b>このメソッドは同期化されません。</b>
-         * @return ラップされている参照
-         */
-        public T getReference() {
-            return reference;
-        }
-
-        /**
-         * ラップされている参照に対して、関数型インターフェースを適用します。
-         * @param lambda 適用する関数
-         */
-        public void sync(Consumer<T> lambda) {
-            synchronized (mutex) {
-                lambda.accept(reference);
-            }
-        }
-
-        /**
-         * ラップされている参照に対して関数型インターフェースを適用し、結果を取得します。
-         * @param lambda 適用する関数
-         * @param <Result> 結果の型
-         * @return 関数の返り値
-         */
-        public <Result> Result syncReturn(Function<T, Result> lambda) {
-            synchronized (mutex) {
-                return lambda.apply(reference);
-            }
-        }
-    }
-
-    private interface Consumer<T> {
-        void accept(T value);
-    }
-
-    private interface Function<T, R> {
-        R apply(T value);
     }
 
 }
