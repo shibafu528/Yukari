@@ -65,6 +65,10 @@ dependencies {
     compile 'jp.dip.totori:totoridipjp4J-android:1.0'
     compile project(':twpfparser')
 
+    // 通信
+    compile 'com.squareup.retrofit2:retrofit:2.2.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.2.0'
+
     // プラグインシステム
     compile project(':yukari-exvoice')
     compile 'twitter.intent:twitter-intent-core:1.0,0'
