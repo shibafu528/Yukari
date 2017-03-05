@@ -115,7 +115,7 @@ public class StatusManager implements Releasable {
     private boolean isStarted;
 
     //実行中の非同期REST
-    private Map<Long, ParallelAsyncTask<Void, Void, Void>> workingRestQueries = new HashMap<>();
+    private LongSparseArray<ParallelAsyncTask<Void, Void, Void>> workingRestQueries = new LongSparseArray<>();
 
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<>();
@@ -151,7 +151,11 @@ public class StatusManager implements Releasable {
         statusListeners.sync(List::clear);
         statusBuffer.sync(Map::clear);
 
-        for (ParallelAsyncTask<Void, Void, Void> task : workingRestQueries.values()) {
+        int workingCount = workingRestQueries.size();
+        for (int i = 0; i < workingCount; i++) {
+            long key = workingRestQueries.keyAt(i);
+            ParallelAsyncTask<Void, Void, Void> task = workingRestQueries.get(key);
+
             if (task != null && !task.isCancelled()) {
                 task.cancel(true);
             }
@@ -523,7 +527,7 @@ public class StatusManager implements Releasable {
      * @return 実行中かつ中断されていなければ true
      */
     public boolean isWorkingRestQuery(long taskKey) {
-        return workingRestQueries.containsKey(taskKey) && !workingRestQueries.get(taskKey).isCancelled();
+        return workingRestQueries.get(taskKey) != null && !workingRestQueries.get(taskKey).isCancelled();
     }
 
     /**
