@@ -13,7 +13,6 @@ import android.util.Pair;
 import android.widget.Toast;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
-import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
@@ -373,22 +372,18 @@ public class StatusManager implements Releasable {
     }
 
     public void loadQuotedEntities(PreformedStatus preformedStatus) {
-        @Value class Params {
-            long id;
-            AuthUserRecord userRecord;
-        }
-
         for (Long id : preformedStatus.getQuoteEntities()) {
             if (receivedStatuses.get(id) == null) {
-                new TwitterAsyncTask<Params>(context) {
+                AuthUserRecord userRecord = preformedStatus.getRepresentUser();
+
+                new TwitterAsyncTask<Void>(context) {
 
                     @Override
-                    protected TwitterException doInBackground(@NotNull Params... params) {
-                        AuthUserRecord userRecord = params[0].getUserRecord();
+                    protected TwitterException doInBackground(@NotNull Void... params) {
                         Twitter twitter = service.getTwitter(userRecord);
                         if (twitter != null) {
                             try {
-                                twitter4j.Status s = twitter.showStatus(params[0].getId());
+                                twitter4j.Status s = twitter.showStatus(id);
                                 receivedStatuses.put(s.getId(), new PreformedStatus(s, userRecord));
                             } catch (TwitterException e) {
                                 e.printStackTrace();
@@ -407,7 +402,7 @@ public class StatusManager implements Releasable {
                             listener.onForceUpdateUI(entry.getValue());
                         }
                     }
-                }.executeParallel(new Params(id, preformedStatus.getRepresentUser()));
+                }.executeParallel();
             }
         }
     }
