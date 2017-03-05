@@ -147,11 +147,14 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
+    kotlinOptions {
+        apiVersion = '1.1'
+    }
 }
 
 //>>-- Kotlin --
 buildscript {
-    ext.kotlin_version = '1.0.6'
+    ext.kotlin_version = '1.1.0'
     repositories {
         mavenCentral()
     }
