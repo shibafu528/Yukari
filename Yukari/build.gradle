@@ -152,7 +152,7 @@ android {
     }
 }
 
-//>>-- Kotlin --
+// Kotlin
 buildscript {
     ext.kotlin_version = '1.1.0'
     repositories {
@@ -161,15 +161,4 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-repositories {
-    mavenCentral()
-}
-//<<-- Kotlin --
-
-retrolambda {
-    jdk System.getenv("JAVA8_HOME")
-    oldJdk System.getenv("JAVA7_HOME")
-    javaVersion JavaVersion.VERSION_1_7
-    incremental true
 }
