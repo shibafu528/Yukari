@@ -58,7 +58,9 @@ dependencies {
     // パーサ
     compile 'com.google.code.gson:gson:2.3'
     compile 'org.jsoup:jsoup:1.8.3'
-    compile 'com.google.zxing:javase:3.2.1'
+    compile 'com.google.zxing:javase:3.2.1', {
+        exclude group: 'com.beust', module: 'jcommander'
+    }
     compile 'com.twitter:twitter-text:1.13.0'
     compile 'jp.dip.totori:totoridipjp4J-android:1.0'
     compile project(':twpfparser')
@@ -107,7 +109,6 @@ android {
         minSdkVersion 14
         targetSdkVersion 22
 
-        multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
 
         ndk {
@@ -134,8 +135,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }

@@ -16,6 +16,9 @@
 #   public *;
 #}
 
+# 難読化しない
+-dontobfuscate
+
 # Retrolambda
 -dontwarn java.lang.invoke.*
 
@@ -24,3 +27,25 @@
 -dontwarn retrofit2.Platform$Java8
 -keepattributes Signature
 -keepattributes Exceptions
+
+# OkHttp
+-dontwarn okhttp3.**
+
+# Okio
+-dontwarn okio.**
+
+# Twitter4J
+-dontwarn twitter4j.**
+-keep class twitter4j.** { *; }
+
+# Zxing
+-dontwarn com.google.zxing.**
+
+# Lombok
+-dontwarn java.beans.ConstructorProperties
+
+# Yukari
+-keep class shibafu.yukari.** { *; }
+
+# Yukari exvoice
+-keep class info.shibafu528.yukari.exvoice.** { *; }
