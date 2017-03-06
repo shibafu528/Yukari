@@ -47,12 +47,10 @@ dependencies {
 
     // Twitter4J
 //    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-//    compile "org.twitter4j:twitter4j-async:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
     compile "com.github.takke.twitter4j:twitter4j-core:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-async:master_based_dev-SNAPSHOT"
     compile "com.github.takke.twitter4j:twitter4j-media-support:master_based_dev-SNAPSHOT"
     compile "com.github.takke.twitter4j:twitter4j-stream:master_based_dev-SNAPSHOT"
     compile "com.github.takke.twitter4j:twitter4j-http2-support:master_based_dev-SNAPSHOT"
