@@ -29,9 +29,10 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.Unbinder;
 import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 import com.google.gson.Gson;
@@ -294,15 +295,16 @@ public class MuteActivity extends ActionBarYukariBase{
         private final SimpleDateFormat dfTime = new SimpleDateFormat("HH:mm");
         private long expirationTimeMillis = -1;
 
-        @InjectView(R.id.etMuteTarget) EditText query;
-        @InjectView(R.id.spMuteTarget) Spinner spTarget;
-        @InjectView(R.id.spMuteMatch) Spinner spMatch;
-        @InjectView(R.id.spMuteErase) Spinner spErase;
-        @InjectView(R.id.btnMuteExpr) ImageButton btnExpire;
-        @InjectView(R.id.llMuteExprNever) LinearLayout llExprNever;
-        @InjectView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
-        @InjectView(R.id.etMuteExprDate) EditText exprDate;
-        @InjectView(R.id.etMuteExprTime) EditText exprTime;
+        @BindView(R.id.etMuteTarget) EditText query;
+        @BindView(R.id.spMuteTarget) Spinner spTarget;
+        @BindView(R.id.spMuteMatch) Spinner spMatch;
+        @BindView(R.id.spMuteErase) Spinner spErase;
+        @BindView(R.id.btnMuteExpr) ImageButton btnExpire;
+        @BindView(R.id.llMuteExprNever) LinearLayout llExprNever;
+        @BindView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
+        @BindView(R.id.etMuteExprDate) EditText exprDate;
+        @BindView(R.id.etMuteExprTime) EditText exprTime;
+        private Unbinder unbinder;
 
         public static MuteConfigDialogFragment newInstance(MuteConfig config, Fragment target) {
             MuteConfigDialogFragment dialogFragment = new MuteConfigDialogFragment();
@@ -320,7 +322,7 @@ public class MuteActivity extends ActionBarYukariBase{
                     PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").equals("light")) {
                 v.setBackgroundColor(Color.WHITE);
             }
-            ButterKnife.inject(this, v);
+            unbinder = ButterKnife.bind(this, v);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
@@ -375,7 +377,7 @@ public class MuteActivity extends ActionBarYukariBase{
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
-            ButterKnife.reset(this);
+            unbinder.unbind();
         }
 
         private void updateExpire() {

@@ -8,6 +8,10 @@ import android.support.v4.app.FragmentActivity;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import shibafu.yukari.R;
+import shibafu.yukari.common.FontAsset;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,27 +19,22 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import shibafu.yukari.R;
-import shibafu.yukari.common.FontAsset;
-
 /**
  * Created by Shibafu on 13/08/07.
  */
 public class AssetExtractActivity extends FragmentActivity{
 
-    @InjectView(R.id.progressBar)
+    @BindView(R.id.progressBar)
     ProgressBar progressBar;
 
-    @InjectView(R.id.tvProgress)
+    @BindView(R.id.tvProgress)
     TextView progressText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_asset);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (savedInstanceState == null) {
             class Progress {

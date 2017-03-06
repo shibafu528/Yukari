@@ -21,8 +21,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
@@ -70,8 +70,8 @@ public class PreviewActivity extends FragmentYukariBase {
 
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
-    @InjectView(R.id.ivPreviewImage) ImageView imageView;
-    @InjectView(R.id.inclPreviewStatus) View tweetView;
+    @BindView(R.id.ivPreviewImage) ImageView imageView;
+    @BindView(R.id.inclPreviewStatus) View tweetView;
     private PreformedStatus status;
     private AuthUserRecord user;
 
@@ -81,11 +81,11 @@ public class PreviewActivity extends FragmentYukariBase {
     private int displayHeight;
     private TweetAdapterWrap.ViewConverter viewConverter;
 
-    @InjectView(R.id.tvPreviewProgress) TextView loadProgressText;
-    @InjectView(R.id.tvPreviewProgress2) TextView loadProgressText2;
+    @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
+    @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
 
-    @InjectView(R.id.llQrText) LinearLayout llQrText;
-    @InjectView(R.id.tvQrText) TextView tvQrText;
+    @BindView(R.id.llQrText) LinearLayout llQrText;
+    @BindView(R.id.tvQrText) TextView tvQrText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +108,7 @@ public class PreviewActivity extends FragmentYukariBase {
 
         user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);

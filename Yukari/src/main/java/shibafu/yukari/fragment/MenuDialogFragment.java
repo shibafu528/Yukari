@@ -27,8 +27,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindViews;
 import butterknife.ButterKnife;
-import butterknife.InjectViews;
+import butterknife.Unbinder;
 import com.google.gson.Gson;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -66,7 +67,7 @@ public class MenuDialogFragment extends DialogFragment {
 
     private static final int ACCOUNT_ICON_DIP = 32;
 
-    @InjectViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
+    @BindViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
     List<View> pluginViews;
 
     private MenuPlugin[] plugins = new MenuPlugin[3];
@@ -80,6 +81,7 @@ public class MenuDialogFragment extends DialogFragment {
     private ArrayList<AuthUserRecord> activeAccounts;
 
     private ImageView keepScreenOnImage;
+    private Unbinder unbinder;
 
     @Override
     public void onAttach(Activity activity) {
@@ -244,8 +246,8 @@ public class MenuDialogFragment extends DialogFragment {
             ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
         });
 
-        ButterKnife.inject(this, v);
-        ButterKnife.apply(pluginViews, (view, index) -> {
+        unbinder = ButterKnife.bind(this, v);
+        ButterKnife.apply(pluginViews, (ButterKnife.Action<? super View>) (view, index) -> {
             view.setOnClickListener(v1 -> {
                 Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
                 startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
@@ -270,7 +272,7 @@ public class MenuDialogFragment extends DialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.reset(this);
+        unbinder.unbind();
     }
 
     private void updatePlugin(int index, MenuPlugin plugin) {

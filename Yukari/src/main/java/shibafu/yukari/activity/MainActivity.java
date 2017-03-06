@@ -38,8 +38,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import shibafu.yukari.R;
@@ -108,12 +108,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
     private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
     private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
-    @InjectView(R.id.tvMainTab)     TextView tvTabText;
-    @InjectView(R.id.pager)         ViewPager viewPager;
-    @InjectView(R.id.ibClose)       ImageButton ibClose;
-    @InjectView(R.id.ibStream)      ImageButton ibStream;
-    @InjectView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
-    @InjectView(R.id.streamState)   TriangleView tvStreamState;
+    @BindView(R.id.tvMainTab)     TextView tvTabText;
+    @BindView(R.id.pager)         ViewPager viewPager;
+    @BindView(R.id.ibClose)       ImageButton ibClose;
+    @BindView(R.id.ibStream)      ImageButton ibStream;
+    @BindView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
+    @BindView(R.id.streamState)   TriangleView tvStreamState;
 
     private LongSparseArray<WeakReference<TwitterListFragment>> tabRegistry = new LongSparseArray<>();
 
@@ -121,12 +121,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private InputMethodManager imm;
     private boolean enableQuickPost = true;
     private AuthUserRecord selectedAccount;
-    @InjectView(R.id.llQuickTweet)  LinearLayout llQuickTweet;
-    @InjectView(R.id.ibAccount)     ImageButton ibSelectAccount;
-    @InjectView(R.id.etTweetInput)  EditText etTweet;
+    @BindView(R.id.llQuickTweet)  LinearLayout llQuickTweet;
+    @BindView(R.id.ibAccount)     ImageButton ibSelectAccount;
+    @BindView(R.id.etTweetInput)  EditText etTweet;
 
     //投稿ボタン関連
-    @InjectView(R.id.tweetbutton_frame) FrameLayout flTweet;
+    @BindView(R.id.tweetbutton_frame) FrameLayout flTweet;
 
     private TabPagerAdapter tabPagerAdapter;
 
@@ -183,7 +183,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private void findViews() {
         decorView = getWindow().getDecorView();
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         View flStreamState = findViewById(R.id.flStreamState);
         flStreamState.setOnClickListener(v -> {

@@ -1,6 +1,5 @@
 package shibafu.yukari.activity;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +12,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,20 +25,19 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import java.util.List;
-
-import butterknife.ButterKnife;
-import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
+
+import java.util.List;
 
 /**
  * Created by shibafu on 14/04/22.
@@ -257,8 +256,9 @@ public class AutoMuteActivity extends ActionBarYukariBase{
     }
 
     public static class AutoMuteConfigDialogFragment extends DialogFragment {
-        @InjectView(R.id.etMuteTarget) EditText query;
-        @InjectView(R.id.spMuteMatch) Spinner spMatch;
+        @BindView(R.id.etMuteTarget) EditText query;
+        @BindView(R.id.spMuteMatch) Spinner spMatch;
+        private Unbinder unbinder;
 
         public static AutoMuteConfigDialogFragment newInstance(AutoMuteConfig config, Fragment target) {
             AutoMuteConfigDialogFragment dialogFragment = new AutoMuteConfigDialogFragment();
@@ -276,7 +276,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                     PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").equals("light")) {
                 v.setBackgroundColor(Color.WHITE);
             }
-            ButterKnife.inject(this, v);
+            unbinder = ButterKnife.bind(this, v);
 
             AutoMuteConfig config = (AutoMuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
@@ -316,7 +316,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
-            ButterKnife.reset(this);
+            unbinder.unbind();
         }
     }
 

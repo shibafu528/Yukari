@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -24,15 +24,15 @@ import java.util.List;
  * Created by shibafu on 15/03/31.
  */
 public class BookmarkRepairActivity extends ActionBarYukariBase {
-    @InjectView(R.id.textView)      TextView    textView;
-    @InjectView(R.id.tvProgress)    TextView    progressLabel;
-    @InjectView(R.id.progressBar)   ProgressBar progressBar;
+    @BindView(R.id.textView)      TextView    textView;
+    @BindView(R.id.tvProgress)    TextView    progressLabel;
+    @BindView(R.id.progressBar)   ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_asset);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
         textView.setText("破損したブックマークを修復しています...");
         progressLabel.setText("0 破損していたブックマーク\n0 修復成功\n0 エラー");
         progressBar.setIndeterminate(true);

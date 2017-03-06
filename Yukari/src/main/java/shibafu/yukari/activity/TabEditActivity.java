@@ -1,6 +1,5 @@
 package shibafu.yukari.activity;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -11,10 +10,21 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
-import android.view.*;
-import android.widget.*;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
@@ -366,12 +376,12 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         }
 
         static class ViewHolder {
-            @InjectView(android.R.id.text1) TextView text;
-            @InjectView(R.id.handle) View handle;
-            @InjectView(R.id.radio) RadioButton radioButton;
+            @BindView(android.R.id.text1) TextView text;
+            @BindView(R.id.handle) View handle;
+            @BindView(R.id.radio) RadioButton radioButton;
 
             ViewHolder(View v) {
-                ButterKnife.inject(this, v);
+                ButterKnife.bind(this, v);
             }
         }
     }

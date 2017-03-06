@@ -7,8 +7,8 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.TextView;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import info.shibafu528.yukari.exvoice.MRuby;
 import shibafu.yukari.R;
@@ -29,10 +29,10 @@ import java.util.List;
  */
 public class QueryEditorActivity extends ActionBarYukariBase {
 
-    @InjectView(R.id.etQuery)
+    @BindView(R.id.etQuery)
     EditText query;
 
-    @InjectView(R.id.tvStatus)
+    @BindView(R.id.tvStatus)
     TextView compileStatus;
 
     private Handler handler = new Handler();
@@ -41,7 +41,7 @@ public class QueryEditorActivity extends ActionBarYukariBase {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_query);
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
             query.setText(getIntent().getStringExtra(Intent.EXTRA_TEXT));

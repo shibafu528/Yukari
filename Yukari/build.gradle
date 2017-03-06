@@ -75,7 +75,8 @@ dependencies {
     }
 
     // Annotation Processor
-    compile 'com.jakewharton:butterknife:5.1.2' // TODO: ButterKnife 7がリリースされている。 http://qiita.com/yyaammaa/items/408bc3fe429175fd74ff
+    compile 'com.jakewharton:butterknife:8.5.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
     provided 'org.projectlombok:lombok:1.16.4'
     compile project(':yukari-processor-runtime')
     annotationProcessor project(':yukari-processor')

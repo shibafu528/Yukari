@@ -14,8 +14,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.Unbinder;
 import info.shibafu528.twpfparser.TwiProfile;
 import info.shibafu528.twpfparser.TwiProfileFactory;
 import shibafu.yukari.R;
@@ -76,17 +77,18 @@ public class TwpfActivity extends ActionBarYukariBase {
 
         private TwiProfile profile;
 
-        @InjectView(R.id.ivProfileIcon)         ImageView ivProfileIcon;
-        @InjectView(R.id.tvProfileName)         TextView  tvName;
-        @InjectView(R.id.tvProfileScreenName)   TextView  tvScreenName;
-        @InjectView(R.id.tvProfileBio)          TextView  tvDescription;
-        @InjectView(R.id.tvProfileLongBio)      TextView  tvLongDescription;
-        @InjectView(R.id.tvProfileLocation)     TextView  tvLocation;
-        @InjectView(R.id.tvProfileWeb)          TextView  tvWeb;
-        @InjectView(R.id.tvProfilePersonalTags) TextView  tvPersonalTags;
-        @InjectView(R.id.tvProfileLike)         TextView  tvLikeTags;
-        @InjectView(R.id.tvProfileDislike)      TextView  tvDislikeTags;
-        @InjectView(R.id.tvProfileFreeTags)     TextView  tvFreeTags;
+        @BindView(R.id.ivProfileIcon)         ImageView ivProfileIcon;
+        @BindView(R.id.tvProfileName)         TextView  tvName;
+        @BindView(R.id.tvProfileScreenName)   TextView  tvScreenName;
+        @BindView(R.id.tvProfileBio)          TextView  tvDescription;
+        @BindView(R.id.tvProfileLongBio)      TextView  tvLongDescription;
+        @BindView(R.id.tvProfileLocation)     TextView  tvLocation;
+        @BindView(R.id.tvProfileWeb)          TextView  tvWeb;
+        @BindView(R.id.tvProfilePersonalTags) TextView  tvPersonalTags;
+        @BindView(R.id.tvProfileLike)         TextView  tvLikeTags;
+        @BindView(R.id.tvProfileDislike)      TextView  tvDislikeTags;
+        @BindView(R.id.tvProfileFreeTags)     TextView  tvFreeTags;
+        private Unbinder unbinder;
 
         public TwpfFragment() {
             setRetainInstance(true);
@@ -133,7 +135,7 @@ public class TwpfActivity extends ActionBarYukariBase {
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_twpf, container, false);
-            ButterKnife.inject(this, v);
+            unbinder = ButterKnife.bind(this, v);
             if (profile != null) {
                 updateView();
             }
@@ -143,7 +145,7 @@ public class TwpfActivity extends ActionBarYukariBase {
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            ButterKnife.reset(this);
+            unbinder.unbind();
         }
 
         private boolean isNull(Object... obj) {
