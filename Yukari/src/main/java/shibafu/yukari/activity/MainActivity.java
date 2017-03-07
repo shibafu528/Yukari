@@ -278,12 +278,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
             menuDialogFragment.show(getSupportFragmentManager(), "menu");
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
-                ibMenu.setVisibility(View.GONE);
-            }
-        }
-        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+        if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
             ibMenu.setVisibility(View.GONE);
         }
 

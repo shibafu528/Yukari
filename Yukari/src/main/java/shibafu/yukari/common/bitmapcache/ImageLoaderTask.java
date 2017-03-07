@@ -59,9 +59,6 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
                     options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                        options.inPurgeable = true;
-                    }
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();

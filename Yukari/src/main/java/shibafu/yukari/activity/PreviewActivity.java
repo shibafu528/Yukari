@@ -367,11 +367,7 @@ public class PreviewActivity extends FragmentYukariBase {
                     //実際の読み込みを行う
                     fis = new FileInputStream(cacheFile);
                     options.inJustDecodeBounds = false;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB && Math.max(options.outWidth, options.outHeight) > 800) {
-                        int scaleW = options.outWidth / 800;
-                        int scaleH = options.outHeight / 800;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
-                    } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
                         int scaleW = options.outWidth / 1500;
                         int scaleH = options.outHeight / 1500;
                         options.inSampleSize = Math.max(scaleW, scaleH);
@@ -497,10 +493,6 @@ public class PreviewActivity extends FragmentYukariBase {
         ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
         ibSave.setOnClickListener(v -> {
             Uri uri = Uri.parse(mediaUrl);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
-                    "https".equals(uri.getScheme())) {
-                uri = Uri.parse(mediaUrl.replace("https://", "http://"));
-            }
             DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
@@ -516,12 +508,7 @@ public class PreviewActivity extends FragmentYukariBase {
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
             File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             pathExternalPublicDir.mkdirs();
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                request.setShowRunningNotification(true);
-            }
-            else {
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            }
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             dlm.enqueue(request);
         });
 
@@ -541,26 +528,22 @@ public class PreviewActivity extends FragmentYukariBase {
     }
 
     private void processZxing() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            llQrText.setVisibility(View.GONE);
-        } else {
+        try {
+            int[] pixels = new int[image.getWidth() * image.getHeight()];
+            image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+            LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
-                int[] pixels = new int[image.getWidth() * image.getHeight()];
-                image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-                LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
-                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
-                try {
-                    Result result = new MultiFormatReader().decode(binaryBitmap);
-                    llQrText.setVisibility(View.VISIBLE);
-                    tvQrText.setText(result.getText());
-                } catch (NotFoundException e) {
-                    llQrText.setVisibility(View.GONE);
-                }
-            } catch (OutOfMemoryError e) {
-                // そんなこともある
-                System.gc();
+                Result result = new MultiFormatReader().decode(binaryBitmap);
+                llQrText.setVisibility(View.VISIBLE);
+                tvQrText.setText(result.getText());
+            } catch (NotFoundException e) {
                 llQrText.setVisibility(View.GONE);
             }
+        } catch (OutOfMemoryError e) {
+            // そんなこともある
+            System.gc();
+            llQrText.setVisibility(View.GONE);
         }
     }
 

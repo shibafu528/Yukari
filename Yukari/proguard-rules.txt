@@ -44,6 +44,9 @@
 # Lombok
 -dontwarn java.beans.ConstructorProperties
 
+# Support Lib
+-keep class android.support.v7.widget.** { *; }
+
 # Yukari
 -keep class shibafu.yukari.** { *; }
 

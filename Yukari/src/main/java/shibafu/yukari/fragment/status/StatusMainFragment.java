@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -436,44 +435,42 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
+        final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
 
-            ObjectAnimator.ofPropertyValuesHolder(ibReply,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, delta / 2),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibQuote,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibShare,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, (delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-        }
+        ObjectAnimator.ofPropertyValuesHolder(ibReply,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta / 2),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibQuote,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibShare,
+                PropertyValuesHolder.ofFloat("translationX", 0f, (delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
     }
 
     @Override

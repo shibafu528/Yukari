@@ -2,7 +2,6 @@ package shibafu.yukari.twitter.statusmanager;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -67,16 +66,7 @@ import java.util.regex.PatternSyntaxException;
  * Created by shibafu on 14/03/08.
  */
 public class StatusManager implements Releasable {
-    static {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            // アタシポンコツアンドロイド
-            receivedStatuses = new LruCache<>(128);
-        } else {
-            receivedStatuses = new LruCache<>(512);
-        }
-    }
-
-    private static LruCache<Long, PreformedStatus> receivedStatuses;
+    private static LruCache<Long, PreformedStatus> receivedStatuses = new LruCache<>(512);
 
     private static final boolean PUT_STREAM_LOG = false;
     private static final long RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000;

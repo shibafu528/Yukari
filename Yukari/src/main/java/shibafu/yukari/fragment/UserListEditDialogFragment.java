@@ -2,10 +2,7 @@ package shibafu.yukari.fragment;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -65,10 +62,6 @@ public class UserListEditDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_listedit, null);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB &&
-                PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").equals("light")) {
-            v.setBackgroundColor(Color.WHITE);
-        }
         unbinder = ButterKnife.bind(this, v);
 
         String title;

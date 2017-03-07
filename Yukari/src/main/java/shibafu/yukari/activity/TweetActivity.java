@@ -261,9 +261,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
 
         //ウィンドウ外のタッチで閉じないようにする
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(false);
-        }
+        setFinishOnTouchOutside(false);
 
         //Extraを取得
         final Intent args = getIntent();
