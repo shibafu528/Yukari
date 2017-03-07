@@ -145,14 +145,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    productFlavors {
-        dev {
-            minSdkVersion 21
-        }
-        prod {
-            minSdkVersion 14
-        }
-    }
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
