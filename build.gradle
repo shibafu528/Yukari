@@ -13,7 +13,7 @@ buildscript {
 allprojects {
     repositories {
         maven {
-            url 'http://192.168.11.23:8081/repository/maven-public/'
+            url 'http://192.168.11.37:8081/repository/maven-public/'
         }
         jcenter()
     }
