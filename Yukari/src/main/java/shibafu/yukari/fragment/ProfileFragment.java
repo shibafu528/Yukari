@@ -69,7 +69,9 @@ import twitter4j.User;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.regex.Pattern;
 
 /**
@@ -110,6 +112,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ProfileLoader profileLoadTask;
 
     private LoadDialogFragment currentProgress;
+
+    // Service接続前にそれを必要とする処理に当たったときに後回しにするキュー
+    private Queue<Runnable> serviceTasks = new LinkedList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -727,6 +732,12 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         if (user == null) {
             user = getTwitterService().getPrimaryUser();
         }
+        if (!serviceTasks.isEmpty()) {
+            Runnable task;
+            while ((task = serviceTasks.poll()) != null) {
+                task.run();
+            }
+        }
     }
 
     @Override
@@ -766,15 +777,22 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
 
             if (id >= -1) {
-                List<UserExtras> userExtras = getTwitterService().getUserExtras();
-                Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
-                AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
-                if (priorityAccount != null) {
-                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
-                    menu.findItem(R.id.action_unset_priority).setVisible(true);
+                Runnable task = () -> {
+                    List<UserExtras> userExtras = getTwitterService().getUserExtras();
+                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
+                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
+                    if (priorityAccount != null) {
+                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
+                        menu.findItem(R.id.action_unset_priority).setVisible(true);
+                    } else {
+                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
+                        menu.findItem(R.id.action_unset_priority).setVisible(false);
+                    }
+                };
+                if (isTwitterServiceBound()) {
+                    task.run();
                 } else {
-                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
-                    menu.findItem(R.id.action_unset_priority).setVisible(false);
+                    serviceTasks.add(task);
                 }
             }
 
