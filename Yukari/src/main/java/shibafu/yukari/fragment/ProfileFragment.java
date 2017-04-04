@@ -17,6 +17,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -111,8 +112,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private LoadDialogFragment currentProgress;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_profile, container, false);
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         Bundle args = getArguments();
         user = (AuthUserRecord) args.getSerializable(EXTRA_USER);
@@ -122,6 +123,11 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             selfLoadId = true;
             selfLoadName = ((Uri)args.getParcelable("data")).getLastPathSegment();
         }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_profile, container, false);
 
         toolbar = (Toolbar) v.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.profile);
@@ -296,8 +302,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         .setDuration(0)
                         .start();
             }
-            Log.d(ProfileFragment.class.getSimpleName(), "verticalOffset = " + verticalOffset);
-            Log.d(ProfileFragment.class.getSimpleName(), "totalScrollRange = " + appBarLayout.getTotalScrollRange());
+//            Log.d(ProfileFragment.class.getSimpleName(), "verticalOffset = " + verticalOffset);
+//            Log.d(ProfileFragment.class.getSimpleName(), "totalScrollRange = " + appBarLayout.getTotalScrollRange());
         });
         headerLayout = v.findViewById(R.id.headerLayout);
 
@@ -310,6 +316,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
         if (savedInstanceState != null) {
             loadHolder = savedInstanceState.getParcelable("loadHolder");
+            user = (AuthUserRecord) savedInstanceState.getSerializable("user");
         }
 
         if (loadHolder != null) {
@@ -501,6 +508,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("loadHolder", loadHolder);
+        outState.putSerializable("user", user);
     }
 
     @Override

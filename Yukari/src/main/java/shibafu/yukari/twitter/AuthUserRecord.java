@@ -184,4 +184,21 @@ public class AuthUserRecord implements Serializable, DBRecord{
         }
         sessionTemporary.get(NumericId).put(key, value);
     }
+
+    @Override
+    public String toString() {
+        return "AuthUserRecord{" +
+                "NumericId=" + NumericId +
+                ", ScreenName='" + ScreenName + '\'' +
+                ", Name='" + Name + '\'' +
+                ", ProfileImageUrl='" + ProfileImageUrl + '\'' +
+                ", isPrimary=" + isPrimary +
+                ", isActive=" + isActive +
+                ", isWriter=" + isWriter +
+                ", ConsumerKey='" + ConsumerKey + '\'' +
+                ", ConsumerSecret='" + ConsumerSecret + '\'' +
+                ", Token=" + Token +
+                ", AccountColor=" + AccountColor +
+                '}';
+    }
 }
