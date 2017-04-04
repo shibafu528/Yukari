@@ -47,6 +47,10 @@
 # Support Lib
 -keep class android.support.v7.widget.** { *; }
 
+# Play Services
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
 # Yukari
 -keep class shibafu.yukari.** { *; }
 
