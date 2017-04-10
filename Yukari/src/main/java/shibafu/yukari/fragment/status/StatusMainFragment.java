@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.service.AsyncCommandService;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -604,14 +606,21 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
             ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
         } else {
+            TwitterService service = getTwitterService();
+            if (service == null) {
+                Log.d(StatusMainFragment.class.getSimpleName(), "loadProfileImage: missing service.");
+                return;
+            }
+            Twitter twitter = service.getTwitterOrPrimary(user);
+            if (twitter == null) {
+                Log.d(StatusMainFragment.class.getSimpleName(), "loadProfileImage: missing twitter instance.");
+                return;
+            }
+
             new ThrowableTwitterAsyncTask<Long, String>(this) {
                 @Override
                 protected ThrowableResult<String> doInBackground(Long... params) {
                     try {
-                        Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
-                        if (twitter == null) {
-                            return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
-                        }
                         String url = twitter.showUser(params[0]).getOriginalProfileImageURLHttps();
                         return new ThrowableResult<>(url);
                     } catch (TwitterException e) {
