@@ -1,14 +1,11 @@
 package shibafu.yukari.util;
 
-import android.content.ContentUris;
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
-import android.provider.MediaStore;
+import android.support.media.ExifInterface;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +28,7 @@ public class BitmapUtil {
     public static Bitmap resizeBitmap(Context context, Uri source, int outWidth, int outHeight, int[] sourceSize) throws IOException {
         InputStream is = context.getContentResolver().openInputStream(source);
         //Exifの回転情報を読み取る
-        int rotate = getExifRotate(context, source);
+        int rotate = getExifRotate(is);
         //情報のみのロードを行う
         BitmapFactory.Options option = new BitmapFactory.Options();
         option.inJustDecodeBounds = true;
@@ -65,42 +62,20 @@ public class BitmapUtil {
 
     /**
      * Exif情報を読み取り、回転状態の値を抽出します
-     * @param context Context
-     * @param uri 画像ファイルUri
+     * @param input 画像ファイルのストリーム
      * @return
      */
-    public static int getExifRotate(Context context, Uri uri) {
-        //Storage Access Framework経由のUriの場合は対処する
-        if (uri.toString().startsWith("content://com.android.providers.media.documents/document/")) {
-            Cursor c = context.getContentResolver().query(uri, null, null, null, null);
-            c.moveToFirst();
-            long id = Long.valueOf(c.getString(0).split(":")[1]);
-            uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-            c.close();
-        }
-
-        String dataUri;
-        if (uri.getScheme().contains("file")) {
-            dataUri = uri.toString();
-        }
-        else {
-            Cursor c = context.getContentResolver().query(uri, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-            c.moveToFirst();
-            dataUri = c.getString(0);
-        }
-
+    public static int getExifRotate(InputStream input) {
         ExifInterface exif;
         try {
-            exif = new ExifInterface(dataUri);
+            exif = new ExifInterface(input);
         } catch (IOException e) {
             e.printStackTrace();
-            return -1;
+            return 0;
         }
 
-        int rotate = Integer.valueOf(exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+        int rotate = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
         switch (rotate) {
-            case ExifInterface.ORIENTATION_NORMAL:
-                return 0;
             case ExifInterface.ORIENTATION_ROTATE_90:
                 return 90;
             case ExifInterface.ORIENTATION_ROTATE_180:
@@ -108,7 +83,7 @@ public class BitmapUtil {
             case ExifInterface.ORIENTATION_ROTATE_270:
                 return 270;
             default:
-                return -1;
+                return 0;
         }
     }
 

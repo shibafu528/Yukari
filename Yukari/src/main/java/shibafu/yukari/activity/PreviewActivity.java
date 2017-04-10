@@ -257,7 +257,7 @@ public class PreviewActivity extends FragmentYukariBase {
                 int exifRotate = 0;
                 if (url.startsWith("content://")) {
                     try {
-                        exifRotate = BitmapUtil.getExifRotate(getApplicationContext(), Uri.parse(url));
+                        exifRotate = BitmapUtil.getExifRotate(getContentResolver().openInputStream(Uri.parse(url)));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

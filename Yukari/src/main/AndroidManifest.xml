@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="84"
-    android:versionName="2.0.0.360 alpha_rev.4 (planche 170404)" >
+    android:versionCode="85"
+    android:versionName="2.0.0.361 alpha_rev.5 (planche 170410)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
