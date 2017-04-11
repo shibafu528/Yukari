@@ -4,7 +4,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="85"
-    android:versionName="2.0.0.361 alpha_rev.5 (planche 170410)" >
+    android:versionName="2.0.0.362 alpha_rev.5 (planche 170411)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />

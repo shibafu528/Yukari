@@ -1,6 +1,7 @@
 package shibafu.yukari.media;
 
 import android.util.Log;
+import nanohttpd.NanoHTTPD;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -14,8 +15,6 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import nanohttpd.NanoHTTPD;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -57,7 +56,7 @@ public class Pixiv extends LinkMedia {
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 try {
                     String s;
-                    Pattern pattern = Pattern.compile("(http://i[0-9]\\.pixiv\\.net/(?:img[0-9]{2,3}/img/[a-zA-Z0-9\\-_]+/|c/(?:600x600|64x64)/img-master/img/\\d{4}/(?:\\d{2}/){5})"+illustId+"(?:_m|_p0_master1200|_p0_square1200)\\.(?:jpg|png))");
+                    Pattern pattern = Pattern.compile("(https://i\\.pximg\\.net/(?:img[0-9]{2,3}/img/[a-zA-Z0-9\\-_]+/|c/(?:600x600|64x64)/img-master/img/\\d{4}/(?:\\d{2}/){5})"+illustId+"(?:_m|_p0_master1200|_p0_square1200)\\.(?:jpg|png))");
                     while ((s = br.readLine()) != null) {
                         Matcher m = pattern.matcher(s);
                         if (m.find()) {
