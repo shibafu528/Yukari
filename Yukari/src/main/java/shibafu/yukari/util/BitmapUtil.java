@@ -29,6 +29,8 @@ public class BitmapUtil {
         InputStream is = context.getContentResolver().openInputStream(source);
         //Exifの回転情報を読み取る
         int rotate = getExifRotate(is);
+        is.close();
+        is = context.getContentResolver().openInputStream(source);
         //情報のみのロードを行う
         BitmapFactory.Options option = new BitmapFactory.Options();
         option.inJustDecodeBounds = true;
