@@ -8,6 +8,8 @@ import android.support.annotation.Nullable;
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -16,9 +18,21 @@ import java.util.Date;
  */
 public class StringUtil {
     private final static int TOO_MANY_REPEAT = 4;
+    public static final char[] HEX_DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     public static String generateKey(String key) {
         if (key == null) return "null";
+
+        if (key.length() > 255) {
+            return generateKeyHash(key);
+        } else {
+            return generateKeySimple(key);
+        }
+    }
+
+    public static String generateKeySimple(String key) {
+        if (key == null) return "null";
+
         char[] array = key.toCharArray();
         int length = array.length;
         for (int i = 0; i < length; ++i) {
@@ -37,6 +51,24 @@ public class StringUtil {
             }
         }
         return String.valueOf(array);
+    }
+
+    public static String generateKeyHash(String key) {
+        if (key == null) return "null";
+
+        try {
+            MessageDigest instance = MessageDigest.getInstance("SHA-1");
+            byte[] digest = instance.digest(key.getBytes());
+            int length = digest.length;
+            char[] out = new char[length << 1];
+            for (int i = 0, j = 0; i < length; i++) {
+                out[j++] = HEX_DIGITS[(0xf0 & digest[i]) >>> 4];
+                out[j++] = HEX_DIGITS[0x0f & digest[i]];
+            }
+            return String.valueOf(out);
+        } catch (NoSuchAlgorithmException e) {
+            return generateKeySimple(key);
+        }
     }
 
     public static StringBuilder format02d(StringBuilder s, int num) {
