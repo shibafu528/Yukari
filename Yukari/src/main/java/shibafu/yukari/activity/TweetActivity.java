@@ -78,7 +78,10 @@ import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.text.SimpleDateFormat;
@@ -90,6 +93,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1058,8 +1062,47 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         return ivAttach;
     }
 
-    private void attachPicture(final Uri uri) {
-        AttachPicture pic = new AttachPicture();
+    private void attachPicture(Uri uri) {
+        // file:// か content://media/ 以外はきちんと扱えるか信用ならないのでコピーを取り、そちらを使うようにする
+        if (!"file".equals(uri.getScheme()) && !("content".equals(uri.getScheme()) && "media".equals(uri.getHost()))) {
+            InputStream input = null;
+            OutputStream output = null;
+            try {
+                File attachesDir = new File(getExternalFilesDir(null), "attaches");
+                if (!attachesDir.exists()) {
+                    attachesDir.mkdirs();
+                }
+                File outputFile = new File(attachesDir, UUID.randomUUID().toString());
+
+                input = getContentResolver().openInputStream(uri);
+                output = new FileOutputStream(outputFile);
+
+                byte[] buffer = new byte[4096];
+                int read;
+                while ((read = input.read(buffer, 0, buffer.length)) != -1) {
+                    output.write(buffer, 0, read);
+                }
+
+                uri = Uri.fromFile(outputFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "画像添付エラー", Toast.LENGTH_SHORT).show();
+                return;
+            } finally {
+                if (input != null) {
+                    try {
+                        input.close();
+                    } catch (IOException ignore) {}
+                }
+                if (output != null) {
+                    try {
+                        output.close();
+                    } catch (IOException ignore) {}
+                }
+            }
+        }
+
+        final AttachPicture pic = new AttachPicture();
         pic.uri = uri;
         try {
             int[] size = new int[2];
@@ -1068,7 +1111,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);
             pic.imageView.setOnLongClickListener(v -> {
-                startActivity(new Intent(Intent.ACTION_VIEW, uri, getApplicationContext(), PreviewActivity.class));
+                startActivity(new Intent(Intent.ACTION_VIEW, pic.uri, getApplicationContext(), PreviewActivity.class));
                 return true;
             });
         } catch (IOException | NullPointerException e) {
