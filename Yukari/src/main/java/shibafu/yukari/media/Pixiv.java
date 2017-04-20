@@ -2,19 +2,18 @@ package shibafu.yukari.media;
 
 import android.util.Log;
 import nanohttpd.NanoHTTPD;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/12/30.
@@ -27,13 +26,13 @@ public class Pixiv extends LinkMedia {
 
     @Override
     protected String expandMediaURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.|touch\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
+        ImageMatch matcher = new ImageMatch("^https?://(?:www\\.|touch\\.)?pixiv\\.net/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
     @Override
     protected String expandThumbURL(String browseURL) {
-        ImageMatch matcher = new ImageMatch("^http:\\/\\/(?:www\\.|touch\\.)?pixiv\\.net\\/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
+        ImageMatch matcher = new ImageMatch("^https?://(?:www\\.|touch\\.)?pixiv\\.net/member_illust\\.php\\?(?:.*)&?illust_id=(\\d+)(?:&.*)?$", "http://127.0.0.1:39339/%1");
         return matcher.getFullPageUrl(browseURL);
     }
 
@@ -48,24 +47,20 @@ public class Pixiv extends LinkMedia {
             super(39339, new File("."));
         }
 
-        private String resolveUri(String pageUrl, String illustId) {
+        private String resolveUri(String pageUrl) {
             try {
-                HttpURLConnection conn = (HttpURLConnection) new URL(pageUrl).openConnection();
-                conn.setReadTimeout(10000);
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.36 Safari/537.22");
-                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                try {
-                    String s;
-                    Pattern pattern = Pattern.compile("(https://i\\.pximg\\.net/(?:img[0-9]{2,3}/img/[a-zA-Z0-9\\-_]+/|c/(?:600x600|64x64)/img-master/img/\\d{4}/(?:\\d{2}/){5})"+illustId+"(?:_m|_p0_master1200|_p0_square1200)\\.(?:jpg|png))");
-                    while ((s = br.readLine()) != null) {
-                        Matcher m = pattern.matcher(s);
-                        if (m.find()) {
-                            return m.group(1);
-                        }
-                    }
-                } finally {
-                    br.close();
-                    conn.disconnect();
+                Document document = Jsoup.connect(pageUrl)
+                        .timeout(10000)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36")
+                        .get();
+                Element imageElement = document.select("div.img-container > a > img").first();
+                if (imageElement == null) {
+                    imageElement = document.select("div.sensored > img").first();
+                }
+                if (imageElement == null) {
+                    return null;
+                } else {
+                    return imageElement.attr("src");
                 }
             } catch (IOException ignore) {}
             return null;
@@ -75,8 +70,8 @@ public class Pixiv extends LinkMedia {
         public Response serve(String uri, String method, Properties header, Properties parms, Properties files) {
             Log.d("PixivProxy", "Uri: " + uri);
             String illustId = uri.replace("/", "");
-            String pageUri = String.format("http://www.pixiv.net/member_illust.php?illust_id=%s&mode=medium", illustId);
-            String imageUri = resolveUri(pageUri, illustId);
+            String pageUri = String.format("https://www.pixiv.net/member_illust.php?illust_id=%s&mode=medium", illustId);
+            String imageUri = resolveUri(pageUri);
             if (imageUri != null) {
                 Log.d("PixivProxy", "Resolved: " + imageUri);
                 try {
