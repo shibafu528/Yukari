@@ -117,6 +117,10 @@ public class CacheCleanerService extends IntentService {
         }
 
         File attachesDir = new File(getExternalFilesDir(null), "attaches");
+        if (!attachesDir.exists()) {
+            return;
+        }
+
         String attachesDirUri = Uri.fromFile(attachesDir).toString();
 
         // 添付として利用中のUriを抽出
@@ -125,7 +129,7 @@ public class CacheCleanerService extends IntentService {
         try {
             usingUris = Stream.of(db.getDrafts())
                     .flatMap(draft -> Stream.of(draft.getAttachedPictures()))
-                    .map(uri -> uri.toString())
+                    .map(Uri::toString)
                     .distinct()
                     .filter(uri -> uri.contains(attachesDirUri))
                     .collect(Collectors.toList());
@@ -135,7 +139,11 @@ public class CacheCleanerService extends IntentService {
 
         // 使用中でなく、かつ3日以上前のデータを削除
         long before1Day = System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS * 3;
-        for (File file : attachesDir.listFiles()) {
+        File[] files = attachesDir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
             if (file.lastModified() < before1Day) {
                 String fileUri = Uri.fromFile(file).toString();
                 if (!usingUris.contains(fileUri)) {
