@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorPrimary"
+    android:orientation="horizontal">
+
+    <shibafu.yukari.common.SelectorView
+        android:layout_width="38dp"
+        android:layout_height="match_parent"
+        android:paddingRight="4dp"
+        app:on_pressed="?attr/colorPrimaryDark"
+        app:on_focused="?attr/colorPrimaryDark">
+        <ImageButton
+            android:id="@+id/ibCloseTweet"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_close" />
+    </shibafu.yukari.common.SelectorView>
+
+    <shibafu.yukari.common.SelectorView
+        android:layout_width="32dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_vertical"
+        app:on_pressed="?attr/colorPrimaryDark"
+        app:on_focused="?attr/colorPrimaryDark">
+        <ImageButton
+            android:id="@+id/ibAccount"
+            android:background="@null"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerInside"
+            android:src="@drawable/yukatterload" />
+    </shibafu.yukari.common.SelectorView>
+
+    <EditText
+        android:id="@+id/etTweetInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="-4dp"
+        android:layout_weight="1"
+        android:paddingLeft="8dp"
+        android:textSize="18sp"
+        android:maxLines="1"/>
+
+    <shibafu.yukari.common.SelectorView
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        app:on_pressed="?attr/colorPrimaryDark"
+        app:on_focused="?attr/colorPrimaryDark">
+        <ImageButton
+            android:id="@+id/ibTweet"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_prof_tweets" />
+    </shibafu.yukari.common.SelectorView>
+</LinearLayout>
