@@ -36,9 +36,22 @@ class QuickPostFragment : Fragment() {
     @BindView(R.id.ibAccount)    lateinit var ibSelectAccount: ImageButton
     @BindView(R.id.etTweetInput) lateinit var etTweet: EditText
 
+    /**
+     * ツイート後や入力欄が空白の時にツイートボタンを押した際にセットするデフォルト文。
+     */
+    var defaultText: String? = ""
+
     private val imm by lazy { context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
     private var unbinder: Unbinder? = null
     private var selectedAccount: AuthUserRecord? = null
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        if (savedInstanceState != null) {
+            defaultText = savedInstanceState.getString("defaultText")
+            selectedAccount = savedInstanceState.getSerializable("selectedAccount") as AuthUserRecord
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view: View = inflater?.inflate(R.layout.fragment_quickpost, container, false)!!
@@ -94,6 +107,14 @@ class QuickPostFragment : Fragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        outState?.let {
+            outState.putString("defaultText", defaultText)
+            outState.putSerializable("selectedAccount", selectedAccount)
+        }
+    }
+
     @OnClick(R.id.ibCloseTweet)
     fun onClickClose() {
         if (etTweet.text.isNotEmpty()) {
@@ -118,21 +139,14 @@ class QuickPostFragment : Fragment() {
     }
 
     private fun postTweet() {
-        fun getStreamFilter(): String {
-            // TODO: なんかここにSearchListFragmentならそこからStreamFilterとるアレを
-            return ""
-        }
-
         if (selectedAccount == null) {
             showToast("アカウントが選択されていません", Toast.LENGTH_LONG)
         } else if (etTweet.text.isEmpty()) {
-            val streamFilter = getStreamFilter()
-
             // StreamFilterが取れたらそれをセット
-            if (streamFilter != "") {
-                etTweet.append(" " + streamFilter)
-            } else {
+            if (defaultText.isNullOrEmpty()) {
                 showToast("テキストが入力されていません", Toast.LENGTH_LONG)
+            } else {
+                etTweet.append(defaultText)
             }
         } else if (selectedAccount != null && CharacterUtil.count(etTweet.text.toString()) <= 140) {
             //ドラフト生成
@@ -147,9 +161,8 @@ class QuickPostFragment : Fragment() {
 
             //投稿欄を掃除する
             etTweet.setText("")
-            val streamFilter = getStreamFilter()
-            if (streamFilter != "") {
-                etTweet.append(" " + streamFilter)
+            if (!defaultText.isNullOrEmpty()) {
+                etTweet.append(defaultText)
             }
             etTweet.requestFocus()
             imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED)
