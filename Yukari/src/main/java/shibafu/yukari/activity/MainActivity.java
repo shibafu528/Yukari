@@ -76,7 +76,6 @@ import java.util.Map;
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback, QuickPostFragment.OnCloseQuickPostListener {
 
     private static final int REQUEST_OAUTH = 1;
-    private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
     private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
     private static final int REQUEST_QUERY = 8;
 
