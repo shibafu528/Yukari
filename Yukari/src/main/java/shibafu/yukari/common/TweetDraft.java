@@ -9,7 +9,6 @@ import android.text.TextUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -253,24 +252,53 @@ public class TweetDraft implements Serializable{
         }
     }
 
-    @Accessors(chain = true)
     public static class Builder {
-        @Setter private ArrayList<AuthUserRecord> writers = new ArrayList<>();
-        @Setter private String text;
-        @Setter private long dateTime = System.currentTimeMillis();
-        @Setter private long inReplyTo = -1;
-        @Setter private boolean isQuoted;
-        @Setter private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
-        @Setter private boolean useGeoLocation;
+        private ArrayList<AuthUserRecord> writers = new ArrayList<>();
+        private String text;
+        private long dateTime = System.currentTimeMillis();
+        private long inReplyTo = -1;
+        private boolean isQuoted;
+        private transient ArrayList<Uri> attachedPictures = new ArrayList<>();
+        private boolean useGeoLocation;
         private double geoLatitude;
         private double geoLongitude;
-        @Setter private boolean isPossiblySensitive;
-        @Setter private boolean isDirectMessage;
-        @Setter private boolean isFailedDelivery;
-        @Setter private String messageTarget;
+        private boolean isPossiblySensitive;
+        private boolean isDirectMessage;
+        private boolean isFailedDelivery;
+        private String messageTarget;
+
+        public Builder setWriters(ArrayList<AuthUserRecord> writers) {
+            this.writers = writers;
+            return this;
+        }
 
         public Builder addWriter(AuthUserRecord writer) {
             this.writers.add(writer);
+            return this;
+        }
+
+        public Builder setText(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public Builder setDateTime(long dateTime) {
+            this.dateTime = dateTime;
+            return this;
+        }
+
+        public Builder setInReplyTo(long inReplyTo) {
+            this.inReplyTo = inReplyTo;
+            return this;
+        }
+
+        public Builder setQuoted(boolean quoted) {
+            isQuoted = quoted;
+            return this;
+        }
+
+        public Builder setAttachedPictures(ArrayList<Uri> attachedPictures) {
+            this.attachedPictures = attachedPictures;
             return this;
         }
 
@@ -279,9 +307,34 @@ public class TweetDraft implements Serializable{
             return this;
         }
 
+        public Builder setUseGeoLocation(boolean useGeoLocation) {
+            this.useGeoLocation = useGeoLocation;
+            return this;
+        }
+
         public Builder setGeoLocation(double latitude, double longitude) {
             this.geoLatitude = latitude;
             this.geoLongitude = longitude;
+            return this;
+        }
+
+        public Builder setPossiblySensitive(boolean possiblySensitive) {
+            isPossiblySensitive = possiblySensitive;
+            return this;
+        }
+
+        public Builder setDirectMessage(boolean directMessage) {
+            isDirectMessage = directMessage;
+            return this;
+        }
+
+        public Builder setFailedDelivery(boolean failedDelivery) {
+            isFailedDelivery = failedDelivery;
+            return this;
+        }
+
+        public Builder setMessageTarget(String messageTarget) {
+            this.messageTarget = messageTarget;
             return this;
         }
 

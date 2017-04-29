@@ -17,10 +17,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
-import butterknife.BindView
-import butterknife.ButterKnife
-import butterknife.OnClick
-import butterknife.Unbinder
 import shibafu.yukari.R
 import shibafu.yukari.activity.AccountChooserActivity
 import shibafu.yukari.common.FontAsset
@@ -32,18 +28,33 @@ import shibafu.yukari.util.showToast
 import twitter4j.util.CharacterUtil
 
 class QuickPostFragment : Fragment() {
-    @BindView(R.id.ibCloseTweet) lateinit var ibCloseTweet: ImageButton
-    @BindView(R.id.ibAccount)    lateinit var ibSelectAccount: ImageButton
-    @BindView(R.id.etTweetInput) lateinit var etTweet: EditText
-
     /**
      * ツイート後や入力欄が空白の時にツイートボタンを押した際にセットするデフォルト文。
      */
     var defaultText: String? = ""
+        set(value) {
+            field = value
+            if (etTweet.text.isNullOrEmpty()) {
+                etTweet.append(value)
+            }
+        }
 
+    /**
+     * ツイートに使用するアカウント。
+     */
+    var selectedAccount: AuthUserRecord? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                ImageLoaderTask.loadProfileIcon(context.applicationContext, ibSelectAccount, value.ProfileImageUrl)
+            }
+        }
+
+    private val ibCloseTweet by lazy { view?.findViewById(R.id.ibCloseTweet) as ImageButton }
+    private val ibSelectAccount by lazy { view?.findViewById(R.id.ibAccount) as ImageButton }
+    private val ibTweet by lazy { view?.findViewById(R.id.ibTweet) as ImageButton }
+    private val etTweet by lazy { view?.findViewById(R.id.etTweetInput) as EditText }
     private val imm by lazy { context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
-    private var unbinder: Unbinder? = null
-    private var selectedAccount: AuthUserRecord? = null
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -54,15 +65,15 @@ class QuickPostFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view: View = inflater?.inflate(R.layout.fragment_quickpost, container, false)!!
-        unbinder = ButterKnife.bind(this, view)
-
-        return view
+        return inflater?.inflate(R.layout.fragment_quickpost, container, false)
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        ibCloseTweet.setOnClickListener { onClickClose() }
+        ibSelectAccount.setOnClickListener { onClickSelectAccount() }
+        ibTweet.setOnClickListener { onClickTweet() }
         etTweet.setOnKeyListener { v, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                 imm.hideSoftInputFromWindow(v.windowToken, 0)
@@ -87,21 +98,13 @@ class QuickPostFragment : Fragment() {
         etTweet.typeface = FontAsset.getInstance(context).font
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        unbinder?.unbind()
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 REQUEST_CHOOSE_ACCOUNT -> {
-                    val selectedAccount = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as AuthUserRecord
-
-                    this.selectedAccount = selectedAccount
-                    ImageLoaderTask.loadProfileIcon(context.applicationContext, ibSelectAccount, selectedAccount.ProfileImageUrl)
+                    selectedAccount = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as AuthUserRecord
                 }
             }
         }
@@ -115,7 +118,6 @@ class QuickPostFragment : Fragment() {
         }
     }
 
-    @OnClick(R.id.ibCloseTweet)
     fun onClickClose() {
         if (etTweet.text.isNotEmpty()) {
             etTweet.setText("")
@@ -127,13 +129,11 @@ class QuickPostFragment : Fragment() {
         }
     }
 
-    @OnClick(R.id.ibAccount)
     fun onClickSelectAccount() {
         val intent = Intent(context.applicationContext, AccountChooserActivity::class.java)
         startActivityForResult(intent, REQUEST_CHOOSE_ACCOUNT)
     }
 
-    @OnClick(R.id.ibTweet)
     fun onClickTweet() {
         postTweet()
     }
@@ -151,7 +151,7 @@ class QuickPostFragment : Fragment() {
         } else if (selectedAccount != null && CharacterUtil.count(etTweet.text.toString()) <= 140) {
             //ドラフト生成
             val draft = TweetDraft.Builder()
-                    .setWriters(arrayListOf(selectedAccount))
+                    .addWriter(selectedAccount)
                     .setText(etTweet.text.toString())
                     .setDateTime(System.currentTimeMillis())
                     .build()
