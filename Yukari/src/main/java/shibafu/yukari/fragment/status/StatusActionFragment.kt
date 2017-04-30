@@ -249,7 +249,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         override val label: String = resolveInfo.activityInfo.loadLabel(activity.packageManager).toString()
 
         override fun onClick() {
-            val status = this@StatusActionFragment.status ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+            val status = this@StatusActionFragment.status?.originStatus ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
 
             val intent = Intent("jp.r246.twicca.ACTION_SHOW_TWEET")
                 .addCategory(Intent.CATEGORY_DEFAULT)
