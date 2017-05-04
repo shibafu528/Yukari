@@ -4,7 +4,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="87"
-    android:versionName="2.0.0.368 alpha_rev.7 (planche 170430)" >
+    android:versionName="2.0.0.369 alpha_rev.7 (planche 170504)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -364,6 +364,9 @@
 
         <activity
             android:name=".activity.WelcomeActivity"/>
+
+        <service
+            android:name=".service.BitmapDecoderService"/>
    </application>
 
 </manifest>

@@ -1,14 +1,18 @@
 package shibafu.yukari.activity;
 
 import android.app.DownloadManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -36,6 +40,8 @@ import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.service.BitmapDecoderService;
+import shibafu.yukari.service.IBitmapDecoderService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
@@ -44,7 +50,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -63,6 +68,8 @@ public class PreviewActivity extends FragmentYukariBase {
 
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
+
+    private static final String PACKAGE_MAGICK_DECODER = "info.shibafu528.yukari.magickdecoder";
 
     private Bitmap image;
     private Matrix matrix;
@@ -357,27 +364,18 @@ public class PreviewActivity extends FragmentYukariBase {
                         }
                     }
                 }
-                try {
-                    //画像サイズを確認
-                    FileInputStream fis = new FileInputStream(cacheFile);
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeStream(fis, null, options);
-                    fis.close();
-                    //実際の読み込みを行う
-                    fis = new FileInputStream(cacheFile);
-                    options.inJustDecodeBounds = false;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
-                        int scaleW = options.outWidth / 1500;
-                        int scaleH = options.outHeight / 1500;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
-                    } else if (Math.max(options.outWidth, options.outHeight) > 2048) {
-                        int scaleW = options.outWidth / 2048;
-                        int scaleH = options.outHeight / 2048;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
+
+                // デコーダバインド待機
+                while (!bdsBound) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        return null;
                     }
-                    Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
-                    fis.close();
+                }
+
+                try {
+                    Bitmap bitmap = bitmapDecoderService.decodeFromFile(cacheFile.getAbsolutePath(), 2048);
                     if (bitmap == null) {
                         cacheFile.delete();
                         return null;
@@ -390,7 +388,7 @@ public class PreviewActivity extends FragmentYukariBase {
                         bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
                     }
                     return bitmap;
-                } catch (IOException e) {
+                } catch (RemoteException e) {
                     e.printStackTrace();
                     return null;
                 }
@@ -525,6 +523,23 @@ public class PreviewActivity extends FragmentYukariBase {
                 null,
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
+
+        // デコーダの検索
+        PackageManager pm = getPackageManager();
+        boolean foundMagickDecoder = false;
+        try {
+            pm.getPackageInfo(PACKAGE_MAGICK_DECODER, PackageManager.GET_SERVICES);
+            foundMagickDecoder = true;
+        } catch (PackageManager.NameNotFoundException ignore) {}
+
+        // デコーダのバインド
+        if (foundMagickDecoder) {
+            Intent serviceIntent = new Intent().setClassName(PACKAGE_MAGICK_DECODER, PACKAGE_MAGICK_DECODER + ".MagickDecoderService");
+            bindService(serviceIntent, bdsConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            Intent serviceIntent = new Intent(getApplicationContext(), BitmapDecoderService.class);
+            bindService(serviceIntent, bdsConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     private void processZxing() {
@@ -577,6 +592,9 @@ public class PreviewActivity extends FragmentYukariBase {
             image.recycle();
             System.gc();
         }
+
+        // デコーダのアンバインド
+        unbindService(bdsConnection);
     }
 
     private void updateMatrix() {
@@ -589,4 +607,23 @@ public class PreviewActivity extends FragmentYukariBase {
 
     @Override
     public void onServiceDisconnected() {}
+
+    //<editor-fold desc="BitmapDecoderService">
+
+    private IBitmapDecoderService bitmapDecoderService;
+    private boolean bdsBound = false;
+    private ServiceConnection bdsConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            bitmapDecoderService = IBitmapDecoderService.Stub.asInterface(service);
+            bdsBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bdsBound = false;
+        }
+    };
+
+    //</editor-fold>
 }
