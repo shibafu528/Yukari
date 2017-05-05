@@ -200,6 +200,8 @@ public class TwitterService extends Service{
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
 
         if (!users.isEmpty() && getPrimaryUser() != null) {
+            final Twitter primaryAccount = getTwitterOrPrimary(null);
+
             //Configuration, Blocks, Mutes, No-Retweetsの取得
             new TwitterAsyncTask<Void>(getApplicationContext()) {
                 @Override
@@ -207,11 +209,8 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        {
-                            Twitter primary = getTwitterOrPrimary(null);
-                            if (primary != null) {
-                                apiConfiguration = primary.getAPIConfiguration();
-                            }
+                        if (primaryAccount != null) {
+                            apiConfiguration = primaryAccount.getAPIConfiguration();
                         }
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
@@ -226,6 +225,8 @@ public class TwitterService extends Service{
                                 try {
                                     do {
                                         ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
+
+                                        if (suppressor == null) return null;
                                         suppressor.addBlockedIDs(ids.getIDs());
                                     } while (ids.hasNext());
                                 } catch (TwitterException ignored) {}
@@ -234,13 +235,18 @@ public class TwitterService extends Service{
                                     long cursor = -1;
                                     do {
                                         ids = twitter.getMutesIDs(cursor);
+
+                                        if (suppressor == null) return null;
                                         suppressor.addMutedIDs(ids.getIDs());
+
                                         cursor = ids.getNextCursor();
                                     } while (ids.hasNext());
                                 } catch (TwitterException ignored) {}
 
                                 try {
                                     ids = twitter.getNoRetweetsFriendships();
+
+                                    if (suppressor == null) return null;
                                     suppressor.addNoRetweetIDs(ids.getIDs());
                                 } catch (TwitterException ignored) {}
                             }
