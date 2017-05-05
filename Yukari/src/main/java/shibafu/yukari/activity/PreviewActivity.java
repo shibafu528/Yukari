@@ -594,7 +594,10 @@ public class PreviewActivity extends FragmentYukariBase {
         }
 
         // デコーダのアンバインド
-        unbindService(bdsConnection);
+        if (bdsBound) {
+            unbindService(bdsConnection);
+            bdsBound = false;
+        }
     }
 
     private void updateMatrix() {
