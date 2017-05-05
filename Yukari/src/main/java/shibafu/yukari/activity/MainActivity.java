@@ -93,6 +93,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
+    private int currentPageIndex = -1;
     private TwitterListFragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
@@ -414,7 +415,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         if (currentPage != null && currentPage.isAdded()) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
-        outState.putInt("currentId", viewPager.getCurrentItem());
+        outState.putInt("currentPageIndex", currentPageIndex);
         outState.putSerializable("tabinfo", pageList);
 
         Log.d("MainActivity", "call onSaveInstanceState");
@@ -428,6 +429,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         keepScreenOn = savedInstanceState.getBoolean("screen");
         immersive = savedInstanceState.getBoolean("immersive");
         currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
+        currentPageIndex = savedInstanceState.getInt("currentPageIndex");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         if (pageList == null) {
             pageList = new ArrayList<>();
@@ -439,6 +441,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onDestroy() {
         super.onDestroy();
         currentPage = null;
+        currentPageIndex = -1;
         tabPagerAdapter = null;
         viewPager = null;
         sharedPreferences = null;
@@ -677,7 +680,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     private void initTabs(boolean reload) {
-        int pageId = 0;
+        int pageId = currentPageIndex;
         if (reload) {
             pageList.clear();
 
@@ -688,11 +691,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     pageId = i;
                 }
             }
-        } else for (int i = 0; i < pageList.size(); ++i) {
-            if (pageList.get(i).getId() == currentPage.getTabId()) {
-                pageId = i;
-                break;
-            }
+        }
+        if (pageId < 0) {
+            pageId = 0;
         }
 
         tabPagerAdapter.notifyDataSetChanged();
@@ -715,6 +716,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         tvTabText.setText(tabInfo.getTitle());
         currentPage = tabPagerAdapter.instantiateItem(position);
+        currentPageIndex = position;
 
         if (currentPage != null) {
             if (currentPage.isCloseable()) {
