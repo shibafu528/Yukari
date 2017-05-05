@@ -31,7 +31,7 @@ dependencies {
     compile "com.android.support:support-v4:$supportLibVersion"
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:exifinterface:$supportLibVersion"
-    compile "com.android.support:multidex:1.0.1"
+//    compile "com.android.support:multidex:1.0.1"
 
     // Play Services
     compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
