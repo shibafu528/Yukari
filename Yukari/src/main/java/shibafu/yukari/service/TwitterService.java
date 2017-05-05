@@ -215,7 +215,8 @@ public class TwitterService extends Service{
                         }
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
-                            for (AuthUserRecord userRecord : users) {
+                            ArrayList<AuthUserRecord> usersClone = new ArrayList<>(users);
+                            for (AuthUserRecord userRecord : usersClone) {
                                 Twitter twitter = getTwitter(userRecord);
                                 if (twitter == null) {
                                     continue;
