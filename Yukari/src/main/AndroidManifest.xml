@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="88"
+    android:versionCode="89"
     android:versionName="2.0.0.370 alpha_rev.8 (planche 170505)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
