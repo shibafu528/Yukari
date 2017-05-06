@@ -45,6 +45,13 @@
             android:title="メニューボタンを表示"
             android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="ビルトインプラグインの有効化">
+        <CheckBoxPreference
+            android:key="pref_enable_plugin_open_aclog"
+            android:title="@string/title_activity_open_aclog"
+            android:summary="[ツイート] Fav/RT収集サービス「aclog」でツイートの情報を見る機能です。"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
     <PreferenceCategory android:title="実験中の機能 (上級者向け)">
         <CheckBoxPreference
             android:key="pref_show_received"
