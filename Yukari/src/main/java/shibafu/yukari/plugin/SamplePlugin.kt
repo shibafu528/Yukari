@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import info.shibafu528.yukari.exvoice.Event
-import info.shibafu528.yukari.exvoice.Filter
 import info.shibafu528.yukari.exvoice.MRuby
-import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.pluggaloid.Event
+import info.shibafu528.yukari.exvoice.pluggaloid.Filter
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.activity.TweetActivity
 
 /**

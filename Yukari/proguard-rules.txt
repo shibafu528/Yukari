@@ -51,6 +51,12 @@
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
 
+# Guava
+-dontwarn sun.misc.Unsafe
+-dontwarn java.lang.ClassValue
+-dontwarn javax.lang.model.element.Modifier
+-dontwarn com.google.common.collect.MinMaxPriorityQueue
+
 # Yukari
 -keep class shibafu.yukari.** { *; }
 

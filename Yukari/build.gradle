@@ -71,7 +71,9 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.2.0'
 
     // プラグインシステム
-    compile project(':yukari-exvoice')
+    compile project(':yukari-exvoice'), {
+        exclude group: 'org.twitter4j', module: 'twitter4j-core'
+    }
     compile 'twitter.intent:twitter-intent-core:1.0,0'
     compile 'twitter.intent:twitter-intent-t4j:1.0.0', {
         exclude group: 'org.twitter4j', module: 'twitter4j-core'
@@ -113,7 +115,7 @@ android {
         vectorDrawables.useSupportLibrary = true
 
         ndk {
-            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86'
         }
     }
 

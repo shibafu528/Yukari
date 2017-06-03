@@ -17,7 +17,7 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import info.shibafu528.yukari.exvoice.MRubyException
-import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import info.shibafu528.yukari.exvoice.ProcWrapper
 import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
