@@ -10,6 +10,10 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
+import info.shibafu528.yukari.exvoice.MRuby;
+import info.shibafu528.yukari.exvoice.converter.StatusConverter;
+import info.shibafu528.yukari.exvoice.model.Message;
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import org.jetbrains.annotations.NotNull;
@@ -829,6 +833,18 @@ public class StatusManager implements Releasable {
                         receivedStatuses.put(preformedStatus.getQuotedStatusId(), new PreformedStatus(preformedStatus.getQuotedStatus(), user));
                     }
                     loadQuotedEntities(preformedStatus);
+
+                    if (service != null) {
+                        MRuby mRuby = service.getmRuby();
+                        if (mRuby != null) {
+                            Message message = StatusConverter.toMessage(mRuby, status);
+                            try {
+                                Plugin.call(mRuby, "appear", (Object) new Message[]{message});
+                            } finally {
+                                message.dispose();
+                            }
+                        }
+                    }
                 }
 
                 @SuppressWarnings("InfiniteLoopStatement")
