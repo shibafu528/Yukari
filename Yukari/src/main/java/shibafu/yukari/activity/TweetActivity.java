@@ -341,11 +341,11 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
         } else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
         }
+        int restoredTagsLength = 0; // 実況モードのタグを復元した場合、カーソル初期位置の扱いを考慮する必要がある
         if (sp.getBoolean("pref_save_tags", false)) {
             List<String> tags = new Gson().fromJson(sp.getString("pref_saved_tags", "[]"), new TypeToken<List<String>>() {}.getType());
             if (!tags.isEmpty()) {
-                StringBuilder sb = new StringBuilder(TextUtils.isEmpty(defaultText) ? "" : defaultText);
-                sb.append(" ");
+                StringBuilder sb = new StringBuilder();
                 for (String tag : tags) {
                     if (sb.length() > 1) {
                         sb.append(" ");
@@ -353,13 +353,16 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                     sb.append("#");
                     sb.append(tag);
                 }
+                restoredTagsLength = sb.length() + 1;
+                sb.insert(0, " ");
+                sb.insert(0, TextUtils.isEmpty(defaultText) ? "" : defaultText);
                 defaultText = sb.toString();
             }
         }
         etInput.setText((defaultText != null) ? defaultText : sp.getString("pref_tweet_footer", ""));
         switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
             case MODE_REPLY:
-                etInput.setSelection(etInput.getText().length());
+                etInput.setSelection(etInput.getText().length() - restoredTagsLength);
                 /* fall through */
             case MODE_QUOTE: {
                 final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
