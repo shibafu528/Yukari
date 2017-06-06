@@ -834,7 +834,7 @@ public class StatusManager implements Releasable {
                     }
                     loadQuotedEntities(preformedStatus);
 
-                    if (service != null) {
+                    if (sharedPreferences.getBoolean("pref_exvoice_experimental_on_appear", false) && service != null) {
                         MRuby mRuby = service.getmRuby();
                         if (mRuby != null) {
                             Message message = StatusConverter.toMessage(mRuby, status);

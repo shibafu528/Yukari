@@ -21,6 +21,10 @@
             android:targetPackage="shibafu.yukari"
             android:targetClass="shibafu.yukari.activity.PluggaloidOutputActivity"/>
     </Preference>
+    <CheckBoxPreference
+        android:key="pref_exvoice_experimental_on_appear"
+        android:title="on_appear イベントエミュレート"
+        android:summary="appearイベントをエミュレーションします (とても高い頻度でクラッシュします)"/>
     <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて">
         <intent
             android:action="android.intent.action.VIEW"
