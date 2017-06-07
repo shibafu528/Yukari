@@ -473,8 +473,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
         }
 
-        tvLocation.setText(holder.targetUser.getLocation());
-        tvWeb.setText(holder.targetUser.getURLEntity().getExpandedURL());
+        tvLocation.setText(altIfEmpty(holder.targetUser.getLocation(), "－"));
+        tvWeb.setText(altIfEmpty(holder.targetUser.getURLEntity().getExpandedURL(), "－"));
         {
             String dateStr = sdf.format(holder.targetUser.getCreatedAt());
             int totalDay = (int) ((System.currentTimeMillis() - holder.targetUser.getCreatedAt().getTime()) / A_DAY);
@@ -928,6 +928,13 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         }
 
         return false;
+    }
+
+    private String altIfEmpty(String text, String ifEmpty) {
+        if (text == null || "".equals(text.trim())) {
+            return ifEmpty;
+        }
+        return text;
     }
 
     private static class LoadHolder implements Parcelable{
