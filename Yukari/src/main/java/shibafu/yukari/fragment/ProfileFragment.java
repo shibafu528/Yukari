@@ -23,6 +23,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.util.Linkify;
@@ -54,6 +55,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
+import shibafu.yukari.fragment.tabcontent.FilterListFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -190,6 +192,35 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             transaction.replace(R.id.frame, fragment, "contain");
             transaction.addToBackStack(null);
             transaction.commit();
+        });
+        cvTweets.setOnLongClickListener(view -> {
+            PopupMenu menu = new PopupMenu(getContext(), view);
+            menu.getMenu().add(Menu.NONE, 0, Menu.NONE, "画像付きツイートを表示");
+            menu.setOnMenuItemClickListener(item -> {
+                switch (item.getItemId()) {
+                    case 0: {
+                        Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
+                        Bundle args1 = new Bundle();
+
+                        args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
+                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
+                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args1.putString(TweetListFragment.EXTRA_TITLE, "Media: @" + loadHolder.targetUser.getScreenName());
+                        args1.putString(FilterListFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s\" where (neq ?mediaLinkList.empty)", loadHolder.targetUser.getScreenName()));
+
+                        fragment.setArguments(args1);
+
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        transaction.replace(R.id.frame, fragment, "contain");
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        return true;
+                    }
+                }
+                return false;
+            });
+            menu.show();
+            return true;
         });
         cvFavorites = v.findViewById(R.id.cvProfileFavorites);
         cvFavorites.setOnClickListener(view -> {

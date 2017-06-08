@@ -434,7 +434,7 @@ public class StatusManager implements Releasable {
 
                 try {
                     Paging paging = new Paging();
-                    if (!isNarrowMode) paging.setCount(60);
+                    if (!isNarrowMode) paging.setCount(100);
                     if (-1 < pagingMaxId) paging.setMaxId(pagingMaxId);
 
                     List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
