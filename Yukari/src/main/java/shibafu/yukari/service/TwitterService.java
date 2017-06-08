@@ -312,7 +312,7 @@ public class TwitterService extends Service{
                 try {
                     //noinspection InfiniteLoopStatement
                     while (true) {
-                        mRuby.callTopLevelFunc("tick");
+                        mRuby.callTopLevelProc("tick");
                         Thread.sleep(500);
                     }
                 } catch (InterruptedException e) {
