@@ -139,6 +139,8 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private static final int TWEET_COUNT_LIMIT = 140;
     private static final int TWEET_COUNT_LIMIT_DM = 10000;
 
+    private static final int TITLE_AREA_MAX_LINES = 3;
+
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
     private static final Pattern PATTERN_SUFFIX = Pattern.compile(".*( (RT |QT |\")@[0-9a-zA-Z_]{1,15}: .+)");
     private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
@@ -147,6 +149,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
 
     //タイトル部
     private TextView tvTitle;
+    private boolean isExpandedTitleArea = false;
 
     //入力欄カウント系
     private EditText etInput;
@@ -438,6 +441,15 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
     private void initializeViews() {
         //タイトル部の設定
         tvTitle = (TextView) findViewById(R.id.tvTweetTitle);
+        tvTitle.setMaxLines(TITLE_AREA_MAX_LINES);
+        tvTitle.setOnClickListener(v -> {
+            if (isExpandedTitleArea) {
+                tvTitle.setMaxLines(TITLE_AREA_MAX_LINES);
+            } else {
+                tvTitle.setMaxLines(Integer.MAX_VALUE);
+            }
+            isExpandedTitleArea = !isExpandedTitleArea;
+        });
 
         //アカウント表示の設定
         tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);

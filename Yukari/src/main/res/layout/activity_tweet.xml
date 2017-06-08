@@ -182,7 +182,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="Tweet" />
+        android:text="Tweet"
+        android:ellipsize="end"/>
 
     <ImageView
         android:id="@+id/ivProfileHeader"
