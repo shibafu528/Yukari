@@ -10,9 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:layout_weight="3"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
         android:paddingBottom="8dp"
         android:fillViewport="false">
 
@@ -20,11 +20,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:background="?attr/dialogStyle"
-            android:orientation="vertical"
-            android:paddingBottom="12dp"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingTop="12dp">
+            android:orientation="vertical">
 
             <include
                 android:id="@+id/status_tweet"

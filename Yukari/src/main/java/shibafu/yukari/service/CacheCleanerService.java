@@ -3,13 +3,22 @@ package shibafu.yukari.service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.format.DateUtils;
 import android.util.Log;
+import com.annimon.stream.Collectors;
+import com.annimon.stream.Stream;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.database.CentralDatabase;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/03/04.
@@ -50,15 +59,15 @@ public class CacheCleanerService extends IntentService {
         for (int i = 0; i < categories.length; ++i) {
             expirations.addAll(findExpirationCaches(new File(cacheRoot, categories[i]), limits[i] * 1024 * 1024));
         }
-        File[] tmpFiles = getExternalCacheDir().listFiles((dir, filename) -> {
-            return filename.endsWith(".tmp");
-        });
+        File[] tmpFiles = getExternalCacheDir().listFiles((dir, filename) -> filename.endsWith(".tmp"));
         expirations.addAll(Arrays.asList(tmpFiles));
 
         for (File f : expirations) {
             Log.d("CacheCleanerService", "Deleting: " + f.getAbsolutePath());
             f.delete();
         }
+
+        cleanupOrphanAttachment();
     }
 
     private List<File> findExpirationCaches(File dir, long limitBytes) {
@@ -100,5 +109,48 @@ public class CacheCleanerService extends IntentService {
     private int getIntPref(SharedPreferences sp, String key, int defaultValues) {
         String s = sp.getString(key, "*");
         return "*".equals(s)? defaultValues : Integer.valueOf(s);
+    }
+
+    private void cleanupOrphanAttachment() {
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            return;
+        }
+
+        File attachesDir = new File(getExternalFilesDir(null), "attaches");
+        if (!attachesDir.exists()) {
+            return;
+        }
+
+        String attachesDirUri = Uri.fromFile(attachesDir).toString();
+
+        // 添付として利用中のUriを抽出
+        List<String> usingUris = new ArrayList<>();
+        CentralDatabase db = new CentralDatabase(getApplicationContext()).open();
+        try {
+            usingUris = Stream.of(db.getDrafts())
+                    .flatMap(draft -> Stream.of(draft.getAttachedPictures()))
+                    .map(Uri::toString)
+                    .distinct()
+                    .filter(uri -> uri.contains(attachesDirUri))
+                    .collect(Collectors.toList());
+        } finally {
+            db.close();
+        }
+
+        // 使用中でなく、かつ3日以上前のデータを削除
+        long before1Day = System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS * 3;
+        File[] files = attachesDir.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (File file : files) {
+            if (file.lastModified() < before1Day) {
+                String fileUri = Uri.fromFile(file).toString();
+                if (!usingUris.contains(fileUri)) {
+                    Log.d("CacheCleanerService", "Deleting: " + file.getAbsolutePath());
+                    file.delete();
+                }
+            }
+        }
     }
 }

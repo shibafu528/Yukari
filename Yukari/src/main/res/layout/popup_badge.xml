@@ -3,7 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/dialog_full_holo_light_y"
+    android:background="@drawable/dialog_full_material_light"
     android:visibility="invisible"
     android:clickable="true"
     android:focusable="false"

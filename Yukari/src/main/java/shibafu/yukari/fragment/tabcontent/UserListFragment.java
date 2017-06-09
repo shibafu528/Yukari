@@ -8,10 +8,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
-import android.view.*;
-import android.widget.*;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ProfileActivity;
@@ -21,7 +32,12 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.*;
+import twitter4j.PagableResponseList;
+import twitter4j.ResponseList;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
+import twitter4j.UserList;
 
 import java.util.Iterator;
 import java.util.List;
@@ -445,13 +461,13 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
         }
 
         class ViewHolder {
-            @InjectView(R.id.list_icon) ImageView icon;
-            @InjectView(R.id.list_name) TextView title;
-            @InjectView(R.id.list_desc) TextView description;
-            @InjectView(R.id.list_members) TextView members;
+            @BindView(R.id.list_icon) ImageView icon;
+            @BindView(R.id.list_name) TextView title;
+            @BindView(R.id.list_desc) TextView description;
+            @BindView(R.id.list_members) TextView members;
 
             private ViewHolder(View v) {
-                ButterKnife.inject(this, v);
+                ButterKnife.bind(this, v);
             }
         }
     }

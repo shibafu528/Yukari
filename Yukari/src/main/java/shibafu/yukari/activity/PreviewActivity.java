@@ -1,33 +1,47 @@
 package shibafu.yukari.activity;
 
 import android.app.DownloadManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
-import android.util.FloatMath;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.*;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
-import com.google.zxing.*;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.service.BitmapDecoderService;
+import shibafu.yukari.service.IBitmapDecoderService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
@@ -35,14 +49,18 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
  * Created by Shibafu on 13/09/22.
  */
-public class PreviewActivity extends FragmentYukariBase {
+public class PreviewActivity extends ActionBarYukariBase {
     //TODO: DMの添付画像をダウンロードできるようにする
     //OAuthが必要なためにOSのダウンロードキューに直接ぶち込むことが出来ない
     //アプリ独自で保存処理を行う必要がある
@@ -51,14 +69,16 @@ public class PreviewActivity extends FragmentYukariBase {
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
 
+    private static final String PACKAGE_MAGICK_DECODER = "info.shibafu528.yukari.magickdecoder";
+
     private Bitmap image;
     private Matrix matrix;
     private float minScale = 1.0f;
 
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
-    @InjectView(R.id.ivPreviewImage) ImageView imageView;
-    @InjectView(R.id.inclPreviewStatus) View tweetView;
+    @BindView(R.id.ivPreviewImage) ImageView imageView;
+    @BindView(R.id.inclPreviewStatus) View tweetView;
     private PreformedStatus status;
     private AuthUserRecord user;
 
@@ -68,12 +88,11 @@ public class PreviewActivity extends FragmentYukariBase {
     private int displayHeight;
     private TweetAdapterWrap.ViewConverter viewConverter;
 
-    @InjectView(R.id.pbPreview) ProgressBar loadProgress;
-    @InjectView(R.id.tvPreviewProgress) TextView loadProgressText;
-    @InjectView(R.id.tvPreviewProgress2) TextView loadProgressText2;
+    @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
+    @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
 
-    @InjectView(R.id.llQrText) LinearLayout llQrText;
-    @InjectView(R.id.tvQrText) TextView tvQrText;
+    @BindView(R.id.llQrText) LinearLayout llQrText;
+    @BindView(R.id.tvQrText) TextView tvQrText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +115,7 @@ public class PreviewActivity extends FragmentYukariBase {
 
         user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
@@ -245,7 +264,7 @@ public class PreviewActivity extends FragmentYukariBase {
                 int exifRotate = 0;
                 if (url.startsWith("content://")) {
                     try {
-                        exifRotate = BitmapUtil.getExifRotate(getApplicationContext(), Uri.parse(url));
+                        exifRotate = BitmapUtil.getExifRotate(getContentResolver().openInputStream(Uri.parse(url)));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -345,31 +364,18 @@ public class PreviewActivity extends FragmentYukariBase {
                         }
                     }
                 }
-                try {
-                    //画像サイズを確認
-                    FileInputStream fis = new FileInputStream(cacheFile);
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inJustDecodeBounds = true;
-                    BitmapFactory.decodeStream(fis, null, options);
-                    fis.close();
-                    //実際の読み込みを行う
-                    fis = new FileInputStream(cacheFile);
-                    options.inJustDecodeBounds = false;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB && Math.max(options.outWidth, options.outHeight) > 800) {
-                        int scaleW = options.outWidth / 800;
-                        int scaleH = options.outHeight / 800;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
-                    } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
-                        int scaleW = options.outWidth / 1500;
-                        int scaleH = options.outHeight / 1500;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
-                    } else if (Math.max(options.outWidth, options.outHeight) > 2048) {
-                        int scaleW = options.outWidth / 2048;
-                        int scaleH = options.outHeight / 2048;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
+
+                // デコーダバインド待機
+                while (!bdsBound) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        return null;
                     }
-                    Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
-                    fis.close();
+                }
+
+                try {
+                    Bitmap bitmap = bitmapDecoderService.decodeFromFile(cacheFile.getAbsolutePath(), 2048);
                     if (bitmap == null) {
                         cacheFile.delete();
                         return null;
@@ -382,7 +388,7 @@ public class PreviewActivity extends FragmentYukariBase {
                         bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
                     }
                     return bitmap;
-                } catch (IOException e) {
+                } catch (RemoteException e) {
                     e.printStackTrace();
                     return null;
                 }
@@ -392,7 +398,6 @@ public class PreviewActivity extends FragmentYukariBase {
             protected void onProgressUpdate(Object... values) {
                 Callback callback = (Callback) values[0];
                 int progress = callback.received * 100 / callback.contentLength;
-                loadProgress.setProgress(progress);
                 long elapsed = (callback.currentTime - callback.beginTime) / 1000;
                 if (elapsed < 1) {
                     elapsed = 1;
@@ -414,7 +419,6 @@ public class PreviewActivity extends FragmentYukariBase {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
-                loadProgress.setVisibility(View.GONE);
                 loadProgressText.setVisibility(View.GONE);
                 loadProgressText2.setVisibility(View.GONE);
 
@@ -487,10 +491,6 @@ public class PreviewActivity extends FragmentYukariBase {
         ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
         ibSave.setOnClickListener(v -> {
             Uri uri = Uri.parse(mediaUrl);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH &&
-                    "https".equals(uri.getScheme())) {
-                uri = Uri.parse(mediaUrl.replace("https://", "http://"));
-            }
             DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
@@ -506,12 +506,7 @@ public class PreviewActivity extends FragmentYukariBase {
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
             File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
             pathExternalPublicDir.mkdirs();
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                request.setShowRunningNotification(true);
-            }
-            else {
-                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            }
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
             dlm.enqueue(request);
         });
 
@@ -528,29 +523,42 @@ public class PreviewActivity extends FragmentYukariBase {
                 null,
                 PreferenceManager.getDefaultSharedPreferences(this),
                 PreformedStatus.class);
+
+        // デコーダの検索
+        PackageManager pm = getPackageManager();
+        boolean foundMagickDecoder = false;
+        try {
+            pm.getPackageInfo(PACKAGE_MAGICK_DECODER, PackageManager.GET_SERVICES);
+            foundMagickDecoder = true;
+        } catch (PackageManager.NameNotFoundException ignore) {}
+
+        // デコーダのバインド
+        if (foundMagickDecoder) {
+            Intent serviceIntent = new Intent().setClassName(PACKAGE_MAGICK_DECODER, PACKAGE_MAGICK_DECODER + ".MagickDecoderService");
+            bindService(serviceIntent, bdsConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            Intent serviceIntent = new Intent(getApplicationContext(), BitmapDecoderService.class);
+            bindService(serviceIntent, bdsConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
     private void processZxing() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            llQrText.setVisibility(View.GONE);
-        } else {
+        try {
+            int[] pixels = new int[image.getWidth() * image.getHeight()];
+            image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
+            LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
+            BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
-                int[] pixels = new int[image.getWidth() * image.getHeight()];
-                image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
-                LuminanceSource source = new RGBLuminanceSource(image.getWidth(), image.getHeight(), pixels);
-                BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
-                try {
-                    Result result = new MultiFormatReader().decode(binaryBitmap);
-                    llQrText.setVisibility(View.VISIBLE);
-                    tvQrText.setText(result.getText());
-                } catch (NotFoundException e) {
-                    llQrText.setVisibility(View.GONE);
-                }
-            } catch (OutOfMemoryError e) {
-                // そんなこともある
-                System.gc();
+                Result result = new MultiFormatReader().decode(binaryBitmap);
+                llQrText.setVisibility(View.VISIBLE);
+                tvQrText.setText(result.getText());
+            } catch (NotFoundException e) {
                 llQrText.setVisibility(View.GONE);
             }
+        } catch (OutOfMemoryError e) {
+            // そんなこともある
+            System.gc();
+            llQrText.setVisibility(View.GONE);
         }
     }
 
@@ -584,6 +592,12 @@ public class PreviewActivity extends FragmentYukariBase {
             image.recycle();
             System.gc();
         }
+
+        // デコーダのアンバインド
+        if (bdsBound) {
+            unbindService(bdsConnection);
+            bdsBound = false;
+        }
     }
 
     private void updateMatrix() {
@@ -596,4 +610,23 @@ public class PreviewActivity extends FragmentYukariBase {
 
     @Override
     public void onServiceDisconnected() {}
+
+    //<editor-fold desc="BitmapDecoderService">
+
+    private IBitmapDecoderService bitmapDecoderService;
+    private boolean bdsBound = false;
+    private ServiceConnection bdsConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            bitmapDecoderService = IBitmapDecoderService.Stub.asInterface(service);
+            bdsBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            bdsBound = false;
+        }
+    };
+
+    //</editor-fold>
 }

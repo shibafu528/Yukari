@@ -24,11 +24,14 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 import info.shibafu528.yukari.exvoice.MRuby;
+import okhttp3.OkHttpClient;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
+import shibafu.yukari.api.MikutterApi;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
@@ -55,20 +58,17 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.UploadedMedia;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -140,7 +140,7 @@ public class TwitterService extends Service{
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
             StatusManager.getReceivedStatuses().evictAll();
-            statusManager.sendFakeBroadcast("onWipe", new Class[]{});
+            statusManager.onWipe();
         }
     };
 
@@ -200,6 +200,8 @@ public class TwitterService extends Service{
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
 
         if (!users.isEmpty() && getPrimaryUser() != null) {
+            final Twitter primaryAccount = getTwitterOrPrimary(null);
+
             //Configuration, Blocks, Mutes, No-Retweetsの取得
             new TwitterAsyncTask<Void>(getApplicationContext()) {
                 @Override
@@ -207,15 +209,13 @@ public class TwitterService extends Service{
                     SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
                     try {
-                        {
-                            Twitter primary = getTwitterOrPrimary(null);
-                            if (primary != null) {
-                                apiConfiguration = primary.getAPIConfiguration();
-                            }
+                        if (primaryAccount != null) {
+                            apiConfiguration = primaryAccount.getAPIConfiguration();
                         }
 
                         if (sp.getBoolean("pref_filter_official", true) && users != null) {
-                            for (AuthUserRecord userRecord : users) {
+                            ArrayList<AuthUserRecord> usersClone = new ArrayList<>(users);
+                            for (AuthUserRecord userRecord : usersClone) {
                                 Twitter twitter = getTwitter(userRecord);
                                 if (twitter == null) {
                                     continue;
@@ -225,6 +225,8 @@ public class TwitterService extends Service{
                                 try {
                                     do {
                                         ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
+
+                                        if (suppressor == null) return null;
                                         suppressor.addBlockedIDs(ids.getIDs());
                                     } while (ids.hasNext());
                                 } catch (TwitterException ignored) {}
@@ -233,13 +235,18 @@ public class TwitterService extends Service{
                                     long cursor = -1;
                                     do {
                                         ids = twitter.getMutesIDs(cursor);
+
+                                        if (suppressor == null) return null;
                                         suppressor.addMutedIDs(ids.getIDs());
+
                                         cursor = ids.getNextCursor();
                                     } while (ids.hasNext());
                                 } catch (TwitterException ignored) {}
 
                                 try {
                                     ids = twitter.getNoRetweetsFriendships();
+
+                                    if (suppressor == null) return null;
                                     suppressor.addNoRetweetIDs(ids.getIDs());
                                 } catch (TwitterException ignored) {}
                             }
@@ -305,7 +312,7 @@ public class TwitterService extends Service{
                 try {
                     //noinspection InfiniteLoopStatement
                     while (true) {
-                        mRuby.callTopLevelFunc("tick");
+                        mRuby.callTopLevelProc("tick");
                         Thread.sleep(500);
                     }
                 } catch (InterruptedException e) {
@@ -832,17 +839,6 @@ public class TwitterService extends Service{
         return null;
     }
 
-    private static class MikutterDownload {
-        static class Version {
-            public int major, minor, teeny, build;
-            public String meta;
-        }
-        @SerializedName("version_string") public String versionString;
-        public Version version;
-        public String created;
-        public String url;
-    }
-
     /**
      * mikutterの最新バージョン情報を取得します。
      * @param channel リリースの区分。nullにした場合は "stable" 扱いにします。
@@ -857,29 +853,29 @@ public class TwitterService extends Service{
         try {
             Debug.waitForDebugger();
 
-            HttpURLConnection conn = (HttpURLConnection) new URL("http://mikutter.hachune.net/download/" + channel + ".json").openConnection();
-            conn.setReadTimeout(10000);
-            conn.setRequestProperty("User-Agent", StringUtil.getVersionInfo(this));
-            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder sb = new StringBuilder();
-            try {
-                String s;
-                while ((s = br.readLine()) != null) {
-                    sb.append(s);
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .readTimeout(10000, TimeUnit.MILLISECONDS)
+                    .addInterceptor(chain ->
+                            chain.proceed(chain.request()
+                                    .newBuilder()
+                                    .header("User-Agent", StringUtil.getVersionInfo(getApplicationContext()))
+                                    .build()))
+                    .build();
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("http://mikutter.hachune.net")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
+                    .build();
+            MikutterApi api = retrofit.create(MikutterApi.class);
+
+            Response<List<MikutterApi.VersionInfo>> response = api.download(channel).execute();
+            if (response.isSuccessful()) {
+                List<MikutterApi.VersionInfo> info = response.body();
+
+                if (!info.isEmpty()) {
+                    return info.get(0).versionString;
                 }
-            } finally {
-                br.close();
-                conn.disconnect();
             }
-
-            MikutterDownload[] info = new Gson().fromJson(sb.toString(), MikutterDownload[].class);
-
-            if (info.length == 0) {
-                return null;
-            } else {
-                return info[0].versionString;
-            }
-
         } catch (IOException ignore) {}
         return null;
     }

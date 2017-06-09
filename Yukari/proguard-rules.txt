@@ -15,3 +15,50 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+# 難読化しない
+-dontobfuscate
+
+# Retrolambda
+-dontwarn java.lang.invoke.*
+
+# Retrofit
+-dontnote retrofit2.Platform
+-dontwarn retrofit2.Platform$Java8
+-keepattributes Signature
+-keepattributes Exceptions
+
+# OkHttp
+-dontwarn okhttp3.**
+
+# Okio
+-dontwarn okio.**
+
+# Twitter4J
+-dontwarn twitter4j.**
+-keep class twitter4j.** { *; }
+
+# Zxing
+-dontwarn com.google.zxing.**
+
+# Lombok
+-dontwarn java.beans.ConstructorProperties
+
+# Support Lib
+-keep class android.support.v7.widget.** { *; }
+
+# Play Services
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# Guava
+-dontwarn sun.misc.Unsafe
+-dontwarn java.lang.ClassValue
+-dontwarn javax.lang.model.element.Modifier
+-dontwarn com.google.common.collect.MinMaxPriorityQueue
+
+# Yukari
+-keep class shibafu.yukari.** { *; }
+
+# Yukari exvoice
+-keep class info.shibafu528.yukari.exvoice.** { *; }

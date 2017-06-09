@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MenuItem;
 import android.widget.EditText;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 
@@ -19,7 +19,7 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
     private Handler handler = new Handler();
     private Timer timer;
 
-    @InjectView(R.id.editText)
+    @BindView(R.id.editText)
     EditText logView;
 
     @Override
@@ -28,7 +28,7 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
         setContentView(R.layout.activity_pluggaloid_output);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
     }
 
     @Override

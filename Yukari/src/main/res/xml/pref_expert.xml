@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="設定のバックアップ">
+        <Preference
+            android:key="pref_export"
+            android:title="設定のエクスポート"/>
+        <Preference
+            android:key="pref_import"
+            android:title="設定のインポート"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="キャッシュ設定">
+        <ListPreference
+            android:key="pref_icon_cache_size"
+            android:title="アイコンキャッシュ容量"
+            android:summary="プロフィール画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="4"/>
+        <ListPreference
+            android:key="pref_picture_cache_size"
+            android:title="ピクチャキャッシュ容量"
+            android:summary="サムネイル・プロフィールヘッダー画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="8"/>
+        <ListPreference
+            android:key="pref_preview_cache_size"
+            android:title="プレビューキャッシュ容量"
+            android:summary="プレビュー時のフルサイズ画像のキャッシュ"
+            android:entries="@array/pref_cache_size_entries"
+            android:entryValues="@array/pref_cache_size_values"
+            android:defaultValue="16"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="トラブルシューティング">
+        <Preference
+            android:key="pref_repair_bookmark"
+            android:title="ブックマークの修復"
+            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
+        </Preference>
+        <CheckBoxPreference
+            android:key="pref_show_menubutton"
+            android:title="メニューボタンを表示"
+            android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="ビルトインプラグインの有効化">
+        <CheckBoxPreference
+            android:key="pref_enable_plugin_open_aclog"
+            android:title="@string/title_activity_open_aclog"
+            android:summary="[ツイート] Fav/RT収集サービス「aclog」でツイートの情報を見る機能です。"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="実験中の機能 (上級者向け)">
+        <CheckBoxPreference
+            android:key="pref_show_received"
+            android:title="受信アカウントの表示"
+            android:summary="ツイートを受信したアカウントを表示します"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="pref_narrow"
+            android:title="ナローモード(仮)"
+            android:summary="TLのアイコン品質とREST APIでの受信件数を落とします"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="pref_limited_timeline"
+            android:title="Limited TL"
+            android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_remove_screenshot_subject"
+            android:title="スクショ共有の本文を削除"
+            android:summary="Screenshot (〜) のような件名で共有ボタンから起動された時に文章をカットします\n機種によっては無意味だし余計な副作用があるかもしれない"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_block_doubleclock"
+            android:title="TLダブルクリックの防止"
+            android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
+        <CheckBoxPreference
+            android:key="pref_extended_touch_event"
+            android:title="TLタッチ拡張"
+            android:summary="TL上のタッチイベントを増やします"/>
+        <CheckBoxPreference
+            android:key="pref_force_http1"
+            android:title="http1.1を優先使用"
+            android:summary="高速なプロトコルを使用せず、旧来のプロトコルで通信が行われるようにします(※要再起動)"/>
+        <CheckBoxPreference
+            android:key="pref_disable_ipv6"
+            android:title="IPv6を無効化"
+            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします(※要再起動)"/>
+        <CheckBoxPreference
+            android:key="pref_enable_service"
+            android:title="Serviceの常駐"
+            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定しますが、RAMが解放されにくくなるのでマルチタスクには不利です"/>
+        <CheckBoxPreference
+            android:key="pref_remove_name_newline"
+            android:title="ユーザー名から改行文字を取り除く"
+            android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
+        <ListPreference
+            android:key="pref_lists_membership_finder"
+            android:title="リスト登録状態の確認方法"
+            android:summary="「リストへ追加/削除」でのチェック状態を取得する方法を指定します"
+            android:defaultValue="0"
+            android:entries="@array/pref_lists_membership_finder_entries"
+            android:entryValues="@array/pref_lists_membership_finder_values"/>
+        <CheckBoxPreference
+            android:key="pref_use_strict_filter"
+            android:title="フィルタTLのシステムを全体で使う"
+            android:summary="フィルタタブ以外も、同じ意味のクエリを持つフィルタタブとして処理するようにします。\n同じ意味のソースが存在するタブのみ適用されます。"/>
+        <CheckBoxPreference
+            android:key="pref_lock_scroll_after_reload"
+            android:title="フィルタTL再読込後スクロール位置を保持"
+            android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>
+    </PreferenceCategory>
+</PreferenceScreen>

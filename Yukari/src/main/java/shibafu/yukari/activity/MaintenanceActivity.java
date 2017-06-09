@@ -23,9 +23,10 @@ import android.widget.BaseAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
+import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -141,14 +142,15 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
     public static class DBMaintenanceFragment extends Fragment implements ServiceConnectable{
 
-        @InjectView(R.id.tvYdbName) TextView title;
-        @InjectView(R.id.tvYdbSize) TextView size;
-        @InjectView(R.id.tvYdbUserEnt) TextView usersCount;
+        @BindView(R.id.tvYdbName) TextView title;
+        @BindView(R.id.tvYdbSize) TextView size;
+        @BindView(R.id.tvYdbUserEnt) TextView usersCount;
+        private Unbinder unbinder;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View v = inflater.inflate(R.layout.fragment_dbmt, container, false);
-            ButterKnife.inject(this, v);
+            unbinder = ButterKnife.bind(this, v);
 
             title.setText(String.format("%s, version %d", CentralDatabase.DB_FILENAME, CentralDatabase.DB_VER));
             size.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
@@ -158,7 +160,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            ButterKnife.reset(this);
+            unbinder.unbind();
         }
 
         @OnClick(R.id.btnYdbWipe)
@@ -409,13 +411,13 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
             }
 
             class ViewHolder {
-                @InjectView(R.id.tvApiEndpoint) TextView apiEndPoint;
-                @InjectView(R.id.tvApiLimit) TextView apiLimit;
-                @InjectView(R.id.tvApiReset) TextView apiReset;
-                @InjectView(R.id.progressBar) ProgressBar progressBar;
+                @BindView(R.id.tvApiEndpoint) TextView apiEndPoint;
+                @BindView(R.id.tvApiLimit) TextView apiLimit;
+                @BindView(R.id.tvApiReset) TextView apiReset;
+                @BindView(R.id.progressBar) ProgressBar progressBar;
 
                 ViewHolder(View v) {
-                    ButterKnife.inject(this, v);
+                    ButterKnife.bind(this, v);
                 }
             }
         }

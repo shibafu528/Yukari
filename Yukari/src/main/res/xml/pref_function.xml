@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="メイン画面">
+        <CheckBoxPreference
+            android:key="pref_quick_scroll_to_top"
+            android:title="先頭へぽっぴんジャンプ♪"
+            android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="ツイート詳細画面">
+        <CheckBoxPreference
+            android:key="pref_choose_reply_to"
+            android:title="返信先を確認する"
+            android:summary="複数メンションが含まれるツイートに返信する際、1人に返信するか、全員に返信するか確認します\n無効にしても、返信ボタン長押しで全員に返信できます"
+            android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_narcist"
+            android:title="ナルシストオプション"
+            android:summary="自分のツイートをお気に入り登録できるようにします"/>
+        <CheckBoxPreference
+            android:key="pref_fav_with_quotes"
+            android:title="引用もまとめてお気に入り登録"
+            android:summary="引用されているツイートがある場合、まとめてお気に入り登録するオプションを表示します"/>
+        <CheckBoxPreference
+            android:key="pref_close_after_fav"
+            android:title="Fav/RT後にメニューを閉じる"
+            android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
+            android:defaultValue="true"/>
+        <ListPreference
+            android:key="pref_default_quote"
+            android:title="クイック引用"
+            android:summary="引用ボタンを長押しした時、どの文法で引用を行うか選択します"
+            android:entries="@array/pref_quote_entries"
+            android:entryValues="@array/pref_quote_values"
+            android:defaultValue="2"/>
+    </PreferenceCategory>
+</PreferenceScreen>

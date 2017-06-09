@@ -1,21 +1,18 @@
 package shibafu.yukari.fragment;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
-
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
+import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -33,14 +30,15 @@ public class UserListEditDialogFragment extends DialogFragment {
     private static final String ARG_USER = "user";
     private static final String ARG_TARGETLIST = "list";
 
-    @InjectView(R.id.etName) EditText etName;
-    @InjectView(R.id.etDescription) EditText etDesctiption;
-    @InjectView(R.id.checkBox) CheckBox cbPrivate;
+    @BindView(R.id.etName) EditText etName;
+    @BindView(R.id.etDescription) EditText etDesctiption;
+    @BindView(R.id.checkBox) CheckBox cbPrivate;
 
     private boolean createNewList;
     private AuthUserRecord userRecord;
     private UserList targetList;
     private int requestCode;
+    private Unbinder unbinder;
 
     public static UserListEditDialogFragment newInstance(AuthUserRecord userRecord, int requestCode) {
         UserListEditDialogFragment fragment = new UserListEditDialogFragment();
@@ -64,11 +62,7 @@ public class UserListEditDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_listedit, null);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB &&
-                PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").equals("light")) {
-            v.setBackgroundColor(Color.WHITE);
-        }
-        ButterKnife.inject(this, v);
+        unbinder = ButterKnife.bind(this, v);
 
         String title;
         Bundle args = getArguments();
@@ -93,6 +87,12 @@ public class UserListEditDialogFragment extends DialogFragment {
                 .create();
 
         return dialog;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        unbinder.unbind();
     }
 
     @Override

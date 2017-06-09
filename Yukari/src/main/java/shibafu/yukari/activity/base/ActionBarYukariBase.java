@@ -7,6 +7,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/07/12.
@@ -16,14 +17,7 @@ public abstract class ActionBarYukariBase extends ActionBarActivity implements T
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkTheme);
-                break;
-        }
+        ThemeUtil.setActivityTheme(this);
         super.onCreate(savedInstanceState);
     }
 

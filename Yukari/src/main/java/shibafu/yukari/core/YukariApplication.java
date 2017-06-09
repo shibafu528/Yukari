@@ -1,6 +1,7 @@
 package shibafu.yukari.core;
 
 import android.app.Application;
+import android.content.Context;
 import android.preference.PreferenceManager;
 import com.squareup.leakcanary.LeakCanary;
 import twitter4j.AlternativeHttpClientImpl;
@@ -27,5 +28,11 @@ public class YukariApplication extends Application {
             AlternativeHttpClientImpl.sPreferHttp2 = false;
             AlternativeHttpClientImpl.sPreferSpdy = false;
         }
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+//        MultiDex.install(this);
     }
 }

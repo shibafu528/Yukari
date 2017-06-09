@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -11,7 +13,7 @@
         android:layout_height="fill_parent"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"></android.support.v4.view.ViewPager>
+        android:layout_alignParentTop="true"/>
 
     <FrameLayout
         android:id="@+id/tweetgesture"
@@ -20,7 +22,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:background="@drawable/status_bar_color">
+        android:background="?attr/footerBarColor">
 
         <LinearLayout
             android:layout_width="fill_parent"
@@ -44,21 +46,28 @@
                         android:id="@+id/streamState" />
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/tvMainTab"
+                <shibafu.yukari.common.SelectorView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:background="@drawable/selector_key_background"
-                    android:clickable="true"
-                    android:ellipsize="end"
-                    android:focusable="true"
-                    android:maxLines="1"
-                    android:paddingBottom="4dp"
-                    android:paddingTop="4dp"
-                    android:scrollHorizontally="true"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:textColor="@android:color/primary_text_light" />
+                    app:on_pressed="?attr/colorPrimaryDark"
+                    app:on_focused="?attr/colorPrimaryDark">
+
+                    <TextView
+                        android:id="@+id/tvMainTab"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:clickable="true"
+                        android:ellipsize="end"
+                        android:focusable="true"
+                        android:maxLines="1"
+                        android:paddingBottom="4dp"
+                        android:paddingTop="4dp"
+                        android:scrollHorizontally="true"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@android:color/primary_text_light" />
+
+                </shibafu.yukari.common.SelectorView>
             </LinearLayout>
 
             <LinearLayout
@@ -74,43 +83,63 @@
                     android:layout_height="match_parent"
                     android:layout_weight="5" />
 
-                <ImageButton
-                    android:id="@+id/ibStream"
+                <shibafu.yukari.common.SelectorView
                     android:layout_width="@dimen/mainfooter_button_width"
                     android:layout_height="match_parent"
                     android:layout_weight="2"
-                    android:background="@drawable/selector_key_background"
-                    android:focusable="false"
-                    android:src="@drawable/ic_play"
-                    android:visibility="invisible" />
+                    app:on_pressed="?attr/colorPrimaryDark"
+                    app:on_focused="?attr/colorPrimaryDark">
+                    <ImageButton
+                        android:id="@+id/ibStream"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:focusable="false"
+                        android:src="@drawable/ic_play"
+                        android:visibility="invisible" />
+                </shibafu.yukari.common.SelectorView>
 
-                <ImageButton
-                    android:id="@+id/ibClose"
+                <shibafu.yukari.common.SelectorView
                     android:layout_width="@dimen/mainfooter_button_width"
                     android:layout_height="match_parent"
                     android:layout_weight="2"
-                    android:background="@drawable/selector_key_background"
-                    android:focusable="false"
-                    android:src="@drawable/ic_close"
-                    android:visibility="invisible" />
+                    app:on_pressed="?attr/colorPrimaryDark"
+                    app:on_focused="?attr/colorPrimaryDark">
+                    <ImageButton
+                        android:id="@+id/ibClose"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:focusable="false"
+                        android:src="@drawable/ic_close"
+                        android:visibility="invisible" />
+                </shibafu.yukari.common.SelectorView>
 
-                <ImageButton
-                    android:id="@+id/ibSearch"
+                <shibafu.yukari.common.SelectorView
                     android:layout_width="@dimen/mainfooter_button_width"
                     android:layout_height="match_parent"
                     android:layout_weight="2"
-                    android:background="@drawable/selector_key_background"
-                    android:focusable="false"
-                    android:src="@drawable/ic_search" />
+                    app:on_pressed="?attr/colorPrimaryDark"
+                    app:on_focused="?attr/colorPrimaryDark">
+                    <ImageButton
+                        android:id="@+id/ibSearch"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:focusable="false"
+                        android:src="@drawable/ic_search" />
+                </shibafu.yukari.common.SelectorView>
 
-                <ImageButton
-                    android:id="@+id/ibMenu"
+                <shibafu.yukari.common.SelectorView
                     android:layout_width="@dimen/mainfooter_button_width"
                     android:layout_height="match_parent"
                     android:layout_weight="2"
-                    android:background="@drawable/selector_key_background"
-                    android:focusable="false"
-                    android:src="@drawable/ic_action_overflow" />
+                    app:on_pressed="?attr/colorPrimaryDark"
+                    app:on_focused="?attr/colorPrimaryDark">
+                    <ImageButton
+                        android:id="@+id/ibMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:focusable="false"
+                        android:src="@drawable/ic_action_overflow" />
+                </shibafu.yukari.common.SelectorView>
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
@@ -126,42 +155,16 @@
         android:layout_alignParentStart="true"
         android:layout_alignTop="@+id/tweetgesture"
         android:layout_marginRight="@dimen/mainfooter_height"
-        android:background="@drawable/key_color"
+        android:background="?attr/colorPrimary"
         android:orientation="horizontal"
         android:visibility="gone">
 
-        <ImageButton
-            android:id="@+id/ibCloseTweet"
-            android:layout_width="38dp"
+        <fragment
+            android:id="@+id/flgQuickPost"
+            android:name="shibafu.yukari.fragment.QuickPostFragment"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/selector_key_background"
-            android:paddingRight="4dp"
-            android:src="@drawable/ic_close" />
-
-        <ImageButton
-            android:id="@+id/ibAccount"
-            android:layout_width="32dp"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical"
-            android:background="@drawable/selector_key_background"
-            android:scaleType="centerInside"
-            android:src="@drawable/yukatterload" />
-
-        <EditText
-            android:id="@+id/etTweetInput"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingLeft="8dp"
-            android:singleLine="true"
-            android:textSize="18sp" />
-
-        <ImageButton
-            android:id="@+id/ibTweet"
-            android:layout_width="48dp"
-            android:layout_height="match_parent"
-            android:background="@drawable/selector_key_background"
-            android:src="@drawable/ic_prof_tweets" />
+            tools:layout="@layout/fragment_quickpost"/>
     </LinearLayout>
 
     <LinearLayout
@@ -223,16 +226,21 @@
         android:background="@drawable/status_bar_color"
         android:visibility="gone">
 
-        <ImageView
-            android:id="@+id/ivTweet"
+        <shibafu.yukari.common.SelectorView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@+id/tweetgesture"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:background="@drawable/selector_key_background"
-            android:padding="@dimen/mainfooter_tweet_button"
-            android:src="@drawable/ic_prof_tweets" />
+            app:on_pressed="?attr/colorPrimaryDark"
+            app:on_focused="?attr/colorPrimaryDark">
+            <ImageView
+                android:id="@+id/ivTweet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/mainfooter_tweet_button"
+                android:src="@drawable/ic_prof_tweets" />
+        </shibafu.yukari.common.SelectorView>
 
         <ImageView
             android:layout_width="match_parent"

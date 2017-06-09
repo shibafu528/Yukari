@@ -15,7 +15,7 @@ class WelcomeActivity : ActionBarActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar.hide()
+        supportActionBar?.hide()
         setContentView(R.layout.activity_welcome)
 
         val txtTitle = findViewById(R.id.textView) as TextView

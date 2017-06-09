@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
@@ -21,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 import shibafu.yukari.R;
+import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/06/27.
@@ -32,14 +32,7 @@ public class IntentChooserActivity extends FragmentActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightDialogTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkDialogTheme);
-                break;
-        }
+        ThemeUtil.setDialogTheme(this);
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_parent);

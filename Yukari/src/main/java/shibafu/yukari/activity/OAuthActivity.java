@@ -12,7 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.YukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class OAuthActivity extends YukariBase {
+public class OAuthActivity extends ActionBarYukariBase {
 
     private final int TWITTER_REQUEST_CODE = 1;
     private static final ComponentName TWITTER_AUTH_ACTIVITY = new ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity");
@@ -58,7 +58,7 @@ public class OAuthActivity extends YukariBase {
             e.printStackTrace();
         }
 
-        twitter = TwitterUtil.getTwitterInstance(this);
+        twitter = TwitterUtil.getTwitterFactory(this).getInstance();
 
         if (foundTwitter) {
             new AlertDialog.Builder(this)

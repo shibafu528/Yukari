@@ -16,6 +16,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.widget.Toast;
+import info.shibafu528.yukari.processor.autorelease.AutoRelease;
+import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -27,7 +29,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.util.AutoRelease;
 import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.Releasable;
 import twitter4j.DirectMessage;
@@ -51,13 +52,13 @@ class StatusNotifier implements Releasable {
             "android.resource://shibafu.yukari/raw/y_love"
     };
 
-    @AutoRelease private TwitterService service;
-    @AutoRelease private Context context;
-    @AutoRelease private Handler handler;
-    @AutoRelease private SharedPreferences sharedPreferences;
-    @AutoRelease private NotificationManager notificationManager;
-    @AutoRelease private AudioManager audioManager;
-    @AutoRelease private Vibrator vibrator;
+    @AutoRelease TwitterService service;
+    @AutoRelease Context context;
+    @AutoRelease Handler handler;
+    @AutoRelease SharedPreferences sharedPreferences;
+    @AutoRelease NotificationManager notificationManager;
+    @AutoRelease AudioManager audioManager;
+    @AutoRelease Vibrator vibrator;
 
     public StatusNotifier(TwitterService service) {
         this.service = service;
@@ -306,5 +307,10 @@ class StatusNotifier implements Releasable {
             }
         }
         return null;
+    }
+
+    @Override
+    public void release() {
+        AutoReleaser.release(this);
     }
 }

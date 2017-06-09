@@ -87,20 +87,6 @@ public class AuthUserRecord implements Serializable, DBRecord{
         twitter.setOAuthAccessToken(getAccessToken());
     }
 
-    /**
-     * このアカウントを利用するための認証情報を設定したTwitterインスタンスを生成します。
-     * @param context Context
-     * @return このアカウントのTwitterインスタンス
-     * @deprecated 呼ぶと酷い目に遭うからやめよう
-     */
-    @SuppressWarnings("deprecated")
-    @Deprecated
-    public Twitter getTwitterInstance(Context context) {
-        Twitter twitter = TwitterUtil.getTwitterInstance(context);
-        updateTwitterInstance(context, twitter);
-        return twitter;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -197,5 +183,22 @@ public class AuthUserRecord implements Serializable, DBRecord{
             sessionTemporary.put(NumericId, new HashMap<>());
         }
         sessionTemporary.get(NumericId).put(key, value);
+    }
+
+    @Override
+    public String toString() {
+        return "AuthUserRecord{" +
+                "NumericId=" + NumericId +
+                ", ScreenName='" + ScreenName + '\'' +
+                ", Name='" + Name + '\'' +
+                ", ProfileImageUrl='" + ProfileImageUrl + '\'' +
+                ", isPrimary=" + isPrimary +
+                ", isActive=" + isActive +
+                ", isWriter=" + isWriter +
+                ", ConsumerKey='" + ConsumerKey + '\'' +
+                ", ConsumerSecret='" + ConsumerSecret + '\'' +
+                ", Token=" + Token +
+                ", AccountColor=" + AccountColor +
+                '}';
     }
 }

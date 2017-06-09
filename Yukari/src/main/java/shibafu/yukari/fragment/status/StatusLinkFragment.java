@@ -14,7 +14,9 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.AppCompatImageButton;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,6 +35,7 @@ import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.StatusChildUI;
+import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.media.LinkMedia;
@@ -73,11 +76,11 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
-                view.setBackgroundResource(R.drawable.dialog_full_holo_light);
+            default:
+                view.setBackgroundResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
-                view.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                view.setBackgroundResource(R.drawable.dialog_full_material_dark);
                 break;
         }
     }
@@ -308,6 +311,31 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
         getListView().setStackFromBottom(sp.getBoolean("pref_bottom_stack", false));
     }
 
+    @Override
+    public void onUserChanged(AuthUserRecord userRecord) {}
+
+    @Nullable
+    private PreformedStatus getStatus() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getStatus();
+        }
+        return null;
+    }
+
+    @Nullable
+    private AuthUserRecord getUserRecord() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getUserRecord();
+        }
+        return null;
+    }
+
+    private void setUserRecord(AuthUserRecord userRecord) {
+        if (getActivity() instanceof StatusUI) {
+            ((StatusUI) getActivity()).setUserRecord(userRecord);
+        }
+    }
+
     private class Plugin {
         public static final String ACTION_LINK_ACCEL = "shibafu.yukari.ACTION_LINK_ACCEL";
         private ResolveInfo resolveInfo;
@@ -428,7 +456,7 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
                     ll.setPadding(0, 0, (int) (density * 4), 0);
                 }
                 for (final Plugin plugin : d.plugins) {
-                    ImageButton ib = new ImageButton(getContext());
+                    ImageButton ib = new AppCompatImageButton(getContext());
                     ib.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     ib.setImageBitmap(Bitmap.createScaledBitmap(((BitmapDrawable) plugin.icon).getBitmap(), iconSize, iconSize, true));
                     ib.setOnClickListener(v1 -> plugin.executeIntent(plugin.canReceiveName));

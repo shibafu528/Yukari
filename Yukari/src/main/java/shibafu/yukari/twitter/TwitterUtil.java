@@ -1,28 +1,14 @@
 package shibafu.yukari.twitter;
 
 import android.content.Context;
-
 import android.support.annotation.NonNull;
 import shibafu.yukari.R;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
-import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 public class TwitterUtil {
-
-    /**
-     * <b>TwitterService上での初期化以外で呼び出さないこと。</b>
-     * それ以外の場所ではTwitterServiceをバインドし取得すること。
-     */
-    @Deprecated
-	public static Twitter getTwitterInstance(Context context) {
-        ConfigurationBuilder configuration = getConfigurationBuilder(context);
-
-		TwitterFactory factory = new TwitterFactory(configuration.build());
-        return factory.getInstance();
-	}
 
     /**
      * CK/CSの設定を行ったTwitterFactoryのインスタンスを生成します。

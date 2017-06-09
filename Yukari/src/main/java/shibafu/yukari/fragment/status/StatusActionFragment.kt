@@ -17,17 +17,19 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import info.shibafu528.yukari.exvoice.MRubyException
-import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import info.shibafu528.yukari.exvoice.ProcWrapper
 import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.common.StatusChildUI
+import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.defaultSharedPreferences
@@ -83,12 +85,36 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
     )
 
+    private val status: PreformedStatus?
+        get() {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                return activity.status
+            }
+            return null
+        }
+
+    private var userRecord: AuthUserRecord?
+        get() {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                return activity.userRecord
+            }
+            return null
+        }
+        set(value) {
+            val activity = this.activity
+            if (activity is StatusUI) {
+                activity.userRecord = value
+            }
+        }
+
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         when (defaultSharedPreferences.getString("pref_theme", "light")) {
-            "light" -> view?.setBackgroundResource(R.drawable.dialog_full_holo_light)
-            "dark" -> view?.setBackgroundResource(R.drawable.dialog_full_holo_dark)
+            "dark" -> view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
+            else -> view?.setBackgroundResource(R.drawable.dialog_full_material_light)
         }
     }
 
@@ -156,6 +182,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         startActivity(muteOption.toIntent(activity))
     }
 
+    override fun onUserChanged(userRecord: AuthUserRecord?) {}
+
     override fun onServiceConnected() {
         // Pluggaloidアクションのロード
         if (!isLoadedPluggaloid) {
@@ -221,7 +249,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         override val label: String = resolveInfo.activityInfo.loadLabel(activity.packageManager).toString()
 
         override fun onClick() {
-            val status = this@StatusActionFragment.status ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+            val status = this@StatusActionFragment.status?.originStatus ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
 
             val intent = Intent("jp.r246.twicca.ACTION_SHOW_TWEET")
                 .addCategory(Intent.CATEGORY_DEFAULT)

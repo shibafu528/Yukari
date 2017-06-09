@@ -44,9 +44,6 @@ import twitter4j.User;
 import twitter4j.UserList;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -75,8 +72,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
     private SharedPreferences preferences;
-
-    private final Map<Long, PreformedStatus> asyncInsertWaitings = Collections.synchronizedMap(new HashMap<>());
 
     @Override
     public void onAttach(Activity activity) {

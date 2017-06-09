@@ -13,7 +13,7 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -27,7 +27,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 import java.util.List;
 
-public class StatusActivity extends FragmentYukariBase implements StatusUI {
+public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
@@ -42,14 +42,26 @@ public class StatusActivity extends FragmentYukariBase implements StatusUI {
     protected void onCreate(Bundle savedInstanceState) {
         switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
             case "light":
-                setTheme(R.style.YukariLightTheme_Translucent);
+                setTheme(R.style.ColorsTheme_Light_Translucent);
                 break;
             case "dark":
-                setTheme(R.style.YukariDarkTheme_Translucent);
+                setTheme(R.style.ColorsTheme_Dark_Translucent);
+                break;
+            case "zunko":
+                setTheme(R.style.ColorsTheme_Zunko_Translucent);
+                break;
+            case "maki":
+                setTheme(R.style.ColorsTheme_Maki_Translucent);
+                break;
+            case "aoi":
+                setTheme(R.style.ColorsTheme_Aoi_Translucent);
+                break;
+            case "akane":
+                setTheme(R.style.ColorsTheme_Akane_Translucent);
                 break;
         }
         super.onCreate(savedInstanceState, true);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);
 
         findViewById(android.R.id.content).setOnClickListener(v -> finish());

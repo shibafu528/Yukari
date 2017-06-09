@@ -6,12 +6,15 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.2.2'
-        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
+        classpath 'me.tatarka:gradle-retrolambda:3.6.0'
     }
 }
 
 allprojects {
     repositories {
+        maven {
+            url 'http://192.168.11.37:8081/repository/maven-public/'
+        }
         jcenter()
     }
 }

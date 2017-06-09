@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="shibafu.yukari"
     android:installLocation="auto"
-    android:versionCode="80"
-    android:versionName="1.3.3.343 (lilium 161222)" >
+    android:versionCode="89"
+    android:versionName="2.0.0.373 (planche 170609)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -22,7 +23,7 @@
             android:value="@integer/google_play_services_version"/>
 
         <activity
-            android:name="shibafu.yukari.activity.MainActivity"
+            android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask">
@@ -31,18 +32,19 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/hash" />
+                <data android:mimeType="vnd.${applicationId}/hash" />
             </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts"/>
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
             android:label="@string/title_activity_oauth"
@@ -79,6 +81,7 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
@@ -88,13 +91,15 @@
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
         </activity>
+
         <service android:name=".service.PostService"/>
 
         <activity
             android:name="shibafu.yukari.activity.StatusActivity"
             android:label="@string/title_activity_status"
-            android:theme="@style/YukariLightTheme.Translucent" >
+            android:theme="@style/ColorsTheme.Light.Translucent" >
         </activity>
+
         <activity
             android:name=".activity.IntentActivity"
             android:theme="@android:style/Theme.NoDisplay" >
@@ -128,34 +133,30 @@
                 <data android:scheme="yukari" android:host="command" />
             </intent-filter>
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.AssetExtractActivity"
             android:label="@string/title_activity_assetextract"
             android:configChanges="orientation|screenSize">
         </activity>
+
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
             android:label="@string/title_activity_profile">
-            <intent-filter>
+            <intent-filter tools:ignore="GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data android:mimeType="vnd.shibafu.yukari/user" />
+                <data android:mimeType="vnd.${applicationId}/user" />
             </intent-filter>
         </activity>
 
         <provider
             android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="shibafu.yukari.link"
+            android:authorities="${applicationId}.link"
             android:exported="false" />
-
-        <!-- 未実装Intentはここに飛ばせ -->
-        <activity
-            android:name="shibafu.yukari.activity.NotFoundStubActivity"
-            android:theme="@android:style/Theme.NoDisplay">
-        </activity>
 
         <activity
             android:name=".plugin.MorseInputActivity"
@@ -172,10 +173,8 @@
         <activity
             android:name=".activity.SNPickerActivity"
             android:label="@string/title_activity_snpicker"
-            android:theme="@style/YukariLightDialogTheme">
+            android:theme="@style/ColorsTheme.Light.Dialog">
         </activity>
-
-        <receiver android:name=".receiver.StubReceiver"/>
 
         <activity
             android:name=".activity.TraceActivity"
@@ -184,14 +183,14 @@
 
         <activity
             android:name=".activity.PreviewActivity"
-            android:theme="@style/AppThemeTranslucentBg"/>
+            android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
         <activity
             android:name=".activity.MoviePreviewActivity"
-            android:theme="@style/AppThemeTranslucentBg"/>
+            android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
 
         <activity
             android:name=".activity.AccountChooserActivity"
-            android:theme="@style/YukariDialogTheme"
+            android:theme="@style/ColorsTheme.Light.Dialog"
             android:label="@string/title_activity_accountchooser"/>
 
         <activity
@@ -325,12 +324,6 @@
             android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
             android:label="@string/title_activity_picture_chooser"
             android:uiOptions="splitActionBarWhenNarrow">
-            <meta-data
-                android:name="android.support.UI_OPTIONS"
-                android:value="splitActionBarWhenNarrow" />
-            <meta-data
-                android:name="info.shibafu528.gallerymultipicker.ICON_THEME"
-                android:value="dark"/>
         </activity>
 
         <activity
@@ -340,6 +333,7 @@
                 <action android:name="android.intent.action.VIEW"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
 
                 <data android:scheme="http" android:host="twpf.jp"/>
             </intent-filter>
@@ -347,7 +341,7 @@
 
         <activity
             android:name=".activity.IntentChooserActivity"
-            android:theme="@style/YukariDarkDialogTheme"/>
+            android:theme="@style/ColorsTheme.Dark.Dialog"/>
 
         <activity android:name=".activity.BookmarkRepairActivity"/>
 
@@ -355,10 +349,6 @@
             android:name=".activity.AboutActivity"
             android:theme="@style/YukariAboutTheme"
             android:screenOrientation="portrait"/>
-
-        <activity
-            android:name=".activity.TemplateEditActivity"
-            android:label="@string/title_activity_template_edit"/>
 
         <activity android:name=".activity.QueryEditorActivity"
                   android:windowSoftInputMode="adjustResize"
@@ -374,6 +364,9 @@
 
         <activity
             android:name=".activity.WelcomeActivity"/>
+
+        <service
+            android:name=".service.BitmapDecoderService"/>
    </application>
 
 </manifest>

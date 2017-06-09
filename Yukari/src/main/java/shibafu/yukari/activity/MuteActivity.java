@@ -1,19 +1,16 @@
 package shibafu.yukari.activity;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.AlertDialog;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,20 +26,14 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.doomonafireball.betterpickers.calendardatepicker.CalendarDatePickerDialog;
-import com.doomonafireball.betterpickers.radialtimepicker.RadialTimePickerDialog;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
+import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import butterknife.OnClick;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
@@ -50,6 +41,11 @@ import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.util.StringUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/04/22.
@@ -296,15 +292,16 @@ public class MuteActivity extends ActionBarYukariBase{
         private final SimpleDateFormat dfTime = new SimpleDateFormat("HH:mm");
         private long expirationTimeMillis = -1;
 
-        @InjectView(R.id.etMuteTarget) EditText query;
-        @InjectView(R.id.spMuteTarget) Spinner spTarget;
-        @InjectView(R.id.spMuteMatch) Spinner spMatch;
-        @InjectView(R.id.spMuteErase) Spinner spErase;
-        @InjectView(R.id.btnMuteExpr) ImageButton btnExpire;
-        @InjectView(R.id.llMuteExprNever) LinearLayout llExprNever;
-        @InjectView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
-        @InjectView(R.id.etMuteExprDate) EditText exprDate;
-        @InjectView(R.id.etMuteExprTime) EditText exprTime;
+        @BindView(R.id.etMuteTarget) EditText query;
+        @BindView(R.id.spMuteTarget) Spinner spTarget;
+        @BindView(R.id.spMuteMatch) Spinner spMatch;
+        @BindView(R.id.spMuteErase) Spinner spErase;
+        @BindView(R.id.btnMuteExpr) ImageButton btnExpire;
+        @BindView(R.id.llMuteExprNever) LinearLayout llExprNever;
+        @BindView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
+        @BindView(R.id.etMuteExprDate) EditText exprDate;
+        @BindView(R.id.etMuteExprTime) EditText exprTime;
+        private Unbinder unbinder;
 
         public static MuteConfigDialogFragment newInstance(MuteConfig config, Fragment target) {
             MuteConfigDialogFragment dialogFragment = new MuteConfigDialogFragment();
@@ -318,11 +315,7 @@ public class MuteActivity extends ActionBarYukariBase{
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_mute, null);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB &&
-                    PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").equals("light")) {
-                v.setBackgroundColor(Color.WHITE);
-            }
-            ButterKnife.inject(this, v);
+            unbinder = ButterKnife.bind(this, v);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
@@ -377,7 +370,7 @@ public class MuteActivity extends ActionBarYukariBase{
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
-            ButterKnife.reset(this);
+            unbinder.unbind();
         }
 
         private void updateExpire() {
@@ -433,17 +426,17 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            CalendarDatePickerDialog dialog = CalendarDatePickerDialog.newInstance(
-                    (calendarDatePickerDialog, i, i2, i3) -> {
+            CalendarDatePickerDialogFragment dialog = new CalendarDatePickerDialogFragment()
+                    .setOnDateSetListener((calendarDatePickerDialog, i, i2, i3) -> {
                         Calendar c1 = Calendar.getInstance();
                         c1.setTimeInMillis(expirationTimeMillis);
                         c1.set(i, i2, i3);
                         expirationTimeMillis = c1.getTimeInMillis();
                         updateExpire();
-                    },
-                    c.get(Calendar.YEAR),
-                    c.get(Calendar.MONTH),
-                    c.get(Calendar.DAY_OF_MONTH));
+                    })
+                    .setDoneText("OK")
+                    .setCancelText("キャンセル")
+                    .setPreselectedDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
             dialog.show(getFragmentManager(), null);
         }
 
@@ -454,19 +447,21 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            RadialTimePickerDialog dialog = RadialTimePickerDialog.newInstance(
-                    (dialog1, hourOfDay, minute) -> {
+            RadialTimePickerDialogFragment dialog = new RadialTimePickerDialogFragment()
+                    .setOnTimeSetListener((dialog1, hourOfDay, minute) -> {
                         Calendar c1 = Calendar.getInstance();
                         c1.setTimeInMillis(expirationTimeMillis);
                         c1.set(Calendar.HOUR_OF_DAY, hourOfDay);
                         c1.set(Calendar.MINUTE, minute);
                         expirationTimeMillis = c1.getTimeInMillis();
                         updateExpire();
-                    },
-                    c.get(Calendar.HOUR_OF_DAY),
-                    c.get(Calendar.MINUTE),
-                    DateFormat.is24HourFormat(getActivity())
-            );
+                    })
+                    .setDoneText("OK")
+                    .setCancelText("キャンセル")
+                    .setStartTime(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
+            if (DateFormat.is24HourFormat(getActivity())) {
+                dialog.setForced24hFormat();
+            }
             dialog.show(getFragmentManager(), null);
         }
     }

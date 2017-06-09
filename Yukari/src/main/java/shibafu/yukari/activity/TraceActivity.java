@@ -20,7 +20,7 @@ public class TraceActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
+            default:
                 setTheme(R.style.AppDialogThemeWhenLarge);
                 break;
             case "dark":

@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.annotation.ColorRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
@@ -18,7 +19,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import lombok.Value;
@@ -35,6 +35,7 @@ import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.TwitterResponse;
 
 import java.util.ArrayList;
@@ -113,6 +114,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private SwipeRefreshLayout swipeRefreshLayout;
     private int refreshCounter;
     private boolean disabledReload;
+    @ColorRes private int swipeRefreshColor;
 
     //SwipeAction PopupWindow
     protected View swipeActionStatusView;
@@ -120,7 +122,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     //Footer View
     private View footerView;
-    private ProgressBar footerProgress;
+    private View footerProgress;
     private TextView footerText;
     private boolean isLoading = false;
 
@@ -170,6 +172,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
             ((MainActivity) activity).registTwitterFragment(id, this);
         }
+        swipeRefreshColor = AttrUtil.resolveAttribute(activity.getTheme(), R.attr.colorPrimary);
     }
 
     @Override
@@ -195,7 +198,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         View v = inflater.inflate(R.layout.fragment_swipelist, container, false);
 
         swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setColorSchemeResources(R.color.key_color);
+        swipeRefreshLayout.setColorSchemeResources(swipeRefreshColor);
         swipeRefreshLayout.setOnRefreshListener(this);
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
@@ -216,7 +219,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         listView = getListView();
 
         footerView = getActivity().getLayoutInflater().inflate(R.layout.row_loading, null);
-        footerProgress = (ProgressBar) footerView.findViewById(R.id.pbLoading);
+        footerProgress = footerView.findViewById(R.id.pbLoading);
         footerText = (TextView) footerView.findViewById(R.id.tvLoading);
         getListView().addFooterView(footerView);
 
@@ -229,11 +232,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
         if (unreadNotifierView != null) {
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                default:
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_material_light);
                     break;
                 case "dark":
-                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                    unreadNotifierView.setBackgroundResource(R.drawable.dialog_full_material_dark);
                     break;
             }
 
@@ -809,6 +812,18 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         if (position + 1 < elements.size()) {
             Log.d("dumpAroundTweets", "    " + (position + 1) + " : ... " + elements.get(position + 1));
         }
+    }
+
+    public String getRestTag() {
+        return "";
+    }
+
+    public String getSubscribeIdentifier() {
+        Bundle args = getArguments();
+        if (args.containsKey(TwitterListFragment.EXTRA_ID)) {
+            return String.valueOf(args.getLong(TwitterListFragment.EXTRA_ID));
+        }
+        return this.toString();
     }
 
     /**

@@ -10,30 +10,50 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
 import android.util.Pair;
-import android.view.*;
-import android.widget.*;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
+import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import twitter4j.*;
+import twitter4j.PagableResponseList;
+import twitter4j.ResponseList;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
+import twitter4j.UserList;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by shibafu on 14/07/22.
  */
 public class ListRegisterDialogFragment extends DialogFragment {
-    @InjectView(R.id.tvMenuTitle) TextView menuTitle;
-    @InjectView(R.id.ivMenuAccountIcon) ImageView accountIcon;
-    @InjectView(R.id.listView) ListView listView;
-    @InjectView(R.id.progressBar) ProgressBar progressBar;
+    @BindView(R.id.tvMenuTitle) TextView menuTitle;
+    @BindView(R.id.ivMenuAccountIcon) ImageView accountIcon;
+    @BindView(R.id.listView) ListView listView;
+    @BindView(R.id.progressBar) ProgressBar progressBar;
 
     private static final int REQUEST_CHOOSE = 1 << 8;
     private static final String ARG_TARGET_USER = "target";
@@ -49,6 +69,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     private ListLoadTask currentListLoadTask;
     private Map<ListUpdateTask, UserList> updateTasks = new HashMap<>();
     private UserListAdapter adapter;
+    private Unbinder unbinder;
 
     public static ListRegisterDialogFragment newInstance(User targetUser) {
         ListRegisterDialogFragment fragment = new ListRegisterDialogFragment();
@@ -81,16 +102,16 @@ public class ListRegisterDialogFragment extends DialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+            default:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
         }
 
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_list, null);
-        ButterKnife.inject(this, v);
+        unbinder = ButterKnife.bind(this, v);
 
         menuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
         ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), accountIcon, currentUser.ProfileImageUrl);
@@ -109,7 +130,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        ButterKnife.reset(this);
+        unbinder.unbind();
     }
 
     @Override
@@ -225,11 +246,11 @@ public class ListRegisterDialogFragment extends DialogFragment {
         }
 
         class ViewHolder {
-            @InjectView(R.id.checkBox) CheckBox checkBox;
-            @InjectView(R.id.progressBar) ProgressBar progressBar;
+            @BindView(R.id.checkBox) CheckBox checkBox;
+            @BindView(R.id.progressBar) ProgressBar progressBar;
 
             public ViewHolder(View v) {
-                ButterKnife.inject(this, v);
+                ButterKnife.bind(this, v);
             }
         }
     }

@@ -1,12 +1,10 @@
 package shibafu.yukari.fragment;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
@@ -36,11 +34,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
 import twitter4j.Trend;
@@ -100,12 +100,28 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
             case "light":
-                dialog.getContext().setTheme(R.style.YukariLightDialogTheme);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+                dialog.getContext().setTheme(R.style.ColorsTheme_Light_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
-                dialog.getContext().setTheme(R.style.YukariDarkDialogTheme);
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                dialog.getContext().setTheme(R.style.ColorsTheme_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+                break;
+            case "zunko":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "maki":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "aoi":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "akane":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -129,7 +145,6 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         return inflateView(inflater);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private View inflateView(LayoutInflater inflater) {
         View v = inflater.inflate(R.layout.dialog_search, null);
 
@@ -144,30 +159,28 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             }
             return false;
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            searchQuery.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
-                @Override
-                public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-                    return true;
-                }
+        searchQuery.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                return true;
+            }
 
-                @Override
-                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
-                    spacer.setVisibility(View.VISIBLE);
-                    return true;
-                }
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                spacer.setVisibility(View.VISIBLE);
+                return true;
+            }
 
-                @Override
-                public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-                    return false;
-                }
+            @Override
+            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+                return false;
+            }
 
-                @Override
-                public void onDestroyActionMode(ActionMode actionMode) {
-                    spacer.setVisibility(View.GONE);
-                }
-            });
-        }
+            @Override
+            public void onDestroyActionMode(ActionMode actionMode) {
+                spacer.setVisibility(View.GONE);
+            }
+        });
 
         ImageButton ibSearch = (ImageButton) v.findViewById(R.id.ibSearch);
         ibSearch.setOnClickListener(view -> sendQuery());
@@ -188,7 +201,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
         PagerTabStrip tabStrip = (PagerTabStrip) v.findViewById(R.id.pager_title_strip);
         tabStrip.setDrawFullUnderline(true);
-        tabStrip.setTabIndicatorColorResource(R.color.key_color);
+        tabStrip.setTabIndicatorColorResource(AttrUtil.resolveAttribute(getActivity().getTheme(), R.attr.colorPrimary));
 
         return v;
     }
@@ -314,7 +327,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         private void reloadHistory() {
-            task = new AsyncTask<Void, Void, List<SearchHistory>>() {
+            task = new ParallelAsyncTask<Void, Void, List<SearchHistory>>() {
                 @Override
                 protected List<SearchHistory> doInBackground(Void... params) {
                     return getServiceAwait().getDatabase().getSearchHistories();
@@ -328,12 +341,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     setListAdapter(new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, searchHistories));
                 }
             };
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            }
-            else {
-                task.execute();
-            }
+            task.execute();
         }
 
         @Override

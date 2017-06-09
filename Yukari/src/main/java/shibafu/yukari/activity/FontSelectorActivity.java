@@ -24,6 +24,7 @@ import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/06/22.
@@ -32,14 +33,7 @@ public class FontSelectorActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkTheme);
-                break;
-        }
+        ThemeUtil.setActivityTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

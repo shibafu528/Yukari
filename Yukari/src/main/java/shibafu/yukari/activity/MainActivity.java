@@ -18,10 +18,6 @@ import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.PopupMenu;
-import android.text.Editable;
-import android.text.Spanned;
-import android.text.TextWatcher;
-import android.text.style.CharacterStyle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -30,16 +26,14 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnTouch;
 import shibafu.yukari.R;
@@ -48,21 +42,19 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TriangleView;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.TwitterAsyncTask;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
 import shibafu.yukari.fragment.MenuDialogFragment;
+import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.StreamToggleable;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
-import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
@@ -71,7 +63,6 @@ import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
-import twitter4j.util.CharacterUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -82,10 +73,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback {
+public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback, QuickPostFragment.OnCloseQuickPostListener {
 
     private static final int REQUEST_OAUTH = 1;
-    private static final int REQUEST_QPOST_CHOOSE_ACCOUNT = 3;
     private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
     private static final int REQUEST_QUERY = 8;
 
@@ -103,30 +93,27 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private float tweetGestureYStart = 0;
     private float tweetGestureY = 0;
 
+    private int currentPageIndex = -1;
     private TwitterListFragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
     private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
     private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
-    @InjectView(R.id.tvMainTab)     TextView tvTabText;
-    @InjectView(R.id.pager)         ViewPager viewPager;
-    @InjectView(R.id.ibClose)       ImageButton ibClose;
-    @InjectView(R.id.ibStream)      ImageButton ibStream;
-    @InjectView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
-    @InjectView(R.id.streamState)   TriangleView tvStreamState;
+    @BindView(R.id.tvMainTab)     TextView tvTabText;
+    @BindView(R.id.pager)         ViewPager viewPager;
+    @BindView(R.id.ibClose)       ImageButton ibClose;
+    @BindView(R.id.ibStream)      ImageButton ibStream;
+    @BindView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
+    @BindView(R.id.streamState)   TriangleView tvStreamState;
 
     private LongSparseArray<WeakReference<TwitterListFragment>> tabRegistry = new LongSparseArray<>();
 
     //QuickPost関連
-    private InputMethodManager imm;
     private boolean enableQuickPost = true;
-    private AuthUserRecord selectedAccount;
-    @InjectView(R.id.llQuickTweet)  LinearLayout llQuickTweet;
-    @InjectView(R.id.ibAccount)     ImageButton ibSelectAccount;
-    @InjectView(R.id.etTweetInput)  EditText etTweet;
+    @BindView(R.id.llQuickTweet)  LinearLayout llQuickTweet;
 
     //投稿ボタン関連
-    @InjectView(R.id.tweetbutton_frame) FrameLayout flTweet;
+    @BindView(R.id.tweetbutton_frame) FrameLayout flTweet;
 
     private TabPagerAdapter tabPagerAdapter;
 
@@ -137,7 +124,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         getSupportActionBar().hide();
         setContentView(R.layout.activity_main);
 
-        imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -163,7 +149,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         findViews();
 
-        if (new File(getExternalFilesDir(null), "wallpaper").exists()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && new File(getExternalFilesDir(null), "wallpaper").exists()) {
             Drawable wallpaper = Drawable.createFromPath(new File(getExternalFilesDir(null), "wallpaper").getAbsolutePath());
             wallpaper.setAlpha(72);
             viewPager.setBackground(wallpaper);
@@ -183,7 +169,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private void findViews() {
         decorView = getWindow().getDecorView();
-        ButterKnife.inject(this);
+        ButterKnife.bind(this);
 
         View flStreamState = findViewById(R.id.flStreamState);
         flStreamState.setOnClickListener(v -> {
@@ -196,8 +182,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         flStreamState.setOnLongClickListener(view -> {
             if (enableQuickPost) {
                 llQuickTweet.setVisibility(View.VISIBLE);
-                if (etTweet.getText().length() < 1 && currentPage instanceof SearchListFragment) {
-                    etTweet.setText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+
+                QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
+                if (quickPostFragment != null) {
+                    if (currentPage instanceof SearchListFragment) {
+                        quickPostFragment.setDefaultText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                    } else {
+                        quickPostFragment.setDefaultText("");
+                    }
                 }
                 return true;
             } else return false;
@@ -278,12 +270,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
             menuDialogFragment.show(getSupportFragmentManager(), "menu");
         });
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
-                ibMenu.setVisibility(View.GONE);
-            }
-        }
-        else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+        if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
             ibMenu.setVisibility(View.GONE);
         }
 
@@ -344,50 +331,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             public void onPageScrollStateChanged(int i) {
             }
         });
-
-        ImageButton ibCloseTweet = (ImageButton) findViewById(R.id.ibCloseTweet);
-        ibCloseTweet.setOnClickListener(view -> {
-            if (etTweet.getText().length() < 1) {
-                llQuickTweet.setVisibility(View.GONE);
-            } else {
-                etTweet.setText("");
-            }
-        });
-        ibSelectAccount.setOnClickListener(view -> {
-            Intent intent = new Intent(getApplicationContext(), AccountChooserActivity.class);
-            startActivityForResult(intent, REQUEST_QPOST_CHOOSE_ACCOUNT);
-        });
-        etTweet.setOnKeyListener((view, i, keyEvent) -> {
-            if (keyEvent.getAction() == KeyEvent.ACTION_DOWN &&
-                    keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                postTweet();
-            }
-            return false;
-        });
-        etTweet.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // 装飾の除去
-                Object[] spanned = s.getSpans(0, s.length(), Object.class);
-                if (spanned != null) {
-                    for (Object o : spanned) {
-                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
-                            s.removeSpan(o);
-                        }
-                    }
-                }
-            }
-        });
-        etTweet.setTypeface(FontAsset.getInstance(this).getFont());
-        ImageButton ibSendTweet = (ImageButton) findViewById(R.id.ibTweet);
-        ibSendTweet.setOnClickListener(view -> postTweet());
 
         ImageView ivTweet = (ImageView) findViewById(R.id.ivTweet);
         ivTweet.setOnClickListener(v -> startTweetActivity());
@@ -472,7 +415,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         if (currentPage != null && currentPage.isAdded()) {
             getSupportFragmentManager().putFragment(outState, "current", currentPage);
         }
-        outState.putInt("currentId", viewPager.getCurrentItem());
+        outState.putInt("currentPageIndex", currentPageIndex);
         outState.putSerializable("tabinfo", pageList);
 
         Log.d("MainActivity", "call onSaveInstanceState");
@@ -486,6 +429,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         keepScreenOn = savedInstanceState.getBoolean("screen");
         immersive = savedInstanceState.getBoolean("immersive");
         currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
+        currentPageIndex = savedInstanceState.getInt("currentPageIndex");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         if (pageList == null) {
             pageList = new ArrayList<>();
@@ -497,9 +441,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     protected void onDestroy() {
         super.onDestroy();
         currentPage = null;
+        currentPageIndex = -1;
         tabPagerAdapter = null;
         viewPager = null;
-        imm = null;
         sharedPreferences = null;
 
         for (ArrayList<? extends TwitterResponse> list : pageElements.values()) {
@@ -636,12 +580,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         Log.d("MainActivity", "call onActivityResult | request=" + requestCode + ", result=" + resultCode);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case REQUEST_QPOST_CHOOSE_ACCOUNT:
-                {
-                    selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                    ImageLoaderTask.loadProfileIcon(getApplicationContext(), ibSelectAccount, selectedAccount.ProfileImageUrl);
-                    break;
-                }
                 case REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT:
                 {
                     AuthUserRecord selectedAccount = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
@@ -737,44 +675,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         startActivity(intent);
     }
 
-    private void postTweet() {
-        if (selectedAccount == null) {
-            Toast.makeText(this, "アカウントが選択されていません", Toast.LENGTH_LONG).show();
-        }
-        else if (etTweet.getText().length() < 1) {
-            if (currentPage instanceof SearchListFragment) {
-                etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
-            } else {
-                Toast.makeText(this, "テキストが入力されていません", Toast.LENGTH_LONG).show();
-            }
-        }
-        else if (selectedAccount != null && CharacterUtil.count(etTweet.getText().toString()) <= 140) {
-            //ドラフト生成
-            TweetDraft draft = new TweetDraft.Builder()
-                    .setWriters(selectedAccount.toSingleList())
-                    .setText(etTweet.getText().toString())
-                    .setDateTime(System.currentTimeMillis())
-                    .build();
-
-            //サービス起動
-            startService(PostService.newIntent(this, draft));
-
-            //投稿欄を掃除する
-            etTweet.setText("");
-            if (currentPage instanceof SearchListFragment) {
-                etTweet.append(" " + ((SearchListFragment) currentPage).getStreamFilter());
-            }
-            etTweet.requestFocus();
-            imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED);
-        }
-    }
-
     private void addTab(TabInfo tabInfo) {
         pageList.add(tabInfo);
     }
 
     private void initTabs(boolean reload) {
-        int pageId = 0;
+        int pageId = currentPageIndex;
         if (reload) {
             pageList.clear();
 
@@ -785,11 +691,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     pageId = i;
                 }
             }
-        } else for (int i = 0; i < pageList.size(); ++i) {
-            if (pageList.get(i).getId() == currentPage.getTabId()) {
-                pageId = i;
-                break;
-            }
+        }
+        if (pageId < 0) {
+            pageId = 0;
         }
 
         tabPagerAdapter.notifyDataSetChanged();
@@ -812,6 +716,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         tvTabText.setText(tabInfo.getTitle());
         currentPage = tabPagerAdapter.instantiateItem(position);
+        currentPageIndex = position;
 
         if (currentPage != null) {
             if (currentPage.isCloseable()) {
@@ -872,6 +777,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
     }
 
+    @Override
+    public void onCloseQuickPost() {
+        llQuickTweet.setVisibility(View.GONE);
+    }
+
     public <T extends TwitterResponse> ArrayList<T> getElementsList(long id) {
         if (!pageElements.containsKey(id)) {
             pageElements.put(id, new ArrayList<T>());
@@ -913,18 +823,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         else {
             initTabs(pageList.isEmpty());
 
-            if (selectedAccount == null) {
-                selectedAccount = getTwitterService().getPrimaryUser();
-                if (selectedAccount == null) {
+            QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
+            if (quickPostFragment != null && quickPostFragment.getSelectedAccount() == null) {
+                AuthUserRecord primary = getTwitterService().getPrimaryUser();
+                if (primary == null) {
                     Toast.makeText(getApplicationContext(), "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
                     enableQuickPost = false;
-                }
-                else if (ibSelectAccount == null) {
-                    Toast.makeText(getApplicationContext(), "UIの初期化に失敗しているようです\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
-                    enableQuickPost = false;
-                }
-                else {
-                    ImageLoaderTask.loadProfileIcon(getApplicationContext(), ibSelectAccount, selectedAccount.ProfileImageUrl);
+                } else {
+                    quickPostFragment.setSelectedAccount(primary);
                     enableQuickPost = true;
                 }
             }

@@ -5,6 +5,7 @@
     <color name="key_color">#7849ba</color>
     <drawable name="key_color">#ff7849ba</drawable>
     <drawable name="status_bar_color">#cc7849ba</drawable>
+    <color name="status_bar_color">#cc7849ba</color>
 
     <color name="bg_retweet">#bad7dffd</color>
     <drawable name="bg_retweet">#bad7dffd</drawable>
@@ -20,14 +21,19 @@
     <color name="bg_own_d">#ba00182c</color>
     <drawable name="bg_own_d">#ba00182c</drawable>
 
+    <color name="bg_press">#baB394E0</color>
     <drawable name="bg_press">#baB394E0</drawable>
-    <drawable name="bg_press_d">#ba382852</drawable>
+    <color name="bg_press_d">#ff382852</color>
+    <drawable name="bg_press_d">#ff382852</drawable>
 
     <drawable name="focus_key_color">@drawable/key_color</drawable>
     <drawable name="press_key_color">#ff613fa3</drawable>
 
     <drawable name="focus_key_light_color">#ca8c54d6</drawable>
     <drawable name="press_key_light_color">#ca8147cb</drawable>
+
+    <color name="focus_key_light_color">#ca8c54d6</color>
+    <color name="press_key_light_color">#ca8147cb</color>
 
     <drawable name="focus_gray_color">#caaa</drawable>
     <drawable name="press_gray_color">#c777</drawable>
@@ -41,4 +47,37 @@
     <color name="count_error">#f00</color>
     <color name="count_error_d">#f44</color>
     <color name="key_color_accent">#ea80fc</color>
+    <color name="key_color_light">#B394E0</color>
+
+    <color name="zunko_primary">#4CAF50</color>
+    <color name="zunko_primary_dark">#388E3C</color>
+    <color name="zunko_primary_light">#C8E6C9</color>
+    <color name="zunko_accent">#7C4DFF</color>
+    <color name="zunko_footer">#cc4caf50</color>
+    <drawable name="zunko_focus">#cac8e6c9</drawable>
+    <drawable name="zunko_press">#ca4caf50</drawable>
+
+    <color name="maki_primary">#FFC107</color>
+    <color name="maki_primary_dark">#FFA000</color>
+    <color name="maki_primary_light">#FFECB3</color>
+    <color name="maki_accent">#FF4081</color>
+    <color name="maki_footer">#ccFFC107</color>
+    <drawable name="maki_focus">#caFFECB3</drawable>
+    <drawable name="maki_press">#caFFC107</drawable>
+
+    <color name="aoi_primary">#03A9F4</color>
+    <color name="aoi_primary_dark">#0288D1</color>
+    <color name="aoi_primary_light">#B3E5FC</color>
+    <color name="aoi_accent">#00BCD4</color>
+    <color name="aoi_footer">#cc03A9F4</color>
+    <drawable name="aoi_focus">#caB3E5FC</drawable>
+    <drawable name="aoi_press">#ca03A9F4</drawable>
+
+    <color name="akane_primary">#E91E63</color>
+    <color name="akane_primary_dark">#C2185B</color>
+    <color name="akane_primary_light">#F8BBD0</color>
+    <color name="akane_accent">#FF5252</color>
+    <color name="akane_footer">#ccE91E63</color>
+    <drawable name="akane_focus">#caF8BBD0</drawable>
+    <drawable name="akane_press">#caE91E63</drawable>
 </resources>

@@ -249,7 +249,7 @@ public class PostService extends IntentService{
         }
 
         //ゆかりさんが反応する機能
-        if (sp.getBoolean("j_yukari_voice", false)) {
+        if (sp.getBoolean("j_yukari_voice", false) && sp.getBoolean("j_yukari_joke_voices", false)) {
             reactionFromYukari(draft);
         }
 

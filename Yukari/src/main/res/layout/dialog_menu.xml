@@ -59,7 +59,7 @@
         android:id="@+id/imageView"
         android:layout_marginBottom="2dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/key_color" />
+        android:src="?attr/colorPrimary" />
 
     <LinearLayout
         android:orientation="horizontal"

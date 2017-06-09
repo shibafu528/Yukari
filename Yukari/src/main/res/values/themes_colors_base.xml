@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="ColorsTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">?attr/colorPrimaryLight</item>
+        <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
+
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
+
+        <item name="tabTitleColor">@color/key_color</item>
+
+        <item name="profileTweetsDrawable">@drawable/ic_prof_tweets</item>
+        <item name="profileFavoritesDrawable">@drawable/ic_prof_favorite</item>
+        <item name="profileFollowsDrawable">@drawable/ic_prof_follow</item>
+        <item name="profileFollowersDrawable">@drawable/ic_prof_follower</item>
+        <item name="profileLocationDrawable">@drawable/ic_location_on_primary_dark_24dp</item>
+        <item name="profileWebDrawable">@drawable/ic_link_primary_dark_24dp</item>
+        <item name="profileSinceDrawable">@drawable/ic_insert_invitation_primary_dark_24dp</item>
+        <item name="profileUserIdDrawable">@drawable/ic_person_primary_dark_24dp</item>
+
+        <item name="menuProfileDrawable">@drawable/ic_profile</item>
+        <item name="menuTwilogDrawable">@drawable/ic_twilog</item>
+        <item name="menuFavstarDrawable">@drawable/ic_favorite_m</item>
+        <item name="menuAclogDrawable">@drawable/ic_aclog</item>
+        <item name="menuBacklightDrawable">@drawable/ic_always_light_off</item>
+        <item name="menuReportDrawable">@drawable/ic_feedback</item>
+        <item name="menuSettingDrawable">@drawable/ic_settings</item>
+        <item name="menuQuitDrawable">@drawable/ic_quit</item>
+        <item name="menuReloadDrawable">@drawable/ic_navigation_refresh</item>
+        <item name="menuBookmarkDrawable">@drawable/ic_bookmark</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
+        <item name="searchButtonDrawable">@drawable/ic_search</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorPrimaryLight">@color/key_color_light</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+
+        <item name="footerBarColor">@color/status_bar_color</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="listSortableHandleDrawable">@drawable/sortable_light</item>
+    </style>
+
+    <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowBackground">@drawable/dialog_full_material_light</item>
+
+        <item name="tweetTextColor">#000</item>
+        <item name="tweetPressColor">?attr/colorPrimaryLight</item>
+        <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
+
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet</item>
+        <item name="tweetOwn">@drawable/bg_own</item>
+        <item name="tweetMention">@drawable/bg_mention</item>
+
+        <item name="tabTitleColor">@color/key_color</item>
+
+        <item name="tweetCountColor">@color/count_safe</item>
+        <item name="tweetCountOverColor">@color/count_error</item>
+
+        <item name="selectorTextColor">@color/selector_key_light_textcolor</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark</item>
+        <item name="searchButtonDrawable">@drawable/ic_search</item>
+
+        <item name="tweetAttachDrawable">@drawable/ic_content_picture</item>
+        <item name="tweetShotDrawable">@drawable/ic_access_camera</item>
+        <item name="tweetTagDrawable">@drawable/ic_hashtag</item>
+        <item name="tweetGrassDrawable">@drawable/ic_grass</item>
+        <item name="tweetPointDrawable">@drawable/ic_santen</item>
+        <item name="tweetDraftDrawable">@drawable/ic_list</item>
+        <item name="tweetReplyDrawable">@drawable/ic_reply_b</item>
+        <item name="tweetVoiceDrawable">@drawable/ic_voice_input</item>
+        <item name="tweetMorseDrawable">@drawable/ic_morse</item>
+        <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+    </style>
+
+    <style name="ColorsTheme.Base.Dark" parent="Theme.AppCompat">
+        <item name="tweetTextColor">#fff</item>
+        <item name="tweetPressColor">?attr/colorPrimary</item>
+        <item name="tweetFocusColor">?attr/colorPrimary</item>
+
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet_d</item>
+        <item name="tweetOwn">@drawable/bg_own_d</item>
+        <item name="tweetMention">@drawable/bg_mention_d</item>
+
+        <item name="tabTitleColor">#fff</item>
+
+        <item name="profileTweetsDrawable">@drawable/ic_prof_tweets_d</item>
+        <item name="profileFavoritesDrawable">@drawable/ic_prof_favorite_d</item>
+        <item name="profileFollowsDrawable">@drawable/ic_prof_follow_d</item>
+        <item name="profileFollowersDrawable">@drawable/ic_prof_follower_d</item>
+        <item name="profileLocationDrawable">@drawable/ic_location_on_primary_light_24dp</item>
+        <item name="profileWebDrawable">@drawable/ic_link_primary_light_24dp</item>
+        <item name="profileSinceDrawable">@drawable/ic_insert_invitation_primary_light_24dp</item>
+        <item name="profileUserIdDrawable">@drawable/ic_person_primary_light_24dp</item>
+
+
+        <item name="menuProfileDrawable">@drawable/ic_profile_d</item>
+        <item name="menuTwilogDrawable">@drawable/ic_twilog_d</item>
+        <item name="menuFavstarDrawable">@drawable/ic_favorite_m_d</item>
+        <item name="menuAclogDrawable">@drawable/ic_aclog_d</item>
+        <item name="menuBacklightDrawable">@drawable/ic_always_light_off_d</item>
+        <item name="menuReportDrawable">@drawable/ic_feedback_d</item>
+        <item name="menuSettingDrawable">@drawable/ic_settings_d</item>
+        <item name="menuQuitDrawable">@drawable/ic_quit_d</item>
+        <item name="menuReloadDrawable">@drawable/ic_navigation_refresh_d</item>
+        <item name="menuBookmarkDrawable">@drawable/ic_bookmark_d</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark_d</item>
+        <item name="searchButtonDrawable">@drawable/ic_search_d</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorPrimaryLight">@color/key_color_light</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+
+        <item name="footerBarColor">@color/status_bar_color</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="listSortableHandleDrawable">@drawable/sortable_dark</item>
+    </style>
+
+    <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@drawable/dialog_full_material_dark</item>
+
+        <item name="tweetTextColor">#fff</item>
+        <item name="tweetPressColor">?attr/colorPrimary</item>
+        <item name="tweetFocusColor">?attr/colorPrimary</item>
+
+        <item name="tweetNormal">@android:color/transparent</item>
+        <item name="tweetRetweet">@drawable/bg_retweet_d</item>
+        <item name="tweetOwn">@drawable/bg_own_d</item>
+        <item name="tweetMention">@drawable/bg_mention_d</item>
+
+        <item name="tabTitleColor">#fff</item>
+
+        <item name="tweetCountColor">@color/count_safe_d</item>
+        <item name="tweetCountOverColor">@color/count_error_d</item>
+
+        <item name="selectorTextColor">@color/selector_key_dark_textcolor</item>
+
+        <item name="menuButtonDrawable">@drawable/ic_menu_dark_d</item>
+        <item name="searchButtonDrawable">@drawable/ic_search_d</item>
+
+        <item name="tweetAttachDrawable">@drawable/ic_content_picture_d</item>
+        <item name="tweetShotDrawable">@drawable/ic_access_camera_d</item>
+        <item name="tweetTagDrawable">@drawable/ic_hashtag_d</item>
+        <item name="tweetGrassDrawable">@drawable/ic_grass_d</item>
+        <item name="tweetPointDrawable">@drawable/ic_santen_d</item>
+        <item name="tweetDraftDrawable">@drawable/ic_list_d</item>
+        <item name="tweetReplyDrawable">@drawable/ic_reply_b_d</item>
+        <item name="tweetVoiceDrawable">@drawable/ic_voice_input_d</item>
+        <item name="tweetMorseDrawable">@drawable/ic_morse_d</item>
+        <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music_d</item>
+
+        <item name="colorPrimary">@color/key_color</item>
+        <item name="colorPrimaryDark">@color/key_color_2</item>
+        <item name="colorAccent">@color/key_color_accent</item>
+        <item name="pressDrawable">@drawable/press_key_light_color</item>
+        <item name="focusDrawable">@drawable/focus_key_light_color</item>
+    </style>
+
+</resources>

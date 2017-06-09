@@ -2,7 +2,6 @@ package shibafu.yukari.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -14,6 +13,7 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
+import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by Shibafu on 13/08/10.
@@ -25,14 +25,7 @@ public class ProfileActivity extends ActionBarActivity{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkTheme);
-                break;
-        }
+        ThemeUtil.setActivityTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent);
 

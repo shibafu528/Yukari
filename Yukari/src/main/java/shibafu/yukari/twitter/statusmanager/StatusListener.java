@@ -1,7 +1,5 @@
 package shibafu.yukari.twitter.statusmanager;
 
-import android.os.Bundle;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.DirectMessage;
@@ -21,20 +19,12 @@ public interface StatusListener {
 
     void onUpdatedStatus(AuthUserRecord from, int kind, Status status);
 
-    default String getRestTag() { return ""; }
+    String getRestTag();
 
     /**
      * {@link StatusManager} から登録解除する際、次に接続した際に同一のTLであることを認識できるようにする識別子を返します。
      * ここで返した値が同一であれば、次に登録した際、登録解除中の受信データを受け取ることが出来ます。
      * @return TL識別子
      */
-    default String getSubscribeIdentifier() {
-        if (this instanceof TwitterListFragment) {
-            Bundle args = ((TwitterListFragment) this).getArguments();
-            if (args.containsKey(TwitterListFragment.EXTRA_ID)) {
-                return String.valueOf(args.getLong(TwitterListFragment.EXTRA_ID));
-            }
-        }
-        return this.toString();
-    }
+    String getSubscribeIdentifier();
 }

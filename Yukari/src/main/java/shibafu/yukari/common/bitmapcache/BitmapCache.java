@@ -3,7 +3,6 @@ package shibafu.yukari.common.bitmapcache;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Environment;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -22,21 +21,13 @@ public class BitmapCache {
     public static final String PROFILE_ICON_CACHE = "icon";
     public static final String IMAGE_CACHE = "picture";
 
-    private static final int PROFILE_ICON_CACHE_SIZE;
-    private static final int IMAGE_CACHE_SIZE;
+    private static final int PROFILE_ICON_CACHE_SIZE = 8 * 1024 * 1024;
+    private static final int IMAGE_CACHE_SIZE = 8 * 1024 * 1024;
 
     private static Map<String, BitmapLruCache> cacheMap = new HashMap<>();
     private static Map<String, Map<String, File>> existFileCache = new HashMap<>();
 
     static {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            PROFILE_ICON_CACHE_SIZE = 2 * 1024 * 1024;
-            IMAGE_CACHE_SIZE = 2 * 1024 * 1024;
-        } else {
-            PROFILE_ICON_CACHE_SIZE = 8 * 1024 * 1024;
-            IMAGE_CACHE_SIZE = 8 * 1024 * 1024;
-        }
-
         cacheMap.put(PROFILE_ICON_CACHE, new BitmapLruCache(PROFILE_ICON_CACHE_SIZE));
         cacheMap.put(IMAGE_CACHE, new BitmapLruCache(IMAGE_CACHE_SIZE));
 

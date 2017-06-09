@@ -1,11 +1,8 @@
 package shibafu.yukari.activity;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,14 +12,14 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.util.ThemeUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -53,17 +50,9 @@ public class AccountChooserActivity extends ListYukariBase {
     private Adapter adapter;
     private List<Data> dataList = new ArrayList<>();
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            case "light":
-                setTheme(R.style.YukariLightDialogTheme);
-                break;
-            case "dark":
-                setTheme(R.style.YukariDarkDialogTheme);
-                break;
-        }
+        ThemeUtil.setDialogTheme(this);
         super.onCreate(savedInstanceState, true);
         Intent args = getIntent();
 
@@ -74,10 +63,7 @@ public class AccountChooserActivity extends ListYukariBase {
 
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
         isFilterConsumerOverrode = args.getBooleanExtra(EXTRA_FILTER_CONSUMER_OVERRODE, false);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            setFinishOnTouchOutside(!isMultipleChoose);
-        }
+        setFinishOnTouchOutside(!isMultipleChoose);
 
         long[] defaultSelected = args.getLongArrayExtra(EXTRA_SELECTED_USERS);
         ArrayList<AuthUserRecord> selectedUsers = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_SELECTED_RECORDS);

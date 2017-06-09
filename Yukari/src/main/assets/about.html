@@ -3,10 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>アプリについて</title>
+    <style>
+        body {
+            margin: 0;
+        }
+        header {
+            background-color: #7849ba;
+            padding: 16px 8px;
+            color: #fff;
+        }
+        header h1 {
+            margin: 0;
+        }
+        header a:link, header a:visited {
+            color: #fff;
+            text-decoration: none;
+        }
+        .content {
+            margin: 8px;
+        }
+    </style>
 </head>
 <body>
-<h1>Yukari for Android</h1>
-<p>Developed by @shibafu528
+<header>
+    <h1>Yukari for Android</h1>
+    <p>Developed by <a href="https://twitter.com/shibafu528">@shibafu528</a>
+</header>
+<div class="content">
 <p>Yukari は複数アカウントを同時使用したUserStreamに対応したTwitterクライアントです。
 <p>バグや質問等のお問い合わせは<a href="http://twitter.com/yukari4a">@yukari4a</a>で受け付けています。
 <hr>
@@ -21,7 +44,6 @@
     <li>HoloColorPicker</li>
     <li>LeakCanary</li>
     <li>Lightweight-Stream-API</li>
-    <li>NineOldAndroids</li>
     <li>PreferenceFragment-Compat</li>
     <li>Twitter Intent</li>
     <li>twitter-text</li>
@@ -319,5 +341,6 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 </pre>
+</div>
 </body>
 </html>

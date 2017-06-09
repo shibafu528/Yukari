@@ -3,8 +3,6 @@ package shibafu.yukari.plugin;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
@@ -15,9 +13,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.R;
+import shibafu.yukari.util.MorseCodec;
 
 /**
  * Created by Shibafu on 13/08/14.
@@ -31,15 +28,13 @@ public class MorseInputActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-                case "light":
-                    setTheme(R.style.AppThemeTranslucent);
-                    break;
-                case "dark":
-                    setTheme(R.style.AppThemeTranslucent_Dark);
-                    break;
-            }
+        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
+            default:
+                setTheme(R.style.AppThemeTranslucent);
+                break;
+            case "dark":
+                setTheme(R.style.AppThemeTranslucent_Dark);
+                break;
         }
         super.onCreate(savedInstanceState);
 
@@ -47,9 +42,6 @@ public class MorseInputActivity extends Activity {
         View v = inflater.inflate(R.layout.view_morse, null);
 
         tvPreview = (TextView) v.findViewById(R.id.tvMorsePreview);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            tvPreview.setTextColor(Color.WHITE);
-        }
         etInput = (EditText) v.findViewById(R.id.etMorseInput);
         etInput.addTextChangedListener(new TextWatcher() {
             @Override

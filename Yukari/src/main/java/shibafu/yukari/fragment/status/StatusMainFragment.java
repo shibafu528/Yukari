@@ -1,22 +1,22 @@
 package shibafu.yukari.fragment.status;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.animation.PropertyValuesHolder;
 import lombok.AllArgsConstructor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
@@ -24,12 +24,14 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.StatusChildUI;
+import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.service.AsyncCommandService;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -87,93 +89,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-        class LocalFunction {
-            void closeAfterFavorite() {
-                if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
-                    getActivity().finish();
-                }
-            }
-
-            void replyToSender() {
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
-                startActivityForResult(intent, REQUEST_REPLY);
-            }
-
-            void replyToAllMentions() {
-                AuthUserRecord user = getUserRecord();
-
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, user);
-                intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
-                {
-                    StringBuilder ids = new StringBuilder();
-                    ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
-                    for (UserMentionEntity entity : status.getUserMentionEntities()) {
-                        if (!ids.toString().contains("@" + entity.getScreenName())
-                                && !entity.getScreenName().equals(user.ScreenName)) {
-                            ids.append("@");
-                            ids.append(entity.getScreenName());
-                            ids.append(" ");
-                        }
-                    }
-
-                    intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
-                }
-                startActivityForResult(intent, REQUEST_REPLY);
-            }
-
-            boolean beginQuoteTweet(int which) {
-                Intent intent = new Intent(getActivity(), TweetActivity.class);
-                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
-                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
-                if (which < 3) {
-                    intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
-                    switch (which) {
-                        case 0:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
-                            break;
-                        case 1:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
-                            break;
-                        case 2:
-                            intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
-                            break;
-                    }
-                    startActivityForResult(intent, REQUEST_QUOTE);
-                } else {
-                    int request = -1;
-                    switch (which) {
-                        case 3:
-                            if (!ibRetweet.isEnabled()) {
-                                Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                            request = REQUEST_RT_QUOTE;
-                            break;
-                        case 4:
-                            if (!ibFavRt.isEnabled()) {
-                                Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
-                                return false;
-                            }
-                            request = REQUEST_FRT_QUOTE;
-                            break;
-                    }
-                    if (request > -1) {
-                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
-                        intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
-                        startActivityForResult(intent, request);
-                    }
-                }
-                return true;
-            }
-        }
-        final LocalFunction local = new LocalFunction();
-
         ibReply = (ImageButton) v.findViewById(R.id.ib_state_reply);
         ibReply.setOnClickListener(v1 -> {
             if (!(status.isMentionedTo(getUserRecord()) && status.getUserMentionEntities().length == 1) &&
@@ -183,21 +98,21 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 popupMenu.setOnMenuItemClickListener(menuItem -> {
                     switch (menuItem.getItemId()) {
                         case R.id.action_reply_to_sender:
-                            local.replyToSender();
+                            replyToSender();
                             return true;
                         case R.id.action_reply_to_all_mentions:
-                            local.replyToAllMentions();
+                            replyToAllMentions();
                             return true;
                     }
                     return false;
                 });
                 popupMenu.show();
             } else {
-                local.replyToSender();
+                replyToSender();
             }
         });
         ibReply.setOnLongClickListener(v1 -> {
-            local.replyToAllMentions();
+            replyToAllMentions();
             return true;
         });
 
@@ -214,7 +129,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             getActivity().startService(intent);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
                             dialog.dismiss();
@@ -229,7 +144,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 currentDialog = ad;
             } else {
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
         });
         ibRetweet.setOnLongClickListener(v1 -> {
@@ -278,7 +193,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             createFavorite(false);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNeutralButton("本文で検索", (dialog, which) -> {
                             dialog.dismiss();
@@ -314,7 +229,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                                     nuisanceGuard();
                                 } else {
                                     createFavorite(false);
-                                    local.closeAfterFavorite();
+                                    closeAfterFavorite();
                                 }
                             })
                             .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -333,7 +248,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         nuisanceGuard();
                     } else {
                         createFavorite(false);
-                        local.closeAfterFavorite();
+                        closeAfterFavorite();
                     }
                 }
             }
@@ -341,7 +256,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
             private void doUnfavorite(final AuthUserRecord userRecord) {
                 Intent intent = AsyncCommandService.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
 
             @AllArgsConstructor
@@ -358,7 +273,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 if (sharedPreferences.getBoolean("pref_fav_with_quotes", false) && !status.getQuoteEntities().isEmpty()) {
                     items.add(new Action("引用もまとめてお気に入り登録", () -> {
                         createFavorite(true);
-                        local.closeAfterFavorite();
+                        closeAfterFavorite();
                     }));
                 }
 
@@ -419,7 +334,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             currentDialog = null;
 
                             getActivity().startService(intent);
-                            local.closeAfterFavorite();
+                            closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
                             dialog.dismiss();
@@ -434,7 +349,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 currentDialog = ad;
             } else {
                 getActivity().startService(intent);
-                local.closeAfterFavorite();
+                closeAfterFavorite();
             }
         });
         ibFavRt.setOnLongClickListener(v1 -> {
@@ -463,7 +378,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle("引用形式を選択");
-            builder.setNeutralButton("キャンセル", (dialog, which) -> {
+            builder.setNegativeButton("キャンセル", (dialog, which) -> {
                 dialog.dismiss();
                 currentDialog = null;
             });
@@ -477,7 +392,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         dialog.dismiss();
                         currentDialog = null;
 
-                        local.beginQuoteTweet(which);
+                        beginQuoteTweet(which);
                     });
             AlertDialog ad = builder.create();
             ad.show();
@@ -485,7 +400,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         });
         ibQuote.setOnLongClickListener(v1 -> {
             int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote", "2"));
-            if (local.beginQuoteTweet(defaultQuote)) {
+            if (beginQuoteTweet(defaultQuote)) {
                 Toast toast = Toast.makeText(getActivity(), getResources().getStringArray(R.array.pref_quote_entries)[defaultQuote], Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.CENTER, 0, 0);
                 toast.show();
@@ -522,44 +437,42 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
+        final float delta = getResources().getDimensionPixelSize(R.dimen.status_button_delta);
 
-            ObjectAnimator.ofPropertyValuesHolder(ibReply,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, delta / 2),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibQuote,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-            ObjectAnimator.ofPropertyValuesHolder(ibShare,
-                    PropertyValuesHolder.ofFloat("translationX", 0f, (delta / 2)),
-                    PropertyValuesHolder.ofFloat("translationY", 0f, delta),
-                    PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
-                    .setDuration(BUTTON_SHOW_DURATION)
-                    .start();
-        }
+        ObjectAnimator.ofPropertyValuesHolder(ibReply,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibRetweet,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta / 2),
+                PropertyValuesHolder.ofFloat("translationY", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavorite,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibQuote,
+                PropertyValuesHolder.ofFloat("translationX", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibFavRt,
+                PropertyValuesHolder.ofFloat("translationX", 0f, -(delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
+        ObjectAnimator.ofPropertyValuesHolder(ibShare,
+                PropertyValuesHolder.ofFloat("translationX", 0f, (delta / 2)),
+                PropertyValuesHolder.ofFloat("translationY", 0f, delta),
+                PropertyValuesHolder.ofFloat("alpha", 0f, 1f))
+                .setDuration(BUTTON_SHOW_DURATION)
+                .start();
     }
 
     @Override
@@ -630,50 +543,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
         }
     }
 
-    private void loadProfileImage() {
-        final AuthUserRecord user = getUserRecord();
-        if (user == null) {
-            return;
-        }
-
-        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
-            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
-        } else {
-            new ThrowableTwitterAsyncTask<Long, String>(this) {
-                @Override
-                protected ThrowableResult<String> doInBackground(Long... params) {
-                    try {
-                        Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
-                        if (twitter == null) {
-                            return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
-                        }
-                        String url = twitter.showUser(params[0]).getOriginalProfileImageURLHttps();
-                        return new ThrowableResult<>(url);
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                        return new ThrowableResult<>(e);
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(ThrowableResult<String> result) {
-                    super.onPostExecute(result);
-                    if (!result.isException() && !isCancelled()) {
-                        user.putSessionTemporary("OriginalProfileImageUrl", result.getResult());
-                        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, result.getResult());
-                    }
-                }
-
-                @Override
-                protected void showToast(String message) {
-                    if (getActivity() != null && getActivity().getApplicationContext() != null) {
-                        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }.executeParallel(user.NumericId);
-        }
-    }
-
     @Override
     public void onUserChanged(AuthUserRecord userRecord) {
         loadProfileImage();
@@ -704,7 +573,162 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
     }
 
     @Override
-    public void onServiceDisconnected() {
+    public void onServiceDisconnected() {}
 
+    @Nullable
+    private PreformedStatus getStatus() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getStatus();
+        }
+        return null;
+    }
+
+    @Nullable
+    private AuthUserRecord getUserRecord() {
+        if (getActivity() instanceof StatusUI) {
+            return ((StatusUI) getActivity()).getUserRecord();
+        }
+        return null;
+    }
+
+    private void setUserRecord(AuthUserRecord userRecord) {
+        if (getActivity() instanceof StatusUI) {
+            ((StatusUI) getActivity()).setUserRecord(userRecord);
+        }
+    }
+
+    private void loadProfileImage() {
+        final AuthUserRecord user = getUserRecord();
+        if (user == null) {
+            return;
+        }
+
+        if (user.getSessionTemporary("OriginalProfileImageUrl") != null) {
+            ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, (String) user.getSessionTemporary("OriginalProfileImageUrl"));
+        } else {
+            TwitterService service = getTwitterService();
+            if (service == null) {
+                Log.d(StatusMainFragment.class.getSimpleName(), "loadProfileImage: missing service.");
+                return;
+            }
+            Twitter twitter = service.getTwitterOrPrimary(user);
+            if (twitter == null) {
+                Log.d(StatusMainFragment.class.getSimpleName(), "loadProfileImage: missing twitter instance.");
+                return;
+            }
+
+            new ThrowableTwitterAsyncTask<Long, String>(this) {
+                @Override
+                protected ThrowableResult<String> doInBackground(Long... params) {
+                    try {
+                        String url = twitter.showUser(params[0]).getOriginalProfileImageURLHttps();
+                        return new ThrowableResult<>(url);
+                    } catch (TwitterException e) {
+                        e.printStackTrace();
+                        return new ThrowableResult<>(e);
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(ThrowableResult<String> result) {
+                    super.onPostExecute(result);
+                    if (!result.isException() && !isCancelled()) {
+                        user.putSessionTemporary("OriginalProfileImageUrl", result.getResult());
+                        ImageLoaderTask.loadProfileIcon(getActivity(), ibAccount, result.getResult());
+                    }
+                }
+
+                @Override
+                protected void showToast(String message) {
+                    if (getActivity() != null && getActivity().getApplicationContext() != null) {
+                        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }.executeParallel(user.NumericId);
+        }
+    }
+
+    private void closeAfterFavorite() {
+        if (sharedPreferences.getBoolean("pref_close_after_fav", true)) {
+            getActivity().finish();
+        }
+    }
+
+    private void replyToSender() {
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
+        intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.getOriginStatus().getUser().getScreenName() + " ");
+        startActivityForResult(intent, REQUEST_REPLY);
+    }
+
+    private void replyToAllMentions() {
+        AuthUserRecord user = getUserRecord();
+
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, user);
+        intent.putExtra(TweetActivity.EXTRA_STATUS, ((status.isRetweet()) ? status.getRetweetedStatus() : status));
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
+        {
+            StringBuilder ids = new StringBuilder();
+            ids.append("@").append(status.getOriginStatus().getUser().getScreenName()).append(" ");
+            for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                if (!ids.toString().contains("@" + entity.getScreenName())
+                        && !entity.getScreenName().equals(user.ScreenName)) {
+                    ids.append("@");
+                    ids.append(entity.getScreenName());
+                    ids.append(" ");
+                }
+            }
+
+            intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
+        }
+        startActivityForResult(intent, REQUEST_REPLY);
+    }
+
+    private boolean beginQuoteTweet(int which) {
+        Intent intent = new Intent(getActivity(), TweetActivity.class);
+        intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+        if (which < 3) {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+            switch (which) {
+                case 0:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQuotedRT(status));
+                    break;
+                case 1:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, TwitterUtil.createQT(status));
+                    break;
+                case 2:
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                    break;
+            }
+            startActivityForResult(intent, REQUEST_QUOTE);
+        } else {
+            int request = -1;
+            switch (which) {
+                case 3:
+                    if (!ibRetweet.isEnabled()) {
+                        Toast.makeText(getActivity(), "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    request = REQUEST_RT_QUOTE;
+                    break;
+                case 4:
+                    if (!ibFavRt.isEnabled()) {
+                        Toast.makeText(getActivity(), "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                    request = REQUEST_FRT_QUOTE;
+                    break;
+            }
+            if (request > -1) {
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE);
+                intent.putExtra(TweetActivity.EXTRA_TEXT, sharedPreferences.getString("pref_quote_comment_footer", " ＞RT"));
+                startActivityForResult(intent, request);
+            }
+        }
+        return true;
     }
 }

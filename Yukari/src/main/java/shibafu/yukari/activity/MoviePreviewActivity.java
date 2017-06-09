@@ -4,12 +4,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.VideoView;
-
 import shibafu.yukari.R;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -20,7 +19,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 /**
  * Created by shibafu on 14/06/19.
  */
-public class MoviePreviewActivity extends FragmentActivity{
+public class MoviePreviewActivity extends AppCompatActivity {
 
     public static final String EXTRA_STATUS = "status";
 

@@ -1,5 +1,7 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,8 +14,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.animation.PropertyValuesHolder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -87,11 +87,11 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         if (swipeActionStatusView != null) {
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_holo_light);
+                default:
+                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_light);
                     break;
                 case "dark":
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_holo_dark);
+                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_dark);
                     break;
             }
             swipeActionStatusView.setVisibility(View.INVISIBLE);

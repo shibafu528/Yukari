@@ -40,62 +40,58 @@
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_share"
-        android:layout_gravity="center"
-        android:layout_marginTop="@dimen/status_button_delta"
-        android:layout_marginLeft="@dimen/status_button_delta_half" />
+        android:layout_gravity="center" />
 
     <ImageButton
         android:id="@+id/ib_state_favrt"
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_favrt"
-        android:layout_gravity="center"
-        android:layout_marginTop="@dimen/status_button_delta"
-        android:layout_marginRight="@dimen/status_button_delta_half" />
+        android:layout_gravity="center" />
 
     <ImageButton
         android:id="@+id/ib_state_quote"
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_quote"
-        android:layout_gravity="center"
-        android:layout_marginLeft="@dimen/status_button_delta" />
+        android:layout_gravity="center" />
 
     <ImageButton
         android:id="@+id/ib_state_favorite"
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_favorite"
-        android:layout_gravity="center"
-        android:layout_marginRight="@dimen/status_button_delta" />
+        android:layout_gravity="center" />
 
     <ImageButton
         android:id="@+id/ib_state_retweet"
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_retweet"
-        android:layout_gravity="center"
-        android:layout_marginLeft="@dimen/status_button_delta_half"
-        android:layout_marginBottom="@dimen/status_button_delta" />
+        android:layout_gravity="center" />
 
     <ImageButton
         android:id="@+id/ib_state_reply"
         android:layout_width="@dimen/status_button_size"
         android:layout_height="@dimen/status_button_size"
         android:scaleType="centerInside"
+        android:alpha="0"
         android:background="@drawable/button_status"
         android:src="@drawable/ic_reply"
-        android:layout_gravity="center"
-        android:layout_marginBottom="@dimen/status_button_delta"
-        android:layout_marginRight="@dimen/status_button_delta_half" />
+        android:layout_gravity="center" />
 </FrameLayout>

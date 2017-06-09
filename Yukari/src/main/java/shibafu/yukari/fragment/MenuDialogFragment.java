@@ -27,16 +27,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.gson.Gson;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
+import butterknife.BindViews;
 import butterknife.ButterKnife;
-import butterknife.InjectViews;
+import butterknife.Unbinder;
+import com.google.gson.Gson;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ConfigActivity;
@@ -51,6 +45,11 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -68,7 +67,7 @@ public class MenuDialogFragment extends DialogFragment {
 
     private static final int ACCOUNT_ICON_DIP = 32;
 
-    @InjectViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
+    @BindViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
     List<View> pluginViews;
 
     private MenuPlugin[] plugins = new MenuPlugin[3];
@@ -82,6 +81,7 @@ public class MenuDialogFragment extends DialogFragment {
     private ArrayList<AuthUserRecord> activeAccounts;
 
     private ImageView keepScreenOnImage;
+    private Unbinder unbinder;
 
     @Override
     public void onAttach(Activity activity) {
@@ -110,11 +110,11 @@ public class MenuDialogFragment extends DialogFragment {
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
         switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            case "light":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_light);
+            default:
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
             case "dark":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_holo_dark);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
         }
 
@@ -246,8 +246,8 @@ public class MenuDialogFragment extends DialogFragment {
             ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
         });
 
-        ButterKnife.inject(this, v);
-        ButterKnife.apply(pluginViews, (view, index) -> {
+        unbinder = ButterKnife.bind(this, v);
+        ButterKnife.apply(pluginViews, (ButterKnife.Action<? super View>) (view, index) -> {
             view.setOnClickListener(v1 -> {
                 Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
                 startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
@@ -272,7 +272,7 @@ public class MenuDialogFragment extends DialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.reset(this);
+        unbinder.unbind();
     }
 
     private void updatePlugin(int index, MenuPlugin plugin) {
@@ -290,7 +290,7 @@ public class MenuDialogFragment extends DialogFragment {
         try {
             Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                case "light":
+                default:
                     icon.setImageDrawable(res.getDrawable(plugin.getLightIconId()));
                     break;
                 case "dark":

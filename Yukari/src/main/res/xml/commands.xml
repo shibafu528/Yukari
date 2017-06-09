@@ -96,5 +96,9 @@
             android:defaultValue="0"
             android:entries="@array/j_yukari_fav_entries"
             android:entryValues="@array/j_yukari_fav_values"/>
+        <CheckBoxPreference
+            android:key="j_yukari_joke_voices"
+            android:title="ゆかりさんをいじる"
+            android:summary="そういうネタが好きじゃない人はオンにしないでください。不快感を覚える可能性があります。\nYukari 1.3まで隠しボイスが有効な場合にツイートに反応して再生していたボイスを有効化します。"/>
     </PreferenceCategory>
 </PreferenceScreen>

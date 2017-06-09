@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="配色">
+        <ListPreference
+            android:key="pref_theme"
+            android:title="テーマ設定"
+            android:summary="アプリの外観を設定します(※要再起動)"
+            android:entries="@array/pref_theme_entries"
+            android:entryValues="@array/pref_theme_values"
+            android:defaultValue="light"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="フォント">
+        <Preference
+            android:key="pref_font"
+            android:title="フォント設定"
+            android:summary="タイムラインのフォントを選択します">
+            <intent
+                android:targetPackage="shibafu.yukari"
+                android:targetClass="shibafu.yukari.activity.FontSelectorActivity"/>
+        </Preference>
+        <EditTextPreference
+            android:key="pref_font_timeline"
+            android:title="文字サイズの設定"
+            android:summary="タイムライン上の文字サイズを設定します"
+            android:dialogTitle="文字サイズの設定 (デフォルト:14)"
+            android:inputType="number"
+            android:defaultValue="14"
+            android:maxLength="2"/>
+        <EditTextPreference
+            android:key="pref_font_input"
+            android:title="入力文字サイズの設定"
+            android:summary="投稿画面上の文字サイズを設定します"
+            android:dialogTitle="入力文字サイズの設定 (デフォルト:18)"
+            android:inputType="number"
+            android:defaultValue="18"
+            android:maxLength="2"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="メイン画面">
+        <CheckBoxPreference
+            android:key="pref_boot_screenon"
+            android:title="デフォルトでスリープ防止"
+            android:summary="アプリ起動時にスリープ防止をオンにします"/>
+        <CheckBoxPreference
+            android:key="pref_boot_immersive"
+            android:title="デフォルトで表示域拡張"
+            android:summary="アプリ起動時に表示域拡張をオンにします(※Android 4.4以上でのみ有効)"/>
+        <CheckBoxPreference
+            android:key="pref_show_tweetbutton"
+            android:title="投稿ボタンを表示"
+            android:summary="投稿画面を呼び出すボタンを表示します"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="タイムライン">
+        <CheckBoxPreference
+            android:key="pref_mode_singleline"
+            android:title="ショート表示"
+            android:summary="表示をスクリーンネームと本文だけにします"/>
+        <ListPreference
+            android:key="pref_mode_multiline"
+            android:title="複数行ツイートの表示方法"
+            android:summary="改行を含むツイートを省略する設定をします"
+            android:entries="@array/pref_mode_multiline_entries"
+            android:entryValues="@array/pref_mode_multiline_values"
+            android:defaultValue="0"/>
+        <CheckBoxPreference
+            android:key="pref_shorten_repeat_text"
+            android:title="反復ツイートの圧縮"
+            android:summary="4行以上同じ文章が続いているツイートを圧縮します"/>
+        <CheckBoxPreference
+            android:key="pref_prev_enable"
+            android:title="サムネイルを表示"
+            android:summary="ツイートに含まれるメディアのサムネイルを表示します"
+            android:defaultValue="true"/>
+        <Preference
+            android:key="pref_prev_time"
+            android:title="時間を指定してサムネ非表示"
+            android:summary="特定の時間帯だけサムネイルを隠す設定をします"/>
+        <CheckBoxPreference
+            android:key="pref_prev_mosaic"
+            android:title="サムネイルのモザイク加工"
+            android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="ツイート詳細画面">
+        <CheckBoxPreference
+            android:key="pref_bottom_stack"
+            android:title="メニューを下に寄せる"
+            android:summary="ツイート詳細画面のメニューを下寄せにします"/>
+    </PreferenceCategory>
+</PreferenceScreen>

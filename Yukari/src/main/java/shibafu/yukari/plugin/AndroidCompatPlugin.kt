@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import info.shibafu528.yukari.exvoice.Event
 import info.shibafu528.yukari.exvoice.MRuby
-import info.shibafu528.yukari.exvoice.Plugin
+import info.shibafu528.yukari.exvoice.pluggaloid.Event
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.util.ObjectInspector
 
