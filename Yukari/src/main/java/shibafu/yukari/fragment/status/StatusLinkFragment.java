@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ListFragment;
+import android.support.v7.widget.AppCompatImageButton;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -455,7 +456,7 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
                     ll.setPadding(0, 0, (int) (density * 4), 0);
                 }
                 for (final Plugin plugin : d.plugins) {
-                    ImageButton ib = new ImageButton(getContext());
+                    ImageButton ib = new AppCompatImageButton(getContext());
                     ib.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                     ib.setImageBitmap(Bitmap.createScaledBitmap(((BitmapDrawable) plugin.icon).getBitmap(), iconSize, iconSize, true));
                     ib.setOnClickListener(v1 -> plugin.executeIntent(plugin.canReceiveName));

@@ -26,6 +26,7 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.support.v7.widget.AppCompatImageButton;
 import android.text.Editable;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -716,7 +717,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
         final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
         for (ResolveInfo ri : plugins) {
-            ImageButton imageButton = new ImageButton(this);
+            ImageButton imageButton = new AppCompatImageButton(this);
             Bitmap sourceIcon = ((BitmapDrawable) ri.activityInfo.loadIcon(pm)).getBitmap();
             imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
             imageButton.setTag(ri);
@@ -1247,7 +1248,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     final ProcWrapper exec = (ProcWrapper) entry.get("exec");
                     final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
                     {
-                        ImageButton imageButton = new ImageButton(this);
+                        ImageButton imageButton = new AppCompatImageButton(this);
                         Bitmap sourceIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_tweet);
                         imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
                         imageButton.setTag(exec);
