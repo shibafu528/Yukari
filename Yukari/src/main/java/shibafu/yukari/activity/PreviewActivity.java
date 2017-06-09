@@ -35,7 +35,7 @@ import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
@@ -60,7 +60,7 @@ import java.net.URL;
 /**
  * Created by Shibafu on 13/09/22.
  */
-public class PreviewActivity extends FragmentYukariBase {
+public class PreviewActivity extends ActionBarYukariBase {
     //TODO: DMの添付画像をダウンロードできるようにする
     //OAuthが必要なためにOSのダウンロードキューに直接ぶち込むことが出来ない
     //アプリ独自で保存処理を行う必要がある

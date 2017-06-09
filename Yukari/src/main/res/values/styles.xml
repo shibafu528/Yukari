@@ -50,21 +50,6 @@
         <item name="tweetMention">@drawable/bg_mention</item>
     </style>
 
-    <style name="AppThemeTranslucentBg" parent="android:Theme.Holo.Light.NoActionBar">
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="colorPrimary">@color/key_color</item>
-        <item name="colorPrimaryDark">@color/key_color_2</item>
-        <item name="colorAccent">@color/key_color_accent</item>
-        <item name="tweetTextColor">#000</item>
-        <item name="tweetPressColor">@color/bg_press</item>
-        <item name="tweetFocusColor">@color/bg_press</item>
-        <item name="tweetNormal">@android:color/transparent</item>
-        <item name="tweetRetweet">@drawable/bg_retweet</item>
-        <item name="tweetOwn">@drawable/bg_own</item>
-        <item name="tweetMention">@drawable/bg_mention</item>
-    </style>
-
     <style name="AppDialogThemeWhenLarge" parent="ColorsTheme.Light"/>
     <style name="AppDialogThemeWhenLarge.Dark" parent="ColorsTheme.Dark"/>
 

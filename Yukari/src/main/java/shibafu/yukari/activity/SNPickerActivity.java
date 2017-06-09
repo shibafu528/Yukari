@@ -20,18 +20,17 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.util.ThemeUtil;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import shibafu.yukari.activity.base.FragmentYukariBase;
-import shibafu.yukari.R;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.util.ThemeUtil;
-
-public class SNPickerActivity extends FragmentYukariBase implements LoaderManager.LoaderCallbacks<List<SNPickerActivity.SuggestedName>> {
+public class SNPickerActivity extends ActionBarYukariBase implements LoaderManager.LoaderCallbacks<List<SNPickerActivity.SuggestedName>> {
 
     public static final String EXTRA_USER_ID = "user_id";
     public static final String EXTRA_SCREEN_NAME = "screen_name";
@@ -48,7 +47,7 @@ public class SNPickerActivity extends FragmentYukariBase implements LoaderManage
         ThemeUtil.setDialogTheme(this);
         super.onCreate(savedInstanceState, true);
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_snpicker);
 
         adapter = new Adapter(this, suggestedNameList);

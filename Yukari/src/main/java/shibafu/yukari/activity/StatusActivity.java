@@ -13,7 +13,7 @@ import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetAdapterWrap;
@@ -27,7 +27,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 import java.util.List;
 
-public class StatusActivity extends FragmentYukariBase implements StatusUI {
+public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
@@ -61,7 +61,7 @@ public class StatusActivity extends FragmentYukariBase implements StatusUI {
                 break;
         }
         super.onCreate(savedInstanceState, true);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_status);
 
         findViewById(android.R.id.content).setOnClickListener(v -> finish());

@@ -183,10 +183,10 @@
 
         <activity
             android:name=".activity.PreviewActivity"
-            android:theme="@style/AppThemeTranslucentBg"/>
+            android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
         <activity
             android:name=".activity.MoviePreviewActivity"
-            android:theme="@style/AppThemeTranslucentBg"/>
+            android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
 
         <activity
             android:name=".activity.AccountChooserActivity"

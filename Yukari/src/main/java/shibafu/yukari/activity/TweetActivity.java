@@ -57,7 +57,7 @@ import info.shibafu528.yukari.exvoice.MRubyException;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import shibafu.yukari.R;
-import shibafu.yukari.activity.base.FragmentYukariBase;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
@@ -97,7 +97,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TweetActivity extends FragmentYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
+public class TweetActivity extends ActionBarYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
 
     public static final int MODE_TWEET = 0;
     public static final int MODE_REPLY = 1;
@@ -251,7 +251,7 @@ public class TweetActivity extends FragmentYukariBase implements DraftDialogFrag
                 break;
         }
         super.onCreate(savedInstanceState, true);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_tweet);
 
         //リソースIDを解決
