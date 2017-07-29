@@ -154,6 +154,7 @@
     </string-array>
 
     <string-array name="pref_quote_entries">
+        <item>常に方法を選択する</item>
         <item>非公式RT ( RT \@id: ... )</item>
         <item>QT ( QT \@id: ... )</item>
         <item>URLで引用 ( http://... )</item>
@@ -162,6 +163,7 @@
     </string-array>
 
     <string-array name="pref_quote_values">
+        <item>-1</item>
         <item>0</item>
         <item>1</item>
         <item>2</item>
