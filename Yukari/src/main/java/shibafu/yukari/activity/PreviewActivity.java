@@ -290,7 +290,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                     InputStream input;
                     Callback callback = new Callback();
                     HttpURLConnection connection = null;
-                    if (url.startsWith("content://")) {
+                    if (url.startsWith("content://") || url.startsWith("file://")) {
                         try {
                             input = getContentResolver().openInputStream(Uri.parse(url));
                             callback.beginTime = System.currentTimeMillis();
