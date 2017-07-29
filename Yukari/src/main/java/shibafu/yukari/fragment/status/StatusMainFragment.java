@@ -40,6 +40,7 @@ import twitter4j.TwitterException;
 import twitter4j.UserMentionEntity;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -365,6 +366,12 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
         ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
         ibQuote.setOnClickListener(v1 -> {
+            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote_2_0_1", "-1"));
+            if (defaultQuote < 0) {
+                showQuoteStyleSelector();
+                return;
+            }
+
             //引用制限時
             if (limitedQuote) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
@@ -376,35 +383,28 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 return;
             }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle("引用形式を選択");
-            builder.setNegativeButton("キャンセル", (dialog, which) -> {
-                dialog.dismiss();
-                currentDialog = null;
-            });
-            builder.setOnCancelListener(dialog -> {
-                dialog.dismiss();
-                currentDialog = null;
-            });
-            builder.setItems(
-                    R.array.pref_quote_entries,
-                    (dialog, which) -> {
-                        dialog.dismiss();
-                        currentDialog = null;
-
-                        beginQuoteTweet(which);
-                    });
-            AlertDialog ad = builder.create();
-            ad.show();
-            currentDialog = ad;
-        });
-        ibQuote.setOnLongClickListener(v1 -> {
-            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote", "2"));
             if (beginQuoteTweet(defaultQuote)) {
-                Toast toast = Toast.makeText(getActivity(), getResources().getStringArray(R.array.pref_quote_entries)[defaultQuote], Toast.LENGTH_SHORT);
-                toast.setGravity(Gravity.CENTER, 0, 0);
+                String[] quoteStyles = getResources().getStringArray(R.array.pref_quote_entries);
+                quoteStyles = Arrays.copyOfRange(quoteStyles, 1, quoteStyles.length);
+
+                Toast toast = Toast.makeText(getActivity(), quoteStyles[defaultQuote], Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.TOP | Gravity.CENTER, 0, 0);
                 toast.show();
             }
+        });
+        ibQuote.setOnLongClickListener(v1 -> {
+            //引用制限時
+            if (limitedQuote) {
+                Intent intent = new Intent(getActivity(), TweetActivity.class);
+                intent.putExtra(TweetActivity.EXTRA_USER, getUserRecord());
+                intent.putExtra(TweetActivity.EXTRA_STATUS, status);
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
+                intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
+                startActivityForResult(intent, REQUEST_QUOTE);
+                return true;
+            }
+
+            showQuoteStyleSelector();
             return true;
         });
 
@@ -685,6 +685,33 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
             intent.putExtra(TweetActivity.EXTRA_TEXT, ids.toString());
         }
         startActivityForResult(intent, REQUEST_REPLY);
+    }
+
+    private void showQuoteStyleSelector() {
+        String[] quoteStyles = getResources().getStringArray(R.array.pref_quote_entries);
+        quoteStyles = Arrays.copyOfRange(quoteStyles, 1, quoteStyles.length);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("引用形式を選択");
+        builder.setNegativeButton("キャンセル", (dialog, which) -> {
+            dialog.dismiss();
+            currentDialog = null;
+        });
+        builder.setOnCancelListener(dialog -> {
+            dialog.dismiss();
+            currentDialog = null;
+        });
+        builder.setItems(
+                quoteStyles,
+                (dialog, which) -> {
+                    dialog.dismiss();
+                    currentDialog = null;
+
+                    beginQuoteTweet(which);
+                });
+        AlertDialog ad = builder.create();
+        ad.show();
+        currentDialog = ad;
     }
 
     private boolean beginQuoteTweet(int which) {

@@ -26,11 +26,11 @@
             android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
             android:defaultValue="true"/>
         <ListPreference
-            android:key="pref_default_quote"
+            android:key="pref_default_quote_2_0_1"
             android:title="クイック引用"
-            android:summary="引用ボタンを長押しした時、どの文法で引用を行うか選択します"
+            android:summary="引用ボタンを押した時、どの文法で引用を行うか選択します\n設定しても、引用ボタン長押しでいつでも別の方法を選択できます"
             android:entries="@array/pref_quote_entries"
             android:entryValues="@array/pref_quote_values"
-            android:defaultValue="2"/>
+            android:defaultValue="-1"/>
     </PreferenceCategory>
 </PreferenceScreen>
