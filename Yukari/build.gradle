@@ -57,7 +57,7 @@ dependencies {
     compile "com.github.takke.twitter4j:twitter4j-http2-support:master_based_dev-SNAPSHOT"
 
     // パーサ
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.8.1'
     compile 'org.jsoup:jsoup:1.8.3'
     compile 'com.google.zxing:javase:3.2.1', {
         exclude group: 'com.beust', module: 'jcommander'
