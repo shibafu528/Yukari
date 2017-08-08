@@ -16,7 +16,7 @@ repositories {
 }
 
 ext {
-    supportLibVersion = '25.2.0'
+    supportLibVersion = '25.4.0'
     playServicesVersion = '6.5.87'
     twitter4jVersion = '4.0.5'
     leakCanaryVersion = '1.5'
@@ -31,7 +31,7 @@ dependencies {
     compile "com.android.support:support-v4:$supportLibVersion"
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:exifinterface:$supportLibVersion"
-//    compile "com.android.support:multidex:1.0.1"
+//    compile "com.android.support:multidex:1.0.2"
 
     // Play Services
     compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
