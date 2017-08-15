@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
@@ -36,7 +35,6 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
@@ -46,6 +44,8 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -78,7 +78,7 @@ public class PreviewActivity extends ActionBarYukariBase {
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
     @BindView(R.id.ivPreviewImage) ImageView imageView;
-    @BindView(R.id.inclPreviewStatus) View tweetView;
+    @BindView(R.id.twvPreviewStatus) TweetView tweetView;
     private PreformedStatus status;
     private AuthUserRecord user;
 
@@ -86,7 +86,6 @@ public class PreviewActivity extends ActionBarYukariBase {
     private boolean isShowPanel = true;
     private int displayWidth;
     private int displayHeight;
-    private TweetAdapterWrap.ViewConverter viewConverter;
 
     @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
     @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
@@ -517,12 +516,12 @@ public class PreviewActivity extends ActionBarYukariBase {
             ibSave.setVisibility(View.GONE);
         }
 
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                this,
-                null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(this),
-                PreformedStatus.class);
+        if (status != null) {
+            tweetView.setMode(StatusView.Mode.PREVIEW);
+            tweetView.setStatus(status);
+        } else {
+            tweetView.setVisibility(View.GONE);
+        }
 
         // デコーダの検索
         PackageManager pm = getPackageManager();
@@ -564,18 +563,6 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     private boolean isDMImage(String url) {
         return url.startsWith("https://ton.twitter.com/") || url.contains("twitter.com/messages/media/");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (status != null) {
-            tweetView.setVisibility(View.VISIBLE);
-            new android.os.Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW));
-        } else {
-            tweetView.setVisibility(View.GONE);
-        }
     }
 
     @Override

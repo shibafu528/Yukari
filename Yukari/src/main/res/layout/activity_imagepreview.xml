@@ -24,11 +24,10 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/rect_transbox">
 
-        <include
-            android:id="@+id/inclPreviewStatus"
+        <shibafu.yukari.view.TweetView
+            android:id="@+id/twvPreviewStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            layout="@layout/row_tweet"
             android:layout_gravity="left"/>
 
         <LinearLayout

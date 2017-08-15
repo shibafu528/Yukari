@@ -18,7 +18,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
@@ -30,6 +29,8 @@ import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -240,14 +241,11 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                         local.requestDisallowInterceptTouchEvent();
 
                         PreformedStatus status = (PreformedStatus) element;
-                        TweetAdapterWrap.ViewConverter viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                                getActivity(),
-                                status.getRepresentUser().toSingleList(),
-                                null,
-                                PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                                PreformedStatus.class);
-                        viewConverter.convertView(swipeActionStatusView.findViewById(R.id.swipeActionStatus),
-                                status, TweetAdapterWrap.ViewConverter.MODE_DEFAULT);
+
+                        TweetView tweetView = (TweetView) swipeActionStatusView.findViewById(R.id.swipeActionStatus);
+                        tweetView.setMode(StatusView.Mode.DEFAULT);
+                        tweetView.setUserRecords(status.getRepresentUser().toSingleList());
+                        tweetView.setStatus(status);
 
                         swipeActionStatusView.setVisibility(View.VISIBLE);
 

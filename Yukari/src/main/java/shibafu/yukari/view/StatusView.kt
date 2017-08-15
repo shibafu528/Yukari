@@ -78,7 +78,7 @@ abstract class StatusView : RelativeLayout {
     /**
      * 現在の状態で配下にあるViewの状態を更新する。
      */
-    protected open fun updateView() {
+    open fun updateView() {
         var fontSizeStr = pref.getString("pref_font_timeline", "14")
         if (fontSizeStr == "") {
             fontSizeStr = "14"
@@ -119,7 +119,7 @@ abstract class StatusView : RelativeLayout {
         val text = decorateText(delegate.getText(status))
 
         // ショート表示の場合はScreenNameと結合して表示、そうでなければそのまま表示
-        if (pref.getBoolean("pref_mode_singleline", false) && TweetAdapterWrap.ViewConverter.MODE_DETAIL or TweetAdapterWrap.ViewConverter.MODE_PREVIEW and mode == 0) {
+        if (pref.getBoolean("pref_mode_singleline", false) && Mode.DETAIL or Mode.PREVIEW and mode == 0) {
             val sb = SpannableStringBuilder()
             sb.append(delegate.getUser(status).screenName)
             sb.setSpan(StyleSpan(Typeface.BOLD), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
