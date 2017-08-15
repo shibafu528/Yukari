@@ -25,7 +25,7 @@ import lombok.Value;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.TweetAdapterWrap;
+import shibafu.yukari.common.TweetAdapter;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -79,7 +79,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private Class<T> elementClass;
     protected ArrayList<T> elements = new ArrayList<>();
     protected ListView listView;
-    protected TweetAdapterWrap adapterWrap;
+    protected TweetAdapter tweetAdapter;
 
     //Elements Limit
     private boolean limitedTimeline;
@@ -224,8 +224,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         getListView().addFooterView(footerView);
 
         if (elementClass != null) {
-            adapterWrap = new TweetAdapterWrap(getActivity(), users, null, elements, elementClass);
-            setListAdapter(adapterWrap.getAdapter());
+            tweetAdapter = new TweetAdapter(getActivity(), users, null, elements, elementClass);
+            setListAdapter(tweetAdapter);
         }
 
         connection.connect(getActivity());
@@ -334,7 +334,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         super.onDetach();
         setListAdapter(null);
         listView = null;
-        adapterWrap = null;
+        tweetAdapter = null;
         swipeRefreshLayout = null;
         unreadNotifierView = null;
         swipeActionStatusView = null;
@@ -545,9 +545,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         if (users.isEmpty()) {
             users.addAll(getService().getUsers());
         }
-        if (adapterWrap != null) {
-            adapterWrap.setUserExtras(getService().getUserExtras());
-            adapterWrap.setStatusManager(getService().getStatusManager());
+        if (tweetAdapter != null) {
+            tweetAdapter.setUserExtras(getService().getUserExtras());
+            tweetAdapter.setStatusManager(getService().getStatusManager());
         }
         limitCount = users.size() * 256;
     }
@@ -741,8 +741,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     protected void notifyDataSetChanged() {
-        if (adapterWrap != null && getActivity() != null) {
-            getActivity().runOnUiThread(adapterWrap::notifyDataSetChanged);
+        if (tweetAdapter != null && getActivity() != null) {
+            getActivity().runOnUiThread(tweetAdapter::notifyDataSetChanged);
         }
     }
 

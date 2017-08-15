@@ -232,7 +232,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                 }
                 final LocalFunction local = new LocalFunction();
 
-                adapterWrap.setOnTouchProfileImageIconListener((element, v, event) -> {
+                tweetAdapter.setOnTouchProfileImageIconListener((element, v, event) -> {
                     if (swipeActionStatusGrabbed != null) {
                         return local.onStatusGrabbed(event);
                     }

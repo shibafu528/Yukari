@@ -12,6 +12,7 @@ import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -19,7 +20,6 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import shibafu.yukari.R
 import shibafu.yukari.common.FontAsset
-import shibafu.yukari.common.TweetAdapterWrap
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.twitter.AuthUserRecord
@@ -42,7 +42,7 @@ abstract class StatusView : RelativeLayout {
     abstract val delegate: TweetCommonDelegate
 
     // EventListener
-    var onTouchProfileImageIconListener: TweetAdapterWrap.OnTouchProfileImageIconListener? = null
+    var onTouchProfileImageIconListener: OnTouchProfileImageIconListener? = null
 
     // SharedPref
     protected val pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -283,6 +283,10 @@ abstract class StatusView : RelativeLayout {
         const val DETAIL  = 1   // サムネイル表示強制
         const val PREVIEW = 2   // サムネイル非表示強制、モノクロ
         const val INCLUDE = 128 // 引用モード
+    }
+
+    interface OnTouchProfileImageIconListener {
+        fun onTouch(element: TwitterResponse?, v: View, event: MotionEvent): Boolean
     }
 
     companion object {
