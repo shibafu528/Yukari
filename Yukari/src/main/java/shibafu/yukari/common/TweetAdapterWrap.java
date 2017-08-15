@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -35,6 +34,10 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.view.HistoryView;
+import shibafu.yukari.view.MessageView;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 import twitter4j.DirectMessage;
 import twitter4j.GeoLocation;
 import twitter4j.Status;
@@ -52,27 +55,30 @@ import java.util.List;
  */
 public class TweetAdapterWrap {
     private List<? extends TwitterResponse> statuses;
-    private ViewConverter converter;
     private TweetAdapter adapter;
     private LayoutInflater inflater;
-    private SharedPreferences preferences;
     private WeakReference<StatusManager> statusManager;
+
+    private Context context;
+    private List<AuthUserRecord> userRecords;
+    private List<UserExtras> userExtras;
+    private OnTouchProfileImageIconListener onTouchProfileImageIconListener;
 
     public TweetAdapterWrap(Context context,
                             List<AuthUserRecord> userRecords,
                             List<UserExtras> userExtras,
                             List<? extends TwitterResponse> statuses,
                             Class<? extends TwitterResponse> contentClass) {
+        this.context = context;
         this.statuses = statuses;
+        this.userRecords = userRecords;
+        if (userExtras == null) {
+            this.userExtras = new ArrayList<>();
+        } else {
+            this.userExtras = userExtras;
+        }
         adapter = new TweetAdapter(contentClass);
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        converter = ViewConverter.newInstance(
-                context,
-                userRecords,
-                userExtras,
-                PreferenceManager.getDefaultSharedPreferences(context),
-                contentClass);
-        preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     public TweetAdapter getAdapter() {
@@ -84,12 +90,16 @@ public class TweetAdapterWrap {
     }
 
     public void setUserExtras(List<UserExtras> userExtras) {
-        converter.setUserExtras(userExtras);
+        if (userExtras != null) {
+            this.userExtras = userExtras;
+        } else {
+            this.userExtras.clear();
+        }
         notifyDataSetChanged();
     }
 
     public void setOnTouchProfileImageIconListener(OnTouchProfileImageIconListener listener) {
-        converter.setOnTouchProfileImageIconListener(listener);
+        this.onTouchProfileImageIconListener = listener;
     }
 
     public interface OnTouchProfileImageIconListener {
@@ -106,9 +116,11 @@ public class TweetAdapterWrap {
         private static final int CLS_DM = 1;
         private static final int CLS_UNKNOWN = 2;
 
-        private static final int VT_CONVERTER = 0;
-        private static final int VT_LOAD_MARKER = 1;
-        private static final int VT_COUNT = 2;
+        private static final int VT_LOAD_MARKER = 0;
+        private static final int VT_TWEET = 1;
+        private static final int VT_MESSAGE = 2;
+        private static final int VT_HISTORY = 3;
+        private static final int VT_COUNT = 4;
 
         public TweetAdapter(Class<? extends TwitterResponse> clz) {
             if (Status.class.isAssignableFrom(clz)) {
@@ -145,10 +157,14 @@ public class TweetAdapterWrap {
         @Override
         public int getItemViewType(int position) {
             TwitterResponse item = getItem(position);
-            if (item != null && item instanceof PreformedStatus && ((PreformedStatus) item).getBaseStatusClass() == LoadMarkerStatus.class) {
+            if (item instanceof PreformedStatus && ((PreformedStatus) item).getBaseStatusClass() == LoadMarkerStatus.class) {
                 return VT_LOAD_MARKER;
+            } else if (item instanceof DirectMessage) {
+                return VT_MESSAGE;
+            } else if (item instanceof HistoryStatus) {
+                return VT_HISTORY;
             }
-            return VT_CONVERTER;
+            return VT_TWEET;
         }
 
         @Override
@@ -160,17 +176,32 @@ public class TweetAdapterWrap {
         public View getView(int position, View convertView, ViewGroup parent) {
             TwitterResponse item = getItem(position);
 
-            switch (getItemViewType(position)) {
-                default:
+            int vt = getItemViewType(position);
+            switch (vt) {
+                default: {
+                    StatusView statusView;
                     if (convertView == null) {
-                        convertView = inflater.inflate(preferences.getBoolean("pref_mode_singleline", false)?
-                                R.layout.row_tweet_single : R.layout.row_tweet, null);
+                        switch (vt) {
+                            default:
+                                convertView = statusView = new TweetView(context);
+                                break;
+                            case VT_MESSAGE:
+                                convertView = statusView = new MessageView(context);
+                                break;
+                            case VT_HISTORY:
+                                convertView = statusView = new HistoryView(context);
+                                break;
+                        }
+                    } else {
+                        statusView = (StatusView) convertView;
                     }
-
-                    if (item != null) {
-                        convertView = converter.convertView(convertView, item, ViewConverter.MODE_DEFAULT);
-                    }
+                    statusView.setMode(StatusView.Mode.DEFAULT);
+                    statusView.setUserRecords(userRecords);
+                    statusView.setUserExtras(userExtras);
+                    statusView.setOnTouchProfileImageIconListener(onTouchProfileImageIconListener);
+                    statusView.setStatus(item);
                     break;
+                }
                 case VT_LOAD_MARKER:
                     if (convertView == null) {
                         convertView = inflater.inflate(R.layout.row_loading, null);

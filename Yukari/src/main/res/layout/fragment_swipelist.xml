@@ -46,10 +46,9 @@
             android:id="@+id/swipeActionInfo"
             android:layout_marginLeft="4dp" />
 
-        <include
+        <shibafu.yukari.view.TweetView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            layout="@layout/row_tweet"
             android:id="@+id/swipeActionStatus"/>
     </LinearLayout>
 </FrameLayout>
