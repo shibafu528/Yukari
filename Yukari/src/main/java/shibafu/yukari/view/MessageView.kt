@@ -8,6 +8,9 @@ import shibafu.yukari.twitter.TweetCommon
 import shibafu.yukari.twitter.TweetCommonDelegate
 import twitter4j.DirectMessage
 
+/**
+ * [DirectMessage]を表示するためのビュー
+ */
 class MessageView : StatusView {
     // Delegate
     override val delegate: TweetCommonDelegate = TweetCommon.newInstance(DirectMessage::class.java)

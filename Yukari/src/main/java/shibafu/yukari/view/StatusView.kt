@@ -28,6 +28,9 @@ import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
 import twitter4j.TwitterResponse
 
+/**
+ * タイムラインの要素を表示するためのビューの基本部分
+ */
 abstract class StatusView : RelativeLayout {
     var status: TwitterResponse? = null
         set(value) {

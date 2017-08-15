@@ -9,6 +9,9 @@ import shibafu.yukari.twitter.TweetCommonDelegate
 import shibafu.yukari.twitter.statusimpl.HistoryStatus
 import shibafu.yukari.util.StringUtil
 
+/**
+ * Historyタブの[HistoryStatus]を表示するためのビュー
+ */
 class HistoryView : StatusView {
     // Delegate
     override val delegate: TweetCommonDelegate = TweetCommon.newInstance(HistoryStatus::class.java)

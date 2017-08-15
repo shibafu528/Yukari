@@ -23,6 +23,9 @@ import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
 import java.util.*
 
+/**
+ * [PreformedStatus]を表示するためのビュー
+ */
 class TweetView : StatusView {
     // Delegate
     override val delegate: TweetCommonDelegate = TweetCommon.newInstance(PreformedStatus::class.java)
