@@ -1,6 +1,8 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +38,7 @@ public class TweetAdapter extends BaseAdapter {
     private WeakReference<StatusManager> statusManager;
     private LayoutInflater inflater;
     private StatusView.OnTouchProfileImageIconListener onTouchProfileImageIconListener;
+    private SharedPreferences preferences;
 
     private int clsType;
     private static final int CLS_STATUS = 0;
@@ -70,6 +73,7 @@ public class TweetAdapter extends BaseAdapter {
             clsType = CLS_UNKNOWN;
         }
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -139,15 +143,16 @@ public class TweetAdapter extends BaseAdapter {
             default: {
                 StatusView statusView;
                 if (convertView == null) {
+                    boolean singleLine = preferences.getBoolean("pref_mode_singleline", false);
                     switch (vt) {
                         default:
-                            convertView = statusView = new TweetView(context);
+                            convertView = statusView = new TweetView(context, singleLine);
                             break;
                         case VT_MESSAGE:
-                            convertView = statusView = new MessageView(context);
+                            convertView = statusView = new MessageView(context, singleLine);
                             break;
                         case VT_HISTORY:
-                            convertView = statusView = new HistoryView(context);
+                            convertView = statusView = new HistoryView(context, singleLine);
                             break;
                     }
                 } else {

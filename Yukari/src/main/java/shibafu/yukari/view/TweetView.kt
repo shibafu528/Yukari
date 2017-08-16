@@ -36,6 +36,7 @@ class TweetView : StatusView {
     // LayoutParams
     private val lpThumb: LinearLayout.LayoutParams
 
+    constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes)
@@ -128,12 +129,11 @@ class TweetView : StatusView {
 
                     quoteEntities.forEach { quoteId ->
                         if (StatusManager.getReceivedStatuses().get(quoteId) != null) {
-                            // TODO: シングルライン対応は？
-                            val tv = TweetView(context).also {
-                                it.status = StatusManager.getReceivedStatuses().get(quoteId)
+                            val tv = TweetView(context, singleLine).also {
                                 it.userRecords = userRecords
                                 it.userExtras = userExtras
                                 it.mode = mode or Mode.INCLUDE
+                                it.status = StatusManager.getReceivedStatuses().get(quoteId)
                             }
                             flInclude.addView(tv)
                         }

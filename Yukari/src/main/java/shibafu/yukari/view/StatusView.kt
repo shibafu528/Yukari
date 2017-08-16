@@ -41,14 +41,17 @@ abstract class StatusView : RelativeLayout {
     var userExtras: List<UserExtras> = emptyList()
     var mode: Int = Mode.DEFAULT
 
-    // Delegate
-    abstract val delegate: TweetCommonDelegate
-
     // EventListener
     var onTouchProfileImageIconListener: OnTouchProfileImageIconListener? = null
 
+    // Delegate
+    protected abstract val delegate: TweetCommonDelegate
+
     // SharedPref
     protected val pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+    // SingleLine
+    protected val singleLine: Boolean
 
     // 背景リソースID
     protected val bgDefaultResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetNormal)
@@ -69,12 +72,19 @@ abstract class StatusView : RelativeLayout {
     protected val ivAccountColor: ImageView by lazy { findViewById(R.id.tweet_accountcolor) as ImageView }
     protected val ivUserColor: ImageView by lazy { findViewById(R.id.tweet_color) as ImageView }
 
+    constructor(context: Context?, singleLine: Boolean) : super(context, null, 0) {
+        this.singleLine = singleLine
+        initializeView(context, null, 0)
+    }
+
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr) {
+        singleLine = false
         initializeView(context, attrs, defStyleAttr)
     }
 
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+        singleLine = false
         initializeView(context, attrs, defStyleAttr)
     }
 
@@ -271,8 +281,11 @@ abstract class StatusView : RelativeLayout {
      * 共通の初期化処理。
      */
     private fun initializeView(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) {
-        // TODO: シングルライン対応は？
-        LayoutInflater.from(context).inflate(R.layout.row_tweet, this)
+        if (singleLine) {
+            LayoutInflater.from(context).inflate(R.layout.row_tweet_single, this)
+        } else {
+            LayoutInflater.from(context).inflate(R.layout.row_tweet, this)
+        }
     }
 
     object Config {
