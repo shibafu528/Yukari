@@ -17,14 +17,13 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import shibafu.yukari.R;
+import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.util.ThemeUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import shibafu.yukari.R;
-import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/06/22.
@@ -121,7 +120,7 @@ public class FontSelectorActivity extends ActionBarActivity {
                     tweetView.setBackgroundResource(R.drawable.selector_tweet_normal_background);
 
                     name.setText("@yukari4a / ﾕｯｶﾘｰﾝ");
-                    text.setText("Yuzuki Yukari is very cute girl!\n✌('ω'✌ )三✌('ω')✌三( ✌'ω')✌");
+                    text.setText("She unites you all with her voice.\n✌('ω'✌ )三✌('ω')✌三( ✌'ω')✌");
                 }
             }
 
