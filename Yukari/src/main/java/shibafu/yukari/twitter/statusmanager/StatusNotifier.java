@@ -205,7 +205,7 @@ class StatusNotifier implements Releasable {
                     builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
                 }
                 if (notificationType.isUseVibration()) {
-                    vibrate(pattern, -1);
+                    builder.setVibrate(pattern);
                 }
                 builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                 builder.setAutoCancel(true);
