@@ -15,6 +15,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.widget.Toast;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
@@ -155,7 +156,7 @@ class StatusNotifier implements Releasable {
         NotificationType notificationType = new NotificationType(prefValue);
 
         if (notificationType.isEnabled()) {
-            int icon = 0, color = context.getResources().getColor(R.color.key_color);
+            int icon = 0, color = ResourcesCompat.getColor(context.getResources(), R.color.key_color, null);
             Uri sound = getNotificationUrl(category);
             String titleHeader = "", tickerHeader = "";
             long[] pattern = null;
