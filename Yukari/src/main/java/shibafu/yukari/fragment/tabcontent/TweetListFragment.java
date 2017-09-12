@@ -87,13 +87,10 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         super.onViewCreated(view, savedInstanceState);
 
         if (swipeActionStatusView != null) {
-            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                default:
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_light);
-                    break;
-                case "dark":
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_dark);
-                    break;
+            if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+                swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_dark);
+            } else {
+                swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_light);
             }
             swipeActionStatusView.setVisibility(View.INVISIBLE);
 
