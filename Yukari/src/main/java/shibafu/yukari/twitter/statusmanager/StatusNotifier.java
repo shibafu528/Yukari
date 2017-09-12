@@ -302,12 +302,18 @@ class StatusNotifier implements Releasable {
                 notificationManager.notify(category, builder.build());
             }
             else {
-                if (notificationType.isUseSound()) {
+                if (notificationType.isUseSound() && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
                     MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
                     mediaPlayer.start();
                 }
                 if (notificationType.isUseVibration()) {
-                    vibrate(pattern, -1);
+                    switch (audioManager.getRingerMode()) {
+                        case AudioManager.RINGER_MODE_NORMAL:
+                        case AudioManager.RINGER_MODE_VIBRATE:
+                            vibrator.vibrate(pattern, -1);
+                            break;
+                    }
                 }
                 final String text = tickerHeader + actionBy.getScreenName() + "\n" +
                         delegate.getUser(status).getScreenName() + ": " + delegate.getText(status);
@@ -316,17 +322,6 @@ class StatusNotifier implements Releasable {
                         Toast.LENGTH_LONG)
                         .show());
             }
-        }
-    }
-
-    // サイレントに設定しててもうっかりバイブが震えちゃうような
-    // クソ端末でそのような挙動が起きないように
-    private void vibrate(long[] pattern, int repeat) {
-        switch (audioManager.getRingerMode()) {
-            case AudioManager.RINGER_MODE_NORMAL:
-            case AudioManager.RINGER_MODE_VIBRATE:
-                vibrator.vibrate(pattern, repeat);
-                break;
         }
     }
 
