@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -49,30 +50,34 @@ public class MoviePreviewActivity extends AppCompatActivity {
             videoView.start();
         });
 
-        LinkMedia linkMedia = LinkMediaFactory.newInstance(data.toString());
-        if (linkMedia == null) {
-            Toast.makeText(this, "null media", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        new ParallelAsyncTask<LinkMedia, Void, String>() {
+        new ParallelAsyncTask<String, Void, String>() {
             @Override
-            protected String doInBackground(LinkMedia... params) {
-                return params[0].getMediaURL();
+            protected String doInBackground(String... params) {
+                LinkMedia linkMedia = LinkMediaFactory.newInstance(params[0]);
+                if (linkMedia == null) {
+                    return null;
+                }
+                return linkMedia.getMediaURL();
             }
 
             @Override
             protected void onPostExecute(String s) {
-                try {
-                    videoView.setVideoURI(Uri.parse(s));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
-                            Toast.LENGTH_LONG).show();
+                if (!TextUtils.isEmpty(s)) {
+                    try {
+                        videoView.setVideoURI(Uri.parse(s));
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+
+                // if error...
+                Toast.makeText(getApplicationContext(),
+                        "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
+                        Toast.LENGTH_LONG).show();
+                finish();
             }
-        }.executeParallel(linkMedia);
+        }.executeParallel(data.toString());
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         if (status != null && status.isRetweet()) {

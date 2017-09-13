@@ -11,6 +11,7 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.view.Display;
@@ -71,6 +72,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     private static final String PACKAGE_MAGICK_DECODER = "info.shibafu528.yukari.magickdecoder";
 
+    private String actualUrl;
     private Bitmap image;
     private Matrix matrix;
     private float minScale = 1.0f;
@@ -86,6 +88,8 @@ public class PreviewActivity extends ActionBarYukariBase {
     private boolean isShowPanel = true;
     private int displayWidth;
     private int displayHeight;
+
+    @BindView(R.id.ibPreviewSave) ImageButton ibSave;
 
     @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
     @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
@@ -235,14 +239,7 @@ public class PreviewActivity extends ActionBarYukariBase {
             }
         });
 
-        final LinkMedia linkMedia = LinkMediaFactory.newInstance(data.toString());
-        final String mediaUrl;
-        if (linkMedia != null) {
-            mediaUrl = linkMedia.getMediaURL();
-        }
-        else {
-            mediaUrl = data.toString();
-        }
+        String mediaUrl = data.toString();
 
         //とりあえず念のため見ておくか
         if (mediaUrl == null) {
@@ -251,6 +248,7 @@ public class PreviewActivity extends ActionBarYukariBase {
             return;
         }
 
+        final Handler handler = new Handler();
         loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength = -1;
@@ -260,6 +258,22 @@ public class PreviewActivity extends ActionBarYukariBase {
             @Override
             protected Bitmap doInBackground(String... params) {
                 String url = params[0];
+
+                // 画像の実体解決
+                LinkMedia linkMedia = LinkMediaFactory.newInstance(url);
+                if (linkMedia != null) {
+                    actualUrl = url = linkMedia.getMediaURL();
+                }
+                if (url == null) {
+                    return null;
+                }
+                // 保存ボタンの有効化
+                handler.post(() -> {
+                    if (ibSave != null) {
+                        ibSave.setEnabled(true);
+                    }
+                });
+
                 int exifRotate = 0;
                 if (url.startsWith("content://")) {
                     try {
@@ -487,9 +501,9 @@ public class PreviewActivity extends ActionBarYukariBase {
         ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
         ibBrowser.setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
 
-        ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
+        ibSave.setEnabled(false); // 実体解決完了まで無効化
         ibSave.setOnClickListener(v -> {
-            Uri uri = Uri.parse(mediaUrl);
+            Uri uri = Uri.parse(actualUrl);
             DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             DownloadManager.Request request = new DownloadManager.Request(uri);
             request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
@@ -512,7 +526,6 @@ public class PreviewActivity extends ActionBarYukariBase {
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
             ibBrowser.setEnabled(false);
             ibBrowser.setVisibility(View.GONE);
-            ibSave.setEnabled(false);
             ibSave.setVisibility(View.GONE);
         }
 
