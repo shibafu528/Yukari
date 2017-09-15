@@ -6,7 +6,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/06/22.
  */
-public class FontSelectorActivity extends ActionBarActivity {
+public class FontSelectorActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,8 +65,9 @@ public class FontSelectorActivity extends ActionBarActivity {
             super.onViewCreated(view, savedInstanceState);
 
             preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-            String currentFile = preferences.getString("pref_font_file", FontAsset.FONT_NAME);
+            String currentFile = preferences.getString("pref_font_file", FontAsset.BUNDLE_FONT_ID);
 
+            fonts.add(new Pair<>(FontAsset.BUNDLE_FONT_ID, FontAsset.getBundleFont(getContext().getAssets())));
             fonts.add(new Pair<>(FontAsset.SYSTEM_FONT_ID, Typeface.DEFAULT));
 
             File fontDir = new File(getActivity().getExternalFilesDir(null), "font");
@@ -77,7 +78,7 @@ public class FontSelectorActivity extends ActionBarActivity {
                     Typeface typeface = Typeface.createFromFile(file);
                     fonts.add(new Pair<>(file.getName(), typeface));
                     if (file.getName().equals(currentFile)) {
-                        selectedIndex = i + 1;
+                        selectedIndex = i + 2;
                     }
                 } catch (RuntimeException e) {
                     //native typeface cannot be made
@@ -147,7 +148,13 @@ public class FontSelectorActivity extends ActionBarActivity {
                     vh.radio.setChecked(false);
                 }
                 Pair<String, Typeface> item = getItem(position);
-                vh.radio.setText(FontAsset.SYSTEM_FONT_ID.equals(item.first)? "System Font" : item.first);
+                if (FontAsset.SYSTEM_FONT_ID.equals(item.first)) {
+                    vh.radio.setText("System Font");
+                } else if (FontAsset.BUNDLE_FONT_ID.equals(item.first)) {
+                    vh.radio.setText("Bundle Font");
+                } else {
+                    vh.radio.setText(item.first);
+                }
                 Typeface tf = item.second;
                 if (tf != null) {
                     vh.radio.setEnabled(true);

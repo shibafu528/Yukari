@@ -51,10 +51,10 @@ dependencies {
 //    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
-    compile "com.github.takke.twitter4j:twitter4j-core:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-media-support:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-stream:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-http2-support:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
 
     // パーサ
     compile 'com.google.code.gson:gson:2.8.1'

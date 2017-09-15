@@ -3,7 +3,6 @@ package shibafu.yukari.activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,7 +37,6 @@ import butterknife.OnClick;
 import butterknife.OnTouch;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TriangleView;
@@ -65,7 +63,6 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterResponse;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,21 +127,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             Toast.makeText(getApplicationContext(), getString(R.string.error_storage_not_found), Toast.LENGTH_LONG).show();
             finish();
             return;
-        }
-        else {
-            try {
-                if (FontAsset.checkFontFileExist(getApplicationContext(), FontAsset.FONT_NAME)) {
-                    Typeface.createFromFile(FontAsset.getFontFileExtPath(getApplicationContext(), FontAsset.FONT_NAME));
-                } else throw new FileNotFoundException("Font asset not found.");
-            } catch (FileNotFoundException | RuntimeException e) {
-                if (e instanceof RuntimeException) {
-                    Toast.makeText(getApplicationContext(), getString(R.string.error_broken_font), Toast.LENGTH_LONG).show();
-                }
-                Intent intent = new Intent(getApplicationContext(), AssetExtractActivity.class);
-                startActivity(intent);
-                finish();
-                return;
-            }
         }
 
         findViews();

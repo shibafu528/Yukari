@@ -135,12 +135,6 @@
         </activity>
 
         <activity
-            android:name="shibafu.yukari.activity.AssetExtractActivity"
-            android:label="@string/title_activity_assetextract"
-            android:configChanges="orientation|screenSize">
-        </activity>
-
-        <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
             android:label="@string/title_activity_profile">
             <intent-filter tools:ignore="GoogleAppIndexingWarning">
