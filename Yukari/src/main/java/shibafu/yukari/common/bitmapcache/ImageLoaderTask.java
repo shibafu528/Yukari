@@ -5,10 +5,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.widget.ImageView;
 import shibafu.yukari.R;
-import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.util.BitmapUtil;
 
 import java.io.BufferedInputStream;
@@ -17,11 +17,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
+public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
+    /** 一般の画像用 */
+    private static final Executor IMAGE_EXECUTOR = THREAD_POOL_EXECUTOR;
+    /** プロフィールアイコン用 */
+    private static final Executor PROFILE_ICON_EXECUTOR = Executors.newFixedThreadPool(4);
+
     private Context context;
     private WeakReference<ImageView> imageViewRef;
     private String tag;
@@ -35,7 +42,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     static Bitmap loadBitmapInternal(Context context, String uri, String mode, boolean mosaic) {
         if (context == null) return null;
         try {
-            Bitmap image = BitmapCache.getImageFromDisk(uri, BitmapCache.IMAGE_CACHE, context);
+            Bitmap image = BitmapCache.getImageFromDisk(uri, mode, context);
             //無かったらWebから取得だ！
             if (image == null) {
                 File tempFile = File.createTempFile("image", ".tmp", context.getExternalCacheDir());
@@ -107,7 +114,7 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     }
 
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
-        IconLoader.loadBitmap(context, imageView, uri);
+        loadBitmap(context, imageView, uri, BitmapCache.PROFILE_ICON_CACHE, false);
     }
 
     public static void loadBitmap(Context context, ImageView imageView, String uri) {
@@ -125,7 +132,9 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 imageView.setImageBitmap(cache);
             } else {
                 imageView.setImageResource(R.drawable.yukatterload);
-                new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri, mosaic));
+                new ImageLoaderTask(context, imageView).executeOnExecutor(
+                        BitmapCache.IMAGE_CACHE.equals(mode) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
+                        new Params(mode, uri, mosaic));
             }
         }
     }
@@ -140,11 +149,13 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 protected void onPostExecute(Bitmap bitmap) {
                     callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
                 }
-            }.executeParallel(new Params(mode, uri, false));
+            }.executeOnExecutor(
+                    BitmapCache.IMAGE_CACHE.equals(mode) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
+                    new Params(mode, uri, false));
         }
     }
 
-    public static interface DrawableLoaderCallback {
+    public interface DrawableLoaderCallback {
         void onLoadDrawable(Drawable drawable);
     }
 
