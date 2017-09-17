@@ -36,18 +36,22 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
     private ImageLoaderTask(Context context, ImageView imageView) {
         this.context = context;
         imageViewRef = new WeakReference<>(imageView);
-        tag = imageView.getTag().toString();
+        if (imageView != null) {
+            tag = imageView.getTag().toString();
+        }
     }
 
-    static Bitmap loadBitmapInternal(Context context, String uri, String mode, boolean mosaic) {
+    @Override
+    protected Bitmap doInBackground(Params... params) {
+        final Params param = params[0];
         if (context == null) return null;
         try {
-            Bitmap image = BitmapCache.getImageFromDisk(uri, mode, context);
+            Bitmap image = BitmapCache.getImageFromDisk(param.uri, param.mode, context);
             //無かったらWebから取得だ！
             if (image == null) {
                 File tempFile = File.createTempFile("image", ".tmp", context.getExternalCacheDir());
                 try {
-                    URL imageUrl = new URL(uri);
+                    URL imageUrl = new URL(param.uri);
                     BufferedInputStream is = new BufferedInputStream(imageUrl.openStream());
                     FileOutputStream fos = new FileOutputStream(tempFile);
                     try {
@@ -65,15 +69,15 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                     BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                     options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
-                    options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
+                    options.inPreferredConfig = param.mode.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();
                 }
                 //キャッシュに保存
-                BitmapCache.putImage(uri, image, context, mode);
+                BitmapCache.putImage(param.uri, image, context, param.mode);
             }
-            if (image != null && mosaic) {
+            if (image != null && param.mosaic) {
                 Bitmap mosaicBitmap = BitmapUtil.createMosaic(image);
                 image.recycle();
                 image = mosaicBitmap;
@@ -83,11 +87,6 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    protected Bitmap doInBackground(Params... params) {
-        return loadBitmapInternal(context, params[0].getUri(), params[0].getMode(), params[0].getMosaic());
     }
 
     private ImageView getImageViewInstance() {
@@ -160,26 +159,14 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
     }
 
     static class Params {
-        private String mode;
-        private String uri;
-        private boolean mosaic;
+        public final String mode;
+        public final String uri;
+        public final boolean mosaic;
 
         private Params(String mode, String uri, boolean mosaic) {
             this.mode = mode;
             this.uri = uri;
             this.mosaic = mosaic;
-        }
-
-        public String getMode() {
-            return mode;
-        }
-
-        public String getUri() {
-            return uri;
-        }
-
-        public boolean getMosaic() {
-            return mosaic;
         }
     }
 }
