@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
+import android.support.annotation.StringDef;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 import shibafu.yukari.util.StringUtil;
@@ -37,7 +38,7 @@ public class BitmapCache {
 
     public static void initialize(final Context context) {
         class Initializer {
-            Initializer init(String key) {
+            Initializer init(@CacheKey String key) {
                 Map<String, File> fileMap;
                 File[] files = getCacheDir(context, key).listFiles();
                 if (files != null) {
@@ -75,7 +76,7 @@ public class BitmapCache {
      * @param cacheKey キャッシュ分類キー(e.g. {@link #IMAGE_CACHE}, {@link #PROFILE_ICON_CACHE})
      * @return キャッシュされたBitmap
      */
-    public static Bitmap getImageFromMemory(String key, String cacheKey) {
+    public static Bitmap getImageFromMemory(String key, @CacheKey String cacheKey) {
         key = StringUtil.generateKey(key);
         return cacheMap.get(cacheKey).get(key);
     }
@@ -88,7 +89,7 @@ public class BitmapCache {
      * @param context Context
      * @return キャッシュされたBitmap
      */
-    public static Bitmap getImageFromDisk(String key, String cacheKey, Context context) {
+    public static Bitmap getImageFromDisk(String key, @CacheKey String cacheKey, Context context) {
         key = StringUtil.generateKey(key);
         File cacheFile = getCacheFile(key, cacheKey);
         //日時を更新してファイルを読み込む
@@ -107,7 +108,7 @@ public class BitmapCache {
      * @param context Context
      * @return キャッシュされたBitmap
      */
-    public static Bitmap getImage(String key, String cacheKey, Context context) {
+    public static Bitmap getImage(String key, @CacheKey String cacheKey, Context context) {
         key = StringUtil.generateKey(key);
         //メモリ上のキャッシュから取得を試みる
         Bitmap image = cacheMap.get(cacheKey).get(key);
@@ -122,7 +123,7 @@ public class BitmapCache {
         return image;
     }
 
-    public static void putImage(String key, Bitmap image, Context context, String cacheKey) {
+    public static void putImage(String key, Bitmap image, Context context, @CacheKey String cacheKey) {
         if (key == null || image == null) return;
 
         key = StringUtil.generateKey(key);
@@ -153,14 +154,14 @@ public class BitmapCache {
         }
     }
 
-    private static File getCacheFile(String fileKey, String cacheKey) {
+    private static File getCacheFile(String fileKey, @CacheKey String cacheKey) {
         Map<String, File> fileMap = existFileCache.get(cacheKey);
         if (fileMap != null && fileMap.containsKey(fileKey)) {
             return fileMap.get(fileKey);
         } else return null;
     }
 
-    private static File getCacheDir(Context context, String cacheKey) {
+    private static File getCacheDir(Context context, @CacheKey String cacheKey) {
         File cacheDir;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             cacheDir = context.getExternalCacheDir();
@@ -169,6 +170,9 @@ public class BitmapCache {
         }
         return new File(cacheDir, cacheKey);
     }
+
+    @StringDef({IMAGE_CACHE, PROFILE_ICON_CACHE})
+    public @interface CacheKey {}
 
     private static class BitmapLruCache extends LruCache<String, Bitmap> {
 

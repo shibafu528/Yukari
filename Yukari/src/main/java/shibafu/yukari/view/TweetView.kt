@@ -15,6 +15,7 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.twitter.TweetCommon
 import shibafu.yukari.twitter.TweetCommonDelegate
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
@@ -196,9 +197,11 @@ class TweetView : StatusView {
                             iv.visibility = View.VISIBLE
                         }
                         iv.scaleType = ImageView.ScaleType.FIT_CENTER
+                        // TODO: Mediaのインスタンスを新規生成せず、そのまま渡したい (PreformedStatus側で事前生成しておく形で)
                         ImageLoaderTask.loadBitmap(context,
                                 iv,
-                                media.thumbURL,
+                                MediaFactory.newInstance(media.thumbURL),
+                                ImageLoaderTask.RESOLVE_THUMBNAIL,
                                 BitmapCache.IMAGE_CACHE,
                                 hidden && pref.getBoolean("pref_prev_mosaic", false))
 
