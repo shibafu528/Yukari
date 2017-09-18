@@ -1,5 +1,7 @@
 package shibafu.yukari.media2;
 
+import android.util.Log;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -17,11 +19,20 @@ public class MediaFactory {
         if (media == null) {
             if (browseUrl.contains("pbs.twimg.com/media/")) {
                 media = new Twimg(browseUrl);
+            } else if (browseUrl.contains("pbs.twimg.com/profile_")) {
+                media = new SimplePicture(browseUrl);
             } else if (browseUrl.contains("pixiv.net/member_illust.php")) {
                 media = new Pixiv(browseUrl);
-            } else if (browseUrl.endsWith(".jpg") || browseUrl.endsWith(".jpeg") || browseUrl.endsWith(".png")) {
-                media = new SimplePicture(browseUrl);
+            } else {
+                String lc = browseUrl.toLowerCase();
+                if (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png") || lc.endsWith(".gif")) {
+                    media = new SimplePicture(browseUrl);
+                }
             }
+        }
+
+        if (media == null) {
+            Log.d(MediaFactory.class.getSimpleName(), "Resolve failed : " + browseUrl);
         }
 
         instanceQueue.put(browseUrl, media);
