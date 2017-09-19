@@ -14,10 +14,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.view.Display;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -446,10 +445,9 @@ public class PreviewActivity extends ActionBarYukariBase {
                 image = bitmap;
                 imageView.setImageBitmap(bitmap);
                 //画面解像度を取得して初期サイズ設定
-                WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-                Display display = wm.getDefaultDisplay();
-                displayWidth = display.getWidth();
-                displayHeight = display.getHeight();
+                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                displayWidth = displayMetrics.widthPixels;
+                displayHeight = displayMetrics.heightPixels;
                 float scale = 1.0f;
                 if (bitmap.getWidth() > bitmap.getHeight() && displayWidth < bitmap.getWidth()) {
                     scale = (float) displayWidth / bitmap.getWidth();
