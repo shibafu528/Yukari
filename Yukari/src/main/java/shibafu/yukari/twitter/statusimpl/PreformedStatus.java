@@ -1,8 +1,8 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.LinkMediaFactory;
-import shibafu.yukari.media.TwitterVideo;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.MediaFactory;
+import shibafu.yukari.media2.impl.TwitterVideo;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.util.StringUtil;
@@ -43,7 +43,7 @@ public class PreformedStatus implements Status{
     //基本は最初の受信時に一度だけ加工しておく情報
     private String text;
     private String plainSource;
-    private List<LinkMedia> mediaLinkList;
+    private List<Media> mediaList;
     private URLEntity[] urlEntities;
     private List<Long> quoteEntities;
     private boolean isMentionedToMe;
@@ -91,17 +91,17 @@ public class PreformedStatus implements Status{
         }
         //リンクリストを作成
         ArrayList<URLEntity> urlEntities = new ArrayList<>();
-        mediaLinkList = new ArrayList<LinkMedia>() {
+        mediaList = new ArrayList<Media>() {
             @Override
-            public boolean add(LinkMedia object) {
+            public boolean add(Media object) {
                 return !this.contains(object) && super.add(object);
             }
         };
         quoteEntities = new ArrayList<>();
         for (URLEntity urlEntity : status.getURLEntities()) {
-            LinkMedia media = LinkMediaFactory.newInstance(urlEntity.getExpandedURL());
+            Media media = MediaFactory.newInstance(urlEntity.getExpandedURL());
             if (media != null) {
-                mediaLinkList.add(media);
+                mediaList.add(media);
             }
             else {
                 urlEntities.add(urlEntity);
@@ -130,8 +130,8 @@ public class PreformedStatus implements Status{
                                 largest = variant;
                             }
                             if (!removedExistsUrl) {
-                                for (Iterator<LinkMedia> iterator = mediaLinkList.iterator(); iterator.hasNext(); ) {
-                                    if (iterator.next().getBrowseURL().equals(mediaEntity.getMediaURLHttps())) {
+                                for (Iterator<Media> iterator = mediaList.iterator(); iterator.hasNext(); ) {
+                                    if (iterator.next().getBrowseUrl().equals(mediaEntity.getMediaURLHttps())) {
                                         iterator.remove();
                                     }
                                 }
@@ -140,12 +140,12 @@ public class PreformedStatus implements Status{
                             }
                         }
                         if (largest != null) {
-                            mediaLinkList.add(new TwitterVideo(largest.getUrl(), mediaEntity.getMediaURLHttps()));
+                            mediaList.add(new TwitterVideo(largest.getUrl(), mediaEntity.getMediaURLHttps()));
                         }
                     }
                     break;
                 default:
-                    mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+                    mediaList.add(MediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
                     break;
             }
         }
@@ -183,7 +183,7 @@ public class PreformedStatus implements Status{
         if (this.status.getMediaEntities().length < status.getMediaEntities().length
                 && status.getMediaEntities().length > 1) {
             for (MediaEntity mediaEntity : status.getMediaEntities()) {
-                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+                mediaList.add(MediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
             }
         }
         if (receivedUser != null) {
@@ -219,7 +219,7 @@ public class PreformedStatus implements Status{
         if (this.status.getMediaEntities().length < status.getMediaEntities().length
                 && status.getMediaEntities().length > 1) {
             for (MediaEntity mediaEntity : status.getMediaEntities()) {
-                mediaLinkList.add(LinkMediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
+                mediaList.add(MediaFactory.newInstance(mediaEntity.getMediaURLHttps()));
             }
         }
         for (AuthUserRecord userRecord : status.getReceivedUsers()) {
@@ -487,8 +487,16 @@ public class PreformedStatus implements Status{
         return status.getSymbolEntities();
     }
 
-    public List<LinkMedia> getMediaLinkList() {
-        return mediaLinkList;
+    public List<Media> getMediaList() {
+        return mediaList;
+    }
+
+    /**
+     * @deprecated Yukari Queryからの呼出の互換用です。
+     */
+    @Deprecated
+    public List<Media> getMediaLinkList() {
+        return mediaList;
     }
 
     @Override

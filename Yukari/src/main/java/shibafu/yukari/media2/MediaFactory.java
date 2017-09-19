@@ -22,6 +22,8 @@ public class MediaFactory {
                 media = new Twimg(browseUrl);
             } else if (browseUrl.contains("pbs.twimg.com/profile_")) {
                 media = new SimplePicture(browseUrl);
+            } else if (browseUrl.contains("pbs.twimg.com/tweet_video/") || browseUrl.contains("video.twimg.com")) {
+                media = new TwitterVideo(browseUrl);
             } else if (browseUrl.contains("pixiv.net/member_illust.php")) {
                 media = new Pixiv(browseUrl);
             } else {

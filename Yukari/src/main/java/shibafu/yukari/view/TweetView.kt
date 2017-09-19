@@ -15,7 +15,6 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
-import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.twitter.TweetCommon
 import shibafu.yukari.twitter.TweetCommonDelegate
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
@@ -180,7 +179,7 @@ class TweetView : StatusView {
             hidden = hidden or status.originStatus.isCensoredThumbs
 
             if (!hidden || pref.getBoolean("pref_prev_mosaic", false)) {
-                val mediaList = status.originStatus.mediaLinkList
+                val mediaList = status.originStatus.mediaList
                 val mlSize = mediaList.size
                 if (mlSize > 0) {
                     llAttach.visibility = View.VISIBLE
@@ -197,10 +196,9 @@ class TweetView : StatusView {
                             iv.visibility = View.VISIBLE
                         }
                         iv.scaleType = ImageView.ScaleType.FIT_CENTER
-                        // TODO: Mediaのインスタンスを新規生成せず、そのまま渡したい (PreformedStatus側で事前生成しておく形で)
                         ImageLoaderTask.loadBitmap(context,
                                 iv,
-                                MediaFactory.newInstance(media.thumbURL),
+                                media,
                                 ImageLoaderTask.RESOLVE_THUMBNAIL,
                                 BitmapCache.IMAGE_CACHE,
                                 hidden && pref.getBoolean("pref_prev_mosaic", false))
@@ -209,7 +207,7 @@ class TweetView : StatusView {
                             iv.setOnClickListener { _ ->
                                 val intent = Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse(media.browseURL),
+                                        Uri.parse(media.browseUrl),
                                         context,
                                         PreviewActivity::class.java)
                                 intent.putExtra(PreviewActivity.EXTRA_STATUS, status)

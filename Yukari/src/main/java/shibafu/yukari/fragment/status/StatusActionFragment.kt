@@ -419,8 +419,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                 for (urlEntity in status.urlEntities) {
                     options.add(QuickMuteOption(TYPE_URL, urlEntity.expandedURL))
                 }
-                for (linkMedia in status.mediaLinkList) {
-                    options.add(QuickMuteOption(TYPE_URL, linkMedia.browseURL))
+                for (linkMedia in status.mediaList) {
+                    options.add(QuickMuteOption(TYPE_URL, linkMedia.browseUrl))
                 }
                 return options.toArray<QuickMuteOption>(arrayOfNulls<QuickMuteOption>(options.size))
             }

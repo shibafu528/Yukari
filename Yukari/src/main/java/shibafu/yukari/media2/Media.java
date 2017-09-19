@@ -70,6 +70,10 @@ public abstract class Media implements Serializable {
         return browseUrl.hashCode();
     }
 
+    protected static ResolveInfo createResolveInfo(InputStream stream, long contentLength) {
+        return new ResolveInfo(stream, contentLength);
+    }
+
     /**
      * 閲覧用URL等を基に画像や動画の実体を検索した結果。データ本体を取得するためのストリームや追加情報を持つ。
      */
@@ -77,7 +81,7 @@ public abstract class Media implements Serializable {
         private InputStream stream;
         private long contentLength;
 
-        /*internal*/ ResolveInfo(InputStream stream, long contentLength) {
+        private ResolveInfo(InputStream stream, long contentLength) {
             this.stream = stream;
             this.contentLength = contentLength;
         }

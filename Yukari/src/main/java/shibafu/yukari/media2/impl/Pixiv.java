@@ -69,6 +69,6 @@ public class Pixiv extends Media {
         conn.setReadTimeout(10000);
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestProperty("Referer", pageUrl);
-        return new ResolveInfo(conn.getInputStream(), conn.getContentLength());
+        return createResolveInfo(conn.getInputStream(), conn.getContentLength());
     }
 }

@@ -33,7 +33,7 @@ public abstract class MemoizeMedia extends Media {
         URLConnection connection = new URL(resolvedMediaUrl).openConnection();
         int length = connection.getContentLength();
         InputStream inputStream = connection.getInputStream();
-        return new ResolveInfo(inputStream, length);
+        return createResolveInfo(inputStream, length);
     }
 
     @Override
@@ -47,7 +47,7 @@ public abstract class MemoizeMedia extends Media {
         URLConnection connection = new URL(resolvedThumbnailUrl).openConnection();
         int length = connection.getContentLength();
         InputStream inputStream = connection.getInputStream();
-        return new ResolveInfo(inputStream, length);
+        return createResolveInfo(inputStream, length);
     }
 
     @Override
