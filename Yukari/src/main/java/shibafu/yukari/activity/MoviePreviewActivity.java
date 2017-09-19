@@ -11,8 +11,9 @@ import android.widget.Toast;
 import android.widget.VideoView;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.MediaFactory;
+import shibafu.yukari.media2.impl.TwitterVideo;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -53,11 +54,12 @@ public class MoviePreviewActivity extends AppCompatActivity {
         new ParallelAsyncTask<String, Void, String>() {
             @Override
             protected String doInBackground(String... params) {
-                LinkMedia linkMedia = LinkMediaFactory.newInstance(params[0]);
-                if (linkMedia == null) {
-                    return null;
+                Media media = MediaFactory.newInstance(params[0]);
+                if (media instanceof TwitterVideo) {
+                    // TwitterVideoはそのまま再生可能なURLを持つ。この前提が崩れたらもうAPIを考え直そう。
+                    return media.getBrowseUrl();
                 }
-                return linkMedia.getMediaURL();
+                return null;
             }
 
             @Override
