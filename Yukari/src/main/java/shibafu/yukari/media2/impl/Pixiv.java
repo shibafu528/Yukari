@@ -1,9 +1,10 @@
-package shibafu.yukari.media2;
+package shibafu.yukari.media2.impl;
 
 import android.support.annotation.NonNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import shibafu.yukari.media2.Media;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

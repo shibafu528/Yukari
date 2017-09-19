@@ -1,7 +1,9 @@
-package shibafu.yukari.media2;
+package shibafu.yukari.media2.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.impl.Pixiv;
 
 public class PixivTest {
     @Test

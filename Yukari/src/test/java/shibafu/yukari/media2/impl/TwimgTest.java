@@ -1,4 +1,4 @@
-package shibafu.yukari.media2;
+package shibafu.yukari.media2.impl;
 
 import junit.framework.Assert;
 import org.junit.Test;

@@ -1,6 +1,7 @@
-package shibafu.yukari.media2;
+package shibafu.yukari.media2.impl;
 
 import android.support.annotation.NonNull;
+import shibafu.yukari.media2.MemoizeMedia;
 
 public class Twimg extends MemoizeMedia {
     /**
