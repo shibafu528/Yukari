@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
@@ -38,6 +39,8 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media.LinkMedia;
 import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.service.BitmapDecoderService;
 import shibafu.yukari.service.IBitmapDecoderService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -56,6 +59,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -71,12 +75,11 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     private static final String PACKAGE_MAGICK_DECODER = "info.shibafu528.yukari.magickdecoder";
 
-    private String actualUrl;
     private Bitmap image;
     private Matrix matrix;
     private float minScale = 1.0f;
 
-    private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
+    private ParallelAsyncTask<Void, Object, Bitmap> loaderTask = null;
 
     @BindView(R.id.ivPreviewImage) ImageView imageView;
     @BindView(R.id.twvPreviewStatus) TweetView tweetView;
@@ -246,22 +249,27 @@ public class PreviewActivity extends ActionBarYukariBase {
             finish();
             return;
         }
+        final Media media = MediaFactory.newInstance(mediaUrl);
+        if (media == null) {
+            Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         final Handler handler = new Handler();
-        loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
+        loaderTask = new ParallelAsyncTask<Void, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength = -1;
                 public long beginTime, currentTime;
             }
 
             @Override
-            protected Bitmap doInBackground(String... params) {
-                String url = params[0];
-
+            protected Bitmap doInBackground(Void... params) {
                 // 画像の実体解決
-                LinkMedia linkMedia = LinkMediaFactory.newInstance(url);
+                String url = null;
+                LinkMedia linkMedia = LinkMediaFactory.newInstance(mediaUrl);
                 if (linkMedia != null) {
-                    actualUrl = url = linkMedia.getMediaURL();
+                    url = linkMedia.getMediaURL();
                 }
                 if (url == null) {
                     return null;
@@ -294,7 +302,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                     cacheDir.mkdirs();
                 }
                 //キャッシュファイル名を生成
-                String fileKey = StringUtil.generateKey(url);
+                String fileKey = StringUtil.generateKey(media.getBrowseUrl());
                 File cacheFile = new File(cacheDir, fileKey);
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
@@ -326,7 +334,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                         callback.beginTime = System.currentTimeMillis();
                     } else {
                         try {
-                            connection = (HttpURLConnection) new URL(params[0]).openConnection();
+                            connection = (HttpURLConnection) new URL(mediaUrl).openConnection();
                             connection.setInstanceFollowRedirects(true);
                             connection.connect();
                             while (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
@@ -416,12 +424,12 @@ public class PreviewActivity extends ActionBarYukariBase {
                 }
                 if (callback.contentLength < 1) {
                     loadProgressText.setText("");
-                    loadProgressText2.setText(String.format("%d KB\n%dKB/s",
+                    loadProgressText2.setText(String.format(Locale.US, "%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.received / 1024) / elapsed));
                 } else {
-                    loadProgressText.setText(String.format("%d%%", progress));
-                    loadProgressText2.setText(String.format("%d/%d KB\n%dKB/s",
+                    loadProgressText.setText(String.format(Locale.US, "%d%%", progress));
+                    loadProgressText2.setText(String.format(Locale.US, "%d/%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.contentLength / 1024),
                             (callback.received / 1024) / elapsed));
@@ -466,7 +474,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                 processZxing();
             }
         };
-        loaderTask.executeParallel(mediaUrl);
+        loaderTask.executeParallel();
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         if (status != null && status.isRetweet()) {
@@ -501,24 +509,35 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         ibSave.setEnabled(false); // 実体解決完了まで無効化
         ibSave.setOnClickListener(v -> {
-            Uri uri = Uri.parse(actualUrl);
-            DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            DownloadManager.Request request = new DownloadManager.Request(uri);
-            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-            String[] split = uri.getLastPathSegment().split("\\.");
-            if (split.length > 1) {
-                request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
-            }
-            else {
-                //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
-                uri = Uri.parse(uri.toString() + ".png");
-                request.setMimeType("image/png");
-            }
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
-            File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            pathExternalPublicDir.mkdirs();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            dlm.enqueue(request);
+            new ParallelAsyncTask<Void, Void, String>() {
+
+                @Override
+                protected String doInBackground(Void... voids) {
+                    try {
+                        DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        DownloadManager.Request request = media.getDownloadRequest();
+                        if (request == null) {
+                            return "保存できない種類の画像です。";
+                        }
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                        File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                        pathExternalPublicDir.mkdirs();
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        dlm.enqueue(request);
+                        return "";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return "保存に失敗しました。";
+                }
+
+                @Override
+                protected void onPostExecute(String str) {
+                    if (!TextUtils.isEmpty(str)) {
+                        Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }.executeParallel();
         });
 
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {

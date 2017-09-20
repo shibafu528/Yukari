@@ -1,6 +1,8 @@
 package shibafu.yukari.media2.impl;
 
+import android.app.DownloadManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -32,6 +34,13 @@ public class Pixiv extends Media {
     @Override
     public ResolveInfo resolveThumbnail() throws IOException {
         return resolveInternal();
+    }
+
+    @Nullable
+    @Override
+    public DownloadManager.Request getDownloadRequest() throws IOException {
+        // pixivの画像を無理やりダウンロードするのはちょっとまずいでしょ...
+        return null;
     }
 
     @Override

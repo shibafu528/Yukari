@@ -1,6 +1,8 @@
 package shibafu.yukari.media2;
 
+import android.app.DownloadManager;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
 import java.io.IOException;
@@ -48,6 +50,16 @@ public abstract class Media implements Serializable {
      */
     @WorkerThread
     public abstract ResolveInfo resolveThumbnail() throws IOException;
+
+    /**
+     * ダウンロードリクエストを生成します。
+     * <b>この操作は通信を伴う可能性があるため、UIスレッドで呼び出してはいけません。</b>
+     * @return {@link DownloadManager.Request} のインスタンス。何らかの理由でダウンロードできないメディアの場合、nullを返す。
+     * @throws IOException 通信やファイルシステムのエラーによって中断された場合にスロー
+     */
+    @WorkerThread
+    @Nullable
+    public abstract DownloadManager.Request getDownloadRequest() throws IOException;
 
     /**
      * プレビュー機能を使うことができるかどうかを返します。

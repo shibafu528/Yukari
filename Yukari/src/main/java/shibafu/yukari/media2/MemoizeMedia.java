@@ -1,6 +1,10 @@
 package shibafu.yukari.media2;
 
+import android.app.DownloadManager;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,6 +52,21 @@ public abstract class MemoizeMedia extends Media {
         int length = connection.getContentLength();
         InputStream inputStream = connection.getInputStream();
         return createResolveInfo(inputStream, length);
+    }
+
+    @Nullable
+    @Override
+    public DownloadManager.Request getDownloadRequest() throws IOException {
+        if (resolvedMediaUrl == null) {
+            resolvedMediaUrl = resolveMediaUrl();
+            if (resolvedMediaUrl == null) {
+                throw new FileNotFoundException(getBrowseUrl());
+            }
+        }
+        Uri uri = Uri.parse(resolvedMediaUrl);
+        DownloadManager.Request request = new DownloadManager.Request(uri);
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
+        return request;
     }
 
     @Override
