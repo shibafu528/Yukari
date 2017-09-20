@@ -35,10 +35,17 @@ public abstract class MemoizeMedia extends Media {
             }
         }
         HttpURLConnection connection = (HttpURLConnection) new URL(resolvedMediaUrl).openConnection();
-        connection = resolveRedirect(connection);
-        int length = connection.getContentLength();
-        InputStream inputStream = connection.getInputStream();
-        return createResolveInfo(inputStream, length);
+        try {
+            connection = resolveRedirect(connection);
+            int length = connection.getContentLength();
+            InputStream inputStream = connection.getInputStream();
+            return createResolveInfo(inputStream, length, new CloseableHttpURLConnectionWrapper(connection));
+        } catch (IOException e) {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -50,10 +57,17 @@ public abstract class MemoizeMedia extends Media {
             }
         }
         HttpURLConnection connection = (HttpURLConnection) new URL(resolvedThumbnailUrl).openConnection();
-        connection = resolveRedirect(connection);
-        int length = connection.getContentLength();
-        InputStream inputStream = connection.getInputStream();
-        return createResolveInfo(inputStream, length);
+        try {
+            connection = resolveRedirect(connection);
+            int length = connection.getContentLength();
+            InputStream inputStream = connection.getInputStream();
+            return createResolveInfo(inputStream, length, new CloseableHttpURLConnectionWrapper(connection));
+        } catch (IOException e) {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            throw e;
+        }
     }
 
     @Nullable

@@ -1,7 +1,26 @@
 package shibafu.yukari.media2;
 
-import android.util.Log;
-import shibafu.yukari.media2.impl.*;
+import shibafu.yukari.media2.impl.D250g2;
+import shibafu.yukari.media2.impl.Gyazo;
+import shibafu.yukari.media2.impl.Imgly;
+import shibafu.yukari.media2.impl.Irasutoya;
+import shibafu.yukari.media2.impl.NicoSeiga;
+import shibafu.yukari.media2.impl.NicoVideo;
+import shibafu.yukari.media2.impl.Nijie;
+import shibafu.yukari.media2.impl.Photozou;
+import shibafu.yukari.media2.impl.Pixiv;
+import shibafu.yukari.media2.impl.RouterCake;
+import shibafu.yukari.media2.impl.SimplePicture;
+import shibafu.yukari.media2.impl.SixHundredEUR;
+import shibafu.yukari.media2.impl.Sunoho;
+import shibafu.yukari.media2.impl.Totori;
+import shibafu.yukari.media2.impl.Twimg;
+import shibafu.yukari.media2.impl.Twipple;
+import shibafu.yukari.media2.impl.Twitpic;
+import shibafu.yukari.media2.impl.TwitterVideo;
+import shibafu.yukari.media2.impl.Vine;
+import shibafu.yukari.media2.impl.XVideos;
+import shibafu.yukari.media2.impl.YouTube;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -74,10 +93,6 @@ public class MediaFactory {
                     media = new SimplePicture(browseUrl);
                 }
             }
-        }
-
-        if (media == null) {
-            Log.d(MediaFactory.class.getSimpleName(), "Resolve failed : " + browseUrl);
         }
 
         instanceQueue.put(browseUrl, media);

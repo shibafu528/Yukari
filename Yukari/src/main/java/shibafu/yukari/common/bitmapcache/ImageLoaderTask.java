@@ -92,6 +92,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();
+                    resolveInfo.dispose();
                 }
                 //キャッシュに保存
                 BitmapCache.putImage(param.media.getBrowseUrl(), image, context, param.cacheKey);

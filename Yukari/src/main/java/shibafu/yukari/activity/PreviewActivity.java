@@ -294,6 +294,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                 if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS) {
                     InputStream input;
                     Callback callback = new Callback();
+                    Media.ResolveInfo resolveInfo = null;
                     if (url.startsWith("content://") || url.startsWith("file://")) {
                         try {
                             input = getContentResolver().openInputStream(Uri.parse(url));
@@ -318,7 +319,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                         callback.beginTime = System.currentTimeMillis();
                     } else {
                         try {
-                            Media.ResolveInfo resolveInfo = media.resolveMedia();
+                            resolveInfo = media.resolveMedia();
                             callback.contentLength = resolveInfo.getContentLength();
                             callback.beginTime = System.currentTimeMillis();
                             input = resolveInfo.getStream();
@@ -352,6 +353,9 @@ public class PreviewActivity extends ActionBarYukariBase {
                         try {
                             input.close();
                         } catch (IOException ignore) {}
+                        if (resolveInfo != null) {
+                            resolveInfo.dispose();
+                        }
                     }
                 }
 

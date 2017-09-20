@@ -5,9 +5,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
 
 /**
  * 単一の画像や動画のURLと取得方法の実装を表す。
@@ -82,8 +84,8 @@ public abstract class Media implements Serializable {
         return browseUrl.hashCode();
     }
 
-    protected static ResolveInfo createResolveInfo(InputStream stream, int contentLength) {
-        return new ResolveInfo(stream, contentLength);
+    protected static ResolveInfo createResolveInfo(InputStream stream, int contentLength, Closeable... closeables) {
+        return new ResolveInfo(stream, contentLength, closeables);
     }
 
     /**
@@ -92,10 +94,12 @@ public abstract class Media implements Serializable {
     public static class ResolveInfo {
         private InputStream stream;
         private int contentLength;
+        private Closeable[] closables;
 
-        private ResolveInfo(InputStream stream, int contentLength) {
+        private ResolveInfo(InputStream stream, int contentLength, Closeable... closeables) {
             this.stream = stream;
             this.contentLength = contentLength;
+            this.closables = closeables;
         }
 
         public InputStream getStream() {
@@ -104,6 +108,30 @@ public abstract class Media implements Serializable {
 
         public int getContentLength() {
             return contentLength;
+        }
+
+        @SuppressWarnings("ForLoopReplaceableByForEach")
+        public void dispose() {
+            if (closables != null) {
+                for (int i = 0; i < closables.length; i++) {
+                    try {
+                        closables[i].close();
+                    } catch (IOException ignored) {}
+                }
+            }
+        }
+    }
+
+    public static class CloseableHttpURLConnectionWrapper implements Closeable {
+        private HttpURLConnection connection;
+
+        public CloseableHttpURLConnectionWrapper(HttpURLConnection connection) {this.connection = connection;}
+
+        @Override
+        public void close() throws IOException {
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
     }
 }

@@ -75,9 +75,14 @@ public class Pixiv extends Media {
 
         // ストリームのオープン
         HttpURLConnection conn = (HttpURLConnection) new URL(actualImageUrl).openConnection();
-        conn.setReadTimeout(10000);
-        conn.setRequestProperty("User-Agent", USER_AGENT);
-        conn.setRequestProperty("Referer", pageUrl);
-        return createResolveInfo(conn.getInputStream(), conn.getContentLength());
+        try {
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", USER_AGENT);
+            conn.setRequestProperty("Referer", pageUrl);
+            return createResolveInfo(conn.getInputStream(), conn.getContentLength(), new CloseableHttpURLConnectionWrapper(conn));
+        } catch (IOException e) {
+            conn.disconnect();
+            throw e;
+        }
     }
 }
