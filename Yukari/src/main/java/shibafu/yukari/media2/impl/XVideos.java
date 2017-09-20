@@ -1,15 +1,16 @@
 package shibafu.yukari.media2.impl;
 
 import android.support.annotation.NonNull;
+import org.jsoup.Jsoup;
 import shibafu.yukari.media2.MemoizeMedia;
 
 import java.io.IOException;
 
-public class SimplePicture extends MemoizeMedia {
+public class XVideos extends MemoizeMedia {
     /**
      * @param browseUrl メディアの既知のURL
      */
-    public SimplePicture(@NonNull String browseUrl) {
+    public XVideos(@NonNull String browseUrl) {
         super(browseUrl);
     }
 
@@ -20,11 +21,15 @@ public class SimplePicture extends MemoizeMedia {
 
     @Override
     protected String resolveThumbnailUrl() throws IOException {
-        return getBrowseUrl();
+        return Jsoup.connect(getBrowseUrl())
+                .timeout(10000)
+                .get()
+                .select("meta[property=og:image]")
+                .attr("content");
     }
 
     @Override
     public boolean canPreview() {
-        return true;
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-package shibafu.yukari.media
+package shibafu.yukari.media2.impl
 
 /**
  * 彼女の仕事場にケーキを差し入れして来た。
@@ -9,7 +9,7 @@ package shibafu.yukari.media
  */
 class RouterCake(private val browseURL: String) : D250g2("http://router-cake.d250g2.com") {
     // 元のURLで表示されるようにする
-    override fun getBrowseURL(): String = browseURL
+    override fun getBrowseUrl(): String = browseURL
     override fun toString(): String = browseURL
 
     companion object {

@@ -1,47 +1,34 @@
-package shibafu.yukari.media;
+package shibafu.yukari.media2.impl;
 
+import android.support.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import shibafu.yukari.media2.MemoizeMedia;
 
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * Created by Shibafu on 13/12/30.
- */
-public class Nijie extends LinkMedia {
-
+public class Nijie extends MemoizeMedia {
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.106 Safari/537.36";
 
-    public Nijie(String mediaURL) {
-        super(mediaURL);
+    /**
+     * @param browseUrl メディアの既知のURL
+     */
+    public Nijie(@NonNull String browseUrl) {
+        super(browseUrl);
     }
 
     @Override
-    protected String expandMediaURL(final String browseURL) {
-        return fetchSynced(() -> {
-            try {
-                return findPictureUrl(browseURL, false);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
+    protected String resolveMediaUrl() throws IOException {
+        return findPictureUrl(getBrowseUrl(), false);
     }
 
     @Override
-    protected String expandThumbURL(final String browseURL) {
-        return fetchSynced(() -> {
-            try {
-                return findPictureUrl(browseURL, true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
+    protected String resolveThumbnailUrl() throws IOException {
+        return findPictureUrl(getBrowseUrl(), true);
     }
 
     @Override
@@ -49,7 +36,7 @@ public class Nijie extends LinkMedia {
         return true;
     }
 
-    private String findPictureUrl(String browseURL, boolean isThumbnail) throws IOException {
+    private static String findPictureUrl(String browseURL, boolean isThumbnail) throws IOException {
         Elements elements = Jsoup.connect(browseURL.replace("http://", "https://"))
                 .timeout(10000)
                 .userAgent(USER_AGENT)

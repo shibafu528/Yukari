@@ -3,6 +3,8 @@ package shibafu.yukari.media2.impl;
 import android.support.annotation.NonNull;
 import shibafu.yukari.media2.MemoizeMedia;
 
+import java.io.IOException;
+
 public class TwitterVideo extends MemoizeMedia {
     private String wellknownThumbnailUrl;
 
@@ -19,12 +21,12 @@ public class TwitterVideo extends MemoizeMedia {
     }
 
     @Override
-    protected String resolveMediaUrl() {
+    protected String resolveMediaUrl() throws IOException {
         return getBrowseUrl();
     }
 
     @Override
-    protected String resolveThumbnailUrl() {
+    protected String resolveThumbnailUrl() throws IOException {
         if (wellknownThumbnailUrl != null) {
             return wellknownThumbnailUrl;
         }

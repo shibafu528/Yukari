@@ -96,13 +96,13 @@ public abstract class MemoizeMedia extends Media {
      * オリジナルまたはプレビュー表示用のメディアのURLを取得します。
      * @return メディアのURL
      */
-    protected abstract String resolveMediaUrl();
+    protected abstract String resolveMediaUrl() throws IOException;
 
     /**
      * サムネイル表示用のメディアのURLを取得します。
      * @return メディアのURL
      */
-    protected abstract String resolveThumbnailUrl();
+    protected abstract String resolveThumbnailUrl() throws IOException;
 
     /**
      * プロトコル跨ぎを含めてリダイレクトをさばいた状態のHttpURLConnectionを作ります。
