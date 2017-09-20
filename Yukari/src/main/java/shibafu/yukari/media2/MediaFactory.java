@@ -3,18 +3,21 @@ package shibafu.yukari.media2;
 import android.util.Log;
 import shibafu.yukari.media2.impl.*;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class MediaFactory {
-    private static Map<String, Media> instanceQueue = new LinkedHashMap<String, Media>() {
+    private static Map<String, Media> instanceQueue = Collections.synchronizedMap(new LinkedHashMap<String, Media>() {
         @Override
         protected boolean removeEldestEntry(Entry eldest) {
             return size() > 32;
         }
-    };
+    });
 
     public static Media newInstance(String browseUrl) {
+        if (browseUrl == null) return null;
+
         Media media = instanceQueue.get(browseUrl);
 
         if (media == null) {

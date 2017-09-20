@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
@@ -37,8 +38,6 @@ import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.LinkMediaFactory;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.service.BitmapDecoderService;
@@ -57,8 +56,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Locale;
 
 /**
@@ -79,7 +76,7 @@ public class PreviewActivity extends ActionBarYukariBase {
     private Matrix matrix;
     private float minScale = 1.0f;
 
-    private ParallelAsyncTask<Void, Object, Bitmap> loaderTask = null;
+    private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
     @BindView(R.id.ivPreviewImage) ImageView imageView;
     @BindView(R.id.twvPreviewStatus) TweetView tweetView;
@@ -242,38 +239,26 @@ public class PreviewActivity extends ActionBarYukariBase {
         });
 
         String mediaUrl = data.toString();
+        final Media media = MediaFactory.newInstance(mediaUrl);
 
         //とりあえず念のため見ておくか
-        if (mediaUrl == null) {
-            Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-        final Media media = MediaFactory.newInstance(mediaUrl);
-        if (media == null) {
+        if (mediaUrl == null || media == null) {
             Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
         final Handler handler = new Handler();
-        loaderTask = new ParallelAsyncTask<Void, Object, Bitmap>() {
+        loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength = -1;
                 public long beginTime, currentTime;
             }
 
             @Override
-            protected Bitmap doInBackground(Void... params) {
-                // 画像の実体解決
-                String url = null;
-                LinkMedia linkMedia = LinkMediaFactory.newInstance(mediaUrl);
-                if (linkMedia != null) {
-                    url = linkMedia.getMediaURL();
-                }
-                if (url == null) {
-                    return null;
-                }
+            protected Bitmap doInBackground(String... params) {
+                String url = params[0];
+
                 // 保存ボタンの有効化
                 handler.post(() -> {
                     if (ibSave != null) {
@@ -306,10 +291,9 @@ public class PreviewActivity extends ActionBarYukariBase {
                 File cacheFile = new File(cacheDir, fileKey);
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
-                if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - 86400000) {
+                if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS) {
                     InputStream input;
                     Callback callback = new Callback();
-                    HttpURLConnection connection = null;
                     if (url.startsWith("content://") || url.startsWith("file://")) {
                         try {
                             input = getContentResolver().openInputStream(Uri.parse(url));
@@ -334,21 +318,10 @@ public class PreviewActivity extends ActionBarYukariBase {
                         callback.beginTime = System.currentTimeMillis();
                     } else {
                         try {
-                            connection = (HttpURLConnection) new URL(mediaUrl).openConnection();
-                            connection.setInstanceFollowRedirects(true);
-                            connection.connect();
-                            while (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
-                                    connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
-                                String redirectUrl = connection.getHeaderField("Location");
-                                connection.disconnect();
-
-                                connection = (HttpURLConnection) new URL(redirectUrl).openConnection();
-                                connection.setInstanceFollowRedirects(true);
-                                connection.connect();
-                            }
-                            callback.contentLength = connection.getContentLength();
+                            Media.ResolveInfo resolveInfo = media.resolveMedia();
+                            callback.contentLength = resolveInfo.getContentLength();
                             callback.beginTime = System.currentTimeMillis();
-                            input = connection.getInputStream();
+                            input = resolveInfo.getStream();
                         } catch (IOException e) {
                             e.printStackTrace();
                             return null;
@@ -379,9 +352,6 @@ public class PreviewActivity extends ActionBarYukariBase {
                         try {
                             input.close();
                         } catch (IOException ignore) {}
-                        if (connection != null) {
-                            connection.disconnect();
-                        }
                     }
                 }
 
@@ -474,7 +444,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                 processZxing();
             }
         };
-        loaderTask.executeParallel();
+        loaderTask.executeParallel(mediaUrl);
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         if (status != null && status.isRetweet()) {

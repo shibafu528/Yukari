@@ -9,8 +9,8 @@ import android.support.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * {@link Media}に一度解決したメディア本体のURLをキャッシュする機能を付けたもの。
@@ -34,7 +34,8 @@ public abstract class MemoizeMedia extends Media {
                 throw new FileNotFoundException(getBrowseUrl());
             }
         }
-        URLConnection connection = new URL(resolvedMediaUrl).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(resolvedMediaUrl).openConnection();
+        connection = resolveRedirect(connection);
         int length = connection.getContentLength();
         InputStream inputStream = connection.getInputStream();
         return createResolveInfo(inputStream, length);
@@ -48,7 +49,8 @@ public abstract class MemoizeMedia extends Media {
                 throw new FileNotFoundException(getBrowseUrl());
             }
         }
-        URLConnection connection = new URL(resolvedThumbnailUrl).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(resolvedThumbnailUrl).openConnection();
+        connection = resolveRedirect(connection);
         int length = connection.getContentLength();
         InputStream inputStream = connection.getInputStream();
         return createResolveInfo(inputStream, length);
@@ -101,4 +103,25 @@ public abstract class MemoizeMedia extends Media {
      * @return メディアのURL
      */
     protected abstract String resolveThumbnailUrl();
+
+    /**
+     * プロトコル跨ぎを含めてリダイレクトをさばいた状態のHttpURLConnectionを作ります。
+     * @param connection リダイレクトの解決を行いたい接続
+     * @return リダイレクト解決済みの接続
+     * @throws IOException
+     */
+    private static HttpURLConnection resolveRedirect(HttpURLConnection connection) throws IOException {
+        connection.setInstanceFollowRedirects(true);
+        connection.connect();
+        while (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
+                connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
+            String redirectUrl = connection.getHeaderField("Location");
+            connection.disconnect();
+
+            connection = (HttpURLConnection) new URL(redirectUrl).openConnection();
+            connection.setInstanceFollowRedirects(true);
+            connection.connect();
+        }
+        return connection;
+    }
 }

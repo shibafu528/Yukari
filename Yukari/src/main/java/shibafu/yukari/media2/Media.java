@@ -82,7 +82,7 @@ public abstract class Media implements Serializable {
         return browseUrl.hashCode();
     }
 
-    protected static ResolveInfo createResolveInfo(InputStream stream, long contentLength) {
+    protected static ResolveInfo createResolveInfo(InputStream stream, int contentLength) {
         return new ResolveInfo(stream, contentLength);
     }
 
@@ -91,9 +91,9 @@ public abstract class Media implements Serializable {
      */
     public static class ResolveInfo {
         private InputStream stream;
-        private long contentLength;
+        private int contentLength;
 
-        private ResolveInfo(InputStream stream, long contentLength) {
+        private ResolveInfo(InputStream stream, int contentLength) {
             this.stream = stream;
             this.contentLength = contentLength;
         }
@@ -102,7 +102,7 @@ public abstract class Media implements Serializable {
             return stream;
         }
 
-        public long getContentLength() {
+        public int getContentLength() {
             return contentLength;
         }
     }
