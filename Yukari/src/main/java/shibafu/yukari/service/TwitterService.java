@@ -40,7 +40,6 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
-import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -97,9 +96,6 @@ public class TwitterService extends Service{
 
     //ミュート判定
     private Suppressor suppressor;
-
-    //Proxy Server
-    private Pixiv.PixivProxy pixivProxy;
 
     //MRuby VM
     private MRuby mRuby;
@@ -265,13 +261,6 @@ public class TwitterService extends Service{
         registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
         registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
 
-        //Proxy Serverの起動
-        try {
-            pixivProxy = new Pixiv.PixivProxy();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
             // MRuby VMの初期化
@@ -378,10 +367,6 @@ public class TwitterService extends Service{
 
         database.close();
         database = null;
-
-        if (pixivProxy != null) {
-            pixivProxy.stop();
-        }
 
         if (mRubyThread != null) {
             mRubyThread.interrupt();
