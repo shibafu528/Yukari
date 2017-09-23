@@ -26,6 +26,7 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.AppCompatImageButton;
 import android.text.Editable;
 import android.text.Spanned;
@@ -268,8 +269,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         setContentView(R.layout.activity_tweet);
 
         //リソースIDを解決
-        tweetCountColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor));
-        tweetCountOverColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor));
+        tweetCountColor = ResourcesCompat.getColor(getResources(), AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor), getTheme());
+        tweetCountOverColor = ResourcesCompat.getColor(getResources(), AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor), getTheme());
 
         //最近使ったハッシュタグのロード
         usedHashes = new UsedHashes(getApplicationContext());

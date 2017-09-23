@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
@@ -157,7 +158,7 @@ public class TwitterService extends Service{
                 .setShowWhen(false)
                 .setOngoing(true)
                 .setLocalOnly(true)
-                .setColor(getResources().getColor(R.color.key_color))
+                .setColor(ResourcesCompat.getColor(getResources(), R.color.key_color, null))
                 .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
         startForeground(R.string.app_name, builder.build());
         return START_STICKY;
