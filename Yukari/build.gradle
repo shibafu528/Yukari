@@ -5,9 +5,6 @@ apply plugin: 'me.tatarka.retrolambda'
 repositories {
     mavenCentral()
     maven {
-        url 'http://shibafu528.github.io/totoridipjp4J/build/repo'
-    }
-    maven {
         url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
     }
     maven {
@@ -62,7 +59,7 @@ dependencies {
         exclude group: 'com.beust', module: 'jcommander'
     }
     compile 'com.twitter:twitter-text:1.13.0'
-    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
+    compile 'com.github.wakamesoba98:totoridipjp4j:11607b8da4'
     compile project(':twpfparser')
 
     // 通信
