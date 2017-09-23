@@ -11,7 +11,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.SupportErrorDialogFragment;
@@ -27,14 +26,12 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
-import com.google.android.gms.plus.Plus;
+import shibafu.yukari.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import shibafu.yukari.R;
 
 /**
 * Created by shibafu on 14/07/05.
@@ -109,7 +106,6 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
         fileName = args.getString("name");
         mimeType = args.getString("mime");
         apiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(Plus.API)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
                 .addScope(Drive.SCOPE_APPFOLDER)
@@ -174,7 +170,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 importEntries();
                 break;
             case MODE_SIGN_OUT:
-                Plus.AccountApi.clearDefaultAccount(apiClient);
+                apiClient.clearDefaultAccountAndReconnect();
                 dismiss();
                 break;
         }

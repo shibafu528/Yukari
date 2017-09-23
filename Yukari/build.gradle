@@ -34,7 +34,6 @@ dependencies {
 //    compile "com.android.support:multidex:1.0.2"
 
     // Play Services
-    compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
     compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
     // UI互換
