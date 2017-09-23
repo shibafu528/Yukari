@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -288,10 +289,10 @@ public class MenuDialogFragment extends DialogFragment {
             Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
             switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
                 default:
-                    icon.setImageDrawable(res.getDrawable(plugin.getLightIconId()));
+                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
                     break;
                 case "dark":
-                    icon.setImageDrawable(res.getDrawable(plugin.getDarkIconId()));
+                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
                     break;
             }
         } catch (PackageManager.NameNotFoundException e) {
