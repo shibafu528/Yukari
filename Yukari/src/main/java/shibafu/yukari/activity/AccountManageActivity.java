@@ -80,9 +80,9 @@ public class AccountManageActivity extends ActionBarYukariBase {
         private List<AuthUserRecord> dataList = new ArrayList<>();
 
         @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            delegate = (TwitterServiceDelegate) getActivity();
+        public void onAttach(Context context) {
+            super.onAttach(context);
+            delegate = (TwitterServiceDelegate) context;
         }
 
         public void createList() {

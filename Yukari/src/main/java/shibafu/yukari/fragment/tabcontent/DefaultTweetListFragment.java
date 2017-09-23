@@ -74,13 +74,13 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private SharedPreferences preferences;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
-        if (activity instanceof MainActivity) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            lastStatusIds = ((MainActivity) activity).getLastStatusIdsArray(id);
+            lastStatusIds = ((MainActivity) context).getLastStatusIdsArray(id);
         }
     }
 

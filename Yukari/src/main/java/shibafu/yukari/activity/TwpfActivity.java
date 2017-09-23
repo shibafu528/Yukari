@@ -1,6 +1,6 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -95,8 +95,8 @@ public class TwpfActivity extends ActionBarYukariBase {
         }
 
         @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
+        public void onAttach(Context context) {
+            super.onAttach(context);
             if (profile == null) {
                 Bundle args = getArguments();
                 new ParallelAsyncTask<String, Void, TwiProfile>() {

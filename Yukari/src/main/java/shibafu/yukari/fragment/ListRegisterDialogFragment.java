@@ -80,12 +80,12 @@ public class ListRegisterDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         if (getTargetFragment() != null && getTargetFragment() instanceof TwitterServiceDelegate) {
             delegate = (TwitterServiceDelegate) getTargetFragment();
-        } else if (activity instanceof TwitterServiceDelegate) {
-            delegate = (TwitterServiceDelegate) activity;
+        } else if (context instanceof TwitterServiceDelegate) {
+            delegate = (TwitterServiceDelegate) context;
         } else {
             throw new RuntimeException("TwitterServiceDelegate cannot find.");
         }

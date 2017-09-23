@@ -1,6 +1,5 @@
 package shibafu.yukari.fragment;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -77,9 +76,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        serviceDelegate = (TwitterServiceDelegate) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        serviceDelegate = (TwitterServiceDelegate) context;
         if (serviceDelegate != null) {
             Log.d("SearchDialog", "Attached Service Delegate");
         }

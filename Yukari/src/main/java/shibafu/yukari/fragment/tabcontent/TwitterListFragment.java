@@ -1,6 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -163,16 +163,16 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof MainActivity) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            elements = ((MainActivity) activity).getElementsList(id);
+            elements = ((MainActivity) context).getElementsList(id);
 
-            ((MainActivity) activity).registTwitterFragment(id, this);
+            ((MainActivity) context).registTwitterFragment(id, this);
         }
-        swipeRefreshColor = AttrUtil.resolveAttribute(activity.getTheme(), R.attr.colorPrimary);
+        swipeRefreshColor = AttrUtil.resolveAttribute(context.getTheme(), R.attr.colorPrimary);
     }
 
     @Override

@@ -85,16 +85,16 @@ public class MenuDialogFragment extends DialogFragment {
     private Unbinder unbinder;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         for (int i = 0; i < 3; ++i) {
             String json = sp.getString("menu_plugin_" + i, "");
             if (TextUtils.isEmpty(json)) {
                 try {
-                    ActivityInfo info = activity.getPackageManager()
-                            .getActivityInfo(new ComponentName(activity, DEFAULT_PLUGINS[i]), 0);
-                    plugins[i] = new MenuPlugin(activity, info);
+                    ActivityInfo info = context.getPackageManager()
+                            .getActivityInfo(new ComponentName(context, DEFAULT_PLUGINS[i]), 0);
+                    plugins[i] = new MenuPlugin(context, info);
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }

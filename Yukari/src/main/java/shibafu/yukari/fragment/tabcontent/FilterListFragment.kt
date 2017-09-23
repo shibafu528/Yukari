@@ -48,8 +48,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         }
     }
 
-    override fun onAttach(activity: Activity?) {
-        super.onAttach(activity)
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
         filterRawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: ""
     }
 
