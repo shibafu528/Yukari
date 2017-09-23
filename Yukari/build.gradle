@@ -17,7 +17,7 @@ repositories {
 
 ext {
     supportLibVersion = '25.4.0'
-    playServicesVersion = '6.5.87'
+    playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.5'
     leakCanaryVersion = '1.5'
 }
