@@ -12,7 +12,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.UiThread;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -300,8 +300,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     public void onResume() {
         super.onResume();
         if (!(getActivity() instanceof MainActivity)) {
-            if (getActivity() instanceof ActionBarActivity) {
-                ((ActionBarActivity) getActivity()).getSupportActionBar().setTitle(title);
+            if (getActivity() instanceof AppCompatActivity) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(title);
             } else {
                 getActivity().setTitle(title);
             }

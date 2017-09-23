@@ -6,10 +6,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.Toast;
-
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
@@ -18,7 +17,7 @@ import shibafu.yukari.util.ThemeUtil;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileActivity extends ActionBarActivity{
+public class ProfileActivity extends AppCompatActivity {
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
