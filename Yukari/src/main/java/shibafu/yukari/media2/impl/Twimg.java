@@ -18,7 +18,7 @@ public class Twimg extends MemoizeMedia {
         String browseURL = getBrowseUrl();
         String[] split = browseURL.split(":");
         if (split.length > 2) {
-            return browseURL.replace(":" + split[2], ":orig");
+            return split[0] + ":" + split[1] + ":orig";
         } else {
             return browseURL + ":orig";
         }
@@ -29,7 +29,7 @@ public class Twimg extends MemoizeMedia {
         String browseURL = getBrowseUrl();
         String[] split = browseURL.split(":");
         if (split.length > 2) {
-            return browseURL.replace(":" + split[2], ":thumb");
+            return split[0] + ":" + split[1] + ":thumb";
         } else {
             return browseURL + ":thumb";
         }
