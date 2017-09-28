@@ -63,6 +63,9 @@
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
 
+        <!-- ちょっと明るめの色が必要なのでここだけ別リソース -->
+        <item name="selectorTextColor">@color/selector_key_yukari_dark_textcolor</item>
+
         <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
