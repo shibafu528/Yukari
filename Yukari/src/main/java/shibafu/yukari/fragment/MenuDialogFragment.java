@@ -287,13 +287,10 @@ public class MenuDialogFragment extends DialogFragment {
         ImageView icon = (ImageView) v.findViewById(R.id.ivMenuPlugin);
         try {
             Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
-            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                default:
-                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
-                    break;
-                case "dark":
-                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
-                    break;
+            if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
+            } else {
+                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
