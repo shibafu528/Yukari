@@ -73,6 +73,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -570,7 +571,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
             Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
             intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.ColorsTheme_Light : R.style.ColorsTheme_Dark);
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
             startActivityForResult(intent, REQUEST_GALLERY);
