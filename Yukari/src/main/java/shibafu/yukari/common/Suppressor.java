@@ -2,14 +2,13 @@ package shibafu.yukari.common;
 
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
+import org.eclipse.collections.api.list.primitive.MutableLongList;
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.MuteMatch;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.User;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,16 +19,10 @@ import java.util.regex.PatternSyntaxException;
  */
 public class Suppressor {
     private List<MuteConfig> configs;
-    private LongList blockedIDs = new LongList();
-    private LongList mutedIDs = new LongList();
-    private LongList noRetweetIDs = new LongList();
+    private MutableLongList blockedIDs = new LongArrayList();
+    private MutableLongList mutedIDs = new LongArrayList();
+    private MutableLongList noRetweetIDs = new LongArrayList();
     private LongSparseArray<Pattern> patternCache = new LongSparseArray<>();
-
-    private static final Comparator<Long> COMPARATOR = (lhs, rhs) -> {
-        if (lhs.equals(rhs)) return 0;
-        else if (lhs > rhs) return 1;
-        else return -1;
-    };
 
     public void setConfigs(List<MuteConfig> configs) {
         this.configs = configs;
@@ -52,31 +45,31 @@ public class Suppressor {
 
     public void addBlockedIDs(long[] ids) {
         blockedIDs.addAll(ids);
-        Collections.sort(blockedIDs, COMPARATOR);
+        blockedIDs.sortThis();
     }
 
     public void removeBlockedID(long id) {
         blockedIDs.remove(id);
-        Collections.sort(blockedIDs, COMPARATOR);
+        blockedIDs.sortThis();
     }
 
     public void addMutedIDs(long[] ids) {
         mutedIDs.addAll(ids);
-        Collections.sort(mutedIDs, COMPARATOR);
+        mutedIDs.sortThis();
     }
 
     public void addNoRetweetIDs(long[] ids) {
         noRetweetIDs.addAll(ids);
-        Collections.sort(noRetweetIDs, COMPARATOR);
+        noRetweetIDs.sortThis();
     }
 
     public boolean[] decision(PreformedStatus status) {
         boolean[] result = new boolean[7];
-        if (blockedIDs.binarySearch(status.getSourceUser().getId()) ||
-                mutedIDs.binarySearch(status.getSourceUser().getId())) {
+        if (blockedIDs.binarySearch(status.getSourceUser().getId()) > -1 ||
+                mutedIDs.binarySearch(status.getSourceUser().getId()) > -1) {
             result[MuteConfig.MUTE_TWEET_RTED] = true;
             return result;
-        } else if (noRetweetIDs.binarySearch(status.getUser().getId())) {
+        } else if (noRetweetIDs.binarySearch(status.getUser().getId()) > -1) {
             result[MuteConfig.MUTE_RETWEET] = true;
         }
         for (MuteConfig config : configs) {
@@ -144,11 +137,11 @@ public class Suppressor {
 
     public boolean[] decisionUser(User user) {
         boolean[] result = new boolean[7];
-        if (blockedIDs.binarySearch(user.getId()) ||
-                mutedIDs.binarySearch(user.getId())) {
+        if (blockedIDs.binarySearch(user.getId()) > -1 ||
+                mutedIDs.binarySearch(user.getId()) > -1) {
             result[MuteConfig.MUTE_TWEET_RTED] = true;
             return result;
-        } else if (noRetweetIDs.binarySearch(user.getId())) {
+        } else if (noRetweetIDs.binarySearch(user.getId()) > -1) {
             result[MuteConfig.MUTE_RETWEET] = true;
             return result;
         }
@@ -197,18 +190,5 @@ public class Suppressor {
             }
         }
         return result;
-    }
-
-    private class LongList extends ArrayList<Long> {
-        public boolean addAll(long[] array) {
-            for (long l : array) {
-                add(l);
-            }
-            return true;
-        }
-
-        public boolean binarySearch(long l) {
-            return Collections.binarySearch(this, l, COMPARATOR) > -1;
-        }
     }
 }
