@@ -89,6 +89,8 @@ dependencies {
 
     // いろいろ
     compile 'com.annimon:stream:1.0.8'
+    compile 'org.eclipse.collections:eclipse-collections-api:7.1.0'
+    compile 'org.eclipse.collections:eclipse-collections:7.1.0'
     compile fileTree(dir: './libs', includes: ['*.jar'])
 
     // Kotlin
@@ -123,6 +125,8 @@ android {
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
     // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
     packagingOptions {
+        exclude 'LICENSE-EDL-1.0.txt'
+        exclude 'LICENSE-EPL-1.0.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }

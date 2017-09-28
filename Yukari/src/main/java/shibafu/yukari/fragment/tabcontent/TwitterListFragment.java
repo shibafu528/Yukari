@@ -22,6 +22,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import lombok.Value;
+import org.eclipse.collections.api.set.primitive.MutableLongSet;
+import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
@@ -40,12 +42,9 @@ import twitter4j.TwitterResponse;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -89,7 +88,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private long lastShowedFirstItemId = -1;
     private int lastShowedFirstItemY = 0;
     private View unreadNotifierView;
-    private Set<Long> unreadSet = new HashSet<>();
+    private TextView tvUnreadCount;
+    private MutableLongSet unreadSet = new LongHashSet();
 
     //Binding Accounts
     protected List<AuthUserRecord> users = new ArrayList<AuthUserRecord>() {
@@ -202,6 +202,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         swipeRefreshLayout.setOnRefreshListener(this);
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
+        tvUnreadCount = (TextView) unreadNotifierView.findViewById(R.id.textView);
 
         swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
         swipeActionInfoLabel = (TextView) v.findViewById(R.id.swipeActionInfo);
@@ -269,8 +270,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     if (elementClass != null) {
                         for (; firstVisibleItem < firstVisibleItem + visibleItemCount && firstVisibleItem < elements.size(); ++firstVisibleItem) {
                             T element = elements.get(firstVisibleItem);
-                            if (element != null && unreadSet.contains(commonDelegate.getId(element))) {
-                                unreadSet.remove(commonDelegate.getId(element));
+                            long id = commonDelegate.getId(element);
+                            if (element != null && unreadSet.contains(id)) {
+                                unreadSet.remove(id);
                             }
                         }
                         updateUnreadNotifier();
@@ -334,6 +336,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         tweetAdapter = null;
         swipeRefreshLayout = null;
         unreadNotifierView = null;
+        tvUnreadCount = null;
         swipeActionStatusView = null;
         swipeActionInfoLabel = null;
         footerView = null;
@@ -452,7 +455,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             if (unreadSet.isEmpty()) {
                 getListView().setSelection(0);
             } else {
-                Long lastUnreadId = Collections.min(unreadSet);
+                Long lastUnreadId = unreadSet.min();
                 int position;
                 for (position = 0; position < elements.size(); ++position) {
                     if (commonDelegate.getId(elements.get(position)) == lastUnreadId) break;
@@ -768,8 +771,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             unreadNotifierView.setVisibility(View.INVISIBLE);
             return;
         }
-        TextView tv = (TextView) unreadNotifierView.findViewById(R.id.textView);
-        tv.setText(String.format("新着 %d件", unreadSet.size()));
+        if (tvUnreadCount != null) {
+            tvUnreadCount.setText("新着 " + unreadSet.size() + "件");
+        }
 
         unreadNotifierView.setVisibility(View.VISIBLE);
     }
