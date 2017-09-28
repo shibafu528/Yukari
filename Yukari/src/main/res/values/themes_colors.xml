@@ -239,7 +239,7 @@
     <style name="ColorsTheme.Zunko.Dark.Translucent" parent="ColorsTheme.Zunko.Dark">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
     </style>
 
     <style name="ColorsTheme.Zunko.Dark.Dialog.VertAnimation" parent="ColorsTheme.Zunko.Dark.Dialog">
@@ -273,7 +273,7 @@
     <style name="ColorsTheme.Maki.Dark.Translucent" parent="ColorsTheme.Maki.Dark">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
     </style>
 
     <style name="ColorsTheme.Maki.Dark.Dialog.VertAnimation" parent="ColorsTheme.Maki.Dark.Dialog">
@@ -307,7 +307,7 @@
     <style name="ColorsTheme.Aoi.Dark.Translucent" parent="ColorsTheme.Aoi.Dark">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
     </style>
 
     <style name="ColorsTheme.Aoi.Dark.Dialog.VertAnimation" parent="ColorsTheme.Aoi.Dark.Dialog">
@@ -341,7 +341,7 @@
     <style name="ColorsTheme.Akane.Dark.Translucent" parent="ColorsTheme.Akane.Dark">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
-        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
     </style>
 
     <style name="ColorsTheme.Akane.Dark.Dialog.VertAnimation" parent="ColorsTheme.Akane.Dark.Dialog">
