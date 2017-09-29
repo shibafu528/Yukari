@@ -242,7 +242,7 @@ public class PreviewActivity extends ActionBarYukariBase {
         final Media media = MediaFactory.newInstance(mediaUrl);
 
         //とりあえず念のため見ておくか
-        if (mediaUrl == null || media == null) {
+        if (mediaUrl == null) {
             Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -287,7 +287,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                     cacheDir.mkdirs();
                 }
                 //キャッシュファイル名を生成
-                String fileKey = StringUtil.generateKey(media.getBrowseUrl());
+                String fileKey = StringUtil.generateKey(url);
                 File cacheFile = new File(cacheDir, fileKey);
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
