@@ -353,7 +353,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
                     (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                     (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                insertElement2(s);
+                insertElement(s);
                 it.remove();
             }
         }
@@ -489,38 +489,6 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     }
 
-    private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
-        @Override
-        public TwitterService getService() {
-            return TweetListFragment.this.getService();
-        }
-
-        @Override
-        public List<PreformedStatus> getStatuses() {
-            return elements;
-        }
-
-        @Override
-        public List<PreformedStatus> getStash() {
-            return stash;
-        }
-
-        @Override
-        public void notifyDataSetChanged() {
-            TweetListFragment.this.notifyDataSetChanged();
-        }
-
-        @Override
-        public int prepareInsertStatus(PreformedStatus status) {
-            return TweetListFragment.this.prepareInsertStatus(status).getPosition();
-        }
-
-        @Override
-        public void changeFooterProgress(boolean isLoading) {
-            TweetListFragment.this.changeFooterProgress(isLoading);
-        }
-    };
-
     private RESTLoader.RESTLoaderInterface2 defaultRESTInterface2 = new RESTLoader.RESTLoaderInterface2() {
         private boolean useScrollLock = false;
 
@@ -544,7 +512,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (getActivity() != null && getActivity().getApplicationContext() != null) {
                 useScrollLock = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_lock_scroll_after_reload", false);
             }
-            TweetListFragment.this.insertElement2(status, useScrollLock);
+            TweetListFragment.this.insertElement(status, useScrollLock);
         }
 
         @Override

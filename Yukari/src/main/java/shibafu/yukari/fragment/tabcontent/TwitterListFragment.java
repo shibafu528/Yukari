@@ -568,47 +568,12 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     @UiThread
-    protected void insertElement(T element, int position) {
-        if (!elements.contains(element)) {
-            if (position < elements.size()) {
-                boolean isFake = false;
-                isFake = isFakeStatus(element);
-                if (!isFake && commonDelegate.getId(elements.get(position)) == commonDelegate.getId(element))
-                    return;
-            }
-            elements.add(position, element);
-            notifyDataSetChanged();
-            if (isLimitedTimeline() && elements.size() > getLimitCount()) {
-                for (ListIterator<T> iterator = elements.listIterator(getLimitCount()); iterator.hasNext(); ) {
-                    unreadSet.remove(commonDelegate.getId(iterator.next()));
-                    iterator.remove();
-                    notifyDataSetChanged();
-                }
-            }
-            if (listView == null) {
-                Log.w("insertElement", "ListView is null. DROPPED! (" + element + ", " + position + ")");
-                return;
-            }
-            int firstPos = listView.getFirstVisiblePosition();
-            View firstView = listView.getChildAt(0);
-            int y = firstView != null? firstView.getTop() : 0;
-            if (elements.size() == 1 || firstPos == 0 && y > -1) {
-                listView.setSelection(0);
-            } else {
-                unreadSet.add(commonDelegate.getId(element));
-                listView.setSelectionFromTop(firstPos + 1, y);
-            }
-            updateUnreadNotifier();
-        }
+    protected void insertElement(T element) {
+        insertElement(element, false);
     }
 
     @UiThread
-    protected void insertElement2(T element) {
-        insertElement2(element, false);
-    }
-
-    @UiThread
-    protected void insertElement2(T element, boolean useScrollLock) {
+    protected void insertElement(T element, boolean useScrollLock) {
         PrepareInsertResult prepareInsert = prepareInsertStatus(element);
         int position = prepareInsert.getPosition();
         if (prepareInsert.getResultCode() == PREPARE_INSERT_DUPLICATED) {
@@ -647,7 +612,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             listView.setSelection(0);
 
             if (USE_INSERT_LOG) {
-                Log.d("insertElement2", "Scroll Position = 0 (Top) ... " + element);
+                Log.d("insertElement", "Scroll Position = 0 (Top) ... " + element);
             }
         } else if (lockedScrollId > -1) {
             for (int i = 0; i < elements.size(); i++) {
@@ -661,7 +626,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200);
 
                     if (USE_INSERT_LOG) {
-                        Log.d("insertElement2", "Scroll Position = " + i + " (Locked strict) ... " + element);
+                        Log.d("insertElement", "Scroll Position = " + i + " (Locked strict) ... " + element);
                         dumpAroundTweets(i);
                     }
                     break;
@@ -690,14 +655,14 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200);
 
                 if (USE_INSERT_LOG) {
-                    Log.d("insertElement2", "Scroll Position = " + lockedPosition + " (Locked) ... " + element);
+                    Log.d("insertElement", "Scroll Position = " + lockedPosition + " (Locked) ... " + element);
                     dumpAroundTweets(firstPos);
-                    Log.d("insertElement2", "    lockedScrollId = " + lockedScrollId + " ... " + elements.get(lockedPosition));
+                    Log.d("insertElement", "    lockedScrollId = " + lockedScrollId + " ... " + elements.get(lockedPosition));
                 }
             }
         } else {
             if (USE_INSERT_LOG) {
-                Log.d("insertElement2", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
+                Log.d("insertElement", "Scroll Position = " + firstPos + " (Not changed) ... " + element);
                 dumpAroundTweets(firstPos);
             }
         }

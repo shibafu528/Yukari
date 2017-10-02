@@ -98,7 +98,7 @@ public class BookmarkListFragment extends TweetListFragment {
                 if (!(  mute[MuteConfig.MUTE_TWEET_RTED] ||
                         (!status.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                         (status.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                    insertElement2(status);
+                    insertElement(status);
 
                     if (shownIDs.contains(status.getId())) {
                         shownIDs.remove(status.getId());

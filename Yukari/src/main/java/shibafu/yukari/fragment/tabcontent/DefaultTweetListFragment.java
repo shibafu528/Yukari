@@ -189,7 +189,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
                 @Override
                 protected void onProgressUpdate(PreformedStatus... values) {
-                    insertElement2(values[0]);
+                    insertElement(values[0]);
                 }
 
                 @Override
@@ -484,7 +484,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             if (muted) {
                 stash.add(status);
             } else {
-                getHandler().post(() -> insertElement2(status));
+                getHandler().post(() -> insertElement(status));
             }
         }
     }
