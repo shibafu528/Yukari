@@ -543,17 +543,22 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     public void showExitDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("終了しますか？");
-        builder.setPositiveButton("はい", (dialog, which) -> {
-            dialog.dismiss();
+        if (sharedPreferences.getBoolean("pref_dialog_quit", true)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("終了しますか？");
+            builder.setPositiveButton("はい", (dialog, which) -> {
+                dialog.dismiss();
+                stopService(new Intent(getApplicationContext(), TwitterService.class));
+                finish();
+            });
+            builder.setNegativeButton("いいえ", (dialog, which) -> {
+                dialog.dismiss();
+            });
+            builder.show();
+        } else {
             stopService(new Intent(getApplicationContext(), TwitterService.class));
             finish();
-        });
-        builder.setNegativeButton("いいえ", (dialog, which) -> {
-            dialog.dismiss();
-        });
-        builder.show();
+        }
     }
 
     @Override

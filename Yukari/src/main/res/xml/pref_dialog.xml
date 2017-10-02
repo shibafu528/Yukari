@@ -33,4 +33,9 @@
         android:key="pref_dialog_swipe"
         android:title="TLタッチ拡張時に確認"
         android:summary="TLタッチ拡張による各種クイック操作時に確認を行います"/>
+    <CheckBoxPreference
+        android:key="pref_dialog_quit"
+        android:title="アプリ終了時に確認"
+        android:summary="メイン画面でアプリを終了する前に確認を行います"
+        android:defaultValue="true"/>
 </PreferenceScreen>
