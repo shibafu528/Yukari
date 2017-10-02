@@ -50,7 +50,7 @@ import java.util.List;
  * Created by shibafu on 14/03/25.
  */
 public class MessageListFragment extends TwitterListFragment<DirectMessage>
-        implements StatusListener, DialogInterface.OnClickListener {
+        implements StatusListener, DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
@@ -238,6 +238,13 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     break;
                 }
             }
+        }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        if (lastClicked != null) {
+            setBlockingDoubleClick(false);
         }
     }
 
@@ -466,9 +473,17 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             dialog.dismiss();
             if (getParentFragment() != null && getParentFragment() instanceof DialogInterface.OnClickListener) {
                 ((DialogInterface.OnClickListener) getParentFragment()).onClick(dialog, which);
-            }
-            else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
+            } else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
                 ((DialogInterface.OnClickListener) getTargetFragment()).onClick(dialog, which);
+            }
+        }
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            if (getParentFragment() != null && getParentFragment() instanceof DialogInterface.OnCancelListener) {
+                ((DialogInterface.OnCancelListener) getParentFragment()).onCancel(dialog);
+            } else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnCancelListener) {
+                ((DialogInterface.OnCancelListener) getTargetFragment()).onCancel(dialog);
             }
         }
     }
