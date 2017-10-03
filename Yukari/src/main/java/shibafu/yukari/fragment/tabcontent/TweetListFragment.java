@@ -381,7 +381,14 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
-            if (searchingAnchorId == storedStatus.getId()) {
+            if (searchingAnchorId != PREPARE_INSERT_DUPLICATED && storedStatus.getBaseStatusClass() == LoadMarkerStatus.class) {
+                LoadMarkerStatus lhs = (LoadMarkerStatus) status.getBaseStatus();
+                LoadMarkerStatus rhs = (LoadMarkerStatus) storedStatus.getBaseStatus();
+                if (lhs.getAnchorTweetId() == rhs.getAnchorTweetId() && lhs.getUser().getId() == rhs.getUser().getId() && lhs.getTag().equals(rhs.getTag())) {
+                    Log.d("TweetListFragment", "prepareInsertStatus : Detected same load-marker. " + searchingAnchorId);
+                    return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
+                }
+            } else if (searchingAnchorId == storedStatus.getId()) {
                 Log.d("TweetListFragment", "prepareInsertStatus : Detected anchor status. " + searchingAnchorId);
                 return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             } else if (status.getId() == storedStatus.getId()) {
