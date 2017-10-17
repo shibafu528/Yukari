@@ -85,7 +85,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
     @Override
     public void onUpdatedStatus(AuthUserRecord from, int kind, Status status) {
         if (kind == StatusManager.UPDATE_NOTIFY && status instanceof HistoryStatus) {
-            getHandler().post(() -> insertElement2((HistoryStatus) status));
+            getHandler().post(() -> insertElement((HistoryStatus) status));
         }
     }
 

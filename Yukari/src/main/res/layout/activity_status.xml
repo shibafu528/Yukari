@@ -22,9 +22,8 @@
             android:background="?attr/dialogStyle"
             android:orientation="vertical">
 
-            <include
+            <shibafu.yukari.view.TweetView
                 android:id="@+id/status_tweet"
-                layout="@layout/row_tweet"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center" />

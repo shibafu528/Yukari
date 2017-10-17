@@ -372,6 +372,7 @@ public class CentralDatabase {
                 ++oldVersion;
             }
             if (oldVersion == 13) {
+                //noinspection deprecation
                 db.execSQL(
                         "CREATE TABLE " + TABLE_TEMPLATE + " (" +
                                 COL_TEMPLATE_ID + " INTEGER PRIMARY KEY, " +
@@ -380,6 +381,7 @@ public class CentralDatabase {
                 ++oldVersion;
             }
             if (oldVersion == 14) {
+                //noinspection deprecation
                 db.execSQL("DROP TABLE " + TABLE_TEMPLATE);
             }
         }

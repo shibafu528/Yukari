@@ -1,6 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -52,12 +52,12 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof MainActivity) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            queryHolder = ((MainActivity) activity).getSearchQuery(id);
+            queryHolder = ((MainActivity) context).getSearchQuery(id);
         }
     }
 
@@ -137,7 +137,7 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
                 stash.add(status);
             }
             else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
-                getHandler().post(() -> insertElement2(status));
+                getHandler().post(() -> insertElement(status));
             }
         }
     }

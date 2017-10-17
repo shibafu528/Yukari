@@ -1,6 +1,5 @@
 package shibafu.yukari.fragment;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -77,9 +76,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        serviceDelegate = (TwitterServiceDelegate) activity;
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        serviceDelegate = (TwitterServiceDelegate) context;
         if (serviceDelegate != null) {
             Log.d("SearchDialog", "Attached Service Delegate");
         }
@@ -111,17 +110,33 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
+            case "zunko_dark":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+                break;
             case "maki":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "maki_dark":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Maki_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
             case "aoi":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
                 break;
+            case "aoi_dark":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Aoi_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+                break;
             case "akane":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "akane_dark":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Akane_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
         }
         dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);

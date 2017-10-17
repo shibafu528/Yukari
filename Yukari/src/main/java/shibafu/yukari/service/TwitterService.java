@@ -21,6 +21,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
@@ -40,7 +41,6 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
-import shibafu.yukari.media.Pixiv;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -97,9 +97,6 @@ public class TwitterService extends Service{
 
     //ミュート判定
     private Suppressor suppressor;
-
-    //Proxy Server
-    private Pixiv.PixivProxy pixivProxy;
 
     //MRuby VM
     private MRuby mRuby;
@@ -161,7 +158,7 @@ public class TwitterService extends Service{
                 .setShowWhen(false)
                 .setOngoing(true)
                 .setLocalOnly(true)
-                .setColor(getResources().getColor(R.color.key_color))
+                .setColor(ResourcesCompat.getColor(getResources(), R.color.key_color, null))
                 .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
         startForeground(R.string.app_name, builder.build());
         return START_STICKY;
@@ -264,13 +261,6 @@ public class TwitterService extends Service{
         registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
         registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
         registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
-
-        //Proxy Serverの起動
-        try {
-            pixivProxy = new Pixiv.PixivProxy();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
@@ -378,10 +368,6 @@ public class TwitterService extends Service{
 
         database.close();
         database = null;
-
-        if (pixivProxy != null) {
-            pixivProxy.stop();
-        }
 
         if (mRubyThread != null) {
             mRubyThread.interrupt();

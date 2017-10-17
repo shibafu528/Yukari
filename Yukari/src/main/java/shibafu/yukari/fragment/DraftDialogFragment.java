@@ -1,11 +1,9 @@
 package shibafu.yukari.fragment;
 
-import android.app.Activity;
-import android.support.v7.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,19 +12,18 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Locale;
-
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/08/07.
@@ -52,9 +49,9 @@ public class DraftDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        service = ((TwitterServiceDelegate)activity).getTwitterService();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        service = ((TwitterServiceDelegate)context).getTwitterService();
         drafts = service.getDatabase().getDrafts();
     }
 

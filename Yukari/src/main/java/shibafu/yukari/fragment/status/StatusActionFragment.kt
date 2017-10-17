@@ -17,8 +17,8 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import info.shibafu528.yukari.exvoice.MRubyException
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import info.shibafu528.yukari.exvoice.ProcWrapper
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.R
 import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.common.StatusChildUI
@@ -112,9 +112,10 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        when (defaultSharedPreferences.getString("pref_theme", "light")) {
-            "dark" -> view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
-            else -> view?.setBackgroundResource(R.drawable.dialog_full_material_light)
+        if (defaultSharedPreferences.getString("pref_theme", "light").endsWith("dark")) {
+            view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
+        } else {
+            view?.setBackgroundResource(R.drawable.dialog_full_material_light)
         }
     }
 
@@ -418,8 +419,8 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                 for (urlEntity in status.urlEntities) {
                     options.add(QuickMuteOption(TYPE_URL, urlEntity.expandedURL))
                 }
-                for (linkMedia in status.mediaLinkList) {
-                    options.add(QuickMuteOption(TYPE_URL, linkMedia.browseURL))
+                for (linkMedia in status.mediaList) {
+                    options.add(QuickMuteOption(TYPE_URL, linkMedia.browseUrl))
                 }
                 return options.toArray<QuickMuteOption>(arrayOfNulls<QuickMuteOption>(options.size))
             }

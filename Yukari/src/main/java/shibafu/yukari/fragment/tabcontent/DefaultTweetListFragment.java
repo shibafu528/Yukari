@@ -74,13 +74,13 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     private SharedPreferences preferences;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        preferences = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
-        if (activity instanceof MainActivity) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        preferences = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            lastStatusIds = ((MainActivity) activity).getLastStatusIdsArray(id);
+            lastStatusIds = ((MainActivity) context).getLastStatusIdsArray(id);
         }
     }
 
@@ -189,7 +189,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
                 @Override
                 protected void onProgressUpdate(PreformedStatus... values) {
-                    insertElement2(values[0]);
+                    insertElement(values[0]);
                 }
 
                 @Override
@@ -484,7 +484,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
             if (muted) {
                 stash.add(status);
             } else {
-                getHandler().post(() -> insertElement2(status));
+                getHandler().post(() -> insertElement(status));
             }
         }
     }

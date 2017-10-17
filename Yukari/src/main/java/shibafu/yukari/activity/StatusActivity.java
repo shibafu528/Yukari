@@ -2,7 +2,6 @@ package shibafu.yukari.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -16,7 +15,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
 import shibafu.yukari.fragment.status.StatusMainFragment;
@@ -24,6 +22,8 @@ import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 
 import java.util.List;
 
@@ -35,8 +35,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
     private AuthUserRecord user = null;
     private PreformedStatus status = null;
 
-    private View tweetView;
-    private TweetAdapterWrap.ViewConverter viewConverter;
+    private TweetView tweetView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +49,26 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Translucent);
                 break;
+            case "zunko_dark":
+                setTheme(R.style.ColorsTheme_Zunko_Dark_Translucent);
+                break;
             case "maki":
                 setTheme(R.style.ColorsTheme_Maki_Translucent);
+                break;
+            case "maki_dark":
+                setTheme(R.style.ColorsTheme_Maki_Dark_Translucent);
                 break;
             case "aoi":
                 setTheme(R.style.ColorsTheme_Aoi_Translucent);
                 break;
+            case "aoi_dark":
+                setTheme(R.style.ColorsTheme_Aoi_Dark_Translucent);
+                break;
             case "akane":
                 setTheme(R.style.ColorsTheme_Akane_Translucent);
+                break;
+            case "akane_dark":
+                setTheme(R.style.ColorsTheme_Akane_Dark_Translucent);
                 break;
         }
         super.onCreate(savedInstanceState, true);
@@ -87,7 +98,12 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         mViewPager.setPageMargin(-getResources().getDimensionPixelSize(R.dimen.status_fragments_margin));
         mViewPager.setOffscreenPageLimit(3);
 
-        tweetView = findViewById(R.id.status_tweet);
+        tweetView = (TweetView) findViewById(R.id.status_tweet);
+        if (user != null) {
+            tweetView.setUserRecords(user.toSingleList());
+        }
+        tweetView.setMode(StatusView.Mode.DETAIL);
+        tweetView.setStatus(status);
         if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
                 || status.getInReplyToStatusId() > 0) {
             tweetView.setOnClickListener(v -> {
@@ -117,13 +133,6 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             tvCounter.setText(countFav);
             tvCounter.setVisibility(View.VISIBLE);
         }
-
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                this,
-                (user != null)? user.toSingleList() : null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(this),
-                PreformedStatus.class);
     }
 
     @Override
@@ -133,16 +142,9 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (status != null) {
-            new Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_DETAIL));
-        }
-    }
-
-    @Override
     public void onServiceConnected() {
-        viewConverter.setUserExtras(getTwitterService().getUserExtras());
+        tweetView.setUserExtras(getTwitterService().getUserExtras());
+        tweetView.updateView();
 
         AuthUserRecord priorityUser = getTwitterService().getPriority(status.getOriginStatus().getUser().getId());
         if (priorityUser != null) {

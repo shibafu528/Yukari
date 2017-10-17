@@ -5,23 +5,40 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.widget.ImageView;
 import shibafu.yukari.R;
-import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.common.bitmapcache.BitmapCache.CacheKey;
+import shibafu.yukari.media2.Media;
 import shibafu.yukari.util.BitmapUtil;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Shibafu on 13/10/28.
  */
-public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
+public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bitmap> {
+    public static final int RESOLVE_MEDIA = 0;
+    public static final int RESOLVE_THUMBNAIL = 1;
+
+    /** 一般の画像用 */
+    private static final Executor IMAGE_EXECUTOR = THREAD_POOL_EXECUTOR;
+    /** プロフィールアイコン用 */
+    private static final Executor PROFILE_ICON_EXECUTOR = Executors.newFixedThreadPool(4);
+
     private Context context;
     private WeakReference<ImageView> imageViewRef;
     private String tag;
@@ -29,19 +46,42 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     private ImageLoaderTask(Context context, ImageView imageView) {
         this.context = context;
         imageViewRef = new WeakReference<>(imageView);
-        tag = imageView.getTag().toString();
+        if (imageView != null) {
+            tag = imageView.getTag().toString();
+        }
     }
 
-    static Bitmap loadBitmapInternal(Context context, String uri, String mode, boolean mosaic) {
+    @Override
+    protected Bitmap doInBackground(Params... params) {
+        final Params param = params[0];
         if (context == null) return null;
         try {
-            Bitmap image = BitmapCache.getImageFromDisk(uri, BitmapCache.IMAGE_CACHE, context);
+            Bitmap image = BitmapCache.getImageFromDisk(param.url, param.cacheKey, context);
             //無かったらWebから取得だ！
             if (image == null) {
+                Media.ResolveInfo resolveInfo = null;
+                InputStream inputStream;
+                if (param.media == null) {
+                    // Mediaが設定されていない場合は実体解決処理は行わずURLに直接接続する
+                    inputStream = new URL(param.url).openStream();
+                } else {
+                    switch (param.resolveMode) {
+                        case RESOLVE_MEDIA:
+                            resolveInfo = param.media.resolveMedia();
+                            break;
+                        case RESOLVE_THUMBNAIL:
+                            resolveInfo = param.media.resolveThumbnail();
+                            break;
+                    }
+                    if (resolveInfo == null) {
+                        throw new FileNotFoundException("Resolve failed : " + param.media.getBrowseUrl());
+                    }
+                    inputStream = resolveInfo.getStream();
+                }
+
                 File tempFile = File.createTempFile("image", ".tmp", context.getExternalCacheDir());
                 try {
-                    URL imageUrl = new URL(uri);
-                    BufferedInputStream is = new BufferedInputStream(imageUrl.openStream());
+                    BufferedInputStream is = new BufferedInputStream(inputStream);
                     FileOutputStream fos = new FileOutputStream(tempFile);
                     try {
                         byte[] buffer = new byte[4096];
@@ -58,15 +98,18 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                     BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                     options.inSampleSize = Math.max(options.outWidth / 512, options.outHeight / 512);
                     options.inJustDecodeBounds = false;
-                    options.inPreferredConfig = mode.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
+                    options.inPreferredConfig = param.cacheKey.equals(BitmapCache.PROFILE_ICON_CACHE) && Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1? Bitmap.Config.ARGB_4444 : Bitmap.Config.ARGB_8888;
                     image = BitmapFactory.decodeFile(tempFile.getAbsolutePath(), options);
                 } finally {
                     tempFile.delete();
+                    if (resolveInfo != null) {
+                        resolveInfo.dispose();
+                    }
                 }
                 //キャッシュに保存
-                BitmapCache.putImage(uri, image, context, mode);
+                BitmapCache.putImage(param.url, image, context, param.cacheKey);
             }
-            if (image != null && mosaic) {
+            if (image != null && param.mosaic) {
                 Bitmap mosaicBitmap = BitmapUtil.createMosaic(image);
                 image.recycle();
                 image = mosaicBitmap;
@@ -76,11 +119,6 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
             e.printStackTrace();
         }
         return null;
-    }
-
-    @Override
-    protected Bitmap doInBackground(Params... params) {
-        return loadBitmapInternal(context, params[0].getUri(), params[0].getMode(), params[0].getMosaic());
     }
 
     private ImageView getImageViewInstance() {
@@ -107,30 +145,51 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
     }
 
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
-        IconLoader.loadBitmap(context, imageView, uri);
+        loadBitmap(context, imageView, uri, RESOLVE_MEDIA, BitmapCache.PROFILE_ICON_CACHE, false);
     }
 
     public static void loadBitmap(Context context, ImageView imageView, String uri) {
-        loadBitmap(context, imageView, uri, BitmapCache.IMAGE_CACHE, false);
+        loadBitmap(context, imageView, uri, RESOLVE_MEDIA, BitmapCache.IMAGE_CACHE, false);
     }
 
-    public static void loadBitmap(Context context, ImageView imageView, String uri, String mode, boolean mosaic) {
-        imageView.setTag(uri);
+    public static void loadBitmap(Context context, ImageView imageView, Media media, @ResolveMode int resolveMode, @CacheKey String cacheKey, boolean mosaic) {
+        if (media == null) {
+            imageView.setImageResource(R.drawable.ic_states_warning);
+            return;
+        }
+
+        imageView.setTag(media.getBrowseUrl());
+        Bitmap cache = BitmapCache.getImageFromMemory(media.getBrowseUrl(), cacheKey);
+        if (cache != null && !cache.isRecycled()) {
+            imageView.setImageBitmap(cache);
+        } else {
+            imageView.setImageResource(R.drawable.yukatterload);
+            new ImageLoaderTask(context, imageView).executeOnExecutor(
+                    BitmapCache.IMAGE_CACHE.equals(cacheKey) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
+                    new Params(resolveMode, cacheKey, mosaic, media));
+        }
+    }
+
+    // fast-path mode (for Profile Icon)
+    public static void loadBitmap(Context context, ImageView imageView, String uri, @ResolveMode int resolveMode, @CacheKey String cacheKey, boolean mosaic) {
         if (uri == null) {
             imageView.setImageResource(R.drawable.ic_states_warning);
+            return;
         }
-        else {
-            Bitmap cache = BitmapCache.getImageFromMemory(uri, mode);
-            if (cache != null && !cache.isRecycled()) {
-                imageView.setImageBitmap(cache);
-            } else {
-                imageView.setImageResource(R.drawable.yukatterload);
-                new ImageLoaderTask(context, imageView).executeParallel(new Params(mode, uri, mosaic));
-            }
+
+        imageView.setTag(uri);
+        Bitmap cache = BitmapCache.getImageFromMemory(uri, cacheKey);
+        if (cache != null && !cache.isRecycled()) {
+            imageView.setImageBitmap(cache);
+        } else {
+            imageView.setImageResource(R.drawable.yukatterload);
+            new ImageLoaderTask(context, imageView).executeOnExecutor(
+                    BitmapCache.IMAGE_CACHE.equals(cacheKey) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
+                    new Params(resolveMode, cacheKey, mosaic, uri));
         }
     }
 
-    public static void loadDrawable(final Context context, String uri, String mode, final DrawableLoaderCallback callback) {
+    public static void loadDrawable(final Context context, String uri, @CacheKey String mode, final DrawableLoaderCallback callback) {
         Bitmap cache = BitmapCache.getImageFromMemory(uri, mode);
         if (cache != null && !cache.isRecycled()) {
             callback.onLoadDrawable(new BitmapDrawable(context.getResources(), cache));
@@ -140,35 +199,41 @@ public class ImageLoaderTask extends ParallelAsyncTask<ImageLoaderTask.Params, V
                 protected void onPostExecute(Bitmap bitmap) {
                     callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
                 }
-            }.executeParallel(new Params(mode, uri, false));
+            }.executeOnExecutor(
+                    BitmapCache.IMAGE_CACHE.equals(mode) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
+                    new Params(RESOLVE_MEDIA, mode, false, uri));
         }
     }
 
-    public static interface DrawableLoaderCallback {
+    public interface DrawableLoaderCallback {
         void onLoadDrawable(Drawable drawable);
     }
 
     static class Params {
-        private String mode;
-        private String uri;
-        private boolean mosaic;
+        @ResolveMode public final int resolveMode;
+        @CacheKey public final String cacheKey;
+        public final boolean mosaic;
 
-        private Params(String mode, String uri, boolean mosaic) {
-            this.mode = mode;
-            this.uri = uri;
+        @Nullable public final Media media; // if null -> fast-path mode!
+        public final String url;
+
+        private Params(@ResolveMode int resolveMode, @CacheKey String cacheKey, boolean mosaic, @NonNull Media media) {
+            this.resolveMode = resolveMode;
+            this.cacheKey = cacheKey;
             this.mosaic = mosaic;
+            this.media = media;
+            this.url = media.getBrowseUrl();
         }
 
-        public String getMode() {
-            return mode;
-        }
-
-        public String getUri() {
-            return uri;
-        }
-
-        public boolean getMosaic() {
-            return mosaic;
+        private Params(@ResolveMode int resolveMode, @CacheKey String cacheKey, boolean mosaic, @NonNull String url) {
+            this.resolveMode = resolveMode;
+            this.cacheKey = cacheKey;
+            this.mosaic = mosaic;
+            this.url = url;
+            this.media = null;
         }
     }
+
+    @IntDef({RESOLVE_MEDIA, RESOLVE_THUMBNAIL})
+    public @interface ResolveMode {}
 }

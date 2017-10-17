@@ -15,6 +15,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
+import android.support.v4.content.res.ResourcesCompat;
+import android.util.Log;
 import android.widget.Toast;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
@@ -35,10 +37,13 @@ import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
 import twitter4j.User;
 
+import java.io.File;
+
 /**
  * Created by shibafu on 2015/07/27.
  */
 class StatusNotifier implements Releasable {
+    private static final String LOG_TAG = "StatusNotifier";
 
     //バイブレーションパターン
     private final static long[] VIB_REPLY = {450, 130, 140, 150};
@@ -52,6 +57,10 @@ class StatusNotifier implements Releasable {
             "android.resource://shibafu.yukari/raw/y_love"
     };
 
+    private static final String USER_SE_REPLY = "se_reply.wav";
+    private static final String USER_SE_RETWEET = "se_retweet.wav";
+    private static final String USER_SE_FAVORITE = "se_favorite.wav";
+
     @AutoRelease TwitterService service;
     @AutoRelease Context context;
     @AutoRelease Handler handler;
@@ -59,6 +68,10 @@ class StatusNotifier implements Releasable {
     @AutoRelease NotificationManager notificationManager;
     @AutoRelease AudioManager audioManager;
     @AutoRelease Vibrator vibrator;
+
+    private boolean useUserFileOnReply = false;
+    private boolean useUserFileOnRetweet = false;
+    private boolean useUserFileOnFavorite = false;
 
     public StatusNotifier(TwitterService service) {
         this.service = service;
@@ -70,6 +83,19 @@ class StatusNotifier implements Releasable {
         this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+
+        if (new File(context.getExternalFilesDir(null), USER_SE_REPLY).exists()) {
+            Log.d(LOG_TAG, "User reply notify sound detected.");
+            useUserFileOnReply = true;
+        }
+        if (new File(context.getExternalFilesDir(null), USER_SE_RETWEET).exists()) {
+            Log.d(LOG_TAG, "User retweet notify sound detected.");
+            useUserFileOnRetweet = true;
+        }
+        if (new File(context.getExternalFilesDir(null), USER_SE_FAVORITE).exists()) {
+            Log.d(LOG_TAG, "User favorite notify sound detected.");
+            useUserFileOnFavorite = true;
+        }
     }
 
     private Uri getNotificationUrl(int category) {
@@ -78,19 +104,25 @@ class StatusNotifier implements Releasable {
             case R.integer.notification_replied:
             case R.integer.notification_message:
             case R.integer.notification_respond:
-                if (useYukariVoice) {
+                if (useUserFileOnReply) {
+                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
+                } else if (useYukariVoice) {
                     return Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
                 } else {
                     return Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
                 }
             case R.integer.notification_retweeted:
-                if (useYukariVoice) {
+                if (useUserFileOnRetweet) {
+                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_RETWEET));
+                } else if (useYukariVoice) {
                     return Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
                 } else {
                     return Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
                 }
             case R.integer.notification_faved:
-                if (useYukariVoice) {
+                if (useUserFileOnFavorite) {
+                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_FAVORITE));
+                } else if (useYukariVoice) {
                     return Uri.parse(YUKARI_FAV_SE[Integer.parseInt(sharedPreferences.getString("j_yukari_voice_fav", "0"))]);
                 } else {
                     return Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
@@ -124,7 +156,7 @@ class StatusNotifier implements Releasable {
         NotificationType notificationType = new NotificationType(prefValue);
 
         if (notificationType.isEnabled()) {
-            int icon = 0, color = context.getResources().getColor(R.color.key_color);
+            int icon = 0, color = ResourcesCompat.getColor(context.getResources(), R.color.key_color, null);
             Uri sound = getNotificationUrl(category);
             String titleHeader = "", tickerHeader = "";
             long[] pattern = null;
@@ -174,7 +206,7 @@ class StatusNotifier implements Releasable {
                     builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
                 }
                 if (notificationType.isUseVibration()) {
-                    vibrate(pattern, -1);
+                    builder.setVibrate(pattern);
                 }
                 builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                 builder.setAutoCancel(true);
@@ -271,12 +303,18 @@ class StatusNotifier implements Releasable {
                 notificationManager.notify(category, builder.build());
             }
             else {
-                if (notificationType.isUseSound()) {
+                if (notificationType.isUseSound() && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
                     MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
                     mediaPlayer.start();
                 }
                 if (notificationType.isUseVibration()) {
-                    vibrate(pattern, -1);
+                    switch (audioManager.getRingerMode()) {
+                        case AudioManager.RINGER_MODE_NORMAL:
+                        case AudioManager.RINGER_MODE_VIBRATE:
+                            vibrator.vibrate(pattern, -1);
+                            break;
+                    }
                 }
                 final String text = tickerHeader + actionBy.getScreenName() + "\n" +
                         delegate.getUser(status).getScreenName() + ": " + delegate.getText(status);
@@ -285,17 +323,6 @@ class StatusNotifier implements Releasable {
                         Toast.LENGTH_LONG)
                         .show());
             }
-        }
-    }
-
-    // サイレントに設定しててもうっかりバイブが震えちゃうような
-    // クソ端末でそのような挙動が起きないように
-    private void vibrate(long[] pattern, int repeat) {
-        switch (audioManager.getRingerMode()) {
-            case AudioManager.RINGER_MODE_NORMAL:
-            case AudioManager.RINGER_MODE_VIBRATE:
-                vibrator.vibrate(pattern, repeat);
-                break;
         }
     }
 

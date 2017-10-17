@@ -1,6 +1,5 @@
 package shibafu.yukari.fragment.tabcontent
 
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -48,8 +47,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
         }
     }
 
-    override fun onAttach(activity: Activity?) {
-        super.onAttach(activity)
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
         filterRawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: ""
     }
 
@@ -213,7 +212,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
             }
             else -> {
                 val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
-                handler.post { insertElement2(status, useScrollLock && status is MetaStatus && "RestStream" == status.metadata) }
+                handler.post { insertElement(status, useScrollLock && status is MetaStatus && "RestStream" == status.metadata) }
                 if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$filterRawQuery] onStatus : Insert  ... $status")
             }
         }

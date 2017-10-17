@@ -136,21 +136,29 @@
     </string-array>
 
     <string-array name="pref_theme_entries">
-        <item>Light</item>
-        <item>Dark</item>
+        <item>Yukari</item>
+        <item>Yukari (Dark)</item>
         <item>Zunda</item>
+        <item>Zunda (Dark)</item>
         <item>Pepper</item>
+        <item>Pepper (Dark)</item>
         <item>Aoi</item>
+        <item>Aoi (Dark)</item>
         <item>Akane</item>
+        <item>Akane (Dark)</item>
     </string-array>
 
     <string-array name="pref_theme_values">
         <item>light</item>
         <item>dark</item>
         <item>zunko</item>
+        <item>zunko_dark</item>
         <item>maki</item>
+        <item>maki_dark</item>
         <item>aoi</item>
+        <item>aoi_dark</item>
         <item>akane</item>
+        <item>akane_dark</item>
     </string-array>
 
     <string-array name="pref_quote_entries">

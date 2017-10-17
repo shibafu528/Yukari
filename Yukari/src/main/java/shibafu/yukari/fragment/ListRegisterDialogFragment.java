@@ -80,12 +80,12 @@ public class ListRegisterDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         if (getTargetFragment() != null && getTargetFragment() instanceof TwitterServiceDelegate) {
             delegate = (TwitterServiceDelegate) getTargetFragment();
-        } else if (activity instanceof TwitterServiceDelegate) {
-            delegate = (TwitterServiceDelegate) activity;
+        } else if (context instanceof TwitterServiceDelegate) {
+            delegate = (TwitterServiceDelegate) context;
         } else {
             throw new RuntimeException("TwitterServiceDelegate cannot find.");
         }
@@ -101,13 +101,10 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            default:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
-                break;
-            case "dark":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
-                break;
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+        } else {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
         }
 
         View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_list, null);

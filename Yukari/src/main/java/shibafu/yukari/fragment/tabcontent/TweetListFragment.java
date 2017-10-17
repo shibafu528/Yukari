@@ -18,7 +18,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
@@ -30,6 +29,8 @@ import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.TwitterException;
@@ -86,13 +87,10 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         super.onViewCreated(view, savedInstanceState);
 
         if (swipeActionStatusView != null) {
-            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                default:
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_light);
-                    break;
-                case "dark":
-                    swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_dark);
-                    break;
+            if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+                swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_dark);
+            } else {
+                swipeActionStatusView.setBackgroundResource(R.drawable.dialog_full_material_light);
             }
             swipeActionStatusView.setVisibility(View.INVISIBLE);
 
@@ -231,7 +229,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                 }
                 final LocalFunction local = new LocalFunction();
 
-                adapterWrap.setOnTouchProfileImageIconListener((element, v, event) -> {
+                tweetAdapter.setOnTouchProfileImageIconListener((element, v, event) -> {
                     if (swipeActionStatusGrabbed != null) {
                         return local.onStatusGrabbed(event);
                     }
@@ -240,14 +238,11 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                         local.requestDisallowInterceptTouchEvent();
 
                         PreformedStatus status = (PreformedStatus) element;
-                        TweetAdapterWrap.ViewConverter viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                                getActivity(),
-                                status.getRepresentUser().toSingleList(),
-                                null,
-                                PreferenceManager.getDefaultSharedPreferences(getActivity()),
-                                PreformedStatus.class);
-                        viewConverter.convertView(swipeActionStatusView.findViewById(R.id.swipeActionStatus),
-                                status, TweetAdapterWrap.ViewConverter.MODE_DEFAULT);
+
+                        TweetView tweetView = (TweetView) swipeActionStatusView.findViewById(R.id.swipeActionStatus);
+                        tweetView.setMode(StatusView.Mode.DEFAULT);
+                        tweetView.setUserRecords(status.getRepresentUser().toSingleList());
+                        tweetView.setStatus(status);
 
                         swipeActionStatusView.setVisibility(View.VISIBLE);
 
@@ -358,7 +353,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (!(mute[MuteConfig.MUTE_TWEET_RTED] ||
                     (!s.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
                     (s.isRetweet() && mute[MuteConfig.MUTE_RETWEET]))) {
-                insertElement2(s);
+                insertElement(s);
                 it.remove();
             }
         }
@@ -386,7 +381,14 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
-            if (searchingAnchorId == storedStatus.getId()) {
+            if (searchingAnchorId != PREPARE_INSERT_DUPLICATED && storedStatus.getBaseStatusClass() == LoadMarkerStatus.class) {
+                LoadMarkerStatus lhs = (LoadMarkerStatus) status.getBaseStatus();
+                LoadMarkerStatus rhs = (LoadMarkerStatus) storedStatus.getBaseStatus();
+                if (lhs.getAnchorTweetId() == rhs.getAnchorTweetId() && lhs.getUser().getId() == rhs.getUser().getId() && lhs.getTag().equals(rhs.getTag())) {
+                    Log.d("TweetListFragment", "prepareInsertStatus : Detected same load-marker. " + searchingAnchorId);
+                    return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
+                }
+            } else if (searchingAnchorId == storedStatus.getId()) {
                 Log.d("TweetListFragment", "prepareInsertStatus : Detected anchor status. " + searchingAnchorId);
                 return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
             } else if (status.getId() == storedStatus.getId()) {
@@ -494,38 +496,6 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
     }
 
-    private RESTLoader.RESTLoaderInterface defaultRESTInterface = new RESTLoader.RESTLoaderInterface() {
-        @Override
-        public TwitterService getService() {
-            return TweetListFragment.this.getService();
-        }
-
-        @Override
-        public List<PreformedStatus> getStatuses() {
-            return elements;
-        }
-
-        @Override
-        public List<PreformedStatus> getStash() {
-            return stash;
-        }
-
-        @Override
-        public void notifyDataSetChanged() {
-            TweetListFragment.this.notifyDataSetChanged();
-        }
-
-        @Override
-        public int prepareInsertStatus(PreformedStatus status) {
-            return TweetListFragment.this.prepareInsertStatus(status).getPosition();
-        }
-
-        @Override
-        public void changeFooterProgress(boolean isLoading) {
-            TweetListFragment.this.changeFooterProgress(isLoading);
-        }
-    };
-
     private RESTLoader.RESTLoaderInterface2 defaultRESTInterface2 = new RESTLoader.RESTLoaderInterface2() {
         private boolean useScrollLock = false;
 
@@ -549,7 +519,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             if (getActivity() != null && getActivity().getApplicationContext() != null) {
                 useScrollLock = PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_lock_scroll_after_reload", false);
             }
-            TweetListFragment.this.insertElement2(status, useScrollLock);
+            TweetListFragment.this.insertElement(status, useScrollLock);
         }
 
         @Override

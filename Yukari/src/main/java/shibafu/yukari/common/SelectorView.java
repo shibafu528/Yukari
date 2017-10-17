@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
@@ -37,7 +38,7 @@ public class SelectorView extends FrameLayout {
     @Override
     public void requestLayout() {
         for (int i = 0; i < getChildCount(); ++i) {
-            getChildAt(i).setBackgroundDrawable(background);
+            ViewCompat.setBackground(getChildAt(i), background);
         }
         super.requestLayout();
     }

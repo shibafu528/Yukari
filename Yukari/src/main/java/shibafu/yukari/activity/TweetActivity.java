@@ -26,6 +26,7 @@ import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.AppCompatImageButton;
 import android.text.Editable;
 import android.text.Spanned;
@@ -72,6 +73,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
 import twitter4j.Status;
 import twitter4j.Twitter;
@@ -241,14 +243,26 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Dialog_VertAnimation);
                 break;
+            case "zunko_dark":
+                setTheme(R.style.ColorsTheme_Zunko_Dark_Dialog_VertAnimation);
+                break;
             case "maki":
                 setTheme(R.style.ColorsTheme_Maki_Dialog_VertAnimation);
+                break;
+            case "maki_dark":
+                setTheme(R.style.ColorsTheme_Maki_Dark_Dialog_VertAnimation);
                 break;
             case "aoi":
                 setTheme(R.style.ColorsTheme_Aoi_Dialog_VertAnimation);
                 break;
+            case "aoi_dark":
+                setTheme(R.style.ColorsTheme_Aoi_Dark_Dialog_VertAnimation);
+                break;
             case "akane":
                 setTheme(R.style.ColorsTheme_Akane_Dialog_VertAnimation);
+                break;
+            case "akane_dark":
+                setTheme(R.style.ColorsTheme_Akane_Dark_Dialog_VertAnimation);
                 break;
         }
         super.onCreate(savedInstanceState, true);
@@ -256,8 +270,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         setContentView(R.layout.activity_tweet);
 
         //リソースIDを解決
-        tweetCountColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor));
-        tweetCountOverColor = getResources().getColor(AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor));
+        tweetCountColor = ResourcesCompat.getColor(getResources(), AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountColor), getTheme());
+        tweetCountOverColor = ResourcesCompat.getColor(getResources(), AttrUtil.resolveAttribute(getTheme(), R.attr.tweetCountOverColor), getTheme());
 
         //最近使ったハッシュタグのロード
         usedHashes = new UsedHashes(getApplicationContext());
@@ -557,7 +571,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
             Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
             intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, sp.getString("pref_theme", "light").equals("light") ? R.style.ColorsTheme_Light : R.style.ColorsTheme_Dark);
+            intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
             intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
             startActivityForResult(intent, REQUEST_GALLERY);

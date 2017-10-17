@@ -5,9 +5,6 @@ apply plugin: 'me.tatarka.retrolambda'
 repositories {
     mavenCentral()
     maven {
-        url 'http://shibafu528.github.io/totoridipjp4J/build/repo'
-    }
-    maven {
         url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
     }
     maven {
@@ -16,8 +13,8 @@ repositories {
 }
 
 ext {
-    supportLibVersion = '25.2.0'
-    playServicesVersion = '6.5.87'
+    supportLibVersion = '25.4.0'
+    playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.5'
     leakCanaryVersion = '1.5'
 }
@@ -31,10 +28,9 @@ dependencies {
     compile "com.android.support:support-v4:$supportLibVersion"
     compile "com.android.support:design:$supportLibVersion"
     compile "com.android.support:exifinterface:$supportLibVersion"
-//    compile "com.android.support:multidex:1.0.1"
+//    compile "com.android.support:multidex:1.0.2"
 
     // Play Services
-    compile "com.google.android.gms:play-services-plus:${playServicesVersion}"
     compile "com.google.android.gms:play-services-drive:${playServicesVersion}"
 
     // UI互換
@@ -51,19 +47,19 @@ dependencies {
 //    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
 //    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
-    compile "com.github.takke.twitter4j:twitter4j-core:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-media-support:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-stream:master_based_dev-SNAPSHOT"
-    compile "com.github.takke.twitter4j:twitter4j-http2-support:master_based_dev-SNAPSHOT"
+    compile "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
+    compile "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
 
     // パーサ
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.8.1'
     compile 'org.jsoup:jsoup:1.8.3'
     compile 'com.google.zxing:javase:3.2.1', {
         exclude group: 'com.beust', module: 'jcommander'
     }
     compile 'com.twitter:twitter-text:1.13.0'
-    compile 'jp.dip.totori:totoridipjp4J-android:1.0'
+    compile 'com.github.wakamesoba98:totoridipjp4j:11607b8da4'
     compile project(':twpfparser')
 
     // 通信
@@ -80,8 +76,8 @@ dependencies {
     }
 
     // Annotation Processor
-    compile 'com.jakewharton:butterknife:8.5.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.5.1'
+    compile 'com.jakewharton:butterknife:8.8.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.0'
     provided 'org.projectlombok:lombok:1.16.4'
     compile project(':yukari-processor-runtime')
     annotationProcessor project(':yukari-processor')
@@ -93,6 +89,8 @@ dependencies {
 
     // いろいろ
     compile 'com.annimon:stream:1.0.8'
+    compile 'org.eclipse.collections:eclipse-collections-api:7.1.0'
+    compile 'org.eclipse.collections:eclipse-collections:7.1.0'
     compile fileTree(dir: './libs', includes: ['*.jar'])
 
     // Kotlin
@@ -105,7 +103,7 @@ dependencies {
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    buildToolsVersion '25.0.3'
 
     defaultConfig {
         applicationId "shibafu.yukari"
@@ -127,6 +125,8 @@ android {
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
     // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
     packagingOptions {
+        exclude 'LICENSE-EDL-1.0.txt'
+        exclude 'LICENSE-EPL-1.0.txt'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
@@ -158,7 +158,7 @@ android {
 
 // Kotlin
 buildscript {
-    ext.kotlin_version = '1.1.2-2'
+    ext.kotlin_version = '1.1.4-3'
     repositories {
         mavenCentral()
     }

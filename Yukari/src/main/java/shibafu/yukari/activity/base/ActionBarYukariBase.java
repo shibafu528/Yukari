@@ -1,9 +1,7 @@
 package shibafu.yukari.activity.base;
 
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
-import shibafu.yukari.R;
+import android.support.v7.app.AppCompatActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -12,7 +10,7 @@ import shibafu.yukari.util.ThemeUtil;
 /**
  * Created by shibafu on 14/07/12.
  */
-public abstract class ActionBarYukariBase extends ActionBarActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
+public abstract class ActionBarYukariBase extends AppCompatActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
     private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
 
     @Override

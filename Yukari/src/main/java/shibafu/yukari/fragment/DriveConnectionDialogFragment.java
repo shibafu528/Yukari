@@ -11,9 +11,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.SupportErrorDialogFragment;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -27,14 +26,12 @@ import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.query.Filters;
 import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
-import com.google.android.gms.plus.Plus;
+import shibafu.yukari.R;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import shibafu.yukari.R;
 
 /**
 * Created by shibafu on 14/07/05.
@@ -109,7 +106,6 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
         fileName = args.getString("name");
         mimeType = args.getString("mime");
         apiClient = new GoogleApiClient.Builder(getActivity())
-                .addApi(Plus.API)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
                 .addScope(Drive.SCOPE_APPFOLDER)
@@ -174,7 +170,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 importEntries();
                 break;
             case MODE_SIGN_OUT:
-                Plus.AccountApi.clearDefaultAccount(apiClient);
+                apiClient.clearDefaultAccountAndReconnect();
                 dismiss();
                 break;
         }
@@ -189,7 +185,8 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.d(LOG_TAG, "onConnectionFailed");
         if (!connectionResult.hasResolution()) {
-            GooglePlayServicesUtil.getErrorDialog(connectionResult.getErrorCode(), getActivity(), 0).show();
+            GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+            apiAvailability.getErrorDialog(getActivity(), connectionResult.getErrorCode(), 0).show();
             dismiss();
             return;
         }
@@ -214,9 +211,10 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
     }
 
     private boolean checkServiceAvailable() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity()) ;
+        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+        int resultCode = apiAvailability.isGooglePlayServicesAvailable(getActivity()) ;
         if (resultCode != ConnectionResult.SUCCESS) {
-            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(resultCode, getActivity(), REQUEST_ERROR_SERVICE_AVAIL);
+            Dialog dialog = apiAvailability.getErrorDialog(getActivity(), resultCode, REQUEST_ERROR_SERVICE_AVAIL);
             if (dialog != null) {
                 SupportErrorDialogFragment.newInstance(dialog).show(getFragmentManager(), "error_service_avail");
             }
@@ -244,7 +242,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                     Toast.makeText(getActivity(), getActivity().getString(R.string.drive_failed_import), Toast.LENGTH_SHORT).show();
                     dismiss();
                 } else {
-                    file = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
+                    file = result.getMetadataBuffer().get(0).getDriveId().asDriveFile();
                     file.open(apiClient, DriveFile.MODE_READ_ONLY, null).setResultCallback(resultCallback);
                 }
             }
@@ -307,7 +305,7 @@ public class DriveConnectionDialogFragment extends DialogFragment implements
                 if (result.getMetadataBuffer().getCount() < 1) {
                     Drive.DriveApi.newDriveContents(apiClient).setResultCallback(resultCallback);
                 } else {
-                    existFile = Drive.DriveApi.getFile(apiClient, result.getMetadataBuffer().get(0).getDriveId());
+                    existFile = result.getMetadataBuffer().get(0).getDriveId().asDriveFile();
                     existFile.open(apiClient, DriveFile.MODE_WRITE_ONLY, null).setResultCallback(resultCallback);
                 }
             }

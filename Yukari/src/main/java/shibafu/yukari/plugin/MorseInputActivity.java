@@ -28,13 +28,10 @@ public class MorseInputActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        switch (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light")) {
-            default:
-                setTheme(R.style.AppThemeTranslucent);
-                break;
-            case "dark":
-                setTheme(R.style.AppThemeTranslucent_Dark);
-                break;
+        if (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light").endsWith("dark")) {
+            setTheme(R.style.AppThemeTranslucent_Dark);
+        } else {
+            setTheme(R.style.AppThemeTranslucent);
         }
         super.onCreate(savedInstanceState);
 

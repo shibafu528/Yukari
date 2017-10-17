@@ -8,5 +8,5 @@
         android:state_focused="true"
         android:color="@android:color/white"/>
     <item
-        android:color="@color/key_color_4"/>
+        android:color="?attr/colorPrimary"/>
 </selector>

@@ -3,18 +3,20 @@ package shibafu.yukari.activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.VideoView;
 import shibafu.yukari.R;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.MediaFactory;
+import shibafu.yukari.media2.impl.TwitterVideo;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 
 /**
  * Created by shibafu on 14/06/19.
@@ -23,9 +25,8 @@ public class MoviePreviewActivity extends AppCompatActivity {
 
     public static final String EXTRA_STATUS = "status";
 
-    private View tweetView;
+    private TweetView tweetView;
     private PreformedStatus status;
-    private TweetAdapterWrap.ViewConverter viewConverter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,52 +51,46 @@ public class MoviePreviewActivity extends AppCompatActivity {
             videoView.start();
         });
 
-        LinkMedia linkMedia = LinkMediaFactory.newInstance(data.toString());
-        if (linkMedia == null) {
-            Toast.makeText(this, "null media", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        new ParallelAsyncTask<LinkMedia, Void, String>() {
+        new ParallelAsyncTask<String, Void, String>() {
             @Override
-            protected String doInBackground(LinkMedia... params) {
-                return params[0].getMediaURL();
+            protected String doInBackground(String... params) {
+                Media media = MediaFactory.newInstance(params[0]);
+                if (media instanceof TwitterVideo) {
+                    // TwitterVideoはそのまま再生可能なURLを持つ。この前提が崩れたらもうAPIを考え直そう。
+                    return media.getBrowseUrl();
+                }
+                return null;
             }
 
             @Override
             protected void onPostExecute(String s) {
-                try {
-                    videoView.setVideoURI(Uri.parse(s));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
-                            Toast.LENGTH_LONG).show();
+                if (!TextUtils.isEmpty(s)) {
+                    try {
+                        videoView.setVideoURI(Uri.parse(s));
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+
+                // if error...
+                Toast.makeText(getApplicationContext(),
+                        "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
+                        Toast.LENGTH_LONG).show();
+                finish();
             }
-        }.executeParallel(linkMedia);
+        }.executeParallel(data.toString());
 
         status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
         if (status != null && status.isRetweet()) {
             status = status.getRetweetedStatus();
         }
-        tweetView = findViewById(R.id.inclPreviewStatus);
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                this,
-                null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(this),
-                PreformedStatus.class);
+        tweetView = (TweetView) findViewById(R.id.twvPreviewStatus);
+        if (status != null) {
+            tweetView.setMode(StatusView.Mode.PREVIEW);
+            tweetView.setStatus(status);
+        }
 
         findViewById(R.id.ibPreviewBrowser).setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (status != null) {
-            new android.os.Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW));
-        }
     }
 }

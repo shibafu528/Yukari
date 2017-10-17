@@ -1,8 +1,7 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.app.Activity;
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.PreviewActivity;
@@ -26,15 +26,31 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
-import twitter4j.*;
+import twitter4j.DirectMessage;
+import twitter4j.HashtagEntity;
+import twitter4j.MediaEntity;
+import twitter4j.Paging;
+import twitter4j.ResponseList;
+import twitter4j.Status;
+import twitter4j.TweetEntity;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterResponse;
+import twitter4j.URLEntity;
+import twitter4j.User;
+import twitter4j.UserMentionEntity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/03/25.
  */
 public class MessageListFragment extends TwitterListFragment<DirectMessage>
-        implements StatusListener, DialogInterface.OnClickListener {
+        implements StatusListener, DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
@@ -45,12 +61,12 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        if (activity instanceof MainActivity) {
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            lastStatusIds = ((MainActivity) activity).getLastStatusIdsArray(id);
+            lastStatusIds = ((MainActivity) context).getLastStatusIdsArray(id);
         }
     }
 
@@ -137,7 +153,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     @Override
     public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {
         if (users.contains(from) && !elements.contains(directMessage)) {
-            getHandler().post(() -> insertElement2(directMessage));
+            getHandler().post(() -> insertElement(directMessage));
         }
     }
 
@@ -222,6 +238,13 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     break;
                 }
             }
+        }
+    }
+
+    @Override
+    public void onCancel(DialogInterface dialog) {
+        if (lastClicked != null) {
+            setBlockingDoubleClick(false);
         }
     }
 
@@ -380,7 +403,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         protected void onPostExecute(List<DirectMessage> directMessages) {
             if (directMessages != null) {
                 for (DirectMessage message : directMessages) {
-                    insertElement2(message);
+                    insertElement(message);
                 }
             } else if (causedException != null &&
                     exceptionUser != null &&
@@ -450,17 +473,25 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             dialog.dismiss();
             if (getParentFragment() != null && getParentFragment() instanceof DialogInterface.OnClickListener) {
                 ((DialogInterface.OnClickListener) getParentFragment()).onClick(dialog, which);
-            }
-            else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
+            } else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnClickListener) {
                 ((DialogInterface.OnClickListener) getTargetFragment()).onClick(dialog, which);
+            }
+        }
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            if (getParentFragment() != null && getParentFragment() instanceof DialogInterface.OnCancelListener) {
+                ((DialogInterface.OnCancelListener) getParentFragment()).onCancel(dialog);
+            } else if (getTargetFragment() != null && getTargetFragment() instanceof DialogInterface.OnCancelListener) {
+                ((DialogInterface.OnCancelListener) getTargetFragment()).onCancel(dialog);
             }
         }
     }
 
     public static class MessageDeleteFragment extends Fragment implements DialogInterface.OnClickListener{
         @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
+        public void onAttach(Context context) {
+            super.onAttach(context);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
                     "確認",
                     "メッセージを削除してもよろしいですか？",

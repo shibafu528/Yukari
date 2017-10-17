@@ -18,7 +18,7 @@ class ConfigFileUtilityTest {
 
     @Test fun exportToJsonTest() {
         val entity = ConfigTestEntity("abcde", 114514, 1919810)
-        val json = ConfigFileUtility.exportToJson(ConfigTestEntity::class.java, listOf(entity))
+        val json = ConfigFileUtility.exportToJson(ConfigTestEntity::class.java, listOf(entity.toMap()))
         assertEquals("""{"version":2,"ConfigTestEntity":[{"str":"abcde","num":114514,"num2":1919810}]}""", json)
     }
 
@@ -26,25 +26,29 @@ class ConfigFileUtilityTest {
         val json = """{"version":2,"ConfigTestEntity":[{"str":"abcde","num":114514,"num2":1919810}]}"""
         val records = ConfigFileUtility.importFromJson(ConfigTestEntity::class.java, json)
         assertEquals(1, records.size)
-        assertEquals("abcde", records.first().str)
-        assertEquals(114514, records.first().num)
-        assertEquals(1919810, records.first().num2)
+        assertEquals("abcde", records.first()["str"])
+        assertEquals(114514, records.first()["num"])
+        assertEquals(1919810, records.first()["num2"])
     }
 
     @Test fun importFromJsonMigrateTest() {
         val json = """{"version":1,"ConfigTestEntity":[{"strold":"abcde","num":114514}]}"""
         val records = ConfigFileUtility.importFromJson(ConfigTestEntity::class.java, json)
         assertEquals(1, records.size)
-        assertEquals("abcde", records.first().str)
-        assertEquals(114514, records.first().num)
-        assertEquals(114514, records.first().num2)
+        assertEquals("abcde", records.first()["str"])
+        assertEquals(114514, records.first()["num"])
+        assertEquals(114514, records.first()["num2"])
     }
 }
 
 /**
  * コンフィグマイグレーションのテスト用エンティティ
  */
-data class ConfigTestEntity(var str: String, var num: Int, var num2: Int)
+data class ConfigTestEntity(var str: String, var num: Int, var num2: Int) {
+    fun toMap(): Map<String, Any> {
+        return mapOf("str" to str, "num" to num, "num2" to num2)
+    }
+}
 
 /**
  * コンフィグマイグレーションのテスト用マイグレータ

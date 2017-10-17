@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -84,16 +85,16 @@ public class MenuDialogFragment extends DialogFragment {
     private Unbinder unbinder;
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         for (int i = 0; i < 3; ++i) {
             String json = sp.getString("menu_plugin_" + i, "");
             if (TextUtils.isEmpty(json)) {
                 try {
-                    ActivityInfo info = activity.getPackageManager()
-                            .getActivityInfo(new ComponentName(activity, DEFAULT_PLUGINS[i]), 0);
-                    plugins[i] = new MenuPlugin(activity, info);
+                    ActivityInfo info = context.getPackageManager()
+                            .getActivityInfo(new ComponentName(context, DEFAULT_PLUGINS[i]), 0);
+                    plugins[i] = new MenuPlugin(context, info);
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -109,13 +110,10 @@ public class MenuDialogFragment extends DialogFragment {
 
         dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
         dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            default:
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
-                break;
-            case "dark":
-                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
-                break;
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+        } else {
+            dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
         }
 
         dialog.setContentView(inflateView(getActivity().getLayoutInflater()));
@@ -289,13 +287,10 @@ public class MenuDialogFragment extends DialogFragment {
         ImageView icon = (ImageView) v.findViewById(R.id.ivMenuPlugin);
         try {
             Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
-            switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-                default:
-                    icon.setImageDrawable(res.getDrawable(plugin.getLightIconId()));
-                    break;
-                case "dark":
-                    icon.setImageDrawable(res.getDrawable(plugin.getDarkIconId()));
-                    break;
+            if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
+            } else {
+                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
             }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();

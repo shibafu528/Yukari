@@ -11,13 +11,14 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.preference.PreferenceManager;
-import android.view.Display;
+import android.text.TextUtils;
+import android.text.format.DateUtils;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
@@ -36,16 +37,17 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.common.TweetAdapterWrap;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.media.LinkMedia;
-import shibafu.yukari.media.LinkMediaFactory;
+import shibafu.yukari.media2.Media;
+import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.service.BitmapDecoderService;
 import shibafu.yukari.service.IBitmapDecoderService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
+import shibafu.yukari.view.StatusView;
+import shibafu.yukari.view.TweetView;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -54,8 +56,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -78,7 +79,7 @@ public class PreviewActivity extends ActionBarYukariBase {
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
     @BindView(R.id.ivPreviewImage) ImageView imageView;
-    @BindView(R.id.inclPreviewStatus) View tweetView;
+    @BindView(R.id.twvPreviewStatus) TweetView tweetView;
     private PreformedStatus status;
     private AuthUserRecord user;
 
@@ -86,7 +87,8 @@ public class PreviewActivity extends ActionBarYukariBase {
     private boolean isShowPanel = true;
     private int displayWidth;
     private int displayHeight;
-    private TweetAdapterWrap.ViewConverter viewConverter;
+
+    @BindView(R.id.ibPreviewSave) ImageButton ibSave;
 
     @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
     @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
@@ -236,14 +238,8 @@ public class PreviewActivity extends ActionBarYukariBase {
             }
         });
 
-        final LinkMedia linkMedia = LinkMediaFactory.newInstance(data.toString());
-        final String mediaUrl;
-        if (linkMedia != null) {
-            mediaUrl = linkMedia.getMediaURL();
-        }
-        else {
-            mediaUrl = data.toString();
-        }
+        String mediaUrl = data.toString();
+        final Media media = MediaFactory.newInstance(mediaUrl);
 
         //とりあえず念のため見ておくか
         if (mediaUrl == null) {
@@ -252,6 +248,7 @@ public class PreviewActivity extends ActionBarYukariBase {
             return;
         }
 
+        final Handler handler = new Handler();
         loaderTask = new ParallelAsyncTask<String, Object, Bitmap>() {
             class Callback {
                 public int received, contentLength = -1;
@@ -261,6 +258,14 @@ public class PreviewActivity extends ActionBarYukariBase {
             @Override
             protected Bitmap doInBackground(String... params) {
                 String url = params[0];
+
+                // 保存ボタンの有効化
+                handler.post(() -> {
+                    if (ibSave != null) {
+                        ibSave.setEnabled(true);
+                    }
+                });
+
                 int exifRotate = 0;
                 if (url.startsWith("content://")) {
                     try {
@@ -286,10 +291,10 @@ public class PreviewActivity extends ActionBarYukariBase {
                 File cacheFile = new File(cacheDir, fileKey);
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
-                if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - 86400000) {
+                if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS) {
                     InputStream input;
                     Callback callback = new Callback();
-                    HttpURLConnection connection = null;
+                    Media.ResolveInfo resolveInfo = null;
                     if (url.startsWith("content://") || url.startsWith("file://")) {
                         try {
                             input = getContentResolver().openInputStream(Uri.parse(url));
@@ -314,21 +319,10 @@ public class PreviewActivity extends ActionBarYukariBase {
                         callback.beginTime = System.currentTimeMillis();
                     } else {
                         try {
-                            connection = (HttpURLConnection) new URL(params[0]).openConnection();
-                            connection.setInstanceFollowRedirects(true);
-                            connection.connect();
-                            while (connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_PERM ||
-                                    connection.getResponseCode() == HttpURLConnection.HTTP_MOVED_TEMP) {
-                                String redirectUrl = connection.getHeaderField("Location");
-                                connection.disconnect();
-
-                                connection = (HttpURLConnection) new URL(redirectUrl).openConnection();
-                                connection.setInstanceFollowRedirects(true);
-                                connection.connect();
-                            }
-                            callback.contentLength = connection.getContentLength();
+                            resolveInfo = media.resolveMedia();
+                            callback.contentLength = resolveInfo.getContentLength();
                             callback.beginTime = System.currentTimeMillis();
-                            input = connection.getInputStream();
+                            input = resolveInfo.getStream();
                         } catch (IOException e) {
                             e.printStackTrace();
                             return null;
@@ -359,8 +353,8 @@ public class PreviewActivity extends ActionBarYukariBase {
                         try {
                             input.close();
                         } catch (IOException ignore) {}
-                        if (connection != null) {
-                            connection.disconnect();
+                        if (resolveInfo != null) {
+                            resolveInfo.dispose();
                         }
                     }
                 }
@@ -404,12 +398,12 @@ public class PreviewActivity extends ActionBarYukariBase {
                 }
                 if (callback.contentLength < 1) {
                     loadProgressText.setText("");
-                    loadProgressText2.setText(String.format("%d KB\n%dKB/s",
+                    loadProgressText2.setText(String.format(Locale.US, "%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.received / 1024) / elapsed));
                 } else {
-                    loadProgressText.setText(String.format("%d%%", progress));
-                    loadProgressText2.setText(String.format("%d/%d KB\n%dKB/s",
+                    loadProgressText.setText(String.format(Locale.US, "%d%%", progress));
+                    loadProgressText2.setText(String.format(Locale.US, "%d/%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.contentLength / 1024),
                             (callback.received / 1024) / elapsed));
@@ -433,10 +427,9 @@ public class PreviewActivity extends ActionBarYukariBase {
                 image = bitmap;
                 imageView.setImageBitmap(bitmap);
                 //画面解像度を取得して初期サイズ設定
-                WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-                Display display = wm.getDefaultDisplay();
-                displayWidth = display.getWidth();
-                displayHeight = display.getHeight();
+                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                displayWidth = displayMetrics.widthPixels;
+                displayHeight = displayMetrics.heightPixels;
                 float scale = 1.0f;
                 if (bitmap.getWidth() > bitmap.getHeight() && displayWidth < bitmap.getWidth()) {
                     scale = (float) displayWidth / bitmap.getWidth();
@@ -488,41 +481,51 @@ public class PreviewActivity extends ActionBarYukariBase {
         ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
         ibBrowser.setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
 
-        ImageButton ibSave = (ImageButton) findViewById(R.id.ibPreviewSave);
+        ibSave.setEnabled(false); // 実体解決完了まで無効化
         ibSave.setOnClickListener(v -> {
-            Uri uri = Uri.parse(mediaUrl);
-            DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-            DownloadManager.Request request = new DownloadManager.Request(uri);
-            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-            String[] split = uri.getLastPathSegment().split("\\.");
-            if (split.length > 1) {
-                request.setMimeType("image/" + split[split.length-1].replace(":orig", ""));
-            }
-            else {
-                //本当はこんなことせずちゃんとHTTPヘッダ読んだほうがいいと思ってる
-                uri = Uri.parse(uri.toString() + ".png");
-                request.setMimeType("image/png");
-            }
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, uri.getLastPathSegment().replace(":orig", ""));
-            File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            pathExternalPublicDir.mkdirs();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            dlm.enqueue(request);
+            new ParallelAsyncTask<Void, Void, String>() {
+
+                @Override
+                protected String doInBackground(Void... voids) {
+                    try {
+                        DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                        DownloadManager.Request request = media.getDownloadRequest();
+                        if (request == null) {
+                            return "保存できない種類の画像です。";
+                        }
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                        File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                        pathExternalPublicDir.mkdirs();
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        dlm.enqueue(request);
+                        return "";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return "保存に失敗しました。";
+                }
+
+                @Override
+                protected void onPostExecute(String str) {
+                    if (!TextUtils.isEmpty(str)) {
+                        Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }.executeParallel();
         });
 
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
             ibBrowser.setEnabled(false);
             ibBrowser.setVisibility(View.GONE);
-            ibSave.setEnabled(false);
             ibSave.setVisibility(View.GONE);
         }
 
-        viewConverter = TweetAdapterWrap.ViewConverter.newInstance(
-                this,
-                null,
-                null,
-                PreferenceManager.getDefaultSharedPreferences(this),
-                PreformedStatus.class);
+        if (status != null) {
+            tweetView.setMode(StatusView.Mode.PREVIEW);
+            tweetView.setStatus(status);
+        } else {
+            tweetView.setVisibility(View.GONE);
+        }
 
         // デコーダの検索
         PackageManager pm = getPackageManager();
@@ -564,18 +567,6 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     private boolean isDMImage(String url) {
         return url.startsWith("https://ton.twitter.com/") || url.contains("twitter.com/messages/media/");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        if (status != null) {
-            tweetView.setVisibility(View.VISIBLE);
-            new android.os.Handler().post(() -> viewConverter.convertView(tweetView, status, TweetAdapterWrap.ViewConverter.MODE_PREVIEW));
-        } else {
-            tweetView.setVisibility(View.GONE);
-        }
     }
 
     @Override

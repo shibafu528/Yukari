@@ -38,7 +38,7 @@ import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
-import shibafu.yukari.media.LinkMedia;
+import shibafu.yukari.media2.Media;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -75,13 +75,10 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        switch (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light")) {
-            default:
-                view.setBackgroundResource(R.drawable.dialog_full_material_light);
-                break;
-            case "dark":
-                view.setBackgroundResource(R.drawable.dialog_full_material_dark);
-                break;
+        if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+            view.setBackgroundResource(R.drawable.dialog_full_material_dark);
+        } else {
+            view.setBackgroundResource(R.drawable.dialog_full_material_light);
         }
     }
 
@@ -108,8 +105,8 @@ public class StatusLinkFragment extends ListFragment implements StatusChildUI {
                 return !list.contains(object) && super.add(object);
             }
         };
-        for (LinkMedia lm : status.getMediaLinkList()) {
-            list.add(new LinkRow(lm.getBrowseURL(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
+        for (Media lm : status.getMediaList()) {
+            list.add(new LinkRow(lm.getBrowseUrl(), (TYPE_URL | (lm.canPreview()? TYPE_URL_MEDIA : 0)), 0, null, false));
         }
         for (URLEntity u : status.getURLEntities()) {
             LinkRow row = new LinkRow(u.getExpandedURL(), TYPE_URL, 0, null, false);

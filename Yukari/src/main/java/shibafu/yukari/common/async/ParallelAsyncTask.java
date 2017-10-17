@@ -1,7 +1,6 @@
 package shibafu.yukari.common.async;
 
 import android.os.AsyncTask;
-import android.os.Build;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.RejectedExecutionException;
@@ -14,12 +13,7 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
     public void executeParallel(Params... params) {
         if (getStatus() == Status.RUNNING && !isCancelled()) return;
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
-            }
-            else {
-                this.execute(params);
-            }
+            this.executeOnExecutor(THREAD_POOL_EXECUTOR, params);
         } catch (RejectedExecutionException e) {
             executeParallel(params);
         }
