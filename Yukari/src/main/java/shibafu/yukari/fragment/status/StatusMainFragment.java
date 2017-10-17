@@ -366,12 +366,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
         ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
         ibQuote.setOnClickListener(v1 -> {
-            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote_2_0_1", "-1"));
-            if (defaultQuote < 0) {
-                showQuoteStyleSelector();
-                return;
-            }
-
             //引用制限時
             if (limitedQuote) {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
@@ -380,6 +374,12 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE);
                 intent.putExtra(TweetActivity.EXTRA_TEXT, " " + TwitterUtil.getTweetURL(status));
                 startActivityForResult(intent, REQUEST_QUOTE);
+                return;
+            }
+
+            int defaultQuote = Integer.parseInt(sharedPreferences.getString("pref_default_quote_2_0_1", "-1"));
+            if (defaultQuote < 0) {
+                showQuoteStyleSelector();
                 return;
             }
 
