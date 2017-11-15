@@ -72,5 +72,7 @@ class TwitterTextValidator(isDirectMessage: Boolean) : PostValidator {
 
 object TweetValidatorFactory {
     @JvmStatic
-    fun newInstance(isDirectMessage: Boolean): PostValidator = TwitterTextValidator(isDirectMessage)
+    fun newInstance(isDirectMessage: Boolean): PostValidator =
+            if (isDirectMessage) TwitterTextValidator(true)
+            else TweetValidator()
 }
