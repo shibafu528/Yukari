@@ -53,7 +53,6 @@ import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.twitter.Extractor;
-import com.twitter.Validator;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import info.shibafu528.yukari.exvoice.MRubyException;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
@@ -70,8 +69,10 @@ import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TweetValidatorFactory;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
+import shibafu.yukari.util.PostValidator;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
@@ -139,9 +140,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     private static final int PLUGIN_ICON_DIP = 28;
 
-    private static final int TWEET_COUNT_LIMIT = 140;
-    private static final int TWEET_COUNT_LIMIT_DM = 10000;
-
     private static final int TITLE_AREA_MAX_LINES = 3;
 
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
@@ -157,8 +155,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
-    @NeedSaveState private int tweetCountLimit = TWEET_COUNT_LIMIT;
-    private int tweetCount = TWEET_COUNT_LIMIT;
+    private int tweetCount;
+    private PostValidator validator;
 
     //DMフラグ
     @NeedSaveState private boolean isDirectMessage = false;
@@ -325,6 +323,23 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             isWebIntent = true;
         }
 
+        //DM判定
+        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
+        if (isDirectMessage) {
+            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
+            //表題変更
+            tvTitle.setText("DirectMessage to @" + directMessageDestSN);
+            //ボタン無効化と表示変更
+            ibAttach.setEnabled(false);
+            ibCamera.setEnabled(false);
+            btnPost.setText("Send");
+        }
+
+        // 文字数カウンタの設定
+        validator = TweetValidatorFactory.newInstance(isDirectMessage);
+        updateTweetCount();
+
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
         String defaultText;
         if (isWebIntent) {
@@ -428,22 +443,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             for (String s : mediaUri) {
                 attachPicture(Uri.parse(s));
             }
-        }
-
-        //DM判定
-        isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
-        if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-            directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
-            //表題変更
-            tvTitle.setText("DirectMessage to @" + directMessageDestSN);
-            //ボタン無効化と表示変更
-            ibAttach.setEnabled(false);
-            ibCamera.setEnabled(false);
-            btnPost.setText("Send");
-            //文字数上限変更
-            tweetCount = tweetCountLimit = TWEET_COUNT_LIMIT_DM;
-            updateTweetCount();
         }
 
         // 初期化完了時点での下書き状況のスナップショット
@@ -770,7 +769,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void restoreState(Bundle state) {
-        tweetCountLimit = state.getInt("tweetCountLimit");
         isDirectMessage = state.getBoolean("isDirectMessage");
         directMessageDestId = state.getLong("directMessageDestId");
         directMessageDestSN = state.getString("directMessageDestSN");
@@ -781,6 +779,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         initialDraft = (TweetDraft) state.getSerializable("initialDraft");
         Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
 
+        validator = TweetValidatorFactory.newInstance(isDirectMessage);
+
         updateWritersView();
         updateTweetCount();
     }
@@ -788,7 +788,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt("tweetCountLimit", tweetCountLimit);
         outState.putBoolean("isDirectMessage", isDirectMessage);
         outState.putLong("directMessageDestId", directMessageDestId);
         outState.putString("directMessageDestSN", directMessageDestSN);
@@ -808,7 +807,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         if (tweetCount < 0) {
             Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
             return;
-        } else if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
+        } else if (tweetCount >= validator.getMaxLength() && attachPictures.isEmpty()) {
             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -902,8 +901,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 入力の文字数をカウント
-        int count = new Validator().getTweetLength(etInput.getText().toString());
-        tweetCount = tweetCountLimit - count + attachmentUrlCount;
+        int count = validator.getMeasuredLength(etInput.getText().toString());
+        tweetCount = validator.getMaxLength() - count + attachmentUrlCount;
         tvCount.setText(String.valueOf(tweetCount));
         if (tweetCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
@@ -1394,7 +1393,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case REQUEST_DIALOG_DRAFT_MENU:
                 switch (which) {
                     case 0: {
-                        if (tweetCount >= tweetCountLimit && attachPictures.isEmpty()) {
+                        if (tweetCount >= validator.getMaxLength() && attachPictures.isEmpty()) {
                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                         } else {
                             getTwitterService().getDatabase().updateDraft(getTweetDraft());
