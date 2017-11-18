@@ -156,7 +156,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private EditText etInput;
     private TextView tvCount;
     private int tweetCount;
-    private PostValidator validator;
+    private PostValidator validator = TweetValidatorFactory.newInstance(false);
 
     //DMフラグ
     @NeedSaveState private boolean isDirectMessage = false;
@@ -777,9 +777,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         useStoredWriters = state.getBoolean("useStoredWriters");
         cameraTemp = state.getParcelable("cameraTemp");
         initialDraft = (TweetDraft) state.getSerializable("initialDraft");
-        Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
 
         validator = TweetValidatorFactory.newInstance(isDirectMessage);
+        Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
 
         updateWritersView();
         updateTweetCount();
