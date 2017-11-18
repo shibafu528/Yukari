@@ -88,9 +88,13 @@ public class Gyazo extends MemoizeMedia {
             conn.disconnect();
         }
 
-        GyazoResponse response = new Gson().fromJson(sb.toString(), GyazoResponse.class);
-        mediaUrl = response.url;
-        thumbUrl = response.thumbUrl;
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK && conn.getContentType().contains("application/json")) {
+            GyazoResponse response = new Gson().fromJson(sb.toString(), GyazoResponse.class);
+            mediaUrl = response.url;
+            thumbUrl = response.thumbUrl;
+        } else {
+            throw new IOException("Invalid Response : " + getBrowseUrl());
+        }
     }
 
     private static class GyazoResponse {
