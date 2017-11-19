@@ -16,6 +16,7 @@ ext {
     supportLibVersion = '25.4.0'
     playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.5'
+    mastodon4jVersion = '1.4.0'
     leakCanaryVersion = '1.5.4'
 }
 
@@ -51,6 +52,9 @@ dependencies {
     compile "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
     compile "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
     compile "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
+
+    // Mastodon
+    compile "com.github.sys1yagi.mastodon4j:mastodon4j:${mastodon4jVersion}"
 
     // パーサ
     compile 'com.google.code.gson:gson:2.8.1'
