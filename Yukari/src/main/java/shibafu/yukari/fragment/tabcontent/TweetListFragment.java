@@ -10,14 +10,18 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
@@ -72,6 +76,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             " >> Retweet",
             " >> Fav & RT"
     };
+    private View swipeActionStatusView;
+    private TextView swipeActionInfoLabel;
     private float swipeActionDownPositionX, swipeActionDownPositionY;
     private int swipeActionSelected = 0;
     private PreformedStatus swipeActionStatusGrabbed;
@@ -80,6 +86,24 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
     public TweetListFragment() {
         super(PreformedStatus.class);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        switch (getMode()) {
+            case TabType.TABTYPE_TRACE:
+            case TabType.TABTYPE_DM:
+                return v;
+        }
+
+        swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
+        swipeActionInfoLabel = (TextView) v.findViewById(R.id.swipeActionInfo);
+        if (swipeActionStatusView != null) {
+            swipeActionStatusView.setVisibility(View.INVISIBLE);
+        }
+
+        return v;
     }
 
     @Override
@@ -300,6 +324,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     public void onPause() {
         super.onPause();
         dismissSwipeActionStatusView();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        swipeActionStatusView = null;
+        swipeActionInfoLabel = null;
     }
 
     @Override

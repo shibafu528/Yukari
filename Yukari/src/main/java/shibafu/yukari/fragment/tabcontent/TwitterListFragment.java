@@ -116,10 +116,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     private boolean disabledReload;
     @ColorRes private int swipeRefreshColor;
 
-    //SwipeAction PopupWindow
-    protected View swipeActionStatusView;
-    protected TextView swipeActionInfoLabel;
-
     //Footer View
     private View footerView;
     private View footerProgress;
@@ -203,12 +199,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
         tvUnreadCount = (TextView) unreadNotifierView.findViewById(R.id.textView);
-
-        swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
-        swipeActionInfoLabel = (TextView) v.findViewById(R.id.swipeActionInfo);
-        if (swipeActionStatusView != null) {
-            swipeActionStatusView.setVisibility(View.INVISIBLE);
-        }
 
         return v;
     }
@@ -337,8 +327,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         swipeRefreshLayout = null;
         unreadNotifierView = null;
         tvUnreadCount = null;
-        swipeActionStatusView = null;
-        swipeActionInfoLabel = null;
         footerView = null;
         footerProgress = null;
         footerText = null;
