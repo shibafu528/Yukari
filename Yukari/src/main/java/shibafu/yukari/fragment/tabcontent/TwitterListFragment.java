@@ -216,7 +216,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         getListView().addFooterView(footerView);
 
         if (elementClass != null) {
-            tweetAdapter = new TweetAdapter(getActivity(), users, null, elements, elementClass);
+            tweetAdapter = new TweetAdapter(getActivity(), users, null, elements);
             setListAdapter(tweetAdapter);
         }
 

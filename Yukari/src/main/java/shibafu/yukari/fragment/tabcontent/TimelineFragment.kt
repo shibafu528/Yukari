@@ -1,12 +1,32 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.os.Bundle
 import android.support.v4.app.ListFragment
+import android.view.View
 import android.widget.Toast
+import shibafu.yukari.common.TweetAdapter
+import shibafu.yukari.twitter.AuthUserRecord
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
 open class TimelineFragment : ListFragment(), TimelineTab {
+    protected val statuses: MutableList<Any> = arrayListOf() // TODO :thinking_face:
+    protected val users: MutableList<AuthUserRecord> = arrayListOf()
+
+    protected var statusAdapter: TweetAdapter? = null
+
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        statusAdapter = TweetAdapter(context, users, null, statuses)
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listAdapter = null
+        statusAdapter = null
+    }
+
     override fun isCloseable(): Boolean = false
 
     override fun scrollToTop() {
@@ -68,3 +88,11 @@ open class TimelineFragment : ListFragment(), TimelineTab {
         }
     }
 }
+
+/*
+  TODO
+  - AuthUserRecordでTwitter以外のユーザ情報は賄えるのか？
+  - TwitterResponseに代わる、何かStatusを表わす型が欲しい
+    - StatusViewもそれに対応する必要がある
+  - LimitedTLは最早標準でいいと思う
+ */

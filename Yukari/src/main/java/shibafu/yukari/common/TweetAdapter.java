@@ -20,7 +20,6 @@ import shibafu.yukari.view.MessageView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
 import twitter4j.DirectMessage;
-import twitter4j.Status;
 import twitter4j.TwitterResponse;
 
 import java.lang.ref.WeakReference;
@@ -32,18 +31,13 @@ import java.util.List;
  */
 public class TweetAdapter extends BaseAdapter {
     private Context context;
-    private List<? extends TwitterResponse> statuses;
+    private List statuses;
     private List<AuthUserRecord> userRecords;
     private List<UserExtras> userExtras;
     private WeakReference<StatusManager> statusManager;
     private LayoutInflater inflater;
     private StatusView.OnTouchProfileImageIconListener onTouchProfileImageIconListener;
     private SharedPreferences preferences;
-
-    private int clsType;
-    private static final int CLS_STATUS = 0;
-    private static final int CLS_DM = 1;
-    private static final int CLS_UNKNOWN = 2;
 
     private static final int VT_LOAD_MARKER = 0;
     private static final int VT_TWEET = 1;
@@ -54,8 +48,7 @@ public class TweetAdapter extends BaseAdapter {
     public TweetAdapter(Context context,
                         List<AuthUserRecord> userRecords,
                         List<UserExtras> userExtras,
-                        List<? extends TwitterResponse> statuses,
-                        Class<? extends TwitterResponse> clz) {
+                        List statuses) {
         this.context = context;
         this.statuses = statuses;
         this.userRecords = userRecords;
@@ -63,14 +56,6 @@ public class TweetAdapter extends BaseAdapter {
             this.userExtras = new ArrayList<>();
         } else {
             this.userExtras = userExtras;
-        }
-
-        if (Status.class.isAssignableFrom(clz)) {
-            clsType = CLS_STATUS;
-        } else if (DirectMessage.class.isAssignableFrom(clz)) {
-            clsType = CLS_DM;
-        } else {
-            clsType = CLS_UNKNOWN;
         }
 
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -100,33 +85,28 @@ public class TweetAdapter extends BaseAdapter {
     }
 
     @Override
-    public TwitterResponse getItem(int position) {
+    public Object getItem(int position) {
         return statuses.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        switch (clsType) {
-            case CLS_STATUS:
-                return ((Status)statuses.get(position)).getId();
-            case CLS_DM:
-                return ((DirectMessage)statuses.get(position)).getId();
-            default:
-                return position;
-        }
+        return position;
     }
 
     @Override
     public int getItemViewType(int position) {
-        TwitterResponse item = getItem(position);
+        Object item = getItem(position);
         if (item instanceof PreformedStatus && ((PreformedStatus) item).getBaseStatusClass() == LoadMarkerStatus.class) {
             return VT_LOAD_MARKER;
         } else if (item instanceof DirectMessage) {
             return VT_MESSAGE;
         } else if (item instanceof HistoryStatus) {
             return VT_HISTORY;
+        } else if (item instanceof TwitterResponse) {
+            return VT_TWEET;
         }
-        return VT_TWEET;
+        throw new UnsupportedOperationException("Unsupported Timeline Object!! : " + item.getClass().getName());
     }
 
     @Override
@@ -136,7 +116,11 @@ public class TweetAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        TwitterResponse item = getItem(position);
+        Object item = getItem(position);
+        if (!(item instanceof TwitterResponse)) {
+            // TODO: ゆくゆくは対応したいですね
+            throw new UnsupportedOperationException("Unsupported Timeline Object!! : " + item.getClass().getName());
+        }
 
         int vt = getItemViewType(position);
         switch (vt) {
@@ -162,7 +146,8 @@ public class TweetAdapter extends BaseAdapter {
                 statusView.setUserRecords(userRecords);
                 statusView.setUserExtras(userExtras);
                 statusView.setOnTouchProfileImageIconListener(onTouchProfileImageIconListener);
-                statusView.setStatus(item);
+                // TODO: ゆくゆくは対応したいですね
+                statusView.setStatus((TwitterResponse) item);
                 break;
             }
             case VT_LOAD_MARKER:
