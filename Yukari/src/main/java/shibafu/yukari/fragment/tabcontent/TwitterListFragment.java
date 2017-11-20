@@ -53,7 +53,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         extends     ListFragment
         implements  TwitterServiceConnection.ServiceConnectionCallback,
                     SwipeRefreshLayout.OnRefreshListener,
-                    TwitterServiceDelegate {
+                    TwitterServiceDelegate,
+                    TimelineTab {
 
     public static final String EXTRA_ID = "id";
     public static final String EXTRA_TITLE = "title";
@@ -360,8 +361,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         return mode;
     }
 
-    public abstract boolean isCloseable();
-
     @Override
     public TwitterService getTwitterService() {
         return connection.getTwitterService();
@@ -408,6 +407,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         return swipeRefreshLayout;
     }
 
+    @Override
     public void scrollToTop() {
         try {
             getListView().setSelection(0);
@@ -419,6 +419,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    @Override
     public void scrollToBottom() {
         try {
             getListView().setSelection(getListAdapter().getCount() - 1);
@@ -430,6 +431,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    @Override
     public void scrollToOldestUnread() {
         try {
             if (unreadSet.isEmpty()) {
@@ -452,6 +454,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    @Override
     public void scrollToPrevPage() {
         try {
             ListView listView = getListView();
@@ -465,6 +468,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
     }
 
+    @Override
     public void scrollToNextPage() {
         try {
             ListView listView = getListView();

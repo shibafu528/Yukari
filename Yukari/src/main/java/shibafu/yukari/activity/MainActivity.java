@@ -51,8 +51,8 @@ import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.StreamToggleable;
+import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
@@ -91,7 +91,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private float tweetGestureY = 0;
 
     private int currentPageIndex = -1;
-    private TwitterListFragment currentPage;
+    private Fragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
     private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
@@ -103,7 +103,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @BindView(R.id.llTweetGuide)  LinearLayout llTweetGuide;
     @BindView(R.id.streamState)   TriangleView tvStreamState;
 
-    private LongSparseArray<WeakReference<TwitterListFragment>> tabRegistry = new LongSparseArray<>();
+    private LongSparseArray<WeakReference<Fragment>> tabRegistry = new LongSparseArray<>();
 
     //QuickPost関連
     private boolean enableQuickPost = true;
@@ -200,10 +200,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             popupMenu.setOnMenuItemClickListener(menuItem -> {
                 switch (menuItem.getItemId()) {
                     case 0:
-                        currentPage.scrollToTop();
+                        if (currentPage instanceof TimelineTab) {
+                            ((TimelineTab) currentPage).scrollToTop();
+                        }
                         return true;
                     case 1:
-                        currentPage.scrollToBottom();
+                        if (currentPage instanceof TimelineTab) {
+                            ((TimelineTab) currentPage).scrollToBottom();
+                        }
                         return true;
                     case 2:
                         startActivity(new Intent(getApplicationContext(), TabEditActivity.class));
@@ -257,11 +261,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         ibClose.setOnLongClickListener(view -> {
-            if (currentPage.isCloseable()) {
+            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
                 int current = viewPager.getCurrentItem();
                 TabInfo tabInfo = pageList.get(current);
-                TwitterListFragment tabFragment = null;
-                WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(current).getId());
+                Fragment tabFragment = null;
+                WeakReference<Fragment> reference = tabRegistry.get(pageList.get(current).getId());
                 if (reference != null) {
                     tabFragment = reference.get();
                 }
@@ -279,7 +283,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             } else return false;
         });
         ibClose.setOnClickListener(view -> {
-            if (currentPage.isCloseable()) {
+            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
                 Toast.makeText(getApplicationContext(), "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
             }
         });
@@ -341,8 +345,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @OnClick(R.id.llMainFooterRight)
     void onClickFooterSpace() {
-        if (currentPage != null && sharedPreferences.getBoolean("pref_quick_scroll_to_top", false)) {
-            currentPage.scrollToTop();
+        if (currentPage instanceof TimelineTab && sharedPreferences.getBoolean("pref_quick_scroll_to_top", false)) {
+            ((TimelineTab) currentPage).scrollToTop();
         }
     }
 
@@ -410,7 +414,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         keepScreenOn = savedInstanceState.getBoolean("screen");
         immersive = savedInstanceState.getBoolean("immersive");
-        currentPage = (TwitterListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "current");
+        currentPage = getSupportFragmentManager().getFragment(savedInstanceState, "current");
         currentPageIndex = savedInstanceState.getInt("currentPageIndex");
         pageList = (ArrayList<TabInfo>) savedInstanceState.getSerializable("tabinfo");
         if (pageList == null) {
@@ -467,13 +471,19 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     startTweetActivity();
                     return true;
                 case KeyEvent.KEYCODE_2:
-                    currentPage.scrollToTop();
+                    if (currentPage instanceof TimelineTab) {
+                        ((TimelineTab) currentPage).scrollToTop();
+                    }
                     return true;
                 case KeyEvent.KEYCODE_5:
-                    currentPage.scrollToOldestUnread();
+                    if (currentPage instanceof TimelineTab) {
+                        ((TimelineTab) currentPage).scrollToOldestUnread();
+                    }
                     return true;
                 case KeyEvent.KEYCODE_8:
-                    currentPage.scrollToBottom();
+                    if (currentPage instanceof TimelineTab) {
+                        ((TimelineTab) currentPage).scrollToBottom();
+                    }
                     return true;
                 case KeyEvent.KEYCODE_STAR:
                     if (event.isLongPress()) {
@@ -486,10 +496,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     (findViewById(R.id.ibSearch)).performClick();
                     return true;
                 case KeyEvent.KEYCODE_F3:
-                    currentPage.scrollToPrevPage();
+                    if (currentPage instanceof TimelineTab) {
+                        ((TimelineTab) currentPage).scrollToPrevPage();
+                    }
                     return true;
                 case KeyEvent.KEYCODE_F4:
-                    currentPage.scrollToNextPage();
+                    if (currentPage instanceof TimelineTab) {
+                        ((TimelineTab) currentPage).scrollToNextPage();
+                    }
                     return true;
             }
         }
@@ -647,16 +661,17 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private void startTweetActivity() {
         Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
         if (sharedPreferences.getBoolean("pref_use_binded_user", false)
-                && currentPage != null
-                && currentPage instanceof DefaultTweetListFragment
-                && currentPage.getBoundUsers().size() == 1) {
-            switch (currentPage.getMode()) {
-                case TabType.TABTYPE_HOME:
-                case TabType.TABTYPE_MENTION:
-                case TabType.TABTYPE_DM:
-                case TabType.TABTYPE_LIST:
-                    intent.putExtra(TweetActivity.EXTRA_USER, currentPage.getCurrentUser());
-                    break;
+                && currentPage instanceof DefaultTweetListFragment) {
+            DefaultTweetListFragment current = (DefaultTweetListFragment) this.currentPage;
+            if (current.getBoundUsers().size() == 1) {
+                switch (current.getMode()) {
+                    case TabType.TABTYPE_HOME:
+                    case TabType.TABTYPE_MENTION:
+                    case TabType.TABTYPE_DM:
+                    case TabType.TABTYPE_LIST:
+                        intent.putExtra(TweetActivity.EXTRA_USER, current.getCurrentUser());
+                        break;
+                }
             }
         }
         startActivity(intent);
@@ -687,7 +702,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager.setCurrentItem(pageId);
 
         if (!pageList.isEmpty()) {
-            WeakReference<TwitterListFragment> reference = tabRegistry.get(pageList.get(pageId).getId());
+            WeakReference<Fragment> reference = tabRegistry.get(pageList.get(pageId).getId());
             if (reference != null) {
                 currentPage = reference.get();
             }
@@ -706,7 +721,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         currentPageIndex = position;
 
         if (currentPage != null) {
-            if (currentPage.isCloseable()) {
+            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
                 ibClose.setVisibility(View.VISIBLE);
             } else {
                 ibClose.setVisibility(View.INVISIBLE);
@@ -790,7 +805,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         return searchQueries.get(id);
     }
 
-    public void registTwitterFragment(long id, TwitterListFragment fragment) {
+    public void registTwitterFragment(long id, Fragment fragment) {
         Log.d("MainActivity", "regist tab: " + id);
         tabRegistry.put(id, new WeakReference<>(fragment));
     }
@@ -845,7 +860,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         public Fragment getItem(int i) {
             TabInfo tabInfo = pageList.get(i);
 
-            TwitterListFragment fragment;
+            Fragment fragment;
             if (sharedPreferences.getBoolean("pref_use_strict_filter", false)) {
                 fragment = TweetListFragmentFactory.newInstanceWithFilter(tabInfo);
             } else {
@@ -873,12 +888,12 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             return pageList.get(position).getTitle();
         }
 
-        public TwitterListFragment instantiateItem(int position) {
-            return (TwitterListFragment) super.instantiateItem(viewPager, position);
+        public Fragment instantiateItem(int position) {
+            return (Fragment) super.instantiateItem(viewPager, position);
         }
 
-        public TwitterListFragment instantiateItem() {
-            return (TwitterListFragment) super.instantiateItem(viewPager, viewPager.getCurrentItem());
+        public Fragment instantiateItem() {
+            return (Fragment) super.instantiateItem(viewPager, viewPager.getCurrentItem());
         }
     }
 }
