@@ -162,7 +162,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         break;
                                     }
                                     case SWIPE_ACTION_FAVORITE:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
+                                        if (getTwitterService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断
                                                 break;
@@ -214,7 +214,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                         }
                                         break;
                                     case SWIPE_ACTION_FAVRT:
-                                        if (getService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
+                                        if (getTwitterService().isMyTweet(swipeActionStatusGrabbed, true) != null) {
                                             if (!sp.getBoolean("pref_narcist", false)) {
                                                 // ナルシストオプションを有効にしていない場合は中断
                                                 break;
@@ -310,8 +310,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     public void onResume() {
         super.onResume();
 
-        if (isServiceBound()) {
-            List<MuteConfig> configs = getService().getSuppressor().getConfigs();
+        if (isTwitterServiceBound()) {
+            List<MuteConfig> configs = getTwitterService().getSuppressor().getConfigs();
             if (previewMuteConfig != null && previewMuteConfig != configs) {
                 previewMuteConfig = configs;
 
@@ -336,7 +336,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     @Override
     public void onServiceConnected() {
         super.onServiceConnected();
-        List<MuteConfig> configs = getService().getSuppressor().getConfigs();
+        List<MuteConfig> configs = getTwitterService().getSuppressor().getConfigs();
         if (previewMuteConfig == null) {
             previewMuteConfig = configs;
         }
@@ -359,7 +359,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     }
 
     private Runnable onReloadMuteConfigs = () -> {
-        Suppressor suppressor = getService().getSuppressor();
+        Suppressor suppressor = getTwitterService().getSuppressor();
         boolean[] mute;
         for (Iterator<PreformedStatus> it = elements.iterator(); it.hasNext(); ) {
             PreformedStatus s = it.next();
@@ -393,10 +393,10 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     @Override
     protected PrepareInsertResult prepareInsertStatus(PreformedStatus status) {
         //自己ツイートチェック
-        AuthUserRecord owner = getService().isMyTweet(status);
+        AuthUserRecord owner = getTwitterService().isMyTweet(status);
         if (owner != null) {
             status.setOwner(owner);
-        } else if (getService() != null) {
+        } else if (getTwitterService() != null) {
             //優先アカウントチェック
             List<UserExtras> userExtras = getTwitterService().getUserExtras();
             Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
@@ -532,7 +532,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
 
         @Override
         public TwitterService getService() {
-            return TweetListFragment.this.getService();
+            return getTwitterService();
         }
 
         @Override

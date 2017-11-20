@@ -35,7 +35,7 @@ public class HistoryListFragment extends TwitterListFragment<HistoryStatus> impl
 
     @Override
     public void onDetach() {
-        if (isServiceBound() && getStatusManager() != null) {
+        if (isTwitterServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();

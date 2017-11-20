@@ -72,7 +72,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     @Override
     public void onDetach() {
-        if (isServiceBound() && getStatusManager() != null) {
+        if (isTwitterServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
@@ -255,7 +255,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
             @Override
             protected ThrowableResult<Boolean> doInBackground(DirectMessage... params) {
                 AuthUserRecord user = null;
-                for (AuthUserRecord userRecord : getService().getUsers()) {
+                for (AuthUserRecord userRecord : getTwitterService().getUsers()) {
                     if (params[0].getRecipientId() == userRecord.NumericId
                         || params[0].getSenderId() == userRecord.NumericId) {
                         user = userRecord;
@@ -265,7 +265,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                     return new ThrowableResult<>(new IllegalArgumentException("操作対象のユーザが見つかりません."));
                 }
                 try {
-                    Twitter t = getService().getTwitterOrThrow(user);
+                    Twitter t = getTwitterService().getTwitterOrThrow(user);
                     t.destroyDirectMessage(message.getId());
                 } catch (TwitterException e) {
                     e.printStackTrace();

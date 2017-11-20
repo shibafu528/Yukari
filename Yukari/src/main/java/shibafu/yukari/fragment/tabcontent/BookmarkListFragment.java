@@ -36,7 +36,7 @@ public class BookmarkListFragment extends TweetListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (isServiceBound() && !elements.isEmpty()) {
+        if (isTwitterServiceBound() && !elements.isEmpty()) {
             executeLoader(LOADER_LOAD_UPDATE, null);
         }
     }
@@ -59,7 +59,7 @@ public class BookmarkListFragment extends TweetListFragment {
 
         @Override
         protected List<Bookmark> doInBackground(Void... params) {
-            if (!isServiceBound() || getTwitterService() == null || getTwitterService().getDatabase() == null) return new ArrayList<>();
+            if (!isTwitterServiceBound() || getTwitterService() == null || getTwitterService().getDatabase() == null) return new ArrayList<>();
             return getTwitterService().getDatabase().getBookmarks();
         }
 

@@ -362,17 +362,9 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     public abstract boolean isCloseable();
 
-    protected TwitterService getService() {
-        return connection.getTwitterService();
-    }
-
     @Override
     public TwitterService getTwitterService() {
         return connection.getTwitterService();
-    }
-
-    protected boolean isServiceBound() {
-        return connection.isServiceBound();
     }
 
     @Override
@@ -381,8 +373,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     protected StatusManager getStatusManager() {
-        if (getService() != null) {
-            return getService().getStatusManager();
+        if (getTwitterService() != null) {
+            return getTwitterService().getStatusManager();
         } else {
             return null;
         }
@@ -531,11 +523,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
 
     public void onServiceConnected() {
         if (users.isEmpty()) {
-            users.addAll(getService().getUsers());
+            users.addAll(getTwitterService().getUsers());
         }
         if (tweetAdapter != null) {
-            tweetAdapter.setUserExtras(getService().getUserExtras());
-            tweetAdapter.setStatusManager(getService().getStatusManager());
+            tweetAdapter.setUserExtras(getTwitterService().getUserExtras());
+            tweetAdapter.setStatusManager(getTwitterService().getStatusManager());
         }
         limitCount = users.size() * 256;
     }
@@ -754,7 +746,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         this.blockingDoubleClick = blockingDoubleClick;
     }
 
-    private boolean isFakeStatus(T element) {
+    private static boolean isFakeStatus(TwitterResponse element) {
         return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
     }
 

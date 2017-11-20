@@ -68,7 +68,7 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
     }
 
     override fun onDetach() {
-        if (isServiceBound) {
+        if (isTwitterServiceBound) {
             statusManager.removeStatusListener(this)
         }
         super.onDetach()

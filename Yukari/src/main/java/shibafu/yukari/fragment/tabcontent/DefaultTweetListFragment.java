@@ -138,7 +138,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     @Override
     public void onDetach() {
-        if (isServiceBound() && getStatusManager() != null) {
+        if (isTwitterServiceBound() && getStatusManager() != null) {
             getStatusManager().removeStatusListener(this);
         }
         super.onDetach();
