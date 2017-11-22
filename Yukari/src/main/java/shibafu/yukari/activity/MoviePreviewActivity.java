@@ -14,6 +14,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.media2.impl.TwitterVideo;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -88,7 +89,7 @@ public class MoviePreviewActivity extends AppCompatActivity {
         tweetView = (TweetView) findViewById(R.id.twvPreviewStatus);
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(status);
+            tweetView.setStatus(new TwitterStatus(status));
         }
 
         findViewById(R.id.ibPreviewBrowser).setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));

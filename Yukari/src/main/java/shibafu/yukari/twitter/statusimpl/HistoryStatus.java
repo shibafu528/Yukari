@@ -1,12 +1,13 @@
 package shibafu.yukari.twitter.statusimpl;
 
-import java.util.Date;
-
 import twitter4j.Status;
 import twitter4j.User;
 
+import java.util.Date;
+
 /**
  * Created by shibafu on 15/02/07.
+ * @deprecated Should use {@link shibafu.yukari.entity.NotifyHistory}
  */
 public class HistoryStatus extends FakeStatus{
     public static final int KIND_FAVED = 0;

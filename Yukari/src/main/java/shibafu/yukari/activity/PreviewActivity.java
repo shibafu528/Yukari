@@ -43,6 +43,7 @@ import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.service.BitmapDecoderService;
 import shibafu.yukari.service.IBitmapDecoderService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
@@ -522,7 +523,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(status);
+            tweetView.setStatus(new TwitterStatus(status));
         } else {
             tweetView.setVisibility(View.GONE);
         }

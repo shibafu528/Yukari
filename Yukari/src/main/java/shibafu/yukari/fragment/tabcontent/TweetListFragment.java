@@ -29,6 +29,7 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -261,12 +262,12 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         local.requestDisallowInterceptTouchEvent();
 
-                        PreformedStatus status = (PreformedStatus) element;
+                        PreformedStatus status = (PreformedStatus) ((TwitterStatus) element).getStatus();
 
                         TweetView tweetView = (TweetView) swipeActionStatusView.findViewById(R.id.swipeActionStatus);
                         tweetView.setMode(StatusView.Mode.DEFAULT);
                         tweetView.setUserRecords(status.getRepresentUser().toSingleList());
-                        tweetView.setStatus(status);
+                        tweetView.setStatus(element);
 
                         swipeActionStatusView.setVisibility(View.VISIBLE);
 

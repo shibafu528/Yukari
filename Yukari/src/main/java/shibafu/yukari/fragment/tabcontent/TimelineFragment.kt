@@ -5,13 +5,14 @@ import android.support.v4.app.ListFragment
 import android.view.View
 import android.widget.Toast
 import shibafu.yukari.common.TweetAdapter
+import shibafu.yukari.entity.Status
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
 open class TimelineFragment : ListFragment(), TimelineTab {
-    protected val statuses: MutableList<Any> = arrayListOf() // TODO :thinking_face:
+    protected val statuses: MutableList<Status> = arrayListOf()
     protected val users: MutableList<AuthUserRecord> = arrayListOf()
 
     protected var statusAdapter: TweetAdapter? = null

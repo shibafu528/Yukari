@@ -22,17 +22,16 @@ import shibafu.yukari.R
 import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.UserExtras
+import shibafu.yukari.entity.Status
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.TweetCommonDelegate
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
-import twitter4j.TwitterResponse
 
 /**
  * タイムラインの要素を表示するためのビューの基本部分
  */
 abstract class StatusView : RelativeLayout {
-    var status: TwitterResponse? = null
+    var status: Status? = null
         set(value) {
             field = value
             updateView()
@@ -43,9 +42,6 @@ abstract class StatusView : RelativeLayout {
 
     // EventListener
     var onTouchProfileImageIconListener: OnTouchProfileImageIconListener? = null
-
-    // Delegate
-    protected abstract val delegate: TweetCommonDelegate
 
     // SharedPref
     protected val pref: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -113,7 +109,9 @@ abstract class StatusView : RelativeLayout {
      * 名前欄の表示を更新する。
      */
     protected open fun updateName(typeface: Typeface, fontSize: Float) {
-        val user = delegate.getUser(status)
+        val status = status ?: return
+
+        val user = status.user
         val displayName = if (pref.getBoolean("pref_remove_name_newline", false)) { user.name.replace("\n", "") } else { user.name }
 
         tvName.typeface = typeface
@@ -125,16 +123,18 @@ abstract class StatusView : RelativeLayout {
      * 本文欄の表示を更新する。
      */
     protected open fun updateText(typeface: Typeface, fontSize: Float) {
+        val status = status ?: return
+
         tvText.typeface = typeface
         tvText.textSize = fontSize
 
         // ユーザー設定に応じたテキストの加工を行う
-        val text = decorateText(delegate.getText(status))
+        val text = decorateText(status.text)
 
         // ショート表示の場合はScreenNameと結合して表示、そうでなければそのまま表示
         if (pref.getBoolean("pref_mode_singleline", false) && Mode.DETAIL or Mode.PREVIEW and mode == 0) {
             val sb = SpannableStringBuilder()
-            sb.append(delegate.getUser(status).screenName)
+            sb.append(status.user.screenName)
             sb.setSpan(StyleSpan(Typeface.BOLD), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.setSpan(ForegroundColorSpan(Color.parseColor("#ff419b38")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.append(" ")
@@ -150,20 +150,24 @@ abstract class StatusView : RelativeLayout {
      */
     @SuppressLint("SetTextI18n")
     protected open fun updateTimestamp(typeface: Typeface, fontSize: Float) {
+        val status = status ?: return
+
         tvTimestamp.typeface = typeface
         tvTimestamp.textSize = fontSize * 0.8f
-        tvTimestamp.text = StringUtil.formatDate(delegate.getCreatedAt(status)) + " via " + delegate.getSource(status)
+        tvTimestamp.text = StringUtil.formatDate(status.createdAt) + " via " + status.source
     }
 
     /**
      * 受信者欄の表示を更新する。
      */
     protected open fun updateReceiverText(typeface: Typeface, fontSize: Float) {
+        val status = status ?: return
+
         if (pref.getBoolean("pref_show_received", false)) {
             tvReceived.visibility = View.VISIBLE
             tvReceived.typeface = typeface
             tvReceived.textSize = fontSize * 0.8f
-            tvReceived.text = String.format("Received from @%s", delegate.getRecipientScreenName(status))
+            tvReceived.text = String.format("Received from @%s", status.recipientScreenName)
         } else {
             tvReceived.visibility = View.GONE
         }
@@ -173,17 +177,19 @@ abstract class StatusView : RelativeLayout {
      * アイコンの表示を更新する。
      */
     protected open fun updateIcon() {
-        val user = delegate.getUser(status)
+        val status = status ?: return
+        val user = status.user
 
         val imageUrl = if (pref.getBoolean("pref_narrow", false))
-                           user.profileImageURLHttps
+                           user.profileImageUrl
                        else
-                           user.biggerProfileImageURLHttps
+                           user.biggerProfileImageUrl
 
         if (ivIcon.tag == null || ivIcon.tag != imageUrl) {
             ImageLoaderTask.loadProfileIcon(context, ivIcon, imageUrl)
         }
 
+        // TODO: onTouchProfileImageIconListenerがTwitter用なので今は型判定してる
         val onTouchProfileImageIconListener = onTouchProfileImageIconListener
         if (onTouchProfileImageIconListener != null) {
             ivIcon.setOnTouchListener({ _, event -> onTouchProfileImageIconListener.onTouch(status, this, event) })
@@ -194,7 +200,9 @@ abstract class StatusView : RelativeLayout {
      * インジケーターの表示を更新する。
      */
     protected open fun updateIndicator() {
-        if (delegate.getUser(status).isProtected) {
+        val status = status ?: return
+
+        if (status.user.isProtected) {
             ivProtected.visibility = View.VISIBLE
         } else {
             ivProtected.visibility = View.GONE
@@ -205,12 +213,14 @@ abstract class StatusView : RelativeLayout {
      * 装飾的な部分のプロパティを更新する。
      */
     protected open fun updateDecoration() {
+        val status = status ?: return
+
         // 背景リソースを設定
-        val statusRelation = delegate.getStatusRelation(userRecords, status)
+        val statusRelation = status.getStatusRelation(userRecords)
         if (mode != Mode.PREVIEW) {
             when (statusRelation) {
-                TweetCommonDelegate.REL_MENTION -> setBackgroundResource(bgMentionResId)
-                TweetCommonDelegate.REL_OWN -> setBackgroundResource(bgOwnResId)
+                Status.RELATION_MENTIONED_TO_ME -> setBackgroundResource(bgMentionResId)
+                Status.RELATION_OWNED -> setBackgroundResource(bgOwnResId)
                 else -> setBackgroundResource(bgDefaultResId)
             }
         }
@@ -302,7 +312,7 @@ abstract class StatusView : RelativeLayout {
     }
 
     interface OnTouchProfileImageIconListener {
-        fun onTouch(element: TwitterResponse?, v: View, event: MotionEvent): Boolean
+        fun onTouch(element: Status?, v: View, event: MotionEvent): Boolean
     }
 
     companion object {

@@ -4,17 +4,13 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
-import shibafu.yukari.twitter.TweetCommon
-import shibafu.yukari.twitter.TweetCommonDelegate
+import shibafu.yukari.twitter.entity.TwitterMessage
 import twitter4j.DirectMessage
 
 /**
  * [DirectMessage]を表示するためのビュー
  */
 class MessageView : StatusView {
-    // Delegate
-    override val delegate: TweetCommonDelegate = TweetCommon.newInstance(DirectMessage::class.java)
-
     constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr)
@@ -23,7 +19,7 @@ class MessageView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val message = status as DirectMessage
+        val message = (status as TwitterMessage).message
 
         tvTimestamp.text = String.format("%s to @%s / %s",
                 tvTimestamp.text,
@@ -33,7 +29,7 @@ class MessageView : StatusView {
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val message = status as DirectMessage
+        val message = (status as TwitterMessage).message
 
         ivAccountColor.setBackgroundColor(Color.TRANSPARENT)
         for (authUserRecord in userRecords) {

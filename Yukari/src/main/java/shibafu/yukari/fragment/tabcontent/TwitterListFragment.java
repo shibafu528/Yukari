@@ -28,18 +28,23 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapter;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.entity.TwitterMessage;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
+import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -216,7 +221,21 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         getListView().addFooterView(footerView);
 
         if (elementClass != null) {
-            tweetAdapter = new TweetAdapter(getActivity(), users, null, elements);
+            tweetAdapter = new TweetAdapter(getActivity(), users, null, new AbstractList<Status>() {
+                @Override
+                public Status get(int index) {
+                    if (commonDelegate instanceof TweetCommon.StatusCommonDelegate) {
+                        return new TwitterStatus((twitter4j.Status) elements.get(index));
+                    } else {
+                        return new TwitterMessage((DirectMessage) elements.get(index));
+                    }
+                }
+
+                @Override
+                public int size() {
+                    return elements.size();
+                }
+            });
             setListAdapter(tweetAdapter);
         }
 

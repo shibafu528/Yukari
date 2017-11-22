@@ -15,21 +15,20 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
-import shibafu.yukari.twitter.TweetCommon
-import shibafu.yukari.twitter.TweetCommonDelegate
+import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
 import java.util.*
 
+// TODO: PreformedStatusに頼るの限界では… 互換性維持用のEntityに下がってもらって、TwitterStatusを使ったほうがよさそう
+// もっともマージ処理をどこに付けるかとかがあるが…
+
 /**
  * [PreformedStatus]を表示するためのビュー
  */
 class TweetView : StatusView {
-    // Delegate
-    override val delegate: TweetCommonDelegate = TweetCommon.newInstance(PreformedStatus::class.java)
-
     // 背景リソースID
     private val bgRetweetResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetRetweet)
 
@@ -49,7 +48,7 @@ class TweetView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val status = status as PreformedStatus
+        val status = typedStatus//status as PreformedStatus
 
         // ジオタグの表示
         if (status.originStatus.geoLocation != null) {
@@ -69,7 +68,7 @@ class TweetView : StatusView {
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val status = status as PreformedStatus
+        val status = typedStatus//status as PreformedStatus
 
         // ふぁぼアイコンの表示
         if (status.originStatus.isFavoritedSomeone) {
@@ -89,7 +88,7 @@ class TweetView : StatusView {
     @SuppressLint("SetTextI18n")
     override fun updateDecoration() {
         super.updateDecoration()
-        val status = status as PreformedStatus
+        val status = typedStatus// status as PreformedStatus
 
         // 添付対応
         updateAttaches(status)
@@ -133,7 +132,7 @@ class TweetView : StatusView {
                                 it.userRecords = userRecords
                                 it.userExtras = userExtras
                                 it.mode = mode or Mode.INCLUDE
-                                it.status = StatusManager.getReceivedStatuses().get(quoteId)
+                                it.status = TwitterStatus(StatusManager.getReceivedStatuses().get(quoteId))
                             }
                             flInclude.addView(tv)
                         }
@@ -153,7 +152,7 @@ class TweetView : StatusView {
 
     override fun decorateText(text: String): String {
         var decoratedText = super.decorateText(text)
-        val status = status as PreformedStatus
+        val status = typedStatus //status as PreformedStatus
 
         if (mode == Mode.DEFAULT && status.isTooManyRepeatText && pref.getBoolean("pref_shorten_repeat_text", false)) {
             decoratedText = status.repeatedSequence + "\n...(repeat)..."
@@ -234,4 +233,8 @@ class TweetView : StatusView {
             llAttach.visibility = View.GONE
         }
     }
+
+    // TODO: はよ消せ
+    private inline val typedStatus: PreformedStatus
+        get() = (status as TwitterStatus).status as PreformedStatus
 }

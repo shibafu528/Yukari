@@ -21,6 +21,7 @@ import shibafu.yukari.fragment.status.StatusMainFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -103,7 +104,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             tweetView.setUserRecords(user.toSingleList());
         }
         tweetView.setMode(StatusView.Mode.DETAIL);
-        tweetView.setStatus(status);
+        tweetView.setStatus(new TwitterStatus(status));
         if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
                 || status.getInReplyToStatusId() > 0) {
             tweetView.setOnClickListener(v -> {

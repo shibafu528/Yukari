@@ -8,8 +8,9 @@ import twitter4j.User;
 import java.util.Date;
 
 /**
-* Created by shibafu on 14/06/19.
-*/
+ * Created by shibafu on 14/06/19.
+ * @deprecated Should use {@link shibafu.yukari.entity.LoadMarker}
+ */
 public class LoadMarkerStatus extends FakeStatus {
     private final long anchorTweetId;
     private final long userId;

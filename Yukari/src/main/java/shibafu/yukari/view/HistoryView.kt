@@ -4,8 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
-import shibafu.yukari.twitter.TweetCommon
-import shibafu.yukari.twitter.TweetCommonDelegate
+import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.twitter.statusimpl.HistoryStatus
 import shibafu.yukari.util.StringUtil
 
@@ -13,9 +12,6 @@ import shibafu.yukari.util.StringUtil
  * Historyタブの[HistoryStatus]を表示するためのビュー
  */
 class HistoryView : StatusView {
-    // Delegate
-    override val delegate: TweetCommonDelegate = TweetCommon.newInstance(HistoryStatus::class.java)
-
     constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr)
@@ -24,9 +20,9 @@ class HistoryView : StatusView {
     override fun updateName(typeface: Typeface, fontSize: Float) {
         super.updateName(typeface, fontSize)
 
-        val historyStatus = status as HistoryStatus
+        val history = status as NotifyHistory
 
-        tvName.text = String.format("@%sさんが%s", historyStatus.user.screenName, historyStatus.kindString)
+        tvName.text = String.format("@%sさんが%s", history.user.screenName, history.kindString)
     }
 
     override fun updateText(typeface: Typeface, fontSize: Float) {
@@ -36,15 +32,15 @@ class HistoryView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val historyStatus = status as HistoryStatus
+        val history = status as NotifyHistory
 
-        tvTimestamp.text = StringUtil.formatDate(historyStatus.createdAt)
+        tvTimestamp.text = StringUtil.formatDate(history.createdAt)
     }
 
     override fun updateDecoration() {
         super.updateDecoration()
 
-        val historyStatus = status as HistoryStatus
+        val history = status as NotifyHistory
 
         flInclude.visibility = View.VISIBLE
         val include = if (flInclude.childCount == 0) {
@@ -57,15 +53,14 @@ class HistoryView : StatusView {
         } else {
             flInclude.getChildAt(0) as TweetView
         }
-        include.status = historyStatus.status
+        include.status = history.status
     }
 
-    val HistoryStatus.kindString: String
-        get() {
-            return when (kind) {
+    val NotifyHistory.kindString: String
+        get() =
+            when (kind) {
                 HistoryStatus.KIND_FAVED -> "お気に入り登録"
                 HistoryStatus.KIND_RETWEETED -> "リツイート"
                 else -> "反応"
             }
-        }
 }

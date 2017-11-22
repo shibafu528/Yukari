@@ -10,17 +10,17 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.entity.LoadMarker;
+import shibafu.yukari.entity.NotifyHistory;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.HistoryStatus;
-import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.entity.TwitterMessage;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.view.HistoryView;
 import shibafu.yukari.view.MessageView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
-import twitter4j.DirectMessage;
-import twitter4j.TwitterResponse;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class TweetAdapter extends BaseAdapter {
     private Context context;
-    private List statuses;
+    private List<Status> statuses;
     private List<AuthUserRecord> userRecords;
     private List<UserExtras> userExtras;
     private WeakReference<StatusManager> statusManager;
@@ -48,7 +48,7 @@ public class TweetAdapter extends BaseAdapter {
     public TweetAdapter(Context context,
                         List<AuthUserRecord> userRecords,
                         List<UserExtras> userExtras,
-                        List statuses) {
+                        List<Status> statuses) {
         this.context = context;
         this.statuses = statuses;
         this.userRecords = userRecords;
@@ -85,7 +85,7 @@ public class TweetAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
+    public Status getItem(int position) {
         return statuses.get(position);
     }
 
@@ -96,14 +96,14 @@ public class TweetAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        Object item = getItem(position);
-        if (item instanceof PreformedStatus && ((PreformedStatus) item).getBaseStatusClass() == LoadMarkerStatus.class) {
+        Status item = getItem(position);
+        if (item instanceof LoadMarker) {
             return VT_LOAD_MARKER;
-        } else if (item instanceof DirectMessage) {
+        } else if (item instanceof TwitterMessage) {
             return VT_MESSAGE;
-        } else if (item instanceof HistoryStatus) {
+        } else if (item instanceof NotifyHistory) {
             return VT_HISTORY;
-        } else if (item instanceof TwitterResponse) {
+        } else if (item instanceof TwitterStatus) {
             return VT_TWEET;
         }
         throw new UnsupportedOperationException("Unsupported Timeline Object!! : " + item.getClass().getName());
@@ -116,11 +116,7 @@ public class TweetAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Object item = getItem(position);
-        if (!(item instanceof TwitterResponse)) {
-            // TODO: ゆくゆくは対応したいですね
-            throw new UnsupportedOperationException("Unsupported Timeline Object!! : " + item.getClass().getName());
-        }
+        Status item = getItem(position);
 
         int vt = getItemViewType(position);
         switch (vt) {
@@ -146,8 +142,7 @@ public class TweetAdapter extends BaseAdapter {
                 statusView.setUserRecords(userRecords);
                 statusView.setUserExtras(userExtras);
                 statusView.setOnTouchProfileImageIconListener(onTouchProfileImageIconListener);
-                // TODO: ゆくゆくは対応したいですね
-                statusView.setStatus((TwitterResponse) item);
+                statusView.setStatus(item);
                 break;
             }
             case VT_LOAD_MARKER:
@@ -155,7 +150,7 @@ public class TweetAdapter extends BaseAdapter {
                     convertView = inflater.inflate(R.layout.row_loading, null);
                 }
 
-                LoadMarkerStatus loadMarker = (LoadMarkerStatus) ((PreformedStatus) item).getBaseStatus();
+                LoadMarker loadMarker = (LoadMarker) item;
 
                 View progressBar = convertView.findViewById(R.id.pbLoading);
                 TextView textView = (TextView) convertView.findViewById(R.id.tvLoading);
