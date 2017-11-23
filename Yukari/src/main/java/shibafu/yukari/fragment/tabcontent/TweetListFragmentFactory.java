@@ -2,6 +2,7 @@ package shibafu.yukari.fragment.tabcontent;
 
 import android.os.Bundle;
 
+import android.support.v4.app.Fragment;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 
@@ -10,8 +11,10 @@ import shibafu.yukari.common.TabType;
  */
 public class TweetListFragmentFactory {
 
-    public static TwitterListFragment newInstance(int tabType) {
+    public static Fragment newInstance(int tabType) {
         switch (tabType) {
+            case TabType.TABTYPE_DON_PUBLIC:
+                return new TimelineFragment();
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
                 return new SearchListFragment();
@@ -28,8 +31,8 @@ public class TweetListFragmentFactory {
         }
     }
 
-    public static TwitterListFragment newInstance(TabInfo tabInfo) {
-        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
+    public static Fragment newInstance(TabInfo tabInfo) {
+        Fragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_SEARCH:
@@ -51,8 +54,8 @@ public class TweetListFragmentFactory {
         return fragment;
     }
 
-    public static TwitterListFragment newInstanceWithFilter(TabInfo tabInfo) {
-        TwitterListFragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
+    public static Fragment newInstanceWithFilter(TabInfo tabInfo) {
+        Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
         StringBuilder query = new StringBuilder();
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_HOME:

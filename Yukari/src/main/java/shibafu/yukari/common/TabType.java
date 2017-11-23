@@ -16,4 +16,6 @@ public class TabType {
     public static final int TABTYPE_TRACE = 9;
     public static final int TABTYPE_FAVORITE = 10;
     public static final int TABTYPE_BOOKMARK = 11;
+
+    public static final int TABTYPE_DON_PUBLIC = 1 << 8;
 }

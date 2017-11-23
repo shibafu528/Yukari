@@ -1,17 +1,23 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.os.AsyncTask
 import android.os.Bundle
-import android.support.v4.app.ListFragment
 import android.view.View
 import android.widget.Toast
+import com.google.gson.Gson
+import com.sys1yagi.mastodon4j.MastodonClient
+import com.sys1yagi.mastodon4j.api.method.Public
+import okhttp3.OkHttpClient
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.entity.Status
+import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListFragment(), TimelineTab {
+open class TimelineFragment : ListTwitterFragment(), TimelineTab {
     protected val statuses: MutableList<Status> = arrayListOf()
     protected val users: MutableList<AuthUserRecord> = arrayListOf()
 
@@ -20,6 +26,7 @@ open class TimelineFragment : ListFragment(), TimelineTab {
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         statusAdapter = TweetAdapter(context, users, null, statuses)
+        listAdapter = statusAdapter
     }
 
     override fun onDetach() {
@@ -88,6 +95,27 @@ open class TimelineFragment : ListFragment(), TimelineTab {
             }
         }
     }
+
+    override fun onServiceConnected() {
+        object : AsyncTask<Any, Any, List<DonStatus>>() {
+            override fun doInBackground(vararg params: Any?): List<DonStatus> {
+                val donClient = MastodonClient.Builder("social.mikutter.hachune.net", OkHttpClient.Builder(), Gson()).build()
+                val public = Public(donClient)
+                val res = public.getLocalPublic().execute()
+                return res.part.map { DonStatus(it, twitterService.primaryUser) }.sortedByDescending { it.id }
+            }
+
+            override fun onPostExecute(result: List<DonStatus>?) {
+                super.onPostExecute(result)
+                result?.forEach {
+                    statuses.add(0, it)
+                    statusAdapter?.notifyDataSetChanged()
+                }
+            }
+        }.execute()
+    }
+
+    override fun onServiceDisconnected() {}
 }
 
 /*

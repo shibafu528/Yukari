@@ -34,6 +34,7 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnLongClick;
 import butterknife.OnTouch;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
@@ -348,6 +349,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         if (currentPage instanceof TimelineTab && sharedPreferences.getBoolean("pref_quick_scroll_to_top", false)) {
             ((TimelineTab) currentPage).scrollToTop();
         }
+    }
+
+    @OnLongClick(R.id.llMainFooterRight)
+    boolean onLongClickFooterSpace() {
+        TabInfo tabInfo = new TabInfo(TabType.TABTYPE_DON_PUBLIC, pageList.size(), getTwitterService().getPrimaryUser());
+        addTab(tabInfo);
+        viewPager.getAdapter().notifyDataSetChanged();
+        viewPager.setCurrentItem(tabInfo.getOrder());
+        return true;
     }
 
     @Override
