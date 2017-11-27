@@ -176,7 +176,4 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, SwipeRefreshLa
 /*
   TODO
   - AuthUserRecordでTwitter以外のユーザ情報は賄えるのか？
-  - TwitterResponseに代わる、何かStatusを表わす型が欲しい
-    - StatusViewもそれに対応する必要がある
-  - LimitedTLは最早標準でいいと思う
  */

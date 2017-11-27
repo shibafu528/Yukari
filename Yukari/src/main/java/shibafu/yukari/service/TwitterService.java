@@ -41,6 +41,8 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.linkage.StatusLoader;
+import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -105,6 +107,10 @@ public class TwitterService extends Service{
     private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
     //ネットワーク管理
+
+    //Timeline Pub/Sub
+    private StatusLoader statusLoader;
+    private TimelineHub timelineHub;
 
     //Twitter通信系
     private TwitterFactory twitterFactory;
@@ -186,6 +192,10 @@ public class TwitterService extends Service{
 
         //ステータスマネージャのセットアップ
         statusManager = new StatusManager(this);
+
+        //Timeline Pub/Subのセットアップ
+        statusLoader = new StatusLoader(this);
+        timelineHub = new TimelineHub(this);
 
         //オートミュート設定の読み込み
         updateAutoMuteConfig();
@@ -356,6 +366,9 @@ public class TwitterService extends Service{
 
         statusManager.shutdownAll();
         statusManager = null;
+
+        statusLoader = null;
+        timelineHub = null;
 
         twitterInstances.clear();
         twitterFactory = null;
@@ -651,6 +664,14 @@ public class TwitterService extends Service{
             throw new MissingTwitterInstanceException("Twitter インスタンスの取得エラー");
         }
         return twitter;
+    }
+
+    public StatusLoader getStatusLoader() {
+        return statusLoader;
+    }
+
+    public TimelineHub getTimelineHub() {
+        return timelineHub;
     }
 
     public StatusManager getStatusManager() {
