@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -32,7 +31,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
-import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
@@ -46,7 +44,6 @@ import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
-import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
@@ -399,124 +396,6 @@ public class StatusManager implements Releasable {
                 }.executeParallel();
             }
         }
-    }
-
-    /**
-     * 非同期RESTリクエストを開始します。結果はストリーミングと同一のインターフェースで配信されます。
-     * @param restTag 通信結果の配信用タグ
-     * @param userRecord 使用するアカウント
-     * @param query RESTリクエストクエリ
-     * @param pagingMaxId {@link Paging#maxId} に設定する値、負数の場合は設定しない
-     * @param appendLoadMarker ページングのマーカーとして {@link LoadMarkerStatus} も配信するかどうか
-     * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
-     * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
-     */
-    public long requestRestQuery(@NonNull final String restTag,
-                                 @NonNull final AuthUserRecord userRecord,
-                                 @NonNull final RestQuery query,
-                                 final long pagingMaxId,
-                                 final boolean appendLoadMarker,
-                                 final String loadMarkerTag) {
-        final boolean isNarrowMode = sharedPreferences.getBoolean("pref_narrow", false);
-        final long taskKey = System.currentTimeMillis();
-        ParallelAsyncTask<Void, Void, Void> task = new ParallelAsyncTask<Void, Void, Void>() {
-            private TwitterException exception;
-
-            @Override
-            protected Void doInBackground(Void... params) {
-                Log.d("StatusManager", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, restTag, query.getClass().getName()));
-
-                Stream stream = new RestStream(context, userRecord, restTag);
-                Twitter twitter = service.getTwitter(userRecord);
-                if (twitter == null) {
-                    return null;
-                }
-
-                try {
-                    Paging paging = new Paging();
-                    if (!isNarrowMode) paging.setCount(100);
-                    if (-1 < pagingMaxId) paging.setMaxId(pagingMaxId);
-
-                    List<twitter4j.Status> responseList = query.getRestResponses(twitter, paging);
-                    if (responseList == null) {
-                        responseList = new ArrayList<>();
-                    }
-                    if (appendLoadMarker) {
-                        LoadMarkerStatus markerStatus;
-
-                        if (responseList.isEmpty()) {
-                            markerStatus = new LoadMarkerStatus(paging.getMaxId(), paging.getMaxId(), userRecord.NumericId, loadMarkerTag);
-                        } else {
-                            twitter4j.Status last = responseList.get(responseList.size() - 1);
-                            markerStatus = new LoadMarkerStatus(last.getId() - 1, last.getId(), userRecord.NumericId, loadMarkerTag);
-                        }
-
-                        responseList.add(0, markerStatus);
-                    }
-
-                    if (isCancelled()) return null;
-
-                    // StreamManagerに流す
-                    for (twitter4j.Status status : responseList) {
-                        listener.onStatus(stream, status);
-                    }
-
-                    Log.d("StatusManager", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size()));
-                } catch (TwitterException e) {
-                    e.printStackTrace();
-                    exception = e;
-                } finally {
-                    listener.onRestCompleted(stream, taskKey);
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void result) {
-                workingRestQueries.remove(taskKey);
-                if (exception != null) {
-                    switch (exception.getStatusCode()) {
-                        case 429:
-                            Toast.makeText(context,
-                                    String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
-                                            userRecord.ScreenName,
-                                            exception.getRateLimitStatus().getSecondsUntilReset() / 60,
-                                            exception.getRateLimitStatus().getSecondsUntilReset() % 60),
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-                        default:
-                            String template;
-                            if (exception.isCausedByNetworkIssue()) {
-                                template = "[@%s]\n通信エラー: %d:%d\n%s";
-                            } else {
-                                template = "[@%s]\nエラー: %d:%d\n%s";
-                            }
-                            Toast.makeText(context,
-                                    String.format(template,
-                                            userRecord.ScreenName,
-                                            exception.getStatusCode(),
-                                            exception.getErrorCode(),
-                                            exception.getErrorMessage()),
-                                    Toast.LENGTH_SHORT).show();
-                            break;
-                    }
-                }
-            }
-        };
-        task.executeParallel();
-        workingRestQueries.put(taskKey, task);
-        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, restTag));
-
-        return taskKey;
-    }
-
-    /**
-     * 非同期RESTリクエストの実行状態を取得します。
-     * @param taskKey {@link #requestRestQuery(String, AuthUserRecord, RestQuery, long, boolean, String)} の返り値
-     * @return 実行中かつ中断されていなければ true
-     */
-    public boolean isWorkingRestQuery(long taskKey) {
-        return workingRestQueries.get(taskKey) != null && !workingRestQueries.get(taskKey).isCancelled();
     }
 
     /**

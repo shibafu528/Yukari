@@ -6,7 +6,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.RestQuery
+import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -17,7 +17,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
 public data class User(override val sourceAccount: AuthUserRecord?, val target: String) : FilterSource {
     private val targetId: Long? = if (target.startsWith("#")) target.substring(1).toLong() else null
 
-    override fun getRestQuery() = RestQuery { twitter, paging ->
+    override fun getRestQuery() = TwitterRestQuery { twitter, paging ->
         if (targetId == null) {
             twitter.getUserTimeline(target, paging)
         } else {

@@ -3,8 +3,8 @@ package shibafu.yukari.filter.source
 import android.content.Context
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.RestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/06/07.
  */
-public interface FilterSource{
+interface FilterSource{
     /**
      * 抽出ソースへのアクセスを行うための認証情報を持つユーザアカウントです。
      * 一切の権限を要求しないソースの場合、nullになります。

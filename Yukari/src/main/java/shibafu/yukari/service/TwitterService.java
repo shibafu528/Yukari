@@ -194,8 +194,8 @@ public class TwitterService extends Service{
         statusManager = new StatusManager(this);
 
         //Timeline Pub/Subのセットアップ
-        statusLoader = new StatusLoader(this);
         timelineHub = new TimelineHub(this);
+        statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
 
         //オートミュート設定の読み込み
         updateAutoMuteConfig();
@@ -613,6 +613,16 @@ public class TwitterService extends Service{
     public String[] getHashCache() {
         List<String> hashCache = statusManager.getHashCache().getAll();
         return hashCache.toArray(new String[hashCache.size()]);
+    }
+
+    /**
+     * 指定のアカウントに対応したAPIアクセスクライアントのインスタンスを取得します。結果はアカウント毎にキャッシュされます。
+     * @param userRecord 認証情報。
+     * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
+     */
+    public Object getApiClient(@NonNull AuthUserRecord userRecord) {
+        // TODO: Not Implemented
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     /**

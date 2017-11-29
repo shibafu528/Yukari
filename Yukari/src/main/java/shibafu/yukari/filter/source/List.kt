@@ -4,7 +4,7 @@ import android.content.Context
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.RestQuery
+import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -22,7 +22,7 @@ public data class List(override val sourceAccount: AuthUserRecord?, val target: 
         this.slug = slug
     }
 
-    override fun getRestQuery() = RestQuery { twitter, paging ->
+    override fun getRestQuery() = TwitterRestQuery { twitter, paging ->
         twitter.getUserListStatuses(ownerScreenName, slug, paging)
     }
 

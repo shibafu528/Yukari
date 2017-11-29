@@ -6,7 +6,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.RestQuery
+import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -14,9 +14,9 @@ import shibafu.yukari.twitter.streaming.FilterStream
  *
  * Created by shibafu on 15/07/26.
  */
-public data class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
+data class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
 
-    override fun getRestQuery() = RestQuery { twitter, paging -> twitter.getHomeTimeline(paging) }
+    override fun getRestQuery() = TwitterRestQuery({ twitter, paging -> twitter.getHomeTimeline(paging) })
 
     override fun requireUserStream(): Boolean = true
 

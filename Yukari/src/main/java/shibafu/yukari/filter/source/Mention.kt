@@ -8,7 +8,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusmanager.RestQuery
+import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
@@ -18,7 +18,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  */
 public data class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
 
-    override fun getRestQuery() = RestQuery { twitter, paging -> twitter.getMentionsTimeline(paging) }
+    override fun getRestQuery() = TwitterRestQuery { twitter, paging -> twitter.getMentionsTimeline(paging) }
 
     override fun requireUserStream(): Boolean = true
 
