@@ -1,6 +1,7 @@
 package shibafu.yukari.entity
 
 import android.support.annotation.IntDef
+import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
 
 /**
@@ -13,6 +14,16 @@ class NotifyHistory(timeAtMillis: Long, @Kind val kind: Int, eventBy: User, val 
     override val recipientScreenName: String = ""
     override val createdAt: Date by lazy { Date(timeAtMillis) }
     override val source: String = ""
+    override var representUser: AuthUserRecord
+        get() = status.representUser
+        set(value) {
+            status.representUser = value
+        }
+    override var receivedUsers: MutableList<AuthUserRecord>
+        get() = status.receivedUsers
+        set(value) {
+            status.receivedUsers = value
+        }
 
     companion object {
         const val KIND_FAVED = 0L

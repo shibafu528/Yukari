@@ -6,7 +6,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 import twitter4j.DirectMessage
 import java.util.*
 
-class TwitterMessage(val message: DirectMessage) : Status {
+class TwitterMessage(val message: DirectMessage, override var representUser: AuthUserRecord) : Status {
     override val id: Long
         get() = message.id
 
@@ -23,6 +23,8 @@ class TwitterMessage(val message: DirectMessage) : Status {
 
     override val source: String
         get() = "DirectMessage"
+
+    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Long {
         userRecords.forEach { userRecord ->

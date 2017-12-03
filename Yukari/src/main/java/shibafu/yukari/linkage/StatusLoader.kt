@@ -52,13 +52,13 @@ class StatusLoader(private val context: Context,
 
                 try {
                     val limitCount = if (isNarrowMode) REQUEST_COUNT_NARROW else REQUEST_COUNT_NORMAL
-                    val responseList = query.getRestResponses(api, pagingMaxId, limitCount, appendLoadMarker, loadMarkerTag)
+                    val responseList = query.getRestResponses(userRecord, api, pagingMaxId, limitCount, appendLoadMarker, loadMarkerTag)
 
                     if (isCancelled) return null
 
                     // StreamManagerに流す
                     for (status in responseList) {
-                        timelineHub.onStatus(status, userRecord)
+                        timelineHub.onStatus(status)
                     }
 
                     Log.d("StatusLoader", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size))

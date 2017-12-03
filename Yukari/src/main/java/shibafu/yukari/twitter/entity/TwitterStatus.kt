@@ -6,7 +6,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import java.util.*
 
-class TwitterStatus(val status: twitter4j.Status) : Status {
+class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status {
     override val id: Long
         get() = status.id
 
@@ -23,6 +23,8 @@ class TwitterStatus(val status: twitter4j.Status) : Status {
 
     override val source: String
         get() = status.source
+
+    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Long {
         userRecords.forEach { userRecord ->

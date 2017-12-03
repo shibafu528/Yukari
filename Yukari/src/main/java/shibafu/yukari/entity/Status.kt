@@ -42,6 +42,16 @@ interface Status : Comparable<Status> {
     val source: String
 
     /**
+     * 代表受信アカウント
+     */
+    var representUser: AuthUserRecord
+
+    /**
+     * 同一のステータスを受信した全てのアカウント
+     */
+    var receivedUsers: MutableList<AuthUserRecord>
+
+    /**
      * 自分にとってどのような関係性のあるメッセージか判断
      */
     @Relation

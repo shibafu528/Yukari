@@ -14,20 +14,20 @@ import twitter4j.TwitterException
  * RestQueryのTwitter用テンプレート
  */
 class TwitterRestQuery(private val resolver: (Twitter, Paging) -> ResponseList<twitter4j.Status>) : RestQuery {
-    override fun getRestResponses(api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): MutableList<Status> {
+    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): MutableList<Status> {
         api as Twitter
         val paging = Paging()
         paging.maxId = maxId
         paging.count = limitCount
         try {
-            val responseList: MutableList<Status> = resolver(api, paging).map { TwitterStatus(it) }.toMutableList()
+            val responseList: MutableList<Status> = resolver(api, paging).map { TwitterStatus(it, userRecord) }.toMutableList()
 
             if (appendLoadMarker) {
                 responseList += if (responseList.isEmpty()) {
-                    LoadMarker(maxId, "twitter.com", maxId, api.id, loadMarkerTag)
+                    LoadMarker(maxId, "twitter.com", maxId, userRecord, loadMarkerTag)
                 } else {
                     val last = responseList.last()
-                    LoadMarker(last.id - 1, "twitter.com", last.id, api.id, loadMarkerTag)
+                    LoadMarker(last.id - 1, "twitter.com", last.id, userRecord, loadMarkerTag)
                 }
             }
 

@@ -6,12 +6,13 @@ import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
+import shibafu.yukari.twitter.AuthUserRecord
 
 /**
  * RestQueryのMastodon用テンプレート
  */
 class MastodonRestQuery(private val resolver: (MastodonClient, Range) -> List<Status>) : RestQuery {
-    override fun getRestResponses(api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): List<Status> {
+    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): List<Status> {
         api as MastodonClient
         val range = Range(maxId = maxId, limit = limitCount)
 
