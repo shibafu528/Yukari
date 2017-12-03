@@ -104,9 +104,6 @@ public class StatusManager implements Releasable {
     //ステータス
     private boolean isStarted;
 
-    //実行中の非同期REST
-    private LongSparseArray<ParallelAsyncTask<Void, Void, Void>> workingRestQueries = new LongSparseArray<>();
-
     //Streaming
     private List<StreamUser> streamUsers = new ArrayList<>();
     private Map<AuthUserRecord, FilterStream> filterMap = new HashMap<>();
@@ -140,16 +137,6 @@ public class StatusManager implements Releasable {
         streamUsers.clear();
         statusListeners.sync(List::clear);
         statusBuffer.sync(Map::clear);
-
-        int workingCount = workingRestQueries.size();
-        for (int i = 0; i < workingCount; i++) {
-            long key = workingRestQueries.keyAt(i);
-            ParallelAsyncTask<Void, Void, Void> task = workingRestQueries.get(key);
-
-            if (task != null && !task.isCancelled()) {
-                task.cancel(true);
-            }
-        }
 
         receivedStatuses.evictAll();
 

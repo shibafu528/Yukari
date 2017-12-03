@@ -26,7 +26,7 @@ class StatusLoader(private val context: Context,
 
     /**
      * 非同期RESTリクエストを開始します。
-     * @param restTag 通信結果の配信用タグ
+     * @param timelineId 通信結果の配信先識別子
      * @param userRecord 使用するアカウント
      * @param query RESTリクエストクエリ
      * @param pagingMaxId [Paging.maxId] に設定する値、負数の場合は設定しない
@@ -34,7 +34,7 @@ class StatusLoader(private val context: Context,
      * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
-    fun requestRestQuery(restTag: String,
+    fun requestRestQuery(timelineId: String,
                          userRecord: AuthUserRecord,
                          query: RestQuery,
                          pagingMaxId: Long,
@@ -46,7 +46,7 @@ class StatusLoader(private val context: Context,
             private var exception: RestQueryException? = null
 
             override fun doInBackground(vararg params: Void): Void? {
-                Log.d("StatusLoader", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, restTag, query.javaClass.name))
+                Log.d("StatusLoader", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, timelineId, query.javaClass.name))
 
                 val api = apiClientFactory(userRecord) ?: return null
 
@@ -61,19 +61,19 @@ class StatusLoader(private val context: Context,
                         timelineHub.onStatus(status)
                     }
 
-                    Log.d("StatusLoader", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, restTag, responseList.size))
+                    Log.d("StatusLoader", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, timelineId, responseList.size))
                 } catch (e: RestQueryException) {
                     e.printStackTrace()
                     exception = e
                 } finally {
-                    timelineHub.onRestRequestCompleted(restTag, taskKey)
+                    timelineHub.onRestRequestCompleted(timelineId, taskKey)
                 }
 
                 return null
             }
 
             override fun onPostExecute(result: Void) {
-                workingRequests.remove(taskKey)
+                workingRequests.delete(taskKey)
 
                 val exception = this.exception?.cause ?: return
                 when (exception) {
@@ -105,10 +105,15 @@ class StatusLoader(private val context: Context,
                     is Mastodon4jRequestException -> {}
                 }
             }
+
+            override fun onCancelled() {
+                workingRequests.delete(taskKey)
+                timelineHub.onRestRequestCancelled(timelineId, taskKey)
+            }
         }
         task.executeParallel()
         workingRequests.put(taskKey, task)
-        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, restTag))
+        Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, timelineId))
 
         return taskKey
     }
@@ -120,6 +125,18 @@ class StatusLoader(private val context: Context,
      */
     fun isRequestWorking(taskKey: Long): Boolean =
             workingRequests.get(taskKey) != null && !workingRequests.get(taskKey).isCancelled
+
+    /**
+     * 実行中の全てのリクエストをキャンセルします。
+     */
+    fun cancelAll() {
+        for (i in 0 until workingRequests.size()) {
+            val task = workingRequests[workingRequests.keyAt(i)]
+            if (task != null && !task.isCancelled) {
+                task.cancel(true)
+            }
+        }
+    }
 
     companion object {
         private const val REQUEST_COUNT_NORMAL = 100

@@ -367,6 +367,7 @@ public class TwitterService extends Service{
         statusManager.shutdownAll();
         statusManager = null;
 
+        statusLoader.cancelAll();
         statusLoader = null;
         timelineHub = null;
 
