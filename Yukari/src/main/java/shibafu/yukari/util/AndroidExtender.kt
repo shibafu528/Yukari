@@ -94,6 +94,10 @@ public fun Fragment.putDebugLog(s: String, vararg param: Any) {
     Log.d(LOG_TAG, java.lang.String.format(s, *param))
 }
 
+fun Any.putDebugLog(s: String) {
+    Log.d(javaClass.simpleName, s)
+}
+
 public fun <T> SparseArrayCompat<T>.forEach(operation: (Int, T) -> Unit) {
     for (i in 0..size()-1) {
         operation(keyAt(i), valueAt(i))

@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import shibafu.yukari.entity.Status
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.util.putDebugLog
+import java.util.*
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * [Status] の配信管理
@@ -12,6 +15,59 @@ import shibafu.yukari.service.TwitterService
 class TimelineHub(private val service: TwitterService) {
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+    // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
+    private val observers: MutableList<TimelineObserver> = arrayListOf()
+    private val eventQueues: MutableMap<String, Queue<TimelineEvent>> = hashMapOf()
+
+    /**
+     * タイムラインオブザーバの登録
+     * @param observer 登録したいオブザーバ
+     */
+    fun addObserver(observer: TimelineObserver) {
+        synchronized(observers) {
+            if (!observers.contains(observer)) {
+                putDebugLog("[${observer.timelineId}] Connected TimelineHub.")
+
+                observers += observer
+
+                // キューからのイベント再配信
+                synchronized(eventQueues) {
+                    if (eventQueues.containsKey(observer.timelineId)) {
+                        val queue = eventQueues[observer.timelineId]
+                        eventQueues.remove(observer.timelineId)
+
+                        if (queue != null) {
+                            putDebugLog("[${observer.timelineId}] ${queue.size} event(s) in queue.")
+
+                            while (!queue.isEmpty()) {
+                                observer.onTimelineEvent(queue.poll())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * タイムラインオブザーバの登録解除
+     * @param observer 解除したいオブザーバ
+     */
+    fun removeObserver(observer: TimelineObserver) {
+        synchronized(observers) {
+            if (observers.contains(observer)) {
+                putDebugLog("[${observer.timelineId}] Disconnected TimelineHub.")
+
+                observers -= observer
+
+                // イベントキューの作成
+                synchronized(eventQueues) {
+                    eventQueues[observer.timelineId] = LinkedBlockingQueue<TimelineEvent>()
+                }
+            }
+        }
+    }
 
     /**
      * [Status] の受信
