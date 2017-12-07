@@ -54,4 +54,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
                 rootNode
             ).evaluate(EvaluateContext(target, userRecords).apply { this.variables.putAll(variables) }).equals(true)
 
+    companion object {
+        val VOID_QUERY = FilterQuery(emptyList(), ValueNode(false))
+    }
 }

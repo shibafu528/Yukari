@@ -1,22 +1,37 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.preference.PreferenceManager
+import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ListView
+import android.widget.TextView
 import android.widget.Toast
 import shibafu.yukari.R
+import shibafu.yukari.activity.StatusActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
+import shibafu.yukari.entity.ExceptionStatus
+import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Status
+import shibafu.yukari.filter.FilterQuery
+import shibafu.yukari.filter.compiler.FilterCompilerException
+import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.AttrUtil
+import shibafu.yukari.util.defaultSharedPreferences
+import shibafu.yukari.util.putDebugLog
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
@@ -24,6 +39,8 @@ import shibafu.yukari.util.AttrUtil
 open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener {
     var title: String = ""
     var mode: Int = 0
+    var rawQuery: String = ""
+    var query: FilterQuery = FilterQuery.VOID_QUERY
 
     override val timelineId: String
         get() {
@@ -49,6 +66,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     private val handler: Handler = Handler(Looper.getMainLooper())
 
+    // Request
+    private val loadingTaskKeys = arrayListOf<Long>()
+    private val queryingLoadMarkers = LongSparseArray<Long>() // TaskKey, LoadMarker.Id
+
+    // DoubleClick Blocker
+    private var blockingDoubleClick = false
+    private var enableDoubleClickBlocker = false
+
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         when (mode) {
             TabType.TABTYPE_TRACE, TabType.TABTYPE_DM ->
@@ -61,6 +86,13 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         swipeRefreshLayout?.setOnRefreshListener(this)
 
         return v
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        enableDoubleClickBlocker = defaultSharedPreferences.getBoolean("pref_block_doubleclock", false)
+        blockingDoubleClick = false
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -76,6 +108,56 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
         listAdapter = null
         statusAdapter = null
+    }
+
+    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+        if (blockingDoubleClick) {
+            return
+        }
+
+        if (position < statuses.size) {
+            val result: Boolean = {
+                val clickedElement = statuses[position]
+                when (clickedElement) {
+                    is LoadMarker -> {
+                        if (clickedElement.taskKey < 0) {
+                            query.sources.firstOrNull { it.hashCode().toString() == clickedElement.loadMarkerTag }?.let {
+                                // リクエストの発行
+                                val userRecord = it.sourceAccount ?: return@let
+                                val restQuery = it.getRestQuery() ?: return@let
+                                val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
+                                        userRecord, restQuery,
+                                        clickedElement.id, true, it.hashCode().toString())
+                                clickedElement.taskKey = taskKey
+                                loadingTaskKeys += taskKey
+                                queryingLoadMarkers.put(taskKey, clickedElement.id)
+                                statusCapacity += 100
+                                // Viewの表示更新
+                                val visiblePosition = position - listView.firstVisiblePosition
+                                if (visiblePosition > -1) {
+                                    val view: View? = listView.getChildAt(visiblePosition)
+                                    view?.findViewById(R.id.pbLoading)?.visibility = View.VISIBLE
+                                    (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                                }
+                            }
+                        }
+                        true
+                    }
+                    is TwitterStatus -> {
+                        val intent = Intent(activity, StatusActivity::class.java)
+                        intent.putExtra(StatusActivity.EXTRA_STATUS, PreformedStatus(clickedElement.status, clickedElement.representUser))
+                        intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
+                        startActivity(intent)
+                        true
+                    }
+                    else -> false
+                }
+            }()
+            // コマンド実行成功後、次回onResumeまでクリックイベントを無視する
+            if (result && enableDoubleClickBlocker) {
+                blockingDoubleClick = true
+            }
+        }
     }
 
     override fun isCloseable(): Boolean = false
@@ -153,21 +235,101 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             statusAdapter?.setStatusManager(twitterService.statusManager)
         }
 
+        // クエリコンパイル
+        try {
+            query = QueryCompiler.compile(users, rawQuery)
+        } catch (e: FilterCompilerException) {
+            handler.post {
+                statuses.add(ExceptionStatus(Long.MAX_VALUE, users.first(),
+                        Exception("クエリのコンパイル中にエラーが発生しました。")))
+                statuses.add(ExceptionStatus(Long.MAX_VALUE - 1, users.first(), e))
+                statusAdapter?.notifyDataSetChanged()
+            }
+            query = FilterQuery.VOID_QUERY
+        }
+
         // イベント購読開始
         twitterService?.timelineHub?.addObserver(this)
+
+        // 初期読み込み
+        val statusLoader = twitterService?.statusLoader ?: return
+        query.sources.forEach { source ->
+            val userRecord = source.sourceAccount ?: return@forEach
+            val restQuery = source.getRestQuery() ?: return@forEach
+            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery,
+                    -1, true, source.hashCode().toString())
+        }
+        if (loadingTaskKeys.isEmpty()) {
+            swipeRefreshLayout?.isRefreshing = false
+        }
     }
 
     override fun onServiceDisconnected() {}
 
     override fun onRefresh() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        if (query.sources.isEmpty()) {
+            swipeRefreshLayout?.isRefreshing = false
+            return
+        }
+
+        swipeRefreshLayout?.isRefreshing = true
+        // TODO: clearUnreadNotifier()
+        val statusLoader = twitterService?.statusLoader ?: return
+        query.sources.forEach { source ->
+            val userRecord = source.sourceAccount ?: return@forEach
+            val restQuery = source.getRestQuery() ?: return@forEach
+            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery,
+                    -1, true, source.hashCode().toString())
+        }
+        if (loadingTaskKeys.isEmpty()) {
+            swipeRefreshLayout?.isRefreshing = false
+        }
     }
 
     override fun onTimelineEvent(event: TimelineEvent) {
+        fun finishRestRequest(taskKey: Long) {
+            loadingTaskKeys.remove(taskKey)
+            if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
+                statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
+                    handler.post { deleteElement(it) }
+                }
+                queryingLoadMarkers.remove(taskKey)
+            }
+            if (loadingTaskKeys.isEmpty()) {
+                handler.post { swipeRefreshLayout?.isRefreshing = false }
+            }
+        }
+
         when (event) {
-            is TimelineEvent.Received -> TODO()
-            is TimelineEvent.RestRequestCompleted -> TODO()
-            is TimelineEvent.RestRequestCancelled -> TODO()
+            is TimelineEvent.Received -> {
+                val status = event.status
+
+                if (statuses.contains(status)) return
+                if (status !is LoadMarker && !query.evaluate(status, users)) return
+
+                if (event.muted) {
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")
+
+                    mutedStatuses += status
+                } else {
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
+
+                    val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
+                    handler.post { insertElement(status, useScrollLock && status !is LoadMarker) }
+                }
+            }
+            is TimelineEvent.RestRequestCompleted -> {
+                if (event.timelineId == timelineId) {
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+
+                    finishRestRequest(event.taskKey)
+                }
+            }
+            is TimelineEvent.RestRequestCancelled -> {
+                if (event.timelineId == timelineId) {
+                    finishRestRequest(event.taskKey)
+                }
+            }
             is TimelineEvent.Wipe -> {
                 handler.post {
                     statuses.clear()
@@ -181,6 +343,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 }
             }
         }
+    }
+
+    private fun insertElement(status: Status, useScrollLock: Boolean) {
+        TODO("Not Implemented")
+    }
+
+    private fun deleteElement(status: Status) {
+        TODO("Not Implemented")
     }
 
     companion object {

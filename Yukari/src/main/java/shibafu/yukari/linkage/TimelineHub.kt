@@ -76,7 +76,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param passive ストリーミング通信によって受動的に取得したStatusか？
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
-        pushEventQueue(TimelineEvent.Received(timelineId, status), false)
+        pushEventQueue(TimelineEvent.Received(timelineId, status, false), false)
     }
 
     /**
@@ -137,8 +137,9 @@ sealed class TimelineEvent(val timelineId: String) {
     /**
      * [Status] の受信
      * @property status 受信したStatus
+     * @property muted ミュートフラグ
      */
-    class Received(timelineId: String, val status: Status) : TimelineEvent(timelineId)
+    class Received(timelineId: String, val status: Status, val muted: Boolean) : TimelineEvent(timelineId)
 
     /**
      * [StatusLoader.requestRestQuery] の処理完了
