@@ -71,10 +71,12 @@ class TimelineHub(private val service: TwitterService) {
 
     /**
      * [Status] の受信
+     * @param timelineId 配信先識別子
      * @param status 受信したStatus
+     * @param passive ストリーミング通信によって受動的に取得したStatusか？
      */
-    fun onStatus(status: Status) {
-
+    fun onStatus(timelineId: String, status: Status, passive: Boolean) {
+        pushEventQueue(TimelineEvent.Received(timelineId, status), false)
     }
 
     /**
@@ -96,6 +98,13 @@ class TimelineHub(private val service: TwitterService) {
     }
 
     /**
+     * タイムラインのクリア
+     */
+    fun onWipe() {
+        pushEventQueue(TimelineEvent.Wipe())
+    }
+
+    /**
      * [TimelineEvent] をTL配信キューに登録します。
      *
      * アクティブなTLであれば即時配信され、そうではない場合は次にアクティブになった時点で配信されます。
@@ -103,7 +112,20 @@ class TimelineHub(private val service: TwitterService) {
      * @param isBroadcast 配信先識別子に関わらず、全てのタイムラインに配信するかどうか
      */
     fun pushEventQueue(event: TimelineEvent, isBroadcast: Boolean = true) {
-
+        synchronized(observers) {
+            observers.forEach {
+                if (isBroadcast || it.timelineId == event.timelineId) {
+                    it.onTimelineEvent(event)
+                }
+            }
+        }
+        synchronized(eventQueues) {
+            eventQueues.forEach {
+                if (isBroadcast || it.key == event.timelineId) {
+                    it.value.offer(event)
+                }
+            }
+        }
     }
 }
 
@@ -129,6 +151,16 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property taskKey [StatusLoader.requestRestQuery] の戻り値
      */
     class RestRequestCancelled(timelineId: String, val taskKey: Long) : TimelineEvent(timelineId)
+
+    /**
+     * タイムラインのクリア
+     */
+    class Wipe : TimelineEvent("")
+
+    /**
+     * UIの強制更新
+     */
+    class ForceUpdateUI : TimelineEvent("")
 }
 
 /**

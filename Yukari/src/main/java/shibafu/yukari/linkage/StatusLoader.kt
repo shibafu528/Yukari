@@ -58,7 +58,7 @@ class StatusLoader(private val context: Context,
 
                     // StreamManagerに流す
                     for (status in responseList) {
-                        timelineHub.onStatus(status)
+                        timelineHub.onStatus(timelineId, status, false)
                     }
 
                     Log.d("StatusLoader", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, timelineId, responseList.size))

@@ -1,34 +1,42 @@
 package shibafu.yukari.fragment.tabcontent
 
-import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.google.gson.Gson
-import com.sys1yagi.mastodon4j.MastodonClient
-import com.sys1yagi.mastodon4j.api.method.Public
-import okhttp3.OkHttpClient
 import shibafu.yukari.R
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.base.ListTwitterFragment
-import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.linkage.TimelineEvent
+import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
-import shibafu.yukari.util.StringUtil
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListTwitterFragment(), TimelineTab, SwipeRefreshLayout.OnRefreshListener {
+open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener {
     var title: String = ""
     var mode: Int = 0
 
+    override val timelineId: String
+        get() {
+            val args = arguments
+            if (args.containsKey(TwitterListFragment.EXTRA_ID)) {
+                return args.getLong(TwitterListFragment.EXTRA_ID).toString()
+            } else {
+                return this.toString()
+            }
+        }
+
     protected val statuses: MutableList<Status> = arrayListOf()
+    protected val mutedStatuses: MutableList<Status> = arrayListOf()
     protected val users: MutableList<AuthUserRecord> = arrayListOf()
 
     protected var statusAdapter: TweetAdapter? = null
@@ -38,6 +46,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, SwipeRefreshLa
 
     // SwipeRefreshLayout
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
+
+    private val handler: Handler = Handler(Looper.getMainLooper())
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         when (mode) {
@@ -61,6 +71,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, SwipeRefreshLa
 
     override fun onDetach() {
         super.onDetach()
+        if (isTwitterServiceBound) {
+            twitterService?.timelineHub?.removeObserver(this)
+        }
         listAdapter = null
         statusAdapter = null
     }
@@ -140,31 +153,34 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, SwipeRefreshLa
             statusAdapter?.setStatusManager(twitterService.statusManager)
         }
 
-        // とりあえずmikutter mastodonを出す
-        object : AsyncTask<Any, Any, List<DonStatus>>() {
-            override fun doInBackground(vararg params: Any?): List<DonStatus> {
-                val donClient = MastodonClient.Builder("social.mikutter.hachune.net",
-                        OkHttpClient.Builder().addInterceptor { chain -> chain.proceed(chain.request().newBuilder().addHeader("User-Agent", StringUtil.getVersionInfo(context)).build()) },
-                        Gson()).build()
-                val public = Public(donClient)
-                val res = public.getLocalPublic().execute()
-                return res.part.map { DonStatus(it, twitterService.primaryUser) }.sortedByDescending { it.id }
-            }
-
-            override fun onPostExecute(result: List<DonStatus>?) {
-                super.onPostExecute(result)
-                result?.forEach {
-                    statuses.add(0, it)
-                    statusAdapter?.notifyDataSetChanged()
-                }
-            }
-        }.execute()
+        // イベント購読開始
+        twitterService?.timelineHub?.addObserver(this)
     }
 
     override fun onServiceDisconnected() {}
 
     override fun onRefresh() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onTimelineEvent(event: TimelineEvent) {
+        when (event) {
+            is TimelineEvent.Received -> TODO()
+            is TimelineEvent.RestRequestCompleted -> TODO()
+            is TimelineEvent.RestRequestCancelled -> TODO()
+            is TimelineEvent.Wipe -> {
+                handler.post {
+                    statuses.clear()
+                    statusAdapter?.notifyDataSetChanged()
+                }
+                mutedStatuses.clear()
+            }
+            is TimelineEvent.ForceUpdateUI -> {
+                handler.post {
+                    statusAdapter?.notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     companion object {
