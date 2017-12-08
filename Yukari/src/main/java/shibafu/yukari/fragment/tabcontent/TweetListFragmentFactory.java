@@ -25,7 +25,7 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_HISTORY:
                 return new HistoryListFragment();
             case TabType.TABTYPE_FILTER:
-                return new FilterListFragment();
+                return new TimelineFragment();
             default:
                 return new DefaultTweetListFragment();
         }
@@ -42,7 +42,7 @@ public class TweetListFragmentFactory {
                 b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
                 break;
             case TabType.TABTYPE_FILTER:
-                b.putString(FilterListFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
+                b.putString(TimelineFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
                 break;
         }
         b.putLong(TweetListFragment.EXTRA_ID, tabInfo.getId());
@@ -74,7 +74,7 @@ public class TweetListFragmentFactory {
                 return newInstance(tabInfo);
         }
         Bundle b = new Bundle();
-        b.putString(FilterListFragment.EXTRA_FILTER_QUERY, query.toString());
+        b.putString(TimelineFragment.EXTRA_FILTER_QUERY, query.toString());
         b.putLong(TweetListFragment.EXTRA_ID, tabInfo.getId());
         b.putString(TweetListFragment.EXTRA_TITLE, tabInfo.getTitle());
         b.putInt(TweetListFragment.EXTRA_MODE, tabInfo.getType());

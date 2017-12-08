@@ -81,7 +81,7 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
                 invoke(pathList.drop(1), variable)
             }
         } else {
-            invoke(pathList, context.status)
+            invoke(pathList, context.target)
         }
         return value ?: false
     }

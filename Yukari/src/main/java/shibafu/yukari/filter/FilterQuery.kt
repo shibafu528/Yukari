@@ -11,7 +11,6 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.MetaStatus
 import shibafu.yukari.twitter.streaming.RestStream
-import twitter4j.TwitterResponse
 
 /**
  * コンパイルされた抽出クエリを表します。
@@ -24,7 +23,7 @@ import twitter4j.TwitterResponse
  * @property rootNode コンパイルされたクエリ式です。評価時に呼び出されます。
  * @constructor 抽出ソースとコンパイルされた式を格納するオブジェクトを生成します。このコンストラクタはクエリコンパイラ以外呼びだすべきではありません。
  */
-public data class FilterQuery(public val sources: List<FilterSource>, private val rootNode: SNode) {
+data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SNode) {
     /**
      * ツイートやメッセージをコンパイルされたクエリ式で評価します。
      * @param target 評価対象
@@ -32,7 +31,7 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
      * @param variables 変数
      * @return クエリ式の評価結果 (抽出であれば、真となったら表示するのが妥当です)
      */
-    public fun evaluate(target: TwitterResponse, userRecords: List<AuthUserRecord>, variables: Map<String, Any?> = emptyMap()): Boolean
+    fun evaluate(target: Any, userRecords: List<AuthUserRecord>, variables: Map<String, Any?> = emptyMap()): Boolean
             = AndNode(
                 OrNode(
                     // RESTレスポンスは通す
@@ -56,5 +55,6 @@ public data class FilterQuery(public val sources: List<FilterSource>, private va
 
     companion object {
         val VOID_QUERY = FilterQuery(emptyList(), ValueNode(false))
+        val VOID_QUERY_STRING = "from * where (false)"
     }
 }

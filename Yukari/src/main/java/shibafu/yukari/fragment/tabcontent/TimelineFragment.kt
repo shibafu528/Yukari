@@ -1,10 +1,10 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
 import android.view.LayoutInflater
@@ -39,7 +39,7 @@ import shibafu.yukari.util.putDebugLog
 open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener {
     var title: String = ""
     var mode: Int = 0
-    var rawQuery: String = ""
+    var rawQuery: String = FilterQuery.VOID_QUERY_STRING
     var query: FilterQuery = FilterQuery.VOID_QUERY
 
     override val timelineId: String
@@ -73,6 +73,11 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     // DoubleClick Blocker
     private var blockingDoubleClick = false
     private var enableDoubleClickBlocker = false
+
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        rawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: FilterQuery.VOID_QUERY_STRING
+    }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         when (mode) {
@@ -354,6 +359,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     }
 
     companion object {
+        const val EXTRA_FILTER_QUERY = "filterQuery"
+
         /** TL容量の初期化係数 */
         private const val CAPACITY_INITIAL_FACTOR = 256
     }

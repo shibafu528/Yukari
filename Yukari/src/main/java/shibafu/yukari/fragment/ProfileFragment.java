@@ -55,8 +55,8 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.FilterListFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
+import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
@@ -206,7 +206,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         args1.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
                         args1.putString(TweetListFragment.EXTRA_TITLE, "Media: @" + loadHolder.targetUser.getScreenName());
-                        args1.putString(FilterListFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s\" where (neq ?mediaLinkList.empty)", loadHolder.targetUser.getScreenName()));
+                        args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s\" where (neq ?mediaLinkList.empty)", loadHolder.targetUser.getScreenName()));
 
                         fragment.setArguments(args1);
 
