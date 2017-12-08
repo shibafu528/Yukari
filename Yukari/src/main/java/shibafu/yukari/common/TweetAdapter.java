@@ -13,11 +13,11 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.LoadMarker;
 import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.entity.Status;
+import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.view.DonStatusView;
 import shibafu.yukari.view.HistoryView;
 import shibafu.yukari.view.MessageView;
@@ -36,7 +36,7 @@ public class TweetAdapter extends BaseAdapter {
     private List<Status> statuses;
     private List<AuthUserRecord> userRecords;
     private List<UserExtras> userExtras;
-    private WeakReference<StatusManager> statusManager;
+    private WeakReference<StatusLoader> statusLoader;
     private LayoutInflater inflater;
     private StatusView.OnTouchProfileImageIconListener onTouchProfileImageIconListener;
     private SharedPreferences preferences;
@@ -74,8 +74,8 @@ public class TweetAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void setStatusManager(StatusManager statusManager) {
-        this.statusManager = new WeakReference<>(statusManager);
+    public void setStatusLoader(StatusLoader statusLoader) {
+        this.statusLoader = new WeakReference<>(statusLoader);
     }
 
     public void setOnTouchProfileImageIconListener(StatusView.OnTouchProfileImageIconListener listener) {
@@ -163,7 +163,7 @@ public class TweetAdapter extends BaseAdapter {
                 View progressBar = convertView.findViewById(R.id.pbLoading);
                 TextView textView = (TextView) convertView.findViewById(R.id.tvLoading);
 
-                if (statusManager != null && statusManager.get() != null && statusManager.get().isWorkingRestQuery(loadMarker.getTaskKey())) {
+                if (statusLoader != null && statusLoader.get() != null && statusLoader.get().isRequestWorking(loadMarker.getTaskKey())) {
                     progressBar.setVisibility(View.VISIBLE);
                     textView.setText("loading");
                 } else {

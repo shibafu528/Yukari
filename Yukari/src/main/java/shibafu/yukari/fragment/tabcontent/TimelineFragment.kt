@@ -237,7 +237,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
         if (statusAdapter != null) {
             statusAdapter?.setUserExtras(twitterService.userExtras)
-            statusAdapter?.setStatusManager(twitterService.statusManager)
+            statusAdapter?.setStatusLoader(twitterService.statusLoader)
         }
 
         // クエリコンパイル

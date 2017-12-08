@@ -89,7 +89,7 @@ public class MoviePreviewActivity extends AppCompatActivity {
         tweetView = (TweetView) findViewById(R.id.twvPreviewStatus);
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(new TwitterStatus(status));
+            tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
         }
 
         findViewById(R.id.ibPreviewBrowser).setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));

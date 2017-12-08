@@ -523,7 +523,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(new TwitterStatus(status));
+            tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
         } else {
             tweetView.setVisibility(View.GONE);
         }

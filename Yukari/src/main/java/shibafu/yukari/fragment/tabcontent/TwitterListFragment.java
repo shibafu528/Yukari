@@ -225,9 +225,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 @Override
                 public Status get(int index) {
                     if (commonDelegate instanceof TweetCommon.StatusCommonDelegate) {
-                        return new TwitterStatus((twitter4j.Status) elements.get(index));
+                        twitter4j.Status status = (twitter4j.Status) elements.get(index);
+                        return new TwitterStatus(status, getTwitterService().isMyTweet(status));
                     } else {
-                        return new TwitterMessage((DirectMessage) elements.get(index));
+                        DirectMessage message = (DirectMessage) elements.get(index);
+                        return new TwitterMessage(message, getTwitterService().isMyTweet(message));
                     }
                 }
 
@@ -550,7 +552,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
         if (tweetAdapter != null) {
             tweetAdapter.setUserExtras(getTwitterService().getUserExtras());
-            tweetAdapter.setStatusManager(getTwitterService().getStatusManager());
+            tweetAdapter.setStatusLoader(getTwitterService().getStatusLoader());
         }
         limitCount = users.size() * 256;
     }

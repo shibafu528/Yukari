@@ -132,7 +132,7 @@ class TweetView : StatusView {
                                 it.userRecords = userRecords
                                 it.userExtras = userExtras
                                 it.mode = mode or Mode.INCLUDE
-                                it.status = TwitterStatus(StatusManager.getReceivedStatuses().get(quoteId))
+                                it.status = TwitterStatus(StatusManager.getReceivedStatuses().get(quoteId), userRecords.first())
                             }
                             flInclude.addView(tv)
                         }

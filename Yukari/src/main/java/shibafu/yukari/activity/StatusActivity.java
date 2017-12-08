@@ -104,7 +104,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             tweetView.setUserRecords(user.toSingleList());
         }
         tweetView.setMode(StatusView.Mode.DETAIL);
-        tweetView.setStatus(new TwitterStatus(status));
+        tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
         if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
                 || status.getInReplyToStatusId() > 0) {
             tweetView.setOnClickListener(v -> {
