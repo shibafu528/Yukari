@@ -97,6 +97,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         swipeRefreshLayout?.setColorSchemeResources(AttrUtil.resolveAttribute(context.theme, R.attr.colorPrimary))
         swipeRefreshLayout?.setOnRefreshListener(this)
 
+        val swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame)
+        swipeActionStatusView?.visibility = View.INVISIBLE
+
         return v
     }
 
