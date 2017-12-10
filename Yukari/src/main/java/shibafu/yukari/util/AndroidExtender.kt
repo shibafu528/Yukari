@@ -98,6 +98,10 @@ fun Any.putDebugLog(s: String) {
     Log.d(javaClass.simpleName, s)
 }
 
+fun Any.putWarnLog(s: String) {
+    Log.d(javaClass.simpleName, s)
+}
+
 public fun <T> SparseArrayCompat<T>.forEach(operation: (Int, T) -> Unit) {
     for (i in 0..size()-1) {
         operation(keyAt(i), valueAt(i))

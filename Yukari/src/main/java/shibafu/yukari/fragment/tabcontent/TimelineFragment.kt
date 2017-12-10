@@ -1,12 +1,12 @@
 package shibafu.yukari.fragment.tabcontent
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +14,7 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import shibafu.yukari.R
+import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.StatusActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
@@ -32,6 +33,7 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
+import shibafu.yukari.util.putWarnLog
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
@@ -58,7 +60,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     protected var statusAdapter: TweetAdapter? = null
 
-    // Capacity
+    // タイムライン容量制限
     private var statusCapacity: Int = 256
 
     // SwipeRefreshLayout
@@ -66,17 +68,22 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     private val handler: Handler = Handler(Looper.getMainLooper())
 
-    // Request
+    // リクエスト管理
     private val loadingTaskKeys = arrayListOf<Long>()
     private val queryingLoadMarkers = LongSparseArray<Long>() // TaskKey, LoadMarker.Id
 
-    // DoubleClick Blocker
+    // ダブルクリック抑止
     private var blockingDoubleClick = false
     private var enableDoubleClickBlocker = false
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        rawQuery = arguments?.getString(EXTRA_FILTER_QUERY) ?: FilterQuery.VOID_QUERY_STRING
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val arguments = arguments
+        title = arguments.getString(TwitterListFragment.EXTRA_TITLE) ?: ""
+        mode = arguments.getInt(TwitterListFragment.EXTRA_MODE, -1)
+        rawQuery = arguments.getString(EXTRA_FILTER_QUERY) ?: FilterQuery.VOID_QUERY_STRING
+        arguments.getSerializable(TwitterListFragment.EXTRA_USER)?.let { users += it as AuthUserRecord }
     }
 
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -95,6 +102,15 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     override fun onResume() {
         super.onResume()
+
+        val activity = activity
+        if (activity !is MainActivity) {
+            if (activity is AppCompatActivity) {
+                activity.supportActionBar?.title = title
+            } else {
+                activity.title = title
+            }
+        }
 
         enableDoubleClickBlocker = defaultSharedPreferences.getBoolean("pref_block_doubleclock", false)
         blockingDoubleClick = false
@@ -248,7 +264,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 statuses.add(ExceptionStatus(Long.MAX_VALUE, users.first(),
                         Exception("クエリのコンパイル中にエラーが発生しました。")))
                 statuses.add(ExceptionStatus(Long.MAX_VALUE - 1, users.first(), e))
-                statusAdapter?.notifyDataSetChanged()
+                notifyDataSetChanged()
             }
             query = FilterQuery.VOID_QUERY
         }
@@ -338,24 +354,89 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             is TimelineEvent.Wipe -> {
                 handler.post {
                     statuses.clear()
-                    statusAdapter?.notifyDataSetChanged()
+                    notifyDataSetChanged()
                 }
                 mutedStatuses.clear()
             }
             is TimelineEvent.ForceUpdateUI -> {
                 handler.post {
-                    statusAdapter?.notifyDataSetChanged()
+                    notifyDataSetChanged()
                 }
             }
         }
     }
 
-    private fun insertElement(status: Status, useScrollLock: Boolean) {
-        TODO("Not Implemented")
+    /**
+     * TL要素挿入の前処理として、挿入位置の判定とマージを実施します。
+     * @param status Status
+     * @return 挿入位置、負数の場合は実際にリストに挿入する必要はないが別の処理が必要。(PRE_INSERT_から始まる定数を参照)
+     */
+    private fun preInsertElement(status: Status): Int {
+        for (i in 0 until statuses.size) {
+            if (status.id == statuses[i].id) {
+                return PRE_INSERT_DUPLICATED
+            } else if (status.id > statuses[i].id) {
+                return i
+            }
+        }
+        return statuses.size
     }
 
+    /**
+     * TLに要素を挿入します。既に存在する場合はマージします。
+     * @param status Status
+     * @param useScrollLock スクロールロックを使うかどうか
+     */
+    private fun insertElement(status: Status, useScrollLock: Boolean) {
+        val position = preInsertElement(status)
+        when (position) {
+            PRE_INSERT_DUPLICATED -> return
+            PRE_INSERT_MERGED -> notifyDataSetChanged()
+            else -> if (!statuses.contains(status)) {
+                if (position < statuses.size && statuses[position].id == status.id) {
+                    return
+                }
+                statuses.add(position, status)
+                notifyDataSetChanged()
+                if (statusCapacity < statuses.size) {
+                    val iterator = statuses.listIterator(statusCapacity)
+                    while (iterator.hasNext()) {
+                        iterator.remove()
+                        notifyDataSetChanged()
+                    }
+                }
+            }
+        }
+
+        if (listView == null) {
+            putWarnLog("Insert: ListView is null. DROPPED! ($status, $position)")
+            return
+        }
+    }
+
+    /**
+     * TLから要素を削除します。
+     * @param status Status
+     */
     private fun deleteElement(status: Status) {
-        TODO("Not Implemented")
+        if (listView == null) {
+            putWarnLog("Delete: ListView is null. DROPPED! ($status)")
+            return
+        }
+
+        val id = status.id
+        val iterator = statuses.iterator()
+        while (iterator.hasNext()) {
+            if (iterator.next().id == id) {
+                iterator.remove()
+                notifyDataSetChanged()
+                break
+            }
+        }
+    }
+
+    private fun notifyDataSetChanged() {
+        statusAdapter?.notifyDataSetChanged()
     }
 
     companion object {
@@ -363,6 +444,11 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
         /** TL容量の初期化係数 */
         private const val CAPACITY_INITIAL_FACTOR = 256
+
+        /** [preInsertElement] : 既に同一の要素が存在している(挿入禁止) */
+        private const val PRE_INSERT_DUPLICATED = -1
+        /** [preInsertElement] : 同一要素があったためマージを行った(Viewの制御のみ必要) */
+        private const val PRE_INSERT_MERGED = -2
     }
 }
 
