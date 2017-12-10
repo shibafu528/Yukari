@@ -24,7 +24,7 @@ class Public(override val sourceAccount: AuthUserRecord, val instance: String) :
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): List<Status> {
             val client = MastodonClient.Builder(instance, OkHttpClient.Builder(), Gson()).build()
-            val request = Public(client).getLocalPublic(Range(maxId = maxId, limit = limitCount))
+            val request = Public(client).getLocalPublic(Range(maxId = if (maxId > -1) maxId else null, limit = limitCount))
             try {
                 val response = request.execute()
                 return response.part.map { DonStatus(it, sourceAccount) }

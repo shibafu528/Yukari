@@ -22,7 +22,7 @@ class StatusLoader(private val context: Context,
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     /** 実行中の非同期RESTリクエスト */
-    private val workingRequests: LongSparseArray<ParallelAsyncTask<Void, Void, Void>> = LongSparseArray()
+    private val workingRequests: LongSparseArray<ParallelAsyncTask<Void?, Void?, Void?>> = LongSparseArray()
 
     /**
      * 非同期RESTリクエストを開始します。
@@ -42,10 +42,10 @@ class StatusLoader(private val context: Context,
                          loadMarkerTag: String): Long {
         val isNarrowMode = sp.getBoolean("pref_narrow", false)
         val taskKey = System.currentTimeMillis()
-        val task = object : ParallelAsyncTask<Void, Void, Void>() {
+        val task = object : ParallelAsyncTask<Void?, Void?, Void?>() {
             private var exception: RestQueryException? = null
 
-            override fun doInBackground(vararg params: Void): Void? {
+            override fun doInBackground(vararg params: Void?): Void? {
                 Log.d("StatusLoader", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, timelineId, query.javaClass.name))
 
                 val api = apiClientFactory(userRecord) ?: return null
@@ -72,7 +72,7 @@ class StatusLoader(private val context: Context,
                 return null
             }
 
-            override fun onPostExecute(result: Void) {
+            override fun onPostExecute(result: Void?) {
                 workingRequests.delete(taskKey)
 
                 val exception = this.exception?.cause ?: return

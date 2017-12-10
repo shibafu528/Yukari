@@ -43,6 +43,7 @@ import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
+import twitter4j.auth.AccessToken;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -226,7 +227,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                 public Status get(int index) {
                     if (commonDelegate instanceof TweetCommon.StatusCommonDelegate) {
                         twitter4j.Status status = (twitter4j.Status) elements.get(index);
-                        return new TwitterStatus(status, getTwitterService().isMyTweet(status));
+                        return new TwitterStatus(status, (status instanceof PreformedStatus) ? ((PreformedStatus) status).getRepresentUser() : new AuthUserRecord(new AccessToken("", "")));
                     } else {
                         DirectMessage message = (DirectMessage) elements.get(index);
                         return new TwitterMessage(message, getTwitterService().isMyTweet(message));

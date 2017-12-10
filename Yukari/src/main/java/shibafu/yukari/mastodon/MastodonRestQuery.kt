@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 class MastodonRestQuery(private val resolver: (MastodonClient, Range) -> List<Status>) : RestQuery {
     override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): List<Status> {
         api as MastodonClient
-        val range = Range(maxId = maxId, limit = limitCount)
+        val range = Range(maxId = if (maxId > -1) maxId else null, limit = limitCount)
 
         try {
             val response = resolver(api, range)

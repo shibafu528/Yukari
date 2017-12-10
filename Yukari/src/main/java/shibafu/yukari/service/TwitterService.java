@@ -23,8 +23,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LongSparseArray;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
+import com.google.gson.Gson;
+import com.sys1yagi.mastodon4j.MastodonClient;
 import info.shibafu528.yukari.exvoice.MRuby;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
@@ -622,8 +625,16 @@ public class TwitterService extends Service{
      * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
      */
     public Object getApiClient(@NonNull AuthUserRecord userRecord) {
-        // TODO: Not Implemented
-        throw new UnsupportedOperationException("Not Implemented");
+        // TODO: そもそも、AuthUserRecordにサービスのキーが必要なんだが
+        if (TextUtils.isEmpty(userRecord.ConsumerKey)) {
+            // CKCSが空ならTwitter
+            return getTwitter(userRecord);
+        } else {
+            // なんか入ってればMastodon
+            MastodonClient mastodonClient = new MastodonClient.Builder("social.mikutter.hachune.net",
+                    new OkHttpClient.Builder(), new Gson()).build();
+            return mastodonClient;
+        }
     }
 
     /**
