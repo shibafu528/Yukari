@@ -717,7 +717,9 @@ public class TwitterService extends Service{
     }
 
     public void updateAutoMuteConfig() {
-        statusManager.setAutoMuteConfigs(database.getRecords(AutoMuteConfig.class));
+        List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
+        statusManager.setAutoMuteConfigs(records);
+        timelineHub.setAutoMuteConfigs(records);
     }
 
     //<editor-fold desc="投稿操作系">

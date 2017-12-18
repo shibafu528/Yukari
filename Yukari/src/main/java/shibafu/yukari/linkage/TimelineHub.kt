@@ -3,11 +3,17 @@ package shibafu.yukari.linkage
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import android.support.v4.util.LongSparseArray
+import shibafu.yukari.database.AutoMuteConfig
+import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.util.putDebugLog
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.regex.Pattern
+import java.util.regex.PatternSyntaxException
 
 /**
  * [Status] の配信管理
@@ -19,6 +25,26 @@ class TimelineHub(private val service: TwitterService) {
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()
     private val eventQueues: MutableMap<String, Queue<TimelineEvent>> = hashMapOf()
+
+    private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
+    private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
+
+    /**
+     * オートミュート設定のインポート
+     * @param autoMuteConfigs 読み込む設定
+     */
+    fun setAutoMuteConfigs(autoMuteConfigs: List<AutoMuteConfig>) {
+        this.autoMuteConfigs = autoMuteConfigs
+        autoMutePatternCache.clear()
+        autoMuteConfigs.filter { it.match == AutoMuteConfig.MATCH_REGEX }
+                       .forEach {
+                           try {
+                               autoMutePatternCache.put(it.id, Pattern.compile(it.query))
+                           } catch (e: PatternSyntaxException) {
+                               autoMutePatternCache.put(it.id, null)
+                           }
+                       }
+    }
 
     /**
      * タイムラインオブザーバの登録
@@ -77,6 +103,37 @@ class TimelineHub(private val service: TwitterService) {
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         pushEventQueue(TimelineEvent.Received(timelineId, status, false), false)
+
+        // オートミュート判定
+        autoMuteConfigs.forEach { config ->
+            var match = false
+            when (config.match) {
+                AutoMuteConfig.MATCH_EXACT -> match = status.text == config.query
+                AutoMuteConfig.MATCH_PARTIAL -> match = status.text.contains(config.query)
+                AutoMuteConfig.MATCH_REGEX -> {
+                    var pattern = autoMutePatternCache[config.id]
+                    if (pattern == null && autoMutePatternCache.indexOfKey(config.id) < 0) {
+                        try {
+                            pattern = Pattern.compile(config.query)
+                            autoMutePatternCache.put(config.id, pattern)
+                        } catch (e: PatternSyntaxException) {
+                            autoMutePatternCache.put(config.id, null)
+                        }
+                    }
+                    if (pattern != null) {
+                        match = pattern.matcher(status.text).find()
+                    }
+                }
+            }
+            if (match) {
+                putDebugLog("[$timelineId] AutoMute! : @${status.user.screenName}")
+
+                // TODO: サービスに関係なく消えてしまうリスク
+                service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
+                service.updateMuteConfig()
+                return@forEach
+            }
+        }
     }
 
     /**
@@ -95,6 +152,17 @@ class TimelineHub(private val service: TwitterService) {
      */
     fun onRestRequestCancelled(timelineId: String, taskKey: Long) {
         pushEventQueue(TimelineEvent.RestRequestCancelled(timelineId, taskKey))
+    }
+
+    /**
+     * 通知イベントログの発生
+     * @param kind イベント区分
+     * @param eventBy イベントを発生させたユーザ
+     * @param status イベントに関連する [Status]
+     */
+    fun onNotify(@NotifyHistory.Kind kind: Int, eventBy: User, status: Status) {
+        val notify = NotifyHistory(System.currentTimeMillis(), kind, eventBy, status)
+        pushEventQueue(TimelineEvent.Notify(notify))
     }
 
     /**
@@ -152,6 +220,12 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property taskKey [StatusLoader.requestRestQuery] の戻り値
      */
     class RestRequestCancelled(timelineId: String, val taskKey: Long) : TimelineEvent(timelineId)
+
+    /**
+     * 通知イベントログの発生
+     * @property notify 通知イベントログ
+     */
+    class Notify(val notify: NotifyHistory) : TimelineEvent("")
 
     /**
      * タイムラインのクリア

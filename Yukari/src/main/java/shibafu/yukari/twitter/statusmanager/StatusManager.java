@@ -337,7 +337,7 @@ public class StatusManager implements Releasable {
 
     public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
         this.autoMuteConfigs = autoMuteConfigs;
-        autoMutePatternCache.clear();
+    autoMutePatternCache.clear();
         for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
             if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
                 try {
