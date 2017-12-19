@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter.entity
 
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
@@ -23,6 +24,13 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val source: String
         get() = status.source
+
+    override val isRepost: Boolean
+        get() = status.isRetweet
+
+    override val originStatus: Status = if (isRepost) TwitterStatus(status, representUser) else this
+
+    override val metadata: StatusPreforms = StatusPreforms()
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 

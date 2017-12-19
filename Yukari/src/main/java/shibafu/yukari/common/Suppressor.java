@@ -63,6 +63,71 @@ public class Suppressor {
         noRetweetIDs.sortThis();
     }
 
+    public boolean[] decision(shibafu.yukari.entity.Status status) {
+        boolean[] result = new boolean[7];
+
+        for (MuteConfig config : configs) {
+            if (config.expired()) continue;
+
+            shibafu.yukari.entity.Status s;
+            int mute = config.getMute();
+            if (status.isRepost() && mute != MuteConfig.MUTE_RETWEET && mute != MuteConfig.MUTE_NOTIF_RT) {
+                s = status.getOriginStatus();
+            } else {
+                s = status;
+            }
+            String source;
+            switch (config.getScope()) {
+                case MuteConfig.SCOPE_TEXT:
+                    source = s.getText();
+                    break;
+                case MuteConfig.SCOPE_USER_ID:
+                    source = String.valueOf(s.getUser().getId());
+                    break;
+                case MuteConfig.SCOPE_USER_SN:
+                    source = s.getUser().getScreenName();
+                    break;
+                case MuteConfig.SCOPE_USER_NAME:
+                    source = s.getUser().getName();
+                    break;
+                case MuteConfig.SCOPE_VIA:
+                    source = s.getSource();
+                    break;
+                default:
+                    continue;
+            }
+            boolean match = false;
+            switch (config.getMatch()) {
+                case MuteConfig.MATCH_EXACT:
+                    match = source.equals(config.getQuery());
+                    break;
+                case MuteConfig.MATCH_PARTIAL:
+                    match = source.contains(config.getQuery());
+                    break;
+                case MuteConfig.MATCH_REGEX: {
+                    Pattern pattern = patternCache.get(config.getId());
+                    if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
+                        try {
+                            pattern = Pattern.compile(config.getQuery());
+                            patternCache.put(config.getId(), pattern);
+                        } catch (PatternSyntaxException ignore) {
+                            patternCache.put(config.getId(), null);
+                        }
+                    }
+                    if (pattern != null) {
+                        Matcher matcher = pattern.matcher(source);
+                        match = matcher.find();
+                    }
+                    break;
+                }
+            }
+            if (match) {
+                result[mute] = true;
+            }
+        }
+        return result;
+    }
+
     public boolean[] decision(PreformedStatus status) {
         boolean[] result = new boolean[7];
         if (blockedIDs.binarySearch(status.getSourceUser().getId()) > -1 ||

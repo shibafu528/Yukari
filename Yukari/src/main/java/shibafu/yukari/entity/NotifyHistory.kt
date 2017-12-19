@@ -14,6 +14,7 @@ class NotifyHistory(timeAtMillis: Long, @Kind val kind: Int, eventBy: User, val 
     override val recipientScreenName: String = ""
     override val createdAt: Date by lazy { Date(timeAtMillis) }
     override val source: String = ""
+    override val metadata: StatusPreforms = StatusPreforms()
     override var representUser: AuthUserRecord
         get() = status.representUser
         set(value) {

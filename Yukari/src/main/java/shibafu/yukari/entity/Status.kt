@@ -42,6 +42,23 @@ interface Status : Comparable<Status> {
     val source: String
 
     /**
+     * 引用して再投稿されたメッセージであるか？ (リツイートやブーストのこと)
+     */
+    val isRepost: Boolean
+        get() = false
+
+    /**
+     * 再投稿メッセージの場合は引用元のメッセージ、そうでなければ自分自身
+     */
+    val originStatus: Status
+        get() = this
+
+    /**
+     * メタデータ
+     */
+    val metadata: StatusPreforms
+
+    /**
      * 代表受信アカウント
      */
     var representUser: AuthUserRecord
@@ -96,4 +113,14 @@ interface Status : Comparable<Status> {
     @IntDef(RELATION_NONE, RELATION_OWNED, RELATION_MENTIONED_TO_ME)
     @Retention(AnnotationRetention.SOURCE)
     annotation class Relation
+}
+
+/**
+ * 主に前処理の段階で決定しておく、ステータスのメタ情報など
+ */
+class StatusPreforms {
+    /**
+     * 表示すべきでないメディアを含んでいるかどうか
+     */
+    var isCensoredThumbs: Boolean = false
 }

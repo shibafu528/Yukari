@@ -4,11 +4,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
+import shibafu.yukari.common.HashCache
 import shibafu.yukari.database.AutoMuteConfig
+import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.putDebugLog
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -19,6 +22,8 @@ import java.util.regex.PatternSyntaxException
  * [Status] の配信管理
  */
 class TimelineHub(private val service: TwitterService) {
+    val hashCache: HashCache = HashCache(service.applicationContext)
+
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -132,6 +137,24 @@ class TimelineHub(private val service: TwitterService) {
                 service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
                 service.updateMuteConfig()
                 return@forEach
+            }
+        }
+
+        // ミュート判定
+        val muteFlags = service.suppressor.decision(status)
+        if (muteFlags[MuteConfig.MUTE_IMAGE_THUMB]) {
+            status.metadata.isCensoredThumbs = true
+        }
+
+        if (passive) {
+            // RT通知判定
+            // メンション通知判定
+        }
+
+        if (status is TwitterStatus) {
+            // ハッシュタグのキャッシュ
+            status.status.hashtagEntities.forEach {
+                hashCache.put("#" + it.text)
             }
         }
     }

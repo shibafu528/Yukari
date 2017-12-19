@@ -34,5 +34,6 @@ class LoadMarker(override val id: Long,
     override val recipientScreenName: String = "**Load Marker**"
     override val createdAt: Date = Date()
     override val source: String = ""
+    override val metadata: StatusPreforms = StatusPreforms()
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 }

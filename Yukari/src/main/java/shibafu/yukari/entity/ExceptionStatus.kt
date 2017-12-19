@@ -22,5 +22,6 @@ class ExceptionStatus(override val id: Long,
     override val recipientScreenName: String = ""
     override val createdAt: Date = Date()
     override val source: String = "System"
+    override val metadata: StatusPreforms = StatusPreforms()
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 }
