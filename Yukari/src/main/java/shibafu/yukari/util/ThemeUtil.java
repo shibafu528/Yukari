@@ -15,6 +15,10 @@ public class ThemeUtil {
                 return R.style.ColorsTheme_Light;
             case "dark":
                 return R.style.ColorsTheme_Dark;
+            case "akari":
+                return R.style.ColorsTheme_Akari;
+            case "akari_dark":
+                return R.style.ColorsTheme_Akari_Dark;
             case "zunko":
                 return R.style.ColorsTheme_Zunko;
             case "zunko_dark":
@@ -46,6 +50,12 @@ public class ThemeUtil {
                 break;
             case "dark":
                 activity.setTheme(R.style.ColorsTheme_Dark_Dialog);
+                break;
+            case "akari":
+                activity.setTheme(R.style.ColorsTheme_Akari_Dialog);
+                break;
+            case "akari_dark":
+                activity.setTheme(R.style.ColorsTheme_Akari_Dark_Dialog);
                 break;
             case "zunko":
                 activity.setTheme(R.style.ColorsTheme_Zunko_Dialog);

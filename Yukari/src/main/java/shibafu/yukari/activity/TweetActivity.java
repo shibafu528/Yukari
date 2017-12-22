@@ -238,6 +238,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case "dark":
                 setTheme(R.style.ColorsTheme_Dark_Dialog_VertAnimation);
                 break;
+            case "akari":
+                setTheme(R.style.ColorsTheme_Akari_Dialog_VertAnimation);
+                break;
+            case "akari_dark":
+                setTheme(R.style.ColorsTheme_Akari_Dark_Dialog_VertAnimation);
+                break;
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Dialog_VertAnimation);
                 break;
