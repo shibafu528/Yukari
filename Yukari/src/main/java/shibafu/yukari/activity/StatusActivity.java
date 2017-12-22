@@ -53,6 +53,12 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             case "dark":
                 setTheme(R.style.ColorsTheme_Dark_Translucent);
                 break;
+            case "akari":
+                setTheme(R.style.ColorsTheme_Akari_Translucent);
+                break;
+            case "akari_dark":
+                setTheme(R.style.ColorsTheme_Akari_Dark_Translucent);
+                break;
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Translucent);
                 break;

@@ -339,4 +339,70 @@
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
 
+    <style name="ColorsTheme.Akari" parent="ColorsTheme.Base">
+        <item name="tabTitleColor">@color/akari_primary_dark</item>
+
+        <item name="colorPrimary">@color/akari_primary</item>
+        <item name="colorPrimaryDark">@color/akari_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akari_primary_light</item>
+        <item name="colorAccent">@color/akari_accent</item>
+
+        <item name="pressDrawable">@drawable/akari_press</item>
+        <item name="focusDrawable">@drawable/akari_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dialog" parent="ColorsTheme.Base.Dialog">
+        <item name="tabTitleColor">@color/akari_primary_dark</item>
+
+        <item name="colorPrimary">@color/akari_primary</item>
+        <item name="colorPrimaryDark">@color/akari_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akari_primary_light</item>
+        <item name="colorAccent">@color/akari_accent</item>
+        <item name="pressDrawable">@drawable/akari_press</item>
+        <item name="focusDrawable">@drawable/akari_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Translucent" parent="ColorsTheme.Akari">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_light</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dialog.VertAnimation" parent="ColorsTheme.Akari.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dark" parent="ColorsTheme.Base.Dark">
+        <item name="tabTitleColor">@color/akari_primary_dark</item>
+
+        <item name="colorPrimary">@color/akari_primary</item>
+        <item name="colorPrimaryDark">@color/akari_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akari_primary_light</item>
+        <item name="colorAccent">@color/akari_accent</item>
+
+        <item name="pressDrawable">@drawable/akari_press</item>
+        <item name="focusDrawable">@drawable/akari_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dark.Dialog" parent="ColorsTheme.Base.Dark.Dialog">
+        <item name="tabTitleColor">@color/akari_primary_dark</item>
+
+        <item name="colorPrimary">@color/akari_primary</item>
+        <item name="colorPrimaryDark">@color/akari_primary_dark</item>
+        <item name="colorPrimaryLight">@color/akari_primary_light</item>
+        <item name="colorAccent">@color/akari_accent</item>
+        <item name="pressDrawable">@drawable/akari_press</item>
+        <item name="focusDrawable">@drawable/akari_focus</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dark.Translucent" parent="ColorsTheme.Akari.Dark">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@drawable/preview_bg</item>
+        <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
+    </style>
+
+    <style name="ColorsTheme.Akari.Dark.Dialog.VertAnimation" parent="ColorsTheme.Akari.Dark.Dialog">
+        <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
+    </style>
+
 </resources>

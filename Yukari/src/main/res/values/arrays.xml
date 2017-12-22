@@ -138,6 +138,8 @@
     <string-array name="pref_theme_entries">
         <item>Yukari</item>
         <item>Yukari (Dark)</item>
+        <item>Akari</item>
+        <item>Akari (Dark)</item>
         <item>Zunda</item>
         <item>Zunda (Dark)</item>
         <item>Pepper</item>
@@ -151,6 +153,8 @@
     <string-array name="pref_theme_values">
         <item>light</item>
         <item>dark</item>
+        <item>akari</item>
+        <item>akari_dark</item>
         <item>zunko</item>
         <item>zunko_dark</item>
         <item>maki</item>

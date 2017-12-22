@@ -74,4 +74,12 @@
     <color name="akane_accent">#FF5252</color>
     <drawable name="akane_focus">#caF8BBD0</drawable>
     <drawable name="akane_press">#caE91E63</drawable>
+
+    <color name="akari_primary">#F08C18</color>
+    <color name="akari_primary_dark">#e27720</color>
+    <color name="akari_primary_light">#FBB922</color>
+    <color name="akari_accent">#F49A22</color>
+    <color name="akari_footer">#ccF08C18</color>
+    <drawable name="akari_focus">#caFFECB3</drawable>
+    <drawable name="akari_press">#caFFC107</drawable>
 </resources>

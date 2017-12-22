@@ -107,6 +107,14 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 dialog.getContext().setTheme(R.style.ColorsTheme_Dark_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
                 break;
+            case "akari":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Akari_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
+                break;
+            case "akari_dark":
+                dialog.getContext().setTheme(R.style.ColorsTheme_Akari_Dark_Dialog);
+                dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_dark);
+                break;
             case "zunko":
                 dialog.getContext().setTheme(R.style.ColorsTheme_Zunko_Dialog);
                 dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
