@@ -90,12 +90,12 @@
             android:title="お別れブロックボタン"
             android:summary="お別れはブロックでとか甘いこと言うな"/>
         <ListPreference
-            android:key="j_yukari_voice_fav"
-            android:title="ゆかりさんのふぁぼボイス"
-            android:summary="ゆかりさんボイスが有効になってる必要がある"
-            android:defaultValue="0"
-            android:entries="@array/j_yukari_fav_entries"
-            android:entryValues="@array/j_yukari_fav_values"/>
+            android:key="pref_sound_theme"
+            android:title="サウンドテーマ"
+            android:summary="通知音のテーマを設定します\n事前にAbout画面を連打して、ボイスモードを有効にしてください"
+            android:defaultValue="yukari_fav"
+            android:entries="@array/pref_sound_theme_entries"
+            android:entryValues="@array/pref_sound_theme_values"/>
         <CheckBoxPreference
             android:key="j_yukari_joke_voices"
             android:title="ゆかりさんをいじる"
