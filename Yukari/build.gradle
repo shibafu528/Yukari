@@ -4,9 +4,9 @@ apply plugin: 'me.tatarka.retrolambda'
 
 repositories {
     mavenCentral()
-    maven {
-        url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
-    }
+//    maven {
+//        url 'http://repository.mumei-himazin.info/nexus/content/repositories/releases'
+//    }
     maven {
         url "https://jitpack.io"
     }

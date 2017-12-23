@@ -38,6 +38,8 @@ import twitter4j.TwitterResponse;
 import twitter4j.User;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by shibafu on 2015/07/27.
@@ -50,12 +52,8 @@ class StatusNotifier implements Releasable {
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
 
-    //ふぁぼSE
-    private final static String[] YUKARI_FAV_SE = {
-            "android.resource://shibafu.yukari/raw/y_fav",
-            "android.resource://shibafu.yukari/raw/y_like",
-            "android.resource://shibafu.yukari/raw/y_love"
-    };
+    //通知SE リソースUri
+    private static final Map<String, SoundEffects> SE_URIS = new HashMap<>();
 
     private static final String USER_SE_REPLY = "se_reply.wav";
     private static final String USER_SE_RETWEET = "se_retweet.wav";
@@ -72,6 +70,54 @@ class StatusNotifier implements Releasable {
     private boolean useUserFileOnReply = false;
     private boolean useUserFileOnRetweet = false;
     private boolean useUserFileOnFavorite = false;
+    
+    static {
+        SE_URIS.put("default", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
+        }});
+        SE_URIS.put("yukari_fav", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_fav");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
+        }});
+        SE_URIS.put("yukari_like", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_like");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
+        }});
+        SE_URIS.put("yukari_love", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_love");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
+        }});
+        SE_URIS.put("akari_fav", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_fav");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_rt");
+        }});
+        SE_URIS.put("akari_like", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_like");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_rt");
+        }});
+        SE_URIS.put("akari_love", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_love");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
+        }});
+        SE_URIS.put("kiri_like", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/kiri_like");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/krtn_rt");
+        }});
+        SE_URIS.put("kiri_love", new SoundEffects() {{
+            reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
+            favorite = Uri.parse("android.resource://shibafu.yukari/raw/kiri_suki");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/kiri_retweet");
+        }});
+    }
 
     public StatusNotifier(TwitterService service) {
         this.service = service;
@@ -107,25 +153,25 @@ class StatusNotifier implements Releasable {
                 if (useUserFileOnReply) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
                 } else if (useYukariVoice) {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
+                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
                 } else {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
+                    return SE_URIS.get("default").reply;
                 }
             case R.integer.notification_retweeted:
                 if (useUserFileOnRetweet) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_RETWEET));
                 } else if (useYukariVoice) {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
+                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).retweet;
                 } else {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
+                    return SE_URIS.get("default").retweet;
                 }
             case R.integer.notification_faved:
                 if (useUserFileOnFavorite) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_FAVORITE));
                 } else if (useYukariVoice) {
-                    return Uri.parse(YUKARI_FAV_SE[Integer.parseInt(sharedPreferences.getString("j_yukari_voice_fav", "0"))]);
+                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).favorite;
                 } else {
-                    return Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
+                    return SE_URIS.get("default").favorite;
                 }
             default:
                 return null;
@@ -339,5 +385,11 @@ class StatusNotifier implements Releasable {
     @Override
     public void release() {
         AutoReleaser.release(this);
+    }
+    
+    private static class SoundEffects {
+        public Uri reply;
+        public Uri favorite;
+        public Uri retweet;
     }
 }
