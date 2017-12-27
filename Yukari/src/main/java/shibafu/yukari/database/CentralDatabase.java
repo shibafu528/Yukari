@@ -45,6 +45,15 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
     public static final String COL_ACCOUNTS_COLOR = "AccountColor";
 
+    //Providersテーブル
+    public static final String TABLE_PROVIDERS = "Providers";
+    public static final String COL_PROVIDERS_ID = "_id";
+    public static final String COL_PROVIDERS_HOST = "Host";
+    public static final String COL_PROVIDERS_NAME = "Name";
+    public static final String COL_PROVIDERS_API_TYPE = "ApiType";
+    public static final String COL_PROVIDERS_CONSUMER_KEY = "ConsumerKey";
+    public static final String COL_PROVIDERS_CONSUMER_SECRET = "ConsumerSecret";
+
     //Userテーブル
     public static final String TABLE_USER = "User";
     public static final String COL_USER_ID = "_id";
