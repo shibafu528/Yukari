@@ -49,5 +49,8 @@ class Provider : DBRecord {
     companion object {
         const val API_TWITTER = 0
         const val API_MASTODON = 1
+
+        @JvmField
+        val TWITTER = Provider("api.twitter.com", "Twitter", API_TWITTER, "", "")
     }
 }

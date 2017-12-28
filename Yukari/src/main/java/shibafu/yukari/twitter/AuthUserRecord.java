@@ -10,6 +10,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
+import shibafu.yukari.database.Provider;
 import twitter4j.Twitter;
 import twitter4j.auth.AccessToken;
 
@@ -29,10 +30,9 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public boolean isPrimary;
     public boolean isActive;
     public boolean isWriter;
-    public String ConsumerKey;
-    public String ConsumerSecret;
 	public AccessToken Token;
     public int AccountColor;
+    public Provider Provider;
 
     private static LongSparseArray<HashMap<String, Object>> sessionTemporary = new LongSparseArray<>();
 
@@ -42,6 +42,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         ScreenName = token.getScreenName();
         isActive = true;
         AccountColor = Color.TRANSPARENT;
+        Provider = shibafu.yukari.database.Provider.TWITTER;
     }
 
     public AuthUserRecord(Cursor cursor) {
@@ -52,12 +53,15 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
         isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;
         isWriter = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_WRITER)) == 1;
-        ConsumerKey = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_CONSUMER_KEY));
-        ConsumerSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_CONSUMER_SECRET));
         String accessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
         String accessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
         Token = new AccessToken(accessToken, accessTokenSecret, NumericId);
         AccountColor = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_COLOR));
+        if (cursor.isNull(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID))) {
+            Provider = shibafu.yukari.database.Provider.TWITTER;
+        } else {
+            Provider = new Provider(cursor);
+        }
     }
 
     public AccessToken getAccessToken() {
@@ -69,7 +73,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
      * @return デフォルトコンシューマキーの必要性
      */
     public boolean isDefaultConsumer() {
-        return TextUtils.isEmpty(ConsumerKey) || TextUtils.isEmpty(ConsumerSecret);
+        return TextUtils.isEmpty(Provider.getConsumerKey()) || TextUtils.isEmpty(Provider.getConsumerSecret());
     }
 
     /**
@@ -82,7 +86,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
             twitter.setOAuthConsumer(context.getString(R.string.twitter_consumer_key),
                     context.getString(R.string.twitter_consumer_secret));
         } else {
-            twitter.setOAuthConsumer(ConsumerKey, ConsumerSecret);
+            twitter.setOAuthConsumer(Provider.getConsumerKey(), Provider.getConsumerSecret());
         }
         twitter.setOAuthAccessToken(getAccessToken());
     }
@@ -139,14 +143,15 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
         values.put(CentralDatabase.COL_ACCOUNTS_ID, NumericId);
-        values.put(CentralDatabase.COL_ACCOUNTS_CONSUMER_KEY, ConsumerKey);
-        values.put(CentralDatabase.COL_ACCOUNTS_CONSUMER_SECRET, ConsumerSecret);
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, Token.getToken());
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, Token.getTokenSecret());
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
         values.put(CentralDatabase.COL_ACCOUNTS_COLOR, AccountColor);
+        if (Provider != shibafu.yukari.database.Provider.TWITTER) {
+            values.put(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID, Provider.getId());
+        }
         return values;
     }
 
@@ -159,8 +164,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isActive = aur.isActive;
         isWriter = aur.isWriter;
         Token = aur.Token;
-        ConsumerKey = aur.ConsumerKey;
-        ConsumerSecret = aur.ConsumerSecret;
+        Provider = aur.Provider;
     }
 
     public Object getSessionTemporary(String key) {
@@ -195,10 +199,9 @@ public class AuthUserRecord implements Serializable, DBRecord{
                 ", isPrimary=" + isPrimary +
                 ", isActive=" + isActive +
                 ", isWriter=" + isWriter +
-                ", ConsumerKey='" + ConsumerKey + '\'' +
-                ", ConsumerSecret='" + ConsumerSecret + '\'' +
                 ", Token=" + Token +
                 ", AccountColor=" + AccountColor +
+                ", Provider=" + Provider +
                 '}';
     }
 }
