@@ -20,28 +20,33 @@ import java.util.HashMap;
 import java.util.List;
 
 @DBTable(CentralDatabase.TABLE_ACCOUNTS)
-public class AuthUserRecord implements Serializable, DBRecord{
-	private static final long serialVersionUID = 1L;
+public class AuthUserRecord implements Serializable, DBRecord {
+    private static final long serialVersionUID = 1L;
 
-	public long NumericId;
-	public String ScreenName;
+    public long NumericId;
+    public String ScreenName;
     public String Name;
     public String ProfileImageUrl;
     public boolean isPrimary;
     public boolean isActive;
     public boolean isWriter;
-	public AccessToken Token;
+    public String AccessToken;
+    public String AccessTokenSecret;
     public int AccountColor;
     public Provider Provider;
+
+    private AccessToken twitterAccessToken;
 
     private static LongSparseArray<HashMap<String, Object>> sessionTemporary = new LongSparseArray<>();
 
     public AuthUserRecord(AccessToken token) {
-        Token = token;
+        twitterAccessToken = token;
         NumericId = token.getUserId();
         ScreenName = token.getScreenName();
         isActive = true;
         AccountColor = Color.TRANSPARENT;
+        AccessToken = token.getToken();
+        AccessTokenSecret = token.getTokenSecret();
         Provider = shibafu.yukari.database.Provider.TWITTER;
     }
 
@@ -53,9 +58,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
         isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;
         isWriter = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_WRITER)) == 1;
-        String accessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
-        String accessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
-        Token = new AccessToken(accessToken, accessTokenSecret, NumericId);
+        AccessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
+        AccessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
         AccountColor = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_COLOR));
         if (cursor.isNull(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID))) {
             Provider = shibafu.yukari.database.Provider.TWITTER;
@@ -64,9 +68,12 @@ public class AuthUserRecord implements Serializable, DBRecord{
         }
     }
 
-    public AccessToken getAccessToken() {
-		return Token;
-	}
+    public AccessToken getTwitterAccessToken() {
+        if (twitterAccessToken == null) {
+            twitterAccessToken = new AccessToken(AccessToken, AccessTokenSecret, NumericId);
+        }
+        return twitterAccessToken;
+    }
 
     /**
      * デフォルトのコンシューマキーを使用する必要があるかどうかを取得します。
@@ -88,7 +95,7 @@ public class AuthUserRecord implements Serializable, DBRecord{
         } else {
             twitter.setOAuthConsumer(Provider.getConsumerKey(), Provider.getConsumerSecret());
         }
-        twitter.setOAuthAccessToken(getAccessToken());
+        twitter.setOAuthAccessToken(getTwitterAccessToken());
     }
 
     @Override
@@ -143,8 +150,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
         values.put(CentralDatabase.COL_ACCOUNTS_ID, NumericId);
-        values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, Token.getToken());
-        values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, Token.getTokenSecret());
+        values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, AccessToken);
+        values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, AccessTokenSecret);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
@@ -163,8 +170,11 @@ public class AuthUserRecord implements Serializable, DBRecord{
         isPrimary = aur.isPrimary;
         isActive = aur.isActive;
         isWriter = aur.isWriter;
-        Token = aur.Token;
+        AccessToken = aur.AccessToken;
+        AccessTokenSecret = aur.AccessTokenSecret;
         Provider = aur.Provider;
+
+        twitterAccessToken = aur.twitterAccessToken;
     }
 
     public Object getSessionTemporary(String key) {
@@ -199,7 +209,8 @@ public class AuthUserRecord implements Serializable, DBRecord{
                 ", isPrimary=" + isPrimary +
                 ", isActive=" + isActive +
                 ", isWriter=" + isWriter +
-                ", Token=" + Token +
+                ", AccessToken=" + AccessToken +
+                ", AccessTokenSecret=" + (TextUtils.isEmpty(AccessTokenSecret) ? "" : "****") +
                 ", AccountColor=" + AccountColor +
                 ", Provider=" + Provider +
                 '}';

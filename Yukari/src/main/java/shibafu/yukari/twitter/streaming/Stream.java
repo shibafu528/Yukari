@@ -31,7 +31,7 @@ public abstract class Stream {
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setOAuthConsumerKey(context.getString(R.string.twitter_consumer_key));
         cb.setOAuthConsumerSecret(context.getString(R.string.twitter_consumer_secret));
-        stream = new TwitterStreamFactory(cb.build()).getInstance(userRecord.getAccessToken());
+        stream = new TwitterStreamFactory(cb.build()).getInstance(userRecord.getTwitterAccessToken());
         stream.addConnectionLifeCycleListener(new ConnectionLifeCycleListener() {
             @Override
             public void onConnect() {
