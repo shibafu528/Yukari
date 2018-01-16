@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import info.shibafu528.yukari.exvoice.MRuby;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -43,6 +44,7 @@ import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.TimelineHub;
@@ -625,15 +627,21 @@ public class TwitterService extends Service{
      * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
      */
     public Object getApiClient(@NonNull AuthUserRecord userRecord) {
-        // TODO: そもそも、AuthUserRecordにサービスのキーが必要なんだが
-        if (TextUtils.isEmpty(userRecord.ConsumerKey)) {
-            // CKCSが空ならTwitter
-            return getTwitter(userRecord);
-        } else {
-            // なんか入ってればMastodon
-            MastodonClient mastodonClient = new MastodonClient.Builder("social.mikutter.hachune.net",
-                    new OkHttpClient.Builder(), new Gson()).build();
-            return mastodonClient;
+        switch (userRecord.Provider.getApiType()) {
+            case Provider.API_TWITTER:
+                return getTwitter(userRecord);
+            case Provider.API_MASTODON: {
+                MastodonClient.Builder builder = new MastodonClient.Builder(
+                        userRecord.Provider.getHost(),
+                        new OkHttpClient.Builder().addInterceptor(getUserAgentInterceptor()),
+                        new Gson());
+                if (!TextUtils.isEmpty(userRecord.AccessToken)) {
+                    builder = builder.accessToken(userRecord.AccessToken);
+                }
+                return builder.build();
+            }
+            default:
+                throw new RuntimeException("Invalid API Type : " + userRecord);
         }
     }
 
@@ -653,7 +661,7 @@ public class TwitterService extends Service{
         }
 
         if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
-            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getAccessToken()));
+            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getTwitterAccessToken()));
         }
         return twitterInstances.get(userRecord.NumericId);
     }
@@ -886,11 +894,7 @@ public class TwitterService extends Service{
 
             OkHttpClient client = new OkHttpClient.Builder()
                     .readTimeout(10000, TimeUnit.MILLISECONDS)
-                    .addInterceptor(chain ->
-                            chain.proceed(chain.request()
-                                    .newBuilder()
-                                    .header("User-Agent", StringUtil.getVersionInfo(getApplicationContext()))
-                                    .build()))
+                    .addInterceptor(getUserAgentInterceptor())
                     .build();
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl("http://mikutter.hachune.net")
@@ -917,5 +921,12 @@ public class TwitterService extends Service{
 
     public StringBuffer getmRubyStdOut() {
         return mRubyStdOut;
+    }
+
+    private Interceptor getUserAgentInterceptor() {
+        return chain -> chain.proceed(chain.request()
+                .newBuilder()
+                .header("User-Agent", StringUtil.getVersionInfo(TwitterService.this.getApplicationContext()))
+                .build());
     }
 }

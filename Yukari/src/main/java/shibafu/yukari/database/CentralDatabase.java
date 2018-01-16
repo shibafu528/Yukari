@@ -30,13 +30,13 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 15;
+    public static final int DB_VER = 16;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
     public static final String COL_ACCOUNTS_ID = "_id";
-    public static final String COL_ACCOUNTS_CONSUMER_KEY = "ConsumerKey";
-    public static final String COL_ACCOUNTS_CONSUMER_SECRET = "ConsumerSecret";
+    @Deprecated public static final String COL_ACCOUNTS_CONSUMER_KEY = "ConsumerKey";
+    @Deprecated public static final String COL_ACCOUNTS_CONSUMER_SECRET = "ConsumerSecret";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN = "AccessToken";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN_SECRET = "AccessTokenSecret";
     public static final String COL_ACCOUNTS_IS_PRIMARY = "IsPrimary"; //各種操作のメインアカウント、最初に認証した垢がデフォルト
@@ -44,6 +44,16 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_IS_WRITER  = "IsWriter"; //ツイートのカレントアカウント、オープン毎にIsPrimaryで初期化する
     public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
     public static final String COL_ACCOUNTS_COLOR = "AccountColor";
+    public static final String COL_ACCOUNTS_PROVIDER_ID = "ProviderId";
+
+    //Providersテーブル
+    public static final String TABLE_PROVIDERS = "Providers";
+    public static final String COL_PROVIDERS_ID = "_id";
+    public static final String COL_PROVIDERS_HOST = "Host";
+    public static final String COL_PROVIDERS_NAME = "Name";
+    public static final String COL_PROVIDERS_API_TYPE = "ApiType";
+    public static final String COL_PROVIDERS_CONSUMER_KEY = "ConsumerKey";
+    public static final String COL_PROVIDERS_CONSUMER_SECRET = "ConsumerSecret";
 
     //Userテーブル
     public static final String TABLE_USER = "User";
@@ -151,15 +161,23 @@ public class CentralDatabase {
             db.execSQL(
                     "CREATE TABLE " + TABLE_ACCOUNTS + " (" +
                     COL_ACCOUNTS_ID + " INTEGER PRIMARY KEY, " +
-                    COL_ACCOUNTS_CONSUMER_KEY + " TEXT, " +
-                    COL_ACCOUNTS_CONSUMER_SECRET + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN_SECRET + " TEXT, " +
                     COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
                     COL_ACCOUNTS_IS_ACTIVE + " INTEGER, " +
                     COL_ACCOUNTS_IS_WRITER + " INTEGER, " +
                     COL_ACCOUNTS_FALLBACK_TO + " INTEGER, " +
-                    COL_ACCOUNTS_COLOR + " INTEGER)"
+                    COL_ACCOUNTS_COLOR + " INTEGER, " +
+                    COL_ACCOUNTS_PROVIDER_ID + " INTEGER)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_PROVIDERS + " (" +
+                            COL_PROVIDERS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_PROVIDERS_HOST + " TEXT, " +
+                            COL_PROVIDERS_NAME + " TEXT, " +
+                            COL_PROVIDERS_API_TYPE + " INTEGER, " +
+                            COL_PROVIDERS_CONSUMER_KEY + " TEXT, " +
+                            COL_PROVIDERS_CONSUMER_SECRET + " TEXT)"
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_USER + " (" +
@@ -367,7 +385,9 @@ public class CentralDatabase {
                 ++oldVersion;
             }
             if (oldVersion == 12) {
+                //noinspection deprecation
                 db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_CONSUMER_KEY + " TEXT");
+                //noinspection deprecation
                 db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_CONSUMER_SECRET + " TEXT");
                 ++oldVersion;
             }
@@ -383,6 +403,18 @@ public class CentralDatabase {
             if (oldVersion == 14) {
                 //noinspection deprecation
                 db.execSQL("DROP TABLE " + TABLE_TEMPLATE);
+            }
+            if (oldVersion == 15) {
+                db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_PROVIDER_ID + " INTEGER");
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_PROVIDERS + " (" +
+                                COL_PROVIDERS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_PROVIDERS_HOST + " TEXT, " +
+                                COL_PROVIDERS_NAME + " TEXT, " +
+                                COL_PROVIDERS_API_TYPE + " INTEGER, " +
+                                COL_PROVIDERS_CONSUMER_KEY + " TEXT, " +
+                                COL_PROVIDERS_CONSUMER_SECRET + " TEXT)"
+                );
             }
         }
     }
@@ -477,18 +509,24 @@ public class CentralDatabase {
                 TABLE_ACCOUNTS + "," + TABLE_USER,
                 new String[]{
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
-                        COL_ACCOUNTS_CONSUMER_KEY,
-                        COL_ACCOUNTS_CONSUMER_SECRET,
                         COL_ACCOUNTS_ACCESS_TOKEN,
                         COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         COL_ACCOUNTS_IS_PRIMARY,
                         COL_ACCOUNTS_IS_ACTIVE,
                         COL_ACCOUNTS_IS_WRITER,
                         COL_ACCOUNTS_COLOR,
+                        COL_ACCOUNTS_PROVIDER_ID,
                         COL_USER_SCREEN_NAME,
                         COL_USER_NAME,
-                        COL_USER_PROFILE_IMAGE_URL},
-                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
+                        COL_USER_PROFILE_IMAGE_URL,
+                        COL_PROVIDERS_HOST,
+                        COL_PROVIDERS_NAME,
+                        COL_PROVIDERS_API_TYPE,
+                        COL_PROVIDERS_CONSUMER_KEY,
+                        COL_PROVIDERS_CONSUMER_SECRET
+                },
+                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID
+                        + " AND " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
                 null, null, null, null);
     }
 
@@ -501,30 +539,6 @@ public class CentralDatabase {
             contentValues.put(COL_ACCOUNTS_IS_PRIMARY, 1);
         }
         db.replaceOrThrow(TABLE_ACCOUNTS, null, contentValues);
-    }
-
-    public AuthUserRecord getPrimaryAccount() {
-        Cursor cursor = db.query(
-                TABLE_ACCOUNTS + "," + TABLE_USER,
-                new String[]{
-                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
-                        COL_ACCOUNTS_ACCESS_TOKEN,
-                        COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
-                        COL_ACCOUNTS_IS_PRIMARY,
-                        COL_ACCOUNTS_IS_ACTIVE,
-                        COL_ACCOUNTS_IS_WRITER,
-                        COL_ACCOUNTS_COLOR,
-                        COL_USER_SCREEN_NAME,
-                        COL_USER_NAME,
-                        COL_USER_PROFILE_IMAGE_URL},
-                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
-                        " AND " + COL_ACCOUNTS_IS_PRIMARY + " = 1",
-                null, null, null, null);
-        AuthUserRecord primaryUser = null;
-        if (cursor.getCount() > 0) {
-            primaryUser = AuthUserRecord.getAccountsList(cursor).get(0);
-        }
-        return primaryUser;
     }
     //</editor-fold>
 
