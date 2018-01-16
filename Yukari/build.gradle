@@ -71,8 +71,14 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.2.0'
 
     // プラグインシステム
-    compile project(':yukari-exvoice'), {
-        exclude group: 'org.twitter4j', module: 'twitter4j-core'
+    if (getProperty("yukari.exvoice.build").toBoolean()) {
+        compile project(':yukari-exvoice'), {
+            exclude group: 'org.twitter4j', module: 'twitter4j-core'
+        }
+    } else {
+        compile 'info.shibafu528.yukari:yukari-exvoice:20180116.230029', {
+            exclude group: 'org.twitter4j', module: 'twitter4j-core'
+        }
     }
     compile 'twitter.intent:twitter-intent-core:1.0,0'
     compile 'twitter.intent:twitter-intent-t4j:1.0.0', {
