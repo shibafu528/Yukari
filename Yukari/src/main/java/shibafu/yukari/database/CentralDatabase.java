@@ -78,6 +78,7 @@ public class CentralDatabase {
     public static final String COL_USER_LISTED_COUNT = "ListedCount";
     public static final String COL_USER_LANGUAGE = "Language";
     public static final String COL_USER_CREATED_AT = "CreatedAt";
+    public static final String COL_USER_NAME_ALT = "UserName";
 
     //UserExtrasテーブル
     public static final String TABLE_USER_EXTRAS = "UserExtras";
@@ -403,6 +404,7 @@ public class CentralDatabase {
             if (oldVersion == 14) {
                 //noinspection deprecation
                 db.execSQL("DROP TABLE " + TABLE_TEMPLATE);
+                ++oldVersion;
             }
             if (oldVersion == 15) {
                 db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " ADD " + COL_ACCOUNTS_PROVIDER_ID + " INTEGER");
@@ -415,6 +417,7 @@ public class CentralDatabase {
                                 COL_PROVIDERS_CONSUMER_KEY + " TEXT, " +
                                 COL_PROVIDERS_CONSUMER_SECRET + " TEXT)"
                 );
+                ++oldVersion;
             }
         }
     }
@@ -506,28 +509,28 @@ public class CentralDatabase {
     //<editor-fold desc="Accounts">
     public Cursor getAccounts() {
         return db.query(
-                TABLE_ACCOUNTS + "," + TABLE_USER,
+                TABLE_ACCOUNTS
+                        + " INNER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID
+                        + " LEFT JOIN " + TABLE_PROVIDERS + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
                 new String[]{
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
-                        COL_ACCOUNTS_ACCESS_TOKEN,
-                        COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
-                        COL_ACCOUNTS_IS_PRIMARY,
-                        COL_ACCOUNTS_IS_ACTIVE,
-                        COL_ACCOUNTS_IS_WRITER,
-                        COL_ACCOUNTS_COLOR,
-                        COL_ACCOUNTS_PROVIDER_ID,
-                        COL_USER_SCREEN_NAME,
-                        COL_USER_NAME,
-                        COL_USER_PROFILE_IMAGE_URL,
-                        COL_PROVIDERS_HOST,
-                        COL_PROVIDERS_NAME,
-                        COL_PROVIDERS_API_TYPE,
-                        COL_PROVIDERS_CONSUMER_KEY,
-                        COL_PROVIDERS_CONSUMER_SECRET
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
+                        TABLE_USER + "." + COL_USER_SCREEN_NAME,
+                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT,
+                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_KEY,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_SECRET
                 },
-                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID
-                        + " AND " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
-                null, null, null, null);
+                null, null, null, null, null);
     }
 
     public void addAccount(AuthUserRecord aur) {
@@ -567,10 +570,30 @@ public class CentralDatabase {
     public List<TweetDraft> getDrafts() {
         List<TweetDraft> draftList = new ArrayList<>();
         Cursor cursor = db.query(
-                TABLE_DRAFTS + "," + TABLE_ACCOUNTS + "," + TABLE_USER,
+                TABLE_DRAFTS +
+                        " INNER JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_BOOKMARKS + "." + COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                        " INNER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
+                        " LEFT JOIN " + TABLE_PROVIDERS + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
+                new String[]{
+                        TABLE_BOOKMARKS + ".*",
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
+                        TABLE_USER + "." + COL_USER_SCREEN_NAME,
+                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT,
+                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_KEY,
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_SECRET
+                },
                 null,
-                COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " AND " +
-                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID,
                 null, null, null, COL_DRAFTS_DATETIME);
         try {
             TweetDraft last = null;
@@ -594,10 +617,33 @@ public class CentralDatabase {
     //</editor-fold>
 
     public ArrayList<TabInfo> getTabs() {
-        Cursor cursor = db.rawQuery("SELECT " + joinColumnName(TABLE_TABS, COL_TABS_ID) + " AS _id_t, * FROM " +
-                TABLE_TABS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
-                TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
+        Cursor cursor = db.rawQuery(
+                "SELECT " +
+                    TABLE_TABS + "." + COL_TABS_ID + " AS _id_t, " +
+                    TABLE_TABS + ".*, " +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
+                    TABLE_USER + "." + COL_USER_SCREEN_NAME + "," +
+                    TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT + "," +
+                    TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL + "," +
+                    TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST + "," +
+                    TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME + "," +
+                    TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE + "," +
+                    TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_KEY + "," +
+                    TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_SECRET +
+                " FROM " + TABLE_TABS +
+                    " LEFT JOIN " + TABLE_ACCOUNTS +
+                    " ON " + TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                    " LEFT JOIN " + TABLE_USER +
+                    " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
+                    " LEFT JOIN " + TABLE_PROVIDERS +
+                    " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID +
                 " ORDER BY " + COL_TABS_TAB_ORDER, null
         );
         ArrayList<TabInfo> tabs = new ArrayList<>();
@@ -661,11 +707,34 @@ public class CentralDatabase {
     }
 
     public ArrayList<Bookmark> getBookmarks() {
-        Cursor cursor = db.rawQuery("SELECT " + joinColumnName(TABLE_BOOKMARKS, COL_BOOKMARKS_ID) + " AS _id_b, * FROM " +
-                        TABLE_BOOKMARKS + " LEFT OUTER JOIN " + TABLE_ACCOUNTS + " ON " +
-                        TABLE_BOOKMARKS + "." + COL_BOOKMARKS_RECEIVER_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                        " LEFT OUTER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
-                        " ORDER BY " + joinColumnName(TABLE_BOOKMARKS, COL_BOOKMARKS_SAVE_DATE) + " DESC", null
+        Cursor cursor = db.rawQuery(
+                "SELECT " +
+                        TABLE_BOOKMARKS + "." + COL_BOOKMARKS_ID + " AS _id_b, " +
+                        TABLE_BOOKMARKS + ".*, " +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
+                        TABLE_USER + "." + COL_USER_SCREEN_NAME + "," +
+                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT + "," +
+                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL + "," +
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST + "," +
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME + "," +
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE + "," +
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_KEY + "," +
+                        TABLE_PROVIDERS + "." + COL_PROVIDERS_CONSUMER_SECRET +
+                    " FROM " + TABLE_BOOKMARKS +
+                        " LEFT JOIN " + TABLE_ACCOUNTS +
+                        " ON " + TABLE_BOOKMARKS + "." + COL_BOOKMARKS_RECEIVER_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                        " LEFT JOIN " + TABLE_USER +
+                        " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
+                        " LEFT JOIN " + TABLE_PROVIDERS +
+                        " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID +
+                    " ORDER BY " + TABLE_BOOKMARKS + "." + COL_BOOKMARKS_SAVE_DATE + " DESC", null
         );
         ArrayList<Bookmark> bookmarks = new ArrayList<>();
         try {

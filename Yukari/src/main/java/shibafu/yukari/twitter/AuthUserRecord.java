@@ -53,7 +53,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public AuthUserRecord(Cursor cursor) {
         NumericId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ID));
         ScreenName = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_SCREEN_NAME));
-        Name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_NAME));
+        Name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_NAME_ALT));
         ProfileImageUrl = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_PROFILE_IMAGE_URL));
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
         isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;

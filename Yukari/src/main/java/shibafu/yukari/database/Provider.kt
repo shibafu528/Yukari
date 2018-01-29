@@ -2,12 +2,13 @@ package shibafu.yukari.database
 
 import android.content.ContentValues
 import android.database.Cursor
+import java.io.Serializable
 
 /**
  * 接続先情報
  */
 @DBTable(CentralDatabase.TABLE_PROVIDERS)
-class Provider : DBRecord {
+class Provider : DBRecord, Serializable {
     val id: Long
     val host: String
     val name: String
