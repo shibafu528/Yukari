@@ -5,11 +5,10 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import shibafu.yukari.entity.NotifyHistory
-import shibafu.yukari.twitter.statusimpl.HistoryStatus
 import shibafu.yukari.util.StringUtil
 
 /**
- * Historyタブの[HistoryStatus]を表示するためのビュー
+ * Historyタブの[NotifyHistory]を表示するためのビュー
  */
 class HistoryView : StatusView {
     constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
@@ -59,8 +58,8 @@ class HistoryView : StatusView {
     val NotifyHistory.kindString: String
         get() =
             when (kind) {
-                HistoryStatus.KIND_FAVED -> "お気に入り登録"
-                HistoryStatus.KIND_RETWEETED -> "リツイート"
+                NotifyHistory.KIND_FAVED -> "お気に入り登録"
+                NotifyHistory.KIND_RETWEETED -> "リツイート"
                 else -> "反応"
             }
 }

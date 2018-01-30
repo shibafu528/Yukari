@@ -8,6 +8,7 @@ import shibafu.yukari.common.HashCache
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.NotifyHistory
+import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
@@ -183,7 +184,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param eventBy イベントを発生させたユーザ
      * @param status イベントに関連する [Status]
      */
-    fun onNotify(@NotifyHistory.Kind kind: Int, eventBy: User, status: Status) {
+    fun onNotify(@NotifyKind kind: Int, eventBy: User, status: Status) {
         val notify = NotifyHistory(System.currentTimeMillis(), kind, eventBy, status)
         pushEventQueue(TimelineEvent.Notify(notify))
     }

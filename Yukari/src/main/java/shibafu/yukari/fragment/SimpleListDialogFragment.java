@@ -24,7 +24,7 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
     public static final String ARG_EXTRAS = "extras";
 
     public interface OnDialogChoseListener {
-        void onDialogChose(int requestCode, int which, String value, @Nullable Bundle extras);
+        void onDialogChose(int requestCode, int which, @Nullable String value, @Nullable Bundle extras);
     }
 
     public static SimpleListDialogFragment newInstance(

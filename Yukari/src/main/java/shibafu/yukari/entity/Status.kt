@@ -115,13 +115,3 @@ interface Status : Comparable<Status>, Serializable {
     @Retention(AnnotationRetention.SOURCE)
     annotation class Relation
 }
-
-/**
- * 主に前処理の段階で決定しておく、ステータスのメタ情報など
- */
-class StatusPreforms {
-    /**
-     * 表示すべきでないメディアを含んでいるかどうか
-     */
-    var isCensoredThumbs: Boolean = false
-}

@@ -26,11 +26,14 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.entity.NotifyHistory;
+import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.entity.TwitterStatus;
+import shibafu.yukari.twitter.entity.TwitterUser;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
-import shibafu.yukari.twitter.statusimpl.HistoryStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
@@ -115,12 +118,16 @@ public class StatusManager implements Releasable {
 
     private UserUpdateDelayer userUpdateDelayer;
 
+    @AutoRelease TimelineHub hub;
+
     public StatusManager(TwitterService service) {
         this.context = this.service = service;
 
         this.suppressor = service.getSuppressor();
         this.sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         this.handler = new Handler();
+
+        this.hub = service.getTimelineHub();
 
         //通知マネージャの開始
         notifier = new StatusNotifier(service);
@@ -451,7 +458,7 @@ public class StatusManager implements Releasable {
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
                 notifier.showNotification(R.integer.notification_faved, preformedStatus, user);
-                createHistory(from, HistoryStatus.KIND_FAVED, user, preformedStatus);
+                createHistory(from, NotifyHistory.KIND_FAVED, user, preformedStatus);
             }
         }
 
@@ -518,10 +525,9 @@ public class StatusManager implements Releasable {
         }
 
         private void createHistory(Stream from, int kind, User eventBy, Status status) {
-            HistoryStatus historyStatus = new HistoryStatus(System.currentTimeMillis(), kind, eventBy, status);
-            EventBuffer eventBuffer = new UpdateEventBuffer(from.getUserRecord(), UPDATE_NOTIFY, historyStatus);
-            pushEventQueue(from, eventBuffer);
-            updateBuffer.sync(u -> u.add(eventBuffer));
+            if (hub != null) {
+                hub.onNotify(kind, new TwitterUser(eventBy), new TwitterStatus(status, from.getUserRecord()));
+            }
         }
 
         private void pushEventQueue(Stream from, EventBuffer event) {
@@ -675,7 +681,7 @@ public class StatusManager implements Releasable {
                                 status.getRetweetedStatus().getUser().getId() == user.NumericId &&
                                 checkOwn == null) {
                             notifier.showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-                            createHistory(from, HistoryStatus.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
+                            createHistory(from, NotifyHistory.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
 
                             //Put Response Stand-By
                             retweetResponseStandBy.put(preformedStatus.getUser().getId(), Pair.create(preformedStatus, System.currentTimeMillis()));

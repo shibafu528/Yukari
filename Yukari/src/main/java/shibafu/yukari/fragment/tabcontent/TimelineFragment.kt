@@ -180,7 +180,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     }
                     is NotifyHistory -> {
                         val bundle = Bundle()
-                        bundle.putSerializable("status", clickedElement)
+                        bundle.putSerializable("status", clickedElement.status)
                         val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
                                 "メニュー", null, null, null,
                                 listOf("@${clickedElement.status.user.screenName}", "詳細を開く"),
@@ -325,7 +325,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
     }
 
-    override fun onDialogChose(requestCode: Int, which: Int, value: String, extras: Bundle?) {
+    override fun onDialogChose(requestCode: Int, which: Int, value: String?, extras: Bundle?) {
         when (requestCode) {
             DIALOG_REQUEST_HISTORY_MENU -> {
                 if (extras == null) return

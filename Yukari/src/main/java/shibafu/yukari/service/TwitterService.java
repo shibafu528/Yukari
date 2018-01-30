@@ -195,12 +195,12 @@ public class TwitterService extends Service{
         suppressor = new Suppressor();
         updateMuteConfig();
 
-        //ステータスマネージャのセットアップ
-        statusManager = new StatusManager(this);
-
         //Timeline Pub/Subのセットアップ
         timelineHub = new TimelineHub(this);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
+
+        //ステータスマネージャのセットアップ
+        statusManager = new StatusManager(this);
 
         //オートミュート設定の読み込み
         updateAutoMuteConfig();

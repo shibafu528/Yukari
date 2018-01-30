@@ -1,13 +1,12 @@
 package shibafu.yukari.entity
 
-import android.support.annotation.IntDef
 import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
 
 /**
  * 通知履歴
  */
-class NotifyHistory(timeAtMillis: Long, @Kind val kind: Int, eventBy: User, val status: Status) : Status {
+class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User, val status: Status) : Status {
     override val id: Long = timeAtMillis
     override val user: User = eventBy
     override val text: String = ""
@@ -27,11 +26,7 @@ class NotifyHistory(timeAtMillis: Long, @Kind val kind: Int, eventBy: User, val 
         }
 
     companion object {
-        const val KIND_FAVED = 0L
-        const val KIND_RETWEETED = 1L
+        const val KIND_FAVED = 0
+        const val KIND_RETWEETED = 1
     }
-
-    @IntDef(KIND_FAVED, KIND_RETWEETED)
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class Kind
 }
