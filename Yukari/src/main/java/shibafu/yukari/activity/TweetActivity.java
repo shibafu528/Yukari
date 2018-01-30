@@ -1360,7 +1360,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     @Override
-    public void onDialogChose(int requestCode, int which, String value) {
+    public void onDialogChose(int requestCode, int which, String value, Bundle extras) {
         switch (requestCode) {
             case REQUEST_DIALOG_TEMPLATE:
                 if (value != null) {
@@ -1373,7 +1373,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     switch (which) {
                         case 0:
                             dialogFragment = SimpleListDialogFragment.newInstance(
-                                    REQUEST_DIALOG_HASH_VALUE, "ハッシュタグ入力履歴", null, null, "キャンセル", usedHashes.getAll());
+                                    REQUEST_DIALOG_HASH_VALUE, "ハッシュタグ入力履歴", null, null, "キャンセル", usedHashes.getAll(), null);
                             break;
                         case 1:
                             dialogFragment = SimpleListDialogFragment.newInstance(

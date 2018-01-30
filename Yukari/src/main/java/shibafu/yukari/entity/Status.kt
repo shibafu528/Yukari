@@ -2,12 +2,13 @@ package shibafu.yukari.entity
 
 import android.support.annotation.IntDef
 import shibafu.yukari.twitter.AuthUserRecord
+import java.io.Serializable
 import java.util.*
 
 /**
  * タイムラインに表示できたりするやつ
  */
-interface Status : Comparable<Status> {
+interface Status : Comparable<Status>, Serializable {
     /**
      * ID
      */

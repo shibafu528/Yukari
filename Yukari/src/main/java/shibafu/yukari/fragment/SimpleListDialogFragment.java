@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment;
 
+import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -20,9 +21,10 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
     public static final String ARG_ITEMS = "items";
     public static final String ARG_POSITIVE = "possitive";
     public static final String ARG_NEGATIVE = "negative";
+    public static final String ARG_EXTRAS = "extras";
 
     public interface OnDialogChoseListener {
-        void onDialogChose(int requestCode, int which, String value);
+        void onDialogChose(int requestCode, int which, String value, @Nullable Bundle extras);
     }
 
     public static SimpleListDialogFragment newInstance(
@@ -42,7 +44,7 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
 
     public static SimpleListDialogFragment newInstance(
             int requestCode,
-            String title, String message, String possitive, String negative, List<String> items) {
+            String title, String message, String possitive, String negative, List<String> items, @Nullable Bundle extras) {
         SimpleListDialogFragment fragment = new SimpleListDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_REQUEST_CODE, requestCode);
@@ -51,6 +53,7 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
         args.putString(ARG_POSITIVE, possitive);
         args.putString(ARG_NEGATIVE, negative);
         args.putStringArray(ARG_ITEMS, items.toArray(new String[items.size()]));
+        args.putBundle(ARG_EXTRAS, extras);
         fragment.setArguments(args);
         return fragment;
     }
@@ -110,7 +113,7 @@ public class SimpleListDialogFragment extends DialogFragment implements DialogIn
 
             if (listener != null) {
                 String[] items = getArguments().getStringArray(ARG_ITEMS);
-                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, items == null || i < 0 || items.length <= i ? null : items[i]);
+                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, items == null || i < 0 || items.length <= i ? null : items[i], getArguments().getBundle(ARG_EXTRAS));
             }
         }
     }

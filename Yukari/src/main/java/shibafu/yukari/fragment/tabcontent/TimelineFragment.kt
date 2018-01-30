@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -15,15 +16,18 @@ import android.widget.TextView
 import android.widget.Toast
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
+import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.StatusActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
+import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
+import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
@@ -38,7 +42,7 @@ import shibafu.yukari.util.putWarnLog
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener {
+open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING
@@ -172,6 +176,17 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         intent.putExtra(StatusActivity.EXTRA_STATUS, PreformedStatus(clickedElement.status, clickedElement.representUser))
                         intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
                         startActivity(intent)
+                        true
+                    }
+                    is NotifyHistory -> {
+                        val bundle = Bundle()
+                        bundle.putSerializable("status", clickedElement)
+                        val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
+                                "メニュー", null, null, null,
+                                listOf("@${clickedElement.status.user.screenName}", "詳細を開く"),
+                                bundle)
+                        dialog.setTargetFragment(this, 0)
+                        dialog.show(fragmentManager, "history_menu")
                         true
                     }
                     else -> false
@@ -310,6 +325,31 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
     }
 
+    override fun onDialogChose(requestCode: Int, which: Int, value: String, extras: Bundle?) {
+        when (requestCode) {
+            DIALOG_REQUEST_HISTORY_MENU -> {
+                if (extras == null) return
+                val status = extras.getSerializable("status") as Status
+
+                when (which) {
+                    0 -> {
+                        val intent = Intent(activity.applicationContext, ProfileActivity::class.java)
+                        intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
+                        intent.putExtra(ProfileActivity.EXTRA_TARGET, status.user.id) // TODO: マルチサービス非互換
+                        startActivity(intent)
+                    }
+                    1 -> {
+                        val intent = Intent(activity.applicationContext, StatusActivity::class.java)
+                        intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)
+                        intent.putExtra(StatusActivity.EXTRA_STATUS, status)
+                        startActivity(intent)
+                    }
+                    DialogInterface.BUTTON_NEGATIVE -> blockingDoubleClick = false
+                }
+            }
+        }
+    }
+
     override fun onTimelineEvent(event: TimelineEvent) {
         fun finishRestRequest(taskKey: Long) {
             loadingTaskKeys.remove(taskKey)
@@ -352,6 +392,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             is TimelineEvent.RestRequestCancelled -> {
                 if (event.timelineId == timelineId) {
                     finishRestRequest(event.taskKey)
+                }
+            }
+            is TimelineEvent.Notify -> {
+                if (mode == TabType.TABTYPE_HISTORY) {
+                    val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
+                    handler.post { insertElement(event.notify, useScrollLock) }
                 }
             }
             is TimelineEvent.Wipe -> {
@@ -452,6 +498,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         private const val PRE_INSERT_DUPLICATED = -1
         /** [preInsertElement] : 同一要素があったためマージを行った(Viewの制御のみ必要) */
         private const val PRE_INSERT_MERGED = -2
+
+        /** ダイアログID : NotifyHistory クリックメニュー */
+        private const val DIALOG_REQUEST_HISTORY_MENU = 1
     }
 }
 

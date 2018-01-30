@@ -1,9 +1,11 @@
 package shibafu.yukari.entity
 
+import java.io.Serializable
+
 /**
  * お前ら
  */
-interface User : Comparable<User> {
+interface User : Comparable<User>, Serializable {
     /**
      * ID
      */

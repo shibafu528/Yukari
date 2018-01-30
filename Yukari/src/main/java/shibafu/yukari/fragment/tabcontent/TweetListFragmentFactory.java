@@ -23,7 +23,7 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_BOOKMARK:
                 return new BookmarkListFragment();
             case TabType.TABTYPE_HISTORY:
-                return new HistoryListFragment();
+                return new TimelineFragment();
             case TabType.TABTYPE_FILTER:
                 return new TimelineFragment();
             default:
@@ -43,6 +43,9 @@ public class TweetListFragmentFactory {
                 break;
             case TabType.TABTYPE_FILTER:
                 b.putString(TimelineFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
+                break;
+            case TabType.TABTYPE_HISTORY:
+                b.putString(TimelineFragment.EXTRA_FILTER_QUERY, "where (nil)");
                 break;
         }
         b.putLong(TweetListFragment.EXTRA_ID, tabInfo.getId());
