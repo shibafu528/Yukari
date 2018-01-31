@@ -115,37 +115,6 @@ class TimelineHub(private val service: TwitterService) {
 
         pushEventQueue(TimelineEvent.Received(timelineId, status, false), false)
 
-        // オートミュート判定
-        autoMuteConfigs.forEach { config ->
-            var match = false
-            when (config.match) {
-                AutoMuteConfig.MATCH_EXACT -> match = status.text == config.query
-                AutoMuteConfig.MATCH_PARTIAL -> match = status.text.contains(config.query)
-                AutoMuteConfig.MATCH_REGEX -> {
-                    var pattern = autoMutePatternCache[config.id]
-                    if (pattern == null && autoMutePatternCache.indexOfKey(config.id) < 0) {
-                        try {
-                            pattern = Pattern.compile(config.query)
-                            autoMutePatternCache.put(config.id, pattern)
-                        } catch (e: PatternSyntaxException) {
-                            autoMutePatternCache.put(config.id, null)
-                        }
-                    }
-                    if (pattern != null) {
-                        match = pattern.matcher(status.text).find()
-                    }
-                }
-            }
-            if (match) {
-                putDebugLog("[$timelineId] AutoMute! : @${status.user.screenName}")
-
-                // TODO: サービスに関係なく消えてしまうリスク
-                service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
-                service.updateMuteConfig()
-                return@forEach
-            }
-        }
-
         // ミュート判定
         val muteFlags = service.suppressor.decision(status)
         if (muteFlags[MuteConfig.MUTE_IMAGE_THUMB]) {
@@ -153,6 +122,37 @@ class TimelineHub(private val service: TwitterService) {
         }
 
         if (passive) {
+            // オートミュート判定
+            autoMuteConfigs.forEach { config ->
+                var match = false
+                when (config.match) {
+                    AutoMuteConfig.MATCH_EXACT -> match = status.text == config.query
+                    AutoMuteConfig.MATCH_PARTIAL -> match = status.text.contains(config.query)
+                    AutoMuteConfig.MATCH_REGEX -> {
+                        var pattern = autoMutePatternCache[config.id]
+                        if (pattern == null && autoMutePatternCache.indexOfKey(config.id) < 0) {
+                            try {
+                                pattern = Pattern.compile(config.query)
+                                autoMutePatternCache.put(config.id, pattern)
+                            } catch (e: PatternSyntaxException) {
+                                autoMutePatternCache.put(config.id, null)
+                            }
+                        }
+                        if (pattern != null) {
+                            match = pattern.matcher(status.text).find()
+                        }
+                    }
+                }
+                if (match) {
+                    putDebugLog("[$timelineId] AutoMute! : @${status.user.screenName}")
+
+                    // TODO: サービスに関係なく消えてしまうリスク
+                    service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
+                    service.updateMuteConfig()
+                    return@forEach
+                }
+            }
+
             // RT通知判定
             // メンション通知判定
         }
