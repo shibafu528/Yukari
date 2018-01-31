@@ -16,12 +16,14 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
@@ -161,12 +163,18 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {
         if (kind == StatusManager.UPDATE_DELETED_DM) {
             getHandler().post(() -> deleteElement(status));
-        } else if (kind == StatusManager.UPDATE_WIPE_TWEETS) {
+        }
+    }
+
+    @Override
+    public void onTimelineEvent(@NotNull TimelineEvent event) {
+        super.onTimelineEvent(event);
+        if (event instanceof TimelineEvent.Wipe) {
             getHandler().post(() -> {
                 elements.clear();
                 notifyDataSetChanged();
             });
-        } else if (kind == StatusManager.UPDATE_FORCE_UPDATE_UI) {
+        } else if (event instanceof TimelineEvent.ForceUpdateUI) {
             getHandler().post(this::notifyDataSetChanged);
         }
     }

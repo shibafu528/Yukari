@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -26,6 +27,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
@@ -332,6 +334,9 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         super.onDetach();
         swipeActionStatusView = null;
         swipeActionInfoLabel = null;
+        if (isTwitterServiceBound() && getTwitterService().getTimelineHub() != null) {
+            getTwitterService().getTimelineHub().removeObserver(this);
+        }
     }
 
     @Override
@@ -445,16 +450,6 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     //StatusListener用のデフォルト実装
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
-            case StatusManager.UPDATE_WIPE_TWEETS:
-                getHandler().post(() -> {
-                    elements.clear();
-                    notifyDataSetChanged();
-                });
-                stash.clear();
-                break;
-            case StatusManager.UPDATE_FORCE_UPDATE_UI:
-                getHandler().post(this::notifyDataSetChanged);
-                break;
             case StatusManager.UPDATE_DELETED:
                 getHandler().post(() -> deleteElement(status));
                 for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
@@ -485,6 +480,20 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                     }
                 }
                 break;
+        }
+    }
+
+    @Override
+    public void onTimelineEvent(@NotNull TimelineEvent event) {
+        super.onTimelineEvent(event);
+        if (event instanceof TimelineEvent.Wipe) {
+            getHandler().post(() -> {
+                elements.clear();
+                notifyDataSetChanged();
+            });
+            stash.clear();
+        } else if (event instanceof TimelineEvent.ForceUpdateUI) {
+            getHandler().post(this::notifyDataSetChanged);
         }
     }
 

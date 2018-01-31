@@ -332,12 +332,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 val status = extras.getSerializable("status") as Status
 
                 when (which) {
+                    // プロフィール
                     0 -> {
                         val intent = Intent(activity.applicationContext, ProfileActivity::class.java)
                         intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
                         intent.putExtra(ProfileActivity.EXTRA_TARGET, status.user.id) // TODO: マルチサービス非互換
                         startActivity(intent)
                     }
+                    // 詳細を開く
                     1 -> {
                         val intent = Intent(activity.applicationContext, StatusActivity::class.java)
                         intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)

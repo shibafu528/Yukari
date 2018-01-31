@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
+import android.support.v4.util.LruCache
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
@@ -34,6 +35,8 @@ class TimelineHub(private val service: TwitterService) {
 
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
     private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
+
+    private val providerLocalCaches: LongSparseArray<ProviderLocalCache> = LongSparseArray()
 
     /**
      * オートミュート設定のインポート
@@ -108,6 +111,8 @@ class TimelineHub(private val service: TwitterService) {
      * @param passive ストリーミング通信によって受動的に取得したStatusか？
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
+        val plc = getProviderLocalCache(status.representUser.Provider.id)
+
         pushEventQueue(TimelineEvent.Received(timelineId, status, false), false)
 
         // オートミュート判定
@@ -152,10 +157,21 @@ class TimelineHub(private val service: TwitterService) {
             // メンション通知判定
         }
 
+        // キャッシュ登録
+        plc.receivedStatus.put(status.id, status)
+
         if (status is TwitterStatus) {
-            // ハッシュタグのキャッシュ
-            status.status.hashtagEntities.forEach {
-                hashCache.put("#" + it.text)
+            if (passive) {
+                // ハッシュタグのキャッシュ
+                status.status.hashtagEntities.forEach {
+                    hashCache.put("#" + it.text)
+                }
+            }
+
+            // 引用ツイートのキャッシュ
+            if (status.status.quotedStatus != null) {
+                val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
+                plc.receivedStatus.put(quotedStatus.id, quotedStatus)
             }
         }
     }
@@ -197,6 +213,13 @@ class TimelineHub(private val service: TwitterService) {
     }
 
     /**
+     * タイムラインの強制リフレッシュ
+     */
+    fun onForceUpdateUI() {
+        pushEventQueue(TimelineEvent.ForceUpdateUI())
+    }
+
+    /**
      * [TimelineEvent] をTL配信キューに登録します。
      *
      * アクティブなTLであれば即時配信され、そうではない場合は次にアクティブになった時点で配信されます。
@@ -218,6 +241,19 @@ class TimelineHub(private val service: TwitterService) {
                 }
             }
         }
+    }
+
+    /**
+     * Provider固有キャッシュの取得
+     * @param providerId ProviderのID
+     */
+    fun getProviderLocalCache(providerId: Long): ProviderLocalCache {
+        var cache = providerLocalCaches[providerId]
+        if (cache == null) {
+            cache = ProviderLocalCache()
+            providerLocalCaches.put(providerId, cache)
+        }
+        return cache
     }
 }
 
@@ -278,4 +314,12 @@ interface TimelineObserver {
      * @param event イベント
      */
     fun onTimelineEvent(event: TimelineEvent)
+}
+
+/**
+ * Providerごとに持つキャッシュ情報
+ */
+class ProviderLocalCache {
+    var receivedStatus: LruCache<Long, Status> = LruCache(512)
+    var repostResponseStandBy: LongSparseArray<Pair<Status, Long>> = LongSparseArray()
 }

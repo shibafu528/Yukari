@@ -37,7 +37,6 @@ import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
-import shibafu.yukari.twitter.statusimpl.RestCompletedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.RestStream;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -79,10 +78,6 @@ public class StatusManager implements Releasable {
     public static final int UPDATE_UNFAVED = 2;
     public static final int UPDATE_DELETED = 3;
     public static final int UPDATE_DELETED_DM = 4;
-    public static final int UPDATE_NOTIFY = 5;
-    public static final int UPDATE_FORCE_UPDATE_UI = 6;
-    public static final int UPDATE_REST_COMPLETED = 7;
-    public static final int UPDATE_WIPE_TWEETS = 0xff;
 
     private static final String LOG_TAG = "StatusManager";
 
@@ -331,17 +326,6 @@ public class StatusManager implements Releasable {
         return receivedStatuses;
     }
 
-    public void onWipe() {
-        if (listener != null) {
-            for (StreamUser streamUser : streamUsers) {
-                listener.onWipe(streamUser);
-            }
-            for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
-                listener.onWipe(entry.getValue());
-            }
-        }
-    }
-
     public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
         this.autoMuteConfigs = autoMuteConfigs;
     autoMutePatternCache.clear();
@@ -380,11 +364,8 @@ public class StatusManager implements Releasable {
 
                     @Override
                     protected void onPostExecute(TwitterException e) {
-                        for (StreamUser streamUser : streamUsers) {
-                            listener.onForceUpdateUI(streamUser);
-                        }
-                        for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
-                            listener.onForceUpdateUI(entry.getValue());
+                        if (hub != null) {
+                            hub.onForceUpdateUI();
                         }
                     }
                 }.executeParallel();
@@ -502,21 +483,6 @@ public class StatusManager implements Releasable {
         @Override
         public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
             pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
-        }
-
-        @SuppressWarnings("unused")
-        public void onWipe(Stream from) {
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_WIPE_TWEETS, new FakeStatus(0)));
-        }
-
-        @SuppressWarnings("unused")
-        public void onForceUpdateUI(Stream from) {
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_FORCE_UPDATE_UI, new FakeStatus(0)));
-        }
-
-        @SuppressWarnings("unused")
-        public void onRestCompleted(Stream from, Long taskKey) {
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_REST_COMPLETED, new RestCompletedStatus(((RestStream) from).getTag(), taskKey)));
         }
 
         @Override

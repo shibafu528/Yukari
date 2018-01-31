@@ -24,11 +24,14 @@ import android.widget.Toast;
 import lombok.Value;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TweetAdapter;
 import shibafu.yukari.entity.Status;
+import shibafu.yukari.linkage.TimelineEvent;
+import shibafu.yukari.linkage.TimelineObserver;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -60,7 +63,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         implements  TwitterServiceConnection.ServiceConnectionCallback,
                     SwipeRefreshLayout.OnRefreshListener,
                     TwitterServiceDelegate,
-                    TimelineTab {
+                    TimelineTab,
+                    TimelineObserver {
 
     public static final String EXTRA_ID = "id";
     public static final String EXTRA_TITLE = "title";
@@ -556,6 +560,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             tweetAdapter.setStatusLoader(getTwitterService().getStatusLoader());
         }
         limitCount = users.size() * 256;
+
+        getTwitterService().getTimelineHub().addObserver(this);
     }
 
     protected PrepareInsertResult prepareInsertStatus(T status) {
@@ -797,6 +803,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         }
         return this.toString();
     }
+
+    @NotNull
+    @Override
+    public String getTimelineId() {
+        return getSubscribeIdentifier();
+    }
+
+    @Override
+    public void onTimelineEvent(@NotNull TimelineEvent event) {}
 
     /**
      * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の結果を格納します。
