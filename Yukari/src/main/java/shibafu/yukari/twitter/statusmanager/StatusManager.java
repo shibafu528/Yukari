@@ -109,7 +109,6 @@ public class StatusManager implements Releasable {
 
     private SyncReference<List<StatusListener>> statusListeners = new SyncReference<>(new ArrayList<>());
     private SyncReference<Map<String, Pair<StatusListener, Queue<EventBuffer>>>> statusBuffer = new SyncReference<>(new HashMap<>());
-    private SyncReference<List<EventBuffer>> updateBuffer = new SyncReference<>(new ArrayList<>());
 
     private UserUpdateDelayer userUpdateDelayer;
 
@@ -297,14 +296,6 @@ public class StatusManager implements Releasable {
                 while (!eventBuffers.isEmpty()) {
                     eventBuffers.poll().sendBufferedEvent(l);
                 }
-            } else {
-                Integer size = updateBuffer.syncReturn(List::size);
-                Log.d("TwitterService", String.format("ヒストリUIと接続されました. %d件のイベントがバッファ内に保持されています.", size));
-                updateBuffer.sync(u -> {
-                    for (EventBuffer eventBuffer : u) {
-                        eventBuffer.sendBufferedEvent(l);
-                    }
-                });
             }
         }
     }
