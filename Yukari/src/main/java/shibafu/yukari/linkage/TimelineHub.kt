@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.util.LruCache
+import info.shibafu528.yukari.exvoice.converter.StatusConverter
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
@@ -113,13 +115,18 @@ class TimelineHub(private val service: TwitterService) {
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         val plc = getProviderLocalCache(status.representUser.Provider.id)
 
-        pushEventQueue(TimelineEvent.Received(timelineId, status, false), false)
-
         // ミュート判定
         val muteFlags = service.suppressor.decision(status)
         if (muteFlags[MuteConfig.MUTE_IMAGE_THUMB]) {
             status.metadata.isCensoredThumbs = true
         }
+        val isMuted = muteFlags[MuteConfig.MUTE_TWEET_RTED] ||
+                (!status.isRepost && muteFlags[MuteConfig.MUTE_TWEET]) ||
+                (status.isRepost && muteFlags[MuteConfig.MUTE_RETWEET])
+
+        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
+
+        // RTレスポンス通知判定
 
         if (passive) {
             // オートミュート判定
@@ -172,6 +179,19 @@ class TimelineHub(private val service: TwitterService) {
             if (status.status.quotedStatus != null) {
                 val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
                 plc.receivedStatus.put(quotedStatus.id, quotedStatus)
+            }
+
+            // mruby連携
+            if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
+                val mRuby = service.getmRuby()
+                if (mRuby != null) {
+                    val message = StatusConverter.toMessage(mRuby, status.status)
+                    try {
+                        Plugin.call(mRuby, "appear", arrayOf(message))
+                    } finally {
+                        message.dispose()
+                    }
+                }
             }
         }
     }
