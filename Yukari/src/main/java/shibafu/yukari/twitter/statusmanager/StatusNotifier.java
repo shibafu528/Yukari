@@ -25,24 +25,24 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.entity.Status;
+import shibafu.yukari.entity.User;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TweetCommon;
-import shibafu.yukari.twitter.TweetCommonDelegate;
+import shibafu.yukari.twitter.entity.TwitterMessage;
+import shibafu.yukari.twitter.entity.TwitterStatus;
+import shibafu.yukari.twitter.entity.TwitterUser;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.Releasable;
-import twitter4j.DirectMessage;
-import twitter4j.TwitterResponse;
-import twitter4j.User;
 
 import java.io.File;
 
 /**
  * Created by shibafu on 2015/07/27.
  */
-class StatusNotifier implements Releasable {
+public class StatusNotifier implements Releasable {
     private static final String LOG_TAG = "StatusNotifier";
 
     //バイブレーションパターン
@@ -132,9 +132,26 @@ class StatusNotifier implements Releasable {
         }
     }
 
-    public void showNotification(int category, TwitterResponse status, User actionBy) {
-        TweetCommonDelegate delegate = TweetCommon.newInstance(status.getClass());
+    @Deprecated
+    public void showNotification(int category, PreformedStatus status, twitter4j.User actionBy) {
+        Status twitterStatus = new TwitterStatus(status, status.getRepresentUser());
+        User twitterUser = new TwitterUser(actionBy);
+        showNotification(category, twitterStatus, twitterUser);
+    }
 
+    @Deprecated
+    public void showNotification(int category, twitter4j.DirectMessage status, twitter4j.User actionBy) {
+        AuthUserRecord representUser = findUserRecord(status.getRecipient());
+        if (representUser == null) {
+            return;
+        }
+
+        Status twitterMessage = new TwitterMessage(status, representUser);
+        User twitterUser = new TwitterUser(actionBy);
+        showNotification(category, twitterMessage, twitterUser);
+    }
+
+    public void showNotification(int category, Status status, User actionBy) {
         int prefValue = 5;
         switch (category) {
             case R.integer.notification_replied:
@@ -198,7 +215,7 @@ class StatusNotifier implements Releasable {
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext());
                 builder.setSmallIcon(icon);
                 builder.setContentTitle(titleHeader + actionBy.getScreenName());
-                builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
+                builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
                 builder.setContentIntent(CompatUtil.getEmptyPendingIntent(context));
                 builder.setTicker(tickerHeader + actionBy.getScreenName());
                 builder.setColor(color);
@@ -219,27 +236,24 @@ class StatusNotifier implements Releasable {
                                 context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                         builder.setContentIntent(pendingIntent);
 
-                        PreformedStatus ps = (PreformedStatus) status;
                         {
                             Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
-                            replyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
-                            replyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
+                            replyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
+                            replyIntent.putExtra(TweetActivity.EXTRA_STATUS, status.getOriginStatus());
                             replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                             replyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                                    ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
-                                            : ps.getUser().getScreenName()) + " ");
+                                    status.getOriginStatus().getUser().getScreenName() + " ");
                             builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
                                             context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                             );
                         }
                         {
                             Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, ps.getRepresentUser());
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_STATUS, ((ps.isRetweet()) ? ps.getRetweetedStatus() : ps));
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_STATUS, status.getOriginStatus());
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY);
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
-                                    ((ps.isRetweet()) ? ps.getRetweetedStatus().getUser().getScreenName()
-                                            : ps.getUser().getScreenName()) + " ");
+                                    status.getOriginStatus().getUser().getScreenName() + " ");
                             NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                     .Builder(R.drawable.ic_stat_reply, "声で返信",
                                     PendingIntent.getService(context.getApplicationContext(),
@@ -269,24 +283,22 @@ class StatusNotifier implements Releasable {
                                 context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                         builder.setContentIntent(pendingIntent);
 
-                        DirectMessage dm = (DirectMessage) status;
-                        AuthUserRecord recipientUserRecord = findUserRecord(dm.getRecipient());
                         {
                             Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
-                            replyIntent.putExtra(TweetActivity.EXTRA_USER, recipientUserRecord);
+                            replyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
                             replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                            replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
-                            replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                            replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.getUser().getId());
+                            replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.getUser().getScreenName());
                             builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
                                             context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                             );
                         }
                         {
                             Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, recipientUserRecord);
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, dm.getSenderId());
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, dm.getSenderScreenName());
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.getUser().getId());
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.getUser().getScreenName());
                             NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                     .Builder(R.drawable.ic_stat_reply, "声で返信",
                                     PendingIntent.getService(context.getApplicationContext(),
@@ -317,7 +329,7 @@ class StatusNotifier implements Releasable {
                     }
                 }
                 final String text = tickerHeader + actionBy.getScreenName() + "\n" +
-                        delegate.getUser(status).getScreenName() + ": " + delegate.getText(status);
+                        status.getUser().getScreenName() + ": " + status.getText();
                 handler.post(() -> Toast.makeText(context.getApplicationContext(),
                         text,
                         Toast.LENGTH_LONG)
@@ -327,7 +339,7 @@ class StatusNotifier implements Releasable {
     }
 
     @Nullable
-    private AuthUserRecord findUserRecord(User user) {
+    private AuthUserRecord findUserRecord(twitter4j.User user) {
         for (AuthUserRecord userRecord : service.getUsers()) {
             if (userRecord.NumericId == user.getId()) {
                 return userRecord;

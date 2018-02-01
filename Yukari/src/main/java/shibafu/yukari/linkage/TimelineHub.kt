@@ -7,7 +7,9 @@ import android.support.v4.util.LongSparseArray
 import android.support.v4.util.LruCache
 import info.shibafu528.yukari.exvoice.converter.StatusConverter
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
+import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
+import shibafu.yukari.common.NotificationType
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.NotifyHistory
@@ -16,6 +18,7 @@ import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.twitter.statusmanager.StatusNotifier
 import shibafu.yukari.util.putDebugLog
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -30,6 +33,8 @@ class TimelineHub(private val service: TwitterService) {
 
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+    private val notifier: StatusNotifier = StatusNotifier(service)
 
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()
@@ -114,6 +119,7 @@ class TimelineHub(private val service: TwitterService) {
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         val plc = getProviderLocalCache(status.representUser.Provider.id)
+        var deliveredCustomStatus = false
 
         // ミュート判定
         val muteFlags = service.suppressor.decision(status)
@@ -124,9 +130,29 @@ class TimelineHub(private val service: TwitterService) {
                 (!status.isRepost && muteFlags[MuteConfig.MUTE_TWEET]) ||
                 (status.isRepost && muteFlags[MuteConfig.MUTE_RETWEET])
 
-        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
-
         // RTレスポンス通知判定
+        val standByStatus = plc.repostResponseStandBy[status.user.id]
+        if (standByStatus != null) {
+            if (NotificationType(sp.getInt("pref_notif_respond", 0)).isEnabled &&
+                    !status.isRepost && !status.text.startsWith("@") && status.createdAt > standByStatus.first.createdAt) {
+                // RTレスポンスとして処理
+                plc.repostResponseStandBy.remove(status.user.id)
+                deliveredCustomStatus = true
+                val respondNotifyStatus = status
+                pushEventQueue(TimelineEvent.Received(timelineId, respondNotifyStatus, isMuted), false)
+                // 通知はストリーミング時のみ行う
+                if (!passive) {
+                    notifier.showNotification(R.integer.notification_respond, respondNotifyStatus, respondNotifyStatus.user)
+                }
+            } else if (standByStatus.second + RESPONSE_STAND_BY_EXPIRES < System.currentTimeMillis()) {
+                // 期限切れ
+                plc.repostResponseStandBy.remove(status.user.id)
+            }
+        }
+
+        if (!deliveredCustomStatus) {
+            pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
+        }
 
         if (passive) {
             // オートミュート判定
@@ -274,6 +300,10 @@ class TimelineHub(private val service: TwitterService) {
             providerLocalCaches.put(providerId, cache)
         }
         return cache
+    }
+
+    companion object {
+        private const val RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000
     }
 }
 
