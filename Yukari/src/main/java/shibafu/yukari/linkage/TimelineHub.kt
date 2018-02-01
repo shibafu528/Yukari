@@ -121,6 +121,9 @@ class TimelineHub(private val service: TwitterService) {
         val plc = getProviderLocalCache(status.representUser.Provider.id)
         var deliveredCustomStatus = false
 
+        // 代表アカウントの上書き
+        status.setRepresentIfOwned(service.users)
+
         // ミュート判定
         val muteFlags = service.suppressor.decision(status)
         if (muteFlags[MuteConfig.MUTE_IMAGE_THUMB]) {

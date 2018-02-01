@@ -75,6 +75,22 @@ interface Status : Comparable<Status>, Serializable {
     @Relation
     fun getStatusRelation(userRecords: List<AuthUserRecord>): Long = RELATION_NONE
 
+    /**
+     * 自身の所有するステータスであるかどうか判定して、代表受信アカウントを書き換える
+     */
+    fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
+        // TODO: Provider API Type照合が必要な気がする。Statusの実装側は適切なAPI Typeを返さないといけないのでは？
+        userRecords.forEach { userRecord ->
+            if (user.id == userRecord.NumericId) {
+                representUser = userRecord
+                if (!receivedUsers.contains(userRecord)) {
+                    receivedUsers.add(userRecord)
+                }
+                return
+            }
+        }
+    }
+
     override fun compareTo(other: Status): Int {
         if (this === other) return 0
 
