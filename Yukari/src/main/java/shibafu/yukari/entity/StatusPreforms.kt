@@ -10,4 +10,9 @@ class StatusPreforms : Serializable {
      * 表示すべきでないメディアを含んでいるかどうか
      */
     var isCensoredThumbs: Boolean = false
+
+    /**
+     * RTレスポンスの対象ステータス (このステータスが、どのステータスに関連したと思われるものなのか)
+     */
+    var repostRespondTo: Status? = null
 }

@@ -119,7 +119,6 @@ class TimelineHub(private val service: TwitterService) {
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         val plc = getProviderLocalCache(status.representUser.Provider.id)
-        var deliveredCustomStatus = false
 
         // 代表アカウントの上書き
         status.setRepresentIfOwned(service.users)
@@ -140,12 +139,10 @@ class TimelineHub(private val service: TwitterService) {
                     !status.isRepost && !status.text.startsWith("@") && status.createdAt > standByStatus.first.createdAt) {
                 // RTレスポンスとして処理
                 plc.repostResponseStandBy.remove(status.user.id)
-                deliveredCustomStatus = true
-                val respondNotifyStatus = status
-                pushEventQueue(TimelineEvent.Received(timelineId, respondNotifyStatus, isMuted), false)
+                status.metadata.repostRespondTo = standByStatus.first
                 // 通知はストリーミング時のみ行う
                 if (!passive) {
-                    notifier.showNotification(R.integer.notification_respond, respondNotifyStatus, respondNotifyStatus.user)
+                    notifier.showNotification(R.integer.notification_respond, status, status.user)
                 }
             } else if (standByStatus.second + RESPONSE_STAND_BY_EXPIRES < System.currentTimeMillis()) {
                 // 期限切れ
@@ -153,9 +150,7 @@ class TimelineHub(private val service: TwitterService) {
             }
         }
 
-        if (!deliveredCustomStatus) {
-            pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
-        }
+        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
 
         if (passive) {
             // オートミュート判定
