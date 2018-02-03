@@ -5,6 +5,7 @@ import twitter4j.Status;
 
 /**
  * Created by shibafu on 14/12/20.
+ * @deprecated should use new Status interface and {@link shibafu.yukari.entity.StatusPreforms#setRepostRespondTo(shibafu.yukari.entity.Status)}
  */
 public class RespondNotifyStatus extends PreformedStatus {
     private Status respondTo;
