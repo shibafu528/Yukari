@@ -34,7 +34,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
-    override fun getStatusRelation(userRecords: List<AuthUserRecord>): Long {
+    override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             status.userMentionEntities.forEach { entity ->
                 if (userRecord.ScreenName == entity.screenName) {

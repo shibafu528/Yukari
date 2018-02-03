@@ -1,6 +1,5 @@
 package shibafu.yukari.entity
 
-import android.support.annotation.IntDef
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.Serializable
 import java.util.*
@@ -72,8 +71,8 @@ interface Status : Comparable<Status>, Serializable {
     /**
      * 自分にとってどのような関係性のあるメッセージか判断
      */
-    @Relation
-    fun getStatusRelation(userRecords: List<AuthUserRecord>): Long = RELATION_NONE
+    @StatusRelation
+    fun getStatusRelation(userRecords: List<AuthUserRecord>): Int = RELATION_NONE
 
     /**
      * 自身の所有するステータスであるかどうか判定して、代表受信アカウントを書き換える
@@ -116,18 +115,10 @@ interface Status : Comparable<Status>, Serializable {
 
     companion object {
         /** Relation: 無関係 */
-        const val RELATION_NONE = 0L
+        const val RELATION_NONE = 0
         /** Relation: 自身の発言 */
-        const val RELATION_OWNED = 1L
+        const val RELATION_OWNED = 1
         /** Relation: 自分に向けられたメッセージ */
-        const val RELATION_MENTIONED_TO_ME = 2L
+        const val RELATION_MENTIONED_TO_ME = 2
     }
-
-    /**
-     * あるメッセージと自分との関係性
-     * @see shibafu.yukari.twitter.TweetCommonDelegate.getStatusRelation
-     */
-    @IntDef(RELATION_NONE, RELATION_OWNED, RELATION_MENTIONED_TO_ME)
-    @Retention(AnnotationRetention.SOURCE)
-    annotation class Relation
 }

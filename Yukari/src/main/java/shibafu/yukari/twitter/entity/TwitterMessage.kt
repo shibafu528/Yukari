@@ -29,7 +29,7 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
-    override fun getStatusRelation(userRecords: List<AuthUserRecord>): Long {
+    override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             if (userRecord.ScreenName == message.sender.screenName) {
                 return Status.RELATION_OWNED
