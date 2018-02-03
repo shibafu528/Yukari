@@ -1,5 +1,6 @@
 package shibafu.yukari.twitter
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.RestQuery
@@ -28,10 +29,10 @@ class TwitterRestQuery(private val resolver: (Twitter, Paging) -> ResponseList<t
 
             if (appendLoadMarker) {
                 responseList += if (responseList.isEmpty()) {
-                    LoadMarker(maxId, "twitter.com", maxId, userRecord, loadMarkerTag)
+                    LoadMarker(maxId, Provider.API_TWITTER, maxId, userRecord, loadMarkerTag)
                 } else {
                     val last = responseList.last()
-                    LoadMarker(last.id - 1, "twitter.com", last.id, userRecord, loadMarkerTag)
+                    LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, loadMarkerTag)
                 }
             }
 

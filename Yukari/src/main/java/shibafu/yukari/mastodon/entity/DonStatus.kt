@@ -2,6 +2,7 @@ package shibafu.yukari.mastodon.entity
 
 import android.text.Html
 import com.sys1yagi.mastodon4j.api.entity.Status
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.twitter.AuthUserRecord
@@ -32,6 +33,8 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
         get() = status.application?.name ?: "Web"
 
     override val metadata: StatusPreforms = StatusPreforms()
+
+    override val providerApiType: Int = Provider.API_MASTODON
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 }

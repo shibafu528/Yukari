@@ -48,7 +48,11 @@ class Provider : DBRecord, Serializable {
     }
 
     companion object {
+        /** システムメッセージ用 */
+        const val API_SYSTEM = -1
+        /** Twitter API */
         const val API_TWITTER = 0
+        /** Mastodon API */
         const val API_MASTODON = 1
 
         @JvmField

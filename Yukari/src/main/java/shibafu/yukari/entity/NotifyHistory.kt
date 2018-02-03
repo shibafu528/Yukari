@@ -1,5 +1,6 @@
 package shibafu.yukari.entity
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
 
@@ -14,6 +15,7 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
     override val createdAt: Date by lazy { Date(timeAtMillis) }
     override val source: String = ""
     override val metadata: StatusPreforms = StatusPreforms()
+    override val providerApiType: Int = Provider.API_SYSTEM
     override var representUser: AuthUserRecord
         get() = status.representUser
         set(value) {

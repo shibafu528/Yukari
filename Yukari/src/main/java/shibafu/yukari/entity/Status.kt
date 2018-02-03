@@ -59,6 +59,11 @@ interface Status : Comparable<Status>, Serializable {
     val metadata: StatusPreforms
 
     /**
+     * 対応する [shibafu.yukari.database.Provider.apiType] の値
+     */
+    val providerApiType: Int
+
+    /**
      * 代表受信アカウント
      */
     var representUser: AuthUserRecord
@@ -78,9 +83,8 @@ interface Status : Comparable<Status>, Serializable {
      * 自身の所有するステータスであるかどうか判定して、代表受信アカウントを書き換える
      */
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
-        // TODO: Provider API Type照合が必要な気がする。Statusの実装側は適切なAPI Typeを返さないといけないのでは？
         userRecords.forEach { userRecord ->
-            if (user.id == userRecord.NumericId) {
+            if (providerApiType == userRecord.Provider.apiType && user.id == userRecord.NumericId) {
                 representUser = userRecord
                 if (!receivedUsers.contains(userRecord)) {
                     receivedUsers.add(userRecord)

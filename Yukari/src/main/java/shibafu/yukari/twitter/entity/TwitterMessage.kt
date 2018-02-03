@@ -1,5 +1,6 @@
 package shibafu.yukari.twitter.entity
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
@@ -26,6 +27,8 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
         get() = "DirectMessage"
 
     override val metadata: StatusPreforms = StatusPreforms()
+
+    override val providerApiType: Int = Provider.API_TWITTER
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
