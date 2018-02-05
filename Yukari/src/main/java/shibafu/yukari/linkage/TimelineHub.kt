@@ -118,7 +118,7 @@ class TimelineHub(private val service: TwitterService) {
      * [Status] の受信
      * @param timelineId 配信先識別子
      * @param status 受信したStatus
-     * @param passive ストリーミング通信によって受動的に取得したStatusか？
+     * @param passive ストリーミング通信によって受動的に取得したStatusか？ (trueの場合、ブロードキャストされる)
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         val plc = getProviderLocalCache(status.representUser.Provider.id)
@@ -153,7 +153,7 @@ class TimelineHub(private val service: TwitterService) {
             }
         }
 
-        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), false)
+        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), passive)
 
         if (passive) {
             // オートミュート判定

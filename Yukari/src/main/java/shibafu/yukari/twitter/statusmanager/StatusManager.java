@@ -9,16 +9,11 @@ import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
 import android.widget.Toast;
-import info.shibafu528.yukari.exvoice.MRuby;
-import info.shibafu528.yukari.exvoice.converter.StatusConverter;
-import info.shibafu528.yukari.exvoice.model.Message;
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.common.HashCache;
-import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -34,9 +29,7 @@ import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.entity.TwitterUser;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
-import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.RestStream;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -45,13 +38,11 @@ import shibafu.yukari.twitter.streaming.StreamUser;
 import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
-import twitter4j.HashtagEntity;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.UserMentionEntity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +52,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -551,129 +541,8 @@ public class StatusManager implements Releasable {
                                     status.getClass().getSimpleName(),
                                     status.getUser().getScreenName(),
                                     status.getText()));
-                    if (!(status instanceof FakeStatus)) {
-                        userUpdateDelayer.enqueue(status.getUser());
-                        if (status.isRetweet()) {
-                            userUpdateDelayer.enqueue(status.getRetweetedStatus().getUser());
-                        }
-                    }
-                    AuthUserRecord user = from.getUserRecord();
 
-                    //自分のツイートかどうかマッチングを行う
-                    AuthUserRecord checkOwn = service.isMyTweet(status);
-                    if (checkOwn != null) {
-                        //自分のツイートであれば受信元は発信元アカウントということにする
-                        user = checkOwn;
-                    }
-
-                    PreformedStatus preformedStatus = new PreformedStatus(status, user);
-
-                    //オートミュート判定を行う
-                    AutoMuteConfig autoMute = null;
-                    for (AutoMuteConfig config : autoMuteConfigs) {
-                        boolean match = false;
-                        switch (config.getMatch()) {
-                            case AutoMuteConfig.MATCH_EXACT:
-                                match = preformedStatus.getText().equals(config.getQuery());
-                                break;
-                            case AutoMuteConfig.MATCH_PARTIAL:
-                                match = preformedStatus.getText().contains(config.getQuery());
-                                break;
-                            case AutoMuteConfig.MATCH_REGEX: {
-                                Pattern pattern = autoMutePatternCache.get(config.getId());
-                                if (pattern == null && autoMutePatternCache.indexOfKey(config.getId()) < 0) {
-                                    try {
-                                        pattern = Pattern.compile(config.getQuery());
-                                        autoMutePatternCache.put(config.getId(), pattern);
-                                    } catch (PatternSyntaxException ignore) {
-                                        autoMutePatternCache.put(config.getId(), null);
-                                    }
-                                }
-                                if (pattern != null) {
-                                    Matcher matcher = pattern.matcher(preformedStatus.getText());
-                                    match = matcher.find();
-                                }
-                                break;
-                            }
-                        }
-                        if (match) {
-                            autoMute = config;
-                        }
-                    }
-                    if (autoMute != null) {
-                        Log.d(LOG_TAG, "AutoMute! : @" + preformedStatus.getSourceUser().getScreenName());
-                        getDatabase().updateRecord(autoMute.getMuteConfig(preformedStatus.getSourceUser().getScreenName(), System.currentTimeMillis() + 3600000));
-                        service.updateMuteConfig();
-                    }
-
-                    //ミュートチェックを行う
-                    boolean[] mute = suppressor.decision(preformedStatus);
-                    if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
-                        preformedStatus.setCensoredThumbs(true);
-                    }
-
-                    boolean muted = mute[MuteConfig.MUTE_TWEET_RTED] ||
-                            (!preformedStatus.isRetweet() && mute[MuteConfig.MUTE_TWEET]) ||
-                            (preformedStatus.isRetweet() && mute[MuteConfig.MUTE_RETWEET]);
-                    PreformedStatus deliverStatus = new MetaStatus(preformedStatus, from.getClass().getSimpleName());
-                    Pair<PreformedStatus, Long> standByStatus = retweetResponseStandBy.get(preformedStatus.getUser().getId());
-                    if (new NotificationType(sharedPreferences.getInt("pref_notif_respond", 0)).isEnabled() &&
-                            !preformedStatus.isRetweet() &&
-                            standByStatus != null && !preformedStatus.getText().startsWith("@")) {
-                        //Status is RT-Respond
-                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
-                        deliverStatus = new RespondNotifyStatus(preformedStatus, standByStatus.first);
-                        if (!(from instanceof RestStream)) {
-                            notifier.showNotification(R.integer.notification_respond, deliverStatus, deliverStatus.getUser());
-                        }
-                    } else if (standByStatus != null && standByStatus.second + RESPONSE_STAND_BY_EXPIRES < System.currentTimeMillis()) {
-                        //期限切れ
-                        retweetResponseStandBy.remove(preformedStatus.getUser().getId());
-                    }
-                    pushEventQueue(from, new StatusEventBuffer(user, deliverStatus, muted), false);
-
-                    if (!(from instanceof RestStream)) {
-                        if (status.isRetweet() &&
-                                !mute[MuteConfig.MUTE_NOTIF_RT] &&
-                                status.getRetweetedStatus().getUser().getId() == user.NumericId &&
-                                checkOwn == null) {
-                            notifier.showNotification(R.integer.notification_retweeted, preformedStatus, status.getUser());
-                            createHistory(from, NotifyHistory.KIND_RETWEETED, status.getUser(), preformedStatus.getRetweetedStatus());
-
-                            //Put Response Stand-By
-                            retweetResponseStandBy.put(preformedStatus.getUser().getId(), Pair.create(preformedStatus, System.currentTimeMillis()));
-                        } else if (!status.isRetweet() && !mute[MuteConfig.MUTE_NOTIF_MENTION]) {
-                            UserMentionEntity[] userMentionEntities = status.getUserMentionEntities();
-                            for (UserMentionEntity ume : userMentionEntities) {
-                                if (ume.getId() == user.NumericId) {
-                                    notifier.showNotification(R.integer.notification_replied, preformedStatus, status.getUser());
-                                }
-                            }
-                        }
-                    }
-
-                    HashtagEntity[] hashtagEntities = status.getHashtagEntities();
-                    for (HashtagEntity he : hashtagEntities) {
-                        hashCache.put("#" + he.getText());
-                    }
-
-                    receivedStatuses.put(preformedStatus.getId(), preformedStatus);
-                    if (preformedStatus.getQuotedStatus() != null) {
-                        receivedStatuses.put(preformedStatus.getQuotedStatusId(), new PreformedStatus(preformedStatus.getQuotedStatus(), user));
-                    }
-                    loadQuotedEntities(preformedStatus);
-
-                    if (sharedPreferences.getBoolean("pref_exvoice_experimental_on_appear", false) && service != null) {
-                        MRuby mRuby = service.getmRuby();
-                        if (mRuby != null) {
-                            Message message = StatusConverter.toMessage(mRuby, status);
-                            try {
-                                Plugin.call(mRuby, "appear", (Object) new Message[]{message});
-                            } finally {
-                                message.dispose();
-                            }
-                        }
-                    }
+                    hub.onStatus("Twitter.StreamManager", new TwitterStatus(new PreformedStatus(status, from.getUserRecord()), from.getUserRecord()), true);
                 }
 
                 @SuppressWarnings("InfiniteLoopStatement")
