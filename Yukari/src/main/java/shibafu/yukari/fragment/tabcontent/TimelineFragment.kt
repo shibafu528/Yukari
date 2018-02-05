@@ -452,6 +452,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (statusCapacity < statuses.size) {
                     val iterator = statuses.listIterator(statusCapacity)
                     while (iterator.hasNext()) {
+                        iterator.next()
                         iterator.remove()
                         notifyDataSetChanged()
                     }
