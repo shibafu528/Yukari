@@ -14,7 +14,7 @@ import java.util.Queue;
 /**
  * Created by shibafu on 2015/07/28.
  */
-class UserUpdateDelayer {
+public class UserUpdateDelayer {
     private WeakReference<CentralDatabase> database;
 
     private Thread thread;

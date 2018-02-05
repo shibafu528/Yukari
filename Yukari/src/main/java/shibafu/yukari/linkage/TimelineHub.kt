@@ -18,7 +18,9 @@ import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusmanager.StatusNotifier
+import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.util.putDebugLog
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -35,6 +37,7 @@ class TimelineHub(private val service: TwitterService) {
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     private val notifier: StatusNotifier = StatusNotifier(service)
+    private val userUpdateDelayer: UserUpdateDelayer = UserUpdateDelayer(service.database)
 
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()
@@ -207,6 +210,11 @@ class TimelineHub(private val service: TwitterService) {
         plc.receivedStatus.put(status.id, status)
 
         if (status is TwitterStatus) {
+            userUpdateDelayer.enqueue((status.user as TwitterUser).user)
+            if (status.isRepost) {
+                userUpdateDelayer.enqueue((status.originStatus.user as TwitterUser).user)
+            }
+
             if (passive) {
                 // ハッシュタグのキャッシュ
                 status.status.hashtagEntities.forEach {
