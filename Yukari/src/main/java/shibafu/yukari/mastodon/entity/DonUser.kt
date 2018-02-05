@@ -9,7 +9,7 @@ class DonUser(val account: Account?) : User {
     override val name: String
         get() = account?.displayName ?: ""
     override val screenName: String
-        get() = account?.userName ?: ""
+        get() = account?.acct ?: ""
     override val isProtected: Boolean
         get() = account?.isLocked ?: false
     override val profileImageUrl: String

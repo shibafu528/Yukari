@@ -184,8 +184,23 @@ class TimelineHub(private val service: TwitterService) {
                 }
             }
 
-            // RT通知判定
-            // メンション通知判定
+            // RT通知 & メンション通知判定
+            if (status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_RT] &&
+                    status.originStatus.user.id == status.representUser.NumericId &&
+                    status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
+                notifier.showNotification(R.integer.notification_retweeted, status, status.user)
+                onNotify(NotifyHistory.KIND_RETWEETED, status.user, status)
+
+                // RTレスポンス待機
+                plc.repostResponseStandBy.put(status.user.id, Pair(status, System.currentTimeMillis()))
+            } else if (!status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_MENTION] &&
+                    status.providerApiType == status.representUser.Provider.apiType) {
+                status.mentions.forEach { mention ->
+                    if (mention.id == status.representUser.NumericId) {
+                        notifier.showNotification(R.integer.notification_replied, status, status.user)
+                    }
+                }
+            }
         }
 
         // キャッシュ登録

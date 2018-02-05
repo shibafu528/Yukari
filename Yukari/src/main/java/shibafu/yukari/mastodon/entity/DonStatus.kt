@@ -3,6 +3,7 @@ package shibafu.yukari.mastodon.entity
 import android.text.Html
 import com.sys1yagi.mastodon4j.api.entity.Status
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.twitter.AuthUserRecord
@@ -31,6 +32,8 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
 
     override val source: String
         get() = status.application?.name ?: "Web"
+
+    override val mentions: List<Mention> by lazy { status.mentions.map { DonMention(it) } }
 
     override val metadata: StatusPreforms = StatusPreforms()
 

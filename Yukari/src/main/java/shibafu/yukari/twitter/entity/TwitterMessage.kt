@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter.entity
 
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
@@ -25,6 +26,8 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
 
     override val source: String
         get() = "DirectMessage"
+
+    override val mentions: List<Mention> = listOf(TwitterMention(message.recipientId, message.recipientScreenName))
 
     override val metadata: StatusPreforms = StatusPreforms()
 

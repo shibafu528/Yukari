@@ -54,6 +54,11 @@ interface Status : Comparable<Status>, Serializable {
         get() = this
 
     /**
+     * 返信先の一覧
+     */
+    val mentions: List<Mention>
+
+    /**
      * メタデータ
      */
     val metadata: StatusPreforms
