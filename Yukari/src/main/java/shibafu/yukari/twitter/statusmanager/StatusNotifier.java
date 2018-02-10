@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.support.v4.content.res.ResourcesCompat;
@@ -29,11 +28,6 @@ import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.User;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.entity.TwitterMessage;
-import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.entity.TwitterUser;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.Releasable;
 
@@ -130,25 +124,6 @@ public class StatusNotifier implements Releasable {
             default:
                 return null;
         }
-    }
-
-    @Deprecated
-    public void showNotification(int category, PreformedStatus status, twitter4j.User actionBy) {
-        Status twitterStatus = new TwitterStatus(status, status.getRepresentUser());
-        User twitterUser = new TwitterUser(actionBy);
-        showNotification(category, twitterStatus, twitterUser);
-    }
-
-    @Deprecated
-    public void showNotification(int category, twitter4j.DirectMessage status, twitter4j.User actionBy) {
-        AuthUserRecord representUser = findUserRecord(status.getRecipient());
-        if (representUser == null) {
-            return;
-        }
-
-        Status twitterMessage = new TwitterMessage(status, representUser);
-        User twitterUser = new TwitterUser(actionBy);
-        showNotification(category, twitterMessage, twitterUser);
     }
 
     public void showNotification(int category, Status status, User actionBy) {
@@ -336,16 +311,6 @@ public class StatusNotifier implements Releasable {
                         .show());
             }
         }
-    }
-
-    @Nullable
-    private AuthUserRecord findUserRecord(twitter4j.User user) {
-        for (AuthUserRecord userRecord : service.getUsers()) {
-            if (userRecord.NumericId == user.getId()) {
-                return userRecord;
-            }
-        }
-        return null;
     }
 
     @Override

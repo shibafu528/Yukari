@@ -377,9 +377,12 @@ public class StatusManager implements Releasable {
             boolean[] mute = suppressor.decision(preformedStatus);
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
-                notifier.showNotification(R.integer.notification_faved, preformedStatus, user);
+                final TwitterStatus twitterStatus = new TwitterStatus(preformedStatus, from.getUserRecord());
+                final TwitterUser twitterUser = new TwitterUser(user);
+
+                notifier.showNotification(R.integer.notification_faved, twitterStatus, twitterUser);
                 if (hub != null) {
-                    hub.onNotify(NotifyHistory.KIND_FAVED, new TwitterUser(user), new TwitterStatus(preformedStatus, from.getUserRecord()));
+                    hub.onNotify(NotifyHistory.KIND_FAVED, twitterUser, twitterStatus);
                 }
             }
         }
@@ -402,7 +405,13 @@ public class StatusManager implements Releasable {
 
             boolean checkOwn = service.isMyTweet(directMessage) != null;
             if (!checkOwn) {
-                notifier.showNotification(R.integer.notification_message, directMessage, directMessage.getSender());
+                AuthUserRecord representUser = service.isMyTweet(directMessage);
+                if (representUser == null) {
+                    return;
+                }
+
+                notifier.showNotification(R.integer.notification_message,
+                        new TwitterMessage(directMessage, representUser), new TwitterUser(directMessage.getSender()));
             }
         }
 
