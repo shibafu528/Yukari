@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.util.Pair;
@@ -13,13 +12,10 @@ import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
-import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
-import shibafu.yukari.database.AutoMuteConfig;
-import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.linkage.TimelineHub;
@@ -52,8 +48,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Created by shibafu on 14/03/08.
@@ -62,7 +56,6 @@ public class StatusManager implements Releasable {
     private static LruCache<Long, PreformedStatus> receivedStatuses = new LruCache<>(512);
 
     private static final boolean PUT_STREAM_LOG = false;
-    private static final long RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000;
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
@@ -73,8 +66,6 @@ public class StatusManager implements Releasable {
 
     @AutoRelease TwitterService service;
     @AutoRelease Suppressor suppressor;
-    private List<AutoMuteConfig> autoMuteConfigs;
-    private LongSparseArray<Pattern> autoMutePatternCache = new LongSparseArray<>();
 
     @AutoRelease Context context;
     @AutoRelease SharedPreferences sharedPreferences;
@@ -82,12 +73,6 @@ public class StatusManager implements Releasable {
 
     //通知マネージャ
     @AutoRelease StatusNotifier notifier;
-
-    //RT-Response Listen (Key:RTed User ID, Value:Response StandBy Status)
-    private LongSparseArray<Pair<PreformedStatus, Long>> retweetResponseStandBy = new LongSparseArray<>();
-
-    //キャッシュ
-    private HashCache hashCache;
 
     //ステータス
     private boolean isStarted;
@@ -116,9 +101,6 @@ public class StatusManager implements Releasable {
         //通知マネージャの開始
         notifier = new StatusNotifier(service);
 
-        //ハッシュタグキャッシュのロード
-        hashCache = new HashCache(context);
-
         //遅延処理スレッドの開始
         userUpdateDelayer = new UserUpdateDelayer(service.getDatabase());
     }
@@ -135,14 +117,6 @@ public class StatusManager implements Releasable {
         userUpdateDelayer.shutdown();
 
         AutoReleaser.release(this);
-    }
-
-    private CentralDatabase getDatabase() {
-        return service == null ? null : service.getDatabase();
-    }
-
-    public HashCache getHashCache() {
-        return hashCache;
     }
 
     public ArrayList<AuthUserRecord> getActiveUsers() {
@@ -305,20 +279,6 @@ public class StatusManager implements Releasable {
 
     public static LruCache<Long, PreformedStatus> getReceivedStatuses() {
         return receivedStatuses;
-    }
-
-    public void setAutoMuteConfigs(List<AutoMuteConfig> autoMuteConfigs) {
-        this.autoMuteConfigs = autoMuteConfigs;
-    autoMutePatternCache.clear();
-        for (AutoMuteConfig autoMuteConfig : autoMuteConfigs) {
-            if (autoMuteConfig.getMatch() == AutoMuteConfig.MATCH_REGEX) {
-                try {
-                    autoMutePatternCache.put(autoMuteConfig.getId(), Pattern.compile(autoMuteConfig.getQuery()));
-                } catch (PatternSyntaxException e) {
-                    autoMutePatternCache.put(autoMuteConfig.getId(), null);
-                }
-            }
-        }
     }
 
     public void loadQuotedEntities(PreformedStatus preformedStatus) {

@@ -364,7 +364,7 @@ public class TwitterService extends Service{
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
 
-        statusManager.getHashCache().save(this);
+        timelineHub.getHashCache().save(this);
 
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
@@ -617,7 +617,7 @@ public class TwitterService extends Service{
     }
 
     public String[] getHashCache() {
-        List<String> hashCache = statusManager.getHashCache().getAll();
+        List<String> hashCache = timelineHub.getHashCache().getAll();
         return hashCache.toArray(new String[hashCache.size()]);
     }
 
@@ -726,7 +726,6 @@ public class TwitterService extends Service{
 
     public void updateAutoMuteConfig() {
         List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
-        statusManager.setAutoMuteConfigs(records);
         timelineHub.setAutoMuteConfigs(records);
     }
 
