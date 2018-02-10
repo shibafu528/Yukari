@@ -506,8 +506,3 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         private const val DIALOG_REQUEST_HISTORY_MENU = 1
     }
 }
-
-/*
-  TODO
-  - AuthUserRecordでTwitter以外のユーザ情報は賄えるのか？
- */
