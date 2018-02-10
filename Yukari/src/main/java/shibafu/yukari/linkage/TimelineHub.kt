@@ -273,6 +273,15 @@ class TimelineHub(private val service: TwitterService) {
     }
 
     /**
+     * 削除イベントの発生
+     * @param type 削除対象の型
+     * @param id 削除対象のID
+     */
+    fun onDelete(type: Class<out Status>, id: Long) {
+        pushEventQueue(TimelineEvent.Delete(type, id))
+    }
+
+    /**
      * タイムラインのクリア
      */
     fun onWipe() {
@@ -357,6 +366,13 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property notify 通知イベントログ
      */
     class Notify(val notify: NotifyHistory) : TimelineEvent("")
+
+    /**
+     * 削除イベントの発生
+     * @property type 削除対象の型
+     * @property id 削除対象のID
+     */
+    class Delete(val type: Class<out Status>, val id: Long) : TimelineEvent("")
 
     /**
      * タイムラインのクリア

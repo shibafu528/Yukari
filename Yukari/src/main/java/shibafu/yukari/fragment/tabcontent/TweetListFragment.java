@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
@@ -450,14 +451,6 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     //StatusListener用のデフォルト実装
     public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
         switch (kind) {
-            case StatusManager.UPDATE_DELETED:
-                getHandler().post(() -> deleteElement(status));
-                for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
-                    if (iterator.next().getId() == status.getId()) {
-                        iterator.remove();
-                    }
-                }
-                break;
             case StatusManager.UPDATE_FAVED:
             case StatusManager.UPDATE_UNFAVED:
                 int position = 0;
@@ -486,7 +479,15 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
         super.onTimelineEvent(event);
-        if (event instanceof TimelineEvent.Wipe) {
+        if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getType() == TwitterStatus.class) {
+            TimelineEvent.Delete deleteEvent = (TimelineEvent.Delete) event;
+            getHandler().post(() -> deleteElement(deleteEvent.getId()));
+            for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
+                if (iterator.next().getId() == deleteEvent.getId()) {
+                    iterator.remove();
+                }
+            }
+        } else if (event instanceof TimelineEvent.Wipe) {
             getHandler().post(() -> {
                 elements.clear();
                 notifyDataSetChanged();

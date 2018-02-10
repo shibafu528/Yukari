@@ -27,7 +27,6 @@ import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
@@ -160,16 +159,14 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     }
 
     @Override
-    public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {
-        if (kind == StatusManager.UPDATE_DELETED_DM) {
-            getHandler().post(() -> deleteElement(status));
-        }
-    }
+    public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {}
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
         super.onTimelineEvent(event);
-        if (event instanceof TimelineEvent.Wipe) {
+        if (event instanceof TimelineEvent.Delete) {
+            getHandler().post(() -> deleteElement(((TimelineEvent.Delete) event).getId()));
+        } else if (event instanceof TimelineEvent.Wipe) {
             getHandler().post(() -> {
                 elements.clear();
                 notifyDataSetChanged();

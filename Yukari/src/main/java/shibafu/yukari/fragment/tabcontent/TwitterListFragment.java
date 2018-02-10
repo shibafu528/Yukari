@@ -681,12 +681,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         updateUnreadNotifier();
     }
 
-    protected void deleteElement(TwitterResponse element) {
+    protected void deleteElement(long id) {
         if (listView == null) {
-            Log.w("deleteElement", "ListView is null. DROPPED! (" + element + ")");
+            Log.w("deleteElement", "ListView is null. DROPPED! (ID: " + id + ")");
             return;
         }
-        long id = TweetCommon.newInstance(element.getClass()).getId(element);
         Iterator<T> iterator = elements.iterator();
         while (iterator.hasNext()) {
             if (commonDelegate.getId(iterator.next()) == id) {

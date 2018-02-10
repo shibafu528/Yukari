@@ -21,9 +21,9 @@ import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.entity.TwitterUser;
-import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
@@ -59,8 +59,6 @@ public class StatusManager implements Releasable {
 
     public static final int UPDATE_FAVED = 1;
     public static final int UPDATE_UNFAVED = 2;
-    public static final int UPDATE_DELETED = 3;
-    public static final int UPDATE_DELETED_DM = 4;
 
     private static final String LOG_TAG = "StatusManager";
 
@@ -380,7 +378,9 @@ public class StatusManager implements Releasable {
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
                 notifier.showNotification(R.integer.notification_faved, preformedStatus, user);
-                createHistory(from, NotifyHistory.KIND_FAVED, user, preformedStatus);
+                if (hub != null) {
+                    hub.onNotify(NotifyHistory.KIND_FAVED, new TwitterUser(user), new TwitterStatus(preformedStatus, from.getUserRecord()));
+                }
             }
         }
 
@@ -423,24 +423,20 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED, new FakeStatus(statusDeletionNotice.getStatusId())));
+            hub.onDelete(TwitterStatus.class, statusDeletionNotice.getStatusId());
         }
 
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_DELETED_DM, new FakeStatus(directMessageId)));
+            hub.onDelete(TwitterMessage.class, directMessageId);
         }
 
-        private void createHistory(Stream from, int kind, User eventBy, Status status) {
-            if (hub != null) {
-                hub.onNotify(kind, new TwitterUser(eventBy), new TwitterStatus(status, from.getUserRecord()));
-            }
-        }
-
+        @Deprecated
         private void pushEventQueue(Stream from, EventBuffer event) {
             pushEventQueue(from, event, true);
         }
 
+        @Deprecated
         private void pushEventQueue(Stream from, EventBuffer event, boolean isBroadcast) {
             statusListeners.sync(sls -> {
                 for (StatusListener sl : sls) {

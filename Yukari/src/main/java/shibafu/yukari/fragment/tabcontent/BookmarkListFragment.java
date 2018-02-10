@@ -122,7 +122,7 @@ public class BookmarkListFragment extends TweetListFragment {
                 }
             }
             for (PreformedStatus status : removeStatuses) {
-                deleteElement(status);
+                deleteElement(status.getId());
             }
 
             for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
