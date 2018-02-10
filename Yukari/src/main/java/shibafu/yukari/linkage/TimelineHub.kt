@@ -273,6 +273,28 @@ class TimelineHub(private val service: TwitterService) {
     }
 
     /**
+     * お気に入り登録イベントの発生
+     * @param type 対象の型
+     * @param id 対象のID
+     * @param source お気に入り登録を実行したユーザ
+     * @param target お気に入り登録されたユーザ
+     */
+    fun onFavorite(type: Class<out Status>, id: Long, source: User, target: User) {
+        pushEventQueue(TimelineEvent.Favorite(type, id, source, target))
+    }
+
+    /**
+     * お気に入り解除イベントの発生
+     * @param type 対象の型
+     * @param id 対象のID
+     * @param source お気に入り解除を実行したユーザ
+     * @param target お気に入り解除されたユーザ
+     */
+    fun onUnfavorite(type: Class<out Status>, id: Long, source: User, target: User) {
+        pushEventQueue(TimelineEvent.Favorite(type, id, source, target))
+    }
+
+    /**
      * 削除イベントの発生
      * @param type 削除対象の型
      * @param id 削除対象のID
@@ -366,6 +388,24 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property notify 通知イベントログ
      */
     class Notify(val notify: NotifyHistory) : TimelineEvent("")
+
+    /**
+     * お気に入り登録イベントの発生
+     * @property type 対象の型
+     * @property id 対象のID
+     * @property source お気に入り登録を実行したユーザ
+     * @property target お気に入り登録されたユーザ
+     */
+    class Favorite(val type: Class<out Status>, val id: Long, val source: User, val target: User) : TimelineEvent("")
+
+    /**
+     * お気に入り解除イベントの発生
+     * @property type 対象の型
+     * @property id 対象のID
+     * @property source お気に入り解除を実行したユーザ
+     * @property target お気に入り解除されたユーザ
+     */
+    class Unfavorite(val type: Class<out Status>, val id: Long, val source: User, val target: User) : TimelineEvent("")
 
     /**
      * 削除イベントの発生
