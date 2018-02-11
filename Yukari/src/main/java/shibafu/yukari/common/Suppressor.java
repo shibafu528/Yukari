@@ -200,6 +200,63 @@ public class Suppressor {
         return result;
     }
 
+    public boolean[] decisionUser(shibafu.yukari.entity.User user) {
+        boolean[] result = new boolean[7];
+        if (blockedIDs.binarySearch(user.getId()) > -1 ||
+                mutedIDs.binarySearch(user.getId()) > -1) {
+            result[MuteConfig.MUTE_TWEET_RTED] = true;
+            return result;
+        } else if (noRetweetIDs.binarySearch(user.getId()) > -1) {
+            result[MuteConfig.MUTE_RETWEET] = true;
+            return result;
+        }
+        for (MuteConfig config : configs) {
+            String source;
+            switch (config.getScope()) {
+                case MuteConfig.SCOPE_USER_ID:
+                    source = String.valueOf(user.getId());
+                    break;
+                case MuteConfig.SCOPE_USER_SN:
+                    source = user.getScreenName();
+                    break;
+                case MuteConfig.SCOPE_USER_NAME:
+                    source = user.getName();
+                    break;
+                default:
+                    continue;
+            }
+            boolean match = false;
+            switch (config.getMatch()) {
+                case MuteConfig.MATCH_EXACT:
+                    match = source.equals(config.getQuery());
+                    break;
+                case MuteConfig.MATCH_PARTIAL:
+                    match = source.contains(config.getQuery());
+                    break;
+                case MuteConfig.MATCH_REGEX: {
+                    Pattern pattern = patternCache.get(config.getId());
+                    if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
+                        try {
+                            pattern = Pattern.compile(config.getQuery());
+                            patternCache.put(config.getId(), pattern);
+                        } catch (PatternSyntaxException ignore) {
+                            patternCache.put(config.getId(), null);
+                        }
+                    }
+                    if (pattern != null) {
+                        Matcher matcher = pattern.matcher(source);
+                        match = matcher.find();
+                    }
+                    break;
+                }
+            }
+            if (match) {
+                result[config.getMute()] = true;
+            }
+        }
+        return result;
+    }
+
     public boolean[] decisionUser(User user) {
         boolean[] result = new boolean[7];
         if (blockedIDs.binarySearch(user.getId()) > -1 ||

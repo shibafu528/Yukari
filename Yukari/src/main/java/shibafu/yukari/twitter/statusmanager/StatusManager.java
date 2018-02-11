@@ -16,8 +16,6 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
-import shibafu.yukari.database.MuteConfig;
-import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -369,15 +367,6 @@ public class StatusManager implements Releasable {
             TwitterUser twitterUser = new TwitterUser(user);
 
             hub.onFavorite(twitterUser, twitterStatus);
-
-            if (from.getUserRecord().NumericId == user.getId()) return;
-
-            boolean[] mute = suppressor.decision(preformedStatus);
-            boolean[] muteUser = suppressor.decisionUser(user);
-            if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
-                notifier.showNotification(R.integer.notification_faved, twitterStatus, twitterUser);
-                hub.onNotify(NotifyHistory.KIND_FAVED, twitterUser, twitterStatus);
-            }
         }
 
         @Override

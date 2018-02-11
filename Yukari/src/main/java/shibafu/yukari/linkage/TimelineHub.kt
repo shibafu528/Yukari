@@ -279,6 +279,17 @@ class TimelineHub(private val service: TwitterService) {
      */
     fun onFavorite(from: User, status: Status) {
         pushEventQueue(TimelineEvent.Favorite(from, status))
+
+        // 自分以外によるアクションであれば通知判定を行う
+        if (from.id != status.representUser.NumericId) {
+            val muteFlags = service.suppressor.decision(status)
+            val userMuteFlags = service.suppressor.decisionUser(from)
+            if (!(muteFlags[MuteConfig.MUTE_NOTIF_FAV] || userMuteFlags[MuteConfig.MUTE_NOTIF_FAV])) {
+                notifier.showNotification(R.integer.notification_faved, status, from)
+                onNotify(NotifyHistory.KIND_FAVED, from, status)
+            }
+        }
+
         if (status is TwitterStatus) {
             userUpdateDelayer.enqueue((from as TwitterUser).user)
         }
