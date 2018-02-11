@@ -24,7 +24,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.entity.TwitterUser;
-import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.RestStream;
@@ -56,9 +55,6 @@ public class StatusManager implements Releasable {
     private static LruCache<Long, PreformedStatus> receivedStatuses = new LruCache<>(512);
 
     private static final boolean PUT_STREAM_LOG = false;
-
-    public static final int UPDATE_FAVED = 1;
-    public static final int UPDATE_UNFAVED = 2;
 
     private static final String LOG_TAG = "StatusManager";
 
@@ -367,30 +363,32 @@ public class StatusManager implements Releasable {
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.getUserRecord().ScreenName, status.getId()));
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_FAVED, new FavFakeStatus(status.getId(), true, user)));
 
-            userUpdateDelayer.enqueue(status.getUser(), user, user2);
+            PreformedStatus preformedStatus = new PreformedStatus(status, from.getUserRecord());
+            TwitterStatus twitterStatus = new TwitterStatus(preformedStatus, from.getUserRecord());
+            TwitterUser twitterUser = new TwitterUser(user);
+
+            hub.onFavorite(twitterUser, twitterStatus);
 
             if (from.getUserRecord().NumericId == user.getId()) return;
 
-            PreformedStatus preformedStatus = new PreformedStatus(status, from.getUserRecord());
             boolean[] mute = suppressor.decision(preformedStatus);
             boolean[] muteUser = suppressor.decisionUser(user);
             if (!(mute[MuteConfig.MUTE_NOTIF_FAV] || muteUser[MuteConfig.MUTE_NOTIF_FAV])) {
-                final TwitterStatus twitterStatus = new TwitterStatus(preformedStatus, from.getUserRecord());
-                final TwitterUser twitterUser = new TwitterUser(user);
-
                 notifier.showNotification(R.integer.notification_faved, twitterStatus, twitterUser);
-                if (hub != null) {
-                    hub.onNotify(NotifyHistory.KIND_FAVED, twitterUser, twitterStatus);
-                }
+                hub.onNotify(NotifyHistory.KIND_FAVED, twitterUser, twitterStatus);
             }
         }
 
         @Override
         public void onUnfavorite(Stream from, User user, User user2, Status status) {
             if (PUT_STREAM_LOG) Log.d("onUnfavorite", String.format("f:%s s:%s", from.getUserRecord().ScreenName, status.getText()));
-            pushEventQueue(from, new UpdateEventBuffer(from.getUserRecord(), UPDATE_UNFAVED, new FavFakeStatus(status.getId(), false, user)));
+
+            PreformedStatus preformedStatus = new PreformedStatus(status, from.getUserRecord());
+            TwitterStatus twitterStatus = new TwitterStatus(preformedStatus, from.getUserRecord());
+            TwitterUser twitterUser = new TwitterUser(user);
+
+            hub.onUnfavorite(twitterUser, twitterStatus);
         }
 
         @Override

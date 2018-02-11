@@ -274,24 +274,23 @@ class TimelineHub(private val service: TwitterService) {
 
     /**
      * お気に入り登録イベントの発生
-     * @param type 対象の型
-     * @param id 対象のID
-     * @param source お気に入り登録を実行したユーザ
-     * @param target お気に入り登録されたユーザ
+     * @param from お気に入り登録を実行したユーザ
+     * @param status 対象の [Status]
      */
-    fun onFavorite(type: Class<out Status>, id: Long, source: User, target: User) {
-        pushEventQueue(TimelineEvent.Favorite(type, id, source, target))
+    fun onFavorite(from: User, status: Status) {
+        pushEventQueue(TimelineEvent.Favorite(from, status))
+        if (status is TwitterStatus) {
+            userUpdateDelayer.enqueue((from as TwitterUser).user)
+        }
     }
 
     /**
      * お気に入り解除イベントの発生
-     * @param type 対象の型
-     * @param id 対象のID
-     * @param source お気に入り解除を実行したユーザ
-     * @param target お気に入り解除されたユーザ
+     * @param from お気に入り解除を実行したユーザ
+     * @param status 対象の [Status]
      */
-    fun onUnfavorite(type: Class<out Status>, id: Long, source: User, target: User) {
-        pushEventQueue(TimelineEvent.Favorite(type, id, source, target))
+    fun onUnfavorite(from: User, status: Status) {
+        pushEventQueue(TimelineEvent.Unfavorite(from, status))
     }
 
     /**
@@ -391,21 +390,17 @@ sealed class TimelineEvent(val timelineId: String) {
 
     /**
      * お気に入り登録イベントの発生
-     * @property type 対象の型
-     * @property id 対象のID
-     * @property source お気に入り登録を実行したユーザ
-     * @property target お気に入り登録されたユーザ
+     * @property from お気に入り登録を実行したユーザ
+     * @property status 対象の [Status]
      */
-    class Favorite(val type: Class<out Status>, val id: Long, val source: User, val target: User) : TimelineEvent("")
+    class Favorite(val from: User, val status: Status) : TimelineEvent("")
 
     /**
      * お気に入り解除イベントの発生
-     * @property type 対象の型
-     * @property id 対象のID
-     * @property source お気に入り解除を実行したユーザ
-     * @property target お気に入り解除されたユーザ
+     * @property from お気に入り解除を実行したユーザ
+     * @property status 対象の [Status]
      */
-    class Unfavorite(val type: Class<out Status>, val id: Long, val source: User, val target: User) : TimelineEvent("")
+    class Unfavorite(val from: User, val status: Status) : TimelineEvent("")
 
     /**
      * 削除イベントの発生

@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.StatusActivity;
@@ -27,6 +26,7 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.entity.User;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.service.TwitterService;
@@ -36,7 +36,6 @@ import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
 import twitter4j.DirectMessage;
@@ -449,37 +448,20 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
     public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
 
     //StatusListener用のデフォルト実装
-    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {
-        switch (kind) {
-            case StatusManager.UPDATE_FAVED:
-            case StatusManager.UPDATE_UNFAVED:
-                int position = 0;
-                for (; position < elements.size(); ++position) {
-                    if (elements.get(position).getId() == status.getId()) break;
-                }
-                if (position < elements.size()) {
-                    final int p = position;
-                    getHandler().post(() -> {
-                        elements.get(p).merge(status, from);
-                        notifyDataSetChanged();
-                    });
-                }
-                else {
-                    for (position = 0; position < stash.size(); ++position) {
-                        if (stash.get(position).getId() == status.getId()) break;
-                    }
-                    if (position < stash.size()) {
-                        stash.get(position).merge(status, from);
-                    }
-                }
-                break;
-        }
-    }
+    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {}
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
         super.onTimelineEvent(event);
-        if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getType() == TwitterStatus.class) {
+        if (event instanceof TimelineEvent.Favorite && ((TimelineEvent.Favorite) event).getStatus() instanceof TwitterStatus) {
+            final User from = ((TimelineEvent.Favorite) event).getFrom();
+            final shibafu.yukari.entity.Status status = ((TimelineEvent.Favorite) event).getStatus();
+            onFavoriteStateChanged(from, status, true);
+        } else if (event instanceof TimelineEvent.Unfavorite && ((TimelineEvent.Unfavorite) event).getStatus() instanceof TwitterStatus) {
+            final User from = ((TimelineEvent.Unfavorite) event).getFrom();
+            final shibafu.yukari.entity.Status status = ((TimelineEvent.Unfavorite) event).getStatus();
+            onFavoriteStateChanged(from, status, false);
+        } else if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getType() == TwitterStatus.class) {
             TimelineEvent.Delete deleteEvent = (TimelineEvent.Delete) event;
             getHandler().post(() -> deleteElement(deleteEvent.getId()));
             for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
@@ -534,6 +516,37 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                         }
                     }.execute(status);
                     break;
+            }
+        }
+    }
+
+    private void onFavoriteStateChanged(User from, shibafu.yukari.entity.Status status, boolean isFavorited) {
+        int position = 0;
+        for (; position < elements.size(); ++position) {
+            if (elements.get(position).getId() == status.getId()) break;
+        }
+        if (position < elements.size()) {
+            final int p = position;
+            getHandler().post(() -> {
+                final PreformedStatus preformedStatus = elements.get(p);
+
+                preformedStatus.setFavorited(from.getId(), isFavorited);
+                if (status.getUser().getId() == status.getRepresentUser().NumericId) {
+                    preformedStatus.addReceivedUserIfNotExist(status.getRepresentUser());
+                }
+                notifyDataSetChanged();
+            });
+        } else {
+            for (position = 0; position < stash.size(); ++position) {
+                if (stash.get(position).getId() == status.getId()) break;
+            }
+            if (position < stash.size()) {
+                final PreformedStatus preformedStatus = stash.get(position);
+
+                preformedStatus.setFavorited(from.getId(), isFavorited);
+                if (status.getUser().getId() == status.getRepresentUser().NumericId) {
+                    preformedStatus.addReceivedUserIfNotExist(status.getRepresentUser());
+                }
             }
         }
     }

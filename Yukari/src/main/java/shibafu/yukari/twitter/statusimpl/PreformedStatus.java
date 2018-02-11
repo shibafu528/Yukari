@@ -531,6 +531,10 @@ public class PreformedStatus implements Status{
         return isFavorited.containsWithFilter(receivedIds, true);
     }
 
+    public void setFavorited(long id, boolean value) {
+        isFavorited.put(id, value);
+    }
+
     public List<AuthUserRecord> getFavoritedAccounts() {
         List<Long> ids = isFavorited.filterByKey(receivedIds).filterByValue(true);
         List<AuthUserRecord> userRecords = new ArrayList<>();
@@ -584,7 +588,7 @@ public class PreformedStatus implements Status{
         return receivedUsers;
     }
 
-    private void addReceivedUserIfNotExist(AuthUserRecord userRecord) {
+    public void addReceivedUserIfNotExist(AuthUserRecord userRecord) {
         if (!receivedUsers.contains(userRecord)) {
             receivedUsers.add(userRecord);
         }
