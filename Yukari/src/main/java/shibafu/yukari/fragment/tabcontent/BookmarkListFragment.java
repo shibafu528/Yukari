@@ -10,7 +10,6 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -110,8 +109,6 @@ public class BookmarkListFragment extends TweetListFragment {
                         stashedIDs.remove(status.getId());
                     }
                 }
-
-                StatusManager.getReceivedStatuses().put(status.getId(), status);
             }
 
             List<PreformedStatus> removeStatuses = new ArrayList<>();

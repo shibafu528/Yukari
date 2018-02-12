@@ -5,14 +5,16 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Query;
@@ -25,7 +27,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StatusListener, StreamToggleable {
+public class SearchListFragment extends TweetListFragment implements StreamToggleable {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
@@ -63,9 +65,6 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
 
     @Override
     public void onDetach() {
-        if (isTwitterServiceBound() && getStatusManager() != null) {
-            getStatusManager().removeStatusListener(this);
-        }
         super.onDetach();
     }
 
@@ -93,15 +92,10 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
         if (elements.isEmpty()) {
             executeLoader(LOADER_LOAD_INIT, getCurrentUser());
         }
-        getStatusManager().addStatusListener(this);
     }
 
     @Override
-    public void onServiceDisconnected() {
-        if (getStatusManager() != null) {
-            getStatusManager().removeStatusListener(this);
-        }
-    }
+    public void onServiceDisconnected() {}
 
     @Override
     public boolean isCloseable() {
@@ -122,23 +116,32 @@ public class SearchListFragment extends TweetListFragment implements StatusListe
         }
     }
 
-    @Override
     public String getStreamFilter() {
         return parsedQuery.getValidQuery();
     }
 
     @Override
-    public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
-        if (users.contains(from) && !elements.contains(status) && status.getText().contains(parsedQuery.getValidQuery())) {
-            if (getMode() == TabType.TABTYPE_MENTION &&
-                    ( !status.isMentionedToMe() || status.isRetweet() )) return;
+    public void onTimelineEvent(@NotNull TimelineEvent event) {
+        if (event instanceof TimelineEvent.Received &&
+                ((TimelineEvent.Received) event).getStatus() instanceof TwitterStatus &&
+                ((TwitterStatus) ((TimelineEvent.Received) event).getStatus()).getStatus() instanceof PreformedStatus) {
+            TwitterStatus twitterStatus = (TwitterStatus) ((TimelineEvent.Received) event).getStatus();
+            AuthUserRecord from = twitterStatus.getRepresentUser();
+            PreformedStatus status = (PreformedStatus) twitterStatus.getStatus();
 
-            if (muted) {
-                stash.add(status);
+            if (users.contains(from) && !elements.contains(status) && status.getText().contains(parsedQuery.getValidQuery())) {
+                if (getMode() == TabType.TABTYPE_MENTION &&
+                        ( !status.isMentionedToMe() || status.isRetweet() )) return;
+
+                if (((TimelineEvent.Received) event).getMuted()) {
+                    stash.add(status);
+                }
+                else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
+                    getHandler().post(() -> insertElement(status));
+                }
             }
-            else if (!PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("pref_search_minus_rt", false) || !status.isRetweet()) {
-                getHandler().post(() -> insertElement(status));
-            }
+        } else {
+            super.onTimelineEvent(event);
         }
     }
 

@@ -26,14 +26,11 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusListener;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
-import twitter4j.Status;
 import twitter4j.TweetEntity;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -52,7 +49,7 @@ import java.util.List;
  * Created by shibafu on 14/03/25.
  */
 public class MessageListFragment extends TwitterListFragment<DirectMessage>
-        implements StatusListener, DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
+        implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
     private DirectMessage lastClicked;
@@ -74,9 +71,6 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     @Override
     public void onDetach() {
-        if (isTwitterServiceBound() && getStatusManager() != null) {
-            getStatusManager().removeStatusListener(this);
-        }
         super.onDetach();
     }
 
@@ -137,26 +131,10 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         for (AuthUserRecord userRecord : users) {
             executeLoader(LOADER_LOAD_INIT, userRecord);
         }
-
-        getStatusManager().addStatusListener(this);
     }
 
     @Override
     public void onServiceDisconnected() {}
-
-    @Override
-    public String getStreamFilter() {
-        return null;
-    }
-
-    @Override
-    public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted) {}
-
-    @Override
-    public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {}
-
-    @Override
-    public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {}
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {

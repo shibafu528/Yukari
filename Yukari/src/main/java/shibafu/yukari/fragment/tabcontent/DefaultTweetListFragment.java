@@ -17,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -26,15 +27,16 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
+import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
-import shibafu.yukari.twitter.statusmanager.StatusListener;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -48,7 +50,7 @@ import java.util.ArrayList;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements StatusListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+public class DefaultTweetListFragment extends TweetListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
     public static final String EXTRA_LIST_ID = "listid";
     public static final String EXTRA_TRACE_START = "trace_start";
@@ -138,9 +140,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
 
     @Override
     public void onDetach() {
-        if (isTwitterServiceBound() && getStatusManager() != null) {
-            getStatusManager().removeStatusListener(this);
-        }
         super.onDetach();
     }
 
@@ -237,8 +236,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 }
             }.executeParallel();
         }
-
-        getStatusManager().addStatusListener(this);
     }
 
     @Override
@@ -467,25 +464,30 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
     };
 
     @Override
-    public String getStreamFilter() {
-        return null;
-    }
+    public void onTimelineEvent(@NotNull TimelineEvent event) {
+        if (event instanceof TimelineEvent.Received &&
+                ((TimelineEvent.Received) event).getStatus() instanceof TwitterStatus &&
+                ((TwitterStatus) ((TimelineEvent.Received) event).getStatus()).getStatus() instanceof PreformedStatus) {
+            TwitterStatus twitterStatus = (TwitterStatus) ((TimelineEvent.Received) event).getStatus();
+            AuthUserRecord from = twitterStatus.getRepresentUser();
+            PreformedStatus status = (PreformedStatus) twitterStatus.getStatus();
 
-    @Override
-    public void onStatus(AuthUserRecord from, final PreformedStatus status, boolean muted) {
-        if ((getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION)
-                && users.contains(from) && !elements.contains(status)) {
-            if (getMode() == TabType.TABTYPE_MENTION) {
-                boolean rtRespond = status instanceof RespondNotifyStatus;
-                if (rtRespond && !new NotificationType(preferences.getInt("pref_notif_respond", 0)).isEnabled()) return;
-                else if (!rtRespond && (!status.isMentionedToMe() || status.isRetweet())) return;
-            }
+            if ((getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION)
+                    && users.contains(from) && !elements.contains(status)) {
+                if (getMode() == TabType.TABTYPE_MENTION) {
+                    boolean rtRespond = status instanceof RespondNotifyStatus;
+                    if (rtRespond && !new NotificationType(preferences.getInt("pref_notif_respond", 0)).isEnabled()) return;
+                    else if (!rtRespond && (!status.isMentionedToMe() || status.isRetweet())) return;
+                }
 
-            if (muted) {
-                stash.add(status);
-            } else {
-                getHandler().post(() -> insertElement(status));
+                if (((TimelineEvent.Received) event).getMuted()) {
+                    stash.add(status);
+                } else {
+                    getHandler().post(() -> insertElement(status));
+                }
             }
+        } else {
+            super.onTimelineEvent(event);
         }
     }
 

@@ -47,8 +47,6 @@ class TimelineHub(private val service: TwitterService) {
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
     private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
 
-    private val providerLocalCaches: LongSparseArray<ProviderLocalCache> = LongSparseArray()
-
     /**
      * オートミュート設定のインポート
      * @param autoMuteConfigs 読み込む設定
@@ -234,6 +232,7 @@ class TimelineHub(private val service: TwitterService) {
                 val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
                 plc.receivedStatus.put(quotedStatus.id, quotedStatus)
             }
+            // TODO: 昔はこのへんで引用ツイートの再帰取得リクエストしてた (StatusManagerの履歴参照)
 
             // mruby連携
             if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
@@ -377,21 +376,23 @@ class TimelineHub(private val service: TwitterService) {
         }
     }
 
-    /**
-     * Provider固有キャッシュの取得
-     * @param providerId ProviderのID
-     */
-    fun getProviderLocalCache(providerId: Long): ProviderLocalCache {
-        var cache = providerLocalCaches[providerId]
-        if (cache == null) {
-            cache = ProviderLocalCache()
-            providerLocalCaches.put(providerId, cache)
-        }
-        return cache
-    }
-
     companion object {
         private const val RESPONSE_STAND_BY_EXPIRES = 10 * 60 * 1000
+
+        private val providerLocalCaches: LongSparseArray<ProviderLocalCache> = LongSparseArray()
+
+        /**
+         * Provider固有キャッシュの取得
+         * @param providerId ProviderのID
+         */
+        fun getProviderLocalCache(providerId: Long): ProviderLocalCache {
+            var cache = providerLocalCaches[providerId]
+            if (cache == null) {
+                cache = ProviderLocalCache()
+                providerLocalCaches.put(providerId, cache)
+            }
+            return cache
+        }
     }
 }
 

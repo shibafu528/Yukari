@@ -9,7 +9,6 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.TwitterException;
 
 import java.util.List;
@@ -95,10 +94,10 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                     stash.add(status);
                 }
 
-                StatusManager.getReceivedStatuses().put(status.getId(), status);
-                if (loaderInterface.getService() != null && loaderInterface.getService().getStatusManager() != null) {
-                    loaderInterface.getService().getStatusManager().loadQuotedEntities(status);
-                }
+//                StatusManager.getReceivedStatuses().put(status.getId(), status);
+//                if (loaderInterface.getService() != null && loaderInterface.getService().getStatusManager() != null) {
+//                    loaderInterface.getService().getStatusManager().loadQuotedEntities(status);
+//                }
             }
         } else if (exception != null && exceptionUser != null) {
             switch (exception.getStatusCode()) {

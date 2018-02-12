@@ -15,9 +15,10 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.database.Provider
+import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
-import shibafu.yukari.twitter.statusmanager.StatusManager
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
 import java.util.*
@@ -127,12 +128,13 @@ class TweetView : StatusView {
                     flInclude.visibility = View.VISIBLE
 
                     quoteEntities.forEach { quoteId ->
-                        if (StatusManager.getReceivedStatuses().get(quoteId) != null) {
+                        val receivedStatus = TimelineHub.getProviderLocalCache(Provider.TWITTER.id).receivedStatus.get(quoteId)
+                        if (receivedStatus != null) {
                             val tv = TweetView(context, singleLine).also {
                                 it.userRecords = userRecords
                                 it.userExtras = userExtras
                                 it.mode = mode or Mode.INCLUDE
-                                it.status = TwitterStatus(StatusManager.getReceivedStatuses().get(quoteId), userRecords.first())
+                                it.status = receivedStatus
                             }
                             flInclude.addView(tv)
                         }

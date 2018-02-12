@@ -147,7 +147,6 @@ public class TwitterService extends Service{
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
-            StatusManager.getReceivedStatuses().evictAll();
             timelineHub.onWipe();
         }
     };

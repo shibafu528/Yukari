@@ -38,8 +38,6 @@ import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 import twitter4j.TwitterException;
 
 import java.util.ArrayList;
@@ -443,12 +441,6 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
         return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, elements.size());
     }
-
-    //StatusListener用のデフォルト実装
-    public void onDirectMessage(AuthUserRecord from, DirectMessage directMessage) {}
-
-    //StatusListener用のデフォルト実装
-    public void onUpdatedStatus(final AuthUserRecord from, int kind, final Status status) {}
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
