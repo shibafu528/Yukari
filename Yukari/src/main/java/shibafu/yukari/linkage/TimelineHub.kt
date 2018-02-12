@@ -20,6 +20,7 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
+import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusmanager.StatusNotifier
 import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.util.putDebugLog
@@ -229,7 +230,7 @@ class TimelineHub(private val service: TwitterService) {
 
             // 引用ツイートのキャッシュ
             if (status.status.quotedStatus != null) {
-                val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
+                val quotedStatus = TwitterStatus(PreformedStatus(status.status.quotedStatus, status.representUser), status.representUser)
                 plc.receivedStatus.put(quotedStatus.id, quotedStatus)
             }
             // TODO: 昔はこのへんで引用ツイートの再帰取得リクエストしてた (StatusManagerの履歴参照)

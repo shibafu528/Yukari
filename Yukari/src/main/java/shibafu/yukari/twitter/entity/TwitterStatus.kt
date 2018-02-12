@@ -30,7 +30,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
     override val isRepost: Boolean
         get() = status.isRetweet
 
-    override val originStatus: Status = if (isRepost) TwitterStatus(status.retweetedStatus, representUser) else this
+    override val originStatus: Status = if (isRepost) TwitterStatus(PreformedStatus(status.retweetedStatus, representUser), representUser) else this
 
     override val mentions: List<Mention> by lazy { status.userMentionEntities.map { TwitterMention(it) } }
 
