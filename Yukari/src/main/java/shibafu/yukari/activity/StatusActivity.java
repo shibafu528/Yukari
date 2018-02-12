@@ -79,7 +79,14 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         findViewById(android.R.id.content).setOnClickListener(v -> finish());
 
         Intent args = getIntent();
-        status = (PreformedStatus) args.getSerializableExtra(EXTRA_STATUS);
+        Object anyStatus = args.getSerializableExtra(EXTRA_STATUS);
+        if (anyStatus instanceof PreformedStatus) {
+            status = (PreformedStatus) anyStatus;
+        } else if (anyStatus instanceof TwitterStatus) {
+            status = (PreformedStatus) ((TwitterStatus) anyStatus).getStatus();
+        } else {
+            throw new ClassCastException(anyStatus.getClass().getName());
+        }
         if (savedInstanceState != null) {
             user = (AuthUserRecord) savedInstanceState.getSerializable(EXTRA_USER);
         } else {
