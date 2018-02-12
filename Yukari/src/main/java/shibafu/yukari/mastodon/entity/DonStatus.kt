@@ -15,7 +15,7 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
     override val id: Long
         get() = status.id
 
-    override val user: User by lazy { DonUser(status.account) }
+    override val user: User = DonUser(status.account)
 
     @Suppress("DEPRECATION")
     override val text: String
@@ -24,16 +24,16 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
     override val recipientScreenName: String
         get() = representUser.ScreenName
 
-    override val createdAt: Date by lazy {
+    override val createdAt: Date = {
         // TODO: これは古いAndroidでも動作するのか？
         val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US)
         sdf.parse(status.createdAt)
-    }
+    }()
 
     override val source: String
         get() = status.application?.name ?: "Web"
 
-    override val mentions: List<Mention> by lazy { status.mentions.map { DonMention(it) } }
+    override val mentions: List<Mention> = status.mentions.map { DonMention(it) }
 
     override val metadata: StatusPreforms = StatusPreforms()
 

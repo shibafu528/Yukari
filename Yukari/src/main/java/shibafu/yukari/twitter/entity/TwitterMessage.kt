@@ -13,7 +13,7 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
     override val id: Long
         get() = message.id
 
-    override val user: User by lazy { TwitterUser(message.sender) }
+    override val user: User = TwitterUser(message.sender)
 
     override val text: String
         get() = message.text

@@ -12,7 +12,7 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
     override val user: User = eventBy
     override val text: String = ""
     override val recipientScreenName: String = ""
-    override val createdAt: Date by lazy { Date(timeAtMillis) }
+    override val createdAt: Date = Date(timeAtMillis)
     override val source: String = ""
     override val mentions: List<Mention> = emptyList()
     override val metadata: StatusPreforms = StatusPreforms()

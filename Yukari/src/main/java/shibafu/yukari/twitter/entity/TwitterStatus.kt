@@ -13,7 +13,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
     override val id: Long
         get() = status.id
 
-    override val user: User by lazy { TwitterUser(status.originStatus.user) }
+    override val user: User = TwitterUser(status.originStatus.user)
 
     override val text: String
         get() = status.originStatus.text
@@ -32,7 +32,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val originStatus: Status = if (isRepost) TwitterStatus(PreformedStatus(status.retweetedStatus, representUser), representUser) else this
 
-    override val mentions: List<Mention> by lazy { status.userMentionEntities.map { TwitterMention(it) } }
+    override val mentions: List<Mention> = status.userMentionEntities.map { TwitterMention(it) }
 
     override val metadata: StatusPreforms = StatusPreforms()
 
