@@ -11,7 +11,6 @@ import android.widget.Toast;
 import info.shibafu528.yukari.processor.autorelease.AutoRelease;
 import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import org.jetbrains.annotations.NotNull;
-import shibafu.yukari.R;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -24,7 +23,6 @@ import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.entity.TwitterUser;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
-import shibafu.yukari.twitter.streaming.RestStream;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.twitter.streaming.StreamListener;
 import shibafu.yukari.twitter.streaming.StreamUser;
@@ -387,19 +385,7 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDirectMessage(Stream from, DirectMessage directMessage) {
-            userUpdateDelayer.enqueue(directMessage.getSender());
-            pushEventQueue(from, new MessageEventBuffer(from.getUserRecord(), directMessage));
-
-            boolean checkOwn = service.isMyTweet(directMessage) != null;
-            if (!checkOwn) {
-                AuthUserRecord representUser = service.isMyTweet(directMessage);
-                if (representUser == null) {
-                    return;
-                }
-
-                notifier.showNotification(R.integer.notification_message,
-                        new TwitterMessage(directMessage, representUser), new TwitterUser(directMessage.getSender()));
-            }
+            hub.onDirectMessage("Twitter.StreamManager", new TwitterMessage(directMessage, from.getUserRecord()), true);
         }
 
         @Override
@@ -425,44 +411,6 @@ public class StatusManager implements Releasable {
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {
             hub.onDelete(TwitterMessage.class, directMessageId);
-        }
-
-        @Deprecated
-        private void pushEventQueue(Stream from, EventBuffer event) {
-            pushEventQueue(from, event, true);
-        }
-
-        @Deprecated
-        private void pushEventQueue(Stream from, EventBuffer event, boolean isBroadcast) {
-            statusListeners.sync(sls -> {
-                for (StatusListener sl : sls) {
-                    if (isBroadcast || deliver(sl, from)) {
-                        event.sendBufferedEvent(sl);
-                    }
-                }
-            });
-            statusBuffer.sync(sb -> {
-                for (Map.Entry<String, Pair<StatusListener, Queue<EventBuffer>>> e : sb.entrySet()) {
-                    if (isBroadcast || deliver(e.getValue().first, from)) {
-                        e.getValue().second.offer(event);
-                    }
-                }
-            });
-        }
-
-        private boolean deliver(StatusListener sl, Stream from) {
-            if (sl.getStreamFilter() == null && from instanceof StreamUser) {
-                return true;
-            }
-            else if (from instanceof FilterStream &&
-                    ((FilterStream) from).contains(sl.getStreamFilter())) {
-                return true;
-            }
-            else if (from instanceof RestStream &&
-                    ((RestStream) from).getTag().equals(sl.getRestTag())) {
-                return true;
-            }
-            else return false;
         }
 
         private StatusQueue statusQueue = new StatusQueue();

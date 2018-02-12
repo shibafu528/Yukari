@@ -17,6 +17,7 @@ import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusmanager.StatusNotifier
@@ -121,6 +122,12 @@ class TimelineHub(private val service: TwitterService) {
      * @param passive ストリーミング通信によって受動的に取得したStatusか？ (trueの場合、ブロードキャストされる)
      */
     fun onStatus(timelineId: String, status: Status, passive: Boolean) {
+        // Twitter DirectMessageは別処理
+        if (status is TwitterMessage) {
+            onDirectMessage(timelineId, status, passive)
+            return
+        }
+
         val plc = getProviderLocalCache(status.representUser.Provider.id)
 
         // 代表アカウントの上書き
@@ -240,6 +247,25 @@ class TimelineHub(private val service: TwitterService) {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * [TwitterMessage] の受信
+     *
+     * TwitterのDirectMessageは性質の異なる情報のため、別に処理する必要がある。
+     * @param timelineId 配信先識別子
+     * @param status 受信したStatus
+     * @param passive ストリーミング通信によって受動的に取得したStatusか？ (trueの場合、ブロードキャストされる)
+     */
+    fun onDirectMessage(timelineId: String, status: TwitterMessage, passive: Boolean) {
+        // TODO: ベタ移植なので問題があれば作り直す
+
+        userUpdateDelayer.enqueue(status.message.sender)
+        pushEventQueue(TimelineEvent.Received(timelineId, status, false), passive)
+
+        if (status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
+            notifier.showNotification(R.integer.notification_message, status, status.user)
         }
     }
 

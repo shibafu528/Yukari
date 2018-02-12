@@ -25,6 +25,7 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
 import twitter4j.DirectMessage;
@@ -152,11 +153,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     public void onStatus(AuthUserRecord from, PreformedStatus status, boolean muted) {}
 
     @Override
-    public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {
-        if (users.contains(from) && !elements.contains(directMessage)) {
-            getHandler().post(() -> insertElement(directMessage));
-        }
-    }
+    public void onDirectMessage(AuthUserRecord from, final DirectMessage directMessage) {}
 
     @Override
     public void onUpdatedStatus(AuthUserRecord from, int kind, final Status status) {}
@@ -164,7 +161,12 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
         super.onTimelineEvent(event);
-        if (event instanceof TimelineEvent.Delete) {
+        if (event instanceof TimelineEvent.Received && ((TimelineEvent.Received) event).getStatus() instanceof TwitterMessage) {
+            final TwitterMessage directMessage = (TwitterMessage) ((TimelineEvent.Received) event).getStatus();
+            if (users.contains(directMessage.getRepresentUser()) && !elements.contains(directMessage.getMessage())) {
+                getHandler().post(() -> insertElement(directMessage.getMessage()));
+            }
+        } else if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getType() == TwitterMessage.class) {
             getHandler().post(() -> deleteElement(((TimelineEvent.Delete) event).getId()));
         } else if (event instanceof TimelineEvent.Wipe) {
             getHandler().post(() -> {
