@@ -5,15 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
+import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.ProfileActivity
@@ -71,6 +74,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
     private val handler: Handler = Handler(Looper.getMainLooper())
+    private val onScrollListeners: MutableList<AbsListView.OnScrollListener> = arrayListOf()
 
     // リクエスト管理
     private val loadingTaskKeys = arrayListOf<Long>()
@@ -79,6 +83,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     // ダブルクリック抑止
     private var blockingDoubleClick = false
     private var enableDoubleClickBlocker = false
+
+    // 未読管理
+    private val unreadSet = LongHashSet()
+    private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses, unreadSet)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,7 +112,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         val swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame)
         swipeActionStatusView?.visibility = View.INVISIBLE
 
+        unreadNotifierBehavior.onCreateView(v)
+
         return v
+    }
+
+    override fun onStart() {
+        super.onStart()
+        unreadNotifierBehavior.onStart()
     }
 
     override fun onResume() {
@@ -127,10 +142,29 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         super.onViewCreated(view, savedInstanceState)
         statusAdapter = TweetAdapter(context, users, null, statuses)
         listAdapter = statusAdapter
+
+        listView.setOnScrollListener(object : AbsListView.OnScrollListener {
+            override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
+                onScrollListeners.forEach { it.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount) }
+            }
+
+            override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
+                onScrollListeners.forEach { it.onScrollStateChanged(view, scrollState) }
+            }
+        })
+        onScrollListeners.add(unreadNotifierBehavior)
+        unreadNotifierBehavior.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unreadNotifierBehavior.onStop()
     }
 
     override fun onDetach() {
         super.onDetach()
+        onScrollListeners.remove(unreadNotifierBehavior)
+        unreadNotifierBehavior.onDetach()
         if (isTwitterServiceBound) {
             twitterService?.timelineHub?.removeObserver(this)
         }
@@ -227,7 +261,24 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     }
 
     override fun scrollToOldestUnread() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        try {
+            if (unreadSet.isEmpty) {
+                listView.setSelection(0)
+            } else {
+                val lastUnreadId = unreadSet.min()
+                for (position in 0 until statuses.size) {
+                    if (statuses[position].id == lastUnreadId) {
+                        listView.setSelection(position)
+                        break
+                    }
+                }
+            }
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+            if (activity?.applicationContext != null) {
+                Toast.makeText(activity.applicationContext, e.localizedMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     override fun scrollToPrevPage() {
@@ -312,7 +363,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
 
         swipeRefreshLayout?.isRefreshing = true
-        // TODO: clearUnreadNotifier()
+        unreadNotifierBehavior.clearUnreadNotifier()
         val statusLoader = twitterService?.statusLoader ?: return
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
@@ -452,7 +503,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (statusCapacity < statuses.size) {
                     val iterator = statuses.listIterator(statusCapacity)
                     while (iterator.hasNext()) {
-                        iterator.next()
+                        unreadSet.remove(iterator.next().id)
                         iterator.remove()
                         notifyDataSetChanged()
                     }
@@ -464,6 +515,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             putWarnLog("Insert: ListView is null. DROPPED! ($status, $position)")
             return
         }
+
+        unreadNotifierBehavior.updateUnreadNotifier()
     }
 
     /**
@@ -482,6 +535,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             if (iterator.next().id == id) {
                 iterator.remove()
                 notifyDataSetChanged()
+                if (unreadSet.contains(id)) {
+                    unreadSet.remove(id)
+                    unreadNotifierBehavior.updateUnreadNotifier()
+                }
                 break
             }
         }
@@ -504,5 +561,88 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
         /** ダイアログID : NotifyHistory クリックメニュー */
         private const val DIALOG_REQUEST_HISTORY_MENU = 1
+    }
+}
+
+/**
+ * 未読ビューの振る舞い制御
+ */
+private class UnreadNotifierBehavior(private val parent: TimelineFragment,
+                                     private val statuses: MutableList<Status>,
+                                     private val unreadSet: LongHashSet) : AbsListView.OnScrollListener {
+    private var lastShowedFirstItemId: Long = -1
+    private var lastShowedFirstItemY = 0
+    private var unreadNotifierView: View? = null
+    private var tvUnreadCount: TextView? = null
+
+    fun onCreateView(parentView: View) {
+        unreadNotifierView = parentView.findViewById(R.id.unreadNotifier)
+        tvUnreadCount = unreadNotifierView?.findViewById(R.id.textView) as TextView
+    }
+
+    fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        val unreadNotifier = unreadNotifierView
+        if (unreadNotifier != null) {
+            if (PreferenceManager.getDefaultSharedPreferences(parent.activity).getString("pref_theme", "light").endsWith("dark")) {
+                unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_dark)
+            } else {
+                unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_light)
+            }
+
+            unreadNotifier.setOnClickListener { _ -> parent.scrollToOldestUnread() }
+        }
+    }
+
+    fun onStart() {
+        if (lastShowedFirstItemId > -1) {
+            for (position in 0 until statuses.size) {
+                if (statuses[position].id == lastShowedFirstItemId) {
+                    parent.listView.setSelectionFromTop(position, lastShowedFirstItemY)
+                    break
+                }
+            }
+            updateUnreadNotifier()
+        }
+    }
+
+    fun onStop() {
+        lastShowedFirstItemId = parent.listView.getItemIdAtPosition(parent.listView.firstVisiblePosition)
+        lastShowedFirstItemY = parent.listView.getChildAt(0)?.top ?: 0
+    }
+
+    fun onDetach() {
+        unreadNotifierView = null
+        tvUnreadCount = null
+    }
+
+    fun updateUnreadNotifier() {
+        val unreadNotifier = unreadNotifierView ?: return
+
+        if (unreadSet.size() < 1) {
+            unreadNotifier.visibility = View.INVISIBLE
+            return
+        }
+        tvUnreadCount?.text = "新着 ${unreadSet.size()}件"
+
+        unreadNotifier.visibility = View.VISIBLE
+    }
+
+    fun clearUnreadNotifier() {
+        unreadSet.clear()
+        updateUnreadNotifier()
+    }
+
+    override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {}
+
+    override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
+        var i = firstVisibleItem
+        while (i < i + visibleItemCount && i < statuses.size) {
+            val element = statuses[firstVisibleItem]
+            if (unreadSet.contains(element.id)) {
+                unreadSet.remove(element.id)
+            }
+            ++i
+        }
+        updateUnreadNotifier()
     }
 }
