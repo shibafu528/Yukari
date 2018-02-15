@@ -28,6 +28,7 @@ import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.User
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
@@ -429,12 +430,33 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             loadingTaskKeys.remove(taskKey)
             if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
                 statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
-                    handler.post { deleteElement(it) }
+                    handler.post { deleteElement(it.javaClass, it.id) }
                 }
                 queryingLoadMarkers.remove(taskKey)
             }
             if (loadingTaskKeys.isEmpty()) {
                 handler.post { swipeRefreshLayout?.isRefreshing = false }
+            }
+        }
+        fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
+            statuses.forEach { status ->
+                if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+                    status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
+                    if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                        status.receivedUsers.add(eventStatus.representUser)
+                    }
+                    notifyDataSetChanged()
+                    return
+                }
+            }
+            mutedStatuses.forEach { status ->
+                if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+                    status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
+                    if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                        status.receivedUsers.add(eventStatus.representUser)
+                    }
+                    return
+                }
             }
         }
 
@@ -475,6 +497,16 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (mode == TabType.TABTYPE_HISTORY) {
                     handler.post { insertElement(event.notify, false) }
                 }
+            }
+            is TimelineEvent.Favorite -> {
+                setFavoriteState(event.from, event.status, true)
+            }
+            is TimelineEvent.Unfavorite -> {
+                setFavoriteState(event.from, event.status, false)
+            }
+            is TimelineEvent.Delete -> {
+                handler.post { deleteElement(event.type, event.id) }
+                mutedStatuses.removeAll { it.javaClass == event.type && it.id == event.id }
             }
             is TimelineEvent.Wipe -> {
                 handler.post {
@@ -596,18 +628,19 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     /**
      * TLから要素を削除します。
-     * @param status Status
+     * @param type 削除対象の型
+     * @param id 削除対象のID
      */
-    private fun deleteElement(status: Status) {
+    private fun deleteElement(type: Class<out Status>, id: Long) {
         if (listView == null) {
-            putWarnLog("Delete: ListView is null. DROPPED! ($status)")
+            putWarnLog("Delete: ListView is null. DROPPED! (${type.name}, $id)")
             return
         }
 
-        val id = status.id
         val iterator = statuses.iterator()
         while (iterator.hasNext()) {
-            if (iterator.next().id == id) {
+            val status = iterator.next()
+            if (status.javaClass == type && status.id == id) {
                 iterator.remove()
                 notifyDataSetChanged()
                 if (unreadSet.contains(id)) {
