@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
@@ -88,6 +89,15 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     private val unreadSet = LongHashSet()
     private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses, unreadSet)
 
+    // スクロールロック
+    private var lockedScrollId = -1L
+    private var lockedYPosition = 0
+    private val scrollUnlockHandler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message?) {
+            lockedScrollId = -1
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -153,6 +163,17 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         })
         onScrollListeners.add(unreadNotifierBehavior)
+        onScrollListeners.add(object : AbsListView.OnScrollListener {
+            override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollId = $lockedScrollId, y = $lockedYPosition")
+            }
+
+            override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
+                    lockedScrollId = -1
+                }
+            }
+        })
         unreadNotifierBehavior.onViewCreated(view, savedInstanceState)
     }
 
@@ -432,7 +453,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
 
                     val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
-                    handler.post { insertElement(status, useScrollLock && status !is LoadMarker) }
+                    handler.post { insertElement(status, !event.passive && useScrollLock && status !is LoadMarker) }
                 }
             }
             is TimelineEvent.RestRequestCompleted -> {
@@ -449,8 +470,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
             is TimelineEvent.Notify -> {
                 if (mode == TabType.TABTYPE_HISTORY) {
-                    val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
-                    handler.post { insertElement(event.notify, useScrollLock) }
+                    handler.post { insertElement(event.notify, false) }
                 }
             }
             is TimelineEvent.Wipe -> {
@@ -514,6 +534,58 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         if (listView == null) {
             putWarnLog("Insert: ListView is null. DROPPED! ($status, $position)")
             return
+        }
+        
+        // ここからスクロール制御回りの処理
+
+        val firstPos = listView.firstVisiblePosition
+        val firstView = listView.getChildAt(0)
+        val y = firstView?.top ?: 0
+        if (!useScrollLock && (statuses.size == 1 || firstPos == 0 && y > -1)) {
+            listView.setSelection(0)
+
+            if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
+        } else if (lockedScrollId > -1) {
+            for (i in statuses.indices) {
+                if (statuses[i].id <= lockedScrollId) {
+                    listView.setSelectionFromTop(i, y)
+                    if (position < i) {
+                        unreadSet.add(status.id)
+                    }
+
+                    scrollUnlockHandler.removeCallbacksAndMessages(null)
+                    scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200)
+
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i (Locked strict) ... $status")
+                    break
+                }
+            }
+        } else if (position <= firstPos) {
+            if (statuses.size <= 1 && status is LoadMarker) {
+                // 要素数1の時にマーカーを掴むとずっと下にスクロールされてしまうので回避する
+            } else {
+                var lockedPosition = firstPos + 1
+                if (lockedPosition < statuses.size) {
+                    if (statuses[lockedPosition] is LoadMarker) {
+                        lockedPosition = firstPos
+                    }
+                } else {
+                    lockedPosition = firstPos
+                }
+
+                unreadSet.add(status.id)
+                listView.setSelectionFromTop(lockedPosition, y)
+
+                lockedScrollId = statuses[lockedPosition].id
+                lockedYPosition = y
+
+                scrollUnlockHandler.removeCallbacksAndMessages(null)
+                scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200)
+
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollId (Locked) ... $status")
+            }
+        } else {
+            if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
         }
 
         unreadNotifierBehavior.updateUnreadNotifier()

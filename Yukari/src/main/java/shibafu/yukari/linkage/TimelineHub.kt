@@ -159,7 +159,7 @@ class TimelineHub(private val service: TwitterService) {
             }
         }
 
-        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted), passive)
+        pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted, passive), passive)
 
         if (passive) {
             // オートミュート判定
@@ -262,7 +262,7 @@ class TimelineHub(private val service: TwitterService) {
         // TODO: ベタ移植なので問題があれば作り直す
 
         userUpdateDelayer.enqueue(status.message.sender)
-        pushEventQueue(TimelineEvent.Received(timelineId, status, false), passive)
+        pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
         if (status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
             notifier.showNotification(R.integer.notification_message, status, status.user)
@@ -406,8 +406,9 @@ sealed class TimelineEvent(val timelineId: String) {
      * [Status] の受信
      * @property status 受信したStatus
      * @property muted ミュートフラグ
+     * @property passive ストリーミング通信によって受動的に取得したStatusか？
      */
-    class Received(timelineId: String, val status: Status, val muted: Boolean) : TimelineEvent(timelineId)
+    class Received(timelineId: String, val status: Status, val muted: Boolean, val passive: Boolean) : TimelineEvent(timelineId)
 
     /**
      * [StatusLoader.requestRestQuery] の処理完了
