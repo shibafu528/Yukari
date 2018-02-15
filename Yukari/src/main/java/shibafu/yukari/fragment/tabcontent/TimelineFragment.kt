@@ -441,9 +441,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         when (event) {
             is TimelineEvent.Received -> {
                 val status = event.status
+                val queryVariables = mapOf<String, Any?>(
+                        "passive" to event.passive
+                )
 
                 if (statuses.contains(status)) return
-                if (status !is LoadMarker && !query.evaluate(status, users)) return
+                if (status !is LoadMarker && !query.evaluate(status, users, queryVariables)) return
 
                 if (event.muted) {
                     if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")

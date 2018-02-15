@@ -172,7 +172,6 @@ public class PreformedStatus implements Status{
 
     public void merge(Status status, AuthUserRecord receivedUser) {
         if (status instanceof FakeStatus) {
-            merge((FakeStatus) status, receivedUser);
             return;
         }
 
@@ -242,15 +241,6 @@ public class PreformedStatus implements Status{
         }
         if (retweetedStatus != null && status.isRetweeted()) {
             retweetedStatus.merge(status.getRetweetedStatus());
-        }
-    }
-
-    public void merge(FakeStatus status, AuthUserRecord receivedUser) {
-        if (status instanceof FavFakeStatus && receivedUser != null) {
-            if (status.getUser().getId() == receivedUser.NumericId) {
-                addReceivedUserIfNotExist(receivedUser);
-            }
-            isFavorited.put(status.getUser().getId(), status.isFavorited());
         }
     }
 

@@ -9,8 +9,6 @@ import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.statusimpl.MetaStatus
-import shibafu.yukari.twitter.streaming.RestStream
 
 /**
  * コンパイルされた抽出クエリを表します。
@@ -35,15 +33,9 @@ data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SN
             = AndNode(
                 OrNode(
                     // RESTレスポンスは通す
-                    AndNode(
-                        EqualsNode(
-                            VariableNode("class.simpleName"),
-                            ValueNode(MetaStatus::class.java.simpleName)
-                        ),
-                        EqualsNode(
-                            VariableNode("metadata"),
-                            ValueNode(RestStream::class.java.simpleName)
-                        )
+                    EqualsNode(
+                        VariableNode("\$passive"),
+                        ValueNode(false)
                     ),
                     // UserStreamレスポンスは各ソースのフィルタを通す
                     OrNode(sources.map {

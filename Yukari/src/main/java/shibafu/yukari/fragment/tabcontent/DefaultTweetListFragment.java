@@ -36,7 +36,6 @@ import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -475,7 +474,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
             if ((getMode() == TabType.TABTYPE_HOME || getMode() == TabType.TABTYPE_MENTION)
                     && users.contains(from) && !elements.contains(status)) {
                 if (getMode() == TabType.TABTYPE_MENTION) {
-                    boolean rtRespond = status instanceof RespondNotifyStatus;
+                    boolean rtRespond = twitterStatus.getMetadata().getRepostRespondTo() != null;
                     if (rtRespond && !new NotificationType(preferences.getInt("pref_notif_respond", 0)).isEnabled()) return;
                     else if (!rtRespond && (!status.isMentionedToMe() || status.isRetweet())) return;
                 }
