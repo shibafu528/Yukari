@@ -99,6 +99,24 @@ interface Status : Comparable<Status>, Serializable {
         }
     }
 
+    /**
+     * このステータスが代表受信アカウントのものであるか(削除等の強い権限を持っている)どうか判定
+     */
+    fun isOwnedStatus(): Boolean {
+        return providerApiType == representUser.Provider.apiType && user.id == representUser.NumericId
+    }
+
+    /**
+     * 同じ内容を指す、より新しい別インスタンスの情報でレシーバの情報を更新する
+     */
+    fun merge(status: Status) {
+        if (this.providerApiType != status.providerApiType || this.id != status.id) {
+            throw IllegalArgumentException("マージはIDとAPI Typeが揃っているインスタンス同士でないと実行できません。this[ID=$id, API=$providerApiType] : args[ID=${status.id}, API=${status.providerApiType}]")
+        }
+
+        // TODO: ハァーーーーめんどくっせぇ、これy4aのだるいポイントじゃん
+    }
+
     override fun compareTo(other: Status): Int {
         if (this === other) return 0
 

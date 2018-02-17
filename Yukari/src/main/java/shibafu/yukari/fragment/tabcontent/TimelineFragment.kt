@@ -529,11 +529,48 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
      * @return 挿入位置、負数の場合は実際にリストに挿入する必要はないが別の処理が必要。(PRE_INSERT_から始まる定数を参照)
      */
     private fun preInsertElement(status: Status): Int {
-        for (i in 0 until statuses.size) {
-            if (status.id == statuses[i].id) {
-                return PRE_INSERT_DUPLICATED
-            } else if (status.id > statuses[i].id) {
-                return i
+        // 代表操作アカウントの書き換えが必要か確認する
+        if (status is TwitterStatus) {
+            // TODO: 現状、Twitter向けにしか優先機能が使えない。どっかでマイグレーションする。
+            // 自身の所有するStatusの場合、書き換えてはいけない
+            if (!status.isOwnedStatus()) {
+                // 優先アカウント設定が存在するか？
+                val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.id }
+                if (userExtras != null && userExtras.priorityAccount != null) {
+                    status.representUser = userExtras.priorityAccount
+                    if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
+                        status.receivedUsers.add(userExtras.priorityAccount)
+                    }
+                }
+            }
+        }
+
+        if (status is LoadMarker) {
+            for (i in 0 until statuses.size) {
+                if (statuses[i] is LoadMarker) {
+                    val compareTo = statuses[i] as LoadMarker
+
+                    if (status.providerApiType == compareTo.providerApiType && status.anchorStatusId == compareTo.anchorStatusId && status.user.id == compareTo.user.id) {
+                        // 同じ情報を持つLoadMarkerなので、挿入しない
+                        return PRE_INSERT_DUPLICATED
+                    }
+                } else if (status.id > statuses[i].id) {
+                    return i
+                }
+            }
+        } else {
+            for (i in 0 until statuses.size) {
+                // Order by ID, API Type
+                if (status.id == statuses[i].id) {
+                    if (status.providerApiType == statuses[i].providerApiType) {
+                        statuses[i].merge(status)
+                        return PRE_INSERT_MERGED
+                    } else if (status.providerApiType < statuses[i].providerApiType) {
+                        return i
+                    }
+                } else if (status.id > statuses[i].id) {
+                    return i
+                }
             }
         }
         return statuses.size
