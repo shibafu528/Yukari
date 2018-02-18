@@ -35,6 +35,10 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
 
     override val mentions: List<Mention> = status.mentions.map { DonMention(it) }
 
+    override var favoritesCount: Int = status.favouritesCount
+
+    override var repostsCount: Int = status.reblogsCount
+
     override val metadata: StatusPreforms = StatusPreforms()
 
     override val providerApiType: Int = Provider.API_MASTODON

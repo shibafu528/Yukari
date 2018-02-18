@@ -34,6 +34,10 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val mentions: List<Mention> = status.userMentionEntities.map { TwitterMention(it) }
 
+    override var favoritesCount: Int = status.favoriteCount
+
+    override var repostsCount: Int = status.retweetCount
+
     override val metadata: StatusPreforms = StatusPreforms()
 
     override val providerApiType: Int = Provider.API_TWITTER

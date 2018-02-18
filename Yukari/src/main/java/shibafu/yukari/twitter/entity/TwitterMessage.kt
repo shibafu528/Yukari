@@ -29,6 +29,10 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
 
     override val mentions: List<Mention> = listOf(TwitterMention(message.recipientId, message.recipientScreenName))
 
+    override var favoritesCount: Int = 0
+
+    override var repostsCount: Int = 0
+
     override val metadata: StatusPreforms = StatusPreforms()
 
     override val providerApiType: Int = Provider.API_TWITTER

@@ -59,6 +59,16 @@ interface Status : Comparable<Status>, Serializable {
     val mentions: List<Mention>
 
     /**
+     * お気に入り登録数
+     */
+    var favoritesCount: Int
+
+    /**
+     * 引用数
+     */
+    var repostsCount: Int
+
+    /**
      * メタデータ
      */
     val metadata: StatusPreforms
@@ -114,7 +124,17 @@ interface Status : Comparable<Status>, Serializable {
             throw IllegalArgumentException("マージはIDとAPI Typeが揃っているインスタンス同士でないと実行できません。this[ID=$id, API=$providerApiType] : args[ID=${status.id}, API=${status.providerApiType}]")
         }
 
-        // TODO: ハァーーーーめんどくっせぇ、これy4aのだるいポイントじゃん
+        favoritesCount = status.favoritesCount
+        repostsCount = status.repostsCount
+
+        status.receivedUsers.forEach { userRecord ->
+            if (!receivedUsers.contains(userRecord)) {
+                receivedUsers.add(userRecord)
+            }
+            if (status.metadata.favoritedUsers.get(userRecord.NumericId)) {
+                metadata.favoritedUsers.put(userRecord.NumericId, true)
+            }
+        }
     }
 
     override fun compareTo(other: Status): Int {

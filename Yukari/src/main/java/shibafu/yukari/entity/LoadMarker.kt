@@ -35,6 +35,8 @@ class LoadMarker(override val id: Long,
     override val createdAt: Date = Date()
     override val source: String = ""
     override val mentions: List<Mention> = emptyList()
+    override var favoritesCount: Int = 0
+    override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 }
