@@ -34,6 +34,7 @@ import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.twitter.AuthUserRecord
@@ -209,9 +210,11 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                                 // リクエストの発行
                                 val userRecord = it.sourceAccount ?: return@let
                                 val restQuery = it.getRestQuery() ?: return@let
+                                val params = RestQuery.Params(maxId = clickedElement.id,
+                                        loadMarkerTag = it.hashCode().toString(),
+                                        loadMarkerDate = clickedElement.createdAt)
                                 val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
-                                        userRecord, restQuery,
-                                        clickedElement.id, true, it.hashCode().toString())
+                                        userRecord, restQuery, params)
                                 clickedElement.taskKey = taskKey
                                 loadingTaskKeys += taskKey
                                 queryingLoadMarkers.put(taskKey, clickedElement.id)
@@ -368,8 +371,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
             val restQuery = source.getRestQuery() ?: return@forEach
-            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery,
-                    -1, true, source.hashCode().toString())
+            val params = RestQuery.Params(loadMarkerTag = source.hashCode().toString())
+            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery, params)
         }
         if (loadingTaskKeys.isEmpty()) {
             swipeRefreshLayout?.isRefreshing = false
@@ -390,8 +393,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
             val restQuery = source.getRestQuery() ?: return@forEach
-            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery,
-                    -1, true, source.hashCode().toString())
+            val params = RestQuery.Params(loadMarkerTag = source.hashCode().toString())
+            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery, params)
         }
         if (loadingTaskKeys.isEmpty()) {
             swipeRefreshLayout?.isRefreshing = false
@@ -554,7 +557,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         // 同じ情報を持つLoadMarkerなので、挿入しない
                         return PRE_INSERT_DUPLICATED
                     }
-                } else if (status.id > statuses[i].id) {
+                } else if (status > statuses[i]) {
                     return i
                 }
             }
@@ -568,7 +571,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     } else if (status.providerApiType < statuses[i].providerApiType) {
                         return i
                     }
-                } else if (status.id > statuses[i].id) {
+                } else if (status > statuses[i]) {
                     return i
                 }
             }

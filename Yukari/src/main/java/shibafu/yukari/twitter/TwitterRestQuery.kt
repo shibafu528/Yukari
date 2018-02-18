@@ -11,28 +11,29 @@ import twitter4j.Paging
 import twitter4j.ResponseList
 import twitter4j.Twitter
 import twitter4j.TwitterException
+import java.util.*
 
 /**
  * RestQueryのTwitter用テンプレート
  */
 class TwitterRestQuery(private val resolver: (Twitter, Paging) -> ResponseList<twitter4j.Status>) : RestQuery {
-    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): MutableList<Status> {
+    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): MutableList<Status> {
         api as Twitter
         val paging = Paging()
-        paging.count = limitCount
-        if (maxId > -1) {
-            paging.maxId = maxId
+        paging.count = params.limitCount
+        if (params.maxId > -1) {
+            paging.maxId = params.maxId
         }
         try {
             // TODO: PreformedStatus挟まずにやりたい
             val responseList: MutableList<Status> = resolver(api, paging).map { TwitterStatus(PreformedStatus(it, userRecord), userRecord) }.toMutableList()
 
-            if (appendLoadMarker) {
+            if (params.appendLoadMarker) {
                 responseList += if (responseList.isEmpty()) {
-                    LoadMarker(maxId, Provider.API_TWITTER, maxId, userRecord, loadMarkerTag)
+                    LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate)
                 } else {
                     val last = responseList.last()
-                    LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, loadMarkerTag)
+                    LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
                 }
             }
 

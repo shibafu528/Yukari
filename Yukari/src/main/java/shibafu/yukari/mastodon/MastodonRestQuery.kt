@@ -12,9 +12,9 @@ import shibafu.yukari.twitter.AuthUserRecord
  * RestQueryのMastodon用テンプレート
  */
 class MastodonRestQuery(private val resolver: (MastodonClient, Range) -> List<Status>) : RestQuery {
-    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, maxId: Long, limitCount: Int, appendLoadMarker: Boolean, loadMarkerTag: String): List<Status> {
+    override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
         api as MastodonClient
-        val range = Range(maxId = if (maxId > -1) maxId else null, limit = limitCount)
+        val range = Range(maxId = if (params.maxId > -1) params.maxId else null, limit = params.limitCount)
 
         try {
             val response = resolver(api, range)

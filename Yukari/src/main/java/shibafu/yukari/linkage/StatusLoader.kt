@@ -9,7 +9,6 @@ import android.widget.Toast
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.twitter.AuthUserRecord
-import twitter4j.Paging
 import twitter4j.TwitterException
 import shibafu.yukari.entity.Status as IStatus
 
@@ -29,30 +28,27 @@ class StatusLoader(private val context: Context,
      * @param timelineId 通信結果の配信先識別子
      * @param userRecord 使用するアカウント
      * @param query RESTリクエストクエリ
-     * @param pagingMaxId [Paging.maxId] に設定する値、負数の場合は設定しない
-     * @param appendLoadMarker ページングのマーカーとして [shibafu.yukari.entity.LoadMarker] も配信するかどうか
-     * @param loadMarkerTag ページングのマーカーに、どのクエリの続きを表しているのか識別するために付与するタグ
+     * @param params [RestQuery.Params]
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
     fun requestRestQuery(timelineId: String,
                          userRecord: AuthUserRecord,
                          query: RestQuery,
-                         pagingMaxId: Long,
-                         appendLoadMarker: Boolean,
-                         loadMarkerTag: String): Long {
+                         params: RestQuery.Params): Long {
         val isNarrowMode = sp.getBoolean("pref_narrow", false)
         val taskKey = System.currentTimeMillis()
         val task = object : ParallelAsyncTask<Void?, Void?, Void?>() {
             private var exception: RestQueryException? = null
 
-            override fun doInBackground(vararg params: Void?): Void? {
+            override fun doInBackground(vararg p: Void?): Void? {
                 Log.d("StatusLoader", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, timelineId, query.javaClass.name))
 
                 val api = apiClientFactory(userRecord) ?: return null
 
                 try {
-                    val limitCount = if (isNarrowMode) REQUEST_COUNT_NARROW else REQUEST_COUNT_NORMAL
-                    val responseList = query.getRestResponses(userRecord, api, pagingMaxId, limitCount, appendLoadMarker, loadMarkerTag)
+                    params.limitCount = if (isNarrowMode) REQUEST_COUNT_NARROW else REQUEST_COUNT_NORMAL
+
+                    val responseList = query.getRestResponses(userRecord, api, params)
 
                     if (isCancelled) return null
 

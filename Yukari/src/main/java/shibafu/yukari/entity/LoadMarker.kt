@@ -10,12 +10,14 @@ import java.util.*
  * @param anchorStatusId
  * @param representUser 対応するアカウント
  * @param loadMarkerTag 対応するクエリを表すタグ
+ * @param createdAt タイムスタンプ
  */
 class LoadMarker(override val id: Long,
                  override val providerApiType: Int,
                  val anchorStatusId: Long,
                  override var representUser: AuthUserRecord,
-                 val loadMarkerTag: String) : Status {
+                 val loadMarkerTag: String,
+                 override val createdAt: Date) : Status {
     /** 現在このマーカーを使って通信を実行しているタスクのID */
     var taskKey = -1L
 
@@ -32,7 +34,6 @@ class LoadMarker(override val id: Long,
         get() = "Anchor ID = $anchorStatusId, API = $providerApiType, UID = ${representUser.NumericId}, Tag = $loadMarkerTag, TaskKey = $taskKey"
 
     override val recipientScreenName: String = "**Load Marker**"
-    override val createdAt: Date = Date()
     override val source: String = ""
     override val mentions: List<Mention> = emptyList()
     override var favoritesCount: Int = 0
