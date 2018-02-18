@@ -23,19 +23,20 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
 import shibafu.yukari.filter.source.Mention
 import shibafu.yukari.filter.source.User
-import shibafu.yukari.filter.source.List as ListSource
+import shibafu.yukari.mastodon.source.Public
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.filter.source.List as ListSource
 
 /**
  * クエリ文字列を解釈し、ソースリストと式オブジェクトに変換する機能を提供します。
  *
  * Created by shibafu on 15/06/07.
  */
-public final class QueryCompiler {
+class QueryCompiler {
     private constructor()
 
     companion object {
-        const public val DEFAULT_QUERY: String = "from all"
+        const val DEFAULT_QUERY: String = "from all"
         private val LOG_TAG = QueryCompiler::class.java.simpleName
 
         /**
@@ -46,7 +47,7 @@ public final class QueryCompiler {
          */
         @JvmStatic
         @Throws(FilterCompilerException::class, TokenizeException::class)
-        public fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
+        fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
             //コンパイル開始時間の記録
             val compileTime = System.currentTimeMillis()
 
@@ -92,7 +93,7 @@ public final class QueryCompiler {
                 var args: List<Token> = listOf()
 
                 /** 解析結果をリセットします。 */
-                public fun clear() {
+                fun clear() {
                     type = null
                     args = listOf()
                 }
@@ -143,13 +144,14 @@ public final class QueryCompiler {
                 }
 
                 /** 構文解析の結果から抽出ソースのインスタンスを作成します。 */
-                public fun toFilterSource(): List<FilterSource> {
+                fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
                         "all", "local", "*", "stream" -> listOf(All())
                         "home" -> createFiltersWithAuthArguments(Home::class.java)
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
                         "user" -> createFiltersWithListArguments(User::class.java, 1, "(受信ユーザ/)対象ユーザ")
                         "list" -> createFiltersWithListArguments(ListSource::class.java, 2, "(受信ユーザ/)ユーザ/リスト名")
+                        "don_public" -> createFiltersWithListArguments(Public::class.java, 1, "インスタンス名")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
@@ -269,7 +271,7 @@ public final class QueryCompiler {
     }
 }
 
-public class FilterCompilerException(message: String, token: Token?) : Exception(
+class FilterCompilerException(message: String, token: Token?) : Exception(
         if (token == null) {
             "$message : ?"
         } else {
