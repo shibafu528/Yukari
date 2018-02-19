@@ -30,13 +30,13 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 16;
+    public static final int DB_VER = 17;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
     public static final String COL_ACCOUNTS_ID = "_id";
-    @Deprecated public static final String COL_ACCOUNTS_CONSUMER_KEY = "ConsumerKey";
-    @Deprecated public static final String COL_ACCOUNTS_CONSUMER_SECRET = "ConsumerSecret";
+    @Deprecated private static final String COL_ACCOUNTS_CONSUMER_KEY = "ConsumerKey";
+    @Deprecated private static final String COL_ACCOUNTS_CONSUMER_SECRET = "ConsumerSecret";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN = "AccessToken";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN_SECRET = "AccessTokenSecret";
     public static final String COL_ACCOUNTS_IS_PRIMARY = "IsPrimary"; //各種操作のメインアカウント、最初に認証した垢がデフォルト
@@ -45,6 +45,10 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
     public static final String COL_ACCOUNTS_COLOR = "AccountColor";
     public static final String COL_ACCOUNTS_PROVIDER_ID = "ProviderId";
+    public static final String COL_ACCOUNTS_USER_ID = "UserId";
+    public static final String COL_ACCOUNTS_SCREEN_NAME = "ScreenName";
+    public static final String COL_ACCOUNTS_DISPLAY_NAME = "DisplayName";
+    public static final String COL_ACCOUNTS_PROFILE_IMAGE_URL = "ProfileImageUrl";
 
     //Providersテーブル
     public static final String TABLE_PROVIDERS = "Providers";
@@ -161,7 +165,11 @@ public class CentralDatabase {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(
                     "CREATE TABLE " + TABLE_ACCOUNTS + " (" +
-                    COL_ACCOUNTS_ID + " INTEGER PRIMARY KEY, " +
+                    COL_ACCOUNTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_ACCOUNTS_USER_ID + " INTEGER, " +
+                    COL_ACCOUNTS_SCREEN_NAME + " TEXT, " +
+                    COL_ACCOUNTS_DISPLAY_NAME + " TEXT, " +
+                    COL_ACCOUNTS_PROFILE_IMAGE_URL + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN + " TEXT, " +
                     COL_ACCOUNTS_ACCESS_TOKEN_SECRET + " TEXT, " +
                     COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
@@ -419,6 +427,57 @@ public class CentralDatabase {
                 );
                 ++oldVersion;
             }
+            if (oldVersion == 16) {
+                db.execSQL("ALTER TABLE " + TABLE_ACCOUNTS + " RENAME TO tmp_Accounts");
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_ACCOUNTS + " (" +
+                                COL_ACCOUNTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_ACCOUNTS_USER_ID + " INTEGER, " +
+                                COL_ACCOUNTS_SCREEN_NAME + " TEXT, " +
+                                COL_ACCOUNTS_DISPLAY_NAME + " TEXT, " +
+                                COL_ACCOUNTS_PROFILE_IMAGE_URL + " TEXT, " +
+                                COL_ACCOUNTS_ACCESS_TOKEN + " TEXT, " +
+                                COL_ACCOUNTS_ACCESS_TOKEN_SECRET + " TEXT, " +
+                                COL_ACCOUNTS_IS_PRIMARY + " INTEGER, " +
+                                COL_ACCOUNTS_IS_ACTIVE + " INTEGER, " +
+                                COL_ACCOUNTS_IS_WRITER + " INTEGER, " +
+                                COL_ACCOUNTS_FALLBACK_TO + " INTEGER, " +
+                                COL_ACCOUNTS_COLOR + " INTEGER, " +
+                                COL_ACCOUNTS_PROVIDER_ID + " INTEGER)"
+                );
+                db.execSQL("INSERT INTO " + TABLE_ACCOUNTS + " (" +
+                        COL_ACCOUNTS_USER_ID + "," +
+                        COL_ACCOUNTS_SCREEN_NAME + "," +
+                        COL_ACCOUNTS_DISPLAY_NAME + "," +
+                        COL_ACCOUNTS_PROFILE_IMAGE_URL + "," +
+                        COL_ACCOUNTS_ACCESS_TOKEN + "," +
+                        COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
+                        COL_ACCOUNTS_IS_PRIMARY + "," +
+                        COL_ACCOUNTS_IS_ACTIVE + "," +
+                        COL_ACCOUNTS_IS_WRITER + "," +
+                        COL_ACCOUNTS_FALLBACK_TO + "," +
+                        COL_ACCOUNTS_COLOR + "," +
+                        COL_ACCOUNTS_PROVIDER_ID +
+                        ") SELECT " +
+                        TABLE_USER + "." + COL_USER_ID + "," +
+                        TABLE_USER + "." + COL_USER_SCREEN_NAME + "," +
+                        TABLE_USER + "." + COL_USER_NAME + "," +
+                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_IS_PRIMARY + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_IS_ACTIVE + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_IS_WRITER + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_FALLBACK_TO + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_COLOR + "," +
+                        " tmp_Accounts." + COL_ACCOUNTS_PROVIDER_ID +
+                        " FROM tmp_Accounts " +
+                        " INNER JOIN " + TABLE_USER +
+                        " ON " +
+                        " tmp_Accounts." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID);
+                db.execSQL("DROP TABLE tmp_Accounts");
+                ++oldVersion;
+            }
         }
     }
 
@@ -510,10 +569,13 @@ public class CentralDatabase {
     public Cursor getAccounts() {
         return db.query(
                 TABLE_ACCOUNTS
-                        + " INNER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID
                         + " LEFT JOIN " + TABLE_PROVIDERS + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
                 new String[]{
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_USER_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_SCREEN_NAME,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_DISPLAY_NAME,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROFILE_IMAGE_URL,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
@@ -521,9 +583,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
-                        TABLE_USER + "." + COL_USER_SCREEN_NAME,
-                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT,
-                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE,
@@ -542,6 +601,56 @@ public class CentralDatabase {
             contentValues.put(COL_ACCOUNTS_IS_PRIMARY, 1);
         }
         db.replaceOrThrow(TABLE_ACCOUNTS, null, contentValues);
+    }
+
+    public void updateAccountProfile(long apiType, long userId, String screenName, String name, String profileImageUrl) {
+        beginTransaction();
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put(COL_ACCOUNTS_USER_ID, userId);
+            cv.put(COL_ACCOUNTS_SCREEN_NAME, screenName);
+            cv.put(COL_ACCOUNTS_DISPLAY_NAME, name);
+            cv.put(COL_ACCOUNTS_PROFILE_IMAGE_URL, profileImageUrl);
+
+            if (apiType == Provider.API_TWITTER) {
+                db.update(TABLE_ACCOUNTS, cv, COL_ACCOUNTS_PROVIDER_ID + " IS NULL AND " + COL_ACCOUNTS_USER_ID + "=" + userId, null);
+            } else {
+                List<String> providerIds = new ArrayList<>();
+                Cursor c = db.query(true, TABLE_PROVIDERS, new String[]{COL_PROVIDERS_ID},
+                        COL_PROVIDERS_API_TYPE + "=?", new String[]{String.valueOf(apiType)},
+                        null, null, null, null);
+                try {
+                    if (c.moveToFirst()) {
+                        do {
+                            long id = c.getLong(c.getColumnIndex(COL_PROVIDERS_ID));
+                            providerIds.add(String.valueOf(id));
+                        } while (c.moveToNext());
+                    }
+                } finally {
+                    c.close();
+                }
+                if (!providerIds.isEmpty()) {
+                    StringBuilder where = new StringBuilder();
+                    where.append(COL_ACCOUNTS_PROVIDER_ID);
+                    where.append(" IN (");
+                    for (String providerId : providerIds) {
+                        if (where.length() > 0) {
+                            where.append(",");
+                        }
+                        where.append(providerId);
+                    }
+                    where.append(")");
+                    where.append(" AND ");
+                    where.append(COL_ACCOUNTS_USER_ID);
+                    where.append("=");
+                    where.append(userId);
+                    db.update(TABLE_ACCOUNTS, cv, where.toString(), null);
+                }
+            }
+            setTransactionSuccessful();
+        } finally {
+            endTransaction();
+        }
     }
     //</editor-fold>
 
@@ -572,11 +681,14 @@ public class CentralDatabase {
         Cursor cursor = db.query(
                 TABLE_DRAFTS +
                         " INNER JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_BOOKMARKS + "." + COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                        " INNER JOIN " + TABLE_USER + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "=" + TABLE_USER + "." + COL_USER_ID +
                         " LEFT JOIN " + TABLE_PROVIDERS + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
                 new String[]{
                         TABLE_BOOKMARKS + ".*",
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_USER_ID,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_SCREEN_NAME,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_DISPLAY_NAME,
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROFILE_IMAGE_URL,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
@@ -584,9 +696,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
-                        TABLE_USER + "." + COL_USER_SCREEN_NAME,
-                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT,
-                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME,
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE,
@@ -622,6 +731,10 @@ public class CentralDatabase {
                     TABLE_TABS + "." + COL_TABS_ID + " AS _id_t, " +
                     TABLE_TABS + ".*, " +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_USER_ID + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_SCREEN_NAME + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_DISPLAY_NAME + "," +
+                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROFILE_IMAGE_URL + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
@@ -629,9 +742,6 @@ public class CentralDatabase {
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
-                    TABLE_USER + "." + COL_USER_SCREEN_NAME + "," +
-                    TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT + "," +
-                    TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL + "," +
                     TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST + "," +
                     TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME + "," +
                     TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE + "," +
@@ -640,8 +750,6 @@ public class CentralDatabase {
                 " FROM " + TABLE_TABS +
                     " LEFT JOIN " + TABLE_ACCOUNTS +
                     " ON " + TABLE_TABS + "." + COL_TABS_BIND_ACCOUNT_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                    " LEFT JOIN " + TABLE_USER +
-                    " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
                     " LEFT JOIN " + TABLE_PROVIDERS +
                     " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID +
                 " ORDER BY " + COL_TABS_TAB_ORDER, null
@@ -712,6 +820,10 @@ public class CentralDatabase {
                         TABLE_BOOKMARKS + "." + COL_BOOKMARKS_ID + " AS _id_b, " +
                         TABLE_BOOKMARKS + ".*, " +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_USER_ID + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_SCREEN_NAME + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_DISPLAY_NAME + "," +
+                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROFILE_IMAGE_URL + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
@@ -719,9 +831,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
-                        TABLE_USER + "." + COL_USER_SCREEN_NAME + "," +
-                        TABLE_USER + "." + COL_USER_NAME + " AS " + COL_USER_NAME_ALT + "," +
-                        TABLE_USER + "." + COL_USER_PROFILE_IMAGE_URL + "," +
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_HOST + "," +
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_NAME + "," +
                         TABLE_PROVIDERS + "." + COL_PROVIDERS_API_TYPE + "," +
@@ -730,8 +839,6 @@ public class CentralDatabase {
                     " FROM " + TABLE_BOOKMARKS +
                         " LEFT JOIN " + TABLE_ACCOUNTS +
                         " ON " + TABLE_BOOKMARKS + "." + COL_BOOKMARKS_RECEIVER_ID + " = " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
-                        " LEFT JOIN " + TABLE_USER +
-                        " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID +
                         " LEFT JOIN " + TABLE_PROVIDERS +
                         " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID +
                     " ORDER BY " + TABLE_BOOKMARKS + "." + COL_BOOKMARKS_SAVE_DATE + " DESC", null
@@ -1002,8 +1109,4 @@ public class CentralDatabase {
         return db.rawQuery(sql, selectionArgs);
     }
     //</editor-fold>
-
-    public static String joinColumnName(String table, String column) {
-        return table + "." + column;
-    }
 }

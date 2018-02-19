@@ -14,7 +14,7 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.DBUser;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
@@ -270,7 +270,8 @@ public class OAuthActivity extends ActionBarYukariBase {
                     CentralDatabase database = getTwitterService().getDatabase();
                     database.addAccount(userRecord);
                     User user = twitter.showUser(accessToken.getUserId());
-                    database.updateRecord(new DBUser(user));
+                    database.updateAccountProfile(Provider.API_TWITTER, accessToken.getUserId(), user.getScreenName(),
+                            user.getName(), user.getProfileImageURLHttps());
 
                     getTwitterService().reloadUsers();
                     return true;

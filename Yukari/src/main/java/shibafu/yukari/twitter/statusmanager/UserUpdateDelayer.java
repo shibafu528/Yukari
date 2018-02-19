@@ -3,6 +3,7 @@ package shibafu.yukari.twitter.statusmanager;
 import android.util.Log;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.database.Provider;
 import twitter4j.User;
 
 import java.lang.ref.WeakReference;
@@ -57,6 +58,9 @@ public class UserUpdateDelayer {
                     try {
                         for (User user : work) {
                             database.get().updateRecord(new DBUser(user));
+                            database.get().updateAccountProfile(Provider.API_TWITTER,
+                                    user.getId(), user.getScreenName(), user.getName(),
+                                    user.getProfileImageURLHttps());
                         }
                         database.get().setTransactionSuccessful();
                     } finally {

@@ -23,6 +23,7 @@ import java.util.List;
 public class AuthUserRecord implements Serializable, DBRecord {
     private static final long serialVersionUID = 1L;
 
+    public long InternalId = -1;
     public long NumericId;
     public String ScreenName;
     public String Name;
@@ -51,10 +52,11 @@ public class AuthUserRecord implements Serializable, DBRecord {
     }
 
     public AuthUserRecord(Cursor cursor) {
-        NumericId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ID));
-        ScreenName = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_SCREEN_NAME));
-        Name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_NAME_ALT));
-        ProfileImageUrl = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_USER_PROFILE_IMAGE_URL));
+        InternalId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ID));
+        NumericId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_USER_ID));
+        ScreenName = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_SCREEN_NAME));
+        Name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_DISPLAY_NAME));
+        ProfileImageUrl = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROFILE_IMAGE_URL));
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
         isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;
         isWriter = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_WRITER)) == 1;
@@ -114,7 +116,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
 
     @Override
     public int hashCode() {
-        return ScreenName.hashCode();
+        return (int)(InternalId ^ (InternalId >>> 32));
     }
 
     public ArrayList<AuthUserRecord> toSingleList() {
@@ -149,7 +151,13 @@ public class AuthUserRecord implements Serializable, DBRecord {
     @Override
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
-        values.put(CentralDatabase.COL_ACCOUNTS_ID, NumericId);
+        if (InternalId != -1) {
+            values.put(CentralDatabase.COL_ACCOUNTS_ID, InternalId);
+        }
+        values.put(CentralDatabase.COL_ACCOUNTS_USER_ID, NumericId);
+        values.put(CentralDatabase.COL_ACCOUNTS_SCREEN_NAME, ScreenName);
+        values.put(CentralDatabase.COL_ACCOUNTS_DISPLAY_NAME, Name);
+        values.put(CentralDatabase.COL_ACCOUNTS_PROFILE_IMAGE_URL, ProfileImageUrl);
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, AccessToken);
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, AccessTokenSecret);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
@@ -163,6 +171,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
     }
 
     public void update(AuthUserRecord aur) {
+        InternalId = aur.InternalId;
         NumericId = aur.NumericId;
         ScreenName = aur.ScreenName;
         Name = aur.Name;
@@ -202,7 +211,8 @@ public class AuthUserRecord implements Serializable, DBRecord {
     @Override
     public String toString() {
         return "AuthUserRecord{" +
-                "NumericId=" + NumericId +
+                "InternalId=" + InternalId +
+                ", NumericId=" + NumericId +
                 ", ScreenName='" + ScreenName + '\'' +
                 ", Name='" + Name + '\'' +
                 ", ProfileImageUrl='" + ProfileImageUrl + '\'' +
