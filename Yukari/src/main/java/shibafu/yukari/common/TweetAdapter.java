@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
 import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.entity.Status;
@@ -19,6 +20,7 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.view.DonStatusView;
+import shibafu.yukari.view.ExceptionStatusView;
 import shibafu.yukari.view.HistoryView;
 import shibafu.yukari.view.MessageView;
 import shibafu.yukari.view.StatusView;
@@ -46,7 +48,8 @@ public class TweetAdapter extends BaseAdapter {
     private static final int VT_MESSAGE = 2;
     private static final int VT_HISTORY = 3;
     private static final int VT_DON_STATUS = 4;
-    private static final int VT_COUNT = 5;
+    private static final int VT_EXCEPTION = 5;
+    private static final int VT_COUNT = 6;
 
     public TweetAdapter(Context context,
                         List<AuthUserRecord> userRecords,
@@ -110,6 +113,8 @@ public class TweetAdapter extends BaseAdapter {
             return VT_TWEET;
         } else if (item instanceof DonStatus) {
             return VT_DON_STATUS;
+        } else if (item instanceof ExceptionStatus) {
+            return VT_EXCEPTION;
         }
         throw new UnsupportedOperationException("Unsupported Timeline Object!! : " + item.getClass().getName());
     }
@@ -141,6 +146,9 @@ public class TweetAdapter extends BaseAdapter {
                             break;
                         case VT_DON_STATUS:
                             convertView = statusView = new DonStatusView(context, singleLine);
+                            break;
+                        case VT_EXCEPTION:
+                            convertView = statusView = new ExceptionStatusView(context, singleLine);
                             break;
                     }
                 } else {
