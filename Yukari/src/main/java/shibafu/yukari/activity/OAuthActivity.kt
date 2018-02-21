@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
+import android.support.design.widget.TextInputLayout
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.Fragment
 import android.support.v4.app.ListFragment
@@ -19,8 +20,15 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
+import com.sys1yagi.mastodon4j.api.Scope
+import com.sys1yagi.mastodon4j.api.entity.Account
+import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
+import com.sys1yagi.mastodon4j.api.method.Accounts
+import com.sys1yagi.mastodon4j.api.method.Apps
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
+import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
@@ -28,6 +36,7 @@ import twitter4j.TwitterException
 import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
 import java.util.concurrent.CountDownLatch
+import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken as MastodonAccessToken
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -56,12 +65,21 @@ class OAuthActivity : ActionBarYukariBase() {
         super.onNewIntent(intent)
 
         val currentFragment = supportFragmentManager.findFragmentById(R.id.frame)
-        if (currentFragment is TwitterOAuthFragment) {
-            //コールバック以外のintentが流れ込んで来たらエラー
-            if (intent == null || intent.data == null || !intent.data.toString().startsWith(CALLBACK_URL))
-                return
+        when (currentFragment) {
+            is TwitterOAuthFragment -> {
+                //コールバック以外のintentが流れ込んで来たらエラー
+                if (intent == null || intent.data == null || !intent.data.toString().startsWith(TWITTER_CALLBACK_URL))
+                    return
 
-            currentFragment.verifier = intent.data.getQueryParameter("oauth_verifier")
+                currentFragment.verifier = intent.data.getQueryParameter("oauth_verifier")
+            }
+            is MastodonOAuthFragment -> {
+                //コールバック以外のintentが流れ込んで来たらエラー
+                if (intent == null || intent.data == null || !intent.data.toString().startsWith(MASTODON_CALLBACK_URL))
+                    return
+
+                currentFragment.authorizeCode = intent.data.getQueryParameter("code")
+            }
         }
     }
 
@@ -128,14 +146,14 @@ class OAuthActivity : ActionBarYukariBase() {
             override fun onPostExecute(aBoolean: Boolean) {
                 dialog?.dismiss()
                 if (aBoolean) {
-                    Toast.makeText(this@OAuthActivity, "認証成功", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@OAuthActivity, "認証成功", Toast.LENGTH_SHORT).show()
                     setResult(Activity.RESULT_OK)
                     if (intent.getBooleanExtra(EXTRA_REBOOT, false)) {
                         startActivity(Intent(this@OAuthActivity, MainActivity::class.java))
                     }
                     finish()
                 } else {
-                    Toast.makeText(this@OAuthActivity, "認証に失敗しました", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@OAuthActivity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
                     setResult(Activity.RESULT_CANCELED)
                     finish()
                 }
@@ -233,7 +251,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     override fun doInBackground(vararg params: Void): String? {
                         try {
                             val twitter = TwitterUtil.getTwitterFactory(activity).instance
-                            val token = twitter.getOAuthRequestToken(CALLBACK_URL)
+                            val token = twitter.getOAuthRequestToken(TWITTER_CALLBACK_URL)
                             requestToken = token
                             return token.authorizationURL
                         } catch (e: TwitterException) {
@@ -248,7 +266,7 @@ class OAuthActivity : ActionBarYukariBase() {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(s))
                             startActivity(intent)
                         } else {
-                            Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_LONG).show()
+                            Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
                             activity.supportFragmentManager.beginTransaction()
                                     .replace(R.id.frame, ProviderChooserFragment())
                                     .commit()
@@ -271,7 +289,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
             if (requestToken != null) {
                 if (verifier == null) {
-                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
                     activity.supportFragmentManager.beginTransaction()
                             .replace(R.id.frame, ProviderChooserFragment())
                             .commit()
@@ -303,7 +321,7 @@ class OAuthActivity : ActionBarYukariBase() {
                             if (accessToken != null) {
                                 activity.saveAccessToken(accessToken)
                             } else {
-                                Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_LONG).show()
+                                Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
                                 activity.supportFragmentManager.beginTransaction()
                                         .replace(R.id.frame, ProviderChooserFragment())
                                         .commit()
@@ -360,7 +378,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     activity.saveAccessToken(accessToken)
                     waitingActivityResult = false
                 } catch (e: IllegalArgumentException) {
-                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
                     activity.supportFragmentManager.beginTransaction()
                             .replace(R.id.frame, ProviderChooserFragment())
                             .commit()
@@ -372,7 +390,7 @@ class OAuthActivity : ActionBarYukariBase() {
             super.onResume()
 
             if (waitingActivityResult) {
-                Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
                 activity.supportFragmentManager.beginTransaction()
                         .replace(R.id.frame, ProviderChooserFragment())
                         .commit()
@@ -388,8 +406,215 @@ class OAuthActivity : ActionBarYukariBase() {
     }
 
     class MastodonOAuthFragment : Fragment() {
+        var currentProvider: Provider? = null
+        var authorizeCode: String? = null
+
+        private lateinit var tilInstanceHostName: TextInputLayout
+
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater?.inflate(R.layout.fragment_oauth_mastodon, container, false)
+            val v = inflater!!.inflate(R.layout.fragment_oauth_mastodon, container, false)
+            tilInstanceHostName = v.findViewById(R.id.tilInstanceHostName) as TextInputLayout
+            v.findViewById(R.id.btnLogin).setOnClickListener listener@ {
+                val instanceHostName = tilInstanceHostName.editText?.text.toString()
+                if (instanceHostName.isEmpty()) {
+                    tilInstanceHostName.error = "入力してください。"
+                    return@listener
+                }
+                if (instanceHostName.contains("@")) {
+                    tilInstanceHostName.error = "IDなどを含めていませんか？消してください。\n× @username@***.jp , username@***.jp\n○ ***.jp"
+                    return@listener
+                }
+                tilInstanceHostName.error = ""
+
+                // 登録済Providerか？
+                val activity = activity as OAuthActivity
+                val provider = activity.twitterService.database.getRecords(Provider::class.java)
+                        .find { it.apiType == Provider.API_MASTODON && it.host == instanceHostName }
+                if (provider == null) {
+                    // 未登録Provider -> アプリ登録から
+                    startRegisterNewProvider(instanceHostName)
+                } else {
+                    // 登録済Provider -> 認証から
+                    startAuthorize(provider)
+                }
+            }
+
+            if (savedInstanceState != null) {
+                currentProvider = savedInstanceState.getSerializable("currentProvider") as Provider?
+            }
+
+            return v
+        }
+
+        override fun onSaveInstanceState(outState: Bundle?) {
+            super.onSaveInstanceState(outState)
+            outState?.putSerializable("currentProvider", currentProvider)
+        }
+
+        override fun onResume() {
+            super.onResume()
+
+            val currentProvider = currentProvider
+            if (currentProvider != null) {
+                val authorizeCode = authorizeCode
+                if (authorizeCode == null) {
+                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
+                    activity.supportFragmentManager.beginTransaction()
+                            .replace(R.id.frame, ProviderChooserFragment())
+                            .commit()
+                } else {
+                    finishAuthorize(currentProvider, authorizeCode)
+                }
+            }
+        }
+
+        private fun startRegisterNewProvider(instanceHostName: String) {
+            val activity = activity as OAuthActivity
+            val client = activity.twitterService.getMastodonClient(instanceHostName, null)
+            object : ParallelAsyncTask<Void?, Void?, AppRegistration?>() {
+                var dialog: LoadDialogFragment? = null
+
+                override fun doInBackground(vararg params: Void?): AppRegistration? {
+                    val apps = Apps(client)
+                    try {
+                        return apps.createApp(getString(R.string.app_name),
+                                MASTODON_CALLBACK_URL,
+                                Scope(Scope.Name.ALL),
+                                getString(R.string.mastodon_website_url)).execute()
+                    } catch (e: Mastodon4jRequestException) {
+                        e.printStackTrace()
+                    }
+                    return null
+                }
+
+                override fun onPreExecute() {
+                    super.onPreExecute()
+                    dialog = LoadDialogFragment.newInstance()
+                    dialog?.show(fragmentManager, "")
+                }
+
+                override fun onPostExecute(result: AppRegistration?) {
+                    super.onPostExecute(result)
+                    dialog?.dismiss()
+
+                    if (result != null) {
+                        val provider = Provider(instanceHostName, instanceHostName, Provider.API_MASTODON, result.clientId, result.clientSecret)
+                        activity.twitterService.database.updateRecord(provider)
+                        startAuthorize(provider)
+                    } else {
+                        Toast.makeText(activity, "アプリの登録中にエラーが発生しました\nインスタンス名が正確であること、サーバがダウンしていないことを確認してください", Toast.LENGTH_LONG).show()
+                        activity.supportFragmentManager.beginTransaction()
+                                .replace(R.id.frame, ProviderChooserFragment())
+                                .commit()
+                    }
+                }
+            }.executeParallel()
+        }
+
+        private fun startAuthorize(provider: Provider) {
+            val activity = activity as OAuthActivity
+            val client = activity.twitterService.getMastodonClient(provider.host, null)
+            currentProvider = provider
+            object : ParallelAsyncTask<Void?, Void?, String?>() {
+                var dialog: LoadDialogFragment? = null
+
+                override fun doInBackground(vararg params: Void?): String? {
+                    val apps = Apps(client)
+                    try {
+                        return apps.getOAuthUrl(provider.consumerKey, Scope(Scope.Name.ALL), MASTODON_CALLBACK_URL)
+                    } catch (e: Mastodon4jRequestException) {
+                        e.printStackTrace()
+                    }
+                    return null
+                }
+
+                override fun onPreExecute() {
+                    super.onPreExecute()
+                    dialog = LoadDialogFragment.newInstance()
+                    dialog?.show(fragmentManager, "")
+                }
+
+                override fun onPostExecute(result: String?) {
+                    super.onPostExecute(result)
+                    dialog?.dismiss()
+
+                    if (result != null) {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(result))
+                        startActivity(intent)
+                    } else {
+                        Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
+                        activity.supportFragmentManager.beginTransaction()
+                                .replace(R.id.frame, ProviderChooserFragment())
+                                .commit()
+                    }
+                }
+            }.executeParallel()
+        }
+
+        private fun finishAuthorize(provider: Provider, authorizeCode: String) {
+            val activity = activity as OAuthActivity
+            val client = activity.twitterService.getMastodonClient(provider.host, null)
+
+            object : ParallelAsyncTask<Void?, Void?, Pair<MastodonAccessToken, Account>?>() {
+                var dialog: LoadDialogFragment? = null
+
+                override fun doInBackground(vararg params: Void?): Pair<MastodonAccessToken, Account>? {
+                    val apps = Apps(client)
+                    try {
+                        val accessToken = apps.getAccessToken(provider.consumerKey,
+                                provider.consumerSecret,
+                                MASTODON_CALLBACK_URL,
+                                authorizeCode).execute()
+
+                        val newClient = activity.twitterService.getMastodonClient(provider.host, accessToken.accessToken)
+                        val credentials = Accounts(newClient).getVerifyCredentials().execute()
+
+                        return accessToken to credentials
+                    } catch (e: Mastodon4jRequestException) {
+                        e.printStackTrace()
+                    }
+                    return null
+                }
+
+                override fun onPreExecute() {
+                    super.onPreExecute()
+                    dialog = LoadDialogFragment.newInstance()
+                    dialog?.show(fragmentManager, "")
+                }
+
+                override fun onPostExecute(pair: Pair<MastodonAccessToken, Account>?) {
+                    dialog?.dismiss()
+
+                    if (pair != null) {
+                        val (accessToken, account) = pair
+                        val service = activity.twitterService
+
+                        // ユーザ情報を保存
+                        val userRecord = AuthUserRecord(accessToken, account, provider)
+                        val existsPrimary = service.users.any {
+                            it.isPrimary && it.Provider != userRecord.Provider || it.NumericId != userRecord.NumericId
+                        }
+                        userRecord.isActive = true
+                        userRecord.isPrimary = !existsPrimary
+                        userRecord.Name = account.displayName
+                        userRecord.ProfileImageUrl = account.avatar
+                        service.database.addAccount(userRecord)
+                        service.reloadUsers()
+
+                        Toast.makeText(activity, "認証成功", Toast.LENGTH_SHORT).show()
+                        activity.setResult(Activity.RESULT_OK)
+                        if (activity.intent.getBooleanExtra(EXTRA_REBOOT, false)) {
+                            startActivity(Intent(activity, MainActivity::class.java))
+                        }
+                        activity.finish()
+                    } else {
+                        Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
+                        activity.supportFragmentManager.beginTransaction()
+                                .replace(R.id.frame, ProviderChooserFragment())
+                                .commit()
+                    }
+                }
+            }.executeParallel()
         }
     }
 
@@ -417,6 +642,7 @@ class OAuthActivity : ActionBarYukariBase() {
         private val REQUEST_TWITTER = 1
         private val TWITTER_AUTH_ACTIVITY = ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity")
 
-        private val CALLBACK_URL = "yukari://twitter"
+        private val TWITTER_CALLBACK_URL = "yukari://twitter"
+        private val MASTODON_CALLBACK_URL = "yukari://mastodon"
     }
 }

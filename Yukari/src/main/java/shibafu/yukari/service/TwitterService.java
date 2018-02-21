@@ -414,7 +414,9 @@ public class TwitterService extends Service{
         ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
             if (!dbList.contains(aur)) {
-                statusManager.stopUserStream(aur);
+                if (aur.Provider.getApiType() == Provider.API_TWITTER) {
+                    statusManager.stopUserStream(aur);
+                }
                 removeList.add(aur);
                 Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
             }
@@ -426,7 +428,7 @@ public class TwitterService extends Service{
             if (!users.contains(aur)) {
                 addedList.add(aur);
                 users.add(aur);
-                if (aur.isActive) {
+                if (aur.isActive && aur.Provider.getApiType() == Provider.API_TWITTER) {
                     statusManager.startUserStream(aur);
                 }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
@@ -651,7 +653,7 @@ public class TwitterService extends Service{
      */
     @Nullable
     public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
-        if (twitterFactory == null) {
+        if (twitterFactory == null || (userRecord != null && userRecord.Provider.getApiType() != Provider.API_TWITTER)) {
             return null;
         }
 
@@ -693,6 +695,24 @@ public class TwitterService extends Service{
             throw new MissingTwitterInstanceException("Twitter インスタンスの取得エラー");
         }
         return twitter;
+    }
+
+    /**
+     * Mastodon APIを利用するためのクライアントインスタンスを取得します。
+     * @param instanceName インスタンス名。一般的にはドメインを指します。
+     * @param accessToken アクセストークン。null を指定した場合は設定しません。
+     * @return {@link MastodonClient} のインスタンス。
+     */
+    @NonNull
+    public MastodonClient getMastodonClient(@NonNull String instanceName, @Nullable String accessToken) {
+        MastodonClient.Builder builder = new MastodonClient.Builder(
+                instanceName,
+                new OkHttpClient.Builder().addInterceptor(getUserAgentInterceptor()),
+                new Gson());
+        if (!TextUtils.isEmpty(accessToken)) {
+            builder = builder.accessToken(accessToken);
+        }
+        return builder.build();
     }
 
     public StatusLoader getStatusLoader() {

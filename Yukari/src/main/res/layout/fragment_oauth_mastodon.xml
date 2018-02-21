@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        style="@android:style/TextAppearance.Medium"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"
+        android:text="Mastodonにログイン"/>
 
     <LinearLayout
         android:id="@+id/llInstanceHostName"
@@ -14,16 +24,17 @@
         android:baselineAligned="true">
 
         <TextView
-            android:text="https://"
             android:gravity="center_vertical"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:text="https://"/>
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/tilInstanceHostName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="8dp">
+            android:layout_marginLeft="8dp"
+            app:errorEnabled="true">
 
             <EditText
                 android:id="@+id/etInstanceHostName"

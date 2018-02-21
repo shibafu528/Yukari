@@ -6,13 +6,14 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
+import com.sys1yagi.mastodon4j.api.entity.Account;
+import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken;
 import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
 import shibafu.yukari.database.Provider;
 import twitter4j.Twitter;
-import twitter4j.auth.AccessToken;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,11 +37,11 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public int AccountColor;
     public Provider Provider;
 
-    private AccessToken twitterAccessToken;
+    private twitter4j.auth.AccessToken twitterAccessToken;
 
     private static LongSparseArray<HashMap<String, Object>> sessionTemporary = new LongSparseArray<>();
 
-    public AuthUserRecord(AccessToken token) {
+    public AuthUserRecord(twitter4j.auth.AccessToken token) {
         twitterAccessToken = token;
         NumericId = token.getUserId();
         ScreenName = token.getScreenName();
@@ -49,6 +50,16 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessToken = token.getToken();
         AccessTokenSecret = token.getTokenSecret();
         Provider = shibafu.yukari.database.Provider.TWITTER;
+    }
+
+    public AuthUserRecord(AccessToken token, Account account, Provider provider) {
+        NumericId = account.getId();
+        ScreenName = account.getUserName() + "@" + provider.getHost();
+        isActive = true;
+        AccountColor = Color.TRANSPARENT;
+        AccessToken = token.getAccessToken();
+        AccessTokenSecret = null;
+        Provider = provider;
     }
 
     public AuthUserRecord(Cursor cursor) {
@@ -70,9 +81,9 @@ public class AuthUserRecord implements Serializable, DBRecord {
         }
     }
 
-    public AccessToken getTwitterAccessToken() {
+    public twitter4j.auth.AccessToken getTwitterAccessToken() {
         if (twitterAccessToken == null) {
-            twitterAccessToken = new AccessToken(AccessToken, AccessTokenSecret, NumericId);
+            twitterAccessToken = new twitter4j.auth.AccessToken(AccessToken, AccessTokenSecret, NumericId);
         }
         return twitterAccessToken;
     }

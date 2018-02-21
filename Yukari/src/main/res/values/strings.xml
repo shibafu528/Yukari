@@ -6,6 +6,8 @@
     <string name="twitter_consumer_key">rH3YrUr7YlLBPrx2Mk5mng</string>
     <string name="twitter_consumer_secret">6vG5nUHEO4EyMlGFXZ7G2GJx1yUsRxFTHQTTMvRI</string>
 
+    <string name="mastodon_website_url">http://yukari.shibafu528.info/</string>
+
     <string name="activity_animation_duration">300</string>
 
     <string name="title_activity_oauth">アカウントを追加</string>
