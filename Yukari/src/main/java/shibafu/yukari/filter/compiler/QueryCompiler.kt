@@ -1,5 +1,6 @@
 package shibafu.yukari.filter.compiler
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.sexp.AddOperatorNode
 import shibafu.yukari.filter.sexp.AndNode
@@ -20,12 +21,7 @@ import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
-import shibafu.yukari.filter.source.Home
-import shibafu.yukari.filter.source.Mention
-import shibafu.yukari.filter.source.User
-import shibafu.yukari.mastodon.source.Public
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.filter.source.List as ListSource
 
 /**
  * クエリ文字列を解釈し、ソースリストと式オブジェクトに変換する機能を提供します。
@@ -38,6 +34,26 @@ class QueryCompiler {
     companion object {
         const val DEFAULT_QUERY: String = "from all"
         private val LOG_TAG = QueryCompiler::class.java.simpleName
+
+        private val SOURCES: Map<String, Map<Int, Class<out FilterSource>>> = mapOf(
+                "home" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Home::class.java,
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Home::class.java
+                ),
+                "mention" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Mention::class.java,
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Mention::class.java
+                ),
+                "user" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.User::class.java
+                ),
+                "list" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
+                ),
+                "don_public" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Public::class.java
+                )
+        )
 
         /**
          * クエリ文字列を解釈し、ソースリストと式オブジェクトにコンパイルします。
@@ -52,7 +68,7 @@ class QueryCompiler {
             val compileTime = System.currentTimeMillis()
 
             //query: null or empty -> 全抽出のクエリということにする
-            val query = if (query.isNullOrEmpty()) DEFAULT_QUERY else query
+            val query = if (query.isEmpty()) DEFAULT_QUERY else query
 
             //from句とwhere句の開始位置と存在チェック
             val beginFrom = query.indexOf("from")
@@ -98,8 +114,13 @@ class QueryCompiler {
                     args = listOf()
                 }
 
+                /** [SOURCES]から対応する抽出ソースのクラスを検索 */
+                private fun findSourceClass(typeValue: String, apiType: Int): Class<out FilterSource>? {
+                    return SOURCES[typeValue]?.get(apiType)
+                }
+
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
-                private fun <T : FilterSource> createFiltersWithAuthArguments(filterClz: Class<T>, requiredArgs: Boolean = false): List<T> {
+                private fun createFiltersWithAuthArguments(typeValue: String, requiredArgs: Boolean = false): List<FilterSource> {
                     val screenNames = if (args.isEmpty()) {
                         if (requiredArgs) {
                             throw FilterCompilerException("アカウントが指定されていません。", type)
@@ -109,10 +130,12 @@ class QueryCompiler {
                         args
                     }
 
-                    val constructor = filterClz.getConstructor(AuthUserRecord::class.java)
                     return screenNames.map { p ->
-                        constructor.newInstance(userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
+                        val userRecord = (userRecords.firstOrNull { u -> p.value.equals(u.ScreenName) }
                                 ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p))
+                        val filterClz = findSourceClass(typeValue, userRecord.Provider.apiType)
+                                ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
+                        filterClz.getConstructor(AuthUserRecord::class.java).newInstance(userRecord)
                     }
                 }
 
@@ -121,7 +144,7 @@ class QueryCompiler {
                  * @param argumentCount 最低限必要な[args]の分割数。/で区切った時の分割数と比較します。
                  * @param requirePattern 引数エラー発生時にユーザに対して表示する引数の例を指定します。
                  */
-                private fun <T : FilterSource> createFiltersWithListArguments(filterClz: Class<T>, argumentCount: Int, requirePattern: String): List<T> {
+                private fun createFiltersWithListArguments(typeValue: String, argumentCount: Int, requirePattern: String): List<FilterSource> {
                     if (args.isEmpty()) throw FilterCompilerException("引数が指定されていません。パターン：$requirePattern", type)
                     return args.map { p ->
                         val subArgs = p.value.split("/")
@@ -138,6 +161,8 @@ class QueryCompiler {
                             Pair(userRecords.firstOrNull { it.ScreenName.equals(subArgs.first()) }, subArgs.drop(1).joinToString("/"))
                         }
 
+                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                                ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
                         val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
                         constructor.newInstance(auth, secondArgument)
                     }
@@ -147,11 +172,11 @@ class QueryCompiler {
                 fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
                         "all", "local", "*", "stream" -> listOf(All())
-                        "home" -> createFiltersWithAuthArguments(Home::class.java)
-                        "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments(Mention::class.java)
-                        "user" -> createFiltersWithListArguments(User::class.java, 1, "(受信ユーザ/)対象ユーザ")
-                        "list" -> createFiltersWithListArguments(ListSource::class.java, 2, "(受信ユーザ/)ユーザ/リスト名")
-                        "don_public" -> createFiltersWithListArguments(Public::class.java, 1, "インスタンス名")
+                        "home" -> createFiltersWithAuthArguments("home")
+                        "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments("mention")
+                        "user" -> createFiltersWithListArguments("user", 1, "(受信ユーザ/)対象ユーザ")
+                        "list" -> createFiltersWithListArguments("list", 2, "(受信ユーザ/)ユーザ/リスト名")
+                        "don_public" -> createFiltersWithListArguments("don_public", 1, "インスタンス名")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
@@ -266,7 +291,7 @@ class QueryCompiler {
 
             val tokenizer = Tokenizer(whereQuery)
             if (tokenizer.hasNext()) tokenizer.next()
-            return if (whereQuery.isNullOrEmpty()) ValueNode(true) else recursiveParse(tokenizer)
+            return if (whereQuery.isEmpty()) ValueNode(true) else recursiveParse(tokenizer)
         }
     }
 }
