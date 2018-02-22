@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -100,6 +101,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
     }
 
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+
+        if (context is MainActivity) {
+            statuses.addAll(context.getStatusesList(timelineId))
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -193,6 +202,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
         listAdapter = null
         statusAdapter = null
+        if (activity is MainActivity) {
+            (activity as MainActivity).getStatusesList(timelineId).addAll(statuses)
+        }
     }
 
     override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {

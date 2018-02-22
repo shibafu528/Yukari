@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -42,6 +43,7 @@ import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TriangleView;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
@@ -94,6 +96,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private int currentPageIndex = -1;
     private Fragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
+    private Map<String, List<Status>> pageStatuses = new ArrayMap<>();
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
     private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
     private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
@@ -792,6 +795,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     @Override
     public void onCloseQuickPost() {
         llQuickTweet.setVisibility(View.GONE);
+    }
+
+    @NonNull
+    public List<shibafu.yukari.entity.Status> getStatusesList(String id) {
+        if (!pageStatuses.containsKey(id)) {
+            pageStatuses.put(id, new ArrayList<>());
+        }
+        return pageStatuses.get(id);
     }
 
     public <T extends TwitterResponse> ArrayList<T> getElementsList(long id) {
