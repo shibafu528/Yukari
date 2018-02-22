@@ -211,6 +211,11 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         unreadNotifierView = v.findViewById(R.id.unreadNotifier);
         tvUnreadCount = (TextView) unreadNotifierView.findViewById(R.id.textView);
 
+        View swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame);
+        if (swipeActionStatusView != null) {
+            swipeActionStatusView.setVisibility(View.INVISIBLE);
+        }
+
         return v;
     }
 
