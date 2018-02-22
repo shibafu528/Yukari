@@ -105,10 +105,6 @@
             android:entries="@array/pref_lists_membership_finder_entries"
             android:entryValues="@array/pref_lists_membership_finder_values"/>
         <CheckBoxPreference
-            android:key="pref_use_strict_filter"
-            android:title="フィルタTLのシステムを全体で使う"
-            android:summary="フィルタタブ以外も、同じ意味のクエリを持つフィルタタブとして処理するようにします。\n同じ意味のソースが存在するタブのみ適用されます。"/>
-        <CheckBoxPreference
             android:key="pref_lock_scroll_after_reload"
             android:title="フィルタTL再読込後スクロール位置を保持"
             android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>

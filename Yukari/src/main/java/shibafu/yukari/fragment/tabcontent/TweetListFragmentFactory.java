@@ -13,8 +13,6 @@ public class TweetListFragmentFactory {
 
     public static Fragment newInstance(int tabType) {
         switch (tabType) {
-            case TabType.TABTYPE_DON_PUBLIC:
-                return new TimelineFragment();
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
                 return new SearchListFragment();
@@ -22,16 +20,16 @@ public class TweetListFragmentFactory {
                 return new MessageListFragment();
             case TabType.TABTYPE_BOOKMARK:
                 return new BookmarkListFragment();
-            case TabType.TABTYPE_HISTORY:
-                return new TimelineFragment();
             case TabType.TABTYPE_FILTER:
+            case TabType.TABTYPE_HISTORY:
+            case TabType.TABTYPE_DON_PUBLIC:
                 return new TimelineFragment();
             default:
                 return new DefaultTweetListFragment();
         }
     }
 
-    public static Fragment newInstance(TabInfo tabInfo) {
+    private static Fragment newInstance(TabInfo tabInfo) {
         Fragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
