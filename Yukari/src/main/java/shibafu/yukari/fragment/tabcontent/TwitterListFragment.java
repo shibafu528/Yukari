@@ -40,7 +40,6 @@ import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
@@ -783,7 +782,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     }
 
     private static boolean isFakeStatus(TwitterResponse element) {
-        return (element instanceof PreformedStatus) && FakeStatus.class.isAssignableFrom(((PreformedStatus) element).getBaseStatusClass());
+        return false;
     }
 
     private void dumpAroundTweets(int position) {

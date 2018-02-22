@@ -171,10 +171,6 @@ public class PreformedStatus implements Status{
     }
 
     public void merge(Status status, AuthUserRecord receivedUser) {
-        if (status instanceof FakeStatus) {
-            return;
-        }
-
         favoriteCount = status.getFavoriteCount();
         retweetCount = status.getRetweetCount();
         rateLimitStatus = status.getRateLimitStatus();

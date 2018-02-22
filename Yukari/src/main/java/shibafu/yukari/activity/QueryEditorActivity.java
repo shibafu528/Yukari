@@ -13,12 +13,12 @@ import butterknife.OnClick;
 import info.shibafu528.yukari.exvoice.MRuby;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.entity.MockStatus;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.FakeStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,7 +82,8 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                             }
 
                             FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
-                            compileStatus.setText("OK. => " + q.evaluate(new FakeStatus(0), new ArrayList<>(), new HashMap<>()));
+                            boolean result = q.evaluate(new MockStatus(0, userRecords.get(0)), new ArrayList<>(), new HashMap<>());
+                            compileStatus.setText("OK. => " + result);
                         } catch (FilterCompilerException | TokenizeException e) {
                             compileStatus.setText(e.toString());
                         }

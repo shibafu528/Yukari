@@ -9,7 +9,6 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,8 +32,6 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusimpl.FakeStatus;
-import shibafu.yukari.twitter.statusimpl.LoadMarkerStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -410,31 +407,13 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         }
         //挿入位置の探索と追加
         PreformedStatus storedStatus;
-        long searchingAnchorId = PREPARE_INSERT_DUPLICATED;
-        if (status.getBaseStatusClass() == LoadMarkerStatus.class) {
-            searchingAnchorId = ((LoadMarkerStatus) status.getBaseStatus()).getAnchorTweetId();
-        }
         for (int i = 0; i < elements.size(); ++i) {
             storedStatus = elements.get(i);
-            if (searchingAnchorId != PREPARE_INSERT_DUPLICATED && storedStatus.getBaseStatusClass() == LoadMarkerStatus.class) {
-                LoadMarkerStatus lhs = (LoadMarkerStatus) status.getBaseStatus();
-                LoadMarkerStatus rhs = (LoadMarkerStatus) storedStatus.getBaseStatus();
-                if (lhs.getAnchorTweetId() == rhs.getAnchorTweetId() && lhs.getUser().getId() == rhs.getUser().getId() && lhs.getTag().equals(rhs.getTag())) {
-                    Log.d("TweetListFragment", "prepareInsertStatus : Detected same load-marker. " + searchingAnchorId);
-                    return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
-                }
-            } else if (searchingAnchorId == storedStatus.getId()) {
-                Log.d("TweetListFragment", "prepareInsertStatus : Detected anchor status. " + searchingAnchorId);
-                return new PrepareInsertResult(PREPARE_INSERT_DUPLICATED, PREPARE_INSERT_DUPLICATED);
-            } else if (status.getId() == storedStatus.getId()) {
-                if (FakeStatus.class.isAssignableFrom(status.getBaseStatusClass())) {
-                    return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
-                } else {
-                    storedStatus.merge(status);
-                    //notifyDataSetChanged();
-                    //return -1;
-                    return new PrepareInsertResult(PREPARE_INSERT_MERGED, i);
-                }
+            if (status.getId() == storedStatus.getId()) {
+                storedStatus.merge(status);
+                //notifyDataSetChanged();
+                //return -1;
+                return new PrepareInsertResult(PREPARE_INSERT_MERGED, i);
             } else if (status.getId() > storedStatus.getId()) {
                 return new PrepareInsertResult(PREPARE_INSERT_ALLOWED, i);
             }
