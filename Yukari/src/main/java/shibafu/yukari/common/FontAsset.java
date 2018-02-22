@@ -65,7 +65,7 @@ public class FontAsset {
             dir.mkdirs();
         }
 
-        return new File(dir, FONT_NAME).exists();
+        return new File(dir, filename).exists();
     }
 
     public static File getFontFileExtPath(Context context, String fileName) {
