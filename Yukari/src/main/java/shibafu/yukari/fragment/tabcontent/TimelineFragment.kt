@@ -263,6 +263,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     override fun scrollToTop() {
         try {
             listView?.setSelection(0)
+            unreadNotifierBehavior.clearUnreadNotifier()
         } catch (e: IllegalStateException) {
             e.printStackTrace()
             val activity = activity
