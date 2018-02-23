@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.preference.PreferenceManager
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -52,6 +53,7 @@ abstract class StatusView : RelativeLayout {
     // 背景リソースID
     protected val bgDefaultResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetNormal)
     protected val bgMentionResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetMention)
+    protected val bgRetweetResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetRetweet)
     protected val bgOwnResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetOwn)
 
     // View
@@ -178,7 +180,7 @@ abstract class StatusView : RelativeLayout {
      */
     protected open fun updateIcon() {
         val status = status ?: return
-        val user = status.user
+        val user = status.originStatus.user
 
         val imageUrl = if (pref.getBoolean("pref_narrow", false))
                            user.profileImageUrl
@@ -232,6 +234,31 @@ abstract class StatusView : RelativeLayout {
             tvName.setTextColor(Color.BLACK)
             tvTimestamp.setTextColor(Color.BLACK)
             tvReceived.setTextColor(Color.BLACK)
+        }
+
+        // リツイート対応
+        if (mode != Mode.PREVIEW) {
+            if (status.isRepost) {
+                val timestamp = "RT by @" + status.user.screenName + "\n" +
+                        StringUtil.formatDate(status.originStatus.createdAt) + " via " + status.originStatus.source
+                tvTimestamp.text = timestamp
+                tvName.text = "@" + status.originStatus.user.screenName + " / " + status.originStatus.user.name
+                setBackgroundResource(bgRetweetResId)
+
+                if (status.originStatus.user.isProtected) {
+                    ivProtected.visibility = View.VISIBLE
+                } else {
+                    ivProtected.visibility = View.INVISIBLE
+                }
+
+                ivRetweeterIcon.visibility = View.VISIBLE
+                ImageLoaderTask.loadProfileIcon(context,
+                        ivRetweeterIcon,
+                        status.user.biggerProfileImageUrl)
+            } else {
+                ivRetweeterIcon.visibility = View.INVISIBLE
+                ivRetweeterIcon.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
+            }
         }
     }
 

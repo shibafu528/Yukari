@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.util.AttributeSet
 import android.view.View
@@ -19,8 +18,6 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
-import shibafu.yukari.util.AttrUtil
-import shibafu.yukari.util.StringUtil
 import java.util.*
 
 // TODO: PreformedStatusに頼るの限界では… 互換性維持用のEntityに下がってもらって、TwitterStatusを使ったほうがよさそう
@@ -30,9 +27,6 @@ import java.util.*
  * [PreformedStatus]を表示するためのビュー
  */
 class TweetView : StatusView {
-    // 背景リソースID
-    private val bgRetweetResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetRetweet)
-
     // LayoutParams
     private val lpThumb: LinearLayout.LayoutParams
 
@@ -90,31 +84,6 @@ class TweetView : StatusView {
 
         // 添付対応
         updateAttaches(status)
-
-        // リツイート対応
-        if (mode != Mode.PREVIEW) {
-            if (status.isRetweet) {
-                val timestamp = "RT by @" + status.user.screenName + "\n" +
-                        StringUtil.formatDate(status.retweetedStatus.createdAt) + " via " + status.retweetedStatus.source
-                tvTimestamp.text = timestamp
-                tvName.text = "@" + status.retweetedStatus.user.screenName + " / " + status.retweetedStatus.user.name
-                setBackgroundResource(bgRetweetResId)
-
-                if (status.retweetedStatus.user.isProtected) {
-                    ivProtected.visibility = View.VISIBLE
-                } else {
-                    ivProtected.visibility = View.INVISIBLE
-                }
-
-                ivRetweeterIcon.visibility = View.VISIBLE
-                ImageLoaderTask.loadProfileIcon(context,
-                        ivRetweeterIcon,
-                        status.user.biggerProfileImageURLHttps)
-            } else {
-                ivRetweeterIcon.visibility = View.INVISIBLE
-                ivRetweeterIcon.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
-            }
-        }
 
         // 引用対応
         when (mode) {

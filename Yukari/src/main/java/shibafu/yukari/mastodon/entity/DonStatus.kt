@@ -33,6 +33,11 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
     override val source: String
         get() = status.application?.name ?: "Web"
 
+    override val isRepost: Boolean
+        get() = status.reblog != null
+
+    override val originStatus: shibafu.yukari.entity.Status = if (isRepost) DonStatus(status.reblog!!, representUser) else this
+
     override val mentions: List<Mention> = status.mentions.map { DonMention(it) }
 
     override var favoritesCount: Int = status.favouritesCount

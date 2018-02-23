@@ -639,7 +639,7 @@ public class TwitterService extends Service{
                         new OkHttpClient.Builder().addInterceptor(getUserAgentInterceptor()),
                         new Gson());
                 if (!TextUtils.isEmpty(userRecord.AccessToken)) {
-                    builder = builder.accessToken(userRecord.AccessToken);
+                    builder = builder.accessToken(userRecord.AccessToken).useStreamingApi();
                 }
                 return builder.build();
             }
