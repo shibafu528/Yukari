@@ -78,9 +78,6 @@ class TweetView : StatusView {
             ivFavorited.visibility = View.GONE
         }
 
-        // 受信アカウントカラーの設定
-        ivAccountColor.setBackgroundColor(status.representUser.AccountColor)
-
         // ユーザーカラーラベルの設定
         val color = userExtras.firstOrNull { it.id == status.sourceUser.id }?.color ?: Color.TRANSPARENT
         ivUserColor.setBackgroundColor(color)

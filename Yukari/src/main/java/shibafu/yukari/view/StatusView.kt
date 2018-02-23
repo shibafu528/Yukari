@@ -189,7 +189,6 @@ abstract class StatusView : RelativeLayout {
             ImageLoaderTask.loadProfileIcon(context, ivIcon, imageUrl)
         }
 
-        // TODO: onTouchProfileImageIconListenerがTwitter用なので今は型判定してる
         val onTouchProfileImageIconListener = onTouchProfileImageIconListener
         if (onTouchProfileImageIconListener != null) {
             ivIcon.setOnTouchListener({ _, event -> onTouchProfileImageIconListener.onTouch(status, this, event) })
@@ -207,6 +206,9 @@ abstract class StatusView : RelativeLayout {
         } else {
             ivProtected.visibility = View.GONE
         }
+
+        // 受信アカウントカラーの設定
+        ivAccountColor.setBackgroundColor(status.representUser.AccountColor)
     }
 
     /**
