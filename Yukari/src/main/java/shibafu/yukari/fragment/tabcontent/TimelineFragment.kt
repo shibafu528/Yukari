@@ -380,15 +380,17 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         twitterService?.timelineHub?.addObserver(this)
 
         // 初期読み込み
-        val statusLoader = twitterService?.statusLoader ?: return
-        query.sources.forEach { source ->
-            val userRecord = source.sourceAccount ?: return@forEach
-            val restQuery = source.getRestQuery() ?: return@forEach
-            val params = RestQuery.Params(loadMarkerTag = source.hashCode().toString())
-            loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery, params)
-        }
-        if (loadingTaskKeys.isEmpty()) {
-            swipeRefreshLayout?.isRefreshing = false
+        if (statuses.isEmpty()) {
+            val statusLoader = twitterService?.statusLoader ?: return
+            query.sources.forEach { source ->
+                val userRecord = source.sourceAccount ?: return@forEach
+                val restQuery = source.getRestQuery() ?: return@forEach
+                val params = RestQuery.Params(loadMarkerTag = source.hashCode().toString())
+                loadingTaskKeys += statusLoader.requestRestQuery(timelineId, userRecord, restQuery, params)
+            }
+            if (loadingTaskKeys.isEmpty()) {
+                swipeRefreshLayout?.isRefreshing = false
+            }
         }
     }
 
