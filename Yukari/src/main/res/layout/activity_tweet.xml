@@ -53,6 +53,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/ivProfileHeader"
+        android:layout_toRightOf="@id/tvTweetCount"
         android:layout_marginTop="8dp"
         android:gravity="right"
         android:paddingLeft="4dp"
@@ -62,10 +63,11 @@
 
         <TextView
             android:id="@+id/tvTweetBy"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
+            android:gravity="right"
             android:text=">> SELECT ACCOUNT(S)"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="?attr/selectorTextColor" />

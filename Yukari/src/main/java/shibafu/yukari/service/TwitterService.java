@@ -28,6 +28,8 @@ import android.util.Log;
 import android.widget.Toast;
 import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
+import com.sys1yagi.mastodon4j.api.method.Statuses;
 import info.shibafu528.yukari.exvoice.MRuby;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -864,6 +866,15 @@ public class TwitterService extends Service{
             e.printStackTrace();
         }
         showToast("ツイート削除に失敗しました");
+    }
+
+    public void postToot(@NonNull AuthUserRecord user, @NonNull String text) throws Mastodon4jRequestException {
+        final MastodonClient client = (MastodonClient) getApiClient(user);
+        if (client == null) {
+            throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
+        }
+        final Statuses statuses = new Statuses(client);
+        statuses.postStatus(text, null, null, false, null).execute();
     }
     //</editor-fold>
 

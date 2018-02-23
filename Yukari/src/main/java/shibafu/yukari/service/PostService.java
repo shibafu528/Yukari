@@ -17,10 +17,12 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
 import android.util.Log;
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
@@ -155,57 +157,64 @@ public class PostService extends IntentService{
         for (int i = 0; i < writers.size(); ++i) {
             AuthUserRecord userRecord = writers.get(i);
             try {
-                if (draft.isDirectMessage()) {
-                    service.sendDirectMessage(draft.getMessageTarget(), userRecord, draft.getText());
-                } else {
-                    //事前処理Flagがある場合はそれらを実行する
-                    if (targetTweetId > -1) {
-                        if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
-                            service.createFavorite(userRecord, targetTweetId);
-                        }
-                        if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
-                            service.retweetStatus(userRecord, targetTweetId);
-                        }
-                    }
-                    //statusが引数に付加されている場合はin-reply-toとして設定する
-                    if (draft.getInReplyTo() > -1) {
-                        update.setInReplyToStatusId(draft.getInReplyTo());
-                    }
-                    //attachPictureがある場合は添付
-                    if (!draft.getAttachedPictures().isEmpty()) {
-                        List<Uri> attachedPictures = draft.getAttachedPictures();
-                        long[] mediaIds = new long[attachedPictures.size()];
-                        for (int j = 0; j < mediaIds.length; ++j) {
-                            Uri u = attachedPictures.get(j);
-                            InputStream is;
-                            int[] size = new int[2];
-                            try {
-                                Bitmap thumb = BitmapUtil.resizeBitmap(this, u, 128, 128, size);
-                                thumb.recycle();
-                            } catch (IOException | NullPointerException e) {
-                                throw new IOException(e);
+                switch (userRecord.Provider.getApiType()) {
+                    case Provider.API_TWITTER:
+                        if (draft.isDirectMessage()) {
+                            service.sendDirectMessage(draft.getMessageTarget(), userRecord, draft.getText());
+                        } else {
+                            //事前処理Flagがある場合はそれらを実行する
+                            if (targetTweetId > -1) {
+                                if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
+                                    service.createFavorite(userRecord, targetTweetId);
+                                }
+                                if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
+                                    service.retweetStatus(userRecord, targetTweetId);
+                                }
                             }
-                            if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
-                                Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
-                                Bitmap resized = BitmapUtil.resizeBitmap(
-                                        this,
-                                        u,
-                                        imageResizeLength,
-                                        imageResizeLength,
-                                        null);
-                                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                is = new ByteArrayInputStream(baos.toByteArray());
-                            } else {
-                                is = getContentResolver().openInputStream(u);
+                            //statusが引数に付加されている場合はin-reply-toとして設定する
+                            if (draft.getInReplyTo() > -1) {
+                                update.setInReplyToStatusId(draft.getInReplyTo());
                             }
+                            //attachPictureがある場合は添付
+                            if (!draft.getAttachedPictures().isEmpty()) {
+                                List<Uri> attachedPictures = draft.getAttachedPictures();
+                                long[] mediaIds = new long[attachedPictures.size()];
+                                for (int j = 0; j < mediaIds.length; ++j) {
+                                    Uri u = attachedPictures.get(j);
+                                    InputStream is;
+                                    int[] size = new int[2];
+                                    try {
+                                        Bitmap thumb = BitmapUtil.resizeBitmap(this, u, 128, 128, size);
+                                        thumb.recycle();
+                                    } catch (IOException | NullPointerException e) {
+                                        throw new IOException(e);
+                                    }
+                                    if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
+                                        Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
+                                        Bitmap resized = BitmapUtil.resizeBitmap(
+                                                this,
+                                                u,
+                                                imageResizeLength,
+                                                imageResizeLength,
+                                                null);
+                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                        resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                        Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                        is = new ByteArrayInputStream(baos.toByteArray());
+                                    } else {
+                                        is = getContentResolver().openInputStream(u);
+                                    }
 
-                            mediaIds[j] = service.uploadMedia(userRecord, is).getMediaId();
+                                    mediaIds[j] = service.uploadMedia(userRecord, is).getMediaId();
+                                }
+                                update.setMediaIds(mediaIds);
+                            }
+                            service.postTweet(userRecord, update);
                         }
-                        update.setMediaIds(mediaIds);
-                    }
-                    service.postTweet(userRecord, update);
+                        break;
+                    case Provider.API_MASTODON:
+                        service.postToot(userRecord, draft.getText());
+                        break;
                 }
             } catch (TwitterException e) {
                 e.printStackTrace();
@@ -214,6 +223,23 @@ public class PostService extends IntentService{
                         userRecord.ScreenName,
                         e.getErrorCode(),
                         e.getErrorMessage()));
+                ++error;
+            } catch (Mastodon4jRequestException e) {
+                e.printStackTrace();
+                try {
+                    showErrorMessage(i + 65535, draft, String.format(
+                            "@%s/%d %s",
+                            userRecord.ScreenName,
+                            e.getResponse().code(),
+                            e.getResponse().body().string()));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    showErrorMessage(i + 65535, draft, String.format(
+                            "@%s/%d %s",
+                            userRecord.ScreenName,
+                            e.getResponse().code(),
+                            "Unknown error"));
+                }
                 ++error;
             } catch (IOException e) {
                 e.printStackTrace();
