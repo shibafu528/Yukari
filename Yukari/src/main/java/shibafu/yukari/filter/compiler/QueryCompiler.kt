@@ -243,7 +243,13 @@ class QueryCompiler {
                         "nil", "false", "f", "False", "FALSE" -> ValueNode(false)
                         else -> {
                             if (token.value.startsWith("?") && token.value.length > 1) return VariableNode(token.value.replaceFirst("?", ""))
-                            else return ValueNode(token.value)
+                            else {
+                                @Suppress("IMPLICIT_CAST_TO_ANY")
+                                val value = token.value.toLongOrNull()?.let {
+                                    if (Int.MIN_VALUE <= it && it <= Int.MAX_VALUE) it.toInt() else it
+                                } ?: token.value.toDoubleOrNull() ?: token.value
+                                return ValueNode(value)
+                            }
                         }
                     }
                 } else {

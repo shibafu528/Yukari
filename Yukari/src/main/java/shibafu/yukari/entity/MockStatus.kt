@@ -7,7 +7,7 @@ import java.util.*
 /**
  * ステータスのモック
  */
-class MockStatus(override val id: Long, override var representUser: AuthUserRecord) : Status {
+open class MockStatus(override val id: Long, override var representUser: AuthUserRecord) : Status {
     override val user: User = object : User {
         override val id: Long = this@MockStatus.id
         override val name: String = "Error"

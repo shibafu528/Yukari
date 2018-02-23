@@ -1,12 +1,12 @@
 package shibafu.yukari.filter.compiler
 
 import org.junit.Test
+import shibafu.yukari.entity.MockStatus
 import shibafu.yukari.filter.sexp.EvaluateContext
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
-import shibafu.yukari.stub.FakeTextStatus
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.FakeStatus
 import twitter4j.auth.AccessToken
@@ -117,7 +117,12 @@ public class QueryCompilerTest {
     }
 
     private fun evaluateFake(snode: SNode, text: String) : Any {
-        val context = EvaluateContext(FakeTextStatus(0, text), emptyList())
+        val sampleUser = AuthUserRecord(AccessToken("2257710474-XXXXXXXXXXXXXXX", "XXXXXXXXXXXXXXXX"))
+        sampleUser.ScreenName = "yukari4a"
+        val status = object : MockStatus(0, sampleUser) {
+            override val text: String = text
+        }
+        val context = EvaluateContext(status, emptyList())
         val result = snode.evaluate(context)
         println(snode)
         return result
@@ -255,4 +260,11 @@ public class QueryCompilerTest {
         val result = evaluateFake(snode, "らこらこらこ～ｗ")
         assertEquals(true, result)
     }
+
+    @Test fun integerVariableExpressionText() {
+        val snode = parseExpression("(= ?providerApiType -1)", emptyList())
+        val result = evaluateFake(snode, "")
+        assertEquals(true, result)
+    }
+
 }
