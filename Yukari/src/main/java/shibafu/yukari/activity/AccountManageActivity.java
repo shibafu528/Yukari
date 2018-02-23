@@ -1,11 +1,10 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
-import android.support.v7.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,16 +15,15 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.ColorPickerDialogFragment;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Shibafu on 13/12/21.
@@ -101,14 +99,14 @@ public class AccountManageActivity extends ActionBarYukariBase {
                     .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "認証情報を削除"}, (dialog, which) -> {
                         switch (which) {
                             case 0:
-                                delegate.getTwitterService().setPrimaryUser(dataList.get(position).NumericId);
+                                delegate.getTwitterService().setPrimaryUser(dataList.get(position).InternalId);
                                 createList();
                                 break;
                             case 1:
                                 ColorPickerDialogFragment dialogFragment
                                         = ColorPickerDialogFragment.newInstance(
                                         dataList.get(position).AccountColor,
-                                        String.valueOf(dataList.get(position).NumericId));
+                                        String.valueOf(dataList.get(position).InternalId));
                                 dialogFragment.setTargetFragment(AccountListFragment.this, 1);
                                 dialogFragment.show(getFragmentManager(), "color");
                                 break;
@@ -118,7 +116,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                         .setIcon(android.R.drawable.ic_dialog_alert)
                                         .setMessage("認証情報を削除してもよろしいですか?")
                                         .setPositiveButton("OK", (dialog1, which1) -> {
-                                            delegate.getTwitterService().deleteUser(dataList.get(position).NumericId);
+                                            delegate.getTwitterService().deleteUser(dataList.get(position).InternalId);
                                             createList();
                                         })
                                         .setNegativeButton("キャンセル", (dialog1, which1) -> {

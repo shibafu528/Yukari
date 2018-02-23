@@ -465,7 +465,7 @@ public class TwitterService extends Service{
 
     public void setPrimaryUser(long id) {
         for (AuthUserRecord userRecord : users) {
-            userRecord.isPrimary = userRecord.NumericId == id;
+            userRecord.isPrimary = userRecord.InternalId == id;
         }
         storeUsers();
         reloadUsers();
@@ -523,7 +523,7 @@ public class TwitterService extends Service{
 
     public void setUserColor(long id, int color) {
         for (AuthUserRecord user : users) {
-            if (user.NumericId == id) {
+            if (user.InternalId == id) {
                 user.AccountColor = color;
                 break;
             }
@@ -547,7 +547,7 @@ public class TwitterService extends Service{
         //Primaryの委譲が必要か確認する
         boolean delegatePrimary = false;
         for (AuthUserRecord aur : users) {
-            if (aur.NumericId == id) {
+            if (aur.InternalId == id) {
                 delegatePrimary = aur.isPrimary;
             }
         }
