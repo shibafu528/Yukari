@@ -13,7 +13,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
     override val id: Long
         get() = status.id
 
-    override val user: User = TwitterUser(status.originStatus.user)
+    override val user: User = TwitterUser(status.user)
 
     override val text: String
         get() = status.originStatus.text

@@ -14,10 +14,9 @@ interface Status : Comparable<Status>, Serializable {
     val id: Long
 
     /**
-     * メッセージの発信者
+     * メッセージの所有者
      *
-     * 実装にあたっては、このメソッドで取得できる情報は必ず **元の発信者** である必要がある。
-     * 例えばTwitterの場合、RT StatusではRTされた人の情報が取得できるようにする。
+     * [isRepost] が真であるメッセージの場合、これは本来の発言者ではない場合がある。正確な情報は [originStatus] から取得する。
      */
     val user: User
 

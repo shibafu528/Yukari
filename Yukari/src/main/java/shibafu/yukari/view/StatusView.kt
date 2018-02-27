@@ -113,7 +113,7 @@ abstract class StatusView : RelativeLayout {
     protected open fun updateName(typeface: Typeface, fontSize: Float) {
         val status = status ?: return
 
-        val user = status.user
+        val user = status.originStatus.user
         val displayName = if (pref.getBoolean("pref_remove_name_newline", false)) { user.name.replace("\n", "") } else { user.name }
 
         tvName.typeface = typeface
@@ -136,7 +136,7 @@ abstract class StatusView : RelativeLayout {
         // ショート表示の場合はScreenNameと結合して表示、そうでなければそのまま表示
         if (pref.getBoolean("pref_mode_singleline", false) && Mode.DETAIL or Mode.PREVIEW and mode == 0) {
             val sb = SpannableStringBuilder()
-            sb.append(status.user.screenName)
+            sb.append(status.originStatus.user.screenName)
             sb.setSpan(StyleSpan(Typeface.BOLD), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.setSpan(ForegroundColorSpan(Color.parseColor("#ff419b38")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.append(" ")
@@ -156,7 +156,7 @@ abstract class StatusView : RelativeLayout {
 
         tvTimestamp.typeface = typeface
         tvTimestamp.textSize = fontSize * 0.8f
-        tvTimestamp.text = StringUtil.formatDate(status.createdAt) + " via " + status.source
+        tvTimestamp.text = StringUtil.formatDate(status.originStatus.createdAt) + " via " + status.originStatus.source
     }
 
     /**
@@ -203,7 +203,7 @@ abstract class StatusView : RelativeLayout {
     protected open fun updateIndicator() {
         val status = status ?: return
 
-        if (status.user.isProtected) {
+        if (status.originStatus.user.isProtected) {
             ivProtected.visibility = View.VISIBLE
         } else {
             ivProtected.visibility = View.GONE
@@ -239,10 +239,8 @@ abstract class StatusView : RelativeLayout {
         // リツイート対応
         if (mode != Mode.PREVIEW) {
             if (status.isRepost) {
-                val timestamp = "RT by @" + status.user.screenName + "\n" +
+                tvTimestamp.text = "RT by @" + status.user.screenName + "\n" +
                         StringUtil.formatDate(status.originStatus.createdAt) + " via " + status.originStatus.source
-                tvTimestamp.text = timestamp
-                tvName.text = "@" + status.originStatus.user.screenName + " / " + status.originStatus.user.name
                 setBackgroundResource(bgRetweetResId)
 
                 if (status.originStatus.user.isProtected) {
