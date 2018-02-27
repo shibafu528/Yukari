@@ -16,7 +16,7 @@ ext {
     supportLibVersion = '25.4.0'
     playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.5'
-    mastodon4jVersion = '1.4.0'
+    mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
 }
 
@@ -169,7 +169,7 @@ android {
 
 // Kotlin
 buildscript {
-    ext.kotlin_version = '1.1.60'
+    ext.kotlin_version = '1.2.10'
     repositories {
         mavenCentral()
     }
