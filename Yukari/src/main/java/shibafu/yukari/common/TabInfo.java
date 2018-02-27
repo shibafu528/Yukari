@@ -82,7 +82,7 @@ public class TabInfo implements DBRecord, Serializable {
         if (id > -1) values.put(CentralDatabase.COL_TABS_ID, id);
         values.put(CentralDatabase.COL_TABS_TYPE, type);
         values.put(CentralDatabase.COL_TABS_TAB_ORDER, order);
-        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.NumericId:-1);
+        values.put(CentralDatabase.COL_TABS_BIND_ACCOUNT_ID, bindAccount!=null?bindAccount.InternalId:-1);
         values.put(CentralDatabase.COL_TABS_BIND_LIST_ID, (type == TabType.TABTYPE_LIST)?bindListId:-1);
         values.put(CentralDatabase.COL_TABS_SEARCH_KEYWORD,
                 (type == TabType.TABTYPE_SEARCH || type == TabType.TABTYPE_TRACK || type == TabType.TABTYPE_LIST)? searchKeyword:"");
