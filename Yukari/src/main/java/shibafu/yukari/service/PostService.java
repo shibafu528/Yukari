@@ -212,9 +212,41 @@ public class PostService extends IntentService{
                             service.postTweet(userRecord, update);
                         }
                         break;
-                    case Provider.API_MASTODON:
-                        service.postToot(userRecord, draft.getText());
+                    case Provider.API_MASTODON: {
+                        List<Long> mediaIds = null;
+                        if (!draft.getAttachedPictures().isEmpty()) {
+                            mediaIds = new ArrayList<>();
+                            for (Uri uri : draft.getAttachedPictures()) {
+                                InputStream is;
+                                int[] size = new int[2];
+                                try {
+                                    Bitmap thumb = BitmapUtil.resizeBitmap(this, uri, 128, 128, size);
+                                    thumb.recycle();
+                                } catch (IOException | NullPointerException e) {
+                                    throw new IOException(e);
+                                }
+                                if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
+                                    Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
+                                    Bitmap resized = BitmapUtil.resizeBitmap(
+                                            this,
+                                            uri,
+                                            imageResizeLength,
+                                            imageResizeLength,
+                                            null);
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                    Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                                    is = new ByteArrayInputStream(baos.toByteArray());
+                                } else {
+                                    is = getContentResolver().openInputStream(uri);
+                                }
+
+                                mediaIds.add(service.uploadMediaToMastodon(userRecord, is).getId());
+                            }
+                        }
+                        service.postToot(userRecord, draft.getText(), mediaIds);
                         break;
+                    }
                 }
             } catch (TwitterException e) {
                 e.printStackTrace();
