@@ -879,7 +879,7 @@ public class TwitterService extends Service{
             throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
         }
         final Statuses statuses = new Statuses(client);
-        statuses.postStatus(text, null, mediaIds, false, null).execute();
+        statuses.postStatus(text, null, mediaIds, false, null, com.sys1yagi.mastodon4j.api.entity.Status.Visibility.Unlisted).execute();
     }
 
     public Attachment uploadMediaToMastodon(AuthUserRecord user, InputStream inputStream) throws IOException, Mastodon4jRequestException {
