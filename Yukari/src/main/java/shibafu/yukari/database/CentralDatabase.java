@@ -476,6 +476,41 @@ public class CentralDatabase {
                         " ON " +
                         " tmp_Accounts." + COL_ACCOUNTS_ID + " = " + TABLE_USER + "." + COL_USER_ID);
                 db.execSQL("DROP TABLE tmp_Accounts");
+
+                // アカウントIDを持っているテーブルの更新準備
+                StringBuilder whenBuilder = new StringBuilder();
+                final Cursor c = db.query(TABLE_ACCOUNTS, new String[]{COL_ACCOUNTS_ID, COL_ACCOUNTS_USER_ID}, COL_ACCOUNTS_PROVIDER_ID + " IS NULL", null, null, null, null);
+                try {
+                    if (c.moveToFirst()) {
+                        do {
+                            long twitterUserId = c.getLong(c.getColumnIndex(COL_ACCOUNTS_USER_ID));
+                            long accountId = c.getLong(c.getColumnIndex(COL_ACCOUNTS_ID));
+
+                            whenBuilder.append(" WHEN ").append(twitterUserId).append(" THEN ").append(accountId);
+                        } while (c.moveToNext());
+                    }
+                } finally {
+                    c.close();
+                }
+                whenBuilder.append(" ELSE NULL ");
+                String when = whenBuilder.toString();
+
+                db.execSQL("UPDATE " + TABLE_USER_EXTRAS +
+                        " SET " + COL_UEXTRAS_PRIORITY_ID + " = CASE " + COL_UEXTRAS_PRIORITY_ID + when + " END " +
+                        " WHERE " + COL_UEXTRAS_PRIORITY_ID + " IS NOT NULL");
+
+                db.execSQL("UPDATE " + TABLE_DRAFTS +
+                        " SET " + COL_DRAFTS_WRITER_ID + " = CASE " + COL_DRAFTS_WRITER_ID + when + " END " +
+                        " WHERE " + COL_DRAFTS_WRITER_ID + " IS NOT NULL");
+
+                db.execSQL("UPDATE " + TABLE_BOOKMARKS +
+                        " SET " + COL_BOOKMARKS_RECEIVER_ID + " = CASE " + COL_BOOKMARKS_RECEIVER_ID + when + " END " +
+                        " WHERE " + COL_BOOKMARKS_RECEIVER_ID + " IS NOT NULL");
+
+                db.execSQL("UPDATE " + TABLE_TABS +
+                        " SET " + COL_TABS_BIND_ACCOUNT_ID + " = CASE " + COL_TABS_BIND_ACCOUNT_ID + when + " END " +
+                        " WHERE " + COL_TABS_BIND_ACCOUNT_ID + " IS NOT NULL");
+
                 ++oldVersion;
             }
         }

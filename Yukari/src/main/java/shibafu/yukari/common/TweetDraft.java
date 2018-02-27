@@ -115,7 +115,7 @@ public class TweetDraft implements Serializable{
         ContentValues[] valuesArray = new ContentValues[writers.size()];
         for (int i = 0; i < writers.size(); ++i) {
             ContentValues values = new ContentValues();
-            values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writers.get(i).NumericId);
+            values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writers.get(i).InternalId);
             values.put(CentralDatabase.COL_DRAFTS_DATETIME, dateTime);
             values.put(CentralDatabase.COL_DRAFTS_TEXT, text);
             values.put(CentralDatabase.COL_DRAFTS_IN_REPLY_TO, inReplyTo);

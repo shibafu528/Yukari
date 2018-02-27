@@ -251,10 +251,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     }
                     is NotifyHistory -> {
                         val bundle = Bundle()
-                        bundle.putSerializable("status", clickedElement.status)
+                        bundle.putSerializable("status", clickedElement)
                         val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
                                 "メニュー", null, null, null,
-                                listOf("@${clickedElement.status.user.screenName}", "詳細を開く"),
+                                listOf("@${clickedElement.user.screenName}", "詳細を開く"),
                                 bundle)
                         dialog.setTargetFragment(this, 0)
                         dialog.show(fragmentManager, "history_menu")
@@ -420,7 +420,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         when (requestCode) {
             DIALOG_REQUEST_HISTORY_MENU -> {
                 if (extras == null) return
-                val status = extras.getSerializable("status") as Status
+                val status = extras.getSerializable("status") as NotifyHistory
 
                 when (which) {
                     // プロフィール
@@ -434,7 +434,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     1 -> {
                         val intent = Intent(activity.applicationContext, StatusActivity::class.java)
                         intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)
-                        intent.putExtra(StatusActivity.EXTRA_STATUS, status)
+                        intent.putExtra(StatusActivity.EXTRA_STATUS, status.status)
                         startActivity(intent)
                     }
                     DialogInterface.BUTTON_NEGATIVE -> blockingDoubleClick = false

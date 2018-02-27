@@ -41,7 +41,7 @@ public class Bookmark extends PreformedStatus implements DBRecord{
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
         values.put(CentralDatabase.COL_BOOKMARKS_ID, getId());
-        values.put(CentralDatabase.COL_BOOKMARKS_RECEIVER_ID, getRepresentUser().NumericId);
+        values.put(CentralDatabase.COL_BOOKMARKS_RECEIVER_ID, getRepresentUser().InternalId);
         values.put(CentralDatabase.COL_BOOKMARKS_SAVE_DATE, saveDate.getTime());
         values.put(CentralDatabase.COL_BOOKMARKS_BLOB, statusToByteArray());
         return values;
@@ -49,7 +49,7 @@ public class Bookmark extends PreformedStatus implements DBRecord{
 
     public static Bookmark deserialize(SerializeEntity entity, List<AuthUserRecord> userRecords) {
         AuthUserRecord receivedUser = Stream.of(userRecords)
-                .filter(u -> u.NumericId == entity.receiverId)
+                .filter(u -> u.InternalId == entity.receiverId)
                 .findFirst()
                 .orElse(new AuthUserRecord(new AccessToken("", "", entity.receiverId)));
         return new Bookmark(new PreformedStatus(byteArrayToStatus(entity.blob), receivedUser));
@@ -57,7 +57,7 @@ public class Bookmark extends PreformedStatus implements DBRecord{
 
     public SerializeEntity serialize() {
         SerializeEntity entity = new SerializeEntity();
-        entity.receiverId = getRepresentUser().NumericId;
+        entity.receiverId = getRepresentUser().InternalId;
         entity.saveDate = saveDate.getTime();
         entity.blob = statusToByteArray();
         return entity;
