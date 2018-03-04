@@ -15,6 +15,8 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
     override val id: Long
         get() = status.id
 
+    override val url: String = status.url
+
     override val user: User = DonUser(status.account)
 
     @Suppress("DEPRECATION")
@@ -38,7 +40,11 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
 
     override val originStatus: shibafu.yukari.entity.Status = if (isRepost) DonStatus(status.reblog!!, representUser) else this
 
+    override val inReplyToId: Long = status.inReplyToId ?: -1
+
     override val mentions: List<Mention> = status.mentions.map { DonMention(it) }
+
+    override val tags: List<String> = status.tags.map { "#" + it.name }
 
     override var favoritesCount: Int = status.favouritesCount
 

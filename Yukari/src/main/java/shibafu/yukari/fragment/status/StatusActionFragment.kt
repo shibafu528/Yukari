@@ -26,11 +26,13 @@ import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.TwitterUtil
+import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.showToast
@@ -40,7 +42,7 @@ import java.util.regex.Pattern
 /**
  * Created by shibafu on 2016/02/05.
  */
-public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener, StatusChildUI {
+class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener, StatusChildUI {
     companion object {
         private const val REQUEST_DELETE = 0
     }
@@ -51,32 +53,32 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
     private val itemTemplates: List<Pair<StatusAction, () -> Boolean>> = listOf(
             Action("ブラウザで開く") {
                 startActivity(Intent.createChooser(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(TwitterUtil.getTweetURL(status)))
+                        Intent(Intent.ACTION_VIEW, Uri.parse(status?.url))
                                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                         null))
-            } visibleWhen { true },
+            } visibleWhen { status?.url != null },
 
             Action("パーマリンクをコピー") {
                 (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                        .text = TwitterUtil.getTweetURL(status)
+                        .text = status?.url
                 showToast("リンクをコピーしました")
-            } visibleWhen { true },
+            } visibleWhen { status?.url != null },
 
             Action("ブックマークに追加") {
-                twitterService.database.updateRecord(Bookmark(status))
+                twitterService.database.updateRecord(Bookmark((status as TwitterStatus).status as PreformedStatus))
                 showToast("ブックマークしました")
-            } visibleWhen { status !is Bookmark },
+            } visibleWhen { status !is TwitterStatus },
 
             Action("リストへ追加/削除") {
-                ListRegisterDialogFragment.newInstance(status!!.sourceUser).let {
+                ListRegisterDialogFragment.newInstance((status!!.originStatus.user as TwitterUser).user).let {
                     it.setTargetFragment(this, 0)
                     it.show(childFragmentManager, "register")
                 }
-            } visibleWhen { true },
+            } visibleWhen { status is TwitterStatus },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance(status!!, this).show(childFragmentManager, "mute")
-            } visibleWhen { true },
+                MuteMenuDialogFragment.newInstance((status as TwitterStatus).status as PreformedStatus, this).show(childFragmentManager, "mute")
+            } visibleWhen { status is TwitterStatus },
 
             Action("ツイートを削除") {
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", "ツイートを削除しますか？", "OK", "キャンセル")
@@ -85,7 +87,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
     )
 
-    private val status: PreformedStatus?
+    private val status: Status?
         get() {
             val activity = this.activity
             if (activity is StatusUI) {
@@ -123,7 +125,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         super.onActivityCreated(savedInstanceState)
 
         val plugins: List<TwiccaPluginAction> =
-                if (status?.sourceUser?.isProtected ?: true) {
+                if (status?.originStatus?.user?.isProtected ?: true) {
                     emptyList()
                 } else {
                     val query = Intent("jp.r246.twicca.ACTION_SHOW_TWEET").addCategory(Intent.CATEGORY_DEFAULT)
@@ -189,7 +191,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
         // Pluggaloidアクションのロード
         if (!isLoadedPluggaloid) {
             val pluggaloidActions: List<PluggaloidPluginAction> =
-                    if (status?.sourceUser?.isProtected ?: true || twitterService == null || twitterService.getmRuby() == null) {
+                    if (status?.originStatus?.user?.isProtected ?: true || twitterService == null || twitterService.getmRuby() == null) {
                         emptyList()
                     } else {
                         val plugins = try {
@@ -262,13 +264,13 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                 .putExtra("user_screen_name", status.user.screenName)
                 .putExtra("user_name", status.user.name)
                 .putExtra("user_id", status.user.id.toString())
-                .putExtra("user_profile_image_url", status.user.profileImageURL)
-                .putExtra("user_profile_image_url_mini", status.user.miniProfileImageURL)
-                .putExtra("user_profile_image_url_normal", status.user.originalProfileImageURL)
-                .putExtra("user_profile_image_url_bigger", status.user.biggerProfileImageURL)
+                .putExtra("user_profile_image_url", status.user.profileImageUrl)
+                .putExtra("user_profile_image_url_mini", status.user.profileImageUrl)
+                .putExtra("user_profile_image_url_normal", status.user.profileImageUrl)
+                .putExtra("user_profile_image_url_bigger", status.user.biggerProfileImageUrl)
 
-            if (status.inReplyToStatusId > -1) {
-                intent.putExtra("in_reply_to_status_id", status.inReplyToStatusId)
+            if (status.inReplyToId > -1) {
+                intent.putExtra("in_reply_to_status_id", status.inReplyToId)
             }
 
             val matcher = Pattern.compile("<a .*>(.+)</a>").matcher(status.source)
@@ -303,11 +305,11 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
                         "user_screen_name" to status.user.screenName,
                         "user_name" to status.user.name,
                         "user_id" to status.user.id.toString(),
-                        "user_profile_image_url" to status.user.profileImageURL,
-                        "user_profile_image_url_mini" to status.user.miniProfileImageURL,
-                        "user_profile_image_url_normal" to status.user.originalProfileImageURL,
-                        "user_profile_image_url_bigger" to status.user.biggerProfileImageURL,
-                        "in_reply_to_status_id" to status.inReplyToStatusId.toString(),
+                        "user_profile_image_url" to status.user.profileImageUrl,
+                        "user_profile_image_url_mini" to status.user.profileImageUrl,
+                        "user_profile_image_url_normal" to status.user.profileImageUrl,
+                        "user_profile_image_url_bigger" to status.user.biggerProfileImageUrl,
+                        "in_reply_to_status_id" to status.inReplyToId.toString(),
                         "source" to status.source,
                         "text" to status.text
                 )

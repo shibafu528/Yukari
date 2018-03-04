@@ -21,7 +21,6 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
     override val recipientScreenName: String = ""
     override val createdAt: Date = Date()
     override val source: String = "System"
-    override val mentions: List<Mention> = emptyList()
     override var favoritesCount: Int = 0
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()

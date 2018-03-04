@@ -28,12 +28,14 @@ import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.service.AsyncCommandService;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -86,7 +88,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_status_main, container, false);
         Bundle b = getArguments();
-        status = (PreformedStatus) b.getSerializable(StatusActivity.EXTRA_STATUS);
+        status = (PreformedStatus) ((TwitterStatus) b.getSerializable(StatusActivity.EXTRA_STATUS)).getStatus();
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
@@ -576,7 +578,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
     public void onServiceDisconnected() {}
 
     @Nullable
-    private PreformedStatus getStatus() {
+    private Status getStatus() {
         if (getActivity() instanceof StatusUI) {
             return ((StatusUI) getActivity()).getStatus();
         }

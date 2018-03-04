@@ -15,4 +15,12 @@ interface Mention : Serializable {
      * 一般的にIDと呼ばれるような、文字列形式のユーザ識別子
      */
     val screenName: String
+
+    /**
+     * プロフィールアイコンのURL
+     *
+     * サービスによっては存在しないので、その場合は空文字列となる。
+     */
+    val profileImageUrl: String
+        get() = ""
 }

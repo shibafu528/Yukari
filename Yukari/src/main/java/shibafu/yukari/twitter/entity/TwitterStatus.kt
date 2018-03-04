@@ -1,5 +1,6 @@
 package shibafu.yukari.twitter.entity
 
+import android.util.Log
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
@@ -10,6 +11,12 @@ import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import java.util.*
 
 class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status {
+    init {
+        if (status is PreformedStatus) {
+            Log.w("TwitterStatus", "PreformedStatus wrapped. Should use TwitterStatus directly.")
+        }
+    }
+
     override val id: Long
         get() = status.id
 
@@ -32,7 +39,15 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val originStatus: Status = if (isRepost) TwitterStatus(PreformedStatus(status.retweetedStatus, representUser), representUser) else this
 
+    override val url: String = "https://twitter.com/${user.screenName}/status/$id"
+
+    override val inReplyToId: Long = status.inReplyToStatusId
+
     override val mentions: List<Mention> = status.userMentionEntities.map { TwitterMention(it) }
+
+    override val links: List<String> = status.urlEntities.map { it.expandedURL }
+
+    override val tags: List<String> = status.hashtagEntities.map { it.text }
 
     override var favoritesCount: Int = status.favoriteCount
 

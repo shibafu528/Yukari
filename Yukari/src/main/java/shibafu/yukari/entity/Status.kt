@@ -1,5 +1,6 @@
 package shibafu.yukari.entity
 
+import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.Serializable
 import java.util.*
@@ -12,6 +13,12 @@ interface Status : Comparable<Status>, Serializable {
      * ID
      */
     val id: Long
+
+    /**
+     * URL
+     */
+    val url: String?
+        get() = null
 
     /**
      * メッセージの所有者
@@ -53,9 +60,34 @@ interface Status : Comparable<Status>, Serializable {
         get() = this
 
     /**
+     * 返信先の [Status] のID
+     */
+    val inReplyToId: Long
+        get() = -1
+
+    /**
      * 返信先の一覧
      */
     val mentions: List<Mention>
+        get() = emptyList()
+
+    /**
+     * 添付画像(または動画)の一覧
+     */
+    val media: List<Media>
+        get() = emptyList()
+
+    /**
+     * テキスト内のURLや、画像以外の追加情報など汎用な関連URLの一覧
+     */
+    val links: List<String>
+        get() = emptyList()
+
+    /**
+     * ハッシュタグの一覧
+     */
+    val tags: List<String>
+        get() = emptyList()
 
     /**
      * お気に入り登録数

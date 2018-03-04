@@ -14,7 +14,6 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
     override val recipientScreenName: String = ""
     override val createdAt: Date = Date(timeAtMillis)
     override val source: String = ""
-    override val mentions: List<Mention> = emptyList()
     override var favoritesCount: Int = 0
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()

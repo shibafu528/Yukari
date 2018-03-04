@@ -15,6 +15,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
 import shibafu.yukari.fragment.status.StatusMainFragment;
@@ -34,7 +35,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
     public static final String EXTRA_USER = "user";
 
     private AuthUserRecord user = null;
-    private PreformedStatus status = null;
+    private Status status = null;
 
     private TweetView tweetView;
 
@@ -80,10 +81,10 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
         Intent args = getIntent();
         Object anyStatus = args.getSerializableExtra(EXTRA_STATUS);
-        if (anyStatus instanceof PreformedStatus) {
-            status = (PreformedStatus) anyStatus;
-        } else if (anyStatus instanceof TwitterStatus) {
-            status = (PreformedStatus) ((TwitterStatus) anyStatus).getStatus();
+        if (anyStatus instanceof TwitterStatus) {
+            status = (TwitterStatus) anyStatus;
+        } else if (anyStatus instanceof PreformedStatus) {
+            status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
         } else {
             throw new ClassCastException(anyStatus.getClass().getName());
         }
@@ -111,22 +112,20 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
             tweetView.setUserRecords(user.toSingleList());
         }
         tweetView.setMode(StatusView.Mode.DETAIL);
-        tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
-        if ((status.isRetweet() && status.getRetweetedStatus().getInReplyToStatusId() > 0)
-                || status.getInReplyToStatusId() > 0) {
+        tweetView.setStatus(status);
+        if (status.getOriginStatus().getInReplyToId() > 0) {
             tweetView.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
                 intent.putExtra(TweetListFragment.EXTRA_USER, user);
                 intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
-                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START,
-                        status.isRetweet()? status.getRetweetedStatus() : status);
+                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status.getOriginStatus());
                 startActivity(intent);
             });
         }
 
         TextView tvCounter = (TextView) findViewById(R.id.tv_state_counter);
-        int retweeted = status.isRetweet()? status.getRetweetedStatus().getRetweetCount() : status.getRetweetCount();
-        int faved = status.isRetweet()? status.getRetweetedStatus().getFavoriteCount() : status.getFavoriteCount();
+        final int retweeted = status.getRepostsCount();
+        final int faved = status.getFavoritesCount();
         String countRT = retweeted + "RT";
         String countFav = faved + "Fav";
         if (retweeted > 0 && faved > 0) {
@@ -164,7 +163,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
     public void onServiceDisconnected() {}
 
     @Override
-    public PreformedStatus getStatus() {
+    public Status getStatus() {
         return status;
     }
 
