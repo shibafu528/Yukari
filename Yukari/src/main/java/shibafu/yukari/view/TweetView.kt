@@ -17,14 +17,10 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import java.util.*
 
-// TODO: PreformedStatusに頼るの限界では… 互換性維持用のEntityに下がってもらって、TwitterStatusを使ったほうがよさそう
-// もっともマージ処理をどこに付けるかとかがあるが…
-
 /**
- * [PreformedStatus]を表示するためのビュー
+ * [TwitterStatus]を表示するためのビュー
  */
 class TweetView : StatusView {
     // LayoutParams
@@ -43,11 +39,12 @@ class TweetView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val status = typedStatus//status as PreformedStatus
+        val status = status as TwitterStatus
 
         // ジオタグの表示
-        if (status.originStatus.geoLocation != null) {
-            val geoLocation = status.originStatus.geoLocation
+        val originStatus = status.originStatus as TwitterStatus
+        if (originStatus.status.geoLocation != null) {
+            val geoLocation = originStatus.status.geoLocation
             tvTimestamp.text = String.format("%s\nGeo: %f, %f",
                     tvTimestamp.text,
                     geoLocation.latitude,
@@ -55,7 +52,7 @@ class TweetView : StatusView {
         }
 
         // サムネイルミュートされているか表示
-        if (status.isCensoredThumbs) {
+        if (status.metadata.isCensoredThumbs) {
             tvTimestamp.text = "${tvTimestamp.text}\n[Thumbnail Muted]"
         }
     }
@@ -63,24 +60,24 @@ class TweetView : StatusView {
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val status = typedStatus//status as PreformedStatus
+        val status = status as TwitterStatus
 
         // ふぁぼアイコンの表示
-        if (status.originStatus.isFavoritedSomeone) {
+        if (status.originStatus.isFavoritedSomeone()) {
             ivFavorited.visibility = View.VISIBLE
         } else {
             ivFavorited.visibility = View.GONE
         }
 
         // ユーザーカラーラベルの設定
-        val color = userExtras.firstOrNull { it.id == status.sourceUser.id }?.color ?: Color.TRANSPARENT
+        val color = userExtras.firstOrNull { it.id == status.originStatus.user.id }?.color ?: Color.TRANSPARENT
         ivUserColor.setBackgroundColor(color)
     }
 
     @SuppressLint("SetTextI18n")
     override fun updateDecoration() {
         super.updateDecoration()
-        val status = typedStatus// status as PreformedStatus
+        val status = status as TwitterStatus
 
         // 添付対応
         updateAttaches(status)
@@ -89,7 +86,7 @@ class TweetView : StatusView {
         when (mode) {
             Mode.DEFAULT, Mode.DETAIL -> {
                 val quoteEntities = status.quoteEntities
-                if (quoteEntities.size > 0) {
+                if (quoteEntities.size() > 0) {
                     flInclude.removeAllViews()
                     flInclude.visibility = View.VISIBLE
 
@@ -120,16 +117,16 @@ class TweetView : StatusView {
 
     override fun decorateText(text: String): String {
         var decoratedText = super.decorateText(text)
-        val status = typedStatus //status as PreformedStatus
+        val status = status as TwitterStatus
 
-        if (mode == Mode.DEFAULT && status.isTooManyRepeatText && pref.getBoolean("pref_shorten_repeat_text", false)) {
-            decoratedText = status.repeatedSequence + "\n...(repeat)..."
+        if (mode == Mode.DEFAULT && status.metadata.isTooManyRepeatText && pref.getBoolean("pref_shorten_repeat_text", false)) {
+            decoratedText = status.metadata.repeatedSequence + "\n...(repeat)..."
         }
 
         return decoratedText
     }
 
-    private fun updateAttaches(status: PreformedStatus) {
+    private fun updateAttaches(status: TwitterStatus) {
         if (pref.getBoolean("pref_prev_enable", true) && mode != Mode.PREVIEW || mode == Mode.DETAIL) {
             var hidden = false
 
@@ -143,10 +140,10 @@ class TweetView : StatusView {
                 val calendar = Calendar.getInstance()
                 hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)]
             }
-            hidden = hidden or status.originStatus.isCensoredThumbs
+            hidden = hidden or status.originStatus.metadata.isCensoredThumbs
 
             if (!hidden || pref.getBoolean("pref_prev_mosaic", false)) {
-                val mediaList = status.originStatus.mediaList
+                val mediaList = status.originStatus.media
                 val mlSize = mediaList.size
                 if (mlSize > 0) {
                     llAttach.visibility = View.VISIBLE
@@ -202,7 +199,4 @@ class TweetView : StatusView {
         }
     }
 
-    // TODO: はよ消せ
-    private inline val typedStatus: PreformedStatus
-        get() = (status as TwitterStatus).status as PreformedStatus
 }

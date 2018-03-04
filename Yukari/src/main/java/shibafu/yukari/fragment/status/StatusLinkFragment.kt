@@ -320,6 +320,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
     }
 
+    // TODO: トレース側が非対応で落ちる
     private inner class TraceRow : Row {
         override val icon: Drawable? = null
         override val label: String = "会話をたどる"

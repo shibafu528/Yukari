@@ -285,7 +285,7 @@ public class StatusManager implements Releasable {
                                     status.getUser().getScreenName(),
                                     status.getText()));
 
-                    hub.onStatus("Twitter.StreamManager", new TwitterStatus(new PreformedStatus(status, from.getUserRecord()), from.getUserRecord()), true);
+                    hub.onStatus("Twitter.StreamManager", new TwitterStatus(status, from.getUserRecord()), true);
                 }
 
                 @SuppressWarnings("InfiniteLoopStatement")

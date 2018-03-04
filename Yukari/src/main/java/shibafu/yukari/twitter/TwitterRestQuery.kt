@@ -6,7 +6,6 @@ import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import twitter4j.Paging
 import twitter4j.ResponseList
 import twitter4j.Twitter
@@ -25,8 +24,7 @@ class TwitterRestQuery(private val resolver: (Twitter, Paging) -> ResponseList<t
             paging.maxId = params.maxId
         }
         try {
-            // TODO: PreformedStatus挟まずにやりたい
-            val responseList: MutableList<Status> = resolver(api, paging).map { TwitterStatus(PreformedStatus(it, userRecord), userRecord) }.toMutableList()
+            val responseList: MutableList<Status> = resolver(api, paging).map { TwitterStatus(it, userRecord) }.toMutableList()
 
             if (params.appendLoadMarker) {
                 responseList += if (responseList.isEmpty()) {

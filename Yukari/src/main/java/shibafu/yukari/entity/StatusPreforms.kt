@@ -22,4 +22,15 @@ class StatusPreforms : Serializable {
      * お気に入り登録
      */
     var favoritedUsers: MutableLongBooleanMap = LongBooleanHashMap() // TODO: 表示側は？
+
+    /**
+     * 繰り返し文の要約
+     */
+    var repeatedSequence: String? = null
+
+    /**
+     * このステータスが繰り返し文を含むかどうか
+     */
+    val isTooManyRepeatText: Boolean
+        get() = repeatedSequence != null
 }

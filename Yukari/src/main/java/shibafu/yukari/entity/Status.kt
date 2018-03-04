@@ -148,6 +148,13 @@ interface Status : Comparable<Status>, Serializable {
     }
 
     /**
+     * いずれかの受信アカウントによって、このステータスがお気に入り登録されているか？
+     */
+    fun isFavoritedSomeone(): Boolean {
+        return receivedUsers.map { it.NumericId }.any { metadata.favoritedUsers.get(it) }
+    }
+
+    /**
      * 同じ内容を指す、より新しい別インスタンスの情報でレシーバの情報を更新する
      */
     fun merge(status: Status) {

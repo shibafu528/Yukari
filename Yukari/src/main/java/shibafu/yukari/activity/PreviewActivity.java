@@ -38,6 +38,7 @@ import com.google.zxing.common.HybridBinarizer;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.service.BitmapDecoderService;
@@ -81,7 +82,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     @BindView(R.id.ivPreviewImage) ImageView imageView;
     @BindView(R.id.twvPreviewStatus) TweetView tweetView;
-    private PreformedStatus status;
+    private Status status;
     private AuthUserRecord user;
 
     private Animation animFadeIn, animFadeOut;
@@ -451,9 +452,16 @@ public class PreviewActivity extends ActionBarYukariBase {
         };
         loaderTask.executeParallel(mediaUrl);
 
-        status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
-        if (status != null && status.isRetweet()) {
-            status = status.getRetweetedStatus();
+        Object anyStatus = getIntent().getSerializableExtra(EXTRA_STATUS);
+        if (anyStatus instanceof TwitterStatus) {
+            status = (TwitterStatus) anyStatus;
+        } else if (anyStatus instanceof PreformedStatus) {
+            status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
+        } else {
+            throw new ClassCastException(anyStatus.getClass().getName());
+        }
+        if (status.isRepost()) {
+            status = status.getOriginStatus();
         }
 
         ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
@@ -523,7 +531,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
+            tweetView.setStatus(status);
         } else {
             tweetView.setVisibility(View.GONE);
         }

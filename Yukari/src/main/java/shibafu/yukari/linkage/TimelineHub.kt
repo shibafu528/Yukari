@@ -20,9 +20,9 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.statusmanager.StatusNotifier
 import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
+import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
@@ -159,6 +159,9 @@ class TimelineHub(private val service: TwitterService) {
             }
         }
 
+        // 繰り返し文判定
+        status.metadata.repeatedSequence = StringUtil.compressText(status.text)
+
         pushEventQueue(TimelineEvent.Received(timelineId, status, isMuted, passive), passive)
 
         if (passive) {
@@ -230,7 +233,7 @@ class TimelineHub(private val service: TwitterService) {
 
             // 引用ツイートのキャッシュ
             if (status.status.quotedStatus != null) {
-                val quotedStatus = TwitterStatus(PreformedStatus(status.status.quotedStatus, status.representUser), status.representUser)
+                val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
                 plc.receivedStatus.put(quotedStatus.id, quotedStatus)
             }
             // TODO: 昔はこのへんで引用ツイートの再帰取得リクエストしてた (StatusManagerの履歴参照)

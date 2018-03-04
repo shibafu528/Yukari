@@ -11,6 +11,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.media2.impl.TwitterVideo;
@@ -27,7 +28,7 @@ public class MoviePreviewActivity extends AppCompatActivity {
     public static final String EXTRA_STATUS = "status";
 
     private TweetView tweetView;
-    private PreformedStatus status;
+    private Status status;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,14 +83,22 @@ public class MoviePreviewActivity extends AppCompatActivity {
             }
         }.executeParallel(data.toString());
 
-        status = (PreformedStatus) getIntent().getSerializableExtra(EXTRA_STATUS);
-        if (status != null && status.isRetweet()) {
-            status = status.getRetweetedStatus();
+        Object anyStatus = getIntent().getSerializableExtra(EXTRA_STATUS);
+        if (anyStatus instanceof TwitterStatus) {
+            status = (TwitterStatus) anyStatus;
+        } else if (anyStatus instanceof PreformedStatus) {
+            status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
+        } else {
+            throw new ClassCastException(anyStatus.getClass().getName());
         }
+        if (status.isRepost()) {
+            status = status.getOriginStatus();
+        }
+
         tweetView = (TweetView) findViewById(R.id.twvPreviewStatus);
         if (status != null) {
             tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(new TwitterStatus(status, status.getRepresentUser()));
+            tweetView.setStatus(status);
         }
 
         findViewById(R.id.ibPreviewBrowser).setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
