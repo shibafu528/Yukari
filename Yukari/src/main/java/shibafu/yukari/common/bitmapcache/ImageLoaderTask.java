@@ -26,6 +26,7 @@ import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Created by Shibafu on 13/10/28.
@@ -144,6 +145,15 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
         }
     }
 
+    public void executeWrapper(Executor executor, Params params) {
+        if (getStatus() == Status.RUNNING && !isCancelled()) return;
+        try {
+            this.executeOnExecutor(executor, params);
+        } catch (RejectedExecutionException e) {
+            executeWrapper(executor, params);
+        }
+    }
+
     public static void loadProfileIcon(Context context, ImageView imageView, String uri) {
         loadBitmap(context, imageView, uri, RESOLVE_MEDIA, BitmapCache.PROFILE_ICON_CACHE, false);
     }
@@ -164,7 +174,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             imageView.setImageBitmap(cache);
         } else {
             imageView.setImageResource(R.drawable.yukatterload);
-            new ImageLoaderTask(context, imageView).executeOnExecutor(
+            new ImageLoaderTask(context, imageView).executeWrapper(
                     BitmapCache.IMAGE_CACHE.equals(cacheKey) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
                     new Params(resolveMode, cacheKey, mosaic, media));
         }
@@ -183,7 +193,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             imageView.setImageBitmap(cache);
         } else {
             imageView.setImageResource(R.drawable.yukatterload);
-            new ImageLoaderTask(context, imageView).executeOnExecutor(
+            new ImageLoaderTask(context, imageView).executeWrapper(
                     BitmapCache.IMAGE_CACHE.equals(cacheKey) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
                     new Params(resolveMode, cacheKey, mosaic, uri));
         }
@@ -199,7 +209,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                 protected void onPostExecute(Bitmap bitmap) {
                     callback.onLoadDrawable(new BitmapDrawable(context.getResources(), bitmap));
                 }
-            }.executeOnExecutor(
+            }.executeWrapper(
                     BitmapCache.IMAGE_CACHE.equals(mode) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
                     new Params(RESOLVE_MEDIA, mode, false, uri));
         }

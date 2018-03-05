@@ -2,6 +2,9 @@
 
 buildscript {
     repositories {
+        maven {
+            url 'http://192.168.11.37:8081/repository/maven-public/'
+        }
         jcenter()
     }
     dependencies {

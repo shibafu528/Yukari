@@ -71,19 +71,24 @@ public class FontSelectorActivity extends AppCompatActivity {
             fonts.add(new Pair<>(FontAsset.SYSTEM_FONT_ID, Typeface.DEFAULT));
 
             File fontDir = new File(getActivity().getExternalFilesDir(null), "font");
+            if (!fontDir.exists()) {
+                fontDir.mkdirs();
+            }
             File[] files = fontDir.listFiles((dir, filename) -> filename.endsWith(".ttf") || filename.endsWith(".otf"));
-            for (int i = 0; i < files.length; i++) {
-                File file = files[i];
-                try {
-                    Typeface typeface = Typeface.createFromFile(file);
-                    fonts.add(new Pair<>(file.getName(), typeface));
-                    if (file.getName().equals(currentFile)) {
-                        selectedIndex = i + 2;
+            if (files != null) {
+                for (int i = 0; i < files.length; i++) {
+                    File file = files[i];
+                    try {
+                        Typeface typeface = Typeface.createFromFile(file);
+                        fonts.add(new Pair<>(file.getName(), typeface));
+                        if (file.getName().equals(currentFile)) {
+                            selectedIndex = i + 2;
+                        }
+                    } catch (RuntimeException e) {
+                        //native typeface cannot be made
+                        e.printStackTrace();
+                        fonts.add(new Pair<>(file.getName(), null));
                     }
-                } catch (RuntimeException e) {
-                    //native typeface cannot be made
-                    e.printStackTrace();
-                    fonts.add(new Pair<>(file.getName(), null));
                 }
             }
 

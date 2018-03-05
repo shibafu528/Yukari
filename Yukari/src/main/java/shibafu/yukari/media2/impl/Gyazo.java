@@ -10,8 +10,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Gyazo extends MemoizeMedia {
+    private static final Pattern PATH_NORMALIZE_PATTERN = Pattern.compile("^/[0-9a-zA-Z]+");
+
     private String mediaUrl;
     private String thumbUrl;
 
@@ -64,7 +68,13 @@ public class Gyazo extends MemoizeMedia {
     }
 
     private void resolveInternal() throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(getBrowseUrl() + ".json").openConnection();
+        URL url = new URL(getBrowseUrl());
+        Matcher matcher = PATH_NORMALIZE_PATTERN.matcher(url.getPath());
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("Invalid URL : " + getBrowseUrl());
+        }
+        URL normalizeUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), matcher.group() + ".json");
+        HttpURLConnection conn = (HttpURLConnection) normalizeUrl.openConnection();
         conn.setReadTimeout(10000);
         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         StringBuilder sb = new StringBuilder();
@@ -78,9 +88,13 @@ public class Gyazo extends MemoizeMedia {
             conn.disconnect();
         }
 
-        GyazoResponse response = new Gson().fromJson(sb.toString(), GyazoResponse.class);
-        mediaUrl = response.url;
-        thumbUrl = response.thumbUrl;
+        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK && conn.getContentType().contains("application/json")) {
+            GyazoResponse response = new Gson().fromJson(sb.toString(), GyazoResponse.class);
+            mediaUrl = response.url;
+            thumbUrl = response.thumbUrl;
+        } else {
+            throw new IOException("Invalid Response : " + getBrowseUrl());
+        }
     }
 
     private static class GyazoResponse {
