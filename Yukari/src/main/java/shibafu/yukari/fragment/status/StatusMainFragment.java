@@ -148,16 +148,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 closeAfterFavorite();
             }
         });
-        ibRetweet.setOnLongClickListener(v1 -> {
-            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントRT");
-            startActivityForResult(intent, REQUEST_RETWEET);
-            Toast.makeText(getActivity(),
-                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                    Toast.LENGTH_LONG).show();
-            return true;
-        });
 
         ibFavorite = (ImageButton) v.findViewById(R.id.ib_state_favorite);
         ibFavorite.setOnClickListener(new View.OnClickListener() {
@@ -311,16 +301,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 }
             }
         });
-        ibFavorite.setOnLongClickListener(v1 -> {
-            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav");
-            startActivityForResult(intent, REQUEST_FAVORITE);
-            Toast.makeText(getActivity(),
-                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                    Toast.LENGTH_LONG).show();
-            return true;
-        });
 
         ibFavRt = (ImageButton) v.findViewById(R.id.ib_state_favrt);
         ibFavRt.setOnClickListener(v1 -> {
@@ -352,16 +332,6 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 getActivity().startService(intent);
                 closeAfterFavorite();
             }
-        });
-        ibFavRt.setOnLongClickListener(v1 -> {
-            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav&RT");
-            startActivityForResult(intent, REQUEST_FAV_RT);
-            Toast.makeText(getActivity(),
-                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
-                    Toast.LENGTH_LONG).show();
-            return true;
         });
 
         ibQuote = (ImageButton) v.findViewById(R.id.ib_state_quote);
