@@ -583,10 +583,11 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     }
 
     @Override
-    public void onChangedRelationships(final List<FollowDialogFragment.RelationClaim> claims) {
+    public void onChangedRelationships(final List<FollowDialogFragment.RelationClaim> claims, FollowDialogFragment.FollowDialogSuccessCallback onSuccessCallback) {
         new AsyncTask<Void, Void, String>() {
 
             private UpdateDialogFragment updateDialogFragment;
+            private List<Exception> exceptions = new ArrayList<>();
 
             @Override
             protected void onPreExecute() {
@@ -631,6 +632,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("リムーブ失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                         case FollowDialogFragment.RELATION_FOLLOW:
@@ -640,6 +642,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("フォロー失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                         case FollowDialogFragment.RELATION_PRE_R4S:
@@ -649,6 +652,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("スパム報告失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                         case FollowDialogFragment.RELATION_BLOCK:
@@ -659,6 +663,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("ブロック失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                         case FollowDialogFragment.RELATION_UNBLOCK:
@@ -669,6 +674,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("ブロック解除失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                         case FollowDialogFragment.RELATION_CUTOFF:
@@ -681,10 +687,12 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                                 } catch (TwitterException e) {
                                     e.printStackTrace();
                                     sb.append("ブロック解除失敗:").append(e.getStatusCode());
+                                    exceptions.add(e);
                                 }
                             } catch (TwitterException e) {
                                 e.printStackTrace();
                                 sb.append("ブロック失敗:").append(e.getStatusCode());
+                                exceptions.add(e);
                             }
                             break;
                     }
@@ -704,6 +712,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 updateDialogFragment.close();
                 if (string != null && !string.equals("")) {
                     Toast.makeText(getActivity(), string, Toast.LENGTH_LONG).show();
+                }
+                if (exceptions.isEmpty() && onSuccessCallback != null) {
+                    onSuccessCallback.onSuccess();
                 }
             }
         }.execute();
