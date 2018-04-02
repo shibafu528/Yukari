@@ -16,7 +16,7 @@
             android:id="@+id/ibCloseTweet"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/ic_close" />
+            android:src="@drawable/ic_close_d" />
     </shibafu.yukari.common.SelectorView>
 
     <shibafu.yukari.common.SelectorView
@@ -42,7 +42,8 @@
         android:layout_weight="1"
         android:paddingLeft="8dp"
         android:textSize="18sp"
-        android:maxLines="1"/>
+        android:maxLines="1"
+        android:textColor="@color/white"/>
 
     <shibafu.yukari.common.SelectorView
         android:layout_width="48dp"
@@ -53,6 +54,6 @@
             android:id="@+id/ibTweet"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/ic_prof_tweets" />
+            android:src="@drawable/ic_prof_tweets_d" />
     </shibafu.yukari.common.SelectorView>
 </LinearLayout>

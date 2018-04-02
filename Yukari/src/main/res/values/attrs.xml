@@ -40,7 +40,6 @@
     <attr name="tweetMorseDrawable" format="reference"/>
     <attr name="tweetNowPlayingDrawable" format="reference"/>
     <attr name="dialogStyle" format="reference"/>
-    <attr name="footerBarColor" format="color|reference"/>
     <attr name="pressDrawable" format="reference"/>
     <attr name="focusDrawable" format="reference"/>
     <attr name="colorPrimaryLight" format="color|reference"/>

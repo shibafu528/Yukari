@@ -7,14 +7,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/pager"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"/>
-
     <FrameLayout
         android:id="@+id/tweetgesture"
         android:layout_width="fill_parent"
@@ -22,7 +14,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:background="?attr/footerBarColor">
+        android:background="?attr/colorPrimary">
 
         <LinearLayout
             android:layout_width="fill_parent"
@@ -43,7 +35,7 @@
                     <shibafu.yukari.common.TriangleView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:id="@+id/streamState" />
+                        android:id="@+id/streamState"/>
                 </FrameLayout>
 
                 <shibafu.yukari.common.SelectorView
@@ -64,8 +56,8 @@
                         android:paddingBottom="4dp"
                         android:paddingTop="4dp"
                         android:scrollHorizontally="true"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:textColor="@android:color/primary_text_light" />
+                        android:textAppearance="@style/Yukari.TextAppearance.TabTitle"
+                        tools:text="Tab Name"/>
 
                 </shibafu.yukari.common.SelectorView>
             </LinearLayout>
@@ -94,7 +86,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:focusable="false"
-                        android:src="@drawable/ic_play"
+                        android:src="@drawable/ic_play_d"
                         android:visibility="invisible" />
                 </shibafu.yukari.common.SelectorView>
 
@@ -109,7 +101,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:focusable="false"
-                        android:src="@drawable/ic_close"
+                        android:src="@drawable/ic_close_d"
                         android:visibility="invisible" />
                 </shibafu.yukari.common.SelectorView>
 
@@ -124,7 +116,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:focusable="false"
-                        android:src="@drawable/ic_search" />
+                        android:src="@drawable/ic_search_d" />
                 </shibafu.yukari.common.SelectorView>
 
                 <shibafu.yukari.common.SelectorView
@@ -138,11 +130,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:focusable="false"
-                        android:src="@drawable/ic_action_overflow" />
+                        android:src="@drawable/ic_action_overflow_d" />
                 </shibafu.yukari.common.SelectorView>
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/tweetgesture"/>
 
     <LinearLayout
         android:id="@+id/llQuickTweet"
@@ -223,7 +224,7 @@
         android:layout_above="@+id/tweetgesture"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:background="@drawable/status_bar_color"
+        android:background="?attr/colorPrimary"
         android:visibility="gone">
 
         <shibafu.yukari.common.SelectorView
@@ -239,7 +240,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="@dimen/mainfooter_tweet_button"
-                android:src="@drawable/ic_prof_tweets" />
+                android:src="@drawable/ic_prof_tweets_d" />
         </shibafu.yukari.common.SelectorView>
 
         <ImageView

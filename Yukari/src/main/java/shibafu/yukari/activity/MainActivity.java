@@ -297,10 +297,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 boolean isStreaming = !((StreamToggleable) currentPage).isStreaming();
                 ((StreamToggleable) currentPage).setStreaming(isStreaming);
                 if (isStreaming) {
-                    ibStream.setImageResource(R.drawable.ic_play);
+                    ibStream.setImageResource(R.drawable.ic_play_d);
                 }
                 else {
-                    ibStream.setImageResource(R.drawable.ic_pause);
+                    ibStream.setImageResource(R.drawable.ic_pause_d);
                 }
             }
         });
@@ -742,9 +742,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             if (currentPage instanceof StreamToggleable) {
                 ibStream.setVisibility(View.VISIBLE);
                 if (((StreamToggleable) currentPage).isStreaming()) {
-                    ibStream.setImageResource(R.drawable.ic_play);
+                    ibStream.setImageResource(R.drawable.ic_play_d);
                 } else {
-                    ibStream.setImageResource(R.drawable.ic_pause);
+                    ibStream.setImageResource(R.drawable.ic_pause_d);
                 }
             } else {
                 ibStream.setVisibility(View.INVISIBLE);

@@ -10,7 +10,6 @@
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
 
-        <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
@@ -23,7 +22,6 @@
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
 
-        <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
@@ -50,7 +48,6 @@
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
 
-        <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
@@ -66,7 +63,6 @@
         <!-- ちょっと明るめの色が必要なのでここだけ別リソース -->
         <item name="selectorTextColor">@color/selector_key_yukari_dark_textcolor</item>
 
-        <item name="footerBarColor">@color/status_bar_color</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
     </style>
@@ -89,7 +85,6 @@
         <item name="colorPrimaryLight">@color/zunko_primary_light</item>
         <item name="colorAccent">@color/zunko_accent</item>
 
-        <item name="footerBarColor">@color/zunko_footer</item>
         <item name="pressDrawable">@drawable/zunko_press</item>
         <item name="focusDrawable">@drawable/zunko_focus</item>
     </style>
@@ -122,7 +117,6 @@
         <item name="colorPrimaryLight">@color/maki_primary_light</item>
         <item name="colorAccent">@color/maki_accent</item>
 
-        <item name="footerBarColor">@color/maki_footer</item>
         <item name="pressDrawable">@drawable/maki_press</item>
         <item name="focusDrawable">@drawable/maki_focus</item>
     </style>
@@ -156,7 +150,6 @@
         <item name="colorPrimaryLight">@color/aoi_primary_light</item>
         <item name="colorAccent">@color/aoi_accent</item>
 
-        <item name="footerBarColor">@color/aoi_footer</item>
         <item name="pressDrawable">@drawable/aoi_press</item>
         <item name="focusDrawable">@drawable/aoi_focus</item>
     </style>
@@ -190,7 +183,6 @@
         <item name="colorPrimaryLight">@color/akane_primary_light</item>
         <item name="colorAccent">@color/akane_accent</item>
 
-        <item name="footerBarColor">@color/akane_footer</item>
         <item name="pressDrawable">@drawable/akane_press</item>
         <item name="focusDrawable">@drawable/akane_focus</item>
     </style>
@@ -224,7 +216,6 @@
         <item name="colorPrimaryLight">@color/zunko_primary_light</item>
         <item name="colorAccent">@color/zunko_accent</item>
 
-        <item name="footerBarColor">@color/zunko_footer</item>
         <item name="pressDrawable">@drawable/zunko_press</item>
         <item name="focusDrawable">@drawable/zunko_focus</item>
     </style>
@@ -257,7 +248,6 @@
         <item name="colorPrimaryLight">@color/maki_primary_light</item>
         <item name="colorAccent">@color/maki_accent</item>
 
-        <item name="footerBarColor">@color/maki_footer</item>
         <item name="pressDrawable">@drawable/maki_press</item>
         <item name="focusDrawable">@drawable/maki_focus</item>
     </style>
@@ -291,7 +281,6 @@
         <item name="colorPrimaryLight">@color/aoi_primary_light</item>
         <item name="colorAccent">@color/aoi_accent</item>
 
-        <item name="footerBarColor">@color/aoi_footer</item>
         <item name="pressDrawable">@drawable/aoi_press</item>
         <item name="focusDrawable">@drawable/aoi_focus</item>
     </style>
@@ -325,7 +314,6 @@
         <item name="colorPrimaryLight">@color/akane_primary_light</item>
         <item name="colorAccent">@color/akane_accent</item>
 
-        <item name="footerBarColor">@color/akane_footer</item>
         <item name="pressDrawable">@drawable/akane_press</item>
         <item name="focusDrawable">@drawable/akane_focus</item>
     </style>

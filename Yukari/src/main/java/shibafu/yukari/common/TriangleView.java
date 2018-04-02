@@ -12,7 +12,7 @@ import android.view.View;
  * Created by shibafu on 15/02/07.
  */
 public class TriangleView extends View {
-    private int color = Color.BLACK;
+    private int color = Color.LTGRAY;
     private Paint paint = new Paint();
     private Path path;
 
