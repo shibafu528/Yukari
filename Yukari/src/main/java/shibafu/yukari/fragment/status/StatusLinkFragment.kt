@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.res.ResourcesCompat
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -162,8 +163,8 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                 val ibActions = view.findViewById(R.id.statuslink_actions)
                 ibActions.setOnClickListener { v ->
                     val menu = PopupMenu(context, v)
-                    row.actions.forEach { action ->
-                        val item = menu.menu.add(action.label)
+                    row.actions.forEachIndexed { index, action ->
+                        val item = menu.menu.add(Menu.NONE, index, index, action.label)
                         if (action.icon != null) {
                             item.icon = action.icon
                         }
@@ -350,7 +351,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                 ExtraAction(null, "DMを送る", {
                     Intent(activity, TweetActivity::class.java).apply {
                         putExtra(TweetActivity.EXTRA_USER, userRecord)
-                        putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+                        putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
                         putExtra(TweetActivity.EXTRA_IN_REPLY_TO, id)
                         putExtra(TweetActivity.EXTRA_DM_TARGET_SN, screenName)
                     }
