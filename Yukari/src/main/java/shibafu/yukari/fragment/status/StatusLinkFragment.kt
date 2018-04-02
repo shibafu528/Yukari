@@ -81,6 +81,8 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         status?.let { status ->
             // URL系情報のダブり検出用
             val existsUrl = mutableSetOf<String>()
+            // User系情報のダブり検出用
+            val existsUserId = mutableSetOf<Long>()
 
             // 添付画像
             status.media.forEach { media ->
@@ -120,13 +122,20 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
             // RTならRT者の情報
             if (status.isRepost) {
                 list += UserRow(status.user.id, status.user.screenName, status.user)
+                existsUserId += status.user.id
             }
 
             // 発言者の情報
-            list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
+            if (!existsUserId.contains(status.originStatus.user.id)) {
+                list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
+            }
 
             // メンション先の情報
             status.originStatus.mentions.forEach { mention ->
+                if (existsUserId.contains(mention.id)) {
+                    return@forEach
+                }
+
                 list += UserRow(mention.id, mention.screenName)
             }
         }
