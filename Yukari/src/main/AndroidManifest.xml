@@ -243,12 +243,6 @@
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
-            </intent-filter>
         </activity-alias>
 
         <activity
