@@ -38,9 +38,9 @@ import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
+import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
@@ -242,9 +242,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         }
                         true
                     }
-                    is TwitterStatus -> {
+                    is TwitterStatus, is DonStatus -> {
                         val intent = Intent(activity, StatusActivity::class.java)
-                        intent.putExtra(StatusActivity.EXTRA_STATUS, PreformedStatus(clickedElement.status, clickedElement.representUser))
+                        intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
                         intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
                         startActivity(intent)
                         true

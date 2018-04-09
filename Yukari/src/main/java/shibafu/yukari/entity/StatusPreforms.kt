@@ -1,5 +1,7 @@
 package shibafu.yukari.entity
 
+import android.os.Parcel
+import android.os.Parcelable
 import org.eclipse.collections.api.map.primitive.MutableLongBooleanMap
 import org.eclipse.collections.impl.map.mutable.primitive.LongBooleanHashMap
 import java.io.Serializable
@@ -7,7 +9,7 @@ import java.io.Serializable
 /**
  * 主に前処理の段階で決定しておく、ステータスのメタ情報など
  */
-class StatusPreforms : Serializable {
+class StatusPreforms : Serializable, Parcelable {
     /**
      * 表示すべきでないメディアを含んでいるかどうか
      */
@@ -33,4 +35,39 @@ class StatusPreforms : Serializable {
      */
     val isTooManyRepeatText: Boolean
         get() = repeatedSequence != null
+
+    //<editor-fold desc="Parcelable">
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+        dest?.let {
+            if (isCensoredThumbs) {
+                it.writeByte(1)
+            } else {
+                it.writeByte(0)
+            }
+            it.writeSerializable(repostRespondTo)
+            it.writeSerializable(favoritedUsers as Serializable)
+            it.writeString(repeatedSequence)
+        }
+    }
+
+    companion object {
+        @JvmField val CREATOR = object : Parcelable.Creator<StatusPreforms> {
+            override fun createFromParcel(source: Parcel?): StatusPreforms {
+                source!!
+                val sp = StatusPreforms()
+                sp.isCensoredThumbs = source.readByte() == 1.toByte()
+                sp.repostRespondTo = source.readSerializable() as Status?
+                sp.favoritedUsers = source.readSerializable() as MutableLongBooleanMap
+                sp.repeatedSequence = source.readString()
+                return sp
+            }
+
+            override fun newArray(size: Int): Array<StatusPreforms?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+    //</editor-fold>
 }

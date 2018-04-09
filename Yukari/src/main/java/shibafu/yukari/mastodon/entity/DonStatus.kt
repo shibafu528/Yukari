@@ -1,7 +1,10 @@
 package shibafu.yukari.mastodon.entity
 
+import android.os.Parcel
+import android.os.Parcelable
 import android.text.Html
 import android.text.format.Time
+import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
@@ -11,7 +14,9 @@ import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
 import shibafu.yukari.entity.Status as IStatus
 
-class DonStatus(val status: Status, override var representUser: AuthUserRecord) : IStatus {
+class DonStatus(val status: Status,
+                override var representUser: AuthUserRecord,
+                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable {
     override val id: Long
         get() = status.id
 
@@ -50,9 +55,42 @@ class DonStatus(val status: Status, override var representUser: AuthUserRecord) 
 
     override var repostsCount: Int = status.reblogsCount
 
-    override val metadata: StatusPreforms = StatusPreforms()
-
     override val providerApiType: Int = Provider.API_MASTODON
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+
+    //<editor-fold desc="Parcelable">
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel?, flags: Int) {
+        dest?.let {
+            it.writeString(Gson().toJson(status))
+            it.writeSerializable(representUser)
+            it.writeParcelable(metadata, 0)
+            it.writeInt(favoritesCount)
+            it.writeInt(repostsCount)
+            it.writeList(receivedUsers)
+        }
+    }
+
+    companion object {
+        @JvmField val CREATOR = object : Parcelable.Creator<DonStatus> {
+            override fun createFromParcel(source: Parcel?): DonStatus {
+                source!!
+                val status = Gson().fromJson(source.readString(), Status::class.java)
+                val representUser = source.readSerializable() as AuthUserRecord
+                val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)
+                val donStatus = DonStatus(status, representUser, metadata)
+                donStatus.favoritesCount = source.readInt()
+                donStatus.repostsCount = source.readInt()
+                donStatus.receivedUsers = source.readArrayList(this.javaClass.classLoader) as MutableList<AuthUserRecord>
+                return donStatus
+            }
+
+            override fun newArray(size: Int): Array<DonStatus?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
+    //</editor-fold>
 }

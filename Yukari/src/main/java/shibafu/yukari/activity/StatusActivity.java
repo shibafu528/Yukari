@@ -8,7 +8,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
@@ -18,12 +20,14 @@ import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
-import shibafu.yukari.fragment.status.StatusMainFragment;
+import shibafu.yukari.fragment.status.StatusMainFragment2;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.view.DonStatusView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
 
@@ -37,7 +41,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
     private AuthUserRecord user = null;
     private Status status = null;
 
-    private TweetView tweetView;
+    private StatusView tweetView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +85,8 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
         Intent args = getIntent();
         Object anyStatus = args.getSerializableExtra(EXTRA_STATUS);
-        if (anyStatus instanceof TwitterStatus) {
-            status = (TwitterStatus) anyStatus;
+        if (anyStatus instanceof Status) {
+            status = (Status) anyStatus;
         } else if (anyStatus instanceof PreformedStatus) {
             status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
         } else {
@@ -107,7 +111,15 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         mViewPager.setPageMargin(-getResources().getDimensionPixelSize(R.dimen.status_fragments_margin));
         mViewPager.setOffscreenPageLimit(3);
 
-        tweetView = (TweetView) findViewById(R.id.status_tweet);
+        FrameLayout statusViewFrame = (FrameLayout) findViewById(R.id.status_tweet);
+        if (status instanceof TwitterStatus) {
+            tweetView = new TweetView(this);
+        } else if (status instanceof DonStatus) {
+            tweetView = new DonStatusView(this);
+        } else {
+            throw new IllegalArgumentException(EXTRA_STATUS);
+        }
+        tweetView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         if (user != null) {
             tweetView.setUserRecords(user.toSingleList());
         }
@@ -122,6 +134,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
                 startActivity(intent);
             });
         }
+        statusViewFrame.addView(tweetView);
 
         TextView tvCounter = (TextView) findViewById(R.id.tv_state_counter);
         final int retweeted = status.getRepostsCount();
@@ -199,7 +212,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
                     f = new StatusLinkFragment();
                     break;
                 case 1:
-                    f = new StatusMainFragment();
+                    f = new StatusMainFragment2();
                     break;
                 case 2:
                     f = new StatusActionFragment();

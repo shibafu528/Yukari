@@ -22,11 +22,11 @@
             android:background="?attr/dialogStyle"
             android:orientation="vertical">
 
-            <shibafu.yukari.view.TweetView
+            <FrameLayout
                 android:id="@+id/status_tweet"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"/>
 
             <TextView
                 android:id="@+id/tv_state_counter"
