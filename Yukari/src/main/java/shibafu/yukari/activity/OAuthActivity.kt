@@ -127,7 +127,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     database.addAccount(userRecord)
                     val user = twitter.showUser(accessToken.userId)
                     database.updateAccountProfile(Provider.API_TWITTER.toLong(), accessToken.userId, user.screenName,
-                            user.name, user.profileImageURLHttps)
+                            user.name, user.originalProfileImageURLHttps)
 
                     twitterService.reloadUsers()
                     return true

@@ -60,7 +60,7 @@ public class UserUpdateDelayer {
                             database.get().updateRecord(new DBUser(user));
                             database.get().updateAccountProfile(Provider.API_TWITTER,
                                     user.getId(), user.getScreenName(), user.getName(),
-                                    user.getProfileImageURLHttps());
+                                    user.getOriginalProfileImageURLHttps());
                         }
                         database.get().setTransactionSuccessful();
                     } finally {
