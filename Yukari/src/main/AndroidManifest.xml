@@ -4,7 +4,7 @@
     package="shibafu.yukari"
     android:installLocation="auto"
     android:versionCode="96"
-    android:versionName="2.1.0.420-dev (linkage 180402)" >
+    android:versionName="2.1.0.421-dev (linkage 180409)" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -239,7 +239,6 @@
             android:label="@string/title_activity_open_aclog">
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
-                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_STATUS"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
@@ -261,12 +260,6 @@
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
-            </intent-filter>
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenFavstarActivity"
@@ -282,12 +275,6 @@
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
-            </intent-filter>
         </activity-alias>
         <activity-alias
             android:name=".plugin.OpenAclogUserActivity"
@@ -302,12 +289,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="jp.r246.twicca.category.OWNER"/>
                 <category android:name="jp.r246.twicca.category.USER"/>
-            </intent-filter>
-            <intent-filter>
-                <action android:name="twitterShareLibrary.lib.intent.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_OWNER"/>
-                <category android:name="twitterShareLibrary.lib.intent.CATEGORY_USER"/>
             </intent-filter>
         </activity-alias>
 
