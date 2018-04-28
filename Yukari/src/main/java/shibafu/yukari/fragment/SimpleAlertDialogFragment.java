@@ -31,20 +31,6 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
         void onDialogChose(int requestCode, int which, @Nullable Bundle extras);
     }
 
-    @Deprecated
-    public static SimpleAlertDialogFragment newInstance(
-            String title, String message, String positive, String negative) {
-        SimpleAlertDialogFragment fragment = new SimpleAlertDialogFragment();
-        Bundle args = new Bundle();
-        args.putBoolean("compat", true);
-        args.putString(ARG_TITLE, title);
-        args.putString(ARG_MESSAGE, message);
-        args.putString(ARG_POSITIVE, positive);
-        args.putString(ARG_NEGATIVE, negative);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     public static SimpleAlertDialogFragment newInstance(
             int requestCode,
             String title, String message, String positive, String negative) {
@@ -135,36 +121,19 @@ public class SimpleAlertDialogFragment extends DialogFragment implements DialogI
     public void onClick(DialogInterface dialogInterface, int i) {
         dismiss();
 
-        if (getArguments().getBoolean("compat")) {
-            DialogInterface.OnClickListener listener = null;
-            if (getParentFragment() != null &&
-                    getParentFragment() instanceof DialogInterface.OnClickListener) {
-                listener = (DialogInterface.OnClickListener) getParentFragment();
-            } else if (getTargetFragment() != null &&
-                    getTargetFragment() instanceof DialogInterface.OnClickListener) {
-                listener = (DialogInterface.OnClickListener) getTargetFragment();
-            } else if (getActivity() != null && getActivity() instanceof DialogInterface.OnClickListener) {
-                listener = (DialogInterface.OnClickListener) getActivity();
-            }
+        OnDialogChoseListener listener = null;
+        if (getParentFragment() != null &&
+                getParentFragment() instanceof OnDialogChoseListener) {
+            listener = (OnDialogChoseListener) getParentFragment();
+        } else if (getTargetFragment() != null &&
+                getTargetFragment() instanceof OnDialogChoseListener) {
+            listener = (OnDialogChoseListener) getTargetFragment();
+        } else if (getActivity() != null && getActivity() instanceof OnDialogChoseListener) {
+            listener = (OnDialogChoseListener) getActivity();
+        }
 
-            if (listener != null) {
-                listener.onClick(dialogInterface, i);
-            }
-        } else {
-            OnDialogChoseListener listener = null;
-            if (getParentFragment() != null &&
-                    getParentFragment() instanceof OnDialogChoseListener) {
-                listener = (OnDialogChoseListener) getParentFragment();
-            } else if (getTargetFragment() != null &&
-                    getTargetFragment() instanceof OnDialogChoseListener) {
-                listener = (OnDialogChoseListener) getTargetFragment();
-            } else if (getActivity() != null && getActivity() instanceof OnDialogChoseListener) {
-                listener = (OnDialogChoseListener) getActivity();
-            }
-
-            if (listener != null) {
-                listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, getArguments().getBundle(ARG_EXTRAS));
-            }
+        if (listener != null) {
+            listener.onDialogChose(getArguments().getInt(ARG_REQUEST_CODE), i, getArguments().getBundle(ARG_EXTRAS));
         }
     }
 

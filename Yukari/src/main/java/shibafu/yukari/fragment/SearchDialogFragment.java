@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -327,7 +328,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     public static class HistoryFragment extends SearchChildFragment
-            implements AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener {
+            implements AdapterView.OnItemLongClickListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+        private static final int DIALOG_CONFIRM = 1;
+
         private List<SearchHistory> searchHistories;
         private AsyncTask<Void, Void, List<SearchHistory>> task;
         private SearchHistory selected;
@@ -378,6 +381,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
             selected = searchHistories.get(position);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    DIALOG_CONFIRM,
                     "確認",
                     String.format("次の検索履歴を削除します\n%s", selected.getQuery()),
                     "OK",
@@ -389,12 +393,13 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         @Override
-        //DialogInterface.OnClickListener
-        public void onClick(DialogInterface dialog, int which) {
-            if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
-                getService().getDatabase().deleteRecord(selected);
-                Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
-                reloadHistory();
+        public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+            if (requestCode == DIALOG_CONFIRM) {
+                if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
+                    getService().getDatabase().deleteRecord(selected);
+                    Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
+                    reloadHistory();
+                }
             }
         }
     }
@@ -489,7 +494,9 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     }
 
     public static class SavedSearchFragment extends SearchChildFragment
-            implements AdapterView.OnItemLongClickListener, DialogInterface.OnClickListener {
+            implements AdapterView.OnItemLongClickListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+        private static final int DIALOG_CONFIRM = 1;
+
         private ArrayList<SavedSearch> savedSearches;
         private SavedSearch selected;
         private SavedSearchFragment.SavedSearchAdapter adapter;
@@ -583,6 +590,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
             selected = savedSearches.get(i);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    DIALOG_CONFIRM,
                     "確認",
                     String.format("次の保存された検索を削除します\n%s", selected.getName()),
                     "OK",
@@ -594,40 +602,41 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
 
         @Override
-        //DialogInterface.OnClickListener
-        public void onClick(DialogInterface dialogInterface, int i) {
-            if (selected != null && i == DialogInterface.BUTTON_POSITIVE) {
-                TwitterAsyncTask<SavedSearch> task = new TwitterAsyncTask<SavedSearch>(getActivity().getApplicationContext()) {
-                    private SavedSearch savedSearch;
+        public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+            if (requestCode == DIALOG_CONFIRM) {
+                if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
+                    TwitterAsyncTask<SavedSearch> task = new TwitterAsyncTask<SavedSearch>(getActivity().getApplicationContext()) {
+                        private SavedSearch savedSearch;
 
-                    @Override
-                    protected TwitterException doInBackground(SavedSearch... savedSearches) {
-                        savedSearch = savedSearches[0];
-                        try {
-                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
-                            if (twitter != null) {
-                                twitter.destroySavedSearch(savedSearch.getId());
+                        @Override
+                        protected TwitterException doInBackground(SavedSearch... savedSearches) {
+                            savedSearch = savedSearches[0];
+                            try {
+                                Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                                if (twitter != null) {
+                                    twitter.destroySavedSearch(savedSearch.getId());
+                                }
+                            } catch (TwitterException e) {
+                                e.printStackTrace();
+                                return e;
                             }
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return e;
+                            return null;
                         }
-                        return null;
-                    }
 
-                    @Override
-                    protected void onPostExecute(TwitterException e) {
-                        super.onPostExecute(e);
-                        if (e == null) {
-                            Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
-                            if (!isDetached() && adapter != null) {
-                                savedSearches.remove(savedSearch);
-                                adapter.notifyDataSetChanged();
+                        @Override
+                        protected void onPostExecute(TwitterException e) {
+                            super.onPostExecute(e);
+                            if (e == null) {
+                                Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
+                                if (!isDetached() && adapter != null) {
+                                    savedSearches.remove(savedSearch);
+                                    adapter.notifyDataSetChanged();
+                                }
                             }
                         }
-                    }
-                };
-                task.execute(selected);
+                    };
+                    task.execute(selected);
+                }
             }
         }
 

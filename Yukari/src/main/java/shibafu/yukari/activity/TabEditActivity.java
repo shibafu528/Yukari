@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
@@ -45,9 +46,10 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/28.
  */
-public class TabEditActivity extends ActionBarYukariBase implements DialogInterface.OnClickListener{
+public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
     private static final String FRAGMENT_TAG = "inner";
+    private static final int DIALOG_FINISH = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,13 +66,15 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
     @Override
     public void onBackPressed() {
         SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                "Info", "変更はアプリの再起動後に適用されます", "OK", null);
+                0, "Info", "変更はアプリの再起動後に適用されます", "OK", null);
         dialogFragment.show(getSupportFragmentManager(), "dialog");
     }
 
     @Override
-    public void onClick(DialogInterface dialog, int which) {
-        finish();
+    public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+        if (requestCode == DIALOG_FINISH) {
+            finish();
+        }
     }
 
     public void addTab(int type) {
@@ -129,8 +133,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
 
     }
 
-    public static class InnerFragment extends ListFragment implements DialogInterface.OnClickListener {
+    public static class InnerFragment extends ListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
+        private static final int DIALOG_CONFIRM = 1;
         private static final int REQUEST_EDIT_QUERY = 1;
         private static final String EXTRA_ID = "id";
 
@@ -244,9 +249,9 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         public void onListItemClick(ListView l, View v, int position, long id) {
             deleteReserve = tabs.get(position);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    "確認", "タブを削除しますか?", "OK", "キャンセル"
+                    DIALOG_CONFIRM, "確認", "タブを削除しますか?", "OK", "キャンセル"
             );
-            dialogFragment.setTargetFragment(this, 1);
+            dialogFragment.setTargetFragment(this, DIALOG_CONFIRM);
             dialogFragment.show(getChildFragmentManager(), "alert");
         }
 
@@ -300,14 +305,16 @@ public class TabEditActivity extends ActionBarYukariBase implements DialogInterf
         }
 
         @Override
-        public void onClick(DialogInterface dialog, int which) {
-            if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
-                ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
-                        .deleteRecord(deleteReserve);
-                reloadList();
-                Toast.makeText(getActivity(), "タブを削除しました", Toast.LENGTH_LONG).show();
+        public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+            if (requestCode == DIALOG_CONFIRM) {
+                if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
+                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
+                            .deleteRecord(deleteReserve);
+                    reloadList();
+                    Toast.makeText(getActivity(), "タブを削除しました", Toast.LENGTH_LONG).show();
+                }
+                deleteReserve = null;
             }
-            deleteReserve = null;
         }
 
         private void startDrag(TabInfo tabInfo) {

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -473,11 +474,14 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         }
     }
 
-    public static class MessageDeleteFragment extends Fragment implements DialogInterface.OnClickListener{
+    public static class MessageDeleteFragment extends Fragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
+        private static final int DIALOG_CONFIRM = 1;
+
         @Override
         public void onAttach(Context context) {
             super.onAttach(context);
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    DIALOG_CONFIRM,
                     "確認",
                     "メッセージを削除してもよろしいですか？",
                     "OK",
@@ -487,14 +491,16 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         }
 
         @Override
-        public void onClick(DialogInterface dialog, int which) {
-            if (which == DialogInterface.BUTTON_POSITIVE) {
-                Bundle args = getArguments();
-                DirectMessage message = (DirectMessage) args.getSerializable("message");
-                ((MessageListFragment) getTargetFragment()).requestDeleteMessage(message);
-            }
-            else {
-                ((MessageListFragment) getTargetFragment()).cancelledDeleteMessage();
+        public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+            if (requestCode == DIALOG_CONFIRM) {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    Bundle args = getArguments();
+                    DirectMessage message = (DirectMessage) args.getSerializable("message");
+                    ((MessageListFragment) getTargetFragment()).requestDeleteMessage(message);
+                }
+                else {
+                    ((MessageListFragment) getTargetFragment()).cancelledDeleteMessage();
+                }
             }
         }
     }
