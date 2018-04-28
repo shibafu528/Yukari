@@ -39,13 +39,13 @@ import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
 
 class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
-    private val status: Status?
+    private val status: Status
         get() {
             val activity = this.activity
             if (activity is StatusUI) {
                 return activity.status
             }
-            return null
+            throw IllegalStateException("親Activityに${StatusUI::class.java.simpleName}が実装されていないか、こいつが孤児.")
         }
 
     private var userRecord: AuthUserRecord?
@@ -75,69 +75,68 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        val status = status
 
         // リスト要素の作成
         val list = arrayListOf<Row>()
-        status?.let { status ->
-            // URL系情報のダブり検出用
-            val existsUrl = mutableSetOf<String>()
-            // User系情報のダブり検出用
-            val existsUserId = mutableSetOf<Long>()
+        // URL系情報のダブり検出用
+        val existsUrl = mutableSetOf<String>()
+        // User系情報のダブり検出用
+        val existsUserId = mutableSetOf<Long>()
 
-            // 添付画像
-            status.media.forEach { media ->
-                if (existsUrl.contains(media.browseUrl)) {
-                    return@forEach
-                }
-
-                list += MediaRow(media)
-                existsUrl += media.browseUrl
+        // 添付画像
+        status.media.forEach { media ->
+            if (existsUrl.contains(media.browseUrl)) {
+                return@forEach
             }
 
-            // URL
-            status.links.forEach { link ->
-                if (existsUrl.contains(link)) {
-                    return@forEach
-                }
+            list += MediaRow(media)
+            existsUrl += media.browseUrl
+        }
 
-                list += LinkRow(link)
-                existsUrl += link
+        // URL
+        status.links.forEach { link ->
+            if (existsUrl.contains(link)) {
+                return@forEach
             }
 
-            // ハッシュタグ
-            status.tags.forEach { tag ->
-                list += TagRow("#" + tag)
+            list += LinkRow(link)
+            existsUrl += link
+        }
+
+        // ハッシュタグ
+        status.tags.forEach { tag ->
+            list += TagRow("#" + tag)
+        }
+
+        // (Twitter) 位置情報
+        if (status is TwitterStatus && status.status.geoLocation != null) {
+            list += GeoLocationRow(status.status.geoLocation)
+        }
+
+        // 会話
+        if (status.inReplyToId > -1) {
+            list += TraceRow()
+        }
+
+        // RTならRT者の情報
+        if (status.isRepost) {
+            list += UserRow(status.user.id, status.user.screenName, status.user)
+            existsUserId += status.user.id
+        }
+
+        // 発言者の情報
+        if (!existsUserId.contains(status.originStatus.user.id)) {
+            list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
+        }
+
+        // メンション先の情報
+        status.originStatus.mentions.forEach { mention ->
+            if (existsUserId.contains(mention.id)) {
+                return@forEach
             }
 
-            // (Twitter) 位置情報
-            if (status is TwitterStatus && status.status.geoLocation != null) {
-                list += GeoLocationRow(status.status.geoLocation)
-            }
-
-            // 会話
-            if (status.inReplyToId > -1) {
-                list += TraceRow()
-            }
-
-            // RTならRT者の情報
-            if (status.isRepost) {
-                list += UserRow(status.user.id, status.user.screenName, status.user)
-                existsUserId += status.user.id
-            }
-
-            // 発言者の情報
-            if (!existsUserId.contains(status.originStatus.user.id)) {
-                list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
-            }
-
-            // メンション先の情報
-            status.originStatus.mentions.forEach { mention ->
-                if (existsUserId.contains(mention.id)) {
-                    return@forEach
-                }
-
-                list += UserRow(mention.id, mention.screenName)
-            }
+            list += UserRow(mention.id, mention.screenName)
         }
 
         listAdapter = RowAdapter(activity, list)

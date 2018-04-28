@@ -87,13 +87,13 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
     )
 
-    private val status: Status?
+    private val status: Status
         get() {
             val activity = this.activity
             if (activity is StatusUI) {
                 return activity.status
             }
-            return null
+            throw IllegalStateException("親Activityに${StatusUI::class.java.simpleName}が実装されていないか、こいつが孤児.")
         }
 
     private var userRecord: AuthUserRecord?
