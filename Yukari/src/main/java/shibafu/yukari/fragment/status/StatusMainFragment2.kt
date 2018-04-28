@@ -176,24 +176,27 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         val status = status
         val userRecord = userRecord ?: return
 
-        // TODO: ダイアログBundleないと引数保存が…
         if (!skipCheck) {
             if (defaultSharedPreferences.getBoolean("pref_guard_nuisance", true) && NUISANCES.contains(status.source)) {
-                val dialog = SimpleAlertDialogFragment.newInstance(DIALOG_FAVORITE_NUISANCE,
-                        "確認",
-                        "このツイートは${status.originStatus}を使用して投稿されています。お気に入り登録してもよろしいですか？",
-                        "ふぁぼる",
-                        "本文で検索",
-                        "キャンセル")
+                val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAVORITE_NUISANCE)
+                        .setTitle("確認")
+                        .setMessage("このツイートは${status.originStatus}を使用して投稿されています。お気に入り登録してもよろしいですか？")
+                        .setPositive("ふぁぼる")
+                        .setNeutral("本文で検索")
+                        .setNegative("キャンセル")
+                        .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
+                        .build()
                 dialog.setTargetFragment(this, DIALOG_FAVORITE_NUISANCE)
                 dialog.show(childFragmentManager, "dialog_favorite_nuisance")
                 return
             } else if (defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
-                val dialog = SimpleAlertDialogFragment.newInstance(DIALOG_FAVORITE_CONFIRM,
-                        "確認",
-                        "お気に入り登録しますか？",
-                        "OK",
-                        "キャンセル")
+                val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAVORITE_CONFIRM)
+                        .setTitle("確認")
+                        .setMessage("お気に入り登録しますか？")
+                        .setPositive("OK")
+                        .setNegative("キャンセル")
+                        .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
+                        .build()
                 dialog.setTargetFragment(this, DIALOG_FAVORITE_CONFIRM)
                 dialog.show(childFragmentManager, "dialog_favorite_confirm")
                 return
