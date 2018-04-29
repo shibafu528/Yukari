@@ -56,6 +56,7 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.TimelineHub;
+import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -136,7 +137,8 @@ public class TwitterService extends Service{
 
     //API
     private ProviderApi[] providerApis = {
-            new TwitterApi()
+            new TwitterApi(),
+            new MastodonApi()
     };
 
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {

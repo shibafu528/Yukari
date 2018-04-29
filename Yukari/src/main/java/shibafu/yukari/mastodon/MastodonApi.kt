@@ -1,14 +1,17 @@
-package shibafu.yukari.twitter
+package shibafu.yukari.mastodon
 
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import com.sys1yagi.mastodon4j.MastodonClient
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
+import com.sys1yagi.mastodon4j.api.method.Statuses
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.service.TwitterService
-import twitter4j.TwitterException
+import shibafu.yukari.twitter.AuthUserRecord
 
-class TwitterApi : ProviderApi {
+class MastodonApi : ProviderApi {
     private lateinit var service: TwitterService
 
     override fun onCreate(service: TwitterService) {
@@ -20,13 +23,14 @@ class TwitterApi : ProviderApi {
     }
 
     override fun createFavorite(userRecord: AuthUserRecord, status: Status) {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
-            twitter.createFavorite(status.id)
+            val statuses = Statuses(client)
+            statuses.postFavourite(status.id).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: TwitterException) {
+        } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
@@ -35,13 +39,14 @@ class TwitterApi : ProviderApi {
     }
 
     override fun destroyFavorite(userRecord: AuthUserRecord, status: Status) {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
-            twitter.destroyFavorite(status.id)
+            val statuses = Statuses(client)
+            statuses.postUnfavourite(status.id).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: TwitterException) {
+        } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
