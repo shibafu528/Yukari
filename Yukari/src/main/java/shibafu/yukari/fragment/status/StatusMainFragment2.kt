@@ -96,6 +96,17 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             }
         }
 
+        ibRetweet.setOnClickListener {
+            val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
+                    .setTitle("確認")
+                    .setMessage("リツイートしますか？")
+                    .setPositive("OK")
+                    .setNegative("キャンセル")
+                    .build()
+            dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
+            dialog.show(childFragmentManager, "dialog_repost_confirm")
+        }
+
         return v
     }
 
@@ -161,6 +172,16 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             DIALOG_FAVORITE_CONFIRM -> {
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     createFavorite(withQuotes = extras?.getBoolean("withQuotes") ?: false, skipCheck = true)
+                }
+            }
+            DIALOG_REPOST_CONFIRM -> {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    val userRecord = userRecord ?: return
+
+                    val intent = AsyncCommandService.createRepost(activity, status, userRecord)
+                    activity.startService(intent)
+
+                    closeAfterFavorite()
                 }
             }
         }
@@ -243,5 +264,6 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
 
         private const val DIALOG_FAVORITE_NUISANCE = 1
         private const val DIALOG_FAVORITE_CONFIRM = 2
+        private const val DIALOG_REPOST_CONFIRM = 3
     }
 }

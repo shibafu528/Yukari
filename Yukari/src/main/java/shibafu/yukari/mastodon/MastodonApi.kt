@@ -53,4 +53,20 @@ class MastodonApi : ProviderApi {
             }
         }
     }
+
+    override fun repostStatus(userRecord: AuthUserRecord, status: Status) {
+        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        try {
+            val statuses = Statuses(client)
+            statuses.postReblog(status.id).execute()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Mastodon4jRequestException) {
+            e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ブーストに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }

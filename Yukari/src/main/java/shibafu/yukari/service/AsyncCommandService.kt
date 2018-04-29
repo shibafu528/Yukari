@@ -61,7 +61,7 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
             when (action) {
                 ACTION_FAVORITE -> api.createFavorite(user, targetStatus)
                 ACTION_UNFAVORITE -> api.destroyFavorite(user, targetStatus)
-                ACTION_RETWEET -> TODO()
+                ACTION_RETWEET -> api.repostStatus(user, targetStatus)
                 ACTION_FAVRT -> TODO()
             }
         } else {
@@ -123,6 +123,14 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
 
         @JvmStatic fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_RETWEET, id, user)
+
+        @JvmStatic fun createRepost(context: Context, status: Status, user: AuthUserRecord): Intent =
+                Intent(context, AsyncCommandService::class.java).apply {
+                    action = ACTION_RETWEET
+                    putExtra(EXTRA_TARGET_STATUS, status)
+                    putExtra(EXTRA_USER, user)
+                }
+
         @JvmStatic fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVRT, id, user)
     }

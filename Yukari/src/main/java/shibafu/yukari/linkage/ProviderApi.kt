@@ -13,4 +13,6 @@ interface ProviderApi {
 
     fun createFavorite(userRecord: AuthUserRecord, status: Status)
     fun destroyFavorite(userRecord: AuthUserRecord, status: Status)
+
+    fun repostStatus(userRecord: AuthUserRecord, status: Status)
 }
