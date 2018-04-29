@@ -203,8 +203,7 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             }
         }
 
-        // TODO: Twitter専用とか(笑)
-        val intent = AsyncCommandService.createFavorite(activity, status.id, userRecord)
+        val intent = AsyncCommandService.createFavorite(activity, status, userRecord)
         activity.startService(intent)
 
         if (withQuotes && status is TwitterStatus) {
@@ -220,8 +219,7 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
     private fun destroyFavorite() {
         val userRecord = userRecord ?: return
 
-        // TODO: Twitter専用とか(笑)
-        val intent = AsyncCommandService.destroyFavorite(activity, status.id, userRecord)
+        val intent = AsyncCommandService.destroyFavorite(activity, status, userRecord)
         activity.startService(intent)
 
         closeAfterFavorite()

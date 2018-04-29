@@ -53,11 +53,13 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
+import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -132,6 +134,11 @@ public class TwitterService extends Service{
     private StatusManager statusManager;
     private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
 
+    //API
+    private ProviderApi[] providerApis = {
+            new TwitterApi()
+    };
+
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -190,6 +197,11 @@ public class TwitterService extends Service{
 
         //TwitterFactoryの生成
         twitterFactory = TwitterUtil.getTwitterFactory(this);
+
+        //APIインスタンスの生成
+        for (ProviderApi api : providerApis) {
+            api.onCreate(this);
+        }
 
         //データベースのオープン
         database = new CentralDatabase(this).open();
@@ -381,6 +393,10 @@ public class TwitterService extends Service{
         statusLoader.cancelAll();
         statusLoader = null;
         timelineHub = null;
+
+        for (ProviderApi api : providerApis) {
+            api.onDestroy();
+        }
 
         twitterInstances.clear();
         twitterFactory = null;
@@ -722,6 +738,15 @@ public class TwitterService extends Service{
         return builder.build();
     }
 
+    @Nullable
+    public ProviderApi getProviderApi(@NonNull AuthUserRecord userRecord) {
+        int apiType = userRecord.Provider.getApiType();
+        if (0 <= apiType && apiType < providerApis.length) {
+            return providerApis[apiType];
+        }
+        return null;
+    }
+
     public StatusLoader getStatusLoader() {
         return statusLoader;
     }
@@ -821,6 +846,9 @@ public class TwitterService extends Service{
         }
     }
 
+    /**
+     * @deprecated Use {@link ProviderApi#createFavorite(AuthUserRecord, shibafu.yukari.entity.Status)}
+     */
     public void createFavorite(AuthUserRecord user, long id){
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
@@ -838,6 +866,9 @@ public class TwitterService extends Service{
         }
     }
 
+    /**
+     * @deprecated Use {@link ProviderApi#destroyFavorite(AuthUserRecord, shibafu.yukari.entity.Status)}
+     */
     public void destroyFavorite(AuthUserRecord user, long id) {
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");

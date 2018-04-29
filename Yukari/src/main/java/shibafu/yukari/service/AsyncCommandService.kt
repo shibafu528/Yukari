@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import shibafu.yukari.BuildConfig
+import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.Status
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putErrorLog
@@ -14,7 +16,7 @@ import shibafu.yukari.util.putErrorLog
 /**
  * Created by shibafu on 2015/09/15.
  */
-public class AsyncCommandService : IntentService("AsyncCommandService") {
+class AsyncCommandService : IntentService("AsyncCommandService") {
     private var service: TwitterService? = null
     private var serviceBound: Boolean = false
 
@@ -28,11 +30,12 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
         //ActionとExtraの取得
         val action = intent.action
         val id = intent.getLongExtra(EXTRA_ID, -1)
+        val targetStatus = intent.getSerializableExtra(EXTRA_TARGET_STATUS) as? Status
         val user = intent.getSerializableExtra(EXTRA_USER) as? AuthUserRecord
 
-        if (action == null || id < 0 || user == null) {
+        if (action == null || (id < 0 && targetStatus == null) || user == null) {
             putErrorLog("Intentのパラメータが欠けてる \n" + intent.toString())
-            if (BuildConfig.DEBUG) throw IllegalArgumentException("action: $action; id: $id; user: $user")
+            if (BuildConfig.DEBUG) throw IllegalArgumentException("action: $action; id: $id; targetStatus: $targetStatus; user: $user")
             return
         }
 
@@ -46,13 +49,36 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
         }
 
         //処理を実行
-        when (action) {
-            ACTION_FAVORITE -> service!!.createFavorite(user, id)
-            ACTION_UNFAVORITE -> service!!.destroyFavorite(user, id)
-            ACTION_RETWEET -> service!!.retweetStatus(user, id)
-            ACTION_FAVRT -> service!!.let {
-                it.createFavorite(user, id)
-                it.retweetStatus(user, id)
+        val service = service!!
+        if (targetStatus != null) {
+            val api = service.getProviderApi(user)
+            if (api == null) {
+                putErrorLog("ProviderApiがぬるぬるしてる \n" + intent.toString())
+                if (BuildConfig.DEBUG) throw IllegalArgumentException("apiType: ${user.Provider.apiType}; user: $user")
+                return
+            }
+
+            when (action) {
+                ACTION_FAVORITE -> api.createFavorite(user, targetStatus)
+                ACTION_UNFAVORITE -> api.destroyFavorite(user, targetStatus)
+                ACTION_RETWEET -> TODO()
+                ACTION_FAVRT -> TODO()
+            }
+        } else {
+            if (user.Provider.apiType != Provider.API_TWITTER) {
+                putErrorLog("Twitter Account以外での64bit ID依存APIコール \n" + intent.toString())
+                if (BuildConfig.DEBUG) throw IllegalArgumentException("user: $user")
+                return
+            }
+
+            when (action) {
+                ACTION_FAVORITE -> service.createFavorite(user, id)
+                ACTION_UNFAVORITE -> service.destroyFavorite(user, id)
+                ACTION_RETWEET -> service.retweetStatus(user, id)
+                ACTION_FAVRT -> {
+                    service.createFavorite(user, id)
+                    service.retweetStatus(user, id)
+                }
             }
         }
     }
@@ -65,6 +91,7 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
 
         private val EXTRA_ID = "id"
         private val EXTRA_USER = "user"
+        private val EXTRA_TARGET_STATUS = "targetStatus"
 
         private fun createIntent(context: Context, action: String, id: Long, user: AuthUserRecord): Intent {
             val intent = Intent(context, AsyncCommandService::class.java)
@@ -74,18 +101,30 @@ public class AsyncCommandService : IntentService("AsyncCommandService") {
             return intent
         }
 
-        @JvmStatic public fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVORITE, id, user)
 
-        @JvmStatic public fun destroyFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic fun createFavorite(context: Context, status: Status, user: AuthUserRecord): Intent =
+                Intent(context, AsyncCommandService::class.java).apply {
+                    action = ACTION_FAVORITE
+                    putExtra(EXTRA_TARGET_STATUS, status)
+                    putExtra(EXTRA_USER, user)
+                }
+
+        @JvmStatic fun destroyFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_UNFAVORITE, id, user)
 
-        @JvmStatic public fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic fun destroyFavorite(context: Context, status: Status, user: AuthUserRecord): Intent =
+                Intent(context, AsyncCommandService::class.java).apply {
+                    action = ACTION_UNFAVORITE
+                    putExtra(EXTRA_TARGET_STATUS, status)
+                    putExtra(EXTRA_USER, user)
+                }
+
+        @JvmStatic fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_RETWEET, id, user)
-
-        @JvmStatic public fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
+        @JvmStatic fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVRT, id, user)
-
     }
 
     //<editor-fold desc="Service Binder">
