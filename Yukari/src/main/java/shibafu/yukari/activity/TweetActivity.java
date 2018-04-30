@@ -2,11 +2,9 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -52,6 +50,9 @@ import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sys1yagi.mastodon4j.MastodonClient;
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
+import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.twitter.Extractor;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import info.shibafu528.yukari.exvoice.MRubyException;
@@ -63,20 +64,24 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.entity.Status;
+import shibafu.yukari.entity.StatusPreforms;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
+import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidatorFactory;
+import shibafu.yukari.twitter.entity.TwitterStatus;
+import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.PostValidator;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
-import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
@@ -276,7 +281,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         final Intent args = getIntent();
 
         //statusを取得する (EXTRA_STATUS)
-        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
+        Object status = args.getSerializableExtra(EXTRA_STATUS);
+        if (status instanceof PreformedStatus) {
+            this.status = new TwitterStatus((PreformedStatus) status, ((PreformedStatus) status).getRepresentUser());
+        } else {
+            this.status = (Status) status;
+        }
 
         if (savedInstanceState != null) {
             restoreState(savedInstanceState);
@@ -399,11 +409,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                         Thread.sleep(100);
                                     } catch (InterruptedException ignore) {}
                                 }
-                                Twitter twitter = getTwitterService().getTwitterOrPrimary(user);
-                                if (twitter != null) {
-                                    status = twitter.showStatus(inReplyTo);
+
+                                Object client = getTwitterService().getApiClient(user);
+                                if (client instanceof Twitter) {
+                                    status = new TwitterStatus(((Twitter) client).showStatus(inReplyTo), user);
+                                } else if (client instanceof MastodonClient) {
+                                    Statuses statuses = new Statuses((MastodonClient) client);
+                                    status = new DonStatus(statuses.getStatus(inReplyTo).execute(), user, new StatusPreforms());
                                 }
-                            } catch (TwitterException ignored) {}
+                            } catch (TwitterException ignored) {
+                            } catch (Mastodon4jRequestException ignored) {
+                            }
                             return null;
                         }
 
@@ -876,7 +892,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     private void showQuotedStatus() {
         if (status != null) {
-            Status s = status.isRetweet() ? status.getRetweetedStatus() : status;
+            Status s = status.getOriginStatus();
             tvTitle.setText(String.format("Reply >> @%s: %s", s.getUser().getScreenName(), s.getText()));
         } else {
             tvTitle.setText("Reply >> load failed. (deleted or temporary error)");
