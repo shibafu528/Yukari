@@ -34,6 +34,8 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_MULTIPLE_CHOOSE = "multiple_choose";
     //CKCSオーバライド済アカウントのみにフィルタする
     public static final String EXTRA_FILTER_CONSUMER_OVERRODE = "consumer_overrode";
+    //API Typeでフィルタする
+    public static final String EXTRA_FILTER_PROVIDER_API_TYPE = "provider_api_type";
 
     public static final String EXTRA_SELECTED_USERSN = "selected_sn";
     public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
@@ -45,6 +47,8 @@ public class AccountChooserActivity extends ListYukariBase {
 
     private boolean isMultipleChoose = false;
     private boolean isFilterConsumerOverrode = false;
+    private boolean isFilterProviderApiType = false;
+    private int filterProviderApiType = 0;
     private List<Long> defaultSelectedUserIds = new ArrayList<>();
 
     private Adapter adapter;
@@ -63,6 +67,8 @@ public class AccountChooserActivity extends ListYukariBase {
 
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
         isFilterConsumerOverrode = args.getBooleanExtra(EXTRA_FILTER_CONSUMER_OVERRODE, false);
+        isFilterProviderApiType = args.hasExtra(EXTRA_FILTER_PROVIDER_API_TYPE);
+        filterProviderApiType = args.getIntExtra(EXTRA_FILTER_PROVIDER_API_TYPE, 0);
         setFinishOnTouchOutside(!isMultipleChoose);
 
         long[] defaultSelected = args.getLongArrayExtra(EXTRA_SELECTED_USERS);
@@ -121,7 +127,9 @@ public class AccountChooserActivity extends ListYukariBase {
         for (AuthUserRecord userRecord : users) {
             isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
             if (!isFilterConsumerOverrode || !userRecord.isDefaultConsumer()) {
-                dataList.add(new Data(userRecord, isSelected));
+                if (!isFilterProviderApiType || userRecord.Provider.getApiType() == filterProviderApiType) {
+                    dataList.add(new Data(userRecord, isSelected));
+                }
             }
         }
         adapter = new Adapter(AccountChooserActivity.this, dataList);

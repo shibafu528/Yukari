@@ -205,6 +205,7 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             // TODO: 同じProvider API Typeを持ったものだけを選択可能にするか、あるいは変更後に操作互換性判定が必要かな
             val intent = Intent(activity, AccountChooserActivity::class.java)
             intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え")
+            intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, status.providerApiType)
             startActivityForResult(intent, REQUEST_CHANGE_ACCOUNT)
         }
 
