@@ -2,6 +2,7 @@ package shibafu.yukari.fragment.status
 
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -14,16 +15,19 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import shibafu.yukari.R
+import shibafu.yukari.activity.AccountChooserActivity
 import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
+import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.TwitterFragment
 import shibafu.yukari.service.AsyncCommandService
+import shibafu.yukari.service.PostService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.defaultSharedPreferences
@@ -197,6 +201,13 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             startActivity(intent)
         }
 
+        ibAccount.setOnClickListener {
+            // TODO: 同じProvider API Typeを持ったものだけを選択可能にするか、あるいは変更後に操作互換性判定が必要かな
+            val intent = Intent(activity, AccountChooserActivity::class.java)
+            intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え")
+            startActivityForResult(intent, REQUEST_CHANGE_ACCOUNT)
+        }
+
         return v
     }
 
@@ -241,6 +252,37 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
 
         userRecord?.let {
             ImageLoaderTask.loadProfileIcon(activity, ibAccount, it.ProfileImageUrl)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                REQUEST_REPLY, REQUEST_QUOTE -> {
+                    activity.finish()
+                }
+                REQUEST_RT_QUOTE -> {
+                    val draft = data?.getSerializableExtra(TweetActivity.EXTRA_DRAFT) as? TweetDraft ?: return
+                    //これ、RT失敗してもツイートしちゃうんですよねえ
+                    activity.startService(PostService.newIntent(activity, draft,
+                            PostService.FLAG_RETWEET,
+                            status.id))
+                    activity.finish()
+                }
+                REQUEST_FRT_QUOTE -> {
+                    val draft = data?.getSerializableExtra(TweetActivity.EXTRA_DRAFT) as? TweetDraft ?: return
+                    //これ、RT失敗してもツイートしちゃうんですよねえ
+                    activity.startService(PostService.newIntent(activity, draft,
+                            PostService.FLAG_RETWEET or PostService.FLAG_FAVORITE,
+                            status.id))
+                    activity.finish()
+                }
+                REQUEST_CHANGE_ACCOUNT -> {
+                    userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return
+                }
+            }
         }
     }
 
@@ -297,7 +339,11 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         }
     }
 
-    override fun onUserChanged(userRecord: AuthUserRecord?) {}
+    override fun onUserChanged(userRecord: AuthUserRecord?) {
+        userRecord?.let {
+            ImageLoaderTask.loadProfileIcon(activity, ibAccount, it.ProfileImageUrl)
+        }
+    }
 
     override fun onServiceConnected() {
         // コマンド制限の判定
@@ -483,6 +529,7 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         private const val REQUEST_QUOTE = 1
         private const val REQUEST_RT_QUOTE = 2
         private const val REQUEST_FRT_QUOTE = 3
+        private const val REQUEST_CHANGE_ACCOUNT = 4
 
         private const val DIALOG_FAVORITE_NUISANCE = 0
         private const val DIALOG_FAVORITE_CONFIRM = 1
