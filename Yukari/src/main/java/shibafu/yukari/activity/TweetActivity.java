@@ -204,17 +204,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private int tweetCountColor;
     private int tweetCountOverColor;
 
-    //::batt
-    private String batteryTweet;
-    private BroadcastReceiver batteryReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int percent = intent.getIntExtra("level", 0) * 100 / intent.getIntExtra("scale", -1);
-            boolean charging = intent.getIntExtra("plugged", 0) > 0;
-            batteryTweet = String.format("%s のバッテリー残量: %s%d%%", Build.MODEL, charging ? "🔌" : "🔋", percent);
-        }
-    };
-
     //最近使ったハッシュタグ
     private UsedHashes usedHashes;
 
@@ -831,7 +820,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
             @Override
             public String getBatteryTweetText() {
-                return batteryTweet;
+                Intent intent = registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+                int percent = intent.getIntExtra("level", 0) * 100 / intent.getIntExtra("scale", -1);
+                boolean charging = intent.getIntExtra("plugged", 0) > 0;
+                return String.format("%s のバッテリー残量: %s%d%%", Build.MODEL, charging ? "🔌" : "🔋", percent);
             }
         }, inputText);
 
@@ -995,14 +987,11 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         if (currentDialog != null) {
             currentDialog.show();
         }
-
-        registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(batteryReceiver);
     }
 
     @Override
