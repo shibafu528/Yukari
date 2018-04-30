@@ -90,6 +90,7 @@ public class TwitterUtil {
         return sb.toString();
     }
 
+    @Deprecated
     public static String createQuotedRT(Status status) {
         if (status.isRetweet()) {
             status = status.getRetweetedStatus();
@@ -101,6 +102,7 @@ public class TwitterUtil {
         return sb.toString();
     }
 
+    @Deprecated
     public static String createQT(Status status) {
         if (status.isRetweet()) {
             status = status.getRetweetedStatus();
@@ -112,16 +114,5 @@ public class TwitterUtil {
         return sb.toString();
     }
 
-    public static String createQuote(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" \"@");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        sb.append("\"");
-        return sb.toString();
-    }
     //</editor-fold>
 }

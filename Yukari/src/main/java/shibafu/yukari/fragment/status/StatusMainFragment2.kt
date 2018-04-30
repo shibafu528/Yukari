@@ -6,11 +6,13 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.PopupMenu
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.Toast
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.TweetActivity
@@ -19,13 +21,14 @@ import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
+import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.TwitterFragment
 import shibafu.yukari.service.AsyncCommandService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.defaultSharedPreferences
 
-class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogFragment.OnDialogChoseListener {
+class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
     private val status: Status
         get() {
             val activity = this.activity
@@ -152,7 +155,47 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             dialog.show(childFragmentManager, "dialog_fav_and_repost_confirm")
         }
 
-        ibShare.setOnClickListener(this::onClickShare)
+        ibQuote.setOnClickListener {
+            if (limitedQuote) {
+                openLimitedQuote()
+                return@setOnClickListener
+            }
+
+            val defaultQuote = defaultSharedPreferences.getString("pref_default_quote_2_0_1", "-1").toInt()
+            if (defaultQuote < 0) {
+                openQuoteStyleSelector()
+                return@setOnClickListener
+            }
+
+            if (quoteStatus(defaultQuote)) {
+                val quoteStyles = resources.getStringArray(R.array.pref_quote_entries).let { it.copyOfRange(1, it.size) }
+
+                val toast = Toast.makeText(activity, quoteStyles[defaultQuote], Toast.LENGTH_SHORT)
+                toast.setGravity(Gravity.TOP or Gravity.CENTER, 0, 0)
+                toast.show()
+            }
+        }
+        ibQuote.setOnLongClickListener {
+            if (limitedQuote) {
+                openLimitedQuote()
+                return@setOnLongClickListener true
+            }
+
+            openQuoteStyleSelector()
+            true
+        }
+
+        ibShare.setOnClickListener {
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            if (limitedQuote) {
+                intent.putExtra(Intent.EXTRA_TEXT, status.url)
+            } else {
+                intent.putExtra(Intent.EXTRA_TEXT, status.toSTOTFormat())
+            }
+            startActivity(intent)
+        }
 
         return v
     }
@@ -244,6 +287,16 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         }
     }
 
+    override fun onDialogChose(requestCode: Int, which: Int, value: String?, extras: Bundle?) {
+        when (requestCode) {
+            DIALOG_QUOTE_SELECT -> {
+                if (which != DialogInterface.BUTTON_NEGATIVE) {
+                    quoteStatus(which)
+                }
+            }
+        }
+    }
+
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
     override fun onServiceConnected() {
@@ -270,18 +323,6 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
     }
 
     override fun onServiceDisconnected() {}
-
-    private fun onClickShare(v: View?) {
-        val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "text/plain"
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        if (limitedQuote) {
-            intent.putExtra(Intent.EXTRA_TEXT, status.url)
-        } else {
-            intent.putExtra(Intent.EXTRA_TEXT, status.toSTOTFormat())
-        }
-        startActivity(intent)
-    }
 
     private fun replyToSender() {
         val intent = Intent(activity, TweetActivity::class.java)
@@ -369,6 +410,65 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         }
     }
 
+    private fun openLimitedQuote() {
+        val intent = Intent(activity, TweetActivity::class.java)
+        intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status)
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE)
+        intent.putExtra(TweetActivity.EXTRA_TEXT, " " + status.url)
+        startActivityForResult(intent, REQUEST_QUOTE)
+    }
+
+    private fun openQuoteStyleSelector() {
+        val quoteStyles = resources.getStringArray(R.array.pref_quote_entries).let { it.copyOfRange(1, it.size) }
+
+        val dialog = SimpleListDialogFragment.newInstance(DIALOG_QUOTE_SELECT,
+                "引用形式を選択", null,
+                null, "キャンセル",
+                *quoteStyles)
+        dialog.setTargetFragment(this, DIALOG_QUOTE_SELECT)
+        dialog.show(childFragmentManager, "dialog_quote_select")
+    }
+
+    private fun quoteStatus(style: Int): Boolean {
+        val intent = Intent(activity, TweetActivity::class.java)
+        intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status)
+        if (style < 3) {
+            intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_QUOTE)
+            when (style) {
+                0 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " RT @${status.originStatus.user.screenName}: ${status.originStatus.text}")
+                1 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " QT @${status.originStatus.user.screenName}: ${status.originStatus.text}")
+                2 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " " + status.url)
+            }
+            startActivityForResult(intent, REQUEST_QUOTE)
+        } else {
+            var request = -1
+            when (style) {
+                3 -> {
+                    if (!ibRetweet.isEnabled) {
+                        Toast.makeText(activity, "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+                    request = REQUEST_RT_QUOTE
+                }
+                4 -> {
+                    if (!ibFavRt.isEnabled) {
+                        Toast.makeText(activity, "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        return false
+                    }
+                    request = REQUEST_FRT_QUOTE
+                }
+            }
+            if (request > -1) {
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE)
+                intent.putExtra(TweetActivity.EXTRA_TEXT, defaultSharedPreferences.getString("pref_quote_comment_footer", " ＞RT"))
+                startActivityForResult(intent, request)
+            }
+        }
+        return true
+    }
+
     companion object {
         private const val BUTTON_SHOW_DURATION = 260
         private val NUISANCES = arrayOf(
@@ -380,10 +480,14 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         )
 
         private const val REQUEST_REPLY = 0
+        private const val REQUEST_QUOTE = 1
+        private const val REQUEST_RT_QUOTE = 2
+        private const val REQUEST_FRT_QUOTE = 3
 
         private const val DIALOG_FAVORITE_NUISANCE = 0
         private const val DIALOG_FAVORITE_CONFIRM = 1
         private const val DIALOG_REPOST_CONFIRM = 2
         private const val DIALOG_FAV_AND_REPOST_CONFIRM = 3
+        private const val DIALOG_QUOTE_SELECT = 4
     }
 }
