@@ -58,6 +58,8 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
     private lateinit var ibShare: ImageButton
     private lateinit var ibAccount: ImageButton
 
+    private var limitedQuote: Boolean = false
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.fragment_status_main, container, false)
 
@@ -149,6 +151,8 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
             dialog.show(childFragmentManager, "dialog_fav_and_repost_confirm")
         }
+
+        ibShare.setOnClickListener(this::onClickShare)
 
         return v
     }
@@ -242,9 +246,42 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
-    override fun onServiceConnected() {}
+    override fun onServiceConnected() {
+        // コマンド制限の判定
+        if (status.originStatus.user.isProtected) {
+            // 鍵垢
+            ibRetweet.isEnabled = false
+            ibFavRt.isEnabled = false
+            limitedQuote = true
+        } else {
+            limitedQuote = false
+        }
+        if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED) {
+            // 自分のステータス
+            ibRetweet.isEnabled = true
+            if (defaultSharedPreferences.getBoolean("pref_narcist", false)) {
+                ibFavorite.isEnabled = true
+                ibFavRt.isEnabled = true
+            } else {
+                ibFavorite.isEnabled = false
+                ibFavRt.isEnabled = false
+            }
+        }
+    }
 
     override fun onServiceDisconnected() {}
+
+    private fun onClickShare(v: View?) {
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "text/plain"
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        if (limitedQuote) {
+            intent.putExtra(Intent.EXTRA_TEXT, status.url)
+        } else {
+            intent.putExtra(Intent.EXTRA_TEXT, status.toSTOTFormat())
+        }
+        startActivity(intent)
+    }
 
     private fun replyToSender() {
         val intent = Intent(activity, TweetActivity::class.java)

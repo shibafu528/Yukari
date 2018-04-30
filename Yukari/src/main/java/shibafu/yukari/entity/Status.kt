@@ -175,6 +175,18 @@ interface Status : Comparable<Status>, Serializable {
         }
     }
 
+    fun toSTOTFormat(): String {
+        val origin = originStatus
+        return buildString {
+            append(origin.user.screenName)
+            append(":")
+            append(origin.text)
+            append(" [")
+            append(origin.url)
+            append("]")
+        }
+    }
+
     override fun compareTo(other: Status): Int {
         if (this === other) return 0
 

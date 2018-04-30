@@ -57,6 +57,10 @@ public class TwitterUtil {
     //</editor-fold>
 
     //<editor-fold desc="StatusURL/Quote生成">
+
+    /**
+     * @deprecated Use {@link shibafu.yukari.entity.Status#getUrl()}
+     */
     public static String getTweetURL(Status status) {
         if (status.isRetweet()) {
             status = status.getRetweetedStatus();
@@ -69,6 +73,9 @@ public class TwitterUtil {
         return sb.toString();
     }
 
+    /**
+     * @deprecated Use {@link shibafu.yukari.entity.Status#toSTOTFormat()}
+     */
     public static String createSTOT(Status status) {
         if (status.isRetweet()) {
             status = status.getRetweetedStatus();
