@@ -500,7 +500,8 @@ class OAuthActivity : ActionBarYukariBase() {
                     if (result != null) {
                         val provider = Provider(instanceHostName, instanceHostName, Provider.API_MASTODON, result.clientId, result.clientSecret)
                         activity.twitterService.database.updateRecord(provider)
-                        startAuthorize(provider)
+                        val registeredProvider = activity.twitterService.database.getRecords(Provider::class.java).first { it.apiType == Provider.API_MASTODON && it.host == instanceHostName}
+                        startAuthorize(registeredProvider)
                     } else {
                         Toast.makeText(activity, "アプリの登録中にエラーが発生しました\nインスタンス名が正確であること、サーバがダウンしていないことを確認してください", Toast.LENGTH_LONG).show()
                         activity.supportFragmentManager.beginTransaction()

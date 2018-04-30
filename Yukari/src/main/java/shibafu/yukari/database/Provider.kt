@@ -26,7 +26,11 @@ class Provider : DBRecord, Serializable {
     }
 
     constructor(cursor: Cursor) {
-        this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_PROVIDERS_ID))
+        if (cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID) > -1) {
+            this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID))
+        } else {
+            this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_PROVIDERS_ID))
+        }
         this.host = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_PROVIDERS_HOST))
         this.name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_PROVIDERS_NAME))
         this.apiType = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_PROVIDERS_API_TYPE))
