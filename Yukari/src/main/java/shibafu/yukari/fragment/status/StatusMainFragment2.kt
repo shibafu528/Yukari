@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
+import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
@@ -67,6 +68,37 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         ibQuote = v.findViewById(R.id.ib_state_quote) as ImageButton
         ibShare = v.findViewById(R.id.ib_state_share) as ImageButton
         ibAccount = v.findViewById(R.id.ib_state_account) as ImageButton
+
+        ibReply.setOnClickListener {
+            val status = status
+            val userRecord = userRecord ?: return@setOnClickListener
+
+            if (!(status.getStatusRelation(listOf(userRecord)) == Status.RELATION_MENTIONED_TO_ME && status.mentions.size == 1) &&
+                    status.mentions.isNotEmpty() && defaultSharedPreferences.getBoolean("pref_choose_reply_to", true)) {
+                val popupMenu = PopupMenu(activity, ibReply)
+                popupMenu.inflate(R.menu.reply_to)
+                popupMenu.setOnMenuItemClickListener { menuItem ->
+                    when (menuItem.itemId) {
+                        R.id.action_reply_to_sender -> {
+                            replyToSender()
+                            return@setOnMenuItemClickListener true
+                        }
+                        R.id.action_reply_to_all_mentions -> {
+                            replyToAllMentions()
+                            return@setOnMenuItemClickListener true
+                        }
+                    }
+                    false
+                }
+                popupMenu.show()
+            } else {
+                replyToSender()
+            }
+        }
+        ibReply.setOnLongClickListener {
+            replyToAllMentions()
+            true
+        }
 
         ibFavorite.setOnClickListener {
             val status = status
@@ -214,6 +246,33 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
 
     override fun onServiceDisconnected() {}
 
+    private fun replyToSender() {
+        val intent = Intent(activity, TweetActivity::class.java)
+        intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status.originStatus)
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.originStatus.user.screenName + " ")
+        startActivityForResult(intent, REQUEST_REPLY)
+    }
+
+    private fun replyToAllMentions() {
+        val userRecord = userRecord ?: return
+
+        val intent = Intent(activity, TweetActivity::class.java)
+        intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
+        intent.putExtra(TweetActivity.EXTRA_STATUS, status.originStatus)
+        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+        intent.putExtra(TweetActivity.EXTRA_TEXT, StringBuilder().apply {
+            append("@").append(status.originStatus.user.screenName).append(" ")
+            status.mentions.forEach { mention ->
+                if (!this.toString().contains("@" + mention.screenName) && mention.screenName != userRecord.ScreenName) {
+                    append("@").append(mention.screenName).append(" ")
+                }
+            }
+        }.toString())
+        startActivityForResult(intent, REQUEST_REPLY)
+    }
+
     private fun createFavorite(withQuotes: Boolean = false, skipCheck: Boolean = false) {
         val status = status
         val userRecord = userRecord ?: return
@@ -283,9 +342,11 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
                 "NightFox"
         )
 
-        private const val DIALOG_FAVORITE_NUISANCE = 1
-        private const val DIALOG_FAVORITE_CONFIRM = 2
-        private const val DIALOG_REPOST_CONFIRM = 3
-        private const val DIALOG_FAV_AND_REPOST_CONFIRM = 4
+        private const val REQUEST_REPLY = 0
+
+        private const val DIALOG_FAVORITE_NUISANCE = 0
+        private const val DIALOG_FAVORITE_CONFIRM = 1
+        private const val DIALOG_REPOST_CONFIRM = 2
+        private const val DIALOG_FAV_AND_REPOST_CONFIRM = 3
     }
 }
