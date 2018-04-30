@@ -62,7 +62,10 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                 ACTION_FAVORITE -> api.createFavorite(user, targetStatus)
                 ACTION_UNFAVORITE -> api.destroyFavorite(user, targetStatus)
                 ACTION_RETWEET -> api.repostStatus(user, targetStatus)
-                ACTION_FAVRT -> TODO()
+                ACTION_FAVRT -> {
+                    api.createFavorite(user, targetStatus)
+                    api.repostStatus(user, targetStatus)
+                }
             }
         } else {
             if (user.Provider.apiType != Provider.API_TWITTER) {
@@ -133,6 +136,13 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
 
         @JvmStatic fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
                 = createIntent(context, ACTION_FAVRT, id, user)
+
+        @JvmStatic fun createFavAndRepost(context: Context, status: Status, user: AuthUserRecord): Intent =
+                Intent(context, AsyncCommandService::class.java).apply {
+                    action = ACTION_FAVRT
+                    putExtra(EXTRA_TARGET_STATUS, status)
+                    putExtra(EXTRA_USER, user)
+                }
     }
 
     //<editor-fold desc="Service Binder">

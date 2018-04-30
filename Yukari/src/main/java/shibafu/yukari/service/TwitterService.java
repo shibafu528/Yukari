@@ -831,6 +831,9 @@ public class TwitterService extends Service{
         twitter.sendDirectMessage(to, message);
     }
 
+    /**
+     * @deprecated Use {@link ProviderApi#repostStatus(AuthUserRecord, shibafu.yukari.entity.Status)}
+     */
     public void retweetStatus(AuthUserRecord user, long id){
         if (user == null) {
             throw new IllegalArgumentException("操作対象アカウントが指定されていません");
