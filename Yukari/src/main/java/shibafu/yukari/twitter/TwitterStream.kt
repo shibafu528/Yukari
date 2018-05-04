@@ -1,6 +1,9 @@
 package shibafu.yukari.twitter
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import shibafu.yukari.database.Provider
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StreamChannel
@@ -10,6 +13,7 @@ import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
 import shibafu.yukari.twitter.streaming.StreamListener
 import shibafu.yukari.twitter.streaming.StreamUser
@@ -30,10 +34,15 @@ class TwitterStream : ProviderStream {
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_TWITTER) {
-                val ch = addUser(user)
-                if (user.isActive) {
-                    ch.forEach(StreamChannel::start)
-                }
+                addUser(user)
+            }
+        }
+    }
+
+    override fun onStart() {
+        channels.forEach { ch ->
+            if (ch is UserStreamChannel && !ch.isRunning && ch.userRecord.isActive) {
+                ch.start()
             }
         }
     }
@@ -54,10 +63,35 @@ class TwitterStream : ProviderStream {
         ch.forEach(StreamChannel::stop)
         channels -= ch
     }
+
+    fun startFilterStream(query: String, userRecord: AuthUserRecord) {
+        val ch = channels.firstOrNull { it.userRecord == userRecord && it is FilterStreamChannel } as? FilterStreamChannel
+                ?: FilterStreamChannel(service, userRecord).apply { channels += this }
+        ch.addQuery(query)
+        if (!ch.isRunning) {
+            ch.start()
+        }
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(service.applicationContext, "Start FilterStream:$query", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun stopFilterStream(query: String, userRecord: AuthUserRecord) {
+        val ch = channels.firstOrNull { it.userRecord == userRecord && it is FilterStreamChannel } as? FilterStreamChannel
+        if (ch != null) {
+            ch.removeQuery(query)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "Stop FilterStream:$query", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }
 
 class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
     override val allowUserControl: Boolean = true
+    override var isRunning: Boolean = false
+        private set
+
     private val stream: StreamUser = StreamUser(service.applicationContext, userRecord)
 
     init {
@@ -66,10 +100,12 @@ class UserStreamChannel(private val service: TwitterService, override val userRe
 
     override fun start() {
         stream.start()
+        isRunning = true
     }
 
     override fun stop() {
         stream.stop()
+        isRunning = false
     }
 
     private class UserStreamListener(private val hub: TimelineHub) : StreamListener {
@@ -136,5 +172,47 @@ class UserStreamChannel(private val service: TwitterService, override val userRe
     companion object {
         private const val LOG_TAG = "UserStreamChannel"
         private const val PUT_STREAM_LOG = false
+    }
+}
+
+class FilterStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+    override val allowUserControl: Boolean = false
+    override var isRunning: Boolean = false
+        private set
+
+    val queryCount: Int
+        get() = stream.queryCount
+
+    private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
+
+    override fun start() {
+        stream.start()
+        isRunning = true
+    }
+
+    override fun stop() {
+        stream.stop()
+        isRunning = false
+    }
+
+    fun addQuery(query: String) {
+        stream.addQuery(query)
+        if (isRunning) {
+            stream.stop()
+            stream.start()
+        }
+    }
+
+    fun removeQuery(query: String) {
+        stream.removeQuery(query)
+        if (isRunning) {
+            stream.stop()
+            // まだクエリが残っていれば再起動
+            if (0 < stream.queryCount) {
+                stream.start()
+            } else {
+                isRunning = false
+            }
+        }
     }
 }

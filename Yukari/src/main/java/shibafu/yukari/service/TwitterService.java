@@ -77,6 +77,7 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.UploadedMedia;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -762,11 +763,30 @@ public class TwitterService extends Service{
         return builder.build();
     }
 
+    /**
+     * 指定のアカウントに対応したAPIインスタンスを取得します。
+     * @param userRecord 認証情報。
+     * @return APIインスタンス。アカウントが所属するサービスに対応したものが返されます。
+     */
     @Nullable
     public ProviderApi getProviderApi(@NonNull AuthUserRecord userRecord) {
         int apiType = userRecord.Provider.getApiType();
         if (0 <= apiType && apiType < providerApis.length) {
             return providerApis[apiType];
+        }
+        return null;
+    }
+
+    /**
+     * 指定のアカウントに対応したストリーミングAPIインスタンスを取得します。
+     * @param userRecord 認証情報。
+     * @return ストリーミングAPIインスタンス。アカウントが所属するサービスに対応したものが返されます。
+     */
+    @Nullable
+    public ProviderStream getProviderStream(@Nonnull AuthUserRecord userRecord) {
+        int apiType = userRecord.Provider.getApiType();
+        if (0 <= apiType && apiType < providerStreams.length) {
+            return providerStreams[apiType];
         }
         return null;
     }
@@ -779,6 +799,9 @@ public class TwitterService extends Service{
         return timelineHub;
     }
 
+    /**
+     * @deprecated 全ての機能は {@link ProviderStream} として再実装されました。{@link #getProviderStream(AuthUserRecord)} から利用できます。
+     */
     public StatusManager getStatusManager() {
         return statusManager;
     }
@@ -802,6 +825,17 @@ public class TwitterService extends Service{
     public void updateAutoMuteConfig() {
         List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
+    }
+
+    /**
+     * ユーザによって有効化されているストリーミングチャンネルを全て起動します。
+     */
+    public void startStreamChannels() {
+        for (ProviderStream stream : providerStreams) {
+            if (stream != null) {
+                stream.onStart();
+            }
+        }
     }
 
     //<editor-fold desc="投稿操作系">

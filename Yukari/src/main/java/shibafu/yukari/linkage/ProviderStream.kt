@@ -10,6 +10,7 @@ interface ProviderStream {
     val channels: List<StreamChannel>
 
     fun onCreate(service: TwitterService)
+    fun onStart()
     fun onDestroy()
 
     fun addUser(userRecord: AuthUserRecord): List<StreamChannel>
@@ -22,6 +23,7 @@ interface ProviderStream {
 interface StreamChannel {
     val userRecord: AuthUserRecord
     val allowUserControl: Boolean
+    val isRunning: Boolean
 
     fun start()
     fun stop()
