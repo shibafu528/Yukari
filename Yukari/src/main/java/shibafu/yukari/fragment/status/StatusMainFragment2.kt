@@ -22,6 +22,7 @@ import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.SimpleListDialogFragment
@@ -31,6 +32,7 @@ import shibafu.yukari.service.PostService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.defaultSharedPreferences
+import java.util.*
 
 class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
     private val status: Status
@@ -136,6 +138,22 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
                 }
             }
         }
+        ibFavorite.setOnLongClickListener {
+            if (status.providerApiType == Provider.API_TWITTER) {
+                Toast.makeText(activity, "TwitterではマルチアカウントFavを使用できません。", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val intent = Intent(activity, AccountChooserActivity::class.java)
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true)
+            intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, status.providerApiType)
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav")
+            startActivityForResult(intent, REQUEST_MULTI_FAVORITE)
+            Toast.makeText(activity,
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show()
+            true
+        }
 
         ibRetweet.setOnClickListener {
             val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
@@ -147,6 +165,22 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
             dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
             dialog.show(childFragmentManager, "dialog_repost_confirm")
         }
+        ibRetweet.setOnLongClickListener {
+            if (status.providerApiType == Provider.API_TWITTER) {
+                Toast.makeText(activity, "TwitterではマルチアカウントRTを使用できません。", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val intent = Intent(activity, AccountChooserActivity::class.java)
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true)
+            intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, status.providerApiType)
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントRT")
+            startActivityForResult(intent, REQUEST_MULTI_REPOST)
+            Toast.makeText(activity,
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show()
+            true
+        }
 
         ibFavRt.setOnClickListener {
             val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAV_AND_REPOST_CONFIRM)
@@ -157,6 +191,22 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
                     .build()
             dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
             dialog.show(childFragmentManager, "dialog_fav_and_repost_confirm")
+        }
+        ibFavRt.setOnLongClickListener {
+            if (status.providerApiType == Provider.API_TWITTER) {
+                Toast.makeText(activity, "TwitterではマルチアカウントFav&RTを使用できません。", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val intent = Intent(activity, AccountChooserActivity::class.java)
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true)
+            intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, status.providerApiType)
+            intent.putExtra(Intent.EXTRA_TITLE, "マルチアカウントFav&RT")
+            startActivityForResult(intent, REQUEST_MULTI_FAVRT)
+            Toast.makeText(activity,
+                    "アカウントを選択し、戻るキーで確定します。\nなにも選択していない場合キャンセルされます。",
+                    Toast.LENGTH_LONG).show()
+            true
         }
 
         ibQuote.setOnClickListener {
@@ -202,7 +252,7 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
         }
 
         ibAccount.setOnClickListener {
-            // TODO: 同じProvider API Typeを持ったものだけを選択可能にするか、あるいは変更後に操作互換性判定が必要かな
+            // TODO: 変更後に操作互換性判定をしてあげて、最低限URL引用くらいはできるとかはアリだと思う
             val intent = Intent(activity, AccountChooserActivity::class.java)
             intent.putExtra(Intent.EXTRA_TITLE, "アカウント切り替え")
             intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, status.providerApiType)
@@ -261,6 +311,9 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
 
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
+                REQUEST_CHANGE_ACCOUNT -> {
+                    userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return
+                }
                 REQUEST_REPLY, REQUEST_QUOTE -> {
                     activity.finish()
                 }
@@ -280,8 +333,29 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
                             status.id))
                     activity.finish()
                 }
-                REQUEST_CHANGE_ACCOUNT -> {
-                    userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return
+                REQUEST_MULTI_FAVORITE -> {
+                    if (data == null) {
+                        return
+                    }
+                    val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
+                    selectedUsers.map { AsyncCommandService.createFavorite(activity.applicationContext, status, it) }
+                            .forEach { activity.startService(it) }
+                }
+                REQUEST_MULTI_REPOST -> {
+                    if (data == null) {
+                        return
+                    }
+                    val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
+                    selectedUsers.map { AsyncCommandService.createRepost(activity.applicationContext, status, it) }
+                            .forEach { activity.startService(it) }
+                }
+                REQUEST_MULTI_FAVRT -> {
+                    if (data == null) {
+                        return
+                    }
+                    val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
+                    selectedUsers.map { AsyncCommandService.createFavAndRepost(activity.applicationContext, status, it) }
+                            .forEach { activity.startService(it) }
                 }
             }
         }
@@ -526,11 +600,14 @@ class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogF
                 "NightFox"
         )
 
-        private const val REQUEST_REPLY = 0
-        private const val REQUEST_QUOTE = 1
-        private const val REQUEST_RT_QUOTE = 2
-        private const val REQUEST_FRT_QUOTE = 3
-        private const val REQUEST_CHANGE_ACCOUNT = 4
+        private const val REQUEST_CHANGE_ACCOUNT = 0
+        private const val REQUEST_REPLY = 1
+        private const val REQUEST_QUOTE = 2
+        private const val REQUEST_RT_QUOTE = 3
+        private const val REQUEST_FRT_QUOTE = 4
+        private const val REQUEST_MULTI_FAVORITE = 5
+        private const val REQUEST_MULTI_REPOST = 6
+        private const val REQUEST_MULTI_FAVRT = 7
 
         private const val DIALOG_FAVORITE_NUISANCE = 0
         private const val DIALOG_FAVORITE_CONFIRM = 1
