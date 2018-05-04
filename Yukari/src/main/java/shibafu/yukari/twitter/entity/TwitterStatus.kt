@@ -67,9 +67,9 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val tags: List<String> = status.hashtagEntities.map { it.text }
 
-    override var favoritesCount: Int = status.favoriteCount
+    override var favoritesCount: Int = status.originStatus.favoriteCount
 
-    override var repostsCount: Int = status.retweetCount
+    override var repostsCount: Int = status.originStatus.retweetCount
 
     override val metadata: StatusPreforms = StatusPreforms()
 
