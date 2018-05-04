@@ -21,7 +21,6 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import lombok.Value;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
 import org.jetbrains.annotations.NotNull;
@@ -591,10 +590,10 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     @UiThread
     protected void insertElement(T element, boolean useScrollLock) {
         PrepareInsertResult prepareInsert = prepareInsertStatus(element);
-        int position = prepareInsert.getPosition();
-        if (prepareInsert.getResultCode() == PREPARE_INSERT_DUPLICATED) {
+        int position = prepareInsert.position;
+        if (prepareInsert.resultCode == PREPARE_INSERT_DUPLICATED) {
             return;
-        } else if (prepareInsert.getResultCode() == PREPARE_INSERT_MERGED) {
+        } else if (prepareInsert.resultCode == PREPARE_INSERT_MERGED) {
             notifyDataSetChanged();
         } else if (!elements.contains(element)) {
             if (position < elements.size()) {
@@ -819,13 +818,17 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     /**
      * {@link TwitterListFragment#prepareInsertStatus(TwitterResponse)} の結果を格納します。
      */
-    @Value
     protected static class PrepareInsertResult {
         /** 処理結果を表します。*/
-        @PrepareInsertResultCode private int resultCode;
+        @PrepareInsertResultCode public int resultCode;
 
         /** 要素の挿入先positionを表します。 */
-        private int position;
+        public int position;
+
+        public PrepareInsertResult(int resultCode, int position) {
+            this.resultCode = resultCode;
+            this.position = position;
+        }
     }
 
     /**
