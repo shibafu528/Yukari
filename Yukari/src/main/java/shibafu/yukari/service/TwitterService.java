@@ -56,6 +56,7 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
+import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
@@ -77,7 +78,6 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.UploadedMedia;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -230,11 +230,11 @@ public class TwitterService extends Service{
                 api.onCreate(this);
             }
         }
-//        for (ProviderStream stream : providerStreams) {
-//            if (stream != null) {
-//                stream.onCreate(this);
-//            }
-//        }
+        for (ProviderStream stream : providerStreams) {
+            if (stream != null) {
+                stream.onCreate(this);
+            }
+        }
 
         //画像キャッシュの初期化
         BitmapCache.initialize(getApplicationContext());
@@ -778,13 +778,37 @@ public class TwitterService extends Service{
     }
 
     /**
+     * 指定のAPI形式に対応したAPIインスタンスを取得します。
+     * @param apiType API形式。{@link Provider} 内の定数を参照。
+     * @return APIインスタンス。
+     */
+    public ProviderApi getProviderApi(int apiType) {
+        if (0 <= apiType && apiType < providerApis.length) {
+            return providerApis[apiType];
+        }
+        return null;
+    }
+
+    /**
      * 指定のアカウントに対応したストリーミングAPIインスタンスを取得します。
      * @param userRecord 認証情報。
      * @return ストリーミングAPIインスタンス。アカウントが所属するサービスに対応したものが返されます。
      */
     @Nullable
-    public ProviderStream getProviderStream(@Nonnull AuthUserRecord userRecord) {
+    public ProviderStream getProviderStream(@NonNull AuthUserRecord userRecord) {
         int apiType = userRecord.Provider.getApiType();
+        if (0 <= apiType && apiType < providerStreams.length) {
+            return providerStreams[apiType];
+        }
+        return null;
+    }
+
+    /**
+     * 指定のAPI形式に対応したストリーミングAPIインスタンスを取得します。
+     * @param apiType API形式。{@link Provider} 内の定数を参照。
+     * @return ストリーミングAPIインスタンス。
+     */
+    public ProviderStream getProviderStream(int apiType) {
         if (0 <= apiType && apiType < providerStreams.length) {
             return providerStreams[apiType];
         }
@@ -834,6 +858,22 @@ public class TwitterService extends Service{
         for (ProviderStream stream : providerStreams) {
             if (stream != null) {
                 stream.onStart();
+            }
+        }
+    }
+
+    /**
+     * 現在接続されているストリーミングチャンネルを一度切断し、接続しなおします。
+     */
+    public void reconnectStreamChannels() {
+        for (ProviderStream stream : providerStreams) {
+            if (stream != null) {
+                for (StreamChannel channel : stream.getChannels()) {
+                    if (channel.isRunning()) {
+                        channel.stop();
+                        channel.start();
+                    }
+                }
             }
         }
     }

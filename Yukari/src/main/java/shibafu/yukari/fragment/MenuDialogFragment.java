@@ -39,9 +39,11 @@ import shibafu.yukari.activity.IntentChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.plugin.UserPluginActivity;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -241,7 +243,8 @@ public class MenuDialogFragment extends DialogFragment {
         ibReconnect.setOnClickListener(v1 -> {
             Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
             dismiss();
-            ((TwitterServiceDelegate)getActivity()).getTwitterService().getStatusManager().reconnectAsync();
+            AsyncReconnectTask task = new AsyncReconnectTask();
+            task.executeParallel(((TwitterServiceDelegate)getActivity()).getTwitterService());
         });
 
         unbinder = ButterKnife.bind(this, v);
@@ -432,6 +435,14 @@ public class MenuDialogFragment extends DialogFragment {
 
         public int getDarkIconId() {
             return darkIconId == 0 ? iconId : darkIconId;
+        }
+    }
+
+    private static class AsyncReconnectTask extends ParallelAsyncTask<TwitterService, Void, Void> {
+        @Override
+        protected Void doInBackground(TwitterService... twitterServices) {
+            twitterServices[0].reconnectStreamChannels();
+            return null;
         }
     }
 }

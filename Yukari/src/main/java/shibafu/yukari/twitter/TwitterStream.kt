@@ -30,6 +30,8 @@ class TwitterStream : ProviderStream {
     private lateinit var service: TwitterService
 
     override fun onCreate(service: TwitterService) {
+        Log.d(LOG_TAG, "onCreate")
+
         this.service = service
 
         service.users.forEach { user ->
@@ -40,6 +42,8 @@ class TwitterStream : ProviderStream {
     }
 
     override fun onStart() {
+        Log.d(LOG_TAG, "onStart")
+
         channels.forEach { ch ->
             if (ch is UserStreamChannel && !ch.isRunning && ch.userRecord.isActive) {
                 ch.start()
@@ -48,17 +52,23 @@ class TwitterStream : ProviderStream {
     }
 
     override fun onDestroy() {
+        Log.d(LOG_TAG, "onDestroy")
+
         channels.forEach(StreamChannel::stop)
         channels = emptyList()
     }
 
     override fun addUser(userRecord: AuthUserRecord): List<StreamChannel> {
+        Log.d(LOG_TAG, "Add user: @${userRecord.ScreenName}")
+
         val ch = listOf(UserStreamChannel(service, userRecord))
         channels += ch
         return ch
     }
 
     override fun removeUser(userRecord: AuthUserRecord) {
+        Log.d(LOG_TAG, "Remove user: @${userRecord.ScreenName}")
+
         val ch = channels.filter { it.userRecord == userRecord }
         ch.forEach(StreamChannel::stop)
         channels -= ch
@@ -84,6 +94,10 @@ class TwitterStream : ProviderStream {
                 Toast.makeText(service.applicationContext, "Stop FilterStream:$query", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    companion object {
+        private const val LOG_TAG = "TwitterStream"
     }
 }
 

@@ -58,7 +58,6 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Twitter;
@@ -859,10 +858,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
 
             //UserStreamを開始する
-            StatusManager statusManager = getTwitterService().getStatusManager();
-            if (statusManager != null && !statusManager.isStarted()) {
-                statusManager.start();
-            }
+            getTwitterService().startStreamChannels();
 
             onNewIntent(getIntent());
         }
