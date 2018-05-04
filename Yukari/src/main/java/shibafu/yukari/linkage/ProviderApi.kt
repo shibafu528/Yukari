@@ -11,8 +11,8 @@ interface ProviderApi {
     fun onCreate(service: TwitterService)
     fun onDestroy()
 
-    fun createFavorite(userRecord: AuthUserRecord, status: Status)
-    fun destroyFavorite(userRecord: AuthUserRecord, status: Status)
+    fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean
+    fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean
 
-    fun repostStatus(userRecord: AuthUserRecord, status: Status)
+    fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean
 }

@@ -22,7 +22,7 @@ class MastodonApi : ProviderApi {
 
     }
 
-    override fun createFavorite(userRecord: AuthUserRecord, status: Status) {
+    override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
@@ -30,15 +30,17 @@ class MastodonApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+            return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
+        return false
     }
 
-    override fun destroyFavorite(userRecord: AuthUserRecord, status: Status) {
+    override fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
@@ -46,15 +48,17 @@ class MastodonApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+            return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
+        return false
     }
 
-    override fun repostStatus(userRecord: AuthUserRecord, status: Status) {
+    override fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean {
         val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
@@ -62,11 +66,13 @@ class MastodonApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+            return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ブーストに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
+        return false
     }
 }
