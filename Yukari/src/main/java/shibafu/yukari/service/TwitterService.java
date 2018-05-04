@@ -219,7 +219,7 @@ public class TwitterService extends Service{
         statusManager = new StatusManager(this);
 
         //ユーザデータのロード
-        reloadUsers();
+        reloadUsers(true);
 
         //ユーザー設定の読み込み
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
@@ -455,6 +455,10 @@ public class TwitterService extends Service{
 
     //<editor-fold desc="ユーザ情報管理">
     public void reloadUsers() {
+        reloadUsers(false);
+    }
+
+    public void reloadUsers(boolean inInitialize) {
         Cursor cursor = database.getAccounts();
         List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
         cursor.close();
@@ -462,8 +466,11 @@ public class TwitterService extends Service{
         ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
             if (!dbList.contains(aur)) {
-                if (aur.Provider.getApiType() == Provider.API_TWITTER) {
-                    statusManager.stopUserStream(aur);
+                if (!inInitialize) {
+                    ProviderStream stream = getProviderStream(aur);
+                    if (stream != null) {
+                        stream.removeUser(aur);
+                    }
                 }
                 removeList.add(aur);
                 Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
@@ -476,12 +483,14 @@ public class TwitterService extends Service{
             if (!users.contains(aur)) {
                 addedList.add(aur);
                 users.add(aur);
-                if (aur.isActive && aur.Provider.getApiType() == Provider.API_TWITTER) {
-                    statusManager.startUserStream(aur);
+                if (!inInitialize) {
+                    ProviderStream stream = getProviderStream(aur);
+                    if (stream != null) {
+                        stream.addUser(aur);
+                    }
                 }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
-            }
-            else {
+            } else {
                 AuthUserRecord existRecord = users.get(users.indexOf(aur));
                 existRecord.update(aur);
                 Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
@@ -491,8 +500,7 @@ public class TwitterService extends Service{
         broadcastIntent.putExtra(EXTRA_RELOAD_REMOVED, removeList);
         broadcastIntent.putExtra(EXTRA_RELOAD_ADDED, addedList);
         sendBroadcast(broadcastIntent);
-        Log.d(LOG_TAG, "Reloaded users. User=" + users.size() +
-                ", StreamUsers=" + statusManager.getStreamUsersCount());
+        Log.d(LOG_TAG, "Reloaded users. User=" + users.size());
     }
 
     public List<AuthUserRecord> getUsers() {
@@ -519,10 +527,16 @@ public class TwitterService extends Service{
         reloadUsers();
     }
 
+    /**
+     * @deprecated Use {@link ProviderStream#getChannels()} and {@link StreamChannel#isRunning()}
+     */
     public ArrayList<AuthUserRecord> getActiveUsers() {
         return statusManager.getActiveUsers();
     }
 
+    /**
+     * @deprecated Use {@link ProviderStream#getChannels()}, {@link StreamChannel#start()} and {@link StreamChannel#stop()}
+     */
     public void setActiveUsers(ArrayList<AuthUserRecord> activeUsers) {
         ArrayList<AuthUserRecord> oldActiveList = getActiveUsers();
         ArrayList<AuthUserRecord> inactiveList = new ArrayList<>();

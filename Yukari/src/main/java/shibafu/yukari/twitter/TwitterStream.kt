@@ -62,6 +62,11 @@ class TwitterStream : ProviderStream {
     override fun addUser(userRecord: AuthUserRecord): List<StreamChannel> {
         Log.d(LOG_TAG, "Add user: @${userRecord.ScreenName}")
 
+        if (channels.any { it.userRecord == userRecord }) {
+            Log.d(LOG_TAG, "@${userRecord.ScreenName} is already added.")
+            return emptyList()
+        }
+
         val ch = listOf(UserStreamChannel(service, userRecord))
         channels += ch
         return ch
