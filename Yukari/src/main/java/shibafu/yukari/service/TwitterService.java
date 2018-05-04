@@ -54,6 +54,7 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.linkage.ProviderApi;
+import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.mastodon.MastodonApi;
@@ -61,6 +62,7 @@ import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
+import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -141,6 +143,11 @@ public class TwitterService extends Service{
             new MastodonApi()
     };
 
+    //StreamAPI
+    private ProviderStream[] providerStreams = {
+            new TwitterStream()
+    };
+
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -200,20 +207,8 @@ public class TwitterService extends Service{
         //TwitterFactoryの生成
         twitterFactory = TwitterUtil.getTwitterFactory(this);
 
-        //APIインスタンスの生成
-        for (ProviderApi api : providerApis) {
-            api.onCreate(this);
-        }
-
         //データベースのオープン
         database = new CentralDatabase(this).open();
-
-        //画像キャッシュの初期化
-        BitmapCache.initialize(getApplicationContext());
-
-        //ミュート設定の読み込み
-        suppressor = new Suppressor();
-        updateMuteConfig();
 
         //Timeline Pub/Subのセットアップ
         timelineHub = new TimelineHub(this);
@@ -222,14 +217,33 @@ public class TwitterService extends Service{
         //ステータスマネージャのセットアップ
         statusManager = new StatusManager(this);
 
-        //オートミュート設定の読み込み
-        updateAutoMuteConfig();
-
         //ユーザデータのロード
         reloadUsers();
 
         //ユーザー設定の読み込み
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
+
+        //APIインスタンスの生成
+        for (ProviderApi api : providerApis) {
+            if (api != null) {
+                api.onCreate(this);
+            }
+        }
+//        for (ProviderStream stream : providerStreams) {
+//            if (stream != null) {
+//                stream.onCreate(this);
+//            }
+//        }
+
+        //画像キャッシュの初期化
+        BitmapCache.initialize(getApplicationContext());
+
+        //ミュート設定の読み込み
+        suppressor = new Suppressor();
+        updateMuteConfig();
+
+        //オートミュート設定の読み込み
+        updateAutoMuteConfig();
 
         if (!users.isEmpty() && getPrimaryUser() != null) {
             final Twitter primaryAccount = getTwitterOrPrimary(null);
@@ -384,6 +398,12 @@ public class TwitterService extends Service{
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
 
+        for (ProviderStream stream : providerStreams) {
+            if (stream != null) {
+                stream.onDestroy();
+            }
+        }
+
         timelineHub.getHashCache().save(this);
 
         unregisterReceiver(streamConnectivityListener);
@@ -397,7 +417,9 @@ public class TwitterService extends Service{
         timelineHub = null;
 
         for (ProviderApi api : providerApis) {
-            api.onDestroy();
+            if (api != null) {
+                api.onDestroy();
+            }
         }
 
         twitterInstances.clear();
