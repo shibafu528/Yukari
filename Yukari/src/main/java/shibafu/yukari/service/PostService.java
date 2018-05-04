@@ -23,6 +23,7 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;
@@ -45,7 +46,7 @@ import java.util.regex.Pattern;
 public class PostService extends IntentService{
     public static final String EXTRA_DRAFT = "draft";
     public static final String EXTRA_FLAGS = "flags";
-    public static final String EXTRA_FLAGS_TARGET_ID = "targetId";
+    public static final String EXTRA_FLAGS_TARGET_STATUS = "targetStatus";
     public static final String EXTRA_REMOTE_INPUT = "remoteInput";
     public static final int FLAG_FAVORITE  = 0x01;
     public static final int FLAG_RETWEET   = 0x02;
@@ -68,11 +69,11 @@ public class PostService extends IntentService{
         return intent;
     }
 
-    public static Intent newIntent(Context context, TweetDraft draft, int flags, long tweetId) {
+    public static Intent newIntent(Context context, TweetDraft draft, int flags, Status targetStatus) {
         Intent intent = new Intent(context, PostService.class);
         intent.putExtra(EXTRA_DRAFT, draft);
         intent.putExtra(EXTRA_FLAGS, flags);
-        intent.putExtra(EXTRA_FLAGS_TARGET_ID, tweetId);
+        intent.putExtra(EXTRA_FLAGS_TARGET_STATUS, targetStatus);
         return intent;
     }
 
@@ -84,7 +85,7 @@ public class PostService extends IntentService{
         Log.d("PostService", "Upload Limit : " + imageResizeLength + "px");
 
         int flags = intent.getIntExtra(EXTRA_FLAGS, 0);
-        long targetTweetId = intent.getLongExtra(EXTRA_FLAGS_TARGET_ID, 0);
+        Status targetStatus = (Status) intent.getSerializableExtra(EXTRA_FLAGS_TARGET_STATUS);
         TweetDraft draft = (TweetDraft) intent.getSerializableExtra(EXTRA_DRAFT);
         if (RemoteInput.getResultsFromIntent(intent) != null) {
             draft = parseRemoteInput(intent);
@@ -163,12 +164,12 @@ public class PostService extends IntentService{
                             service.sendDirectMessage(draft.getMessageTarget(), userRecord, draft.getText());
                         } else {
                             //事前処理Flagがある場合はそれらを実行する
-                            if (targetTweetId > -1) {
+                            if (targetStatus != null) {
                                 if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
-                                    service.createFavorite(userRecord, targetTweetId);
+                                    service.getProviderApi(userRecord).createFavorite(userRecord, targetStatus);
                                 }
                                 if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
-                                    service.retweetStatus(userRecord, targetTweetId);
+                                    service.getProviderApi(userRecord).repostStatus(userRecord, targetStatus);
                                 }
                             }
                             //statusが引数に付加されている場合はin-reply-toとして設定する
@@ -213,6 +214,16 @@ public class PostService extends IntentService{
                         }
                         break;
                     case Provider.API_MASTODON: {
+                        //事前処理Flagがある場合はそれらを実行する
+                        if (targetStatus != null) {
+                            if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
+                                service.getProviderApi(userRecord).createFavorite(userRecord, targetStatus);
+                            }
+                            if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
+                                service.getProviderApi(userRecord).repostStatus(userRecord, targetStatus);
+                            }
+                        }
+                        //attachPictureがある場合は添付
                         List<Long> mediaIds = null;
                         if (!draft.getAttachedPictures().isEmpty()) {
                             mediaIds = new ArrayList<>();

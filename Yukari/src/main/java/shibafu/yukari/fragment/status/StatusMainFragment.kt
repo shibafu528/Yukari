@@ -322,7 +322,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     activity.startService(PostService.newIntent(activity, draft,
                             PostService.FLAG_RETWEET,
-                            status.id))
+                            status))
                     activity.finish()
                 }
                 REQUEST_FRT_QUOTE -> {
@@ -330,7 +330,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     activity.startService(PostService.newIntent(activity, draft,
                             PostService.FLAG_RETWEET or PostService.FLAG_FAVORITE,
-                            status.id))
+                            status))
                     activity.finish()
                 }
                 REQUEST_MULTI_FAVORITE -> {
