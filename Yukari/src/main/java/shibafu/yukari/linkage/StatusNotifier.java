@@ -1,4 +1,4 @@
-package shibafu.yukari.twitter.statusmanager;
+package shibafu.yukari.linkage;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

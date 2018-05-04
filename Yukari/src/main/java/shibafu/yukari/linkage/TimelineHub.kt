@@ -20,7 +20,6 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.twitter.statusmanager.StatusNotifier
 import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
