@@ -34,7 +34,7 @@ import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.defaultSharedPreferences
 import java.util.*
 
-class StatusMainFragment2 : TwitterFragment(), StatusChildUI, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
+class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
     private val status: Status
         get() {
             val activity = this.activity

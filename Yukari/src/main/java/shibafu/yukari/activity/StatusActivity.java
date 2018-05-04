@@ -21,7 +21,7 @@ import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
-import shibafu.yukari.fragment.status.StatusMainFragment2;
+import shibafu.yukari.fragment.status.StatusMainFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.mastodon.entity.DonStatus;
@@ -220,7 +220,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
                     f = new StatusLinkFragment();
                     break;
                 case 1:
-                    f = new StatusMainFragment2();
+                    f = new StatusMainFragment();
                     break;
                 case 2:
                     f = new StatusActionFragment();
