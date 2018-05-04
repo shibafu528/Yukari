@@ -15,13 +15,14 @@ import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
-import shibafu.yukari.twitter.streaming.StreamListener
 import shibafu.yukari.twitter.streaming.StreamUser
 import shibafu.yukari.util.StringUtil
 import twitter4j.DirectMessage
 import twitter4j.Status
 import twitter4j.StatusDeletionNotice
 import twitter4j.User
+
+private const val PUT_STREAM_LOG = false
 
 class TwitterStream : ProviderStream {
     override var channels: List<StreamChannel> = emptyList()
@@ -109,7 +110,7 @@ class UserStreamChannel(private val service: TwitterService, override val userRe
     private val stream: StreamUser = StreamUser(service.applicationContext, userRecord)
 
     init {
-        stream.listener = UserStreamListener(service.timelineHub)
+        stream.listener = StreamListener("TwitterStream.UserStreamChannel", service.timelineHub)
     }
 
     override fun start() {
@@ -120,72 +121,6 @@ class UserStreamChannel(private val service: TwitterService, override val userRe
     override fun stop() {
         stream.stop()
         isRunning = false
-    }
-
-    private class UserStreamListener(private val hub: TimelineHub) : StreamListener {
-        override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
-            if (PUT_STREAM_LOG) Log.d("onFavorite", String.format("f:%s s:%d", from.userRecord.ScreenName, status.id))
-
-            val preformedStatus = PreformedStatus(status, from.userRecord)
-            val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
-            val twitterUser = TwitterUser(user)
-
-            hub.onFavorite(twitterUser, twitterStatus)
-        }
-
-        override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {
-            if (PUT_STREAM_LOG) Log.d("onUnfavorite", String.format("f:%s s:%s", from.userRecord.ScreenName, status.text))
-
-            val preformedStatus = PreformedStatus(status, from.userRecord)
-            val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
-            val twitterUser = TwitterUser(user)
-
-            hub.onUnfavorite(twitterUser, twitterStatus)
-        }
-
-        override fun onFollow(from: Stream, user: User, user2: User) {
-
-        }
-
-        override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {
-            hub.onDirectMessage("Twitter.StreamManager", TwitterMessage(directMessage, from.userRecord), true)
-        }
-
-        override fun onBlock(from: Stream, user: User, user2: User) {
-
-        }
-
-        override fun onUnblock(from: Stream, user: User, user2: User) {
-
-        }
-
-        override fun onStatus(from: Stream, status: Status) {
-            if (PUT_STREAM_LOG) {
-                Log.d(LOG_TAG,
-                        String.format("onStatus: %s from %s [%s:%s]:@%s %s",
-                                StringUtil.formatDate(status.createdAt),
-                                from.userRecord.ScreenName,
-                                from.javaClass.simpleName,
-                                status.javaClass.simpleName,
-                                status.user.screenName,
-                                status.text))
-            }
-
-            hub.onStatus("TwitterStream.UserStreamChannel", TwitterStatus(status, from.userRecord), true)
-        }
-
-        override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
-            hub.onDelete(TwitterStatus::class.java, statusDeletionNotice.statusId)
-        }
-
-        override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {
-            hub.onDelete(TwitterMessage::class.java, directMessageId)
-        }
-    }
-
-    companion object {
-        private const val LOG_TAG = "UserStreamChannel"
-        private const val PUT_STREAM_LOG = false
     }
 }
 
@@ -198,6 +133,10 @@ class FilterStreamChannel(private val service: TwitterService, override val user
         get() = stream.queryCount
 
     private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
+
+    init {
+        stream.listener = StreamListener("TwitterStream.FilterStreamChannel", service.timelineHub)
+    }
 
     override fun start() {
         stream.start()
@@ -228,5 +167,71 @@ class FilterStreamChannel(private val service: TwitterService, override val user
                 isRunning = false
             }
         }
+    }
+}
+
+private class StreamListener(private val timelineId: String, private val hub: TimelineHub) : shibafu.yukari.twitter.streaming.StreamListener {
+    override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
+        if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onFavorite: f:%s s:%d", timelineId, from.userRecord.ScreenName, status.id))
+
+        val preformedStatus = PreformedStatus(status, from.userRecord)
+        val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
+        val twitterUser = TwitterUser(user)
+
+        hub.onFavorite(twitterUser, twitterStatus)
+    }
+
+    override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {
+        if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onUnfavorite: f:%s s:%s", timelineId, from.userRecord.ScreenName, status.text))
+
+        val preformedStatus = PreformedStatus(status, from.userRecord)
+        val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
+        val twitterUser = TwitterUser(user)
+
+        hub.onUnfavorite(twitterUser, twitterStatus)
+    }
+
+    override fun onFollow(from: Stream, user: User, user2: User) {
+
+    }
+
+    override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {
+        hub.onDirectMessage(timelineId, TwitterMessage(directMessage, from.userRecord), true)
+    }
+
+    override fun onBlock(from: Stream, user: User, user2: User) {
+
+    }
+
+    override fun onUnblock(from: Stream, user: User, user2: User) {
+
+    }
+
+    override fun onStatus(from: Stream, status: Status) {
+        if (PUT_STREAM_LOG) {
+            Log.d(LOG_TAG,
+                    String.format("[%s] onStatus: %s from %s [%s:%s]:@%s %s",
+                            timelineId,
+                            StringUtil.formatDate(status.createdAt),
+                            from.userRecord.ScreenName,
+                            from.javaClass.simpleName,
+                            status.javaClass.simpleName,
+                            status.user.screenName,
+                            status.text))
+        }
+
+        hub.onStatus(timelineId, TwitterStatus(status, from.userRecord), true)
+    }
+
+    override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
+        hub.onDelete(TwitterStatus::class.java, statusDeletionNotice.statusId)
+    }
+
+    override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {
+        hub.onDelete(TwitterMessage::class.java, directMessageId)
+    }
+
+    companion object {
+        private const val LOG_TAG = "StreamListener"
     }
 }
