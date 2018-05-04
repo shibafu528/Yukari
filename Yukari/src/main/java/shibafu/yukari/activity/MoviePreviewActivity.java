@@ -89,9 +89,9 @@ public class MoviePreviewActivity extends AppCompatActivity {
         } else if (anyStatus instanceof PreformedStatus) {
             status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
         } else {
-            throw new ClassCastException(anyStatus.getClass().getName());
+            status = null;
         }
-        if (status.isRepost()) {
+        if (status != null && status.isRepost()) {
             status = status.getOriginStatus();
         }
 
