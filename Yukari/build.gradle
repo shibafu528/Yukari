@@ -98,6 +98,8 @@ dependencies {
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
 
     // Test
     testImplementation 'junit:junit:4.12'
@@ -163,6 +165,7 @@ android {
 // Kotlin
 buildscript {
     ext.kotlin_version = '1.2.30'
+    ext.kotlin_coroutines_version = '0.22.5'
     repositories {
         mavenCentral()
     }

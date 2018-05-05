@@ -1,9 +1,19 @@
 package shibafu.yukari.mastodon
 
 import android.util.Log
+import com.sys1yagi.mastodon4j.MastodonClient
+import com.sys1yagi.mastodon4j.api.Handler
+import com.sys1yagi.mastodon4j.api.Shutdownable
+import com.sys1yagi.mastodon4j.api.entity.Notification
+import com.sys1yagi.mastodon4j.api.entity.Status
+import com.sys1yagi.mastodon4j.api.method.Streaming
+import kotlinx.coroutines.experimental.launch
 import shibafu.yukari.database.Provider
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StreamChannel
+import shibafu.yukari.linkage.TimelineHub
+import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 
@@ -27,6 +37,16 @@ class MastodonStream : ProviderStream {
 
     override fun onStart() {
         Log.d(LOG_TAG, "onStart")
+
+        val channelStates = service.database.getRecords(StreamChannelState::class.java)
+        channels.forEach { ch ->
+            if (!ch.isRunning) {
+                val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
+                if (state != null && state.isActive) {
+                    ch.start()
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -73,12 +93,22 @@ private class UserStreamChannel(private val service: TwitterService, override va
     override var isRunning: Boolean = false
         private set
 
+    private val handler: Handler = StreamHandler("MastodonStream.UserStreamChannel", service.timelineHub, userRecord)
+    private var shutdownable: Shutdownable? = null
+
     override fun start() {
-        // TODO
+        launch {
+            val client = service.getApiClient(userRecord) as MastodonClient
+            val streaming = Streaming(client)
+            shutdownable = streaming.user(handler)
+        }
+        isRunning = true
     }
 
     override fun stop() {
-        // TODO
+        shutdownable?.shutdown()
+        shutdownable = null
+        isRunning = false
     }
 }
 
@@ -89,12 +119,22 @@ private class PublicStreamChannel(private val service: TwitterService, override 
     override var isRunning: Boolean = false
         private set
 
+    private val handler: Handler = StreamHandler("MastodonStream.PublicStreamChannel", service.timelineHub, userRecord)
+    private var shutdownable: Shutdownable? = null
+
     override fun start() {
-        // TODO
+        launch {
+            val client = service.getApiClient(userRecord) as MastodonClient
+            val streaming = Streaming(client)
+            shutdownable = streaming.federatedPublic(handler)
+        }
+        isRunning = true
     }
 
     override fun stop() {
-        // TODO
+        shutdownable?.shutdown()
+        shutdownable = null
+        isRunning = false
     }
 }
 
@@ -105,11 +145,36 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     override var isRunning: Boolean = false
         private set
 
+    private val handler: Handler = StreamHandler("MastodonStream.LocalStreamChannel", service.timelineHub, userRecord)
+    private var shutdownable: Shutdownable? = null
+
     override fun start() {
-        // TODO
+        launch {
+            val client = service.getApiClient(userRecord) as MastodonClient
+            val streaming = Streaming(client)
+            shutdownable = streaming.localPublic(handler)
+        }
+        isRunning = true
     }
 
     override fun stop() {
-        // TODO
+        shutdownable?.shutdown()
+        shutdownable = null
+        isRunning = false
+    }
+}
+
+private class StreamHandler(private val timelineId: String, private val hub: TimelineHub, private val userRecord: AuthUserRecord) : Handler {
+    override fun onDelete(id: Long) {
+        // TODO: ところでこれ、IDがインスタンスレベルでしか一意じゃない場合関係ないやつ消しとばすんですけど
+        hub.onDelete(DonStatus::class.java, id)
+    }
+
+    override fun onNotification(notification: Notification) {
+        // TODO: どうすっか～
+    }
+
+    override fun onStatus(status: Status) {
+        hub.onStatus(timelineId, DonStatus(status, userRecord), true)
     }
 }
