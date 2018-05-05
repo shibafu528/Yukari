@@ -65,7 +65,6 @@ import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.TwitterUtil;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
@@ -98,9 +97,6 @@ public class TwitterService extends Service{
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
     public static final String EXTRA_RELOAD_REMOVED = "removed";
     public static final String EXTRA_RELOAD_ADDED = "added";
-    public static final String CHANGED_ACTIVE_STATE = "shibafu.yukari.CHANGED_ACTIVE_STATE";
-    public static final String EXTRA_CHANGED_INACTIVE = "inactive";
-    public static final String EXTRA_CHANGED_ACTIVE = "active";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
@@ -135,7 +131,6 @@ public class TwitterService extends Service{
     private LongSparseArray<Twitter> twitterInstances = new LongSparseArray<>();
     private List<AuthUserRecord> users = new ArrayList<>();
     private List<UserExtras> userExtras = new ArrayList<>();
-    private StatusManager statusManager;
     private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
 
     //API
@@ -214,9 +209,6 @@ public class TwitterService extends Service{
         //Timeline Pub/Subのセットアップ
         timelineHub = new TimelineHub(this);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
-
-        //ステータスマネージャのセットアップ
-        statusManager = new StatusManager(this);
 
         //ユーザデータのロード
         reloadUsers(true);
@@ -410,9 +402,6 @@ public class TwitterService extends Service{
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
 
-        statusManager.shutdownAll();
-        statusManager = null;
-
         statusLoader.cancelAll();
         statusLoader = null;
         timelineHub = null;
@@ -523,45 +512,6 @@ public class TwitterService extends Service{
         for (AuthUserRecord userRecord : users) {
             userRecord.isPrimary = userRecord.InternalId == id;
         }
-        storeUsers();
-        reloadUsers();
-    }
-
-    /**
-     * @deprecated Use {@link ProviderStream#getChannels()} and {@link StreamChannel#isRunning()}
-     */
-    public ArrayList<AuthUserRecord> getActiveUsers() {
-        return statusManager.getActiveUsers();
-    }
-
-    /**
-     * @deprecated Use {@link ProviderStream#getChannels()}, {@link StreamChannel#start()} and {@link StreamChannel#stop()}
-     */
-    public void setActiveUsers(ArrayList<AuthUserRecord> activeUsers) {
-        ArrayList<AuthUserRecord> oldActiveList = getActiveUsers();
-        ArrayList<AuthUserRecord> inactiveList = new ArrayList<>();
-        for (AuthUserRecord userRecord : users) {
-            if (activeUsers.contains(userRecord)) {
-                userRecord.isActive = true;
-            }
-            else {
-                inactiveList.add(userRecord);
-                userRecord.isActive = false;
-            }
-
-            if (userRecord.isActive && !oldActiveList.contains(userRecord)) {
-                //ストリーム開始
-                statusManager.startUserStream(userRecord);
-            }
-            if (!userRecord.isActive && oldActiveList.contains(userRecord)) {
-                //ストリーム停止
-                statusManager.stopUserStream(userRecord);
-            }
-        }
-        Intent broadcastIntent = new Intent(CHANGED_ACTIVE_STATE);
-        broadcastIntent.putExtra(EXTRA_CHANGED_ACTIVE, activeUsers);
-        broadcastIntent.putExtra(EXTRA_CHANGED_INACTIVE, inactiveList);
-        sendBroadcast(broadcastIntent);
         storeUsers();
         reloadUsers();
     }

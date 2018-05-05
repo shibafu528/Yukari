@@ -1,11 +1,9 @@
 package shibafu.yukari.fragment.tabcontent;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,7 +26,6 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.linkage.TimelineEvent;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.PRListFactory;
@@ -43,8 +40,6 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
 import twitter4j.UserList;
-
-import java.util.ArrayList;
 
 /**
  * Created by shibafu on 14/02/13.
@@ -122,19 +117,11 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
     @Override
     public void onStart() {
         super.onStart();
-        if (getMode() == TabType.TABTYPE_HOME) {
-            getActivity().registerReceiver(onReloadReceiver, new IntentFilter(TwitterService.RELOADED_USERS));
-            getActivity().registerReceiver(onActiveChangedReceiver, new IntentFilter(TwitterService.CHANGED_ACTIVE_STATE));
-        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (getMode() == TabType.TABTYPE_HOME) {
-            getActivity().unregisterReceiver(onReloadReceiver);
-            getActivity().unregisterReceiver(onActiveChangedReceiver);
-        }
     }
 
     @Override
@@ -442,25 +429,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
             }.executeParallel(listId);
         }
     }
-
-    private BroadcastReceiver onReloadReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-        }
-    };
-
-    private BroadcastReceiver onActiveChangedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ArrayList<AuthUserRecord> inactiveList = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(TwitterService.EXTRA_CHANGED_INACTIVE);
-            for (AuthUserRecord inactive : inactiveList) {
-                if (users.contains(inactive)) {
-                    users.remove(inactive);
-                }
-            }
-        }
-    };
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
