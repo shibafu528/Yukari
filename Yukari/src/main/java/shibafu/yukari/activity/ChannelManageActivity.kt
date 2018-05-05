@@ -114,7 +114,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
                 if (item != null) {
                     viewHolder.tvName.text = item.userRecord.Name
                     viewHolder.tvScreenName.text = "@" + item.userRecord.ScreenName
-                    viewHolder.tvChannelName.text = item.channelId
+                    viewHolder.tvChannelName.text = item.channelName
                     viewHolder.ivAccountColor.setBackgroundColor(item.userRecord.AccountColor)
                     ImageLoaderTask.loadProfileIcon(context, viewHolder.ivIcon, item.userRecord.ProfileImageUrl)
                     viewHolder.chkActive.isChecked = item.isRunning

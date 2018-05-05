@@ -22,6 +22,7 @@ interface ProviderStream {
  */
 interface StreamChannel {
     val channelId: String
+    val channelName: String
     val userRecord: AuthUserRecord
     val allowUserControl: Boolean
     val isRunning: Boolean
