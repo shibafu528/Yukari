@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.util.StringUtil
 
@@ -42,15 +43,29 @@ class HistoryView : StatusView {
         val history = status as NotifyHistory
 
         flInclude.visibility = View.VISIBLE
+
+        // 既に存在するViewが流用不能な場合は破棄
+        if (flInclude.childCount > 0) {
+            val include = flInclude.getChildAt(0) as StatusView
+            val status = include.status
+            if (status == null || status.providerApiType != history.status.providerApiType) {
+                flInclude.removeAllViews()
+            }
+        }
+
         val include = if (flInclude.childCount == 0) {
-            TweetView(context).also {
+            when (history.status.providerApiType) {
+                Provider.API_TWITTER -> TweetView(context)
+                Provider.API_MASTODON -> DonStatusView(context)
+                else -> throw NotImplementedError("API Type ${history.status.providerApiType} is not compatible.")
+            }.also {
                 it.userRecords = userRecords
                 it.userExtras = userExtras
                 it.mode = mode or Mode.INCLUDE
                 flInclude.addView(it)
             }
         } else {
-            flInclude.getChildAt(0) as TweetView
+            flInclude.getChildAt(0) as StatusView
         }
         include.status = history.status
     }

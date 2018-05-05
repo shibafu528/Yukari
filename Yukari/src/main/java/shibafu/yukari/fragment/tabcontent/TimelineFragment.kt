@@ -463,7 +463,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
                         status.receivedUsers.add(eventStatus.representUser)
                     }
-                    notifyDataSetChanged()
+                    handler.post {
+                        notifyDataSetChanged()
+                    }
                     return
                 }
             }

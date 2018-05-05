@@ -10,10 +10,12 @@ import com.sys1yagi.mastodon4j.api.method.Streaming
 import kotlinx.coroutines.experimental.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
+import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 
@@ -171,7 +173,22 @@ private class StreamHandler(private val timelineId: String, private val hub: Tim
     }
 
     override fun onNotification(notification: Notification) {
-        // TODO: どうすっか～
+        val status = notification.status
+        when (notification.type) {
+            "mention" ->
+                if (status != null) {
+                    hub.onStatus(timelineId, DonStatus(status, userRecord), true)
+                }
+            "reblog" ->
+                if (status != null) {
+                    hub.onNotify(NotifyHistory.KIND_RETWEETED, DonUser(notification.account), DonStatus(status, userRecord))
+                }
+            "favourite" ->
+                if (status != null) {
+                    hub.onFavorite(DonUser(notification.account), DonStatus(status, userRecord))
+                }
+            "follow" -> {}
+        }
     }
 
     override fun onStatus(status: Status) {
