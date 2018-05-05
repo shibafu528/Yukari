@@ -59,6 +59,7 @@ import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.mastodon.MastodonApi;
+import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -141,7 +142,8 @@ public class TwitterService extends Service{
 
     //StreamAPI
     private ProviderStream[] providerStreams = {
-            new TwitterStream()
+            new TwitterStream(),
+            new MastodonStream()
     };
 
     private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
