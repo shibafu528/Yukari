@@ -53,24 +53,24 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
     private val itemTemplates: List<Pair<StatusAction, () -> Boolean>> = listOf(
             Action("ブラウザで開く") {
                 startActivity(Intent.createChooser(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(status?.url))
+                        Intent(Intent.ACTION_VIEW, Uri.parse(status.url))
                                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                         null))
-            } visibleWhen { status?.url != null },
+            } visibleWhen { status.url != null },
 
             Action("パーマリンクをコピー") {
                 (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                        .text = status?.url
+                        .text = status.url
                 showToast("リンクをコピーしました")
-            } visibleWhen { status?.url != null },
+            } visibleWhen { status.url != null },
 
             Action("ブックマークに追加") {
                 twitterService.database.updateRecord(Bookmark((status as TwitterStatus).status as PreformedStatus))
                 showToast("ブックマークしました")
-            } visibleWhen { status !is TwitterStatus },
+            } visibleWhen { status is TwitterStatus },
 
             Action("リストへ追加/削除") {
-                ListRegisterDialogFragment.newInstance((status!!.originStatus.user as TwitterUser).user).let {
+                ListRegisterDialogFragment.newInstance((status.originStatus.user as TwitterUser).user).let {
                     it.setTargetFragment(this, 0)
                     it.show(childFragmentManager, "register")
                 }
@@ -84,7 +84,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", "ツイートを削除しますか？", "OK", "キャンセル")
                 dialog.setTargetFragment(this, REQUEST_DELETE)
                 dialog.show(fragmentManager, "delete")
-            } visibleWhen { status is Bookmark || status?.user?.id == userRecord?.NumericId }
+            } visibleWhen { status is Bookmark || status.user.id == userRecord?.NumericId }
     )
 
     private val status: Status
@@ -125,7 +125,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
         super.onActivityCreated(savedInstanceState)
 
         val plugins: List<TwiccaPluginAction> =
-                if (status?.originStatus?.user?.isProtected ?: true) {
+                if (status.originStatus.user.isProtected) {
                     emptyList()
                 } else {
                     val query = Intent("jp.r246.twicca.ACTION_SHOW_TWEET").addCategory(Intent.CATEGORY_DEFAULT)
@@ -173,7 +173,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                     if (this.status is Bookmark) {
                         twitterService.database.deleteRecord(this.status as Bookmark)
                     } else {
-                        twitterService.destroyStatus(userRecord, this.status?.id ?: return@executeParallel)
+                        twitterService.destroyStatus(userRecord, this.status.id)
                     }
                 }
                 activity.finish()
@@ -191,7 +191,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
         // Pluggaloidアクションのロード
         if (!isLoadedPluggaloid) {
             val pluggaloidActions: List<PluggaloidPluginAction> =
-                    if (status?.originStatus?.user?.isProtected ?: true || twitterService == null || twitterService.getmRuby() == null) {
+                    if (status.originStatus.user.isProtected || twitterService == null || twitterService.getmRuby() == null) {
                         emptyList()
                     } else {
                         val plugins = try {
@@ -252,7 +252,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
         override val label: String = resolveInfo.activityInfo.loadLabel(activity.packageManager).toString()
 
         override fun onClick() {
-            val status = this@StatusActionFragment.status?.originStatus ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+            val status = this@StatusActionFragment.status.originStatus
 
             val intent = Intent("jp.r246.twicca.ACTION_SHOW_TWEET")
                 .addCategory(Intent.CATEGORY_DEFAULT)
@@ -297,7 +297,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
 
         override fun onClick() {
             if (exec != null) {
-                val status = this@StatusActionFragment.status ?: return { showToast("内部エラー\nこの画面を開き直してもう一度お試しください") }()
+                val status = this@StatusActionFragment.status
 
                 val extra = mapOf<String, String>(
                         "id" to status.id.toString(),
