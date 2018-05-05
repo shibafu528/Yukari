@@ -796,6 +796,7 @@ public class TwitterService extends Service{
      * @param apiType API形式。{@link Provider} 内の定数を参照。
      * @return APIインスタンス。
      */
+    @Nullable
     public ProviderApi getProviderApi(int apiType) {
         if (0 <= apiType && apiType < providerApis.length) {
             return providerApis[apiType];
@@ -822,11 +823,20 @@ public class TwitterService extends Service{
      * @param apiType API形式。{@link Provider} 内の定数を参照。
      * @return ストリーミングAPIインスタンス。
      */
+    @Nullable
     public ProviderStream getProviderStream(int apiType) {
         if (0 <= apiType && apiType < providerStreams.length) {
             return providerStreams[apiType];
         }
         return null;
+    }
+
+    /**
+     * 全てのストリーミングAPIインスタンスを取得します。
+     * @return ストリーミングAPIインスタンス。
+     */
+    public ProviderStream[] getProviderStreams() {
+        return providerStreams;
     }
 
     public StatusLoader getStatusLoader() {

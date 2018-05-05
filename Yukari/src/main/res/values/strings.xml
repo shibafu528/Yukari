@@ -42,6 +42,7 @@
     <string name="title_activity_backup">設定のインポート・エクスポート</string>
     <string name="title_activity_backup_import">設定のインポート</string>
     <string name="title_activity_backup_export">設定のエクスポート</string>
+    <string name="title_activity_channel_manage">ストリーミング接続管理</string>
 
     <string name="drive_error_connect">Driveとの接続に失敗しました</string>
     <string name="drive_importing">インポート中…</string>

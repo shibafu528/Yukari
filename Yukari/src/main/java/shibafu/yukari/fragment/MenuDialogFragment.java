@@ -33,6 +33,7 @@ import butterknife.Unbinder;
 import com.google.gson.Gson;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
+import shibafu.yukari.activity.ChannelManageActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.IntentChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -41,6 +42,8 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.linkage.ProviderStream;
+import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -58,7 +61,6 @@ import java.util.List;
 public class MenuDialogFragment extends DialogFragment {
 
     private static final int REQUEST_PROFILE = 1;
-    private static final int REQUEST_ACCOUNT = 5;
 
     private static final List<Integer> REQUEST_PLUGIN_CHOOSE = Collections.unmodifiableList(Arrays.asList(16, 17, 18));
     private static final List<Integer> REQUEST_PLUGIN_EXEC = Collections.unmodifiableList(Arrays.asList(32, 33, 34));
@@ -132,19 +134,30 @@ public class MenuDialogFragment extends DialogFragment {
             keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
         }
         if (activity.isTwitterServiceBound()) {
-            activeAccounts = activity.getTwitterService().getActiveUsers();
-            createAccountIconView();
-        } else {
             class AccountsLoader extends SimpleAsyncTask {
                 @Override
                 protected Void doInBackground(Void... params) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {}
                     MainActivity activity = (MainActivity) getActivity();
-                    if (activity.isTwitterServiceBound()) {
-                        activeAccounts = activity.getTwitterService().getActiveUsers();
+                    try {
+                        if (!activity.isTwitterServiceBound()) {
+                            Thread.sleep(1000);
+                        }
+                    } catch (InterruptedException ignored) {}
+
+                    final ProviderStream[] streams = activity.getTwitterService().getProviderStreams();
+                    ArrayList<AuthUserRecord> actives = new ArrayList<>();
+                    for (ProviderStream stream : streams) {
+                        if (stream != null) {
+                            for (StreamChannel channel : stream.getChannels()) {
+                                final AuthUserRecord userRecord = channel.getUserRecord();
+                                if (channel.isRunning() && !actives.contains(userRecord)) {
+                                    actives.add(userRecord);
+                                }
+                            }
+                        }
                     }
+                    activeAccounts = actives;
+
                     return null;
                 }
 
@@ -153,8 +166,6 @@ public class MenuDialogFragment extends DialogFragment {
                     super.onPostExecute(aVoid);
                     if (activeAccounts != null) {
                         createAccountIconView();
-                    } else {
-                        new AccountsLoader().executeParallel();
                     }
                 }
             }
@@ -179,10 +190,9 @@ public class MenuDialogFragment extends DialogFragment {
 
         llActiveAccounts = (LinearLayout) v.findViewById(R.id.llMenuAccounts);
         v.findViewById(R.id.llMenuAccountParent).setOnClickListener(v1 -> {
-            Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, activeAccounts);
-            startActivityForResult(intent, REQUEST_ACCOUNT);
+            dismiss();
+            Intent intent = new Intent(getActivity(), ChannelManageActivity.class);
+            startActivity(intent);
         });
 
         View profileMenu = v.findViewById(R.id.llMenuProfile);
@@ -307,15 +317,6 @@ public class MenuDialogFragment extends DialogFragment {
                 intent.putExtra(ProfileActivity.EXTRA_TARGET, data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
                 intent.putExtra(ProfileActivity.EXTRA_USER, data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
                 startActivity(intent);
-                break;
-            }
-            case REQUEST_ACCOUNT:
-            {
-                activeAccounts =
-                        (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
-                createAccountIconView();
-                //アクティブアカウントの再設定は別スレッドで行う
-                ((Runnable) () -> ((TwitterServiceDelegate)getActivity()).getTwitterService().setActiveUsers(activeAccounts)).run();
                 break;
             }
             default:

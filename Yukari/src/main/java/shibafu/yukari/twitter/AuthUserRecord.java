@@ -119,7 +119,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
             return false;
         if (o.getClass() != this.getClass())
             return false;
-        if (((AuthUserRecord)o).NumericId == NumericId)
+        if (((AuthUserRecord)o).InternalId == InternalId)
             return true;
         else
             return false;
