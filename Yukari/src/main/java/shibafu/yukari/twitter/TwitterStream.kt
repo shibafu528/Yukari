@@ -108,6 +108,7 @@ class TwitterStream : ProviderStream {
 }
 
 class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+    override val channelId: String = "UserStream"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
@@ -130,6 +131,7 @@ class UserStreamChannel(private val service: TwitterService, override val userRe
 }
 
 class FilterStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+    override val channelId: String = "FilterStream"
     override val allowUserControl: Boolean = false
     override var isRunning: Boolean = false
         private set

@@ -68,7 +68,6 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
     @Override
     protected void onStop() {
-        getTwitterService().getStatusManager().startAsync();
         super.onStop();
     }
 
@@ -79,8 +78,6 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
                 ((ServiceConnectable) fragment).onServiceConnected();
             }
         }
-
-        getTwitterService().getStatusManager().stopAsync();
     }
 
     @Override

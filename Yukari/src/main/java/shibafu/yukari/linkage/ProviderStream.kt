@@ -21,6 +21,7 @@ interface ProviderStream {
  * 1つのエンドポイントに対応するストリーミング通信管理の実装。
  */
 interface StreamChannel {
+    val channelId: String
     val userRecord: AuthUserRecord
     val allowUserControl: Boolean
     val isRunning: Boolean

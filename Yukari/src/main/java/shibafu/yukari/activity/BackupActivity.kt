@@ -286,10 +286,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         }
     }
 
-    override fun onServiceConnected() {
-        showToast("インポート・エクスポート画面を使用している間、UserStreamは切断されます。")
-        twitterService.statusManager.stopAsync()
-    }
+    override fun onServiceConnected() {}
 
     override fun onServiceDisconnected() {}
 

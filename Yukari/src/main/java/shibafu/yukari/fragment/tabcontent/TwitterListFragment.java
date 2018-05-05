@@ -40,7 +40,6 @@ import shibafu.yukari.twitter.TweetCommonDelegate;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import shibafu.yukari.twitter.statusmanager.StatusManager;
 import shibafu.yukari.util.AttrUtil;
 import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
@@ -398,14 +397,6 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
     @Override
     public boolean isTwitterServiceBound() {
         return connection.isServiceBound();
-    }
-
-    protected StatusManager getStatusManager() {
-        if (getTwitterService() != null) {
-            return getTwitterService().getStatusManager();
-        } else {
-            return null;
-        }
     }
 
     protected Handler getHandler() {

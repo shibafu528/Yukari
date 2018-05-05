@@ -8,11 +8,13 @@ import android.view.View;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.TabType;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.PRListFactory;
 import shibafu.yukari.twitter.PreformedResponseList;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.streaming.FilterStream;
@@ -107,12 +109,19 @@ public class SearchListFragment extends TweetListFragment implements StreamToggl
     }
 
     public void setStreaming(boolean streaming) {
-        this.streaming = streaming;
-        if (streaming) {
-            getStatusManager().startFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
-        }
-        else {
-            getStatusManager().stopFilterStream(parsedQuery.getValidQuery(), getCurrentUser());
+        AuthUserRecord currentUser = getCurrentUser();
+        if (currentUser.Provider.getApiType() == Provider.API_TWITTER) {
+            TwitterStream stream = (TwitterStream) getTwitterService().getProviderStream(currentUser);
+            if (stream == null) {
+                return;
+            }
+
+            this.streaming = streaming;
+            if (streaming) {
+                stream.startFilterStream(parsedQuery.getValidQuery(), currentUser);
+            } else {
+                stream.stopFilterStream(parsedQuery.getValidQuery(), currentUser);
+            }
         }
     }
 

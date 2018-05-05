@@ -837,13 +837,6 @@ public class TwitterService extends Service{
         return timelineHub;
     }
 
-    /**
-     * @deprecated 全ての機能は {@link ProviderStream} として再実装されました。{@link #getProviderStream(AuthUserRecord)} から利用できます。
-     */
-    public StatusManager getStatusManager() {
-        return statusManager;
-    }
-
     public CentralDatabase getDatabase() {
         return database;
     }

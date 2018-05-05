@@ -43,6 +43,7 @@ import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TriangleView;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
@@ -58,6 +59,7 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Twitter;
@@ -881,9 +883,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             switch (tabInfo.getType()) {
                 case TabType.TABTYPE_TRACK:
                     //現状ここに行き着くことってそんなに無い気がする
-                    getTwitterService().getStatusManager().startFilterStream(
-                            new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
-                            tabInfo.getBindAccount());
+                    if (tabInfo.getBindAccount().Provider.getApiType() == Provider.API_TWITTER) {
+                        TwitterStream stream = (TwitterStream) getTwitterService().getProviderStream(tabInfo.getBindAccount());
+                        if (stream != null) {
+                            stream.startFilterStream(new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
+                                    tabInfo.getBindAccount());
+                        }
+                    }
                     break;
             }
 
