@@ -59,6 +59,23 @@ class DonStatus(val status: Status,
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
+    override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
+        userRecords.forEach { userRecord ->
+            status.mentions.forEach { entity ->
+                if (userRecord.NumericId == entity.id) {
+                    return IStatus.RELATION_MENTIONED_TO_ME
+                }
+            }
+            if (userRecord.NumericId == status.inReplyToAccountId) {
+                return IStatus.RELATION_MENTIONED_TO_ME
+            }
+            if (userRecord.NumericId == user.id) {
+                return IStatus.RELATION_OWNED
+            }
+        }
+        return IStatus.RELATION_NONE
+    }
+
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
 
