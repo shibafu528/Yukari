@@ -11,7 +11,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -46,7 +45,6 @@ import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
 
 import java.util.ArrayList;
@@ -60,9 +58,6 @@ import java.util.List;
 public class MenuDialogFragment extends DialogFragment {
 
     private static final int REQUEST_PROFILE = 1;
-    private static final int REQUEST_TWILOG = 2;
-    private static final int REQUEST_FAVSTAR = 3;
-    private static final int REQUEST_ACLOG = 4;
     private static final int REQUEST_ACCOUNT = 5;
 
     private static final List<Integer> REQUEST_PLUGIN_CHOOSE = Collections.unmodifiableList(Arrays.asList(16, 17, 18));
@@ -312,27 +307,6 @@ public class MenuDialogFragment extends DialogFragment {
                 intent.putExtra(ProfileActivity.EXTRA_TARGET, data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
                 intent.putExtra(ProfileActivity.EXTRA_USER, data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
                 startActivity(intent);
-                break;
-            }
-            case REQUEST_TWILOG:
-            {
-                dismiss();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(TwitterUtil.getTwilogURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
-                break;
-            }
-            case REQUEST_FAVSTAR:
-            {
-                dismiss();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(TwitterUtil.getFavstarURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
-                break;
-            }
-            case REQUEST_ACLOG:
-            {
-                dismiss();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(TwitterUtil.getAclogURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
                 break;
             }
             case REQUEST_ACCOUNT:

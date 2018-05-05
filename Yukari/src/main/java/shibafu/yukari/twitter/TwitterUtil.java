@@ -3,8 +3,6 @@ package shibafu.yukari.twitter;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import shibafu.yukari.R;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
-import twitter4j.Status;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -54,65 +52,5 @@ public class TwitterUtil {
         }
         return "http://twilog.org/" + screenName;
     }
-    //</editor-fold>
-
-    //<editor-fold desc="StatusURL/Quote生成">
-
-    /**
-     * @deprecated Use {@link shibafu.yukari.entity.Status#getUrl()}
-     */
-    public static String getTweetURL(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append("https://twitter.com/");
-        sb.append(status.getUser().getScreenName());
-        sb.append("/status/");
-        sb.append(status.getId());
-        return sb.toString();
-    }
-
-    /**
-     * @deprecated Use {@link shibafu.yukari.entity.Status#toSTOTFormat()}
-     */
-    public static String createSTOT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(status.getUser().getScreenName());
-        sb.append(":");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        sb.append(" [");
-        sb.append(getTweetURL(status));
-        sb.append("]");
-        return sb.toString();
-    }
-
-    @Deprecated
-    public static String createQuotedRT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" RT @");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        return sb.toString();
-    }
-
-    @Deprecated
-    public static String createQT(Status status) {
-        if (status.isRetweet()) {
-            status = status.getRetweetedStatus();
-        }
-        StringBuilder sb = new StringBuilder(" QT @");
-        sb.append(status.getUser().getScreenName());
-        sb.append(": ");
-        sb.append((status instanceof PreformedStatus)? ((PreformedStatus) status).getPlainText() : status.getText());
-        return sb.toString();
-    }
-
     //</editor-fold>
 }
