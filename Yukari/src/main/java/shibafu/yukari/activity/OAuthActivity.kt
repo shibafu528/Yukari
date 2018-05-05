@@ -30,6 +30,7 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Provider
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.TwitterException
@@ -110,7 +111,6 @@ class OAuthActivity : ActionBarYukariBase() {
                     val existsUsers = twitterService.users
 
                     val userRecord = AuthUserRecord(accessToken)
-                    userRecord.isActive = true
                     if (existsUsers != null) {
                         var foundPrimary = false
                         for (user in existsUsers) {
@@ -595,7 +595,6 @@ class OAuthActivity : ActionBarYukariBase() {
                         val existsPrimary = service.users.any {
                             it.isPrimary && it.Provider != userRecord.Provider || it.NumericId != userRecord.NumericId
                         }
-                        userRecord.isActive = true
                         userRecord.isPrimary = !existsPrimary
                         userRecord.Name = account.displayName
                         userRecord.ProfileImageUrl = account.avatar

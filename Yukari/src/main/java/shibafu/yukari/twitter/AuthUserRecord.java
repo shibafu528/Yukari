@@ -30,7 +30,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public String Name;
     public String ProfileImageUrl;
     public boolean isPrimary;
-    public boolean isActive;
     public boolean isWriter;
     public String AccessToken;
     public String AccessTokenSecret;
@@ -45,7 +44,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
         twitterAccessToken = token;
         NumericId = token.getUserId();
         ScreenName = token.getScreenName();
-        isActive = true;
         AccountColor = Color.TRANSPARENT;
         AccessToken = token.getToken();
         AccessTokenSecret = token.getTokenSecret();
@@ -55,7 +53,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public AuthUserRecord(AccessToken token, Account account, Provider provider) {
         NumericId = account.getId();
         ScreenName = account.getUserName() + "@" + provider.getHost();
-        isActive = true;
         AccountColor = Color.TRANSPARENT;
         AccessToken = token.getAccessToken();
         AccessTokenSecret = null;
@@ -69,7 +66,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
         Name = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_DISPLAY_NAME));
         ProfileImageUrl = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROFILE_IMAGE_URL));
         isPrimary = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY)) == 1;
-        isActive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE)) == 1;
         isWriter = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_IS_WRITER)) == 1;
         AccessToken = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN));
         AccessTokenSecret = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET));
@@ -172,7 +168,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN, AccessToken);
         values.put(CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET, AccessTokenSecret);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_PRIMARY, isPrimary);
-        values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, isActive);
+        values.put(CentralDatabase.COL_ACCOUNTS_IS_ACTIVE, false);
         values.put(CentralDatabase.COL_ACCOUNTS_IS_WRITER, isWriter);
         values.put(CentralDatabase.COL_ACCOUNTS_COLOR, AccountColor);
         if (Provider != shibafu.yukari.database.Provider.TWITTER) {
@@ -188,7 +184,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
         Name = aur.Name;
         ProfileImageUrl = aur.ProfileImageUrl;
         isPrimary = aur.isPrimary;
-        isActive = aur.isActive;
         isWriter = aur.isWriter;
         AccessToken = aur.AccessToken;
         AccessTokenSecret = aur.AccessTokenSecret;
@@ -228,7 +223,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
                 ", Name='" + Name + '\'' +
                 ", ProfileImageUrl='" + ProfileImageUrl + '\'' +
                 ", isPrimary=" + isPrimary +
-                ", isActive=" + isActive +
                 ", isWriter=" + isWriter +
                 ", AccessToken=" + AccessToken +
                 ", AccessTokenSecret=" + (TextUtils.isEmpty(AccessTokenSecret) ? "" : "****") +

@@ -15,6 +15,8 @@ import android.widget.TextView
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.database.CentralDatabase
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.service.TwitterServiceConnection
 import shibafu.yukari.service.TwitterServiceDelegate
@@ -66,17 +68,18 @@ class ChannelManageActivity : ActionBarYukariBase() {
         override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
             val channel = channelList[position]
             val userRecord = serviceDelegate.twitterService.users.first { it == channel.userRecord }
+            val state = serviceDelegate.twitterService.database.getRecords(StreamChannelState::class.java,
+                    CentralDatabase.COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " = ? AND " + CentralDatabase.COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " = ?",
+                    arrayOf(userRecord.InternalId.toString(), channel.channelId)).firstOrNull()
+                    ?: StreamChannelState(userRecord.InternalId, channel.channelId, false)
             if (channel.isRunning) {
                 channel.stop()
-                userRecord.isActive = false
+                state.isActive = false
             } else {
                 channel.start()
-                userRecord.isActive = true
+                state.isActive = true
             }
-            serviceDelegate.twitterService.let {
-                it.storeUsers()
-                it.reloadUsers()
-            }
+            serviceDelegate.twitterService.database.updateRecord(state)
             createList()
         }
 

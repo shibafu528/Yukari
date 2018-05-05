@@ -30,7 +30,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 17;
+    public static final int DB_VER = 18;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -40,7 +40,7 @@ public class CentralDatabase {
     public static final String COL_ACCOUNTS_ACCESS_TOKEN = "AccessToken";
     public static final String COL_ACCOUNTS_ACCESS_TOKEN_SECRET = "AccessTokenSecret";
     public static final String COL_ACCOUNTS_IS_PRIMARY = "IsPrimary"; //各種操作のメインアカウント、最初に認証した垢がデフォルト
-    public static final String COL_ACCOUNTS_IS_ACTIVE  = "IsActive"; //タイムラインのアクティブアカウント
+    @Deprecated public static final String COL_ACCOUNTS_IS_ACTIVE  = "IsActive"; //タイムラインのアクティブアカウント
     public static final String COL_ACCOUNTS_IS_WRITER  = "IsWriter"; //ツイートのカレントアカウント、オープン毎にIsPrimaryで初期化する
     public static final String COL_ACCOUNTS_FALLBACK_TO= "FallbackTo"; //投稿規制フォールバック先ID、使わない場合は0
     public static final String COL_ACCOUNTS_COLOR = "AccountColor";
@@ -150,6 +150,13 @@ public class CentralDatabase {
     @Deprecated private static final String TABLE_TEMPLATE = "Template";
     @Deprecated private static final String COL_TEMPLATE_ID = "_id";
     @Deprecated private static final String COL_TEMPLATE_VALUE = "Value";
+
+    //StreamChannelStatesテーブル
+    public static final String TABLE_STREAM_CHANNEL_STATES = "StreamChannelStates";
+    public static final String COL_STREAM_CHANNEL_STATES_ID = "_id";
+    public static final String COL_STREAM_CHANNEL_STATES_ACCOUNT_ID = "AccountId";
+    public static final String COL_STREAM_CHANNEL_STATES_CHANNEL_ID = "ChannelId";
+    public static final String COL_STREAM_CHANNEL_STATES_IS_ACTIVE = "IsActive";
 
     private CentralDBHelper helper;
     private SQLiteDatabase db;
@@ -284,6 +291,13 @@ public class CentralDatabase {
                             COL_AUTO_MUTE_ID + " INTEGER PRIMARY KEY, " +
                             COL_AUTO_MUTE_MATCH + " INTEGER, " +
                             COL_AUTO_MUTE_QUERY + " TEXT)"
+            );
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_STREAM_CHANNEL_STATES + " (" +
+                            COL_STREAM_CHANNEL_STATES_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " TEXT NOT NULL, " +
+                            COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " TEXT NOT NULL, " +
+                            COL_STREAM_CHANNEL_STATES_IS_ACTIVE + " INTEGER NOT NULL)"
             );
         }
 
@@ -513,6 +527,31 @@ public class CentralDatabase {
 
                 ++oldVersion;
             }
+            if (oldVersion == 17) {
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_STREAM_CHANNEL_STATES + " (" +
+                                COL_STREAM_CHANNEL_STATES_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " TEXT NOT NULL, " +
+                                COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " TEXT NOT NULL, " +
+                                COL_STREAM_CHANNEL_STATES_IS_ACTIVE + " INTEGER NOT NULL)"
+                );
+                db.execSQL(
+                        "INSERT INTO " + TABLE_STREAM_CHANNEL_STATES + " (" +
+                                COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + "," +
+                                COL_STREAM_CHANNEL_STATES_CHANNEL_ID + "," +
+                                COL_STREAM_CHANNEL_STATES_IS_ACTIVE +
+                                ") SELECT " +
+                                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID + "," +
+                                "?," +
+                                "1 " +
+                                " FROM " +
+                                TABLE_ACCOUNTS +
+                                " WHERE " +
+                                TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + " = 1",
+                        new Object[]{"UserStream"}
+                );
+                ++oldVersion;
+            }
         }
     }
 
@@ -614,7 +653,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
-                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
@@ -727,7 +765,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY,
-                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID,
@@ -773,7 +810,6 @@ public class CentralDatabase {
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
-                    TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
                     TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
@@ -862,7 +898,6 @@ public class CentralDatabase {
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ACCESS_TOKEN_SECRET + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_PRIMARY + "," +
-                        TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_WRITER + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_COLOR + "," +
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "," +
@@ -899,12 +934,16 @@ public class CentralDatabase {
 
     //<editor-fold desc="Common Interface">
     public <T extends DBRecord> List<T> getRecords(Class<T> tableClass) {
+        return getRecords(tableClass, (String) null, null);
+    }
+
+    public <T extends DBRecord> List<T> getRecords(Class<T> tableClass, String selection, String[] selectionArgs) {
         List<T> records = new ArrayList<>();
         DBTable annotation = tableClass.getAnnotation(DBTable.class);
         if (annotation == null) {
             throw new RuntimeException(tableClass.getName() + " is not annotated DBTable.");
         }
-        Cursor cursor = db.query(annotation.value(), null, null, null, null, null, null);
+        Cursor cursor = db.query(annotation.value(), null, selection, selectionArgs, null, null, null);
         try {
             Constructor<T> constructor = tableClass.getConstructor(Cursor.class);
             if (cursor.moveToFirst()) do {

@@ -5,6 +5,7 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import shibafu.yukari.database.Provider
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.linkage.TimelineHub
@@ -45,9 +46,13 @@ class TwitterStream : ProviderStream {
     override fun onStart() {
         Log.d(LOG_TAG, "onStart")
 
+        val channelStates = service.database.getRecords(StreamChannelState::class.java)
         channels.forEach { ch ->
-            if (ch is UserStreamChannel && !ch.isRunning && ch.userRecord.isActive) {
-                ch.start()
+            if (ch is UserStreamChannel && !ch.isRunning) {
+                val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
+                if (state != null && state.isActive) {
+                    ch.start()
+                }
             }
         }
     }
