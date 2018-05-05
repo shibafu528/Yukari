@@ -6,6 +6,7 @@ import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.twitter.AuthUserRecord
 
@@ -55,4 +56,10 @@ class SearchHistoryMigrator : ConfigFileMigrator<SearchHistory> {
     override val latestVersion = 1
 
     constructor() : super(SearchHistory::class.java, {})
+}
+
+class StreamChannelStateMigrator : ConfigFileMigrator<StreamChannelState> {
+    override val latestVersion = 1
+
+    constructor() : super(StreamChannelState::class.java, {})
 }

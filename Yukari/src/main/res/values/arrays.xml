@@ -247,6 +247,7 @@
         <item>下書き</item>
         <item>検索履歴</item>
         <item>ハッシュタグ履歴</item>
+        <item>ストリーミング接続状態</item>
         <item>その他の設定</item>
     </string-array>
 

@@ -34,6 +34,7 @@ import shibafu.yukari.database.DBRecord
 import shibafu.yukari.database.DBUser
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
@@ -168,7 +169,8 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                             records.forEach { usedHashes.put(it) }
                                             usedHashes.save(applicationContext)
                                         }
-                                        10 -> {
+                                        10 -> importIntoDatabase(StreamChannelState::class.java, StreamChannelState::class.java, readFile("stream_channel_states.json"))
+                                        11 -> {
                                             val records: Map<String, Any?> = Gson().fromJson(readFile("prefs.json"), object : TypeToken<Map<String, Any?>>() {}.type)
                                             val spEdit = PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
                                             records.forEach {
@@ -236,7 +238,8 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                 7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
                                 8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
                                 9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
-                                10 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
+                                10 -> exports["stream_channel_states.json"] = ConfigFileUtility.exportToJson(StreamChannelState::class.java, database.getRecordMaps(CentralDatabase.TABLE_STREAM_CHANNEL_STATES) as List<Map<String, Any?>>)
+                                11 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
                             }
                         }
 

@@ -9,6 +9,7 @@ import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
+import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.StringWriter
@@ -79,7 +80,8 @@ object ConfigFileUtility {
             UserExtras::class.java to UserExtrasMigrator(),
             Bookmark.SerializeEntity::class.java to BookmarkMigrator(),
             TweetDraft::class.java to TweetDraftMigrator(),
-            SearchHistory::class.java to SearchHistoryMigrator()
+            SearchHistory::class.java to SearchHistoryMigrator(),
+            StreamChannelState::class.java to StreamChannelStateMigrator()
     )
 
     /**
