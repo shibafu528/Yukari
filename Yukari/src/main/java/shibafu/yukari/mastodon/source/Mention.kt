@@ -20,7 +20,7 @@ import shibafu.yukari.twitter.streaming.FilterStream
  */
 class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
-        Notifications(client).getNotifications(range).execute().let {
+        Notifications(client).getNotifications(range, listOf("follow", "favourite", "reblog")).execute().let {
             Pageable(it.part.filter { it.type == "mention" }.mapNotNull { it.status }, it.link)
         }
     }
