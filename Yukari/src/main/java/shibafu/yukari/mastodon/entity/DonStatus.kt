@@ -26,7 +26,14 @@ class DonStatus(val status: Status,
 
     @Suppress("DEPRECATION")
     override val text: String
-        get() = Html.fromHtml(status.content).toString().trim(' ', '\n')
+        get() {
+            val html = if (status.spoilerText.isEmpty()) {
+                status.content
+            } else {
+                status.spoilerText + "<p></p>"  + status.content
+            }
+            return Html.fromHtml(html).toString().trim(' ', '\n')
+        }
 
     override val recipientScreenName: String
         get() = representUser.ScreenName
