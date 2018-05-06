@@ -150,16 +150,16 @@ public class TwitterService extends Service{
         @Override
         public void onReceive(Context context, Intent intent) {
             if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_notif_connectivity", true)) {
-                if (intent.getAction().equals(Stream.CONNECTED_STREAM)) {
+                if (Stream.CONNECTED_STREAM.equals(intent.getAction())) {
                     AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                    if (connectivityFlags.get(userRecord.NumericId) != null) {
+                    if (connectivityFlags.get(userRecord.InternalId) != null) {
                         showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
-                        connectivityFlags.put(userRecord.NumericId, true);
+                        connectivityFlags.put(userRecord.InternalId, true);
                     }
-                } else if (intent.getAction().equals(Stream.DISCONNECTED_STREAM)) {
+                } else if (Stream.DISCONNECTED_STREAM.equals(intent.getAction())) {
                     AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
                     showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
-                    connectivityFlags.put(userRecord.NumericId, false);
+                    connectivityFlags.put(userRecord.InternalId, false);
                 }
             }
         }
