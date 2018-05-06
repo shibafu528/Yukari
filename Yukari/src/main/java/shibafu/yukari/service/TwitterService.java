@@ -631,11 +631,6 @@ public class TwitterService extends Service{
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
-    public String[] getHashCache() {
-        List<String> hashCache = timelineHub.getHashCache().getAll();
-        return hashCache.toArray(new String[hashCache.size()]);
-    }
-
     /**
      * 指定のアカウントに対応したAPIアクセスクライアントのインスタンスを取得します。結果はアカウント毎にキャッシュされます。
      * @param userRecord 認証情報。
