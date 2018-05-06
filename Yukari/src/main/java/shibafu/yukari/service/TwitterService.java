@@ -1000,7 +1000,7 @@ public class TwitterService extends Service{
                     .addInterceptor(getUserAgentInterceptor())
                     .build();
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("http://mikutter.hachune.net")
+                    .baseUrl("https://mikutter.hachune.net")
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
                     .build();
