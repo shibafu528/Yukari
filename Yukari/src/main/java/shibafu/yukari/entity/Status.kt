@@ -141,6 +141,13 @@ interface Status : Comparable<Status>, Serializable {
     }
 
     /**
+     * このステータスがいずれかの受信アカウントにメンションを向けているか判断
+     */
+    fun isMentionedToMe(): Boolean {
+        return getStatusRelation(receivedUsers) == RELATION_MENTIONED_TO_ME
+    }
+
+    /**
      * このステータスが代表受信アカウントのものであるか(削除等の強い権限を持っている)どうか判定
      */
     fun isOwnedStatus(): Boolean {
@@ -175,6 +182,9 @@ interface Status : Comparable<Status>, Serializable {
         }
     }
 
+    /**
+     * ShareTwitterOnTumblr形式に変換する
+     */
     fun toSTOTFormat(): String {
         val origin = originStatus
         return buildString {

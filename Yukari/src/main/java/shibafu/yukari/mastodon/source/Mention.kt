@@ -3,7 +3,9 @@ package shibafu.yukari.mastodon.source
 import android.content.Context
 import com.sys1yagi.mastodon4j.api.Pageable
 import com.sys1yagi.mastodon4j.api.method.Notifications
+import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.NotNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
@@ -27,8 +29,14 @@ class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getFilterStream(context: Context): FilterStream? = null
 
-    override fun filterUserStream(): SNode = ContainsNode(
-            VariableNode("receivedUsers"),
-            ValueNode(sourceAccount)
+    override fun filterUserStream(): SNode = AndNode(
+            ContainsNode(
+                    VariableNode("receivedUsers"),
+                    ValueNode(sourceAccount)
+            ),
+            NotNode(
+                    VariableNode("repost")
+            ),
+            VariableNode("mentionedToMe")
     )
 }
