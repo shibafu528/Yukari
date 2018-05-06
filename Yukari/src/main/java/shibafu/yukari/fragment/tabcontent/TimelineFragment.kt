@@ -623,7 +623,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         }
 
-        if (listView == null) {
+        val listView = try {
+            listView
+        } catch (ignored: IllegalStateException) {
             putWarnLog("Insert: ListView is null. DROPPED! ($status, $position)")
             return
         }
