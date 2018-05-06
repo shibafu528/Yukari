@@ -179,15 +179,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                             fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_FAVORITE);
                                             fragment.show(getFragmentManager(), null);
                                         } else {
-                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                                @Override
-                                                protected TwitterException doInBackground(PreformedStatus... params) {
-                                                    final AuthUserRecord userRecord = params[0].getRepresentUser();
-                                                    final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                                                    getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
-                                                    return null;
-                                                }
-                                            }.execute(swipeActionStatusGrabbed);
+                                            new AsyncFavoriteTask().execute(swipeActionStatusGrabbed);
                                         }
                                         break;
                                     case SWIPE_ACTION_RETWEET:
@@ -204,15 +196,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                             fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_RETWEET);
                                             fragment.show(getFragmentManager(), null);
                                         } else {
-                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                                @Override
-                                                protected TwitterException doInBackground(PreformedStatus... params) {
-                                                    final AuthUserRecord userRecord = params[0].getRepresentUser();
-                                                    final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                                                    getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
-                                                    return null;
-                                                }
-                                            }.execute(swipeActionStatusGrabbed);
+                                            new AsyncRetweetTask().execute(swipeActionStatusGrabbed);
                                         }
                                         break;
                                     case SWIPE_ACTION_FAVRT:
@@ -236,16 +220,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
                                             fragment.setTargetFragment(TweetListFragment.this, REQUEST_D_SWIPE_ACTION_FAVRT);
                                             fragment.show(getFragmentManager(), null);
                                         } else {
-                                            new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                                                @Override
-                                                protected TwitterException doInBackground(PreformedStatus... params) {
-                                                    final AuthUserRecord userRecord = params[0].getRepresentUser();
-                                                    final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                                                    getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
-                                                    getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
-                                                    return null;
-                                                }
-                                            }.execute(swipeActionStatusGrabbed);
+                                            new AsyncFavRTTask().execute(swipeActionStatusGrabbed);
                                         }
                                         break;
                                 }
@@ -464,40 +439,15 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             switch (requestCode) {
                 case REQUEST_D_SWIPE_ACTION_FAVORITE:
                     status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
-                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                        @Override
-                        protected TwitterException doInBackground(PreformedStatus... params) {
-                            final AuthUserRecord userRecord = params[0].getRepresentUser();
-                            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                            getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
-                            return null;
-                        }
-                    }.execute(status);
+                    new AsyncFavoriteTask().execute(status);
                     break;
                 case REQUEST_D_SWIPE_ACTION_RETWEET:
                     status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
-                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                        @Override
-                        protected TwitterException doInBackground(PreformedStatus... params) {
-                            final AuthUserRecord userRecord = params[0].getRepresentUser();
-                            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                            getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
-                            return null;
-                        }
-                    }.execute(status);
+                    new AsyncRetweetTask().execute(status);
                     break;
                 case REQUEST_D_SWIPE_ACTION_FAVRT:
                     status = (PreformedStatus) extras.getSerializable(REQUEST_D_BUNDLE_STATUS);
-                    new TwitterAsyncTask<PreformedStatus>(getActivity()) {
-                        @Override
-                        protected TwitterException doInBackground(PreformedStatus... params) {
-                            final AuthUserRecord userRecord = params[0].getRepresentUser();
-                            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
-                            getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
-                            getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
-                            return null;
-                        }
-                    }.execute(status);
+                    new AsyncFavRTTask().execute(status);
                     break;
             }
         }
@@ -570,4 +520,47 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         return defaultRESTInterface2;
     }
 
+    private class AsyncFavoriteTask extends TwitterAsyncTask<PreformedStatus> {
+        public AsyncFavoriteTask() {
+            super(TweetListFragment.this.getActivity());
+        }
+
+        @Override
+        protected TwitterException doInBackground(PreformedStatus... params) {
+            final AuthUserRecord userRecord = params[0].getRepresentUser();
+            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
+            getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
+            return null;
+        }
+    }
+
+    private class AsyncRetweetTask extends TwitterAsyncTask<PreformedStatus> {
+        public AsyncRetweetTask() {
+            super(TweetListFragment.this.getActivity());
+        }
+
+        @Override
+        protected TwitterException doInBackground(PreformedStatus... params) {
+            final AuthUserRecord userRecord = params[0].getRepresentUser();
+            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
+            getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
+            return null;
+        }
+
+    }
+
+    private class AsyncFavRTTask extends TwitterAsyncTask<PreformedStatus> {
+        public AsyncFavRTTask() {
+            super(TweetListFragment.this.getActivity());
+        }
+
+        @Override
+        protected TwitterException doInBackground(PreformedStatus... params) {
+            final AuthUserRecord userRecord = params[0].getRepresentUser();
+            final TwitterStatus status = new TwitterStatus(params[0], userRecord);
+            getTwitterService().getProviderApi(userRecord).createFavorite(userRecord, status);
+            getTwitterService().getProviderApi(userRecord).repostStatus(userRecord, status);
+            return null;
+        }
+    }
 }
