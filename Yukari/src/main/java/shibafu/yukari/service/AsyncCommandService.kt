@@ -10,6 +10,7 @@ import shibafu.yukari.BuildConfig
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putErrorLog
 
@@ -74,14 +75,9 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                 return
             }
 
+            val api = service.getProviderApi(user) as TwitterApi
             when (action) {
-                ACTION_FAVORITE -> service.createFavorite(user, id)
-                ACTION_UNFAVORITE -> service.destroyFavorite(user, id)
-                ACTION_RETWEET -> service.retweetStatus(user, id)
-                ACTION_FAVRT -> {
-                    service.createFavorite(user, id)
-                    service.retweetStatus(user, id)
-                }
+                ACTION_FAVORITE -> api.createFavorite(user, id)
             }
         }
     }
@@ -96,16 +92,12 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
         private val EXTRA_USER = "user"
         private val EXTRA_TARGET_STATUS = "targetStatus"
 
-        private fun createIntent(context: Context, action: String, id: Long, user: AuthUserRecord): Intent {
-            val intent = Intent(context, AsyncCommandService::class.java)
-            intent.setAction(action)
-            intent.putExtra(EXTRA_ID, id)
-            intent.putExtra(EXTRA_USER, user)
-            return intent
-        }
-
-        @JvmStatic fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
-                = createIntent(context, ACTION_FAVORITE, id, user)
+        @JvmStatic fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent =
+                Intent(context, AsyncCommandService::class.java).apply {
+                    action = ACTION_FAVORITE
+                    putExtra(EXTRA_ID, id)
+                    putExtra(EXTRA_USER, user)
+                }
 
         @JvmStatic fun createFavorite(context: Context, status: Status, user: AuthUserRecord): Intent =
                 Intent(context, AsyncCommandService::class.java).apply {
@@ -114,9 +106,6 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                     putExtra(EXTRA_USER, user)
                 }
 
-        @JvmStatic fun destroyFavorite(context: Context, id: Long, user: AuthUserRecord): Intent
-                = createIntent(context, ACTION_UNFAVORITE, id, user)
-
         @JvmStatic fun destroyFavorite(context: Context, status: Status, user: AuthUserRecord): Intent =
                 Intent(context, AsyncCommandService::class.java).apply {
                     action = ACTION_UNFAVORITE
@@ -124,18 +113,12 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                     putExtra(EXTRA_USER, user)
                 }
 
-        @JvmStatic fun createRetweet(context: Context, id: Long, user: AuthUserRecord): Intent
-                = createIntent(context, ACTION_RETWEET, id, user)
-
         @JvmStatic fun createRepost(context: Context, status: Status, user: AuthUserRecord): Intent =
                 Intent(context, AsyncCommandService::class.java).apply {
                     action = ACTION_RETWEET
                     putExtra(EXTRA_TARGET_STATUS, status)
                     putExtra(EXTRA_USER, user)
                 }
-
-        @JvmStatic fun createFavRT(context: Context, id: Long, user: AuthUserRecord): Intent
-                = createIntent(context, ACTION_FAVRT, id, user)
 
         @JvmStatic fun createFavAndRepost(context: Context, status: Status, user: AuthUserRecord): Intent =
                 Intent(context, AsyncCommandService::class.java).apply {

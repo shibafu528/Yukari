@@ -896,66 +896,6 @@ public class TwitterService extends Service{
         twitter.sendDirectMessage(to, message);
     }
 
-    /**
-     * @deprecated Use {@link ProviderApi#repostStatus(AuthUserRecord, shibafu.yukari.entity.Status)}
-     */
-    public void retweetStatus(AuthUserRecord user, long id){
-        if (user == null) {
-            throw new IllegalArgumentException("操作対象アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(user);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        try {
-            twitter.retweetStatus(id);
-            showToast("RTしました (@" + user.ScreenName + ")");
-        } catch (TwitterException e) {
-            e.printStackTrace();
-            showToast("RTに失敗しました (@" + user.ScreenName + ")");
-        }
-    }
-
-    /**
-     * @deprecated Use {@link ProviderApi#createFavorite(AuthUserRecord, shibafu.yukari.entity.Status)}
-     */
-    public void createFavorite(AuthUserRecord user, long id){
-        if (user == null) {
-            throw new IllegalArgumentException("操作対象アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(user);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        try {
-            twitter.createFavorite(id);
-            showToast("ふぁぼりました (@" + user.ScreenName + ")");
-        } catch (TwitterException e) {
-            e.printStackTrace();
-            showToast("ふぁぼれませんでした (@" + user.ScreenName + ")");
-        }
-    }
-
-    /**
-     * @deprecated Use {@link ProviderApi#destroyFavorite(AuthUserRecord, shibafu.yukari.entity.Status)}
-     */
-    public void destroyFavorite(AuthUserRecord user, long id) {
-        if (user == null) {
-            throw new IllegalArgumentException("アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(user);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        try {
-            twitter.destroyFavorite(id);
-            showToast("あんふぁぼしました (@" + user.ScreenName + ")");
-        } catch (TwitterException e) {
-            e.printStackTrace();
-            showToast("あんふぁぼに失敗しました (@" + user.ScreenName + ")");
-        }
-    }
-
     public void destroyStatus(AuthUserRecord user, long id) {
         if (user == null) {
             throw new IllegalArgumentException("アカウントが指定されていません");

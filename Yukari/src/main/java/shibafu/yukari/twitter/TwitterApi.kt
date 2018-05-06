@@ -19,6 +19,24 @@ class TwitterApi : ProviderApi {
 
     }
 
+    // 互換用
+    fun createFavorite(userRecord: AuthUserRecord, id: Long): Boolean {
+        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        try {
+            twitter.createFavorite(id)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+            }
+            return true
+        } catch (e: TwitterException) {
+            e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+            }
+        }
+        return false
+    }
+
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
