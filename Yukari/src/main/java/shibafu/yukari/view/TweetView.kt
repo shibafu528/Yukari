@@ -132,13 +132,9 @@ class TweetView : StatusView {
 
             var selectedFlags = pref.getInt("pref_prev_time", 0)
             if (selectedFlags != 0) {
-                val selectedStates = BooleanArray(24)
-                for (i in 0..23) {
-                    selectedStates[i] = selectedFlags and 0x01 == 1
-                    selectedFlags = selectedFlags ushr 1
-                }
-                val calendar = Calendar.getInstance()
-                hidden = selectedStates[calendar.get(Calendar.HOUR_OF_DAY)]
+                // 31 | .... .... 0000 0000 0000 0000 0000 0000 | 0
+                //                `23:00-59    `12:00-59      `00:00-59
+                hidden = selectedFlags and (1 shl Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) != 0
             }
             hidden = hidden or status.originStatus.metadata.isCensoredThumbs
 
