@@ -100,7 +100,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
 
     override fun start() {
         launch {
-            val client = service.getApiClient(userRecord) as MastodonClient
+            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = streaming.user(handler)
         }
@@ -126,7 +126,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
 
     override fun start() {
         launch {
-            val client = service.getApiClient(userRecord) as MastodonClient
+            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = streaming.federatedPublic(handler)
         }
@@ -152,7 +152,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
 
     override fun start() {
         launch {
-            val client = service.getApiClient(userRecord) as MastodonClient
+            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = streaming.localPublic(handler)
         }

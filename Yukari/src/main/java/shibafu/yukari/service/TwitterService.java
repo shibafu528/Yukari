@@ -433,6 +433,26 @@ public class TwitterService extends Service{
         Log.d(LOG_TAG, "onDestroy completed.");
     }
 
+    public StatusLoader getStatusLoader() {
+        return statusLoader;
+    }
+
+    public TimelineHub getTimelineHub() {
+        return timelineHub;
+    }
+
+    public CentralDatabase getDatabase() {
+        return database;
+    }
+
+    public TwitterAPIConfiguration getApiConfiguration() {
+        return apiConfiguration;
+    }
+
+    public Suppressor getSuppressor() {
+        return suppressor;
+    }
+
     //<editor-fold desc="ユーザ情報管理">
     public void reloadUsers() {
         reloadUsers(false);
@@ -616,16 +636,13 @@ public class TwitterService extends Service{
     }
     //</editor-fold>
 
-    private void showToast(final String text) {
-        handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
-    }
-
+    //<editor-fold desc="通信クライアントインスタンスの取得 (Legacy)">
     /**
-     * 指定のアカウントに対応したAPIアクセスクライアントのインスタンスを取得します。結果はアカウント毎にキャッシュされます。
+     * 指定のアカウントに対応したAPIアクセスクライアントのインスタンスを取得します。
      * @param userRecord 認証情報。
      * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
      */
-    public Object getApiClient(@NonNull AuthUserRecord userRecord) {
+    private Object getApiClient(@NonNull AuthUserRecord userRecord) {
         final ProviderApi api = getProviderApi(userRecord);
         if (api == null) {
             throw new RuntimeException("Invalid API Type : " + userRecord);
@@ -673,7 +690,9 @@ public class TwitterService extends Service{
         }
         return twitter;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Provider API">
     /**
      * 指定のアカウントに対応したAPIインスタンスを取得します。
      * @param userRecord 認証情報。
@@ -702,7 +721,9 @@ public class TwitterService extends Service{
         }
         throw new UnsupportedOperationException("API Type " + apiType + " not implemented.");
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Provider Stream API">
     /**
      * 指定のアカウントに対応したストリーミングAPIインスタンスを取得します。
      * @param userRecord 認証情報。
@@ -740,35 +761,6 @@ public class TwitterService extends Service{
         return providerStreams;
     }
 
-    public StatusLoader getStatusLoader() {
-        return statusLoader;
-    }
-
-    public TimelineHub getTimelineHub() {
-        return timelineHub;
-    }
-
-    public CentralDatabase getDatabase() {
-        return database;
-    }
-
-    public TwitterAPIConfiguration getApiConfiguration() {
-        return apiConfiguration;
-    }
-
-    public Suppressor getSuppressor() {
-        return suppressor;
-    }
-
-    public void updateMuteConfig() {
-        suppressor.setConfigs(database.getRecords(MuteConfig.class));
-    }
-
-    public void updateAutoMuteConfig() {
-        List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
-        timelineHub.setAutoMuteConfigs(records);
-    }
-
     /**
      * ユーザによって有効化されているストリーミングチャンネルを全て起動します。
      */
@@ -795,8 +787,20 @@ public class TwitterService extends Service{
             }
         }
     }
+    //</editor-fold>
 
-    //<editor-fold desc="投稿操作系">
+    //<editor-fold desc="MuteConfig Reload">
+    public void updateMuteConfig() {
+        suppressor.setConfigs(database.getRecords(MuteConfig.class));
+    }
+
+    public void updateAutoMuteConfig() {
+        List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
+        timelineHub.setAutoMuteConfigs(records);
+    }
+    //</editor-fold>
+
+    //<editor-fold desc="投稿操作系 (Legacy)">
     public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
         if (user == null) {
             throw new IllegalArgumentException("送信元アカウントが指定されていません");
@@ -846,7 +850,7 @@ public class TwitterService extends Service{
     }
 
     public void postToot(@NonNull AuthUserRecord user, @NonNull String text, @Nullable List<Long> mediaIds) throws Mastodon4jRequestException {
-        final MastodonClient client = (MastodonClient) getApiClient(user);
+        final MastodonClient client = (MastodonClient) getProviderApi(Provider.API_MASTODON).getApiClient(user);
         if (client == null) {
             throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
         }
@@ -868,7 +872,7 @@ public class TwitterService extends Service{
                 fos.close();
             }
 
-            final MastodonClient client = (MastodonClient) getApiClient(user);
+            final MastodonClient client = (MastodonClient) getProviderApi(Provider.API_MASTODON).getApiClient(user);
             if (client == null) {
                 throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
             }
@@ -883,6 +887,7 @@ public class TwitterService extends Service{
     }
     //</editor-fold>
 
+    //<editor-fold desc="ツイート所有判定 (Legacy)">
     public AuthUserRecord isMyTweet(Status status) {
         return isMyTweet(status, false);
     }
@@ -911,6 +916,7 @@ public class TwitterService extends Service{
         }
         return null;
     }
+    //</editor-fold>
 
     /**
      * mikutterの最新バージョン情報を取得します。
@@ -962,5 +968,9 @@ public class TwitterService extends Service{
                 .newBuilder()
                 .header("User-Agent", StringUtil.getVersionInfo(TwitterService.this.getApplicationContext()))
                 .build());
+    }
+
+    private void showToast(final String text) {
+        handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 }

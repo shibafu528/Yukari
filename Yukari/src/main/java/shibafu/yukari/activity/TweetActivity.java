@@ -69,6 +69,7 @@ import shibafu.yukari.entity.StatusPreforms;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
+import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
@@ -416,7 +417,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                     } catch (InterruptedException ignore) {}
                                 }
 
-                                Object client = getTwitterService().getApiClient(user);
+                                final ProviderApi api = getTwitterService().getProviderApi(user);
+                                if (api == null) {
+                                    return null;
+                                }
+
+                                final Object client = api.getApiClient(user);
                                 if (client instanceof Twitter) {
                                     status = new TwitterStatus(((Twitter) client).showStatus(inReplyTo), user);
                                 } else if (client instanceof MastodonClient) {

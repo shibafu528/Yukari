@@ -44,7 +44,7 @@ class MastodonApi : ProviderApi {
     }
 
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
-        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
             statuses.postFavourite(status.id).execute()
@@ -62,7 +62,7 @@ class MastodonApi : ProviderApi {
     }
 
     override fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
-        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
             statuses.postUnfavourite(status.id).execute()
@@ -80,7 +80,7 @@ class MastodonApi : ProviderApi {
     }
 
     override fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean {
-        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
             statuses.postReblog(status.id).execute()
@@ -98,7 +98,7 @@ class MastodonApi : ProviderApi {
     }
 
     override fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean {
-        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
             statuses.deleteStatus(status.id)
