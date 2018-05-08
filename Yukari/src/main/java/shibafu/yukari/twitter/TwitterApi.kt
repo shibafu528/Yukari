@@ -2,21 +2,44 @@ package shibafu.yukari.twitter
 
 import android.os.Handler
 import android.os.Looper
+import android.support.v4.util.LongSparseArray
 import android.widget.Toast
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.service.TwitterService
+import twitter4j.Twitter
 import twitter4j.TwitterException
+import twitter4j.TwitterFactory
 
 class TwitterApi : ProviderApi {
     private lateinit var service: TwitterService
+    private lateinit var twitterFactory: TwitterFactory
+
+    private val twitterInstances = LongSparseArray<Twitter>()
 
     override fun onCreate(service: TwitterService) {
         this.service = service
+        this.twitterFactory = TwitterUtil.getTwitterFactory(service)
     }
 
     override fun onDestroy() {
+        twitterInstances.clear()
+    }
 
+    override fun getApiClient(userRecord: AuthUserRecord?): Any? {
+        if (userRecord == null) {
+            return twitterFactory.instance
+        }
+
+        if (userRecord.Provider.apiType != Provider.API_TWITTER) {
+            return null
+        }
+
+        if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
+            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.twitterAccessToken))
+        }
+        return twitterInstances.get(userRecord.NumericId)
     }
 
     // 互換用

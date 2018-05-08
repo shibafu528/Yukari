@@ -23,10 +23,8 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LongSparseArray;
-import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
-import com.google.gson.Gson;
 import com.sys1yagi.mastodon4j.MastodonClient;
 import com.sys1yagi.mastodon4j.api.entity.Attachment;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
@@ -65,7 +63,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
-import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
@@ -75,9 +72,9 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.UploadedMedia;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -122,17 +119,15 @@ public class TwitterService extends Service{
     private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
     //ネットワーク管理
+    private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
 
     //Timeline Pub/Sub
     private StatusLoader statusLoader;
     private TimelineHub timelineHub;
 
-    //Twitter通信系
-    private TwitterFactory twitterFactory;
-    private LongSparseArray<Twitter> twitterInstances = new LongSparseArray<>();
+    //ユーザ情報
     private List<AuthUserRecord> users = new ArrayList<>();
     private List<UserExtras> userExtras = new ArrayList<>();
-    private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
 
     //API
     private ProviderApi[] providerApis = {
@@ -201,9 +196,6 @@ public class TwitterService extends Service{
         Log.d(LOG_TAG, "onCreate");
 
         handler = new Handler();
-
-        //TwitterFactoryの生成
-        twitterFactory = TwitterUtil.getTwitterFactory(this);
 
         //データベースのオープン
         database = new CentralDatabase(this).open();
@@ -413,9 +405,6 @@ public class TwitterService extends Service{
                 api.onDestroy();
             }
         }
-
-        twitterInstances.clear();
-        twitterFactory = null;
 
         storeUsers();
         users = new ArrayList<>();
@@ -637,22 +626,12 @@ public class TwitterService extends Service{
      * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
      */
     public Object getApiClient(@NonNull AuthUserRecord userRecord) {
-        switch (userRecord.Provider.getApiType()) {
-            case Provider.API_TWITTER:
-                return getTwitter(userRecord);
-            case Provider.API_MASTODON: {
-                MastodonClient.Builder builder = new MastodonClient.Builder(
-                        userRecord.Provider.getHost(),
-                        new OkHttpClient.Builder().addInterceptor(getUserAgentInterceptor()),
-                        new Gson());
-                if (!TextUtils.isEmpty(userRecord.AccessToken)) {
-                    builder = builder.accessToken(userRecord.AccessToken).useStreamingApi();
-                }
-                return builder.build();
-            }
-            default:
-                throw new RuntimeException("Invalid API Type : " + userRecord);
+        final ProviderApi api = getProviderApi(userRecord);
+        if (api == null) {
+            throw new RuntimeException("Invalid API Type : " + userRecord);
         }
+
+        return api.getApiClient(userRecord);
     }
 
     /**
@@ -662,18 +641,7 @@ public class TwitterService extends Service{
      */
     @Nullable
     public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
-        if (twitterFactory == null || (userRecord != null && userRecord.Provider.getApiType() != Provider.API_TWITTER)) {
-            return null;
-        }
-
-        if (userRecord == null) {
-            return twitterFactory.getInstance();
-        }
-
-        if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
-            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.getTwitterAccessToken()));
-        }
-        return twitterInstances.get(userRecord.NumericId);
+        return (Twitter) getProviderApi(Provider.API_TWITTER).getApiClient(userRecord);
     }
 
     /**
@@ -707,24 +675,6 @@ public class TwitterService extends Service{
     }
 
     /**
-     * Mastodon APIを利用するためのクライアントインスタンスを取得します。
-     * @param instanceName インスタンス名。一般的にはドメインを指します。
-     * @param accessToken アクセストークン。null を指定した場合は設定しません。
-     * @return {@link MastodonClient} のインスタンス。
-     */
-    @NonNull
-    public MastodonClient getMastodonClient(@NonNull String instanceName, @Nullable String accessToken) {
-        MastodonClient.Builder builder = new MastodonClient.Builder(
-                instanceName,
-                new OkHttpClient.Builder().addInterceptor(getUserAgentInterceptor()),
-                new Gson());
-        if (!TextUtils.isEmpty(accessToken)) {
-            builder = builder.accessToken(accessToken);
-        }
-        return builder.build();
-    }
-
-    /**
      * 指定のアカウントに対応したAPIインスタンスを取得します。
      * @param userRecord 認証情報。
      * @return APIインスタンス。アカウントが所属するサービスに対応したものが返されます。
@@ -740,15 +690,17 @@ public class TwitterService extends Service{
 
     /**
      * 指定のAPI形式に対応したAPIインスタンスを取得します。
+     * 対応するAPIインスタンスが定義されていない場合、例外をスローします。
      * @param apiType API形式。{@link Provider} 内の定数を参照。
      * @return APIインスタンス。
+     * @throws UnsupportedOperationException 対応するAPIインスタンスが定義されていない場合にスロー
      */
-    @Nullable
+    @NonNull
     public ProviderApi getProviderApi(int apiType) {
         if (0 <= apiType && apiType < providerApis.length) {
             return providerApis[apiType];
         }
-        return null;
+        throw new UnsupportedOperationException("API Type " + apiType + " not implemented.");
     }
 
     /**
@@ -767,15 +719,17 @@ public class TwitterService extends Service{
 
     /**
      * 指定のAPI形式に対応したストリーミングAPIインスタンスを取得します。
+     * 対応するAPIインスタンスが定義されていない場合、例外をスローします。
      * @param apiType API形式。{@link Provider} 内の定数を参照。
      * @return ストリーミングAPIインスタンス。
+     * @throws UnsupportedOperationException 対応するAPIインスタンスが定義されていない場合にスロー
      */
-    @Nullable
+    @Nonnull
     public ProviderStream getProviderStream(int apiType) {
         if (0 <= apiType && apiType < providerStreams.length) {
             return providerStreams[apiType];
         }
-        return null;
+        throw new UnsupportedOperationException("API Type " + apiType + " not implemented.");
     }
 
     /**
@@ -1003,7 +957,7 @@ public class TwitterService extends Service{
         return mRubyStdOut;
     }
 
-    private Interceptor getUserAgentInterceptor() {
+    public Interceptor getUserAgentInterceptor() {
         return chain -> chain.proceed(chain.request()
                 .newBuilder()
                 .header("User-Agent", StringUtil.getVersionInfo(TwitterService.this.getApplicationContext()))

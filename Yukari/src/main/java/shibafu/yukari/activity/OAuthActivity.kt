@@ -31,6 +31,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
+import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.TwitterException
@@ -470,7 +471,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun startRegisterNewProvider(instanceHostName: String) {
             val activity = activity as OAuthActivity
-            val client = activity.twitterService.getMastodonClient(instanceHostName, null)
+            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(instanceHostName, null)
             object : ParallelAsyncTask<Void?, Void?, AppRegistration?>() {
                 var dialog: LoadDialogFragment? = null
 
@@ -514,7 +515,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun startAuthorize(provider: Provider) {
             val activity = activity as OAuthActivity
-            val client = activity.twitterService.getMastodonClient(provider.host, null)
+            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
             currentProvider = provider
             object : ParallelAsyncTask<Void?, Void?, String?>() {
                 var dialog: LoadDialogFragment? = null
@@ -554,7 +555,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun finishAuthorize(provider: Provider, authorizeCode: String) {
             val activity = activity as OAuthActivity
-            val client = activity.twitterService.getMastodonClient(provider.host, null)
+            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
 
             object : ParallelAsyncTask<Void?, Void?, Pair<MastodonAccessToken, Account>?>() {
                 var dialog: LoadDialogFragment? = null
@@ -567,7 +568,7 @@ class OAuthActivity : ActionBarYukariBase() {
                                 MASTODON_CALLBACK_URL,
                                 authorizeCode).execute()
 
-                        val newClient = activity.twitterService.getMastodonClient(provider.host, accessToken.accessToken)
+                        val newClient = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, accessToken.accessToken)
                         val credentials = Accounts(newClient).getVerifyCredentials().execute()
 
                         return accessToken to credentials
