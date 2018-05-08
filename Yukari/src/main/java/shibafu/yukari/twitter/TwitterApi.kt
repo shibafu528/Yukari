@@ -87,4 +87,21 @@ class TwitterApi : ProviderApi {
         }
         return false
     }
+
+    override fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean {
+        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        try {
+            twitter.destroyStatus(status.id)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ツイートを削除しました", Toast.LENGTH_SHORT).show()
+            }
+            return true
+        } catch (e: TwitterException) {
+            e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "ツイート削除に失敗しました", Toast.LENGTH_SHORT).show()
+            }
+        }
+        return false
+    }
 }

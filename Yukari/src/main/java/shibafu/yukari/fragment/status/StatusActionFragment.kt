@@ -170,10 +170,13 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
         when (requestCode) {
             REQUEST_DELETE -> if (which == DialogInterface.BUTTON_POSITIVE) {
                 ParallelAsyncTask.executeParallel {
-                    if (this.status is Bookmark) {
-                        twitterService.database.deleteRecord(this.status as Bookmark)
+                    val status = status
+                    val userRecord = userRecord ?: return@executeParallel
+
+                    if (status is Bookmark) {
+                        twitterService.database.deleteRecord(status)
                     } else {
-                        twitterService.destroyStatus(userRecord, this.status.id)
+                        twitterService.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
                     }
                 }
                 activity.finish()

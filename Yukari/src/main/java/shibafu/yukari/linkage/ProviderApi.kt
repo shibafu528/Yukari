@@ -15,4 +15,6 @@ interface ProviderApi {
     fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean
 
     fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean
+
+    fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean
 }

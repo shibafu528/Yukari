@@ -891,24 +891,6 @@ public class TwitterService extends Service{
         twitter.sendDirectMessage(to, message);
     }
 
-    public void destroyStatus(AuthUserRecord user, long id) {
-        if (user == null) {
-            throw new IllegalArgumentException("アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(user);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        try {
-            twitter.destroyStatus(id);
-            showToast("ツイートを削除しました");
-            return;
-        } catch (TwitterException e) {
-            e.printStackTrace();
-        }
-        showToast("ツイート削除に失敗しました");
-    }
-
     public void postToot(@NonNull AuthUserRecord user, @NonNull String text, @Nullable List<Long> mediaIds) throws Mastodon4jRequestException {
         final MastodonClient client = (MastodonClient) getApiClient(user);
         if (client == null) {

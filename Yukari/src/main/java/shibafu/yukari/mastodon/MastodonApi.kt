@@ -75,4 +75,22 @@ class MastodonApi : ProviderApi {
         }
         return false
     }
+
+    override fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean {
+        val client = service.getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        try {
+            val statuses = Statuses(client)
+            statuses.deleteStatus(status.id)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "トゥートを削除しました", Toast.LENGTH_SHORT).show()
+            }
+            return true
+        } catch (e: Mastodon4jRequestException) {
+            e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(service.applicationContext, "トゥート削除に失敗しました", Toast.LENGTH_SHORT).show()
+            }
+        }
+        return false
+    }
 }
