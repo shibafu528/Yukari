@@ -1,6 +1,5 @@
 package shibafu.yukari.mastodon.source
 
-import android.content.Context
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Range
@@ -13,7 +12,6 @@ import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
  * Local Public Timeline
@@ -34,7 +32,4 @@ class Public(override val sourceAccount: AuthUserRecord, val instance: String) :
         }
     }
 
-    override fun requireUserStream(): Boolean = false
-
-    override fun getFilterStream(context: Context): FilterStream? = null
 }

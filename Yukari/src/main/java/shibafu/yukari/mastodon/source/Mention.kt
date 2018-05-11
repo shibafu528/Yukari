@@ -1,6 +1,5 @@
 package shibafu.yukari.mastodon.source
 
-import android.content.Context
 import com.sys1yagi.mastodon4j.api.Pageable
 import com.sys1yagi.mastodon4j.api.method.Notifications
 import shibafu.yukari.filter.sexp.AndNode
@@ -13,7 +12,6 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
  * Mention Timeline
@@ -25,11 +23,7 @@ class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
         }
     }
 
-    override fun requireUserStream(): Boolean = true
-
-    override fun getFilterStream(context: Context): FilterStream? = null
-
-    override fun filterUserStream(): SNode = AndNode(
+    override fun getStreamFilter(): SNode = AndNode(
             ContainsNode(
                     VariableNode("receivedUsers"),
                     ValueNode(sourceAccount)

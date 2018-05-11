@@ -1,13 +1,11 @@
 package shibafu.yukari.filter.source
 
-import android.content.Context
 import shibafu.yukari.filter.sexp.EqualsNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterRestQuery
-import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
  * 指定されたアカウントのUserタイムラインおよびUserStreamを対象とする抽出ソースです。
@@ -25,11 +23,7 @@ public data class User(override val sourceAccount: AuthUserRecord?, val target: 
         }
     }
 
-    override fun requireUserStream(): Boolean = false
-
-    override fun getFilterStream(context: Context): FilterStream? = null
-
-    override fun filterUserStream(): SNode = EqualsNode(
+    override fun getStreamFilter(): SNode = EqualsNode(
             VariableNode(if (targetId == null) "user.screenName" else "user.id"),
             ValueNode(targetId ?: target)
     )

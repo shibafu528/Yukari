@@ -4,8 +4,8 @@ import android.content.Context
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.linkage.RestQuery
+import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.streaming.FilterStream
 
 /**
  * フィルタシステムにおける抽出ソースを表す抽象クラスです。
@@ -23,29 +23,23 @@ interface FilterSource{
 
     /**
      * この抽出ソースが要求するデータを取得するための、REST通信の実装を返します。
-     * @return 対象データソースとの通信を行う[RestQuery]
+     * @return 対象データソースとの通信を行う [RestQuery]
      */
     fun getRestQuery() : RestQuery?
 
     /**
-     * この抽出ソースが、割り当てられているアカウントでのUserStreamの接続を要求するかを返します。
-     * @return UserStreamを必要とする場合はtrue。その場合、利用側ではエンドユーザによって拒否されていない限りUserStreamへの接続を行う必要があります。
-     */
-    fun requireUserStream(): Boolean
-
-    /**
-     * この抽出ソースによる、UserStream受信に対して干渉するためのフィルタを返します。
+     * この抽出ソースによる、Stream受信に対して干渉するためのフィルタを返します。
      *
      * これは利用側では、各抽出ソースから取得したフィルタクエリの論理積をとって使用するものと想定します。
-     * @return UserStream受信に対するフィルタクエリ。
+     * @return Stream受信に対するフィルタクエリ。
      */
-    fun filterUserStream(): SNode = ValueNode(true)
+    fun getStreamFilter(): SNode = ValueNode(true)
 
     /**
-     * この抽出ソースがFilterStreamへの接続を要求する場合、必要なパラメータを設定したインスタンスを返します。
-     * @return 検索条件の設定を行ったFilterStreamインスタンス。FilterStreamへの接続を必要としない場合、nullを返します。
+     * この抽出ソースが動的にStreamへの接続を要求する場合、接続先 [StreamChannel] のインスタンスを返します。
+     * @return [StreamChannel] のインスタンス。動的な接続先を持たない場合、nullを返します。
      */
-    fun getFilterStream(context: Context): FilterStream?
+    fun getDynamicChannel(context: Context): StreamChannel? = null
 }
 
 //    何を実装すべきかの参考でしか無い

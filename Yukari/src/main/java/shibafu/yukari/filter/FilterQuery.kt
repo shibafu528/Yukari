@@ -39,7 +39,7 @@ data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SN
                     ),
                     // UserStreamレスポンスは各ソースのフィルタを通す
                     OrNode(sources.map {
-                        it.filterUserStream()
+                        it.getStreamFilter()
                     })
                 ),
                 rootNode
