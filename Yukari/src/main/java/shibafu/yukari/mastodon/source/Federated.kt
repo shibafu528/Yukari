@@ -19,15 +19,14 @@ import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.mastodon.sexp.UrlHostEqualPredicate
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
- * Local Public Timeline
+ * Federated Timeline
  */
-class Public(override val sourceAccount: AuthUserRecord) : FilterSource {
+class Federated(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
-        Public(client).getLocalPublic(range).execute()
+        Public(client).getFederatedPublic(range).execute()
     }
 
     override fun getStreamFilter(): SNode = AndNode(
@@ -38,18 +37,14 @@ class Public(override val sourceAccount: AuthUserRecord) : FilterSource {
             ContainsNode(
                     VariableNode("receivedUsers"),
                     ValueNode(sourceAccount)
-            ),
-            UrlHostEqualPredicate(
-                    VariableNode("url"),
-                    ValueNode(sourceAccount.Provider.host)
             )
     )
 }
 
 /**
- * Local Public Timeline (Anonymous access)
+ * Federated Timeline (Anonymous access)
  */
-class AnonymousPublic(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
+class AnonymousFederated(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
@@ -64,14 +59,8 @@ class AnonymousPublic(override val sourceAccount: AuthUserRecord, val instance: 
         }
     }
 
-    override fun getStreamFilter(): SNode = AndNode(
-            EqualsNode(
-                    VariableNode("providerApiType"),
-                    ValueNode(Provider.API_MASTODON)
-            ),
-            UrlHostEqualPredicate(
-                    VariableNode("url"),
-                    ValueNode(instance)
-            )
+    override fun getStreamFilter(): SNode = EqualsNode(
+            VariableNode("providerApiType"),
+            ValueNode(Provider.API_MASTODON)
     )
 }
