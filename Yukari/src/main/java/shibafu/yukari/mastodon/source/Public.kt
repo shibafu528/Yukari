@@ -7,17 +7,43 @@ import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Public
 import okhttp3.OkHttpClient
 import shibafu.yukari.entity.Status
+import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
+import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.mastodon.sexp.UrlHostEqualPredicate
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
  * Local Public Timeline
  */
-class Public(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
+class Public(override val sourceAccount: AuthUserRecord) : FilterSource {
+    override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
+        Public(client).getLocalPublic(range).execute()
+    }
 
+    override fun getStreamFilter(): SNode = AndNode(
+            ContainsNode(
+                    VariableNode("receivedUsers"),
+                    ValueNode(sourceAccount)
+            ),
+            UrlHostEqualPredicate(
+                    VariableNode("url"),
+                    ValueNode(sourceAccount.Provider.host)
+            )
+    )
+}
+
+/**
+ * Local Public Timeline (Anonymous access)
+ */
+class AnonymousPublic(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
@@ -32,4 +58,8 @@ class Public(override val sourceAccount: AuthUserRecord, val instance: String) :
         }
     }
 
+    override fun getStreamFilter(): SNode = UrlHostEqualPredicate(
+            VariableNode("url"),
+            ValueNode(instance)
+    )
 }

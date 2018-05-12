@@ -52,6 +52,9 @@ class QueryCompiler {
                 ),
                 "don_public" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Public::class.java
+                ),
+                "don_anon_public" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousPublic::class.java
                 )
         )
 
@@ -176,7 +179,8 @@ class QueryCompiler {
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments("mention")
                         "user" -> createFiltersWithListArguments("user", 1, "(受信ユーザ/)対象ユーザ")
                         "list" -> createFiltersWithListArguments("list", 2, "(受信ユーザ/)ユーザ/リスト名")
-                        "don_public" -> createFiltersWithListArguments("don_public", 1, "インスタンス名")
+                        "don_public" -> createFiltersWithAuthArguments("don_public")
+                        "don_anon_public" -> createFiltersWithListArguments("don_anon_public", 1, "インスタンス名")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
