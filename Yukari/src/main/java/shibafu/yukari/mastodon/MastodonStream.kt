@@ -6,6 +6,7 @@ import com.sys1yagi.mastodon4j.api.Handler
 import com.sys1yagi.mastodon4j.api.Shutdownable
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.entity.Status
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Streaming
 import kotlinx.coroutines.experimental.launch
 import shibafu.yukari.database.Provider
@@ -102,7 +103,12 @@ private class UserStreamChannel(private val service: TwitterService, override va
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = streaming.user(handler)
+            try {
+                shutdownable = streaming.user(handler)
+            } catch (e: Mastodon4jRequestException) {
+                e.printStackTrace()
+                isRunning = false
+            }
         }
         isRunning = true
     }
@@ -128,7 +134,12 @@ private class PublicStreamChannel(private val service: TwitterService, override 
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = streaming.federatedPublic(handler)
+            try {
+                shutdownable = streaming.federatedPublic(handler)
+            } catch (e: Mastodon4jRequestException) {
+                e.printStackTrace()
+                isRunning = false
+            }
         }
         isRunning = true
     }
@@ -154,7 +165,12 @@ private class LocalStreamChannel(private val service: TwitterService, override v
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = streaming.localPublic(handler)
+            try {
+                shutdownable = streaming.localPublic(handler)
+            } catch (e: Mastodon4jRequestException) {
+                e.printStackTrace()
+                isRunning = false
+            }
         }
         isRunning = true
     }
