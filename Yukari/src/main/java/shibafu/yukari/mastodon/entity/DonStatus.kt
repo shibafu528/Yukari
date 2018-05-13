@@ -10,8 +10,11 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
+import shibafu.yukari.media2.Media
+import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
+import kotlin.collections.LinkedHashSet
 import shibafu.yukari.entity.Status as IStatus
 
 class DonStatus(val status: Status,
@@ -56,6 +59,10 @@ class DonStatus(val status: Status,
 
     override val mentions: List<Mention> = status.mentions.map { DonMention(it) }
 
+    override val media: List<Media>
+
+    override val links: List<String>
+
     override val tags: List<String> = status.tags.map { "#" + it.name }
 
     override var favoritesCount: Int = status.favouritesCount
@@ -81,6 +88,26 @@ class DonStatus(val status: Status,
             }
         }
         return IStatus.RELATION_NONE
+    }
+
+    init {
+        val media = LinkedHashSet<Media>()
+        val links = LinkedHashSet<String>()
+
+        status.mediaAttachments.forEach { attachment ->
+            val url = attachment.remoteUrl ?: attachment.url
+
+            // TODO: サムネイル用URLを活かすには直接具象生成のほうが良さそう
+            val m = MediaFactory.newInstance(url)
+            if (m != null) {
+                media += m
+            } else {
+                links += url
+            }
+        }
+
+        this.media = media.toList()
+        this.links = links.toList()
     }
 
     //<editor-fold desc="Parcelable">
