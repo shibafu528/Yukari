@@ -23,9 +23,9 @@ import shibafu.yukari.mastodon.sexp.UrlHostEqualPredicate
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
- * Local Public Timeline
+ * Local Timeline
  */
-class Public(override val sourceAccount: AuthUserRecord) : FilterSource {
+class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
         Public(client).getLocalPublic(range).execute()
     }
@@ -47,9 +47,9 @@ class Public(override val sourceAccount: AuthUserRecord) : FilterSource {
 }
 
 /**
- * Local Public Timeline (Anonymous access)
+ * Local Timeline (Anonymous access)
  */
-class AnonymousPublic(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
+class AnonymousLocal(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {

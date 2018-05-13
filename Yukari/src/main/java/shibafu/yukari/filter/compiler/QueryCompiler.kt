@@ -50,11 +50,11 @@ class QueryCompiler {
                 "list" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
                 ),
-                "don_public" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Public::class.java
+                "don_local" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Local::class.java
                 ),
-                "don_anon_public" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousPublic::class.java
+                "don_anon_local" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousLocal::class.java
                 ),
                 "don_federated" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Federated::class.java
@@ -185,8 +185,8 @@ class QueryCompiler {
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments("mention")
                         "user" -> createFiltersWithListArguments("user", 1, "(受信ユーザ/)対象ユーザ")
                         "list" -> createFiltersWithListArguments("list", 2, "(受信ユーザ/)ユーザ/リスト名")
-                        "don_public" -> createFiltersWithAuthArguments("don_public")
-                        "don_anon_public" -> createFiltersWithListArguments("don_anon_public", 1, "インスタンス名")
+                        "don_local" -> createFiltersWithAuthArguments("don_local")
+                        "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")
                         "don_anon_federated" -> createFiltersWithListArguments("don_anon_federated", 1, "インスタンス名")
 
