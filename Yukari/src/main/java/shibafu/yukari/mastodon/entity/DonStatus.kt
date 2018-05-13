@@ -45,7 +45,7 @@ class DonStatus(val status: Status,
     }()
 
     override val source: String
-        get() = status.application?.name ?: "Web"
+        get() = status.application?.name ?: ""
 
     override val isRepost: Boolean
         get() = status.reblog != null

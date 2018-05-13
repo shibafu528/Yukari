@@ -156,7 +156,19 @@ abstract class StatusView : RelativeLayout {
 
         tvTimestamp.typeface = typeface
         tvTimestamp.textSize = fontSize * 0.8f
-        tvTimestamp.text = StringUtil.formatDate(status.originStatus.createdAt) + " via " + status.originStatus.source
+        tvTimestamp.text = buildString {
+            if (mode != Mode.PREVIEW && status.isRepost) {
+                append("RT by @")
+                append(status.user.screenName)
+                append("\n")
+            }
+
+            append(StringUtil.formatDate(status.originStatus.createdAt))
+            if (status.originStatus.source.isNotEmpty()) {
+                append(" via ")
+                append(status.originStatus.source)
+            }
+        }
     }
 
     /**
@@ -239,8 +251,6 @@ abstract class StatusView : RelativeLayout {
         // リツイート対応
         if (mode != Mode.PREVIEW) {
             if (status.isRepost) {
-                tvTimestamp.text = "RT by @" + status.user.screenName + "\n" +
-                        StringUtil.formatDate(status.originStatus.createdAt) + " via " + status.originStatus.source
                 setBackgroundResource(bgRetweetResId)
 
                 if (status.originStatus.user.isProtected) {
