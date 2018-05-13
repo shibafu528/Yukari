@@ -2,10 +2,12 @@ package shibafu.yukari.view
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.preference.PreferenceManager
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -20,13 +22,16 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import shibafu.yukari.R
+import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.common.FontAsset
+import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.Status
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
+import java.util.*
 
 /**
  * タイムラインの要素を表示するためのビューの基本部分
@@ -69,6 +74,14 @@ abstract class StatusView : RelativeLayout {
     protected val flInclude: LinearLayout by lazy { findViewById(R.id.tweet_include) as LinearLayout }
     protected val ivAccountColor: ImageView by lazy { findViewById(R.id.tweet_accountcolor) as ImageView }
     protected val ivUserColor: ImageView by lazy { findViewById(R.id.tweet_color) as ImageView }
+
+    // LayoutParams
+    private val lpThumb: LinearLayout.LayoutParams
+
+    init {
+        val attachPictureSize = context.resources.getDimensionPixelSize(R.dimen.attach_picture_size)
+        lpThumb = LinearLayout.LayoutParams(attachPictureSize, attachPictureSize, 1f)
+    }
 
     constructor(context: Context?, singleLine: Boolean) : super(context, null, 0) {
         this.singleLine = singleLine
@@ -268,6 +281,9 @@ abstract class StatusView : RelativeLayout {
                 ivRetweeterIcon.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
             }
         }
+
+        // 添付対応
+        updateAttaches(status)
     }
 
     /**
@@ -332,6 +348,78 @@ abstract class StatusView : RelativeLayout {
             LayoutInflater.from(context).inflate(R.layout.row_tweet_single, this)
         } else {
             LayoutInflater.from(context).inflate(R.layout.row_tweet, this)
+        }
+    }
+
+    /**
+     * 添付画像のサムネイル表示処理。
+     */
+    private fun updateAttaches(status: Status) {
+        if (pref.getBoolean("pref_prev_enable", true) && mode != Mode.PREVIEW || mode == Mode.DETAIL) {
+            var hidden = false
+
+            var selectedFlags = pref.getInt("pref_prev_time", 0)
+            if (selectedFlags != 0) {
+                // 31 | .... .... 0000 0000 0000 0000 0000 0000 | 0
+                //                `23:00-59    `12:00-59      `00:00-59
+                hidden = selectedFlags and (1 shl Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) != 0
+            }
+            hidden = hidden or status.originStatus.metadata.isCensoredThumbs
+
+            if (!hidden || pref.getBoolean("pref_prev_mosaic", false)) {
+                val mediaList = status.originStatus.media
+                val mlSize = mediaList.size
+                if (mlSize > 0) {
+                    llAttach.visibility = View.VISIBLE
+                    var iv: ImageView?
+                    var i: Int = 0
+                    while (i < mlSize) {
+                        val media = mediaList[i]
+                        iv = llAttach.findViewById(i) as ImageView?
+                        if (iv == null) {
+                            iv = ImageView(context)
+                            iv.id = i
+                            llAttach.addView(iv, lpThumb)
+                        } else {
+                            iv.visibility = View.VISIBLE
+                        }
+                        iv.scaleType = ImageView.ScaleType.FIT_CENTER
+                        ImageLoaderTask.loadBitmap(context,
+                                iv,
+                                media,
+                                ImageLoaderTask.RESOLVE_THUMBNAIL,
+                                BitmapCache.IMAGE_CACHE,
+                                hidden && pref.getBoolean("pref_prev_mosaic", false))
+
+                        if (mode and Mode.DETAIL == Mode.DETAIL && media.canPreview() || pref.getBoolean("pref_extended_touch_event", false)) {
+                            iv.setOnClickListener { _ ->
+                                val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(media.browseUrl),
+                                        context,
+                                        PreviewActivity::class.java)
+                                intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
+                                context.startActivity(intent)
+                            }
+                        }
+                        ++i
+                    }
+                    //使ってない分はしまっちゃおうね
+                    val childCount = llAttach.childCount
+                    if (i < childCount) {
+                        while (i < childCount) {
+                            llAttach.findViewById(i).visibility = View.GONE
+                            ++i
+                        }
+                    }
+                } else {
+                    llAttach.visibility = View.GONE
+                }
+            } else {
+                llAttach.visibility = View.GONE
+            }
+        } else {
+            llAttach.visibility = View.GONE
         }
     }
 
