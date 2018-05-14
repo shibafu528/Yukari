@@ -7,10 +7,13 @@ import android.widget.Toast
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.ProviderApi
+import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.twitter.entity.TwitterStatus
 import twitter4j.Twitter
 import twitter4j.TwitterException
 import twitter4j.TwitterFactory
+import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
     private lateinit var service: TwitterService
@@ -126,5 +129,30 @@ class TwitterApi : ProviderApi {
             }
         }
         return false
+    }
+
+    override fun showStatus(userRecord: AuthUserRecord, url: String): Status {
+        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        try {
+            val id = url.toLongOrNull()
+            if (id != null) {
+                return TwitterStatus(twitter.showStatus(id), userRecord)
+            }
+
+            val matcher = PATTERN_TWITTER.matcher(url)
+            if (matcher.find()) {
+                val extractId = matcher.group(1).toLongOrNull()
+                if (extractId != null) {
+                    return TwitterStatus(twitter.showStatus(extractId), userRecord)
+                }
+            }
+            throw IllegalArgumentException("非対応URLです : $url")
+        } catch (e: TwitterException) {
+            throw ProviderApiException(cause = e)
+        }
+    }
+
+    companion object {
+        private val PATTERN_TWITTER = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\$")
     }
 }

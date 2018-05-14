@@ -17,6 +17,13 @@ interface ProviderApi {
     fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean
 
     fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean
-
     fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean
+
+    @Throws(ProviderApiException::class)
+    fun showStatus(userRecord: AuthUserRecord, url: String): Status
 }
+
+/**
+ * [ProviderApi] 内部で発生した例外のラッパー
+ */
+class ProviderApiException(message: String? = null, cause: Throwable? = null) : Exception(message, cause)
