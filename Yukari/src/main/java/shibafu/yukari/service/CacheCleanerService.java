@@ -128,7 +128,7 @@ public class CacheCleanerService extends IntentService {
         CentralDatabase db = new CentralDatabase(getApplicationContext()).open();
         try {
             usingUris = Stream.of(db.getDrafts())
-                    .flatMap(draft -> Stream.of(draft.getAttachedPictures()))
+                    .flatMap(draft -> Stream.of(draft.getAttachPictures()))
                     .map(Uri::toString)
                     .distinct()
                     .filter(uri -> uri.contains(attachesDirUri))

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.TweetDraft;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.lang.reflect.Constructor;
@@ -728,7 +728,7 @@ public class CentralDatabase {
     //</editor-fold>
 
     //<editor-fold desc="Drafts">
-    public void updateDraft(TweetDraft draft) {
+    public void updateDraft(StatusDraft draft) {
         beginTransaction();
         try {
             deleteDraft(draft);
@@ -741,7 +741,7 @@ public class CentralDatabase {
         }
     }
 
-    public void deleteDraft(TweetDraft draft) {
+    public void deleteDraft(StatusDraft draft) {
         deleteDraft(draft.getDateTime());
     }
 
@@ -749,14 +749,14 @@ public class CentralDatabase {
         db.delete(TABLE_DRAFTS, COL_DRAFTS_DATETIME + "=" + savedTime, null);
     }
 
-    public List<TweetDraft> getDrafts() {
-        List<TweetDraft> draftList = new ArrayList<>();
+    public List<StatusDraft> getDrafts() {
+        List<StatusDraft> draftList = new ArrayList<>();
         Cursor cursor = db.query(
                 TABLE_DRAFTS +
-                        " INNER JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_BOOKMARKS + "." + COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
+                        " INNER JOIN " + TABLE_ACCOUNTS + " ON " + TABLE_DRAFTS + "." + COL_DRAFTS_WRITER_ID + "=" + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID +
                         " LEFT JOIN " + TABLE_PROVIDERS + " ON " + TABLE_ACCOUNTS + "." + COL_ACCOUNTS_PROVIDER_ID + "=" + TABLE_PROVIDERS + "." + COL_PROVIDERS_ID,
                 new String[]{
-                        TABLE_BOOKMARKS + ".*",
+                        TABLE_DRAFTS + ".*",
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_ID,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_USER_ID,
                         TABLE_ACCOUNTS + "." + COL_ACCOUNTS_SCREEN_NAME,
@@ -777,15 +777,15 @@ public class CentralDatabase {
                 null,
                 null, null, null, COL_DRAFTS_DATETIME);
         try {
-            TweetDraft last = null;
-            TweetDraft draft;
+            StatusDraft last = null;
+            StatusDraft draft;
             if (cursor.moveToFirst()) do {
-                draft = new TweetDraft(cursor);
+                draft = new StatusDraft(cursor);
                 if (last != null && last.getDateTime() == draft.getDateTime()) {
-                    last.addWriter(new AuthUserRecord(cursor));
+                    last.getWriters().add(new AuthUserRecord(cursor));
                 }
                 else {
-                    draft.addWriter(new AuthUserRecord(cursor));
+                    draft.getWriters().add(new AuthUserRecord(cursor));
                     draftList.add(draft);
                     last = draft;
                 }

@@ -20,10 +20,10 @@ import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
-import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.TwitterFragment
@@ -318,7 +318,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     activity.finish()
                 }
                 REQUEST_RT_QUOTE -> {
-                    val draft = data?.getSerializableExtra(TweetActivity.EXTRA_DRAFT) as? TweetDraft ?: return
+                    val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     activity.startService(PostService.newIntent(activity, draft,
                             PostService.FLAG_RETWEET,
@@ -326,7 +326,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     activity.finish()
                 }
                 REQUEST_FRT_QUOTE -> {
-                    val draft = data?.getSerializableExtra(TweetActivity.EXTRA_DRAFT) as? TweetDraft ?: return
+                    val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     activity.startService(PostService.newIntent(activity, draft,
                             PostService.FLAG_RETWEET or PostService.FLAG_FAVORITE,

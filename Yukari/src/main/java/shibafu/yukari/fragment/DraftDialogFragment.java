@@ -14,9 +14,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -35,11 +35,11 @@ public class DraftDialogFragment extends DialogFragment {
 
     private ListView listView;
     private DraftAdapter adapter;
-    private List<TweetDraft> drafts = null;
+    private List<StatusDraft> drafts = null;
     private AlertDialog currentDialog;
 
     public interface DraftDialogEventListener {
-        void onDraftSelected(TweetDraft selected);
+        void onDraftSelected(StatusDraft selected);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class DraftDialogFragment extends DialogFragment {
                 v = inflater.inflate(R.layout.row_tweet, null);
             }
 
-            final TweetDraft d = drafts.get(position);
+            final StatusDraft d = drafts.get(position);
             if (d != null) {
                 TextView tvName = (TextView) v.findViewById(R.id.tweet_name);
                 StringBuilder sbNames = new StringBuilder();
@@ -179,10 +179,10 @@ public class DraftDialogFragment extends DialogFragment {
                 if (d.isFailedDelivery()) {
                     info += "送信に失敗したツイート\n";
                 }
-                if (!d.getAttachedPictures().isEmpty()) {
+                if (!d.getAttachPictures().isEmpty()) {
                     info += "添付画像あり\n";
                 }
-                if (d.isUseGeoLocation()) {
+                if (d.getUseGeoLocation()) {
                     info += "座標情報あり(" + d.getGeoLatitude() + ", " + d.getGeoLongitude() + ")\n";
                 }
                 info += "保存日時: " + sdf.format(d.getDateTime());

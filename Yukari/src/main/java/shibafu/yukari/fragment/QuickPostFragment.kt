@@ -20,8 +20,8 @@ import android.widget.Toast
 import shibafu.yukari.R
 import shibafu.yukari.activity.AccountChooserActivity
 import shibafu.yukari.common.FontAsset
-import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.service.PostService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.showToast
@@ -139,6 +139,7 @@ class QuickPostFragment : Fragment() {
     }
 
     private fun postTweet() {
+        val selectedAccount = selectedAccount
         if (selectedAccount == null) {
             showToast("アカウントが選択されていません", Toast.LENGTH_LONG)
         } else if (etTweet.text.isEmpty()) {
@@ -148,13 +149,12 @@ class QuickPostFragment : Fragment() {
             } else {
                 etTweet.append(defaultText)
             }
-        } else if (selectedAccount != null && CharacterUtil.count(etTweet.text.toString()) <= 140) {
+        } else if (CharacterUtil.count(etTweet.text.toString()) <= 140) {
             //ドラフト生成
-            val draft = TweetDraft.Builder()
-                    .addWriter(selectedAccount)
-                    .setText(etTweet.text.toString())
-                    .setDateTime(System.currentTimeMillis())
-                    .build()
+            val draft = StatusDraft(
+                    writers = arrayListOf(selectedAccount),
+                    text = etTweet.text.toString()
+            )
 
             //サービス起動
             activity?.startService(PostService.newIntent(context.applicationContext, draft))

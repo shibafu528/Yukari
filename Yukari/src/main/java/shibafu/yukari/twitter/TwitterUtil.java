@@ -6,6 +6,9 @@ import shibafu.yukari.R;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class TwitterUtil {
 
     /**
@@ -53,4 +56,23 @@ public class TwitterUtil {
         return "http://twilog.org/" + screenName;
     }
     //</editor-fold>
+
+    /**
+     * TwitterのStatus URLをパースし、IDを取得します。
+     * @param url Status URL
+     * @return Status ID, 不正なURLの場合は -1
+     */
+    public static long getStatusIdFromUrl(String url) {
+        Pattern pattern = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\\$");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            String id = matcher.group(1);
+            try {
+                return Long.valueOf(id);
+            } catch (NumberFormatException e) {
+                return -1;
+            }
+        }
+        return -1;
+    }
 }

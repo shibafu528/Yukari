@@ -16,16 +16,17 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
+import android.text.TextUtils;
 import android.util.Log;
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.CompatUtil;
 import twitter4j.StatusUpdate;
@@ -63,13 +64,13 @@ public class PostService extends IntentService{
         super("PostService");
     }
 
-    public static Intent newIntent(Context context, TweetDraft draft) {
+    public static Intent newIntent(Context context, StatusDraft draft) {
         Intent intent = new Intent(context, PostService.class);
         intent.putExtra(EXTRA_DRAFT, draft);
         return intent;
     }
 
-    public static Intent newIntent(Context context, TweetDraft draft, int flags, Status targetStatus) {
+    public static Intent newIntent(Context context, StatusDraft draft, int flags, Status targetStatus) {
         Intent intent = new Intent(context, PostService.class);
         intent.putExtra(EXTRA_DRAFT, draft);
         intent.putExtra(EXTRA_FLAGS, flags);
@@ -86,7 +87,7 @@ public class PostService extends IntentService{
 
         int flags = intent.getIntExtra(EXTRA_FLAGS, 0);
         Status targetStatus = (Status) intent.getSerializableExtra(EXTRA_FLAGS_TARGET_STATUS);
-        TweetDraft draft = (TweetDraft) intent.getSerializableExtra(EXTRA_DRAFT);
+        StatusDraft draft = intent.getParcelableExtra(EXTRA_DRAFT);
         if (RemoteInput.getResultsFromIntent(intent) != null) {
             draft = parseRemoteInput(intent);
         }
@@ -139,7 +140,7 @@ public class PostService extends IntentService{
             String attachmentUrl = null;
 
             //画像添付なしで、ツイートを引用している場合は1つだけattachmentUrlに移動させる
-            if (draft.getAttachedPictures().isEmpty()) {
+            if (draft.getAttachPictures().isEmpty()) {
                 Matcher attachmentMatcher = PATTERN_QUOTE.matcher(draft.getText());
                 if (attachmentMatcher.find()) {
                     attachmentUrl = attachmentMatcher.group().trim();
@@ -173,12 +174,15 @@ public class PostService extends IntentService{
                                 }
                             }
                             //statusが引数に付加されている場合はin-reply-toとして設定する
-                            if (draft.getInReplyTo() > -1) {
-                                update.setInReplyToStatusId(draft.getInReplyTo());
+                            if (!TextUtils.isEmpty(draft.getInReplyTo())) {
+                                long inReplyTo = TwitterUtil.getStatusIdFromUrl(draft.getInReplyTo());
+                                if (inReplyTo > -1) {
+                                    update.setInReplyToStatusId(inReplyTo);
+                                }
                             }
                             //attachPictureがある場合は添付
-                            if (!draft.getAttachedPictures().isEmpty()) {
-                                List<Uri> attachedPictures = draft.getAttachedPictures();
+                            if (!draft.getAttachPictures().isEmpty()) {
+                                List<Uri> attachedPictures = draft.getAttachPictures();
                                 long[] mediaIds = new long[attachedPictures.size()];
                                 for (int j = 0; j < mediaIds.length; ++j) {
                                     Uri u = attachedPictures.get(j);
@@ -225,9 +229,9 @@ public class PostService extends IntentService{
                         }
                         //attachPictureがある場合は添付
                         List<Long> mediaIds = null;
-                        if (!draft.getAttachedPictures().isEmpty()) {
+                        if (!draft.getAttachPictures().isEmpty()) {
                             mediaIds = new ArrayList<>();
-                            for (Uri uri : draft.getAttachedPictures()) {
+                            for (Uri uri : draft.getAttachPictures()) {
                                 InputStream is;
                                 int[] size = new int[2];
                                 try {
@@ -325,7 +329,7 @@ public class PostService extends IntentService{
         stopForeground(true);
     }
 
-    private void reactionFromYukari(TweetDraft draft) {
+    private void reactionFromYukari(StatusDraft draft) {
         if (draft.getText().contains("壁")) {
             MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.y_wall);
             mp.start();
@@ -338,7 +342,7 @@ public class PostService extends IntentService{
         }
     }
 
-    private TweetDraft parseRemoteInput(Intent intent) {
+    private StatusDraft parseRemoteInput(Intent intent) {
         //Wearからの音声入力を受け取る
         Bundle input = RemoteInput.getResultsFromIntent(intent);
         if (input != null) {
@@ -347,30 +351,30 @@ public class PostService extends IntentService{
             String prefix = intent.getStringExtra(TweetActivity.EXTRA_TEXT);
             CharSequence voiceInput = input.getCharSequence(EXTRA_REMOTE_INPUT);
 
-            TweetDraft.Builder builder = new TweetDraft.Builder()
-                    .addWriter(user);
+            StatusDraft draft = new StatusDraft();
+            draft.setWriters(user.toSingleList());
 
             if (mode == TweetActivity.MODE_DM) {
                 String targetSN = intent.getStringExtra(TweetActivity.EXTRA_DM_TARGET_SN);
                 long inReplyToId = intent.getLongExtra(TweetActivity.EXTRA_IN_REPLY_TO, -1);
 
-                builder.setMessageTarget(targetSN)
-                        .setInReplyTo(inReplyToId)
-                        .setDirectMessage(true)
-                        .setText(String.valueOf(voiceInput));
+                draft.setMessageTarget(targetSN);
+                draft.setInReplyTo(String.valueOf(inReplyToId));
+                draft.setDirectMessage(true);
+                draft.setText(String.valueOf(voiceInput));
             } else {
-                PreformedStatus inReplyToStatus = (PreformedStatus) intent.getSerializableExtra(TweetActivity.EXTRA_STATUS);
+                Status inReplyToStatus = (Status) intent.getSerializableExtra(TweetActivity.EXTRA_STATUS);
 
-                builder.setInReplyTo(inReplyToStatus.getId())
-                        .setText(prefix + voiceInput);
+                draft.setInReplyTo(inReplyToStatus.getUrl());
+                draft.setText(prefix + voiceInput);
             }
 
-            return builder.build();
+            return draft;
         }
         return null;
     }
 
-    private void showErrorMessage(int id, TweetDraft draft, String reason) {
+    private void showErrorMessage(int id, StatusDraft draft, String reason) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
                 .setTicker("ツイートに失敗しました")
                 .setContentTitle("ツイートに失敗しました")

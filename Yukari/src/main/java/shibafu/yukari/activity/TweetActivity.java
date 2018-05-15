@@ -50,9 +50,6 @@ import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.sys1yagi.mastodon4j.MastodonClient;
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.Statuses;
 import com.twitter.Extractor;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import info.shibafu528.yukari.exvoice.MRubyException;
@@ -61,16 +58,15 @@ import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.entity.Status;
-import shibafu.yukari.entity.StatusPreforms;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.linkage.ProviderApi;
-import shibafu.yukari.mastodon.entity.DonStatus;
+import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -83,9 +79,7 @@ import shibafu.yukari.util.PostValidator;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
-import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
-import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -214,7 +208,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private UsedHashes usedHashes;
 
     //初期状態のスナップショット
-    @NeedSaveState private TweetDraft initialDraft;
+    @NeedSaveState private StatusDraft initialDraft;
 
     //プラグインエリア
     private LinearLayout llTweetExtra;
@@ -404,8 +398,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 etInput.setSelection(etInput.getText().length() - restoredTagsLength);
                 /* fall through */
             case MODE_QUOTE: {
-                final long inReplyTo = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
-                if (status == null && inReplyTo > -1) {
+                // TODO: ReplyかつinReplyToIDで復帰するパターンは下書きからのロードのみ
+                String inReplyTo = args.getStringExtra(EXTRA_IN_REPLY_TO);
+                if (status == null && !TextUtils.isEmpty(inReplyTo)) {
                     tvTitle.setText("Reply >> loading...");
                     new SimpleAsyncTask() {
                         @Override
@@ -421,17 +416,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                 if (api == null) {
                                     return null;
                                 }
-
-                                final Object client = api.getApiClient(user);
-                                if (client instanceof Twitter) {
-                                    status = new TwitterStatus(((Twitter) client).showStatus(inReplyTo), user);
-                                } else if (client instanceof MastodonClient) {
-                                    Statuses statuses = new Statuses((MastodonClient) client);
-                                    status = new DonStatus(statuses.getStatus(inReplyTo).execute(), user, new StatusPreforms());
-                                }
-                            } catch (TwitterException ignored) {
-                            } catch (Mastodon4jRequestException ignored) {
-                            }
+                                status = api.showStatus(user, inReplyTo);
+                            } catch (ProviderApiException ignored) {}
                             return null;
                         }
 
@@ -463,7 +449,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 初期化完了時点での下書き状況のスナップショット
-        initialDraft = (TweetDraft) getTweetDraft().clone();
+        initialDraft = getTweetDraft();
     }
 
     /**
@@ -793,7 +779,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         writers = (ArrayList<AuthUserRecord>) state.getSerializable("writers");
         useStoredWriters = state.getBoolean("useStoredWriters");
         cameraTemp = state.getParcelable("cameraTemp");
-        initialDraft = (TweetDraft) state.getSerializable("initialDraft");
+        initialDraft = state.getParcelable("initialDraft");
 
         validator = TweetValidatorFactory.newInstance(isDirectMessage);
         Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
@@ -812,7 +798,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         outState.putSerializable("writers", writers);
         outState.putBoolean("useStoredWriters", useStoredWriters);
         outState.putParcelable("cameraTemp", cameraTemp);
-        outState.putSerializable("initialDraft", initialDraft);
+        outState.putParcelable("initialDraft", initialDraft);
         ArrayList<Uri> attachPictureUris = new ArrayList<>();
         for (AttachPicture picture : attachPictures) {
             attachPictureUris.add(picture.uri);
@@ -862,7 +848,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         //ドラフトを作成
-        TweetDraft draft = getTweetDraft();
+        StatusDraft draft = getTweetDraft();
         draft.setText(inputText);
 
         //使用されているハッシュタグを記憶
@@ -1184,69 +1170,71 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     @Override
-    public void onDraftSelected(TweetDraft selected) {
+    public void onDraftSelected(StatusDraft selected) {
         Intent intent = selected.getTweetIntent(this);
 
         startActivity(intent);
         finish();
     }
 
-    private TweetDraft getTweetDraft() {
-        TweetDraft draft = (TweetDraft) getIntent().getSerializableExtra(EXTRA_DRAFT);
+    private StatusDraft getTweetDraft() {
+        StatusDraft draft = getIntent().getParcelableExtra(EXTRA_DRAFT);
         if (isDirectMessage) {
             if (draft == null) {
-                draft = new TweetDraft(
+                draft = new StatusDraft(
                         writers,
                         etInput.getText().toString(),
                         System.currentTimeMillis(),
-                        directMessageDestId,
-                        directMessageDestSN,
+                        String.valueOf(directMessageDestId),
                         false,
                         AttachPicture.toUriList(attachPictures),
                         false,
                         0,
                         0,
                         false,
-                        false);
+                        true,
+                        false,
+                        directMessageDestSN);
             } else {
-                draft.updateFields(
-                        writers,
-                        etInput.getText().toString(),
-                        directMessageDestId,
-                        directMessageDestSN,
-                        false,
-                        AttachPicture.toUriList(attachPictures),
-                        false,
-                        0,
-                        0,
-                        false
-                );
+                draft.setWriters(writers);
+                draft.setText(etInput.getText().toString());
+                draft.setInReplyTo(String.valueOf(directMessageDestId));
+                draft.setQuoted(false);
+                draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
+                draft.setUseGeoLocation(false);
+                draft.setGeoLatitude(0);
+                draft.setGeoLongitude(0);
+                draft.setPossiblySensitive(false);
+                draft.setDirectMessage(true);
+                draft.setMessageTarget(directMessageDestSN);
             }
         } else if (draft == null) {
-            draft = new TweetDraft(
+            draft = new StatusDraft(
                     writers,
                     etInput.getText().toString(),
                     System.currentTimeMillis(),
-                    (status == null) ? -1 : status.getId(),
+                    (status == null) ? null : status.getUrl(),
                     false,
                     AttachPicture.toUriList(attachPictures),
                     false,
                     0,
                     0,
                     false,
-                    false);
+                    false,
+                    false,
+                    null);
         } else {
-            draft.updateFields(
-                    writers,
-                    etInput.getText().toString(),
-                    (status == null) ? -1 : status.getId(),
-                    false,
-                    AttachPicture.toUriList(attachPictures),
-                    false,
-                    0,
-                    0,
-                    false
-            );
+            draft.setWriters(writers);
+            draft.setText(etInput.getText().toString());
+            draft.setInReplyTo((status == null) ? null : status.getUrl());
+            draft.setQuoted(false);
+            draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
+            draft.setUseGeoLocation(false);
+            draft.setGeoLatitude(0);
+            draft.setGeoLongitude(0);
+            draft.setPossiblySensitive(false);
+            draft.setDirectMessage(false);
+            draft.setMessageTarget(null);
         }
         setIntent(getIntent().putExtra(EXTRA_DRAFT, draft));
         return draft;
@@ -1444,8 +1432,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         public int height = -1;
         public ImageView imageView;
 
-        public static List<Uri> toUriList(List<AttachPicture> from) {
-            List<Uri> list = new ArrayList<>();
+        public static ArrayList<Uri> toUriList(List<AttachPicture> from) {
+            ArrayList<Uri> list = new ArrayList<>();
             for (AttachPicture ap : from) {
                 list.add(ap.uri);
             }

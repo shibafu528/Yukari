@@ -6,8 +6,8 @@ import android.os.Bundle;
 import android.util.Pair;
 import android.widget.Toast;
 import shibafu.yukari.activity.base.ListYukariBase;
-import shibafu.yukari.common.TweetDraft;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
@@ -64,7 +64,10 @@ public class IntentActivity extends ListYukariBase{
                 activity -> {
                     switch (activity.getIntent().getData().getLastPathSegment()) {
                         case "yukarin":
-                            activity.startService(PostService.newIntent(activity, new TweetDraft.Builder().setText("＼ﾕｯｶﾘｰﾝ／").addWriter(activity.primaryUser).build()));
+                            StatusDraft draft = new StatusDraft();
+                            draft.setWriters(activity.primaryUser.toSingleList());
+                            draft.setText("＼ﾕｯｶﾘｰﾝ／");
+                            activity.startService(PostService.newIntent(activity, draft));
                             break;
                         default:
                             Toast.makeText(activity, "非対応タグです", Toast.LENGTH_SHORT).show();
