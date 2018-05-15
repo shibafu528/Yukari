@@ -30,7 +30,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 18;
+    public static final int DB_VER = 19;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -231,7 +231,7 @@ public class CentralDatabase {
                     COL_DRAFTS_WRITER_ID + " INTEGER, " +
                     COL_DRAFTS_TEXT + " TEXT, " +
                     COL_DRAFTS_DATETIME + " TEXT, " +
-                    COL_DRAFTS_IN_REPLY_TO + " INTEGER, " +
+                    COL_DRAFTS_IN_REPLY_TO + " TEXT, " +
                     COL_DRAFTS_IS_QUOTED + " INTEGER, " +
                     COL_DRAFTS_ATTACHED_PICTURE + " TEXT, " +
                     COL_DRAFTS_USE_GEO_LOCATION + " INTEGER, " +
@@ -550,6 +550,58 @@ public class CentralDatabase {
                                 TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + " = 1",
                         new Object[]{"UserStream"}
                 );
+                ++oldVersion;
+            }
+            if (oldVersion == 18) {
+                db.execSQL("ALTER TABLE " + TABLE_DRAFTS + " RENAME TO tmp_Drafts");
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_DRAFTS + " (" +
+                                COL_DRAFTS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                COL_DRAFTS_WRITER_ID + " INTEGER, " +
+                                COL_DRAFTS_TEXT + " TEXT, " +
+                                COL_DRAFTS_DATETIME + " TEXT, " +
+                                COL_DRAFTS_IN_REPLY_TO + " TEXT, " +
+                                COL_DRAFTS_IS_QUOTED + " INTEGER, " +
+                                COL_DRAFTS_ATTACHED_PICTURE + " TEXT, " +
+                                COL_DRAFTS_USE_GEO_LOCATION + " INTEGER, " +
+                                COL_DRAFTS_GEO_LATITUDE + " REAL, " +
+                                COL_DRAFTS_GEO_LONGITUDE + " REAL, " +
+                                COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
+                                COL_DRAFTS_IS_DIRECT_MESSAGE + " INTEGER, " +
+                                COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER, " +
+                                COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '')"
+                );
+                db.execSQL("INSERT INTO " + TABLE_DRAFTS + "(" +
+                        COL_DRAFTS_WRITER_ID + ", " +
+                        COL_DRAFTS_TEXT + ", " +
+                        COL_DRAFTS_DATETIME + ", " +
+                        COL_DRAFTS_IN_REPLY_TO + ", " +
+                        COL_DRAFTS_IS_QUOTED + ", " +
+                        COL_DRAFTS_ATTACHED_PICTURE + ", " +
+                        COL_DRAFTS_USE_GEO_LOCATION + ", " +
+                        COL_DRAFTS_GEO_LATITUDE + ", " +
+                        COL_DRAFTS_GEO_LONGITUDE + ", " +
+                        COL_DRAFTS_IS_POSSIBLY_SENSITIVE + ", " +
+                        COL_DRAFTS_IS_DIRECT_MESSAGE + ", " +
+                        COL_DRAFTS_IS_FAILED_DELIVERY + ", " +
+                        COL_DRAFTS_MESSAGE_TARGET +
+                        ") SELECT " +
+                        COL_DRAFTS_WRITER_ID + ", " +
+                        COL_DRAFTS_TEXT + ", " +
+                        COL_DRAFTS_DATETIME + ", " +
+                        "CASE WHEN " + COL_DRAFTS_IN_REPLY_TO + " IS NULL OR " + COL_DRAFTS_IN_REPLY_TO + " <= 0 THEN NULL ELSE 'https://twitter.com/null/status/'||" + COL_DRAFTS_IN_REPLY_TO + " END, " +
+                        COL_DRAFTS_IS_QUOTED + ", " +
+                        COL_DRAFTS_ATTACHED_PICTURE + ", " +
+                        COL_DRAFTS_USE_GEO_LOCATION + ", " +
+                        COL_DRAFTS_GEO_LATITUDE + ", " +
+                        COL_DRAFTS_GEO_LONGITUDE + ", " +
+                        COL_DRAFTS_IS_POSSIBLY_SENSITIVE + ", " +
+                        COL_DRAFTS_IS_DIRECT_MESSAGE + ", " +
+                        COL_DRAFTS_IS_FAILED_DELIVERY + ", " +
+                        COL_DRAFTS_MESSAGE_TARGET +
+                        " FROM tmp_Drafts"
+                );
+                db.execSQL("DROP TABLE tmp_Drafts");
                 ++oldVersion;
             }
         }

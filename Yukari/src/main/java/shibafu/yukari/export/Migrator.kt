@@ -1,13 +1,13 @@
 package shibafu.yukari.export
 
 import shibafu.yukari.common.TabInfo
-import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.twitter.AuthUserRecord
 
 class AccountMigrator : ConfigFileMigrator<AuthUserRecord> {
@@ -46,10 +46,19 @@ class BookmarkMigrator : ConfigFileMigrator<Bookmark.SerializeEntity> {
     constructor() : super(Bookmark.SerializeEntity::class.java, {})
 }
 
-class TweetDraftMigrator : ConfigFileMigrator<TweetDraft> {
-    override val latestVersion = 1
+class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
+    override val latestVersion = 2
 
-    constructor() : super(TweetDraft::class.java, {})
+    constructor() : super(StatusDraft::class.java, {
+        version(1, {
+            val inReplyToId: Long? = it["InReplyTo"].toString().toLongOrNull()
+            if (inReplyToId == null || inReplyToId <= 0) {
+                it["InReplyTo"] = null
+            } else {
+                it["InReplyTo"] = "https://twitter.com/null/status/$inReplyToId"
+            }
+        })
+    })
 }
 
 class SearchHistoryMigrator : ConfigFileMigrator<SearchHistory> {

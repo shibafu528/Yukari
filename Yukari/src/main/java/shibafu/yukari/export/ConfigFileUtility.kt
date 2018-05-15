@@ -4,13 +4,13 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonWriter
 import shibafu.yukari.common.TabInfo
-import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.StringWriter
 
@@ -79,7 +79,7 @@ object ConfigFileUtility {
             AutoMuteConfig::class.java to AutoMuteConfigMigrator(),
             UserExtras::class.java to UserExtrasMigrator(),
             Bookmark.SerializeEntity::class.java to BookmarkMigrator(),
-            TweetDraft::class.java to TweetDraftMigrator(),
+            StatusDraft::class.java to StatusDraftMigrator(),
             SearchHistory::class.java to SearchHistoryMigrator(),
             StreamChannelState::class.java to StreamChannelStateMigrator()
     )

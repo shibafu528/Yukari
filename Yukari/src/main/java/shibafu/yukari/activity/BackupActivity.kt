@@ -24,7 +24,6 @@ import com.google.gson.reflect.TypeToken
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.TabInfo
-import shibafu.yukari.common.TweetDraft
 import shibafu.yukari.common.UsedHashes
 import shibafu.yukari.common.async.SimpleAsyncTask
 import shibafu.yukari.database.AutoMuteConfig
@@ -36,6 +35,7 @@ import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.twitter.AuthUserRecord
@@ -161,7 +161,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                         4 -> importIntoDatabase(AutoMuteConfig::class.java, AutoMuteConfig::class.java, readFile("automute.json"))
                                         5 -> importIntoDatabase(UserExtras::class.java, UserExtras::class.java, readFile("user_extras.json"))
                                         6 -> importIntoDatabase(Bookmark.SerializeEntity::class.java, Bookmark::class.java, readFile("bookmarks.json"))
-                                        7 -> importIntoDatabase(TweetDraft::class.java, CentralDatabase.TABLE_DRAFTS, readFile("drafts.json"))
+                                        7 -> importIntoDatabase(StatusDraft::class.java, CentralDatabase.TABLE_DRAFTS, readFile("drafts.json"))
                                         8 -> importIntoDatabase(SearchHistory::class.java, SearchHistory::class.java, readFile("draftsearch_history.json"))
                                         9 -> {
                                             val records: List<String> = Gson().fromJson(readFile("used_tags.json"), object : TypeToken<List<String>>() {}.type)
@@ -235,7 +235,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                 4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
                                 5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
                                 6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
-                                7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(TweetDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
+                                7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(StatusDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
                                 8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
                                 9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
                                 10 -> exports["stream_channel_states.json"] = ConfigFileUtility.exportToJson(StreamChannelState::class.java, database.getRecordMaps(CentralDatabase.TABLE_STREAM_CHANNEL_STATES) as List<Map<String, Any?>>)
