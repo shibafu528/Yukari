@@ -240,7 +240,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                                 }
                             }
                         }
-                        true
+                        false // ダブルクリックブロックの対象外
                     }
                     is TwitterStatus, is DonStatus -> {
                         val intent = Intent(activity, StatusActivity::class.java)
