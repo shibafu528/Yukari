@@ -7,7 +7,7 @@ class DonUser(val account: Account?) : User {
     override val id: Long
         get() = account?.id ?: 0
     override val name: String
-        get() = account?.displayName ?: ""
+        get() = account?.displayName.takeIf { !it.isNullOrEmpty() } ?: account?.userName ?: ""
     override val screenName: String
         get() = account?.acct ?: ""
     override val isProtected: Boolean
