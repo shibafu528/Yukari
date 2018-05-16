@@ -11,7 +11,7 @@ import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.media2.Media
-import shibafu.yukari.media2.MediaFactory
+import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
 import kotlin.collections.LinkedHashSet
@@ -95,14 +95,10 @@ class DonStatus(val status: Status,
         val links = LinkedHashSet<String>()
 
         status.mediaAttachments.forEach { attachment ->
-            val url = attachment.remoteUrl ?: attachment.url
-
-            // TODO: サムネイル用URLを活かすには直接具象生成のほうが良さそう
-            val m = MediaFactory.newInstance(url)
-            if (m != null) {
-                media += m
-            } else {
-                links += url
+            // TODO: videoとかgifvとかは...?
+            when (attachment.type) {
+                "image" -> media += DonPicture(attachment)
+                else -> links += attachment.remoteUrl ?: attachment.url
             }
         }
 
