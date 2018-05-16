@@ -5,16 +5,25 @@ import android.os.Looper
 import android.widget.Toast
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.MastodonClient
+import com.sys1yagi.mastodon4j.api.entity.Attachment
+import com.sys1yagi.mastodon4j.api.entity.Status.Visibility
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
+import com.sys1yagi.mastodon4j.api.method.Media
 import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
+import okhttp3.MediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
+import java.io.File
+import java.io.IOException
 
 class MastodonApi : ProviderApi {
     private lateinit var service: TwitterService
@@ -82,6 +91,40 @@ class MastodonApi : ProviderApi {
         return false
     }
 
+    override fun postStatus(userRecord: AuthUserRecord, draft: StatusDraft, mediaList: List<File>): Status {
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+
+        // 添付メディアのアップロード
+        val mediaIds = mediaList.map { file ->
+            uploadMedia(userRecord, file).id
+        }
+
+        try {
+            val statuses = Statuses(client)
+            val result = statuses.postStatus(
+                    draft.text,
+                    null,
+                    mediaIds,
+                    draft.isPossiblySensitive,
+                    null,
+                    Visibility.Unlisted
+            ).execute()
+            return DonStatus(result, userRecord)
+        } catch (e: Mastodon4jRequestException) {
+            val response = e.response
+            if (response != null) {
+                try {
+                    val responseBody = response.body().string()
+                    throw ProviderApiException("${response.code()} $responseBody", e)
+                } catch (e: IOException) {
+                    throw ProviderApiException("${response.code()} Unknown error", e)
+                }
+            } else {
+                throw ProviderApiException("Unknown error", e)
+            }
+        }
+    }
+
     override fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
@@ -128,5 +171,17 @@ class MastodonApi : ProviderApi {
         } catch (e: Mastodon4jRequestException) {
             throw ProviderApiException(cause = e)
         }
+    }
+
+    @Throws(Mastodon4jRequestException::class)
+    private fun uploadMedia(userRecord: AuthUserRecord, file: File): Attachment {
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        val media = Media(client)
+        return media.postMedia(
+                MultipartBody.Part.createFormData(
+                        "file", file.name,
+                        RequestBody.create(MediaType.parse("image/png"), file)
+                )
+        ).execute()
     }
 }

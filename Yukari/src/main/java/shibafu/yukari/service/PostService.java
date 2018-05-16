@@ -16,30 +16,26 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
-import android.text.TextUtils;
 import android.util.Log;
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
-import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
+import shibafu.yukari.linkage.ProviderApi;
+import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.CompatUtil;
-import twitter4j.StatusUpdate;
-import twitter4j.TwitterException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by shibafu on 14/03/26.
@@ -51,8 +47,6 @@ public class PostService extends IntentService{
     public static final String EXTRA_REMOTE_INPUT = "remoteInput";
     public static final int FLAG_FAVORITE  = 0x01;
     public static final int FLAG_RETWEET   = 0x02;
-
-    private static final Pattern PATTERN_QUOTE = Pattern.compile(" https?://(mobile\\.|www\\.)?twitter\\.com/[0-9a-zA-Z_]{1,15}/status(es)?/\\d+/?$");
 
     private NotificationManager nm;
     private Bitmap icon;
@@ -133,172 +127,58 @@ public class PostService extends IntentService{
             }
         }
 
-        //投稿用データの準備
-        StatusUpdate update;
-        {
-            String text = draft.getText();
-            String attachmentUrl = null;
-
-            //画像添付なしで、ツイートを引用している場合は1つだけattachmentUrlに移動させる
-            if (draft.getAttachPictures().isEmpty()) {
-                Matcher attachmentMatcher = PATTERN_QUOTE.matcher(draft.getText());
-                if (attachmentMatcher.find()) {
-                    attachmentUrl = attachmentMatcher.group().trim();
-                    text = attachmentMatcher.replaceAll("");
-                }
-            }
-
-            update = new StatusUpdate(text);
-            if (attachmentUrl != null) {
-                update.setAttachmentUrl(attachmentUrl);
-            }
+        //添付メディアのアップロード準備
+        List<File> uploadMediaList;
+        try {
+            uploadMediaList = prepareUploadMedia(draft.getAttachPictures(), imageResizeLength);
+        } catch (IOException e) {
+            nm.cancel(0);
+            showErrorMessage(1, draft, "添付画像の処理エラー");
+            return;
         }
 
         //順次投稿
         int error = 0;
-        for (int i = 0; i < writers.size(); ++i) {
-            AuthUserRecord userRecord = writers.get(i);
-            try {
-                switch (userRecord.Provider.getApiType()) {
-                    case Provider.API_TWITTER:
-                        if (draft.isDirectMessage()) {
-                            service.sendDirectMessage(draft.getMessageTarget(), userRecord, draft.getText());
-                        } else {
-                            //事前処理Flagがある場合はそれらを実行する
-                            if (targetStatus != null) {
-                                if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
-                                    service.getProviderApi(userRecord).createFavorite(userRecord, targetStatus);
-                                }
-                                if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
-                                    service.getProviderApi(userRecord).repostStatus(userRecord, targetStatus);
-                                }
-                            }
-                            //statusが引数に付加されている場合はin-reply-toとして設定する
-                            if (!TextUtils.isEmpty(draft.getInReplyTo())) {
-                                long inReplyTo = TwitterUtil.getStatusIdFromUrl(draft.getInReplyTo());
-                                if (inReplyTo > -1) {
-                                    update.setInReplyToStatusId(inReplyTo);
-                                }
-                            }
-                            //attachPictureがある場合は添付
-                            if (!draft.getAttachPictures().isEmpty()) {
-                                List<Uri> attachedPictures = draft.getAttachPictures();
-                                long[] mediaIds = new long[attachedPictures.size()];
-                                for (int j = 0; j < mediaIds.length; ++j) {
-                                    Uri u = attachedPictures.get(j);
-                                    InputStream is;
-                                    int[] size = new int[2];
-                                    try {
-                                        Bitmap thumb = BitmapUtil.resizeBitmap(this, u, 128, 128, size);
-                                        thumb.recycle();
-                                    } catch (IOException | NullPointerException e) {
-                                        throw new IOException(e);
-                                    }
-                                    if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
-                                        Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
-                                        Bitmap resized = BitmapUtil.resizeBitmap(
-                                                this,
-                                                u,
-                                                imageResizeLength,
-                                                imageResizeLength,
-                                                null);
-                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                        resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                        Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                        is = new ByteArrayInputStream(baos.toByteArray());
-                                    } else {
-                                        is = getContentResolver().openInputStream(u);
-                                    }
-
-                                    mediaIds[j] = service.uploadMedia(userRecord, is).getMediaId();
-                                }
-                                update.setMediaIds(mediaIds);
-                            }
-                            service.postTweet(userRecord, update);
-                        }
-                        break;
-                    case Provider.API_MASTODON: {
-                        //事前処理Flagがある場合はそれらを実行する
-                        if (targetStatus != null) {
-                            if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
-                                service.getProviderApi(userRecord).createFavorite(userRecord, targetStatus);
-                            }
-                            if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
-                                service.getProviderApi(userRecord).repostStatus(userRecord, targetStatus);
-                            }
-                        }
-                        //attachPictureがある場合は添付
-                        List<Long> mediaIds = null;
-                        if (!draft.getAttachPictures().isEmpty()) {
-                            mediaIds = new ArrayList<>();
-                            for (Uri uri : draft.getAttachPictures()) {
-                                InputStream is;
-                                int[] size = new int[2];
-                                try {
-                                    Bitmap thumb = BitmapUtil.resizeBitmap(this, uri, 128, 128, size);
-                                    thumb.recycle();
-                                } catch (IOException | NullPointerException e) {
-                                    throw new IOException(e);
-                                }
-                                if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
-                                    Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
-                                    Bitmap resized = BitmapUtil.resizeBitmap(
-                                            this,
-                                            uri,
-                                            imageResizeLength,
-                                            imageResizeLength,
-                                            null);
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                                    Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
-                                    is = new ByteArrayInputStream(baos.toByteArray());
-                                } else {
-                                    is = getContentResolver().openInputStream(uri);
-                                }
-
-                                mediaIds.add(service.uploadMediaToMastodon(userRecord, is).getId());
-                            }
-                        }
-                        service.postToot(userRecord, draft.getText(), mediaIds);
-                        break;
-                    }
-                }
-            } catch (TwitterException e) {
-                e.printStackTrace();
-                showErrorMessage(i + 65535, draft, String.format(
-                        "@%s/%d %s",
-                        userRecord.ScreenName,
-                        e.getErrorCode(),
-                        e.getErrorMessage()));
-                ++error;
-            } catch (Mastodon4jRequestException e) {
-                e.printStackTrace();
+        try {
+            for (int i = 0; i < writers.size(); ++i) {
+                AuthUserRecord userRecord = writers.get(i);
                 try {
+                    ProviderApi api = service.getProviderApi(userRecord);
+                    if (api == null) {
+                        throw new RuntimeException("Critical Error : ProviderAPI not found.");
+                    }
+
+                    // 事前処理Flagがある場合はそれらを実行する
+                    if (targetStatus != null) {
+                        if ((flags & FLAG_FAVORITE) == FLAG_FAVORITE) {
+                            api.createFavorite(userRecord, targetStatus);
+                        }
+                        if ((flags & FLAG_RETWEET) == FLAG_RETWEET) {
+                            api.repostStatus(userRecord, targetStatus);
+                        }
+                    }
+
+                    // 投稿
+                    api.postStatus(userRecord, draft, uploadMediaList);
+                } catch (ProviderApiException e) {
+                    e.printStackTrace();
                     showErrorMessage(i + 65535, draft, String.format(
-                            "@%s/%d %s",
+                            "@%s/%s",
                             userRecord.ScreenName,
-                            e.getResponse().code(),
-                            e.getResponse().body().string()));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                    showErrorMessage(i + 65535, draft, String.format(
-                            "@%s/%d %s",
-                            userRecord.ScreenName,
-                            e.getResponse().code(),
-                            "Unknown error"));
+                            e.getMessage()));
+                    ++error;
                 }
-                ++error;
-            } catch (IOException e) {
-                e.printStackTrace();
-                showErrorMessage(i + 65535, draft, String.format(
-                        "@%s/添付画像の処理エラー",
-                        userRecord.ScreenName));
-                ++error;
+                builder.setWhen(System.currentTimeMillis());
+                builder.setContentInfo((i + 1) + "/" + writers.size());
+                builder.setProgress(writers.size(), i + 1, false);
+                nm.notify(R.integer.notification_tweet, builder.build());
             }
-            builder.setWhen(System.currentTimeMillis());
-            builder.setContentInfo((i + 1) + "/" + writers.size());
-            builder.setProgress(writers.size(), i + 1, false);
-            nm.notify(R.integer.notification_tweet, builder.build());
+        } finally {
+            //添付メディアの一時ファイルを削除
+            for (File file : uploadMediaList) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
         }
 
         builder.setAutoCancel(true);
@@ -327,6 +207,69 @@ public class PostService extends IntentService{
         }
 
         stopForeground(true);
+    }
+
+    private List<File> prepareUploadMedia(List<Uri> mediaList, int imageResizeLength) throws IOException {
+        List<File> uploadMedia = new ArrayList<>();
+        try {
+            for (Uri uri : mediaList) {
+                InputStream is = null;
+                try {
+                    //リサイズテスト
+                    int[] size = new int[2];
+                    try {
+                        Bitmap thumb = BitmapUtil.resizeBitmap(this, uri, 128, 128, size);
+                        thumb.recycle();
+                    } catch (IOException | NullPointerException e) {
+                        throw new IOException(e);
+                    }
+                    //リサイズする必要があるか？
+                    if (imageResizeLength > 0 && Math.max(size[0], size[1]) > imageResizeLength) {
+                        Log.d("PostService", "添付画像の長辺が設定値を超えています。圧縮対象とします。");
+                        Bitmap resized = BitmapUtil.resizeBitmap(
+                                this,
+                                uri,
+                                imageResizeLength,
+                                imageResizeLength,
+                                null);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        resized.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        Log.d("PostService", "縮小しました w=" + resized.getWidth() + " h=" + resized.getHeight());
+                        is = new ByteArrayInputStream(baos.toByteArray());
+                    } else {
+                        is = getContentResolver().openInputStream(uri);
+                    }
+                    //一時ファイルにコピー
+                    File tempFile = File.createTempFile("uploadMedia", ".tmp", getExternalCacheDir());
+                    FileOutputStream fos = new FileOutputStream(tempFile);
+                    byte[] buffer = new byte[4096];
+                    int length;
+                    try {
+                        while ((length = is.read(buffer)) != -1) {
+                            fos.write(buffer, 0, length);
+                        }
+                    } finally {
+                        try {
+                            fos.close();
+                        } catch (IOException ignored) {}
+                    }
+                    uploadMedia.add(tempFile);
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (IOException ignored) {}
+                    }
+                }
+            }
+            return uploadMedia;
+        } catch (IOException e) {
+            for (File file : uploadMedia) {
+                //noinspection ResultOfMethodCallIgnored
+                file.delete();
+            }
+            throw e;
+        }
     }
 
     private void reactionFromYukari(StatusDraft draft) {

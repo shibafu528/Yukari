@@ -25,17 +25,9 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
-import com.sys1yagi.mastodon4j.MastodonClient;
-import com.sys1yagi.mastodon4j.api.entity.Attachment;
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
-import com.sys1yagi.mastodon4j.api.method.Media;
-import com.sys1yagi.mastodon4j.api.method.Statuses;
 import info.shibafu528.yukari.exvoice.MRuby;
 import okhttp3.Interceptor;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -797,93 +789,6 @@ public class TwitterService extends Service{
     public void updateAutoMuteConfig() {
         List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="投稿操作系 (Legacy)">
-    public void postTweet(AuthUserRecord user, StatusUpdate status) throws TwitterException {
-        if (user == null) {
-            throw new IllegalArgumentException("送信元アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(user);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        twitter.updateStatus(status);
-    }
-
-    public UploadedMedia uploadMedia(AuthUserRecord user, InputStream inputStream) throws TwitterException, IOException {
-        File tempFile = File.createTempFile("uploadMedia", ".tmp", getExternalCacheDir());
-        try {
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            byte[] buffer = new byte[4096];
-            int length;
-            try {
-                while ((length = inputStream.read(buffer)) != -1) {
-                    fos.write(buffer, 0, length);
-                }
-            } finally {
-                fos.close();
-            }
-
-            Twitter twitter = getTwitter(user);
-            if (twitter == null) {
-                throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-            }
-
-            return twitter.uploadMedia(tempFile);
-        }
-        finally {
-            tempFile.delete();
-        }
-    }
-
-    public void sendDirectMessage(String to, AuthUserRecord from, String message) throws TwitterException {
-        if (from == null) {
-            throw new IllegalArgumentException("送信元アカウントが指定されていません");
-        }
-        Twitter twitter = getTwitter(from);
-        if (twitter == null) {
-            throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
-        }
-        twitter.sendDirectMessage(to, message);
-    }
-
-    public void postToot(@NonNull AuthUserRecord user, @NonNull String text, @Nullable List<Long> mediaIds) throws Mastodon4jRequestException {
-        final MastodonClient client = (MastodonClient) getProviderApi(Provider.API_MASTODON).getApiClient(user);
-        if (client == null) {
-            throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
-        }
-        final Statuses statuses = new Statuses(client);
-        statuses.postStatus(text, null, mediaIds, false, null, com.sys1yagi.mastodon4j.api.entity.Status.Visibility.Unlisted).execute();
-    }
-
-    public Attachment uploadMediaToMastodon(AuthUserRecord user, InputStream inputStream) throws IOException, Mastodon4jRequestException {
-        File tempFile = File.createTempFile("uploadMedia", ".tmp", getExternalCacheDir());
-        try {
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            byte[] buffer = new byte[4096];
-            int length;
-            try {
-                while ((length = inputStream.read(buffer)) != -1) {
-                    fos.write(buffer, 0, length);
-                }
-            } finally {
-                fos.close();
-            }
-
-            final MastodonClient client = (MastodonClient) getProviderApi(Provider.API_MASTODON).getApiClient(user);
-            if (client == null) {
-                throw new IllegalStateException("Mastodonとの通信の準備に失敗しました");
-            }
-            final Media media = new Media(client);
-            return media.postMedia(MultipartBody.Part.createFormData("file",
-                    tempFile.getName(),
-                    RequestBody.create(MediaType.parse("image/png"), tempFile))).execute();
-        }
-        finally {
-            tempFile.delete();
-        }
     }
     //</editor-fold>
 
