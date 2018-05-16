@@ -2,10 +2,10 @@ package shibafu.yukari.mastodon.entity
 
 import android.os.Parcel
 import android.os.Parcelable
-import android.text.Html
 import android.text.format.Time
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
+import org.jsoup.Jsoup
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
@@ -27,16 +27,7 @@ class DonStatus(val status: Status,
 
     override val user: User = DonUser(status.account)
 
-    @Suppress("DEPRECATION")
     override val text: String
-        get() {
-            val html = if (status.spoilerText.isEmpty()) {
-                status.content
-            } else {
-                status.spoilerText + "<p></p>"  + status.content
-            }
-            return Html.fromHtml(html).toString().trim(' ', '\n')
-        }
 
     override val recipientScreenName: String
         get() = representUser.ScreenName
@@ -63,7 +54,7 @@ class DonStatus(val status: Status,
 
     override val links: List<String>
 
-    override val tags: List<String> = status.tags.map { "#" + it.name }
+    override val tags: List<String> = status.tags.map { it.name }
 
     override var favoritesCount: Int = status.favouritesCount
 
@@ -91,6 +82,14 @@ class DonStatus(val status: Status,
     }
 
     init {
+        val content = Jsoup.parse(status.content)
+
+        if (status.spoilerText.isNotEmpty()) {
+            text = status.spoilerText + "\n\n" + content.text()
+        } else {
+            text = content.text()
+        }
+
         val media = LinkedHashSet<Media>()
         val links = LinkedHashSet<String>()
 
@@ -99,6 +98,13 @@ class DonStatus(val status: Status,
             when (attachment.type) {
                 "image" -> media += DonPicture(attachment)
                 else -> links += attachment.remoteUrl ?: attachment.url
+            }
+        }
+
+        content.select("a:not(.mention)").forEach { element ->
+            val href = element.attr("href")
+            if (!href.isNullOrEmpty()) {
+                links += href
             }
         }
 
