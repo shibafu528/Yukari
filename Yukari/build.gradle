@@ -81,8 +81,6 @@ dependencies {
     // Annotation Processor
     implementation 'com.jakewharton:butterknife:8.8.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.0'
-    annotationProcessor 'org.projectlombok:lombok:1.16.4'
-    compileOnly 'org.projectlombok:lombok:1.16.4'
     implementation project(':yukari-processor-runtime')
     annotationProcessor project(':yukari-processor')
 

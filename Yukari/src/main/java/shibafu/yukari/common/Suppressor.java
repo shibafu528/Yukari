@@ -98,13 +98,13 @@ public class Suppressor {
             }
             boolean match = false;
             switch (config.getMatch()) {
-                case MuteConfig.MATCH_EXACT:
+                case MuteMatch.MATCH_EXACT:
                     match = source.equals(config.getQuery());
                     break;
-                case MuteConfig.MATCH_PARTIAL:
+                case MuteMatch.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX: {
+                case MuteMatch.MATCH_REGEX: {
                     Pattern pattern = patternCache.get(config.getId());
                     if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
                         try {
@@ -170,13 +170,13 @@ public class Suppressor {
             }
             boolean match = false;
             switch (config.getMatch()) {
-                case MuteConfig.MATCH_EXACT:
+                case MuteMatch.MATCH_EXACT:
                     match = source.equals(config.getQuery());
                     break;
-                case MuteConfig.MATCH_PARTIAL:
+                case MuteMatch.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX: {
+                case MuteMatch.MATCH_REGEX: {
                     Pattern pattern = patternCache.get(config.getId());
                     if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
                         try {
@@ -227,13 +227,13 @@ public class Suppressor {
             }
             boolean match = false;
             switch (config.getMatch()) {
-                case MuteConfig.MATCH_EXACT:
+                case MuteMatch.MATCH_EXACT:
                     match = source.equals(config.getQuery());
                     break;
-                case MuteConfig.MATCH_PARTIAL:
+                case MuteMatch.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX: {
+                case MuteMatch.MATCH_REGEX: {
                     Pattern pattern = patternCache.get(config.getId());
                     if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
                         try {
@@ -284,13 +284,13 @@ public class Suppressor {
             }
             boolean match = false;
             switch (config.getMatch()) {
-                case MuteConfig.MATCH_EXACT:
+                case MuteMatch.MATCH_EXACT:
                     match = source.equals(config.getQuery());
                     break;
-                case MuteConfig.MATCH_PARTIAL:
+                case MuteMatch.MATCH_PARTIAL:
                     match = source.contains(config.getQuery());
                     break;
-                case MuteConfig.MATCH_REGEX: {
+                case MuteMatch.MATCH_REGEX: {
                     Pattern pattern = patternCache.get(config.getId());
                     if (pattern == null && patternCache.indexOfKey(config.getId()) < 0) {
                         try {

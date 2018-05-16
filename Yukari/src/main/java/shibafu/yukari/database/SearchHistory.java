@@ -5,12 +5,9 @@ import android.database.Cursor;
 
 import java.util.Date;
 
-import lombok.Value;
-
 /**
  * Created by shibafu on 14/03/10.
  */
-@Value
 @DBTable(CentralDatabase.TABLE_SEARCH_HISTORY)
 public class SearchHistory implements DBRecord{
     private final long id;
@@ -29,6 +26,18 @@ public class SearchHistory implements DBRecord{
         this.date = new Date(cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_SHISTORY_DATE)));
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public String getQuery() {
+        return query;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
     @Override
     public ContentValues getContentValues() {
         ContentValues values = new ContentValues();
@@ -38,6 +47,26 @@ public class SearchHistory implements DBRecord{
         values.put(CentralDatabase.COL_SHISTORY_QUERY, query);
         values.put(CentralDatabase.COL_SHISTORY_DATE, date.getTime());
         return values;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SearchHistory)) return false;
+
+        SearchHistory that = (SearchHistory) o;
+
+        if (id != that.id) return false;
+        if (query != null ? !query.equals(that.query) : that.query != null) return false;
+        return date != null ? date.equals(that.date) : that.date == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + (query != null ? query.hashCode() : 0);
+        result = 31 * result + (date != null ? date.hashCode() : 0);
+        return result;
     }
 
     @Override

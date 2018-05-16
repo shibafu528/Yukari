@@ -26,6 +26,7 @@ import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.MuteMatch
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
@@ -378,7 +379,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
         fun toIntent(context: Context): Intent {
             var query = value
             var which = MuteConfig.SCOPE_TEXT
-            var match = MuteConfig.MATCH_EXACT
+            var match = MuteMatch.MATCH_EXACT
             when (type) {
                 TYPE_TEXT -> which = MuteConfig.SCOPE_TEXT
                 TYPE_USER_NAME -> which = MuteConfig.SCOPE_USER_NAME
@@ -387,13 +388,13 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                 TYPE_VIA -> which = MuteConfig.SCOPE_VIA
                 TYPE_HASHTAG -> {
                     query = "[#＃]" + value
-                    match = MuteConfig.MATCH_REGEX
+                    match = MuteMatch.MATCH_REGEX
                 }
                 TYPE_MENTION -> {
                     query = "@" + value
-                    match = MuteConfig.MATCH_PARTIAL
+                    match = MuteMatch.MATCH_PARTIAL
                 }
-                TYPE_URL -> match = MuteConfig.MATCH_PARTIAL
+                TYPE_URL -> match = MuteMatch.MATCH_PARTIAL
             }
             return Intent(context, MuteActivity::class.java).putExtra(MuteActivity.EXTRA_QUERY, query).putExtra(MuteActivity.EXTRA_SCOPE, which).putExtra(MuteActivity.EXTRA_MATCH, match)
         }

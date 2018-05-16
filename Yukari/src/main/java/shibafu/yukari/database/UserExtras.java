@@ -2,8 +2,6 @@ package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.util.Collection;
@@ -11,8 +9,6 @@ import java.util.Collection;
 /**
  * Created by shibafu on 14/10/04.
  */
-@RequiredArgsConstructor
-@ToString
 @DBTable(CentralDatabase.TABLE_USER_EXTRAS)
 public class UserExtras implements DBRecord {
     private long id;
@@ -78,5 +74,15 @@ public class UserExtras implements DBRecord {
         values.put(CentralDatabase.COL_UEXTRAS_COLOR, color);
         values.put(CentralDatabase.COL_UEXTRAS_PRIORITY_ID, getPriorityAccountId());
         return values;
+    }
+
+    @Override
+    public String toString() {
+        return "UserExtras{" +
+                "id=" + id +
+                ", color=" + color +
+                ", priorityAccountId=" + priorityAccountId +
+                ", priorityAccount=" + priorityAccount +
+                '}';
     }
 }

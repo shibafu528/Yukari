@@ -47,7 +47,7 @@ public class AutoMuteConfig implements DBRecord, Serializable, MuteMatch {
 
     public MuteConfig getMuteConfig(String targetScreenName, long expirationTimeMillis) {
         return new MuteConfig(MuteConfig.SCOPE_USER_SN,
-                MuteConfig.MATCH_EXACT,
+                MuteMatch.MATCH_EXACT,
                 MuteConfig.MUTE_TWEET,
                 targetScreenName,
                 expirationTimeMillis);

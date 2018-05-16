@@ -37,6 +37,7 @@ import com.google.gson.reflect.TypeToken;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.MuteMatch;
 import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
@@ -73,7 +74,7 @@ public class MuteActivity extends ActionBarYukariBase{
             if (intent.hasExtra(EXTRA_QUERY)) {
                 MuteConfig config = new MuteConfig(
                         intent.getIntExtra(EXTRA_SCOPE, 0),
-                        intent.getIntExtra(EXTRA_MATCH, MuteConfig.MATCH_EXACT),
+                        intent.getIntExtra(EXTRA_MATCH, MuteMatch.MATCH_EXACT),
                         MuteConfig.MUTE_TWEET,
                         intent.getStringExtra(EXTRA_QUERY)
                 );
