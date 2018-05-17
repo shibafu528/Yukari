@@ -100,6 +100,13 @@ class MastodonApi : ProviderApi {
         }
 
         try {
+            val visibility = when (draft.visibility) {
+                StatusDraft.Visibility.PUBLIC -> Visibility.Public
+                StatusDraft.Visibility.UNLISTED -> Visibility.Unlisted
+                StatusDraft.Visibility.PRIVATE -> Visibility.Private
+                StatusDraft.Visibility.DIRECT -> Visibility.Direct
+            }
+
             val statuses = Statuses(client)
             val result = statuses.postStatus(
                     draft.text,
@@ -107,7 +114,7 @@ class MastodonApi : ProviderApi {
                     mediaIds,
                     draft.isPossiblySensitive,
                     null,
-                    Visibility.Unlisted
+                    visibility
             ).execute()
             return DonStatus(result, userRecord)
         } catch (e: Mastodon4jRequestException) {

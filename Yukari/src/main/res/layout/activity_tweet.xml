@@ -150,6 +150,12 @@
             android:layout_height="fill_parent">
 
             <ImageButton
+                android:id="@+id/ibTweetVisibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"/>
+
+            <ImageButton
                 android:id="@+id/ibTweetSNPicker"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

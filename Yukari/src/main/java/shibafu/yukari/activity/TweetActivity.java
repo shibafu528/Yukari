@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
@@ -25,7 +26,10 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.speech.RecognizerIntent;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.view.menu.MenuBuilder;
+import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.AppCompatImageButton;
+import android.support.v7.widget.PopupMenu;
 import android.text.Editable;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -33,6 +37,8 @@ import android.text.TextWatcher;
 import android.text.style.CharacterStyle;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -60,6 +66,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
@@ -216,6 +223,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     //Pluggaloidロード状態
     private boolean isLoadedPluggaloid;
 
+    //テーマ
+    private boolean usingDarkTheme;
+
+    //可視性
+    @NeedSaveState private StatusDraft.Visibility visibility = StatusDraft.Visibility.PUBLIC;
+    private ImageButton ibVisibility;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -223,39 +237,51 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         switch (theme) {
             default:
                 setTheme(R.style.ColorsTheme_Light_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "dark":
                 setTheme(R.style.ColorsTheme_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
             case "akari":
                 setTheme(R.style.ColorsTheme_Akari_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "akari_dark":
                 setTheme(R.style.ColorsTheme_Akari_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "zunko_dark":
                 setTheme(R.style.ColorsTheme_Zunko_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
             case "maki":
                 setTheme(R.style.ColorsTheme_Maki_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "maki_dark":
                 setTheme(R.style.ColorsTheme_Maki_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
             case "aoi":
                 setTheme(R.style.ColorsTheme_Aoi_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "aoi_dark":
                 setTheme(R.style.ColorsTheme_Aoi_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
             case "akane":
                 setTheme(R.style.ColorsTheme_Akane_Dialog_VertAnimation);
+                usingDarkTheme = false;
                 break;
             case "akane_dark":
                 setTheme(R.style.ColorsTheme_Akane_Dark_Dialog_VertAnimation);
+                usingDarkTheme = true;
                 break;
         }
         super.onCreate(savedInstanceState, true);
@@ -682,6 +708,54 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
      * プラグインエリアの初期化
      */
     private void initializeEditPlugins() {
+        // 可視性設定
+        ibVisibility = (ImageButton) findViewById(R.id.ibTweetVisibility);
+        ibVisibility.setOnClickListener(new View.OnClickListener() {
+            @Override
+            @SuppressLint("RestrictedApi")
+            public void onClick(View v) {
+                PopupMenu menu = new PopupMenu(TweetActivity.this, v);
+
+                MenuItem publicItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PUBLIC.ordinal(), Menu.NONE, "公開");
+                if (usingDarkTheme) {
+                    publicItem.setIcon(R.drawable.ic_visibility_public_light);
+                } else {
+                    publicItem.setIcon(R.drawable.ic_visibility_public_dark);
+                }
+
+                MenuItem unlistedItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.UNLISTED.ordinal(), Menu.NONE, "未収載");
+                if (usingDarkTheme) {
+                    unlistedItem.setIcon(R.drawable.ic_visibility_unlisted_light);
+                } else {
+                    unlistedItem.setIcon(R.drawable.ic_visibility_unlisted_dark);
+                }
+
+                MenuItem privateItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PRIVATE.ordinal(), Menu.NONE, "非公開");
+                if (usingDarkTheme) {
+                    privateItem.setIcon(R.drawable.ic_visibility_private_light);
+                } else {
+                    privateItem.setIcon(R.drawable.ic_visibility_private_dark);
+                }
+
+                MenuItem directItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.DIRECT.ordinal(), Menu.NONE, "ダイレクト");
+                if (usingDarkTheme) {
+                    directItem.setIcon(R.drawable.ic_visibility_direct_light);
+                } else {
+                    directItem.setIcon(R.drawable.ic_visibility_direct_dark);
+                }
+
+                menu.setOnMenuItemClickListener(item -> {
+                    TweetActivity.this.setVisibility(item.getItemId());
+                    return true;
+                });
+
+                MenuPopupHelper helper = new MenuPopupHelper(TweetActivity.this, (MenuBuilder) menu.getMenu(), v);
+                helper.setForceShowIcon(true);
+                helper.show();
+            }
+        });
+        setVisibility(visibility.ordinal());
+
         // スクリーンネーム入力支援
         ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
         ibSNPicker.setOnClickListener(v -> {
@@ -786,6 +860,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
         updateWritersView();
         updateTweetCount();
+        setVisibility(state.getInt("visibility"));
     }
 
     @Override
@@ -804,6 +879,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             attachPictureUris.add(picture.uri);
         }
         outState.putParcelableArrayList("attachPictureUris", attachPictureUris);
+        outState.putInt("visibility", visibility.ordinal());
     }
 
     private void postTweet() {
@@ -877,15 +953,29 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void updateWritersView() {
+        boolean showVisibility = false;
+
         StringBuilder sb = new StringBuilder();
         if (writers.size() < 1) {
             sb.append(">> SELECT ACCOUNT(S)");
         } else for (int i = 0; i < writers.size(); ++i) {
+            AuthUserRecord writer = writers.get(i);
+
             if (i > 0) sb.append("\n");
             sb.append("@");
-            sb.append(writers.get(i).ScreenName);
+            sb.append(writer.ScreenName);
+
+            if (writer.Provider.getApiType() == Provider.API_MASTODON) {
+                showVisibility = true;
+            }
         }
         tvTweetBy.setText(sb.toString());
+
+        if (showVisibility) {
+            ibVisibility.setVisibility(View.VISIBLE);
+        } else {
+            ibVisibility.setVisibility(View.GONE);
+        }
     }
 
     private void showQuotedStatus() {
@@ -1209,6 +1299,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 draft.setPossiblySensitive(false);
                 draft.setDirectMessage(true);
                 draft.setMessageTarget(directMessageDestSN);
+                draft.setVisibility(StatusDraft.Visibility.DIRECT);
+                draft.setSpoilerText(null);
             }
         } else if (draft == null) {
             draft = new StatusDraft(
@@ -1225,7 +1317,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     false,
                     false,
                     null,
-                    StatusDraft.Visibility.PUBLIC,
+                    visibility,
                     null);
         } else {
             draft.setWriters(writers);
@@ -1239,9 +1331,48 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             draft.setPossiblySensitive(false);
             draft.setDirectMessage(false);
             draft.setMessageTarget(null);
+            draft.setVisibility(visibility);
+            draft.setSpoilerText(null);
         }
         setIntent(getIntent().putExtra(EXTRA_DRAFT, draft));
         return draft;
+    }
+
+    private void setVisibility(int visibility) {
+        switch (visibility) {
+            case 0:
+                this.visibility = StatusDraft.Visibility.PUBLIC;
+                if (usingDarkTheme) {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_public_light);
+                } else {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_public_dark);
+                }
+                break;
+            case 1:
+                this.visibility = StatusDraft.Visibility.UNLISTED;
+                if (usingDarkTheme) {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_unlisted_light);
+                } else {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_unlisted_dark);
+                }
+                break;
+            case 2:
+                this.visibility = StatusDraft.Visibility.PRIVATE;
+                if (usingDarkTheme) {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_private_light);
+                } else {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_private_dark);
+                }
+                break;
+            case 3:
+                this.visibility = StatusDraft.Visibility.DIRECT;
+                if (usingDarkTheme) {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_direct_light);
+                } else {
+                    ibVisibility.setImageResource(R.drawable.ic_visibility_direct_dark);
+                }
+                break;
+        }
     }
 
     @Override
