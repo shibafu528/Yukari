@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import java.io.Serializable
 
+@DBTable(CentralDatabase.TABLE_MUTE)
 class MuteConfig : DBRecord, Serializable {
     val id: Long
     /** 検査対象 */
