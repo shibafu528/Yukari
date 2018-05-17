@@ -28,7 +28,9 @@ data class StatusDraft(
         var isPossiblySensitive: Boolean = false,
         var isDirectMessage: Boolean = false,
         var isFailedDelivery: Boolean = false,
-        var messageTarget: String? = null
+        var messageTarget: String? = null,
+        var visibility: Visibility = Visibility.PUBLIC,
+        var spoilerText: String? = null
 ) : Parcelable {
     constructor(cursor: Cursor) : this(
             text = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_TEXT)),
@@ -41,7 +43,9 @@ data class StatusDraft(
             isPossiblySensitive = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_POSSIBLY_SENSITIVE)) == 1,
             isDirectMessage = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_DIRECT_MESSAGE)) == 1,
             isFailedDelivery = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_FAILED_DELIVERY)) == 1,
-            messageTarget = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_MESSAGE_TARGET))
+            messageTarget = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_MESSAGE_TARGET)),
+            visibility = Visibility.values()[cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_VISIBILITY))],
+            spoilerText = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_SPOILER_TEXT))
     ) {
         val attachedPictureString = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE))
         if (attachedPictureString.isNotEmpty()) {
@@ -75,6 +79,8 @@ data class StatusDraft(
             values.put(CentralDatabase.COL_DRAFTS_IS_DIRECT_MESSAGE, isDirectMessage)
             values.put(CentralDatabase.COL_DRAFTS_IS_FAILED_DELIVERY, isFailedDelivery)
             values.put(CentralDatabase.COL_DRAFTS_MESSAGE_TARGET, messageTarget)
+            values.put(CentralDatabase.COL_DRAFTS_VISIBILITY, visibility.ordinal)
+            values.put(CentralDatabase.COL_DRAFTS_SPOILER_TEXT, spoilerText)
             values
         }.toTypedArray()
     }
@@ -118,7 +124,16 @@ data class StatusDraft(
             dest.writeByte(if (isDirectMessage) 1 else 0)
             dest.writeByte(if (isFailedDelivery) 1 else 0)
             dest.writeString(messageTarget)
+            dest.writeInt(visibility.ordinal)
+            dest.writeString(spoilerText)
         }
+    }
+
+    enum class Visibility {
+        PUBLIC,
+        UNLISTED,
+        PRIVATE,
+        DIRECT
     }
 
     companion object {
@@ -137,6 +152,8 @@ data class StatusDraft(
                         source.readByte() == 1.toByte(),
                         source.readByte() == 1.toByte(),
                         source.readByte() == 1.toByte(),
+                        source.readString(),
+                        Visibility.values()[source.readInt()],
                         source.readString()
                 )
             }

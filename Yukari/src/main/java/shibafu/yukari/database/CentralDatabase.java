@@ -30,7 +30,7 @@ public class CentralDatabase {
 
     //DB基本情報
     public static final String DB_FILENAME = "yukari.db";
-    public static final int DB_VER = 19;
+    public static final int DB_VER = 17;
 
     //Accountsテーブル
     public static final String TABLE_ACCOUNTS = "Accounts";
@@ -106,6 +106,8 @@ public class CentralDatabase {
     public static final String COL_DRAFTS_IS_DIRECT_MESSAGE = "IsDirectMessage";
     public static final String COL_DRAFTS_IS_FAILED_DELIVERY= "IsFailedDelivery";//送信失敗が原因で保存されたツイート
     public static final String COL_DRAFTS_MESSAGE_TARGET = "MessageTarget";
+    public static final String COL_DRAFTS_VISIBILITY = "Visibility";
+    public static final String COL_DRAFTS_SPOILER_TEXT = "SpoilerText";
 
     //Bookmarksテーブル
     public static final String TABLE_BOOKMARKS = "Bookmarks";
@@ -240,7 +242,9 @@ public class CentralDatabase {
                     COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
                     COL_DRAFTS_IS_DIRECT_MESSAGE + " INTEGER, " +
                     COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER, " +
-                    COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '')"
+                    COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '', " +
+                    COL_DRAFTS_VISIBILITY + " INTEGER DEFAULT 0, " +
+                    COL_DRAFTS_SPOILER_TEXT + " TEXT)"
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_TABS + " (" +
@@ -525,9 +529,6 @@ public class CentralDatabase {
                         " SET " + COL_TABS_BIND_ACCOUNT_ID + " = CASE " + COL_TABS_BIND_ACCOUNT_ID + when + " END " +
                         " WHERE " + COL_TABS_BIND_ACCOUNT_ID + " IS NOT NULL");
 
-                ++oldVersion;
-            }
-            if (oldVersion == 17) {
                 db.execSQL(
                         "CREATE TABLE " + TABLE_STREAM_CHANNEL_STATES + " (" +
                                 COL_STREAM_CHANNEL_STATES_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -550,9 +551,7 @@ public class CentralDatabase {
                                 TABLE_ACCOUNTS + "." + COL_ACCOUNTS_IS_ACTIVE + " = 1",
                         new Object[]{"UserStream"}
                 );
-                ++oldVersion;
-            }
-            if (oldVersion == 18) {
+
                 db.execSQL("ALTER TABLE " + TABLE_DRAFTS + " RENAME TO tmp_Drafts");
                 db.execSQL(
                         "CREATE TABLE " + TABLE_DRAFTS + " (" +
@@ -569,7 +568,9 @@ public class CentralDatabase {
                                 COL_DRAFTS_IS_POSSIBLY_SENSITIVE + " INTEGER, " +
                                 COL_DRAFTS_IS_DIRECT_MESSAGE + " INTEGER, " +
                                 COL_DRAFTS_IS_FAILED_DELIVERY + " INTEGER, " +
-                                COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '')"
+                                COL_DRAFTS_MESSAGE_TARGET + " TEXT DEFAULT '', " +
+                                COL_DRAFTS_VISIBILITY + " INTEGER DEFAULT 0, " +
+                                COL_DRAFTS_SPOILER_TEXT + " TEXT)"
                 );
                 db.execSQL("INSERT INTO " + TABLE_DRAFTS + "(" +
                         COL_DRAFTS_WRITER_ID + ", " +
@@ -584,7 +585,9 @@ public class CentralDatabase {
                         COL_DRAFTS_IS_POSSIBLY_SENSITIVE + ", " +
                         COL_DRAFTS_IS_DIRECT_MESSAGE + ", " +
                         COL_DRAFTS_IS_FAILED_DELIVERY + ", " +
-                        COL_DRAFTS_MESSAGE_TARGET +
+                        COL_DRAFTS_MESSAGE_TARGET + ", " +
+                        COL_DRAFTS_VISIBILITY + ", " +
+                        COL_DRAFTS_SPOILER_TEXT +
                         ") SELECT " +
                         COL_DRAFTS_WRITER_ID + ", " +
                         COL_DRAFTS_TEXT + ", " +
@@ -598,7 +601,9 @@ public class CentralDatabase {
                         COL_DRAFTS_IS_POSSIBLY_SENSITIVE + ", " +
                         COL_DRAFTS_IS_DIRECT_MESSAGE + ", " +
                         COL_DRAFTS_IS_FAILED_DELIVERY + ", " +
-                        COL_DRAFTS_MESSAGE_TARGET +
+                        COL_DRAFTS_MESSAGE_TARGET + ", " +
+                        "0, " +
+                        "NULL, " +
                         " FROM tmp_Drafts"
                 );
                 db.execSQL("DROP TABLE tmp_Drafts");

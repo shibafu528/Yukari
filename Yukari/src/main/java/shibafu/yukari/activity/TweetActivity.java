@@ -1194,7 +1194,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         false,
                         true,
                         false,
-                        directMessageDestSN);
+                        directMessageDestSN,
+                        StatusDraft.Visibility.DIRECT,
+                        null);
             } else {
                 draft.setWriters(writers);
                 draft.setText(etInput.getText().toString());
@@ -1222,6 +1224,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     false,
                     false,
                     false,
+                    null,
+                    StatusDraft.Visibility.PUBLIC,
                     null);
         } else {
             draft.setWriters(writers);
