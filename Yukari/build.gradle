@@ -85,7 +85,7 @@ dependencies {
     annotationProcessor project(':yukari-processor')
 
     // デバッグ用
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanaryVersion"
+    debugImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
     testImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
 
