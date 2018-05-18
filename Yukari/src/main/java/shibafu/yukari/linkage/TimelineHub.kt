@@ -199,7 +199,6 @@ class TimelineHub(private val service: TwitterService) {
             if (status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_RT] &&
                     status.originStatus.user.id == status.representUser.NumericId &&
                     status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
-                notifier.showNotification(R.integer.notification_retweeted, status, status.user)
                 onNotify(NotifyHistory.KIND_RETWEETED, status.user, status)
 
                 // RTレスポンス待機
@@ -296,6 +295,11 @@ class TimelineHub(private val service: TwitterService) {
      * @param status イベントに関連する [Status]
      */
     fun onNotify(@NotifyKind kind: Int, eventBy: User, status: Status) {
+        when (kind) {
+            NotifyHistory.KIND_FAVED -> notifier.showNotification(R.integer.notification_faved, status, eventBy)
+            NotifyHistory.KIND_RETWEETED -> notifier.showNotification(R.integer.notification_retweeted, status, eventBy)
+        }
+
         val notify = NotifyHistory(System.currentTimeMillis(), kind, eventBy, status)
         pushEventQueue(TimelineEvent.Notify(notify))
     }
@@ -313,7 +317,6 @@ class TimelineHub(private val service: TwitterService) {
             val muteFlags = service.suppressor.decision(status)
             val userMuteFlags = service.suppressor.decisionUser(from)
             if (!(muteFlags[MuteConfig.MUTE_NOTIF_FAV] || userMuteFlags[MuteConfig.MUTE_NOTIF_FAV])) {
-                notifier.showNotification(R.integer.notification_faved, status, from)
                 onNotify(NotifyHistory.KIND_FAVED, from, status)
             }
         }
