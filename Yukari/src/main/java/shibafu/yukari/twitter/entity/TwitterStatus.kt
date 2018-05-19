@@ -38,7 +38,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
         text
     }
 
-    override val recipientScreenName: String = if (status is PreformedStatus) status.representUser.ScreenName else ""
+    override val recipientScreenName: String = representUser.ScreenName
 
     override val createdAt: Date = status.createdAt
 
