@@ -60,17 +60,12 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.IDs;
 import twitter4j.Status;
-import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
 import twitter4j.TwitterException;
-import twitter4j.UploadedMedia;
 
-import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -737,7 +732,7 @@ public class TwitterService extends Service{
      * @return ストリーミングAPIインスタンス。
      * @throws UnsupportedOperationException 対応するAPIインスタンスが定義されていない場合にスロー
      */
-    @Nonnull
+    @NonNull
     public ProviderStream getProviderStream(int apiType) {
         if (0 <= apiType && apiType < providerStreams.length) {
             return providerStreams[apiType];
