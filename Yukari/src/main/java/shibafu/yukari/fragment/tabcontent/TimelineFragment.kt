@@ -480,6 +480,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         }
 
+        if (isDetached || activity == null) {
+            // デタッチ状態か親Activityが無い場合はだいたい何もできないので捨てる
+            putWarnLog("[EVENT DROPPED!] Fragment is detached or parent actiivty is null.")
+            return
+        }
+
         when (event) {
             is TimelineEvent.Received -> {
                 val status = event.status
