@@ -107,10 +107,18 @@ class MastodonApi : ProviderApi {
                 StatusDraft.Visibility.DIRECT -> Visibility.Direct
             }
 
+            // 返信先URLが設定されている場合は対象のインスタンスローカルなIDを取得
+            val inReplyToUrl = draft.inReplyTo
+            val inReplyToId = if (inReplyToUrl != null && inReplyToUrl.isNotEmpty()) {
+                showStatus(userRecord, inReplyToUrl).id
+            } else {
+                null
+            }
+
             val statuses = Statuses(client)
             val result = statuses.postStatus(
                     draft.text,
-                    null,
+                    inReplyToId,
                     mediaIds,
                     draft.isPossiblySensitive,
                     null,
