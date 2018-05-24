@@ -3,13 +3,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <Preference android:title="アカウント管理">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.AccountManageActivity"/>
     </Preference>
 
     <Preference android:title="表示設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -19,7 +19,7 @@
 
     <Preference android:title="機能設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -29,7 +29,7 @@
 
     <Preference android:title="投稿設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -39,7 +39,7 @@
 
     <Preference android:title="フィルタ設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -49,7 +49,7 @@
 
     <Preference android:title="操作確認設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -59,7 +59,7 @@
 
     <Preference android:title="通知設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -69,7 +69,7 @@
 
     <Preference android:title="検索設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -79,7 +79,7 @@
 
     <Preference android:title="詳細設定">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -89,7 +89,7 @@
 
     <Preference android:title="プラグインエンジン (実験中)">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.ConfigActivity">
             <extra
                 android:name="category"
@@ -98,14 +98,14 @@
     </Preference>
 
     <PreferenceCategory android:title="アプリについて">
-        <Preference android:key="pref_about_version" android:title="Yukari for Android">
+        <Preference android:key="pref_about_version" android:title="@string/app_long_name">
             <intent
-                android:targetPackage="shibafu.yukari"
+                android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.AboutActivity"/>
         </Preference>
         <Preference android:key="pref_about_licenses" android:title="オープンソースライセンス">
             <intent
-                android:targetPackage="shibafu.yukari"
+                android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.LicenseActivity"/>
         </Preference>
         <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能">

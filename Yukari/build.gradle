@@ -153,8 +153,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
+    flavorDimensions "stage"
+    productFlavors {
+        main {
+            dimension "stage"
+        }
+        alpha {
+            dimension "stage"
+            applicationIdSuffix ".alpha"
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.resValue "string", "applicationId", variant.applicationId
     }
     kotlinOptions {
         apiVersion = '1.1'

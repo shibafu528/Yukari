@@ -18,7 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Yukari for Android"
+        android:text="@string/app_long_name"
         android:id="@+id/textView2"
         android:layout_above="@+id/textView1"
         android:layout_centerHorizontal="true"
