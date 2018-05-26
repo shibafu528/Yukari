@@ -1,12 +1,14 @@
 package shibafu.yukari.activity;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +20,7 @@ import combu.combudashi.GLTexture2D;
 import combu.framehelper.FPSManager;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.util.AttrUtil;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -40,6 +43,11 @@ public class AboutActivity extends ActionBarYukariBase {
 
     private MediaPlayer mpYukari;
     private MediaPlayer mpDefault;
+
+    private SharedPreferences sp;
+
+    private float[] backgroundColors = new float[3];
+    private float[] gridColors = new float[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +75,24 @@ public class AboutActivity extends ActionBarYukariBase {
 
         mpDefault = MediaPlayer.create(this, R.raw.se_reply);
         mpYukari = MediaPlayer.create(this, R.raw.y_apply);
+
+        sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+        int bgColorRes = AttrUtil.resolveAttribute(getTheme(), R.attr.colorPrimaryLight);
+        int fgColorRes = AttrUtil.resolveAttribute(getTheme(), R.attr.colorPrimaryDark);
+        int bgColor = ResourcesCompat.getColor(getResources(), bgColorRes, null);
+        int fgColor = ResourcesCompat.getColor(getResources(), fgColorRes, null);
+
+        backgroundColors = new float[] {
+                (float) Color.red(bgColor) / 0xff,
+                (float) Color.green(bgColor) / 0xff,
+                (float) Color.blue(bgColor) / 0xff
+        };
+        gridColors = new float[] {
+                (float) Color.red(fgColor) / 0xff,
+                (float) Color.green(fgColor) / 0xff,
+                (float) Color.blue(fgColor) / 0xff
+        };
     }
 
     @Override
@@ -100,7 +126,6 @@ public class AboutActivity extends ActionBarYukariBase {
                     touching = false;
 
                     if (touchCounter % 32 == 0) {
-                        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                         if (sp.getBoolean("j_yukari_voice", false)) {
                             // to disable
                             sp.edit().putBoolean("j_yukari_voice", false).apply();
@@ -213,7 +238,7 @@ public class AboutActivity extends ActionBarYukariBase {
             gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, vboGrid);
             gl11.glVertexPointer(2, GL10.GL_FLOAT, 0, 0);
             gl11.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-            gl11.glColor4f(0.47f, 0.29f, 0.73f, 1f);
+            gl11.glColor4f(gridColors[0], gridColors[1], gridColors[2], 1f);
             gl11.glDrawArrays(GL10.GL_LINES, 0, vboGridCount);
             gl11.glBindBuffer(GL11.GL_ARRAY_BUFFER, 0);
         }
@@ -244,11 +269,15 @@ public class AboutActivity extends ActionBarYukariBase {
             AlphaBlendingUtil.enableAlphaBlending(gl, AlphaBlendingUtil.AlphaBlendingMode.BLEND_NORMAL);
 
             // 基本背景色の設定
-            gl.glClearColor(0.92f, 0.70f, 0.86f, 1);
+            gl.glClearColor(backgroundColors[0], backgroundColors[1], backgroundColors[2], 1);
             gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
             // テクスチャロード
-            texYukariLogo = GLTexture2D.fromResource(gl, AboutActivity.this, R.drawable.ic_launcher);
+            if (sp.getString("pref_theme", "light").startsWith("akari")) {
+                texYukariLogo = GLTexture2D.fromResource(gl, AboutActivity.this, R.mipmap.ic_launcher_akari);
+            } else {
+                texYukariLogo = GLTexture2D.fromResource(gl, AboutActivity.this, R.drawable.ic_launcher);
+            }
 
             // グリッドの座標情報をつくってバッファに投げ込む
             List<Float> gridVerts = new ArrayList<>();

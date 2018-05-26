@@ -1,11 +1,11 @@
 package shibafu.yukari.fragment;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,17 +17,16 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-
+import org.eclipse.collections.impl.factory.Lists;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.User;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/01/25.
@@ -52,7 +51,11 @@ public class FollowDialogFragment extends DialogFragment {
     private ListView listView;
 
     public interface FollowDialogCallback {
-        void onChangedRelationships(List<RelationClaim> claims);
+        void onChangedRelationships(List<RelationClaim> claims, FollowDialogSuccessCallback onSuccessCallback);
+    }
+
+    public interface FollowDialogSuccessCallback {
+        void onSuccess();
     }
 
     public class RelationClaim {
@@ -94,36 +97,13 @@ public class FollowDialogFragment extends DialogFragment {
             entryList.add(new ListEntry(userRecord, relationship));
         }
 
-        if (args.getBoolean(ARGUMENT_ALL_R4S, false)) {
-            if ("toshi_a".equals(targetUser.getScreenName())) {
-                Toast.makeText(getActivity(), "ｱｱｱｯwwwwミクッター作者に全垢r4sかまそうとしてるｩwwwwwwwwwwwww\n\n(toshi_a proof を発動しました)", Toast.LENGTH_LONG).show();
-            } else {
-                for (ListEntry e : entryList) {
-                    e.afterRelation = RELATION_PRE_R4S;
-                }
-            }
-        }
-
         Adapter adapter = new Adapter(getActivity(), entryList);
         listView.setAdapter(adapter);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle("フォロー状態 @" + targetUser.getScreenName());
         builder.setView(listView);
-        builder.setPositiveButton("OK", (dialogInterface, i) -> {
-            FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
-            if (callback != null) {
-                List<RelationClaim> claims = new ArrayList<>();
-                for (ListEntry entry : entryList) {
-                    if (entry.beforeRelation != entry.afterRelation) {
-                        claims.add(new RelationClaim(entry.getUserRecord(), targetUser.getId(), entry.afterRelation));
-                    }
-                }
-                callback.onChangedRelationships(claims);
-            }
-        });
-        builder.setNegativeButton("キャンセル", (dialogInterface, i) -> {
-        });
+        builder.setNegativeButton("閉じる", (dialogInterface, i) -> {});
 
         dialog = builder.create();
         return dialog;
@@ -208,30 +188,40 @@ public class FollowDialogFragment extends DialogFragment {
                 btnFollow.setTag(e);
                 btnFollow.setOnClickListener(view -> {
                     final ListEntry e1 = (ListEntry) view.getTag();
+                    FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
 
                     switch (e1.afterRelation) {
                         case RELATION_NONE:
                         case RELATION_UNBLOCK:
-                            e1.afterRelation = RELATION_FOLLOW;
+                            callback.onChangedRelationships(
+                                    Lists.mutable.of(new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_FOLLOW)),
+                                    () -> {
+                                        e1.afterRelation = RELATION_FOLLOW;
+                                        setStatus(e1, btnFollow, ivRelation);
+                                    });
                             break;
                         case RELATION_BLOCK:
-                            e1.afterRelation = RELATION_UNBLOCK;
+                            callback.onChangedRelationships(
+                                    Lists.mutable.of(new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_UNBLOCK)),
+                                    () -> {
+                                        e1.afterRelation = RELATION_UNBLOCK;
+                                        setStatus(e1, btnFollow, ivRelation);
+                                    });
                             break;
                         case RELATION_FOLLOW:
                         case RELATION_PRE_R4S:
-                            if (e1.beforeRelation == RELATION_BLOCK) {
-                                e1.afterRelation = RELATION_UNBLOCK;
-                            }
-                            else {
-                                e1.afterRelation = RELATION_NONE;
-                            }
+                            callback.onChangedRelationships(
+                                    Lists.mutable.of(new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_NONE)),
+                                    () -> {
+                                        e1.afterRelation = RELATION_NONE;
+                                        setStatus(e1, btnFollow, ivRelation);
+                                    });
                             break;
                         default:
                             e1.afterRelation = e1.beforeRelation;
+                            setStatus(e1, btnFollow, ivRelation);
                             break;
                     }
-
-                    setStatus(e1, btnFollow, ivRelation);
                 });
                 setStatus(e, btnFollow, ivRelation);
 
@@ -244,18 +234,34 @@ public class FollowDialogFragment extends DialogFragment {
                     popupMenu.inflate(R.menu.follow);
                     popupMenu.getMenu().findItem(R.id.action_cutoff).setVisible(visibleCutoff);
                     popupMenu.setOnMenuItemClickListener(menuItem -> {
+                        FollowDialogCallback callback = (FollowDialogCallback) getTargetFragment();
                         switch (menuItem.getItemId()) {
                             case R.id.action_block:
-                                e1.afterRelation = RELATION_BLOCK;
-                                setStatus(e1, btnFollow, ivRelation);
+                                callback.onChangedRelationships(
+                                        Lists.mutable.of(new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_BLOCK)),
+                                        () -> {
+                                            e1.afterRelation = RELATION_BLOCK;
+                                            setStatus(e1, btnFollow, ivRelation);
+                                        });
                                 return true;
                             case R.id.action_report:
-                                e1.afterRelation = RELATION_PRE_R4S;
-                                setStatus(e1, btnFollow, ivRelation);
+                                callback.onChangedRelationships(
+                                        Lists.mutable.of(new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_PRE_R4S)), () -> {
+                                            e1.afterRelation = RELATION_BLOCK;
+                                            setStatus(e1, btnFollow, ivRelation);
+                                        });
                                 return true;
                             case R.id.action_cutoff:
-                                e1.afterRelation = RELATION_CUTOFF;
-                                setStatus(e1, btnFollow, ivRelation);
+                                callback.onChangedRelationships(
+                                        Lists.mutable.of(
+                                                new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_BLOCK),
+                                                new RelationClaim(e1.userRecord, targetUser.getId(), RELATION_UNBLOCK)
+                                        ),
+                                        () -> {
+                                            e1.afterRelation = RELATION_NONE;
+                                            setStatus(e1, btnFollow, ivRelation);
+                                        }
+                                );
                                 return true;
                         }
                         return true;

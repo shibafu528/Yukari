@@ -48,7 +48,7 @@ public class MediaFactory {
                 media = new TwitterVideo(browseUrl);
             } else if (browseUrl.contains("twitpic.com/d250g2") || browseUrl.contains("d250g2.com")) {
                 media = new D250g2(browseUrl);
-            } else if (browseUrl.contains("gyazo.com")) {
+            } else if (browseUrl.contains("gyazo.com/") && !browseUrl.endsWith("gyazo.com/")) {
                 media = new Gyazo(browseUrl);
             } else if (browseUrl.contains("img.ly/")) {
                 if (browseUrl.contains("img.ly/show/")) {

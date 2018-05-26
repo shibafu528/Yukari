@@ -238,6 +238,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case "dark":
                 setTheme(R.style.ColorsTheme_Dark_Dialog_VertAnimation);
                 break;
+            case "akari":
+                setTheme(R.style.ColorsTheme_Akari_Dialog_VertAnimation);
+                break;
+            case "akari_dark":
+                setTheme(R.style.ColorsTheme_Akari_Dark_Dialog_VertAnimation);
+                break;
             case "zunko":
                 setTheme(R.style.ColorsTheme_Zunko_Dialog_VertAnimation);
                 break;
@@ -469,8 +475,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         tvTweetBy = (TextView) findViewById(R.id.tvTweetBy);
         tvTweetBy.setOnClickListener(v -> {
             Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
-            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
-            intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
             startActivityForResult(intent, REQUEST_ACCOUTS);
         });
 
@@ -958,7 +962,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     etInput.setSelection(data.getIntExtra("cursor", etInput.getSelectionStart()));
                     break;
                 case REQUEST_ACCOUTS: {
-                    writers = (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
+                    AuthUserRecord writer = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
+                    writers.clear();
+                    writers.add(writer);
                     updateWritersView();
                     break;
                 }
