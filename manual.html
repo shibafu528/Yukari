@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Manual - Yukari for Android</title>
+        
+        <!-- Bootstrap -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- Web Fonts -->
+        <link href='http://fonts.googleapis.com/css?family=Poiret+One|Muli' rel='stylesheet' type='text/css'>
+
+        <link href="css/main.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="index.html">Yukari</a>
+                </div>
+                <div class="collapse navbar-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="features.html">Features</a></li>
+                        <li class="active"><a href="#">Manual</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="alert alert-warning" role="alert">
+                <strong>このページは2014年以降更新されていません。</strong> 最新のドキュメントは <a href="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD">こちら</a> で公開しています。
+            </div>
+
+            <div class="page-header">
+                <h1>Manual <small>Compatible with Ver0.101</small></h1>
+            </div>
+
+            <h2>Timeline</h2>
+            <h4>Post</h4>
+            <p class="lpadding">投稿画面は、画面下部の<strong>紫色のバーを上に向かってスライド</strong>することで表示できます</p>
+            <h4>Quick Post</h4>
+            <p class="lpadding">画面下部のタブ名左にある「▶」を長押しするとクイック投稿モードに切り替わります<br>
+            検索画面では、検索ワードが自動的に挿入されます</p>
+            <h4>Tabs</h4>
+            <p class="lpadding">タイムラインを左右にスライドすることで画面(便宜上タブと呼んでいます)を切り替えることができます<br>
+            初期状態では「Home」「Mentions」「DM」の順で並んでいます<br>
+            画面下部のタブ名をタップするとタブ一覧を表示、長押しするとTLの最上/最下部までのショートカットやタブの編集を行うことができます</p>
+
+            <h2>Tweet Window</h2>
+            <p>テキストボックスに入力して、Tweetボタンで投稿<br>基本はこれだけですが、さまざまな機能を搭載しています</p>
+            <h4>Attach Picture</h4>
+            <p class="lpadding">写真アイコンをタップすると、ギャラリーから画像を添付することができます<br>
+            カメラアイコンをタップすることで、その場で写真を撮影することも可能です<br>
+            ギャラリーを開くボタンは、長押しすると<strong>最後に撮影した画像を添付</strong>することもできます</p>
+            <h4>Recent Hashtag</h4>
+            <p class="lpadding">TL上に最近流れたハッシュタグをすぐ挿入することができます<br>
+                長押しすると、ハッシュタグ記号を挿入します<br>
+            (注: 最近入力したハッシュタグを補完する機能ではありません)</p>
+            <h4>wwwwwwwwwwwwwwww</h4>
+            <p class="lpadding">芝を生やします、使う人が使うための機能です<br>
+            IMEの言語を切り替えるのが面倒くさい時を想定しています<br>
+            入力が範囲選択されている時に使用すると、文字の間に芝を生やします</p>
+            <div class="lpadding">
+                <blockquote>
+                    <p>例:<br>みなぎってきた　→　みｗなｗぎｗっｗてｗきｗた</p>
+                </blockquote>
+            </div>
+            <h4>Now Playing</h4>
+            <p class="lpadding">「<a href="https://play.google.com/store/apps/details?id=biz.Fairysoft.KoreKiiteru">これ聴いてるんだからねっ！ Advanced</a>」がインストールされている場合、機能ボタン3行目にヘッドフォンアイコンが追加されます<br>
+            タップすることでアプリと連携し、NowPlaying情報を入力することができます</p>
+            <h4>twicca Plugins</h4>
+            <p class="lpadding">機能ボタンの3行目にはtwiccaプラグインが並び、呼び出すことができます<br>
+            完全な互換ではないことにご注意ください</p>
+            <h4>＼ユッカリーン／</h4>
+            <p class="lpadding">Tweetボタンを長押しすると...？</p>
+
+            <h2>Mute</h2>
+            <p>対象の文字列を入力、部分一致に設定、で基本的には使えます。ここでは、もう少し設定項目を掘り下げて解説を行います。</p>
+            <h4>Target</h4>
+            <p class="lpadding">ツイートのどの部分でミュート判定を行うか指定します。@IDは「スクリーンネーム」であることにだけ気をつけましょう。<br>「ユーザID」には数値を使用します。プロフィール画面の最下部に表示されています。</p>
+            <h4>Match</h4>
+            <p class="lpadding">判定の方式を指定します。完全一致の場合は一語一句違わずに一致している必要があります。<br>正規表現は専用の記法を使用してきめ細かな判定を行うことができます。ただし、一定の知識を必要とするため書き方については本サイトでは触れません。<a href="https://www.google.co.jp/search?q=%E6%AD%A3%E8%A6%8F%E8%A1%A8%E7%8F%BE" target="_blank">こちら</a>をご覧ください。</p>
+            <h4>Erase</h4>
+            <p class="lpadding">ここまでに設定した条件に合致しミュートするべきツイートであると判定された時、どのような処理を行うか指定します。<br>ツイート: ツイートを表示しないようにします。「(RTされたものを含む)」では誰かがRTしたツイートでも表示しないようにします。<br>リツイート: RTを表示しないようにします。ユーザを条件として使うことを想定しています。<br>**通知: 通知を行う設定であっても無視するようにします。例えば、Favがうるさい人を指定したり。<br>画像サムネイル: 画像サムネイルのみ表示しないようにします。「飯」などで指定するとちょっとだけ効くかもしれません。</p>
+
+            <h2>Advanced Options</h2>
+            <h4>User Font</h4>
+            <p class="lpadding">所定のディレクトリにTTFフォントファイルを置くことで、お好みのフォントでTLを表示できます<br>
+            ただし、それによってレイアウトが崩れたとしても対応はしませんのでご了承ください</p>
+            <div class="lpadding">
+                <blockquote>
+                    <p>フォントを設置するパス (ファイル名を変更して配置してください)<br>
+            /sdcard/Android/data/shibafu.yukari/files/font/userfont.ttf</p>
+                </blockquote>
+            </div>
+            <hr>
+            <footer>
+                <p>Copyright &copy; 2014 <a href="http://twitter.com/shibafu528">@shibafu528</a></p>
+            </footer>
+        </div>
+
+        <!-- Bootstrap js -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    </body>
+</html>

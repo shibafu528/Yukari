@@ -1,0 +1,12 @@
+body {
+    font-family: 'Muli', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+}
+p {
+    padding-left: 12px;
+}
+.poiret {
+    font-family: 'Poiret One', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+}
+blockquote {
+    font-size: 14px;
+}
