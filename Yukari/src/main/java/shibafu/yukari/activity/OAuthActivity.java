@@ -37,6 +37,7 @@ public class OAuthActivity extends ActionBarYukariBase {
     public static final String EXTRA_REBOOT = "reboot";
 
     private static final String CALLBACK_URL = "yukari://twitter";
+    private static final String CALLBACK_LANDING_URL = "https://yukari.shibafu528.info/callback.html";
     private Twitter twitter;
     private RequestToken requestToken;
 
@@ -158,7 +159,7 @@ public class OAuthActivity extends ActionBarYukariBase {
             @Override
             protected String doInBackground(Void... params) {
                 try {
-                    requestToken = twitter.getOAuthRequestToken(CALLBACK_URL);
+                    requestToken = twitter.getOAuthRequestToken(CALLBACK_LANDING_URL);
                     return requestToken.getAuthorizationURL();
                 } catch (TwitterException e) {
                     e.printStackTrace();
