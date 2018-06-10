@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Yukari OAuth</title>
+        <meta name="robots" content="noindex,nofollow">
+        
+        <!-- Bootstrap -->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- Web Fonts -->
+        <link href='https://fonts.googleapis.com/css?family=Poiret+One|Muli' rel='stylesheet' type='text/css'>
+
+        <link href="css/main.css" rel="stylesheet">
+
+        <!-- Yukalize -->
+        <style>
+            .btn-primary {
+                background-color: #7849ba;
+                border-color: #50307d;
+            }
+            .btn-primary:focus, .btn-primary:hover,
+            .btn-primary[disabled]:focus, .btn-primary[disabled]:hover {
+                background-color: #50307d;
+                border-color: #50307d;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="container">
+            <h2>Yukari OAuth認証</h2>
+            <hr>
+            <p>下のボタンをタップすると完了します。</p>
+            <div id="paramError" class="alert alert-danger hidden" role="alert">
+                <strong>パラメータエラー</strong> Twitterのログインページからの転送がうまくいっていないか、このページが不正な手順で開かれています。手動でアプリに戻り、認証操作をやり直してください。
+            </div>
+            <div class="text-center">
+                <button id="continue" class="btn btn-primary btn-lg" disabled>続行</button>
+            </div>
+        </div>
+
+        <!-- Bootstrap js -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            $(function () {
+                if (location.search === "") {
+                    $('#paramError').removeClass('hidden');
+                } else {
+                    // バリデーションとかはしてないんだなあ
+                    $('#continue')  
+                        .prop('disabled', false)
+                        .click(function () {
+                            location.href = 'yukari://twitter' + location.search;
+                        });
+                }
+            });
+        </script>
+    </body>
+</html>
