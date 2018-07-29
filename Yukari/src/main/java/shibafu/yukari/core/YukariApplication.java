@@ -3,6 +3,9 @@ package shibafu.yukari.core;
 import android.app.Application;
 import android.content.Context;
 import android.preference.PreferenceManager;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 import com.squareup.leakcanary.LeakCanary;
 import twitter4j.AlternativeHttpClientImpl;
 
@@ -14,6 +17,13 @@ public class YukariApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        try {
+            ProviderInstaller.installIfNeeded(this);
+        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
+
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
