@@ -18,7 +18,7 @@
         android:title="標準出力ビューア"
         android:summary="プラグインが標準出力に書き込んだ内容を表示します">
         <intent
-            android:targetPackage="shibafu.yukari"
+            android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.PluggaloidOutputActivity"/>
     </Preference>
     <CheckBoxPreference

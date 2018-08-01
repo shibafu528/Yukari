@@ -37,7 +37,7 @@
             android:title="ブックマークの修復"
             android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません">
             <intent
-                android:targetPackage="shibafu.yukari"
+                android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
         </Preference>
         <CheckBoxPreference

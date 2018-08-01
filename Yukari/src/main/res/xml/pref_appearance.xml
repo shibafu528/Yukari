@@ -15,7 +15,7 @@
             android:title="フォント設定"
             android:summary="タイムラインのフォントを選択します">
             <intent
-                android:targetPackage="shibafu.yukari"
+                android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.FontSelectorActivity"/>
         </Preference>
         <EditTextPreference
