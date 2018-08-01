@@ -37,9 +37,11 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.SearchHistory;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
@@ -429,7 +431,21 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            TwitterService service = getServiceAwait();
+                            AuthUserRecord user = service.getPrimaryUser();
+                            if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
+                                user = null;
+                                for (AuthUserRecord u : service.getUsers()) {
+                                    if (u.Provider.getApiType() == Provider.API_TWITTER) {
+                                        user = u;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (user == null) {
+                                return new ThrowableResult<>(new IllegalStateException("Twitterアカウントがありません"));
+                            }
+                            Twitter twitter = service.getTwitter(user);
                             if (twitter == null) {
                                 return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
                             }
@@ -524,7 +540,21 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
+                            TwitterService service = getServiceAwait();
+                            AuthUserRecord user = service.getPrimaryUser();
+                            if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
+                                user = null;
+                                for (AuthUserRecord u : service.getUsers()) {
+                                    if (u.Provider.getApiType() == Provider.API_TWITTER) {
+                                        user = u;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (user == null) {
+                                return new ThrowableResult<>(new IllegalStateException("Twitterアカウントがありません"));
+                            }
+                            Twitter twitter = service.getTwitter(user);
                             if (twitter == null) {
                                 return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
                             }
@@ -620,8 +650,22 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         protected TwitterException doInBackground(SavedSearch... savedSearches) {
                             savedSearch = savedSearches[0];
                             try {
-                                Twitter twitter = getServiceAwait().getTwitterOrPrimary(null);
-                                if (twitter != null) {
+                                TwitterService service = getServiceAwait();
+                                AuthUserRecord user = service.getPrimaryUser();
+                                if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
+                                    user = null;
+                                    for (AuthUserRecord u : service.getUsers()) {
+                                        if (u.Provider.getApiType() == Provider.API_TWITTER) {
+                                            user = u;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (user == null) {
+                                    return null;
+                                }
+                                Twitter twitter = service.getTwitter(user);
+                                if (twitter == null) {
                                     twitter.destroySavedSearch(savedSearch.getId());
                                 }
                             } catch (TwitterException e) {
