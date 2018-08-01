@@ -252,7 +252,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     override fun doInBackground(vararg params: Void): String? {
                         try {
                             val twitter = TwitterUtil.getTwitterFactory(activity).instance
-                            val token = twitter.getOAuthRequestToken(TWITTER_CALLBACK_URL)
+                            val token = twitter.getOAuthRequestToken(TWITTER_CALLBACK_LANDING_URL)
                             requestToken = token
                             return token.authorizationURL
                         } catch (e: TwitterException) {
@@ -644,6 +644,8 @@ class OAuthActivity : ActionBarYukariBase() {
         private val TWITTER_AUTH_ACTIVITY = ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity")
 
         private val TWITTER_CALLBACK_URL = "yukari://twitter"
+        private val TWITTER_CALLBACK_LANDING_URL = "https://yukari.shibafu528.info/callback.html"
         private val MASTODON_CALLBACK_URL = "yukari://mastodon"
+
     }
 }
