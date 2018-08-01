@@ -24,11 +24,6 @@ public class YukariApplication extends Application {
             e.printStackTrace();
         }
 
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return;
-        }
-        LeakCanary.install(this);
-
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_disable_ipv6", false)) {
             java.lang.System.setProperty("java.net.preferIPv4Stack", "true");
             java.lang.System.setProperty("java.net.preferIPv6Addresses", "false");
@@ -38,6 +33,11 @@ public class YukariApplication extends Application {
             AlternativeHttpClientImpl.sPreferHttp2 = false;
             AlternativeHttpClientImpl.sPreferSpdy = false;
         }
+
+        if (LeakCanary.isInAnalyzerProcess(this)) {
+            return;
+        }
+        LeakCanary.install(this);
     }
 
     @Override
