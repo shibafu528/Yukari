@@ -13,7 +13,6 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
 import shibafu.yukari.twitter.streaming.StreamUser
@@ -188,8 +187,7 @@ private class StreamListener(private val timelineId: String, private val hub: Ti
     override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
         if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onFavorite: f:%s s:%d", timelineId, from.userRecord.ScreenName, status.id))
 
-        val preformedStatus = PreformedStatus(status, from.userRecord)
-        val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
+        val twitterStatus = TwitterStatus(status, from.userRecord)
         val twitterUser = TwitterUser(user)
 
         hub.onFavorite(twitterUser, twitterStatus)
@@ -198,8 +196,7 @@ private class StreamListener(private val timelineId: String, private val hub: Ti
     override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {
         if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onUnfavorite: f:%s s:%s", timelineId, from.userRecord.ScreenName, status.text))
 
-        val preformedStatus = PreformedStatus(status, from.userRecord)
-        val twitterStatus = TwitterStatus(preformedStatus, from.userRecord)
+        val twitterStatus = TwitterStatus(status, from.userRecord)
         val twitterUser = TwitterUser(user)
 
         hub.onUnfavorite(twitterUser, twitterStatus)
