@@ -203,7 +203,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         listAdapter = null
         statusAdapter = null
         if (activity is MainActivity) {
-            (activity as MainActivity).getStatusesList(timelineId).addAll(statuses)
+            val statusesList = (activity as MainActivity).getStatusesList(timelineId)
+            statusesList.clear()
+            statusesList.addAll(statuses)
         }
     }
 
