@@ -19,8 +19,6 @@
     <attr name="profileUserIdDrawable" format="reference"/>
     <attr name="menuProfileDrawable" format="reference"/>
     <attr name="menuTwilogDrawable" format="reference"/>
-    <attr name="menuFavstarDrawable" format="reference"/>
-    <attr name="menuAclogDrawable" format="reference"/>
     <attr name="menuBacklightDrawable" format="reference"/>
     <attr name="menuReportDrawable" format="reference"/>
     <attr name="menuSettingDrawable" format="reference"/>

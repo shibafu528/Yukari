@@ -235,15 +235,6 @@
             android:label="@string/title_activity_column_edit" />
 
         <activity
-            android:name=".plugin.OpenAclogActivity"
-            android:label="@string/title_activity_open_aclog">
-            <intent-filter>
-                <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".plugin.UserPluginActivity"
             android:theme="@style/AppThemeTranslucent"/>
         <activity-alias
@@ -254,36 +245,6 @@
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_twilog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_twilog_d"/>
-            <intent-filter>
-                <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="jp.r246.twicca.category.OWNER"/>
-                <category android:name="jp.r246.twicca.category.USER"/>
-            </intent-filter>
-        </activity-alias>
-        <activity-alias
-            android:name=".plugin.OpenFavstarActivity"
-            android:targetActivity=".plugin.UserPluginActivity"
-            android:label="@string/title_activity_open_favstar"
-            android:icon="@drawable/ic_favorite_m">
-            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="Favstar"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_favorite_m"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_favorite_m_d"/>
-            <intent-filter>
-                <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="jp.r246.twicca.category.OWNER"/>
-                <category android:name="jp.r246.twicca.category.USER"/>
-            </intent-filter>
-        </activity-alias>
-        <activity-alias
-            android:name=".plugin.OpenAclogUserActivity"
-            android:targetActivity=".plugin.UserPluginActivity"
-            android:label="@string/title_activity_open_aclog_user"
-            android:icon="@drawable/ic_aclog">
-            <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="aclog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_aclog"/>
-            <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_aclog_d"/>
             <intent-filter>
                 <action android:name="jp.r246.twicca.ACTION_SHOW_USER"/>
                 <category android:name="android.intent.category.DEFAULT"/>

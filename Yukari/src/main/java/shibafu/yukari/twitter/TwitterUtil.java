@@ -35,20 +35,6 @@ public class TwitterUtil {
     }
 
     //<editor-fold desc="外部サービスURL生成">
-    public static String getFavstarURL(String screenName) {
-        if (screenName.startsWith("@")) {
-            screenName = screenName.substring(1);
-        }
-        return "http://favstar.fm/users/" + screenName + "/recent";
-    }
-
-    public static String getAclogURL(String screenName) {
-        if (screenName.startsWith("@")) {
-            screenName = screenName.substring(1);
-        }
-        return "http://aclog.rhe.jp/" + screenName + "/timeline";
-    }
-
     public static String getTwilogURL(String screenName) {
         if (screenName.startsWith("@")) {
             screenName = screenName.substring(1);
