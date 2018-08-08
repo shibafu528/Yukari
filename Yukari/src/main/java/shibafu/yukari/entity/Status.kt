@@ -162,11 +162,11 @@ interface Status : Comparable<Status>, Serializable {
     }
 
     /**
-     * 同じ内容を指す、より新しい別インスタンスの情報でレシーバの情報を更新する
+     * 同じ内容を指す、より新しい別インスタンスの情報と比較してなるべく最新かつ情報の完全性が高いインスタンスを返す
      */
-    fun merge(status: Status) {
-        if (this.providerApiType != status.providerApiType || this.id != status.id) {
-            throw IllegalArgumentException("マージはIDとAPI Typeが揃っているインスタンス同士でないと実行できません。this[ID=$id, API=$providerApiType] : args[ID=${status.id}, API=${status.providerApiType}]")
+    fun merge(status: Status): Status {
+        if (this.providerApiType != status.providerApiType || this.url != status.url) {
+            throw IllegalArgumentException("マージはURLとAPI Typeが揃っているインスタンス同士でないと実行できません。this[URL=$url, API=$providerApiType] : args[URL=${status.url}, API=${status.providerApiType}]")
         }
 
         favoritesCount = status.favoritesCount
@@ -180,6 +180,10 @@ interface Status : Comparable<Status>, Serializable {
                 metadata.favoritedUsers.put(userRecord.NumericId, true)
             }
         }
+        status.receivedUsers = receivedUsers
+        status.metadata.favoritedUsers = metadata.favoritedUsers
+
+        return this
     }
 
     /**

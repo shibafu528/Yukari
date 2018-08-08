@@ -64,6 +64,8 @@ class DonStatus(val status: Status,
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
+    val isLocal: Boolean = status.application != null
+
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             status.mentions.forEach { entity ->
@@ -79,6 +81,17 @@ class DonStatus(val status: Status,
             }
         }
         return IStatus.RELATION_NONE
+    }
+
+    override fun merge(status: IStatus): IStatus {
+        super.merge(status)
+
+        // ローカルトゥートを優先
+        if (status is DonStatus && !this.isLocal && status.isLocal) {
+            return status
+        } else {
+            return this
+        }
     }
 
     init {
