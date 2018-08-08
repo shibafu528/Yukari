@@ -143,7 +143,6 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="?attr/menuFavstarDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -152,7 +151,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
-                android:text="Favstar"
+                android:text=""
                 android:textSize="@dimen/menudialog_textsize"
                 android:layout_gravity="center_horizontal" />
         </LinearLayout>
@@ -172,7 +171,6 @@
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="?attr/menuAclogDrawable"
                 android:layout_gravity="center_horizontal" />
 
             <TextView
@@ -181,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
-                android:text="aclog"
+                android:text=""
                 android:textSize="@dimen/menudialog_textsize"
                 android:layout_gravity="center_horizontal" />
         </LinearLayout>

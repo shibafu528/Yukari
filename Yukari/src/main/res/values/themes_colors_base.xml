@@ -24,8 +24,6 @@
 
         <item name="menuProfileDrawable">@drawable/ic_profile</item>
         <item name="menuTwilogDrawable">@drawable/ic_twilog</item>
-        <item name="menuFavstarDrawable">@drawable/ic_favorite_m</item>
-        <item name="menuAclogDrawable">@drawable/ic_aclog</item>
         <item name="menuBacklightDrawable">@drawable/ic_always_light_off</item>
         <item name="menuReportDrawable">@drawable/ic_feedback</item>
         <item name="menuSettingDrawable">@drawable/ic_settings</item>
@@ -112,8 +110,6 @@
 
         <item name="menuProfileDrawable">@drawable/ic_profile_d</item>
         <item name="menuTwilogDrawable">@drawable/ic_twilog_d</item>
-        <item name="menuFavstarDrawable">@drawable/ic_favorite_m_d</item>
-        <item name="menuAclogDrawable">@drawable/ic_aclog_d</item>
         <item name="menuBacklightDrawable">@drawable/ic_always_light_off_d</item>
         <item name="menuReportDrawable">@drawable/ic_feedback_d</item>
         <item name="menuSettingDrawable">@drawable/ic_settings_d</item>

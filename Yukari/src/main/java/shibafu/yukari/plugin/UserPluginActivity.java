@@ -15,8 +15,6 @@ import twitter.intent.UserIntent;
 public class UserPluginActivity extends Activity {
 
     public static final String TO_TWILOG  = "shibafu.yukari.plugin.OpenTwilogActivity";
-    public static final String TO_FAVSTAR = "shibafu.yukari.plugin.OpenFavstarActivity";
-    public static final String TO_ACLOG   = "shibafu.yukari.plugin.OpenAclogUserActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,14 +37,6 @@ public class UserPluginActivity extends Activity {
                 case TO_TWILOG:
                     startActivity(new Intent(Intent.ACTION_VIEW,
                             Uri.parse(TwitterUtil.getTwilogURL(screenName))));
-                    break;
-                case TO_FAVSTAR:
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse(TwitterUtil.getFavstarURL(screenName))));
-                    break;
-                case TO_ACLOG:
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse(TwitterUtil.getAclogURL(screenName))));
                     break;
             }
         }

@@ -74,8 +74,8 @@ public class MenuDialogFragment extends DialogFragment {
     private MenuPlugin[] plugins = new MenuPlugin[3];
     private static final String[] DEFAULT_PLUGINS = {
             UserPluginActivity.TO_TWILOG,
-            UserPluginActivity.TO_FAVSTAR,
-            UserPluginActivity.TO_ACLOG
+            null,
+            null
     };
 
     private LinearLayout llActiveAccounts;
@@ -91,6 +91,8 @@ public class MenuDialogFragment extends DialogFragment {
         for (int i = 0; i < 3; ++i) {
             String json = sp.getString("menu_plugin_" + i, "");
             if (TextUtils.isEmpty(json)) {
+                if (DEFAULT_PLUGINS[i] == null) continue;
+
                 try {
                     ActivityInfo info = context.getPackageManager()
                             .getActivityInfo(new ComponentName(context, DEFAULT_PLUGINS[i]), 0);
@@ -247,6 +249,9 @@ public class MenuDialogFragment extends DialogFragment {
         unbinder = ButterKnife.bind(this, v);
         ButterKnife.apply(pluginViews, (ButterKnife.Action<? super View>) (view, index) -> {
             view.setOnClickListener(v1 -> {
+                if (plugins[index] == null) {
+                    return;
+                }
                 Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
                 startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
             });
@@ -283,19 +288,24 @@ public class MenuDialogFragment extends DialogFragment {
         plugins[index] = plugin;
         View v = pluginViews.get(index);
         TextView label = (TextView) v.findViewById(R.id.tvMenuPlugin);
-        label.setText(plugin.getShortLabel());
         ImageView icon = (ImageView) v.findViewById(R.id.ivMenuPlugin);
-        try {
-            Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
-            if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
-                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
-            } else {
-                icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
+        if (plugin == null) {
+            label.setText("");
+            icon.setImageDrawable(null);
+        } else {
+            label.setText(plugin.getShortLabel());
+            try {
+                Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
+                if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
+                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
+                } else {
+                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            } catch (Resources.NotFoundException e) {
+                icon.setImageResource(R.drawable.ic_favorite_m);
             }
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        } catch (Resources.NotFoundException e) {
-            icon.setImageResource(R.drawable.ic_favorite_m);
         }
     }
 
@@ -316,20 +326,6 @@ public class MenuDialogFragment extends DialogFragment {
                 dismiss();
                 startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse(TwitterUtil.getTwilogURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
-                break;
-            }
-            case REQUEST_FAVSTAR:
-            {
-                dismiss();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(TwitterUtil.getFavstarURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
-                break;
-            }
-            case REQUEST_ACLOG:
-            {
-                dismiss();
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse(TwitterUtil.getAclogURL(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_USERSN))) ));
                 break;
             }
             case REQUEST_ACCOUNT:

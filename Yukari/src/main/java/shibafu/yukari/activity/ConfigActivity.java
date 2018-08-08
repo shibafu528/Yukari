@@ -1,8 +1,6 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -10,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -19,7 +16,6 @@ import com.github.machinarius.preferencefragment.PreferenceFragment;
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.plugin.OpenAclogActivity;
 
 /**
  * Created by Shibafu on 13/12/21.
@@ -193,9 +189,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                             startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_IMPORT));
                             return false;
                         });
-
-                        Context context = getActivity().getApplicationContext();
-                        initializeComponentTogglePreference(context, "pref_enable_plugin_open_aclog", new ComponentName(context, OpenAclogActivity.class));
                         break;
 
                     case "plugin": {
@@ -207,23 +200,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                     }
                 }
             }
-        }
-
-        private void initializeComponentTogglePreference(@NonNull Context context, @NonNull String preferenceKey, @NonNull ComponentName componentName) {
-            PackageManager pm = context.getPackageManager();
-            boolean componentEnabled = pm.getComponentEnabledSetting(componentName) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
-            PreferenceManager.getDefaultSharedPreferences(context)
-                    .edit()
-                    .putBoolean(preferenceKey, componentEnabled)
-                    .apply();
-            findPreference(preferenceKey).setOnPreferenceChangeListener((preference, newValue) -> {
-                if (Boolean.TRUE.equals(newValue)) {
-                    pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
-                } else {
-                    pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-                }
-                return true;
-            });
         }
     }
 }
