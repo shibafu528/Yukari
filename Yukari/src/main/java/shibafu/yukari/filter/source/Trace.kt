@@ -1,9 +1,6 @@
 package shibafu.yukari.filter.source
 
-import shibafu.yukari.filter.sexp.AndNode
-import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.ValueNode
-import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.TwitterUtil
@@ -42,12 +39,7 @@ class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : F
         }
     }
 
-    override fun getStreamFilter() = AndNode(
-            ContainsNode(
-                    VariableNode("receivedUsers"),
-                    ValueNode(sourceAccount)
-            )
-    )
+    override fun getStreamFilter() = ValueNode(false)
 
     private class TraceResponseList(items: Collection<Status> = emptyList(),
                                     private val _accessLevel: Int = 0,

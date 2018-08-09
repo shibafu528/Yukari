@@ -50,6 +50,9 @@ class QueryCompiler {
                 "list" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
                 ),
+                "trace" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Trace::class.java
+                ),
                 "don_local" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Local::class.java
                 ),
@@ -177,6 +180,31 @@ class QueryCompiler {
                     }
                 }
 
+                /**
+                 * [args]を / で分割し、ソースアカウントと引数として再解釈して抽出ソースのインスタンスを作成します。
+                 *
+                 * [createFiltersWithListArguments] のTraceソース特化版です。
+                 * @param requirePattern 引数エラー発生時にユーザに対して表示する引数の例を指定します。
+                 */
+                private fun createFiltersWithTraceArguments(typeValue: String, requirePattern: String): List<FilterSource> {
+                    if (args.isEmpty()) throw FilterCompilerException("引数が指定されていません。パターン：$requirePattern", type)
+                    return args.map { p ->
+                        val subArgs = p.value.split("/")
+
+                        if (p.value.isBlank() || subArgs.size != 2) {
+                            throw FilterCompilerException("引数の要件を満たしていません。パターン：$requirePattern", p)
+                        }
+
+                        val auth = userRecords.firstOrNull { it.ScreenName.equals(subArgs[0]) }
+                        val originId = subArgs[1]
+
+                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                                ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
+                        val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
+                        constructor.newInstance(auth, originId)
+                    }
+                }
+
                 /** 構文解析の結果から抽出ソースのインスタンスを作成します。 */
                 fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
@@ -185,6 +213,7 @@ class QueryCompiler {
                         "mention", "mentions", "reply", "replies" -> createFiltersWithAuthArguments("mention")
                         "user" -> createFiltersWithListArguments("user", 1, "(受信ユーザ/)対象ユーザ")
                         "list" -> createFiltersWithListArguments("list", 2, "(受信ユーザ/)ユーザ/リスト名")
+                        "trace" -> createFiltersWithTraceArguments("trace", "受信ユーザ/起点ID")
                         "don_local" -> createFiltersWithAuthArguments("don_local")
                         "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")
