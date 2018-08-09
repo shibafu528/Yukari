@@ -111,7 +111,7 @@ android {
 
     defaultConfig {
         applicationId "shibafu.yukari"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 22
 
         vectorDrawables.useSupportLibrary = true
