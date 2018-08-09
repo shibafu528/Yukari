@@ -173,8 +173,8 @@ android {
 
 // Kotlin
 buildscript {
-    ext.kotlin_version = '1.2.41'
-    ext.kotlin_coroutines_version = '0.22.5'
+    ext.kotlin_version = '1.2.60'
+    ext.kotlin_coroutines_version = '0.24.0'
     repositories {
         mavenCentral()
     }
