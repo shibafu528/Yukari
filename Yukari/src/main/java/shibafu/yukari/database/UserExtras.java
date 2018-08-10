@@ -31,7 +31,7 @@ public class UserExtras implements DBRecord {
         this.color = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_COLOR));
         this.priorityAccountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_PRIORITY_ID));
         for (AuthUserRecord userRecord : userRecords) {
-            if (this.priorityAccountId == userRecord.NumericId) {
+            if (this.priorityAccountId == userRecord.InternalId) {
                 this.priorityAccount = userRecord;
                 break;
             }
@@ -51,7 +51,7 @@ public class UserExtras implements DBRecord {
     }
 
     public long getPriorityAccountId() {
-        return priorityAccount == null ? priorityAccountId : getPriorityAccount().NumericId;
+        return priorityAccount == null ? priorityAccountId : getPriorityAccount().InternalId;
     }
 
     public void setPriorityAccountId(long priorityAccountId) {
@@ -64,7 +64,7 @@ public class UserExtras implements DBRecord {
 
     public void setPriorityAccount(AuthUserRecord priorityAccount) {
         this.priorityAccount = priorityAccount;
-        this.priorityAccountId = priorityAccount != null ? priorityAccount.NumericId : 0;
+        this.priorityAccountId = priorityAccount != null ? priorityAccount.InternalId : 0;
     }
 
     @Override
