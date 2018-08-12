@@ -89,12 +89,12 @@ public class StatusNotifier implements Releasable {
         SE_URIS.put("akari_fav", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
             favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_fav");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_rt");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
         }});
         SE_URIS.put("akari_like", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
             favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_like");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_rt");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
         }});
         SE_URIS.put("akari_love", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
@@ -104,7 +104,7 @@ public class StatusNotifier implements Releasable {
         SE_URIS.put("kiri_like", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
             favorite = Uri.parse("android.resource://shibafu.yukari/raw/kiri_like");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/krtn_rt");
+            retweet = Uri.parse("android.resource://shibafu.yukari/raw/kiri_retweet");
         }});
         SE_URIS.put("kiri_love", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
