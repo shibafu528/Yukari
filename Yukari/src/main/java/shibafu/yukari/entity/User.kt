@@ -12,6 +12,12 @@ interface User : Comparable<User>, Serializable {
     val id: Long
 
     /**
+     * URL
+     */
+    val url: String?
+        get() = null
+
+    /**
      * 表示名
      */
     val name: String
