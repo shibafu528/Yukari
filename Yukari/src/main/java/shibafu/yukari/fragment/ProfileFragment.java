@@ -62,6 +62,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -573,8 +574,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
     private int getTargetUserColor() {
         if (isTwitterServiceBound() && getTwitterService() != null) {
+            String url = TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName());
             for (UserExtras userExtra : getTwitterService().getUserExtras()) {
-                if (userExtra.getId() == loadHolder.targetUser.getId()) {
+                if (url.equals(userExtra.getId())) {
                     return userExtra.getColor();
                 }
             }
@@ -745,7 +747,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 if (resultCode == Activity.RESULT_OK) {
                     AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
-                        getTwitterService().setPriority(loadHolder.targetUser.getId(), userRecord);
+                        getTwitterService().setPriority(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
                         updateMenuItems();
 
@@ -779,7 +781,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     @Override
     public void onColorPicked(int color, String tag) {
         if (isTwitterServiceBound()) {
-            getTwitterService().setColor(loadHolder.targetUser.getId(), color);
+            getTwitterService().setColor(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), color);
             showProfile(loadHolder);
         } else {
             //TODO: 遅延処理にすべきかなあ
@@ -798,20 +800,12 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             menu.findItem(R.id.action_set_priority).setVisible(false);
             menu.findItem(R.id.action_unset_priority).setVisible(false);
         } else {
-            long id;
-            if (targetId >= 0) {
-                id = targetId;
-            } else if (loadHolder != null && loadHolder.targetUser != null) {
-                id = loadHolder.targetUser.getId();
-            } else {
-                id = -1;
-            }
-
-            if (id >= -1) {
+            if (loadHolder != null && loadHolder.targetUser != null) {
                 Runnable task = () -> {
                     List<UserExtras> userExtras = getTwitterService().getUserExtras();
-                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> ue.getId() == id).findFirst();
-                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(id)).getPriorityAccount();
+                    String url = TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName());
+                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
+                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
                     if (priorityAccount != null) {
                         menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
                         menu.findItem(R.id.action_unset_priority).setVisible(true);
@@ -945,7 +939,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 return true;
             }
             case R.id.action_unset_priority: {
-                getTwitterService().setPriority(loadHolder.targetUser.getId(), null);
+                getTwitterService().setPriority(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), null);
                 Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
 
                 user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);

@@ -9,6 +9,7 @@ import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 import java.util.ArrayList;
@@ -83,7 +84,8 @@ public class BookmarkListFragment extends TweetListFragment {
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
                 } else {
-                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    String url = TwitterUtil.getProfileUrl(status.getSourceUser().getScreenName());
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
                     if (first.isPresent() && first.get().getPriorityAccount() != null) {
                         status.setOwner(first.get().getPriorityAccount());
                     }

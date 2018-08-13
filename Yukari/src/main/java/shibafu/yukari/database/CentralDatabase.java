@@ -223,7 +223,7 @@ public class CentralDatabase {
             );
             db.execSQL(
                     "CREATE TABLE " + TABLE_USER_EXTRAS + " (" +
-                    COL_UEXTRAS_ID + " INTEGER PRIMARY KEY, " +
+                    COL_UEXTRAS_ID + " TEXT PRIMARY KEY, " +
                     COL_UEXTRAS_COLOR + " INTEGER, " +
                     COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
             );
@@ -513,10 +513,6 @@ public class CentralDatabase {
                 whenBuilder.append(" ELSE NULL ");
                 String when = whenBuilder.toString();
 
-                db.execSQL("UPDATE " + TABLE_USER_EXTRAS +
-                        " SET " + COL_UEXTRAS_PRIORITY_ID + " = CASE " + COL_UEXTRAS_PRIORITY_ID + when + " END " +
-                        " WHERE " + COL_UEXTRAS_PRIORITY_ID + " IS NOT NULL");
-
                 db.execSQL("UPDATE " + TABLE_DRAFTS +
                         " SET " + COL_DRAFTS_WRITER_ID + " = CASE " + COL_DRAFTS_WRITER_ID + when + " END " +
                         " WHERE " + COL_DRAFTS_WRITER_ID + " IS NOT NULL");
@@ -607,6 +603,15 @@ public class CentralDatabase {
                         " FROM tmp_Drafts"
                 );
                 db.execSQL("DROP TABLE tmp_Drafts");
+
+                db.execSQL("DROP TABLE " + TABLE_USER_EXTRAS);
+                db.execSQL(
+                        "CREATE TABLE " + TABLE_USER_EXTRAS + " (" +
+                                COL_UEXTRAS_ID + " TEXT PRIMARY KEY, " +
+                                COL_UEXTRAS_COLOR + " INTEGER, " +
+                                COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
+                );
+
                 ++oldVersion;
             }
         }

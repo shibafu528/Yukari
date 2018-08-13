@@ -53,7 +53,7 @@ class TweetView : StatusView {
         }
 
         // ユーザーカラーラベルの設定
-        val color = userExtras.firstOrNull { it.id == status.originStatus.user.id }?.color ?: Color.TRANSPARENT
+        val color = userExtras.firstOrNull { it.id == status.originStatus.user.url }?.color ?: Color.TRANSPARENT
         ivUserColor.setBackgroundColor(color)
     }
 

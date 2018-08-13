@@ -574,34 +574,34 @@ public class TwitterService extends Service{
     //</editor-fold>
 
     //<editor-fold desc="UserExtras">
-    public void setColor(long id, int color) {
+    public void setColor(String url, int color) {
         UserExtras extras = null;
         for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId() == id) {
+            if (userExtra.getId().equals(url)) {
                 userExtra.setColor(color);
                 extras = userExtra;
                 break;
             }
         }
         if (extras == null) {
-            extras = new UserExtras(id);
+            extras = new UserExtras(url);
             extras.setColor(color);
             userExtras.add(extras);
         }
         database.updateRecord(extras);
     }
 
-    public void setPriority(long id, AuthUserRecord userRecord) {
+    public void setPriority(String url, AuthUserRecord userRecord) {
         UserExtras extras = null;
         for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId() == id) {
+            if (userExtra.getId().equals(url)) {
                 userExtra.setPriorityAccount(userRecord);
                 extras = userExtra;
                 break;
             }
         }
         if (extras == null) {
-            extras = new UserExtras(id);
+            extras = new UserExtras(url);
             extras.setPriorityAccount(userRecord);
             userExtras.add(extras);
         }
@@ -609,9 +609,9 @@ public class TwitterService extends Service{
     }
 
     @Nullable
-    public AuthUserRecord getPriority(long id) {
+    public AuthUserRecord getPriority(String url) {
         for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId() == id) {
+            if (userExtra.getId().equals(url)) {
                 return userExtra.getPriorityAccount();
             }
         }

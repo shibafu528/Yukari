@@ -31,6 +31,7 @@ import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.RESTLoader;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
@@ -381,7 +382,8 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         } else if (getTwitterService() != null) {
             //優先アカウントチェック
             List<UserExtras> userExtras = getTwitterService().getUserExtras();
-            Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+            String url = TwitterUtil.getProfileUrl(status.getSourceUser().getScreenName());
+            Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
             if (first.isPresent() && first.get().getPriorityAccount() != null) {
                 status.setOwner(first.get().getPriorityAccount());
             }

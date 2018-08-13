@@ -11,23 +11,23 @@ import java.util.Collection;
  */
 @DBTable(CentralDatabase.TABLE_USER_EXTRAS)
 public class UserExtras implements DBRecord {
-    private long id;
+    private String id;
     private int color;
     private long priorityAccountId;
     private AuthUserRecord priorityAccount;
 
-    public UserExtras(long id) {
+    public UserExtras(String id) {
         this.id = id;
     }
 
     public UserExtras(Cursor cursor) {
-        this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_ID));
+        this.id = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_ID));
         this.color = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_COLOR));
         this.priorityAccountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_PRIORITY_ID));
     }
 
     public UserExtras(Cursor cursor, Collection<AuthUserRecord> userRecords) {
-        this.id = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_ID));
+        this.id = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_ID));
         this.color = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_COLOR));
         this.priorityAccountId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_UEXTRAS_PRIORITY_ID));
         for (AuthUserRecord userRecord : userRecords) {
@@ -38,7 +38,7 @@ public class UserExtras implements DBRecord {
         }
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 

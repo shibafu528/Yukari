@@ -558,17 +558,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
      */
     private fun preInsertElement(status: Status): Int {
         // 代表操作アカウントの書き換えが必要か確認する
-        if (status is TwitterStatus) {
-            // TODO: 現状、Twitter向けにしか優先機能が使えない。どっかでマイグレーションする。
-            // 自身の所有するStatusの場合、書き換えてはいけない
-            if (!status.isOwnedStatus()) {
-                // 優先アカウント設定が存在するか？
-                val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.id }
-                if (userExtras != null && userExtras.priorityAccount != null) {
-                    status.representUser = userExtras.priorityAccount
-                    if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
-                        status.receivedUsers.add(userExtras.priorityAccount)
-                    }
+        // 自身の所有するStatusの場合、書き換えてはいけない
+        if (!status.isOwnedStatus()) {
+            // 優先アカウント設定が存在するか？
+            val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.url }
+            if (userExtras != null && userExtras.priorityAccount != null) {
+                status.representUser = userExtras.priorityAccount
+                if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
+                    status.receivedUsers.add(userExtras.priorityAccount)
                 }
             }
         }

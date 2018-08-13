@@ -34,6 +34,10 @@ public class TwitterUtil {
         return configuration;
     }
 
+    public static String getProfileUrl(String screenName) {
+        return "https://twitter.com/" + screenName;
+    }
+
     //<editor-fold desc="外部サービスURL生成">
     public static String getTwilogURL(String screenName) {
         if (screenName.startsWith("@")) {

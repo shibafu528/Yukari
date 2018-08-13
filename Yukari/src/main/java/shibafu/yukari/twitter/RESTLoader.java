@@ -65,7 +65,8 @@ public abstract class RESTLoader<P, T extends List<PreformedStatus>> extends Par
                 if (checkOwn != null) {
                     status.setOwner(checkOwn);
                 } else {
-                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> ue.getId() == status.getSourceUser().getId()).findFirst();
+                    String url = TwitterUtil.getProfileUrl(status.getSourceUser().getScreenName());
+                    Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
                     if (first.isPresent() && first.get().getPriorityAccount() != null) {
                         status.setOwner(first.get().getPriorityAccount());
                     }
