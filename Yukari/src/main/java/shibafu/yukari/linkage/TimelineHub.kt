@@ -265,7 +265,7 @@ class TimelineHub(private val service: TwitterService) {
         userUpdateDelayer.enqueue(status.message.sender)
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
-        if (status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
+        if (passive && status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
             notifier.showNotification(R.integer.notification_message, status, status.user)
         }
     }

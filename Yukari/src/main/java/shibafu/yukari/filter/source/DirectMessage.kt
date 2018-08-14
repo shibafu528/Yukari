@@ -35,14 +35,29 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
                 paging.maxId = params.maxId
             }
             try {
-                val responseList: MutableList<Status> = api.getDirectMessages(paging).map { TwitterMessage(it, userRecord) }.toMutableList()
+                val inboxResponses: MutableList<Status> = api.getDirectMessages(paging).map { TwitterMessage(it, userRecord) }.toMutableList()
+                val outboxResponses: MutableList<Status> = api.getSentDirectMessages(paging).map { TwitterMessage(it, userRecord) }.toMutableList()
+                val responseList: MutableList<Status> = mutableListOf()
+                responseList += inboxResponses
+                responseList += outboxResponses
 
                 if (params.appendLoadMarker) {
-                    responseList += if (responseList.isEmpty()) {
-                        LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate)
-                    } else {
-                        val last = responseList.last()
-                        LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
+                    if (responseList.isEmpty()) {
+                        responseList += LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate)
+                    } else if (inboxResponses.isNotEmpty() && outboxResponses.isNotEmpty()) {
+                        val lastIn = inboxResponses.last()
+                        val lastOut = outboxResponses.last()
+                        if (lastIn.id < lastOut.id) {
+                            responseList += LoadMarker(lastIn.id - 1, Provider.API_TWITTER, lastIn.id, userRecord, params.loadMarkerTag, Date(lastIn.createdAt.time - 1))
+                        } else {
+                            responseList += LoadMarker(lastOut.id - 1, Provider.API_TWITTER, lastOut.id, userRecord, params.loadMarkerTag, Date(lastOut.createdAt.time - 1))
+                        }
+                    } else if (inboxResponses.isNotEmpty()) {
+                        val last = inboxResponses.last()
+                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
+                    } else if (outboxResponses.isNotEmpty()) {
+                        val last = outboxResponses.last()
+                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
                     }
                 }
 

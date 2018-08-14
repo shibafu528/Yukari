@@ -27,6 +27,8 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
     override val source: String
         get() = "DirectMessage"
 
+    override val url: String = "https://twitter.com/${user.screenName}/direct_message/$id"
+
     override val mentions: List<Mention> = listOf(TwitterMention(message.recipientId, message.recipientScreenName))
 
     override var favoritesCount: Int = 0
