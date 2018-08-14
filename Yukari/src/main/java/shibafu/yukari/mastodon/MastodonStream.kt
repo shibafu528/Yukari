@@ -86,6 +86,10 @@ class MastodonStream : ProviderStream {
 
     companion object {
         private const val LOG_TAG = "MastodonStream"
+
+        const val USER_STREAM_ID = "MastodonStream.UserStreamChannel"
+        const val PUBLIC_STREAM_ID = "MastodonStream.PublicStreamChannel"
+        const val LOCAL_STREAM_ID = "MastodonStream.LocalStreamChannel"
     }
 }
 
@@ -96,7 +100,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler("MastodonStream.UserStreamChannel", service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, service.timelineHub, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
@@ -127,7 +131,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler("MastodonStream.PublicStreamChannel", service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, service.timelineHub, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
@@ -158,7 +162,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler("MastodonStream.LocalStreamChannel", service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, service.timelineHub, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {

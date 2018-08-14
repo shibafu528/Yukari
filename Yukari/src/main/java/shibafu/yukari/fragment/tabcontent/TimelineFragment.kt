@@ -492,7 +492,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             is TimelineEvent.Received -> {
                 val status = event.status
                 val queryVariables = mapOf<String, Any?>(
-                        "passive" to event.passive
+                        "passive" to event.passive,
+                        "timelineId" to event.timelineId
                 )
 
                 if (statuses.contains(status)) return
