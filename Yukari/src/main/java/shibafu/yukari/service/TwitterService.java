@@ -799,7 +799,7 @@ public class TwitterService extends Service{
         }
         for (int i = 0; i < users.size(); ++i) {
             AuthUserRecord aur = users.get(i);
-            if (status.getUser().getId() == aur.NumericId) {
+            if (aur.Provider.getApiType() == Provider.API_TWITTER && status.getUser().getId() == aur.NumericId) {
                 return aur;
             }
         }
@@ -810,7 +810,7 @@ public class TwitterService extends Service{
         if (users == null) return null;
         for (int i = 0; i < users.size(); ++i) {
             AuthUserRecord aur = users.get(i);
-            if (message.getSenderId() == aur.NumericId) {
+            if (aur.Provider.getApiType() == Provider.API_TWITTER && message.getSenderId() == aur.NumericId) {
                 return aur;
             }
         }

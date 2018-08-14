@@ -16,10 +16,9 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
                 return new SearchListFragment();
-            case TabType.TABTYPE_DM:
-                return new MessageListFragment();
             case TabType.TABTYPE_BOOKMARK:
                 return new BookmarkListFragment();
+            case TabType.TABTYPE_DM:
             case TabType.TABTYPE_FILTER:
             case TabType.TABTYPE_HISTORY:
             case TabType.TABTYPE_TRACE:
@@ -68,6 +67,12 @@ public class TweetListFragmentFactory {
                 break;
             case TabType.TABTYPE_MENTION:
                 query.append("from mention");
+                if (tabInfo.getBindAccount() != null) {
+                    query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
+                }
+                break;
+            case TabType.TABTYPE_DM:
+                query.append("from message");
                 if (tabInfo.getBindAccount() != null) {
                     query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
                 }
