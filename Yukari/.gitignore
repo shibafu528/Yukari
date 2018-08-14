@@ -1,2 +1,3 @@
 *.apk
 manifest-merger-release-report.txt
+/alpha
