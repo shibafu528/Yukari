@@ -1,5 +1,6 @@
 package shibafu.yukari.linkage
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
@@ -31,6 +32,7 @@ class StatusLoader(private val context: Context,
      * @param params [RestQuery.Params]
      * @return 開始された非同期処理に割り振ったキー。状態確認に使用できます。
      */
+    @SuppressLint("StaticFieldLeak")
     fun requestRestQuery(timelineId: String,
                          userRecord: AuthUserRecord,
                          query: RestQuery,
@@ -81,6 +83,26 @@ class StatusLoader(private val context: Context,
                                             exception.rateLimitStatus.secondsUntilReset / 60,
                                             exception.rateLimitStatus.secondsUntilReset % 60),
                                     Toast.LENGTH_SHORT).show()
+                            403 -> {
+                                if (exception.errorCode == 93) {
+                                    Toast.makeText(context,
+                                            String.format("[@%s]\nアクセス権エラー: %d:%d\n" +
+                                                    "DMへのアクセスが制限されています。\n" +
+                                                    "一度アプリ連携を切って認証を再発行してみてください。",
+                                                    userRecord.ScreenName,
+                                                    exception.errorCode,
+                                                    exception.errorMessage),
+                                            Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context,
+                                            String.format("[@%s]\nアクセス権エラー: %d:%d\n%s",
+                                                    userRecord.ScreenName,
+                                                    exception.statusCode,
+                                                    exception.errorCode,
+                                                    exception.errorMessage),
+                                            Toast.LENGTH_SHORT).show()
+                                }
+                            }
                             else -> {
                                 val template: String
                                 if (exception.isCausedByNetworkIssue) {
