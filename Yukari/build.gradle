@@ -16,6 +16,72 @@ ext {
     leakCanaryVersion = '1.5.4'
 }
 
+android {
+    compileSdkVersion 25
+    buildToolsVersion '27.0.3'
+
+    defaultConfig {
+        applicationId "shibafu.yukari"
+        minSdkVersion 16
+        targetSdkVersion 22
+
+        vectorDrawables.useSupportLibrary = true
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
+    // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
+    packagingOptions {
+        exclude 'LICENSE-EDL-1.0.txt'
+        exclude 'LICENSE-EPL-1.0.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+        ignore 'MissingTranslation'
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled true
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+    flavorDimensions "stage"
+    productFlavors {
+        main {
+            dimension "stage"
+        }
+        alpha {
+            dimension "stage"
+            applicationIdSuffix ".alpha"
+        }
+    }
+    applicationVariants.all { variant ->
+        variant.resValue "string", "applicationId", variant.applicationId
+    }
+    kotlinOptions {
+        apiVersion = '1.1'
+    }
+}
+
 dependencies {
     // Support Library
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
@@ -89,6 +155,9 @@ dependencies {
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
     testImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
 
+    // Deploygate SDK
+    alphaImplementation 'com.deploygate:sdk:4.1.0'
+
     // いろいろ
     implementation 'com.annimon:stream:1.0.8'
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
@@ -103,72 +172,6 @@ dependencies {
     // Test
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
-}
-
-android {
-    compileSdkVersion 25
-    buildToolsVersion '27.0.3'
-
-    defaultConfig {
-        applicationId "shibafu.yukari"
-        minSdkVersion 16
-        targetSdkVersion 22
-
-        vectorDrawables.useSupportLibrary = true
-
-        ndk {
-            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86'
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
-    // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
-    packagingOptions {
-        exclude 'LICENSE-EDL-1.0.txt'
-        exclude 'LICENSE-EPL-1.0.txt'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-
-    lintOptions {
-        checkReleaseBuilds false
-        abortOnError false
-        ignore 'MissingTranslation'
-    }
-
-    buildTypes {
-        debug {
-            debuggable true
-            minifyEnabled true
-            useProguard false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-    }
-    flavorDimensions "stage"
-    productFlavors {
-        main {
-            dimension "stage"
-        }
-        alpha {
-            dimension "stage"
-            applicationIdSuffix ".alpha"
-        }
-    }
-    applicationVariants.all { variant ->
-        variant.resValue "string", "applicationId", variant.applicationId
-    }
-    kotlinOptions {
-        apiVersion = '1.1'
-    }
 }
 
 // Kotlin
