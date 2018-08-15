@@ -6,6 +6,8 @@ import android.text.format.Time
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.safety.Whitelist
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
@@ -94,13 +96,24 @@ class DonStatus(val status: Status,
         }
     }
 
+    private fun Document.plainText(): String {
+        // https://stackoverflow.com/a/19602313
+        val doc = this.clone()
+        val outputSettings = Document.OutputSettings().prettyPrint(false)
+        doc.outputSettings(outputSettings)
+        doc.select("br").append("\\n")
+        doc.select("p").append("\\n\\n")
+        val s = doc.html().replace("\\n", "\n")
+        return Jsoup.clean(s, "", Whitelist.none(), outputSettings).trim('\n')
+    }
+
     init {
         val content = Jsoup.parse(status.content)
 
         if (status.spoilerText.isNotEmpty()) {
-            text = status.spoilerText + "\n\n" + content.text()
+            text = status.spoilerText + "\n\n" + content.plainText()
         } else {
-            text = content.text()
+            text = content.plainText()
         }
 
         val media = LinkedHashSet<Media>()
