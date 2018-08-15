@@ -123,6 +123,8 @@ class DonStatus(val status: Status,
 
         this.media = media.toList()
         this.links = links.toList()
+
+        metadata.isCensoredThumbs = status.isSensitive
     }
 
     //<editor-fold desc="Parcelable">
