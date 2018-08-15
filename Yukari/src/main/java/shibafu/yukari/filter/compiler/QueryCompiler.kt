@@ -140,7 +140,13 @@ class QueryCompiler {
                         if (requiredArgs) {
                             throw FilterCompilerException("アカウントが指定されていません。", type)
                         }
-                        userRecords.map { Token(TokenType.STRING, 0, it.ScreenName) }
+                        userRecords.mapNotNull {
+                            if (findSourceClass(typeValue, it.Provider.apiType) != null) {
+                                Token(TokenType.STRING, 0, it.ScreenName)
+                            } else {
+                                null
+                            }
+                        }
                     } else {
                         args
                     }
