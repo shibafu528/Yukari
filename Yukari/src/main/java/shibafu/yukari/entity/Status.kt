@@ -130,7 +130,7 @@ interface Status : Comparable<Status>, Serializable {
      */
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
         userRecords.forEach { userRecord ->
-            if (providerApiType == userRecord.Provider.apiType && user.id == userRecord.NumericId) {
+            if (providerApiType == userRecord.Provider.apiType && user.id == userRecord.NumericId && user.host == userRecord.Provider.host) {
                 representUser = userRecord
                 if (!receivedUsers.contains(userRecord)) {
                     receivedUsers.add(userRecord)

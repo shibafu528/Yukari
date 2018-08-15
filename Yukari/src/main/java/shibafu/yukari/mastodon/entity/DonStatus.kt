@@ -78,7 +78,7 @@ class DonStatus(val status: Status,
             if (userRecord.NumericId == status.inReplyToAccountId) {
                 return IStatus.RELATION_MENTIONED_TO_ME
             }
-            if (userRecord.NumericId == user.id) {
+            if (userRecord.NumericId == user.id && userRecord.Provider.host == user.host) {
                 return IStatus.RELATION_OWNED
             }
         }

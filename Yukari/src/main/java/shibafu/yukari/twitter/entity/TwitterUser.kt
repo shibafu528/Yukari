@@ -9,6 +9,9 @@ class TwitterUser(val user: twitter4j.User) : User {
     override val url: String?
         get() = "https://twitter.com/$screenName"
 
+    override val host: String?
+        get() = "twitter.com"
+
     override val name: String
         get() = user.name
 

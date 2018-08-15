@@ -18,6 +18,15 @@ interface User : Comparable<User>, Serializable {
         get() = null
 
     /**
+     * URLのHost
+     *
+     * ホストの判定が必要な場合に、パース負荷軽減のために参照する。
+     * [url]をオーバーライドする場合はこちらもオーバーライドして適切な値を返すようにする。
+     */
+    val host: String?
+        get() = url?.let { throw NotImplementedError("urlを実装している場合、hostも返す必要があります。実装を確認してください。") }
+
+    /**
      * 表示名
      */
     val name: String
