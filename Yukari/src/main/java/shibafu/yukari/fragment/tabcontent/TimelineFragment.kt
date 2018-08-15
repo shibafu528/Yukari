@@ -3,6 +3,7 @@ package shibafu.yukari.fragment.tabcontent
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,35 +22,45 @@ import android.widget.Toast
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
+import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.StatusActivity
+import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
+import shibafu.yukari.common.async.ThrowableAsyncTask
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask
 import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
+import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
+import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putWarnLog
+import twitter4j.DirectMessage
+import twitter4j.TwitterException
 
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener {
+open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING
@@ -251,9 +262,31 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         startActivity(intent)
                         true
                     }
+                    is TwitterMessage -> {
+                        val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
+                            clickedElement.mentions.map { "@" + it.screenName } +
+                                    clickedElement.media.map { it.browseUrl } +
+                                    clickedElement.links +
+                                    clickedElement.tags
+                        } else {
+                            clickedElement.media.map { it.browseUrl } +
+                                    clickedElement.links +
+                                    clickedElement.tags
+                        }
+                        val bundle = Bundle()
+                        bundle.putSerializable(EXTRA_STATUS, clickedElement)
+                        val items = listOf("返信する", "削除する", "@${clickedElement.user.screenName}") + links
+                        val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_TWITTER_MESSAGE_MENU,
+                                "@${clickedElement.user.screenName}:${clickedElement.text}",
+                                null, null, null,
+                                items, bundle)
+                        dialog.setTargetFragment(this, 0)
+                        dialog.show(fragmentManager, "twitter_message_menu")
+                        true
+                    }
                     is NotifyHistory -> {
                         val bundle = Bundle()
-                        bundle.putSerializable("status", clickedElement)
+                        bundle.putSerializable(EXTRA_STATUS, clickedElement)
                         val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
                                 "メニュー", null, null, null,
                                 listOf("@${clickedElement.user.screenName}", "詳細を開く"),
@@ -421,8 +454,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     override fun onDialogChose(requestCode: Int, which: Int, value: String?, extras: Bundle?) {
         when (requestCode) {
             DIALOG_REQUEST_HISTORY_MENU -> {
+                blockingDoubleClick = false
                 if (extras == null) return
-                val status = extras.getSerializable("status") as NotifyHistory
+                val status = extras.getSerializable(EXTRA_STATUS) as NotifyHistory
 
                 when (which) {
                     // プロフィール
@@ -439,7 +473,126 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         intent.putExtra(StatusActivity.EXTRA_STATUS, status.status)
                         startActivity(intent)
                     }
-                    DialogInterface.BUTTON_NEGATIVE -> blockingDoubleClick = false
+                }
+            }
+            DIALOG_REQUEST_TWITTER_MESSAGE_MENU -> {
+                blockingDoubleClick = false
+                if (extras == null || value == null) return
+                val status = extras.getSerializable(EXTRA_STATUS) as TwitterMessage
+
+                when (which) {
+                    // 返信する
+                    0 -> {
+                        val intent = Intent(activity, TweetActivity::class.java)
+                        intent.putExtra(TweetActivity.EXTRA_USER, status.representUser)
+                        intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
+                        intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.user.id)
+                        intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.user.screenName)
+                        startActivity(intent)
+                    }
+                    // 削除する
+                    1 -> {
+                        val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_TWITTER_MESSAGE_DELETE)
+                                .setTitle("確認")
+                                .setMessage("メッセージを削除してもよろしいですか？")
+                                .setPositive("OK")
+                                .setNegative("キャンセル")
+                                .setExtras(extras)
+                                .build()
+                        dialog.setTargetFragment(this, 0)
+                        dialog.show(fragmentManager, "twitter_message_delete")
+                    }
+                    // 送信者
+                    2 -> {
+                        val intent = Intent(activity, ProfileActivity::class.java)
+                        intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
+                        intent.putExtra(ProfileActivity.EXTRA_TARGET, status.user.id)
+                        startActivity(intent)
+                    }
+                    // リンクとか
+                    else -> {
+                        val links = if (status.user.id != status.mentions.first().id) {
+                            status.mentions + status.media + status.links + status.tags
+                        } else {
+                            status.media + status.links + status.tags
+                        }
+                        val chose = links[which - 3]
+                        when (chose) {
+                            is Mention -> {
+                                val intent = Intent(activity, ProfileActivity::class.java)
+                                intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
+                                intent.putExtra(ProfileActivity.EXTRA_TARGET, chose.id)
+                                startActivity(intent)
+                            }
+                            is Media -> {
+                                val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(chose.browseUrl),
+                                        activity.applicationContext,
+                                        PreviewActivity::class.java)
+                                intent.putExtra(PreviewActivity.EXTRA_USER, status.representUser)
+                                startActivity(intent)
+                            }
+                            is String -> {
+                                if (chose.startsWith("http://") || chose.startsWith("https://")) {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(chose))
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    startActivity(intent)
+                                } else {
+                                    val intent = Intent(activity, MainActivity::class.java)
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, chose)
+                                    startActivity(intent)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
+        when (requestCode) {
+            DIALOG_REQUEST_TWITTER_MESSAGE_DELETE -> {
+                blockingDoubleClick = false
+                if (extras == null) return
+                val status = extras.getSerializable(EXTRA_STATUS) as TwitterMessage
+
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    object : ThrowableTwitterAsyncTask<DirectMessage, Boolean>() {
+
+                        override fun doInBackground(vararg params: DirectMessage): ThrowableAsyncTask.ThrowableResult<Boolean> {
+                            var user: AuthUserRecord? = null
+                            for (userRecord in twitterService.users) {
+                                if (params[0].recipientId == userRecord.NumericId || params[0].senderId == userRecord.NumericId) {
+                                    user = userRecord
+                                }
+                            }
+                            if (user == null) {
+                                return ThrowableAsyncTask.ThrowableResult(IllegalArgumentException("操作対象のユーザが見つかりません."))
+                            }
+                            try {
+                                val t = twitterService.getTwitterOrThrow(user)
+                                t.destroyDirectMessage(status.id)
+                            } catch (e: TwitterException) {
+                                e.printStackTrace()
+                                return ThrowableAsyncTask.ThrowableResult(e)
+                            }
+
+                            return ThrowableAsyncTask.ThrowableResult(true)
+                        }
+
+                        override fun onPostExecute(result: ThrowableAsyncTask.ThrowableResult<Boolean>) {
+                            super.onPostExecute(result)
+                            if (!isErrored && result.result) {
+                                showToast("削除しました")
+                            }
+                        }
+
+                        override fun showToast(message: String) {
+                            Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
+                        }
+                    }.execute(status.message)
                 }
             }
         }
@@ -732,8 +885,15 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         /** [preInsertElement] : 同一要素があったためマージを行った(Viewの制御のみ必要) */
         private const val PRE_INSERT_MERGED = -2
 
+        /** Extra/Bundle Key : Status */
+        private const val EXTRA_STATUS = "status"
+
         /** ダイアログID : NotifyHistory クリックメニュー */
         private const val DIALOG_REQUEST_HISTORY_MENU = 1
+        /** ダイアログID : TwitterMessage クリックメニュー */
+        private const val DIALOG_REQUEST_TWITTER_MESSAGE_MENU = 2
+        /** ダイアログID : TwitterMessage 削除確認 */
+        private const val DIALOG_REQUEST_TWITTER_MESSAGE_DELETE = 3
     }
 }
 
