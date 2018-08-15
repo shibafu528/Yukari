@@ -228,6 +228,13 @@
             android:scaleType="fitXY"
             android:src="@android:drawable/divider_horizontal_textfield" />
 
+        <CheckBox
+            android:id="@+id/cbTweetSensitive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="閲覧注意 (NSFW)"
+            android:visibility="gone"/>
+
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="72dp">

@@ -45,6 +45,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -178,6 +179,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private ImageButton ibCamera;
     private LinearLayout llTweetAttachParent;
     private LinearLayout llTweetAttachInner;
+    private CheckBox cbSensitive;
 
     //Writer指定
     @NeedSaveState private ArrayList<AuthUserRecord> writers = new ArrayList<>();
@@ -577,6 +579,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         //添付エリアの設定
         llTweetAttachParent = (LinearLayout) findViewById(R.id.llTweetAttachParent);
         llTweetAttachInner = (LinearLayout) findViewById(R.id.llTweetAttachInner);
+        cbSensitive = (CheckBox) findViewById(R.id.cbTweetSensitive);
 
         // アクションエリアの初期化
         initializeActions();
@@ -953,7 +956,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void updateWritersView() {
-        boolean showVisibility = false;
+        boolean showMastodonFunctions = false;
 
         StringBuilder sb = new StringBuilder();
         if (writers.size() < 1) {
@@ -966,15 +969,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             sb.append(writer.ScreenName);
 
             if (writer.Provider.getApiType() == Provider.API_MASTODON) {
-                showVisibility = true;
+                showMastodonFunctions = true;
             }
         }
         tvTweetBy.setText(sb.toString());
 
-        if (showVisibility) {
+        if (showMastodonFunctions) {
             ibVisibility.setVisibility(View.VISIBLE);
+            cbSensitive.setVisibility(View.VISIBLE);
         } else {
             ibVisibility.setVisibility(View.GONE);
+            cbSensitive.setVisibility(View.GONE);
         }
     }
 
@@ -1281,7 +1286,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         false,
                         0,
                         0,
-                        false,
+                        cbSensitive.isChecked(),
                         true,
                         false,
                         directMessageDestSN,
@@ -1296,7 +1301,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 draft.setUseGeoLocation(false);
                 draft.setGeoLatitude(0);
                 draft.setGeoLongitude(0);
-                draft.setPossiblySensitive(false);
+                draft.setPossiblySensitive(cbSensitive.isChecked());
                 draft.setDirectMessage(true);
                 draft.setMessageTarget(directMessageDestSN);
                 draft.setVisibility(StatusDraft.Visibility.DIRECT);
@@ -1313,7 +1318,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     false,
                     0,
                     0,
-                    false,
+                    cbSensitive.isChecked(),
                     false,
                     false,
                     null,
@@ -1328,7 +1333,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             draft.setUseGeoLocation(false);
             draft.setGeoLatitude(0);
             draft.setGeoLongitude(0);
-            draft.setPossiblySensitive(false);
+            draft.setPossiblySensitive(cbSensitive.isChecked());
             draft.setDirectMessage(false);
             draft.setMessageTarget(null);
             draft.setVisibility(visibility);
