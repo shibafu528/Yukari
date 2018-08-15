@@ -70,6 +70,10 @@ class DonStatus(val status: Status,
 
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
+            if (userRecord.Provider.apiType != providerApiType) {
+                return@forEach
+            }
+
             status.mentions.forEach { entity ->
                 if (userRecord.NumericId == entity.id) {
                     return IStatus.RELATION_MENTIONED_TO_ME

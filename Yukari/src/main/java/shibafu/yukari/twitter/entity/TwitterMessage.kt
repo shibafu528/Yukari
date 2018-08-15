@@ -43,6 +43,10 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
 
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
+            if (userRecord.Provider.apiType != providerApiType) {
+                return@forEach
+            }
+
             if (userRecord.ScreenName == message.sender.screenName) {
                 return Status.RELATION_OWNED
             }

@@ -81,6 +81,10 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
+            if (userRecord.Provider.apiType != providerApiType) {
+                return@forEach
+            }
+
             status.userMentionEntities.forEach { entity ->
                 if (userRecord.ScreenName == entity.screenName) {
                     return Status.RELATION_MENTIONED_TO_ME
