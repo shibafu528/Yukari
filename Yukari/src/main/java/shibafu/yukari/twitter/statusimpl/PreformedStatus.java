@@ -114,6 +114,13 @@ public class PreformedStatus implements Status{
                 } catch (NumberFormatException ignored) {}
             }
         }
+        //引用パーマリンクが入っていたらリストに追加
+        if (status.getQuotedStatusPermalink() != null) {
+            urlEntities.add(status.getQuotedStatusPermalink());
+        }
+        if (status.getQuotedStatusId() > -1 && !quoteEntities.contains(status.getQuotedStatusId())) {
+            quoteEntities.add(status.getQuotedStatusId());
+        }
         this.urlEntities = urlEntities.toArray(new URLEntity[urlEntities.size()]);
         for (MediaEntity mediaEntity : status.getMediaEntities()) {
             switch (mediaEntity.getType()) {
