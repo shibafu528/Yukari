@@ -29,6 +29,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusimpl.DirectMessageCompat;
 import shibafu.yukari.twitter.statusimpl.FakeStatus;
 import shibafu.yukari.twitter.statusimpl.FavFakeStatus;
 import shibafu.yukari.twitter.statusimpl.HistoryStatus;
@@ -47,6 +48,7 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
 import twitter4j.Paging;
+import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.Twitter;
@@ -602,12 +604,34 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDirectMessage(Stream from, DirectMessage directMessage) {
-            userUpdateDelayer.enqueue(directMessage.getSender());
-            pushEventQueue(from, new MessageEventBuffer(from.getUserRecord(), directMessage));
+            Twitter twitter = service.getTwitter(from.getUserRecord());
+            if (twitter == null) return;
 
-            boolean checkOwn = service.isMyTweet(directMessage) != null;
-            if (!checkOwn) {
-                notifier.showNotification(R.integer.notification_message, directMessage, directMessage.getSender());
+            try {
+                ResponseList<User> users = twitter.lookupUsers(directMessage.getRecipientId(), directMessage.getSenderId());
+                User sender = null;
+                User recipient = null;
+                for (User user : users) {
+                    if (user.getId() == directMessage.getSenderId()) {
+                        sender = user;
+                    }
+                    if (user.getId() == directMessage.getRecipientId()) {
+                        recipient = user;
+                    }
+                }
+                if (sender != null && recipient != null) {
+                    DirectMessageCompat messageCompat = new DirectMessageCompat(directMessage, sender, recipient);
+
+                    userUpdateDelayer.enqueue(messageCompat.getSender());
+                    pushEventQueue(from, new MessageEventBuffer(from.getUserRecord(), messageCompat));
+
+                    boolean checkOwn = service.isMyTweet(messageCompat) != null;
+                    if (!checkOwn) {
+                        notifier.showNotification(R.integer.notification_message, messageCompat, messageCompat.getSender());
+                    }
+                }
+            } catch (TwitterException e) {
+                e.printStackTrace();
             }
         }
 

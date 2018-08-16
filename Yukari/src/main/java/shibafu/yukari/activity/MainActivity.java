@@ -95,6 +95,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private ArrayList<TabInfo> pageList = new ArrayList<>();
     private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
     private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
+    private Map<Long, LongSparseArray<String>> lastStatusCursorsArrays = new ArrayMap<>();
     private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
     @BindView(R.id.tvMainTab)     TextView tvTabText;
     @BindView(R.id.pager)         ViewPager viewPager;
@@ -781,6 +782,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             lastStatusIdsArrays.put(id, new LongSparseArray<>());
         }
         return lastStatusIdsArrays.get(id);
+    }
+    
+    public LongSparseArray<String> getLastStatusCursorsArray(long id) {
+        if (!lastStatusCursorsArrays.containsKey(id)) {
+            lastStatusCursorsArrays.put(id, new LongSparseArray<>());
+        }
+        return lastStatusCursorsArrays.get(id);
     }
 
     public ReferenceHolder<twitter4j.Query> getSearchQuery(long id) {

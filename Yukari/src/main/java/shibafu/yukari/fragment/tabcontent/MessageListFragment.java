@@ -16,6 +16,8 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
+import org.eclipse.collections.api.set.primitive.MutableLongSet;
+import org.eclipse.collections.impl.factory.primitive.LongSets;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.PreviewActivity;
 import shibafu.yukari.activity.ProfileActivity;
@@ -23,14 +25,14 @@ import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.statusimpl.DirectMessageCompat;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusmanager.StatusListener;
 import shibafu.yukari.twitter.statusmanager.StatusManager;
 import twitter4j.DirectMessage;
+import twitter4j.DirectMessageList;
 import twitter4j.HashtagEntity;
 import twitter4j.MediaEntity;
-import twitter4j.Paging;
-import twitter4j.ResponseList;
 import twitter4j.Status;
 import twitter4j.TweetEntity;
 import twitter4j.Twitter;
@@ -52,7 +54,7 @@ import java.util.List;
 public class MessageListFragment extends TwitterListFragment<DirectMessage>
         implements StatusListener, DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
 
-    private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
+    private LongSparseArray<String> lastStatusCursors = new LongSparseArray<>();
     private DirectMessage lastClicked;
     private ArrayList<TweetEntity> lastClickedEntities;
 
@@ -66,7 +68,7 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         if (context instanceof MainActivity) {
             Bundle args = getArguments();
             long id = args.getLong(EXTRA_ID);
-            lastStatusIds = ((MainActivity) context).getLastStatusIdsArray(id);
+            lastStatusCursors = ((MainActivity) context).getLastStatusCursorsArray(id);
         }
     }
 
@@ -118,8 +120,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 loader.execute(loader.new Params(userRecord));
                 break;
             case LOADER_LOAD_MORE:
-                addLimitCount(100);
-                loader.execute(loader.new Params(lastStatusIds.get(userRecord.NumericId, -1L), userRecord));
+                addLimitCount(50);
+                loader.execute(loader.new Params(lastStatusCursors.get(userRecord.NumericId), userRecord));
                 break;
             case LOADER_LOAD_UPDATE:
                 clearUnreadNotifier();
@@ -306,31 +308,31 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     private class MessageRESTLoader extends AsyncTask<MessageRESTLoader.Params, Void, List<DirectMessage>> {
         class Params {
-            private Paging paging;
+            private String cursor = null;
+            private int count = 20;
             private AuthUserRecord userRecord;
             private boolean saveLastPaging;
 
             public Params(AuthUserRecord userRecord) {
-                this.paging = new Paging();
                 this.userRecord = userRecord;
             }
 
-            public Params(long lastStatusId, AuthUserRecord userRecord) {
-                this.paging = new Paging();
-                if (lastStatusId > -1) {
-                    paging.setMaxId(lastStatusId - 1);
-                }
+            public Params(String cursor, AuthUserRecord userRecord) {
+                this.cursor = cursor;
                 this.userRecord = userRecord;
             }
 
             public Params(AuthUserRecord userRecord, boolean saveLastPaging) {
-                this.paging = new Paging();
                 this.userRecord = userRecord;
                 this.saveLastPaging = saveLastPaging;
             }
 
-            public Paging getPaging() {
-                return paging;
+            public String getCursor() {
+                return cursor;
+            }
+
+            public int getCount() {
+                return count;
             }
 
             public AuthUserRecord getUserRecord() {
@@ -356,35 +358,40 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
         protected List<DirectMessage> doInBackground(Params... params) {
             try {
                 Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
-                Paging paging = params[0].getPaging();
-                if (!isNarrowMode) paging.setCount(60);
-                ResponseList<DirectMessage> inBoxResponse = twitter.getDirectMessages(paging);
-                ResponseList<DirectMessage> sentBoxResponse = twitter.getSentDirectMessages(paging);
+                int count = params[0].getCount();
+                if (!isNarrowMode) count = 50;
+                DirectMessageList responseList;
+                if (params[0].getCursor() == null) {
+                    responseList = twitter.getDirectMessages(count);
+                } else {
+                    responseList = twitter.getDirectMessages(count, params[0].getCursor());
+                }
+
+                // カーソルの保持
                 if (!params[0].isSaveLastPaging()) {
-                    long lastStatusId;
-                    if (inBoxResponse != null && !inBoxResponse.isEmpty() &&
-                            sentBoxResponse != null && !sentBoxResponse.isEmpty()) {
-                        lastStatusId = Math.min(inBoxResponse.get(inBoxResponse.size() - 1).getId(),
-                                sentBoxResponse.get(sentBoxResponse.size() - 1).getId());
-                    }
-                    else if (inBoxResponse != null && !inBoxResponse.isEmpty()) {
-                        lastStatusId = inBoxResponse.get(inBoxResponse.size() - 1).getId();
-                    }
-                    else if (sentBoxResponse != null && !sentBoxResponse.isEmpty()) {
-                        lastStatusId = sentBoxResponse.get(sentBoxResponse.size() - 1).getId();
-                    }
-                    else {
-                        lastStatusId = -1;
-                    }
-                    lastStatusIds.put(params[0].getUserRecord().NumericId, lastStatusId);
+                    lastStatusCursors.put(params[0].getUserRecord().NumericId, responseList.getNextCursor());
                 }
+
+                // ユーザ情報の取得
+                MutableLongSet userIds = LongSets.mutable.empty();
+                for (DirectMessage message : responseList) {
+                    userIds.add(message.getRecipientId());
+                    userIds.add(message.getSenderId());
+                }
+                LongSparseArray<User> users = new LongSparseArray<>();
+                if (!userIds.isEmpty()) {
+                    for (User user : twitter.lookupUsers(userIds.toArray())) {
+                        users.put(user.getId(), user);
+                    }
+                }
+
+                // Compatクラスに変換しながらリスト化
                 List<DirectMessage> response = new ArrayList<>();
-                if (inBoxResponse != null) {
-                    response.addAll(inBoxResponse);
+                for (DirectMessage message : responseList) {
+                    response.add(new DirectMessageCompat(message,
+                            users.get(message.getSenderId()), users.get(message.getRecipientId())));
                 }
-                if (sentBoxResponse != null) {
-                    response.addAll(sentBoxResponse);
-                }
+
                 return response;
             } catch (TwitterException e) {
                 e.printStackTrace();
