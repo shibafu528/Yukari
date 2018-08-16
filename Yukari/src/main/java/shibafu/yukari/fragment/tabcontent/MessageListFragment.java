@@ -175,6 +175,8 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
+        setBlockingDoubleClick(false);
+
         if (lastClicked != null) {
             switch (which) {
                 case 0:
