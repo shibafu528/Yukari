@@ -104,6 +104,11 @@ public class LoadMarkerStatus extends FakeStatus {
             }
 
             @Override
+            public String get400x400ProfileImageURL() {
+                return "";
+            }
+
+            @Override
             public String getProfileImageURLHttps() {
                 return "";
             }
@@ -120,6 +125,11 @@ public class LoadMarkerStatus extends FakeStatus {
 
             @Override
             public String getOriginalProfileImageURLHttps() {
+                return "";
+            }
+
+            @Override
+            public String get400x400ProfileImageURLHttps() {
                 return "";
             }
 
@@ -250,6 +260,21 @@ public class LoadMarkerStatus extends FakeStatus {
 
             @Override
             public String getProfileBannerMobileRetinaURL() {
+                return "";
+            }
+
+            @Override
+            public String getProfileBanner300x100URL() {
+                return "";
+            }
+
+            @Override
+            public String getProfileBanner600x200URL() {
+                return "";
+            }
+
+            @Override
+            public String getProfileBanner1500x500URL() {
                 return "";
             }
 

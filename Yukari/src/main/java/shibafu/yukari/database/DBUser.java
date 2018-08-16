@@ -204,6 +204,16 @@ public class DBUser implements User, DBRecord {
     }
 
     @Override
+    public String get400x400ProfileImageURL() {
+        return profileImageUrl;
+    }
+
+    @Override
+    public String get400x400ProfileImageURLHttps() {
+        return profileImageUrl;
+    }
+
+    @Override
     public boolean isDefaultProfileImage() {
         return false;
     }
@@ -342,6 +352,21 @@ public class DBUser implements User, DBRecord {
 
     @Override
     public String getProfileBannerMobileRetinaURL() {
+        return profileBannerUrl;
+    }
+
+    @Override
+    public String getProfileBanner300x100URL() {
+        return profileBannerUrl;
+    }
+
+    @Override
+    public String getProfileBanner600x200URL() {
+        return profileBannerUrl;
+    }
+
+    @Override
+    public String getProfileBanner1500x500URL() {
         return profileBannerUrl;
     }
 
