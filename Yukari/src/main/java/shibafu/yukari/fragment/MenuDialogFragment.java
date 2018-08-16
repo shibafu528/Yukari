@@ -302,7 +302,9 @@ public class MenuDialogFragment extends DialogFragment {
                     icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
                 }
             } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+                plugins[index] = null;
+                label.setText("");
+                icon.setImageDrawable(null);
             } catch (Resources.NotFoundException e) {
                 icon.setImageResource(R.drawable.ic_favorite_m);
             }
