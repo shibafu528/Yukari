@@ -129,7 +129,7 @@ class MastodonApi : ProviderApi {
             val response = e.response
             if (response != null) {
                 try {
-                    val responseBody = response.body().string()
+                    val responseBody = response.body()?.string()
                     throw ProviderApiException("${response.code()} $responseBody", e)
                 } catch (e: IOException) {
                     throw ProviderApiException("${response.code()} Unknown error", e)

@@ -158,6 +158,11 @@ public class FakeStatus implements Status {
     }
 
     @Override
+    public URLEntity getQuotedStatusPermalink() {
+        return null;
+    }
+
+    @Override
     public int compareTo(Status another) {
         return 0;
     }
@@ -254,6 +259,11 @@ public class FakeStatus implements Status {
         }
 
         @Override
+        public String get400x400ProfileImageURL() {
+            return "";
+        }
+
+        @Override
         public String getProfileImageURLHttps() {
             return "";
         }
@@ -270,6 +280,11 @@ public class FakeStatus implements Status {
 
         @Override
         public String getOriginalProfileImageURLHttps() {
+            return "";
+        }
+
+        @Override
+        public String get400x400ProfileImageURLHttps() {
             return "";
         }
 
@@ -400,6 +415,21 @@ public class FakeStatus implements Status {
 
         @Override
         public String getProfileBannerMobileRetinaURL() {
+            return "";
+        }
+
+        @Override
+        public String getProfileBanner300x100URL() {
+            return "";
+        }
+
+        @Override
+        public String getProfileBanner600x200URL() {
+            return "";
+        }
+
+        @Override
+        public String getProfileBanner1500x500URL() {
             return "";
         }
 

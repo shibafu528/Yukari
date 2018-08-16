@@ -444,6 +444,11 @@ public class PreformedStatus implements Status{
     }
 
     @Override
+    public URLEntity getQuotedStatusPermalink() {
+        return status.getQuotedStatusPermalink();
+    }
+
+    @Override
     public int compareTo(Status another) {
         return status.compareTo(another);
     }

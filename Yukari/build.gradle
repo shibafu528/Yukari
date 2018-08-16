@@ -6,12 +6,15 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
+    maven {
+        url "http://twitter4j.org/maven2"
+    }
 }
 
 ext {
     supportLibVersion = '25.4.0'
     playServicesVersion = '11.4.0'
-    twitter4jVersion = '4.0.5'
+    twitter4jVersion = '4.0.7-SNAPSHOT'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
 }
@@ -106,14 +109,14 @@ dependencies {
     implementation project(':GalleryMultiPicker:library')
 
     // Twitter4J
-//    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-//    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
-//    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
-//    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
-    implementation "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
-    implementation "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
-    implementation "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
-    implementation "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
+    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
+    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
+    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
+    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
+//    implementation "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
+//    implementation "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
+//    implementation "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
+//    implementation "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
 
     // Mastodon
 //    implementation "com.github.sys1yagi.mastodon4j:mastodon4j:${mastodon4jVersion}"
