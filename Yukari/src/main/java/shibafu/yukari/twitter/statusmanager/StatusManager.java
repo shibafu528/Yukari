@@ -38,6 +38,7 @@ import shibafu.yukari.twitter.statusimpl.MetaStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.twitter.statusimpl.RespondNotifyStatus;
 import shibafu.yukari.twitter.statusimpl.RestCompletedStatus;
+import shibafu.yukari.twitter.streaming.AutoReloadStream;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import shibafu.yukari.twitter.streaming.RestStream;
 import shibafu.yukari.twitter.streaming.Stream;
@@ -113,7 +114,7 @@ public class StatusManager implements Releasable {
     private LongSparseArray<ParallelAsyncTask<Void, Void, Void>> workingRestQueries = new LongSparseArray<>();
 
     //Streaming
-    private List<StreamUser> streamUsers = new ArrayList<>();
+    private List<Stream> streamUsers = new ArrayList<>();
     private Map<AuthUserRecord, FilterStream> filterMap = new HashMap<>();
     private StreamListenerEx listener = new StreamListenerEx();
 
@@ -174,7 +175,7 @@ public class StatusManager implements Releasable {
 
     public ArrayList<AuthUserRecord> getActiveUsers() {
         ArrayList<AuthUserRecord> activeUsers = new ArrayList<>();
-        for (StreamUser su : streamUsers) {
+        for (Stream su : streamUsers) {
             activeUsers.add(su.getUserRecord());
         }
         return activeUsers;
@@ -192,7 +193,7 @@ public class StatusManager implements Releasable {
     public void start() {
         Log.d(LOG_TAG, "call start");
 
-        for (StreamUser u : streamUsers) {
+        for (Stream u : streamUsers) {
             u.start();
         }
         for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
@@ -208,7 +209,7 @@ public class StatusManager implements Releasable {
         for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
-        for (StreamUser su : streamUsers) {
+        for (Stream su : streamUsers) {
             su.stop();
         }
 
@@ -229,7 +230,7 @@ public class StatusManager implements Releasable {
         for (Map.Entry<AuthUserRecord, FilterStream> e : filterMap.entrySet()) {
             e.getValue().stop();
         }
-        for (StreamUser su : streamUsers) {
+        for (Stream su : streamUsers) {
             su.stop();
         }
 
@@ -237,7 +238,12 @@ public class StatusManager implements Releasable {
     }
 
     public void startUserStream(AuthUserRecord userRecord) {
-        StreamUser su = new StreamUser(context, userRecord);
+        Stream su;
+        if (sharedPreferences.getBoolean("pref_replace_auto_reload_stream", false)) {
+            su = new AutoReloadStream(context, userRecord);
+        } else {
+            su = new StreamUser(context, userRecord);
+        }
         su.setListener(listener);
         streamUsers.add(su);
         if (isStarted) {
@@ -246,8 +252,8 @@ public class StatusManager implements Releasable {
     }
 
     public void stopUserStream(AuthUserRecord userRecord) {
-        for (Iterator<StreamUser> iterator = streamUsers.iterator(); iterator.hasNext(); ) {
-            StreamUser su = iterator.next();
+        for (Iterator<Stream> iterator = streamUsers.iterator(); iterator.hasNext(); ) {
+            Stream su = iterator.next();
             if (su.getUserRecord().equals(userRecord)) {
                 su.stop();
                 iterator.remove();
@@ -293,7 +299,7 @@ public class StatusManager implements Releasable {
                 e.getValue().start();
             }
 
-            for (final StreamUser su : streamUsers) {
+            for (final Stream su : streamUsers) {
                 su.stop();
                 su.start();
             }
@@ -344,7 +350,7 @@ public class StatusManager implements Releasable {
 
     public void onWipe() {
         if (listener != null) {
-            for (StreamUser streamUser : streamUsers) {
+            for (Stream streamUser : streamUsers) {
                 listener.onWipe(streamUser);
             }
             for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
@@ -391,7 +397,7 @@ public class StatusManager implements Releasable {
 
                     @Override
                     protected void onPostExecute(TwitterException e) {
-                        for (StreamUser streamUser : streamUsers) {
+                        for (Stream streamUser : streamUsers) {
                             listener.onForceUpdateUI(streamUser);
                         }
                         for (Map.Entry<AuthUserRecord, FilterStream> entry : filterMap.entrySet()) {
@@ -704,7 +710,7 @@ public class StatusManager implements Releasable {
         }
 
         private boolean deliver(StatusListener sl, Stream from) {
-            if (sl.getStreamFilter() == null && from instanceof StreamUser) {
+            if (sl.getStreamFilter() == null && (from instanceof StreamUser || from instanceof AutoReloadStream)) {
                 return true;
             }
             else if (from instanceof FilterStream &&

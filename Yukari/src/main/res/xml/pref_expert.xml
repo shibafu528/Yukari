@@ -105,5 +105,9 @@
             android:key="pref_lock_scroll_after_reload"
             android:title="フィルタTL再読込後スクロール位置を保持"
             android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>
+        <CheckBoxPreference
+            android:key="pref_replace_auto_reload_stream"
+            android:title="バックグラウンド自動リロード"
+            android:summary="UserStreamを捨て、代わりにバックグラウンドでHomeとMentionsの自動リロードを行うようにします。\nActive Accountsが対象となります。\n(※要再起動)"/>
     </PreferenceCategory>
 </PreferenceScreen>
