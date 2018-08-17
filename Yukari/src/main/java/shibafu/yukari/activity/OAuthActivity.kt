@@ -124,6 +124,11 @@ class OAuthActivity : ActionBarYukariBase() {
                         }
                     }
 
+                    while (twitterService.database == null) {
+                        try {
+                            Thread.sleep(100)
+                        } catch (ignored: InterruptedException) {}
+                    }
                     val database = twitterService.database
                     database.addAccount(userRecord)
                     val user = twitter.showUser(accessToken.userId)
