@@ -9,17 +9,20 @@ import shibafu.yukari.twitter.AuthUserRecord
 import twitter4j.DirectMessage
 import java.util.*
 
-class TwitterMessage(val message: DirectMessage, override var representUser: AuthUserRecord) : Status {
+class TwitterMessage(val message: DirectMessage,
+                     val sender: twitter4j.User,
+                     val recipient: twitter4j.User,
+                     override var representUser: AuthUserRecord) : Status {
     override val id: Long
         get() = message.id
 
-    override val user: User = TwitterUser(message.sender)
+    override val user: User = TwitterUser(sender)
 
     override val text: String
         get() = message.text
 
     override val recipientScreenName: String
-        get() = message.recipientScreenName
+        get() = recipient.screenName
 
     override val createdAt: Date
         get() = message.createdAt
@@ -29,7 +32,7 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
 
     override val url: String = "https://twitter.com/${user.screenName}/direct_message/$id"
 
-    override val mentions: List<Mention> = listOf(TwitterMention(message.recipientId, message.recipientScreenName))
+    override val mentions: List<Mention> = listOf(TwitterMention(recipient.id, recipient.screenName))
 
     override var favoritesCount: Int = 0
 
@@ -47,7 +50,7 @@ class TwitterMessage(val message: DirectMessage, override var representUser: Aut
                 return@forEach
             }
 
-            if (userRecord.ScreenName == message.sender.screenName) {
+            if (userRecord.ScreenName == sender.screenName) {
                 return Status.RELATION_OWNED
             }
         }

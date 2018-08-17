@@ -21,6 +21,8 @@ import shibafu.yukari.util.StringUtil
 import twitter4j.DirectMessage
 import twitter4j.Status
 import twitter4j.StatusDeletionNotice
+import twitter4j.Twitter
+import twitter4j.TwitterException
 import twitter4j.User
 
 private const val PUT_STREAM_LOG = false
@@ -122,7 +124,8 @@ private class UserStreamChannel(private val service: TwitterService, override va
     private val stream: StreamUser = StreamUser(service.applicationContext, userRecord)
 
     init {
-        stream.listener = StreamListener("TwitterStream.UserStreamChannel", service.timelineHub)
+        stream.listener = StreamListener("TwitterStream.UserStreamChannel",
+                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
     }
 
     override fun start() {
@@ -149,7 +152,8 @@ private class FilterStreamChannel(private val service: TwitterService, override 
     private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
 
     init {
-        stream.listener = StreamListener("TwitterStream.FilterStreamChannel", service.timelineHub)
+        stream.listener = StreamListener("TwitterStream.FilterStreamChannel",
+                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
     }
 
     override fun start() {
@@ -194,7 +198,8 @@ private class AutoReloadChannel(private val service: TwitterService, override va
     private val stream: AutoReloadStream = AutoReloadStream(service.applicationContext, userRecord)
 
     init {
-        stream.listener = StreamListener("TwitterStream.AutoReloadChannel", service.timelineHub)
+        stream.listener = StreamListener("TwitterStream.AutoReloadChannel",
+                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
     }
 
     override fun start() {
@@ -208,7 +213,9 @@ private class AutoReloadChannel(private val service: TwitterService, override va
     }
 }
 
-private class StreamListener(private val timelineId: String, private val hub: TimelineHub) : shibafu.yukari.twitter.streaming.StreamListener {
+private class StreamListener(private val timelineId: String,
+                             private val hub: TimelineHub,
+                             private val api: TwitterApi) : shibafu.yukari.twitter.streaming.StreamListener {
     override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
         if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onFavorite: f:%s s:%d", timelineId, from.userRecord.ScreenName, status.id))
 
@@ -232,7 +239,18 @@ private class StreamListener(private val timelineId: String, private val hub: Ti
     }
 
     override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {
-        hub.onDirectMessage(timelineId, TwitterMessage(directMessage, from.userRecord), true)
+        try {
+            val twitter = api.getApiClient(from.userRecord) as Twitter
+            val users = twitter.lookupUsers(directMessage.recipientId, directMessage.senderId)
+            val message = TwitterMessage(directMessage,
+                    users.first { it.id == directMessage.senderId },
+                    users.first { it.id == directMessage.recipientId },
+                    from.userRecord)
+
+            hub.onDirectMessage(timelineId, message, true)
+        } catch (e: TwitterException) {
+            e.printStackTrace()
+        }
     }
 
     override fun onBlock(from: Stream, user: User, user2: User) {

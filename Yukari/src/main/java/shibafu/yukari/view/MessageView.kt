@@ -19,24 +19,24 @@ class MessageView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val message = (status as TwitterMessage).message
+        val message = status as TwitterMessage
 
         tvTimestamp.text = String.format("%s to @%s / %s",
                 tvTimestamp.text,
-                message.recipientScreenName, message.recipient.name)
+                message.recipient.screenName, message.recipient.name)
     }
 
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val message = (status as TwitterMessage).message
+        val message = status as TwitterMessage
 
         ivAccountColor.setBackgroundColor(Color.TRANSPARENT)
         for (authUserRecord in userRecords) {
-            if (authUserRecord.NumericId == message.recipientId) {
+            if (authUserRecord.NumericId == message.recipient.id) {
                 ivAccountColor.setBackgroundColor(authUserRecord.AccountColor)
                 break
-            } else if (authUserRecord.NumericId == message.senderId) {
+            } else if (authUserRecord.NumericId == message.sender.id) {
                 ivAccountColor.setBackgroundColor(authUserRecord.AccountColor)
             }
         }

@@ -107,8 +107,12 @@ class TwitterApi : ProviderApi {
         try {
             if (draft.isDirectMessage) {
                 val inReplyTo = draft.inReplyTo?.toLongOrNull() ?: throw ProviderApiException("返信先に不正な値が指定されました。")
+                val users = twitter.lookupUsers(inReplyTo, userRecord.NumericId)
                 val result = twitter.sendDirectMessage(inReplyTo, draft.text)
-                return TwitterMessage(result, userRecord)
+                return TwitterMessage(result,
+                        users.first { it.id == userRecord.NumericId },
+                        users.first { it.id == inReplyTo },
+                        userRecord)
             } else {
                 var text = draft.text
                 var attachmentUrl = ""

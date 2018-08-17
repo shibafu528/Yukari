@@ -13,7 +13,6 @@ import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterMessage
-import twitter4j.Paging
 import twitter4j.Twitter
 import twitter4j.TwitterException
 import java.util.*
@@ -29,35 +28,30 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
         // TwitterRestQueryのresponseList生成周辺をDMに書き換えただけ
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): MutableList<Status> {
             api as Twitter
-            val paging = Paging()
-            paging.count = params.limitCount
-            if (params.maxId > -1) {
-                paging.maxId = params.maxId
-            }
-            try {
-                val inboxResponses: MutableList<Status> = api.getDirectMessages(paging).map { TwitterMessage(it, userRecord) }.toMutableList()
-                val outboxResponses: MutableList<Status> = api.getSentDirectMessages(paging).map { TwitterMessage(it, userRecord) }.toMutableList()
-                val responseList: MutableList<Status> = mutableListOf()
-                responseList += inboxResponses
-                responseList += outboxResponses
+            val cursor = params.stringCursor
+            val count = params.limitCount.coerceIn(20..50)
 
-                if (params.appendLoadMarker) {
+            try {
+                val messages = if (cursor.isEmpty()) {
+                    api.getDirectMessages(count)
+                } else {
+                    api.getDirectMessages(count, cursor)
+                }
+
+                val users = api.lookupUsers(*messages.flatMap { listOf(it.senderId, it.recipientId) }.distinct().toLongArray()).toSortedSet()
+                val responseList: MutableList<Status> = messages.map { dm ->
+                    TwitterMessage(dm,
+                            users.first { u -> u.id == dm.senderId },
+                            users.first { u -> u.id == dm.recipientId },
+                            userRecord)
+                }.toMutableList()
+
+                if (params.appendLoadMarker && !messages.nextCursor.isNullOrEmpty()) {
                     if (responseList.isEmpty()) {
-                        responseList += LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate)
-                    } else if (inboxResponses.isNotEmpty() && outboxResponses.isNotEmpty()) {
-                        val lastIn = inboxResponses.last()
-                        val lastOut = outboxResponses.last()
-                        if (lastIn.id < lastOut.id) {
-                            responseList += LoadMarker(lastIn.id - 1, Provider.API_TWITTER, lastIn.id, userRecord, params.loadMarkerTag, Date(lastIn.createdAt.time - 1))
-                        } else {
-                            responseList += LoadMarker(lastOut.id - 1, Provider.API_TWITTER, lastOut.id, userRecord, params.loadMarkerTag, Date(lastOut.createdAt.time - 1))
-                        }
-                    } else if (inboxResponses.isNotEmpty()) {
-                        val last = inboxResponses.last()
-                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
-                    } else if (outboxResponses.isNotEmpty()) {
-                        val last = outboxResponses.last()
-                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
+                        responseList += LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate, messages.nextCursor)
+                    } else {
+                        val last = responseList.last()
+                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1), messages.nextCursor)
                     }
                 }
 

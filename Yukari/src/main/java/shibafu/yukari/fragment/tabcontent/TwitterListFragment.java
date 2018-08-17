@@ -37,11 +37,9 @@ import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetCommon;
 import shibafu.yukari.twitter.TweetCommonDelegate;
-import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
-import twitter4j.DirectMessage;
 import twitter4j.TwitterResponse;
 import twitter4j.auth.AccessToken;
 
@@ -231,13 +229,8 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             tweetAdapter = new TweetAdapter(getActivity(), users, null, new AbstractList<Status>() {
                 @Override
                 public Status get(int index) {
-                    if (commonDelegate instanceof TweetCommon.StatusCommonDelegate) {
-                        twitter4j.Status status = (twitter4j.Status) elements.get(index);
-                        return new TwitterStatus(status, (status instanceof PreformedStatus) ? ((PreformedStatus) status).getRepresentUser() : new AuthUserRecord(new AccessToken("", "")));
-                    } else {
-                        DirectMessage message = (DirectMessage) elements.get(index);
-                        return new TwitterMessage(message, getTwitterService().isMyTweet(message));
-                    }
+                    twitter4j.Status status = (twitter4j.Status) elements.get(index);
+                    return new TwitterStatus(status, (status instanceof PreformedStatus) ? ((PreformedStatus) status).getRepresentUser() : new AuthUserRecord(new AccessToken("", "")));
                 }
 
                 @Override

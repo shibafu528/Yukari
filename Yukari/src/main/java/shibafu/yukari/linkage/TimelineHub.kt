@@ -262,7 +262,7 @@ class TimelineHub(private val service: TwitterService) {
     fun onDirectMessage(timelineId: String, status: TwitterMessage, passive: Boolean) {
         // TODO: ベタ移植なので問題があれば作り直す
 
-        userUpdateDelayer.enqueue(status.message.sender)
+        userUpdateDelayer.enqueue(status.sender)
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
         if (passive && status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
