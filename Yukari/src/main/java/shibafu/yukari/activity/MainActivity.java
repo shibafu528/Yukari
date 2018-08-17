@@ -721,6 +721,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 currentPage = reference.get();
             }
             tvTabText.setText(pageList.get(pageId).getTitle());
+            currentPage = tabPagerAdapter.instantiateItem(pageId);
+            currentPageIndex = pageId;
         }
         else {
             tvTabText.setText("!EMPTY!");
