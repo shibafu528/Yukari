@@ -277,10 +277,7 @@ class QueryCompiler {
             if (temp.type != null) {
                 filters += temp.toFilterSource()
             }
-            return when {
-                filters.isEmpty() -> listOf(All())
-                else -> filters
-            }
+            return filters
         }
 
         @Throws(FilterCompilerException::class)
