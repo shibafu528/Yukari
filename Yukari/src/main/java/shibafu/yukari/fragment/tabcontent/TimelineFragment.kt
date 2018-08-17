@@ -237,7 +237,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                                 val restQuery = it.getRestQuery() ?: return@let
                                 val params = RestQuery.Params(maxId = clickedElement.id,
                                         loadMarkerTag = it.hashCode().toString(),
-                                        loadMarkerDate = clickedElement.createdAt)
+                                        loadMarkerDate = clickedElement.createdAt,
+                                        stringCursor = clickedElement.stringCursor,
+                                        longCursor = clickedElement.longCursor)
                                 val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
                                         userRecord, restQuery, params)
                                 clickedElement.taskKey = taskKey
