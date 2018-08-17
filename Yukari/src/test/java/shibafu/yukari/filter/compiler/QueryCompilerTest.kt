@@ -34,8 +34,7 @@ public class QueryCompilerTest {
 
     @Test fun emptySourceTest() {
         val source = parseSource("from")
-        assertEquals(1, source.size)
-        assertEquals<Class<*>>(All::class.java, source.first().javaClass)
+        assertEquals(0, source.size)
     }
 
     @Test fun allSourceTest() {
