@@ -53,7 +53,7 @@ public class TwitterUtil {
      * @return Status ID, 不正なURLの場合は -1
      */
     public static long getStatusIdFromUrl(String url) {
-        Pattern pattern = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\\$");
+        Pattern pattern = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?$");
         Matcher matcher = pattern.matcher(url);
         if (matcher.find()) {
             String id = matcher.group(1);
