@@ -124,6 +124,12 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
                 matcher.group(1).toLongOrNull()?.let(quotes::add)
             }
         }
+        if (status.quotedStatusPermalink != null) {
+            links += status.quotedStatusPermalink.expandedURL
+        }
+        if (status.quotedStatusId > -1 && !quotes.contains(status.quotedStatusId)) {
+            quotes.add(status.quotedStatusId)
+        }
 
         status.mediaEntities.forEach { entity ->
             when (entity.type) {
