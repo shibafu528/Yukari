@@ -13,6 +13,7 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
+import shibafu.yukari.twitter.streaming.AutoReloadStream
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
 import shibafu.yukari.twitter.streaming.StreamUser
@@ -47,7 +48,7 @@ class TwitterStream : ProviderStream {
 
         val channelStates = service.database.getRecords(StreamChannelState::class.java)
         channels.forEach { ch ->
-            if (ch is UserStreamChannel && !ch.isRunning) {
+            if ((ch is UserStreamChannel || ch is AutoReloadChannel) && !ch.isRunning) {
                 val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
                 if (state != null && state.isActive) {
                     ch.start()
@@ -71,7 +72,7 @@ class TwitterStream : ProviderStream {
             return emptyList()
         }
 
-        val ch = listOf(UserStreamChannel(service, userRecord))
+        val ch = listOf(UserStreamChannel(service, userRecord), AutoReloadChannel(service, userRecord))
         channels += ch
         return ch
     }
@@ -180,6 +181,30 @@ private class FilterStreamChannel(private val service: TwitterService, override 
                 isRunning = false
             }
         }
+    }
+}
+
+private class AutoReloadChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+    override val channelId: String = "AutoReload"
+    override val channelName: String = "AutoReload (Home & Mentions)"
+    override val allowUserControl: Boolean = true
+    override var isRunning: Boolean = false
+        private set
+
+    private val stream: AutoReloadStream = AutoReloadStream(service.applicationContext, userRecord)
+
+    init {
+        stream.listener = StreamListener("TwitterStream.AutoReloadChannel", service.timelineHub)
+    }
+
+    override fun start() {
+        stream.start()
+        isRunning = true
+    }
+
+    override fun stop() {
+        stream.stop()
+        isRunning = false
     }
 }
 
