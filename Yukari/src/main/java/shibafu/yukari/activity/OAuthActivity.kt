@@ -464,11 +464,18 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun startRegisterNewProvider(instanceHostName: String) {
             val activity = activity as OAuthActivity
-            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(instanceHostName, null)
+
             object : ParallelAsyncTask<Void?, Void?, AppRegistration?>() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): AppRegistration? {
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(instanceHostName, null)
                     val apps = Apps(client)
                     try {
                         return apps.createApp(getString(R.string.app_name),
@@ -508,12 +515,19 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun startAuthorize(provider: Provider) {
             val activity = activity as OAuthActivity
-            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
             currentProvider = provider
+
             object : ParallelAsyncTask<Void?, Void?, String?>() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): String? {
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
                     val apps = Apps(client)
                     try {
                         return apps.getOAuthUrl(provider.consumerKey, Scope(Scope.Name.ALL), MASTODON_CALLBACK_URL)
@@ -548,12 +562,18 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun finishAuthorize(provider: Provider, authorizeCode: String) {
             val activity = activity as OAuthActivity
-            val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
 
             object : ParallelAsyncTask<Void?, Void?, Pair<MastodonAccessToken, Account>?>() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): Pair<MastodonAccessToken, Account>? {
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
                     val apps = Apps(client)
                     try {
                         val accessToken = apps.getAccessToken(provider.consumerKey,
