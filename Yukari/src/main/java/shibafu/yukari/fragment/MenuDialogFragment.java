@@ -135,44 +135,46 @@ public class MenuDialogFragment extends DialogFragment {
         if (activity.isKeepScreenOn()) {
             keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
         }
-        if (activity.isTwitterServiceBound()) {
-            class AccountsLoader extends SimpleAsyncTask {
-                @Override
-                protected Void doInBackground(Void... params) {
-                    MainActivity activity = (MainActivity) getActivity();
-                    try {
-                        if (!activity.isTwitterServiceBound()) {
-                            Thread.sleep(1000);
-                        }
-                    } catch (InterruptedException ignored) {}
 
-                    final ProviderStream[] streams = activity.getTwitterService().getProviderStreams();
-                    ArrayList<AuthUserRecord> actives = new ArrayList<>();
-                    for (ProviderStream stream : streams) {
-                        if (stream != null) {
-                            for (StreamChannel channel : stream.getChannels()) {
-                                final AuthUserRecord userRecord = channel.getUserRecord();
-                                if (channel.isRunning() && !actives.contains(userRecord)) {
-                                    actives.add(userRecord);
-                                }
+        class AccountsLoader extends SimpleAsyncTask {
+            @Override
+            protected Void doInBackground(Void... params) {
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity == null) {
+                    return null;
+                }
+                while (!activity.isTwitterServiceBound()) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException ignored) {}
+                }
+
+                final ProviderStream[] streams = activity.getTwitterService().getProviderStreams();
+                ArrayList<AuthUserRecord> actives = new ArrayList<>();
+                for (ProviderStream stream : streams) {
+                    if (stream != null) {
+                        for (StreamChannel channel : stream.getChannels()) {
+                            final AuthUserRecord userRecord = channel.getUserRecord();
+                            if (channel.isRunning() && !actives.contains(userRecord)) {
+                                actives.add(userRecord);
                             }
                         }
                     }
-                    activeAccounts = actives;
-
-                    return null;
                 }
+                activeAccounts = actives;
 
-                @Override
-                protected void onPostExecute(Void aVoid) {
-                    super.onPostExecute(aVoid);
-                    if (activeAccounts != null) {
-                        createAccountIconView();
-                    }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                if (activeAccounts != null && isResumed()) {
+                    createAccountIconView();
                 }
             }
-            new AccountsLoader().executeParallel();
         }
+        new AccountsLoader().executeParallel();
     }
 
     private void createAccountIconView() {
