@@ -1,6 +1,8 @@
 package shibafu.yukari.twitter.streaming
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import org.eclipse.collections.api.set.primitive.MutableLongSet
@@ -33,6 +35,8 @@ class AutoReloadStream(private val context: Context,
     }
 
     private inner class AutoReloadWorker : Runnable {
+        private val handler: Handler = Handler(Looper.getMainLooper())
+
         override fun run() {
             try {
                 var inFirstLoop = true
@@ -83,29 +87,36 @@ class AutoReloadStream(private val context: Context,
 
                         when (e.statusCode) {
                             429 -> {
-                                Toast.makeText(context,
-                                        String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後",
+                                showToast(String.format("[AutoReload:@%s]\nレートリミット超過\n次回リセット: %d分%d秒後",
                                                 user.ScreenName,
                                                 e.rateLimitStatus.secondsUntilReset / 60,
-                                                e.rateLimitStatus.secondsUntilReset % 60),
-                                        Toast.LENGTH_SHORT).show()
+                                                e.rateLimitStatus.secondsUntilReset % 60))
 
                                 Log.d(LOG_TAG, "Next after ${e.rateLimitStatus.secondsUntilReset} secs. user: @${user.ScreenName}")
                                 Thread.sleep(e.rateLimitStatus.secondsUntilReset * 1000L)
                             }
                             else -> {
-                                Toast.makeText(context,
-                                        String.format("[@%s]\n通信エラー: %d:%d\n%s",
+                                showToast(String.format("[AutoReload:@%s]\n通信エラー: %d:%d\n%s",
                                                 user.ScreenName,
                                                 e.statusCode,
                                                 e.errorCode,
-                                                e.errorMessage),
-                                        Toast.LENGTH_SHORT).show()
+                                                e.errorMessage))
 
                                 Log.d(LOG_TAG, "Next after 60 secs. user: @${user.ScreenName}")
                                 Thread.sleep(60000L)
                             }
                         }
+                    } catch (e: InterruptedException) {
+                        throw e
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+
+                        showToast(String.format("[AutoReload:@%s]\nエラーが発生しました\n%s",
+                                user.ScreenName,
+                                e.javaClass.simpleName))
+
+                        Log.d(LOG_TAG, "Next after 60 secs. user: @${user.ScreenName}")
+                        Thread.sleep(60000L)
                     }
                 }
             } catch (e: InterruptedException) {
@@ -118,6 +129,12 @@ class AutoReloadStream(private val context: Context,
                 return rateLimitStatus.secondsUntilReset / rateLimitStatus.remaining
             } else {
                 return lastWaitSeconds
+            }
+        }
+
+        private fun showToast(text: String) {
+            handler.post {
+                Toast.makeText(context.applicationContext, text, Toast.LENGTH_SHORT).show()
             }
         }
     }
