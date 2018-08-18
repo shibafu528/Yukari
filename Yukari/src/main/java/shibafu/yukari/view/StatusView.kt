@@ -181,6 +181,11 @@ abstract class StatusView : RelativeLayout {
                 append(" via ")
                 append(status.originStatus.source)
             }
+
+            if (status.metadata.isCensoredThumbs) {
+                append("\n")
+                append("[Thumbnail Muted]")
+            }
         }
     }
 

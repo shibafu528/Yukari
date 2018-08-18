@@ -28,15 +28,10 @@ class TweetView : StatusView {
         val originStatus = status.originStatus as TwitterStatus
         if (originStatus.status.geoLocation != null) {
             val geoLocation = originStatus.status.geoLocation
-            tvTimestamp.text = String.format("%s\nGeo: %f, %f",
-                    tvTimestamp.text,
+            tvTimestamp.text = String.format("Geo: %f, %f\n%s",
                     geoLocation.latitude,
-                    geoLocation.longitude)
-        }
-
-        // サムネイルミュートされているか表示
-        if (status.metadata.isCensoredThumbs) {
-            tvTimestamp.text = "${tvTimestamp.text}\n[Thumbnail Muted]"
+                    geoLocation.longitude,
+                    tvTimestamp.text)
         }
     }
 
