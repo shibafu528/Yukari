@@ -51,7 +51,8 @@ class QueryCompiler {
                         Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
                 ),
                 "trace" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Trace::class.java
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Trace::class.java,
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Trace::class.java
                 ),
                 "message" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.DirectMessage::class.java
