@@ -440,11 +440,22 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                     } catch (InterruptedException ignore) {}
                                 }
 
-                                final ProviderApi api = getTwitterService().getProviderApi(user);
+                                AuthUserRecord u;
+                                if (user == null) {
+                                    if (writers.isEmpty()) {
+                                        return null;
+                                    } else {
+                                        u = writers.get(0);
+                                    }
+                                } else {
+                                    u = user;
+                                }
+
+                                final ProviderApi api = getTwitterService().getProviderApi(u);
                                 if (api == null) {
                                     return null;
                                 }
-                                status = api.showStatus(user, inReplyTo);
+                                status = api.showStatus(u, inReplyTo);
                             } catch (ProviderApiException ignored) {}
                             return null;
                         }
