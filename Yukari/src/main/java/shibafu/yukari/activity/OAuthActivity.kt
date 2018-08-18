@@ -44,7 +44,6 @@ import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken as MastodonAccessToke
  * Created by Shibafu on 13/08/01.
  */
 class OAuthActivity : ActionBarYukariBase() {
-    private var serviceLatch: CountDownLatch? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,11 +55,6 @@ class OAuthActivity : ActionBarYukariBase() {
                     .replace(R.id.frame, fragment)
                     .commit()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        serviceLatch = CountDownLatch(1)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -101,10 +95,10 @@ class OAuthActivity : ActionBarYukariBase() {
 
             override fun doInBackground(vararg params: AccessToken): Boolean {
                 try {
-                    try {
-                        serviceLatch?.await()
-                    } catch (e: InterruptedException) {
-                        e.printStackTrace()
+                    while (!isTwitterServiceBound || twitterService.database == null) {
+                        try {
+                            Thread.sleep(100)
+                        } catch (ignored: InterruptedException) {}
                     }
 
                     val twitter = twitterService.getTwitterOrThrow(null)
@@ -124,11 +118,6 @@ class OAuthActivity : ActionBarYukariBase() {
                         }
                     }
 
-                    while (twitterService.database == null) {
-                        try {
-                            Thread.sleep(100)
-                        } catch (ignored: InterruptedException) {}
-                    }
                     val database = twitterService.database
                     database.addAccount(userRecord)
                     val user = twitter.showUser(accessToken.userId)
@@ -169,7 +158,6 @@ class OAuthActivity : ActionBarYukariBase() {
     }
 
     override fun onServiceConnected() {
-        serviceLatch?.countDown()
         Log.d("OAuthActivity", "Bound Service.")
     }
 
