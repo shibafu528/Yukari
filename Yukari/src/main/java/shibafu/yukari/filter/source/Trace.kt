@@ -1,13 +1,15 @@
 package shibafu.yukari.filter.source
 
 import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.linkage.RestQuery
+import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.twitter.AuthUserRecord
-import shibafu.yukari.twitter.TwitterRestQuery
 import shibafu.yukari.twitter.TwitterUtil
-import twitter4j.RateLimitStatus
-import twitter4j.ResponseList
+import shibafu.yukari.twitter.entity.TwitterStatus
 import twitter4j.Status
-import java.util.*
+import twitter4j.Twitter
+import twitter4j.TwitterException
+import shibafu.yukari.entity.Status as IStatus
 
 /**
  * In-Reply-Toで繋がっている会話を取得するためのフィルタソースです。
@@ -15,41 +17,33 @@ import java.util.*
 class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
     private val originId: Long = origin.toLongOrNull() ?: TwitterUtil.getStatusIdFromUrl(origin)
 
-    override fun getRestQuery() = TwitterRestQuery { twitter, paging ->
-        if (paging.maxId > -1) {
+    override fun getRestQuery() = object : RestQuery {
+        override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): kotlin.collections.List<IStatus> {
+            api as Twitter
+
             // ページングには応答しない
-            TraceResponseList()
-        } else {
-            val responses = arrayListOf<Status>()
-            var accessLevel = 0
-            var rateLimitStatus: RateLimitStatus? = null
-
-            // 辿れる限り遡って取得する
-            var searchId = originId
-            while (searchId > -1) {
-                val status = twitter.showStatus(searchId)
-                responses += status
-                accessLevel = status.accessLevel
-                rateLimitStatus = status.rateLimitStatus
-
-                searchId = status.inReplyToStatusId
+            if (params.maxId > -1) {
+                return emptyList()
             }
 
-            TraceResponseList(responses, accessLevel, rateLimitStatus)
+            try {
+                val responses = arrayListOf<Status>()
+
+                // 辿れる限り遡って取得する
+                var searchId = originId
+                while (searchId > -1) {
+                    val status = api.showStatus(searchId)
+                    responses += status
+
+                    searchId = status.inReplyToStatusId
+                }
+
+                return responses.map { TwitterStatus(it, userRecord) }
+            } catch (e: TwitterException) {
+                throw RestQueryException(e)
+            }
         }
     }
 
     override fun getStreamFilter() = ValueNode(false)
-
-    private class TraceResponseList(items: Collection<Status> = emptyList(),
-                                    private val _accessLevel: Int = 0,
-                                    private val _rateLimitStatus: RateLimitStatus? = null) : ArrayList<Status>(), ResponseList<Status> {
-        init {
-            addAll(items)
-        }
-
-        override fun getAccessLevel() = _accessLevel
-
-        override fun getRateLimitStatus() = _rateLimitStatus
-    }
 }

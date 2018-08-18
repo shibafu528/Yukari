@@ -19,6 +19,11 @@ class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : F
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
             api as MastodonClient
 
+            // ページングには応答しない
+            if (params.maxId > -1) {
+                return emptyList()
+            }
+
             try {
                 val statuses = Statuses(api)
                 val originId = origin.split("/").lastOrNull()?.toLongOrNull() ?: throw RestQueryException(RuntimeException("起点の指定フォーマットが不正です: $origin"))
