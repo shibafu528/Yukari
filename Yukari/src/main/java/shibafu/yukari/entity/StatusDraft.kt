@@ -48,7 +48,7 @@ data class StatusDraft(
             spoilerText = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_SPOILER_TEXT))
     ) {
         val attachedPictureString = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_ATTACHED_PICTURE))
-        if (attachedPictureString.isNotEmpty()) {
+        if (!attachedPictureString.isNullOrEmpty()) {
             attachedPictureString.split("|").forEach {
                 attachPictures.add(Uri.parse(it))
             }
