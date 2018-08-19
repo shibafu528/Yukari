@@ -52,7 +52,6 @@ class ChannelManageActivity : ActionBarYukariBase() {
 
     class ChannelListFragment : ListFragment(), TwitterServiceConnection.ServiceConnectionCallback {
         private lateinit var serviceDelegate: TwitterServiceDelegate
-        private var channelList: List<StreamChannel> = emptyList()
 
         override fun onAttach(context: Context?) {
             super.onAttach(context)
@@ -66,7 +65,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
         override fun onServiceDisconnected() {}
 
         override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
-            val channel = channelList[position]
+            val channel = listAdapter.getItem(position) as StreamChannel
             val userRecord = serviceDelegate.twitterService.users.first { it == channel.userRecord }
             val state = serviceDelegate.twitterService.database.getRecords(StreamChannelState::class.java,
                     CentralDatabase.COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " = ? AND " + CentralDatabase.COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " = ?",
@@ -84,11 +83,20 @@ class ChannelManageActivity : ActionBarYukariBase() {
         }
 
         private fun createList() {
-            channelList = serviceDelegate.twitterService.providerStreams
+            val channelList = serviceDelegate.twitterService.providerStreams
                     .flatMap { it?.channels ?: emptyList() }
                     .filter { it.allowUserControl }
-            val adapter = ChannelListAdapter(context, channelList)
-            listAdapter = adapter
+
+            var adapter = listAdapter as? ChannelListAdapter
+            if (adapter == null) {
+                adapter = ChannelListAdapter(context, channelList.toMutableList())
+                listAdapter = adapter
+            } else {
+                adapter.clear()
+                adapter.addAll(channelList)
+                // ArrayAdapterの内部で呼ばれてる？
+                //adapter.notifyDataSetChanged()
+            }
         }
 
         private class ChannelListAdapter(context: Context, list: List<StreamChannel>) : ArrayAdapter<StreamChannel>(context, 0, list) {
