@@ -12,6 +12,9 @@ repositories {
     maven {
         url "http://twitter4j.org/maven2"
     }
+    maven {
+        url "https://dl.bintray.com/shibafu528/maven"
+    }
 }
 
 ext {
@@ -73,7 +76,7 @@ dependencies {
             exclude group: 'org.twitter4j', module: 'twitter4j-core'
         }
     } else {
-        implementation 'info.shibafu528.yukari:yukari-exvoice:20180401.091215', {
+        implementation 'info.shibafu528.yukari:yukari-exvoice:20180820.221014', {
             exclude group: 'org.twitter4j', module: 'twitter4j-core'
         }
     }
