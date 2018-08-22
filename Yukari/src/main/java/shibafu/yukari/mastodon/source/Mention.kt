@@ -1,6 +1,7 @@
 package shibafu.yukari.mastodon.source
 
 import com.sys1yagi.mastodon4j.api.Pageable
+import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.method.Notifications
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
@@ -18,7 +19,8 @@ import shibafu.yukari.twitter.AuthUserRecord
  */
 class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
-        Notifications(client).getNotifications(range, listOf("follow", "favourite", "reblog")).execute().let {
+        val excludeTypes = listOf(Notification.Type.Follow, Notification.Type.Favourite, Notification.Type.Reblog)
+        Notifications(client).getNotifications(range, excludeTypes).execute().let {
             Pageable(it.part.filter { it.type == "mention" }.mapNotNull { it.status }, it.link)
         }
     }
