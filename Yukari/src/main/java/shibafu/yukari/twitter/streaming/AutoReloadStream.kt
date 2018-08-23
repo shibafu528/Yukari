@@ -92,8 +92,9 @@ class AutoReloadStream(private val context: Context,
                                                 e.rateLimitStatus.secondsUntilReset / 60,
                                                 e.rateLimitStatus.secondsUntilReset % 60))
 
-                                Log.d(LOG_TAG, "Next after ${e.rateLimitStatus.secondsUntilReset} secs. user: @${user.ScreenName}")
-                                Thread.sleep(e.rateLimitStatus.secondsUntilReset * 1000L)
+                                val waitSeconds = maxOf(e.rateLimitStatus.secondsUntilReset, 60)
+                                Log.d(LOG_TAG, "Next after $waitSeconds secs. user: @${user.ScreenName}")
+                                Thread.sleep(waitSeconds * 1000L)
                             }
                             else -> {
                                 showToast(String.format("[AutoReload:@%s]\n通信エラー: %d:%d\n%s",
