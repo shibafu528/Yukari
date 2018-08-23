@@ -242,7 +242,9 @@ public class StatusManager implements Releasable {
         if (sharedPreferences.getBoolean("pref_replace_auto_reload_stream", false)) {
             su = new AutoReloadStream(context, userRecord);
         } else {
-            su = new StreamUser(context, userRecord);
+            // R.I.P. UserStream (2018/08/24 0:00 JST)
+            //su = new StreamUser(context, userRecord);
+            return;
         }
         su.setListener(listener);
         streamUsers.add(su);
