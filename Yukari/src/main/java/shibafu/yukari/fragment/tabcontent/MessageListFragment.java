@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.Toast;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.factory.primitive.LongSets;
@@ -390,8 +391,15 @@ public class MessageListFragment extends TwitterListFragment<DirectMessage>
                 // Compatクラスに変換しながらリスト化
                 List<DirectMessage> response = new ArrayList<>();
                 for (DirectMessage message : responseList) {
-                    response.add(new DirectMessageCompat(message,
-                            users.get(message.getSenderId()), users.get(message.getRecipientId())));
+                    User sender = users.get(message.getSenderId());
+                    User recipient = users.get(message.getRecipientId());
+                    if (sender != null && recipient != null) {
+                        response.add(new DirectMessageCompat(message, sender, recipient));
+                    } else {
+                        Log.w("MessageRESTLoader",
+                                String.format("Sender or Recipient is not found. DROP! MessageID = %d, SenderID = %d, RecipientID = %d",
+                                        message.getId(), message.getSenderId(), message.getRecipientId()));
+                    }
                 }
 
                 return response;
