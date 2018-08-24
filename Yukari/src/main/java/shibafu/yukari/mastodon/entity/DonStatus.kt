@@ -13,6 +13,7 @@ import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.media2.Media
+import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.twitter.AuthUserRecord
 import java.util.*
@@ -134,7 +135,12 @@ class DonStatus(val status: Status,
         content.select("a:not(.mention)").forEach { element ->
             val href = element.attr("href")
             if (!href.isNullOrEmpty()) {
-                links += href
+                val m = MediaFactory.newInstance(href)
+                if (m != null) {
+                    media += m
+                } else {
+                    links += href
+                }
             }
         }
 
