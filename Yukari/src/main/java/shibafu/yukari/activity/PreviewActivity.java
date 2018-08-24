@@ -244,7 +244,7 @@ public class PreviewActivity extends ActionBarYukariBase {
         final Media media = MediaFactory.newInstance(mediaUrl);
 
         //とりあえず念のため見ておくか
-        if (mediaUrl == null) {
+        if (mediaUrl == null || media == null) {
             Toast.makeText(PreviewActivity.this, "画像の読み込みに失敗しました", Toast.LENGTH_LONG).show();
             finish();
             return;
