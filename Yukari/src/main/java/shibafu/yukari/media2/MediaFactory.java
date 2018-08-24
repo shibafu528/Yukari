@@ -1,5 +1,6 @@
 package shibafu.yukari.media2;
 
+import android.net.Uri;
 import shibafu.yukari.media2.impl.D250g2;
 import shibafu.yukari.media2.impl.Gyazo;
 import shibafu.yukari.media2.impl.Imgly;
@@ -88,9 +89,12 @@ public class MediaFactory {
             } else if (Irasutoya.URL_PATTERN.matcher(browseUrl).find()) {
                 media = new Irasutoya(browseUrl);
             } else {
-                String lc = browseUrl.toLowerCase();
-                if (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png") || lc.endsWith(".gif")) {
-                    media = new SimplePicture(browseUrl);
+                String lastSegment = Uri.parse(browseUrl).getLastPathSegment();
+                if (lastSegment != null) {
+                    String lc = lastSegment.toLowerCase();
+                    if (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png") || lc.endsWith(".gif")) {
+                        media = new SimplePicture(browseUrl);
+                    }
                 }
             }
         }
