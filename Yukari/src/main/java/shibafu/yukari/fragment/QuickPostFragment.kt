@@ -83,6 +83,7 @@ class QuickPostFragment : Fragment() {
             if (event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER) {
                 imm.hideSoftInputFromWindow(v.windowToken, 0)
                 postTweet()
+                return@setOnKeyListener true
             }
             false
         }
