@@ -50,10 +50,10 @@ class QuickPostFragment : Fragment() {
             }
         }
 
-    private val ibCloseTweet by lazy { view?.findViewById(R.id.ibCloseTweet) as ImageButton }
-    private val ibSelectAccount by lazy { view?.findViewById(R.id.ibAccount) as ImageButton }
-    private val ibTweet by lazy { view?.findViewById(R.id.ibTweet) as ImageButton }
-    private val etTweet by lazy { view?.findViewById(R.id.etTweetInput) as EditText }
+    private lateinit var ibCloseTweet: ImageButton
+    private lateinit var ibSelectAccount: ImageButton
+    private lateinit var ibTweet: ImageButton
+    private lateinit var etTweet: EditText
     private val imm by lazy { context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -64,8 +64,13 @@ class QuickPostFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater?.inflate(R.layout.fragment_quickpost, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val v = inflater.inflate(R.layout.fragment_quickpost, container, false)
+        ibCloseTweet = v.findViewById(R.id.ibCloseTweet) as ImageButton
+        ibSelectAccount = v.findViewById(R.id.ibAccount) as ImageButton
+        ibTweet = v.findViewById(R.id.ibTweet) as ImageButton
+        etTweet = v.findViewById(R.id.etTweetInput) as EditText
+        return v
     }
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
