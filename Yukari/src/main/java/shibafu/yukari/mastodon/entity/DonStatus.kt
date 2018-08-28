@@ -114,54 +114,59 @@ class DonStatus(val status: Status,
             }
         }
 
-        val textContent = StringBuilder()
-        if (status.spoilerText.isNotEmpty()) {
-            textContent.append(status.spoilerText)
-        }
+        if (isRepost) {
+            text = originStatus.text
+        } else {
+            val textContent = StringBuilder()
 
-        val xppFactory = XmlPullParserFactory.newInstance().apply {
-            isValidating = false
-            setFeature(Xml.FEATURE_RELAXED, true)
-        }
-        val xpp = xppFactory.newPullParser()
-        xpp.setInput(StringReader(status.content))
+            if (status.spoilerText.isNotEmpty()) {
+                textContent.append(status.spoilerText)
+            }
 
-        var eventType = xpp.eventType
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            when (eventType) {
-                XmlPullParser.START_TAG -> {
-                    when (xpp.name) {
-                        "br" -> textContent.append("\n")
-                        "p" -> {
-                            // spoilerの直後、または2つ目以降の段落開始前。空行を差し込む。
-                            if (textContent.isNotEmpty()) {
-                                textContent.append("\n\n")
+            val xppFactory = XmlPullParserFactory.newInstance().apply {
+                isValidating = false
+                setFeature(Xml.FEATURE_RELAXED, true)
+            }
+            val xpp = xppFactory.newPullParser()
+            xpp.setInput(StringReader(status.content))
+
+            var eventType = xpp.eventType
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        when (xpp.name) {
+                            "br" -> textContent.append("\n")
+                            "p" -> {
+                                // spoilerの直後、または2つ目以降の段落開始前。空行を差し込む。
+                                if (textContent.isNotEmpty()) {
+                                    textContent.append("\n\n")
+                                }
                             }
-                        }
-                        "a" -> {
-                            val classes = xpp.getAttributeValue(null, "class") ?: ""
-                            // not(.mention) -> 通常のリンクとして処理
-                            if (!classes.contains("mention")) {
-                                val href = xpp.getAttributeValue(null, "href")
-                                if (!href.isNullOrEmpty()) {
-                                    val m = MediaFactory.newInstance(href)
-                                    if (m != null) {
-                                        media += m
-                                    } else {
-                                        links += href
+                            "a" -> {
+                                val classes = xpp.getAttributeValue(null, "class") ?: ""
+                                // not(.mention) -> 通常のリンクとして処理
+                                if (!classes.contains("mention")) {
+                                    val href = xpp.getAttributeValue(null, "href")
+                                    if (!href.isNullOrEmpty()) {
+                                        val m = MediaFactory.newInstance(href)
+                                        if (m != null) {
+                                            media += m
+                                        } else {
+                                            links += href
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    XmlPullParser.TEXT -> textContent.append(xpp.text)
                 }
-                XmlPullParser.TEXT -> textContent.append(xpp.text)
+
+                eventType = xpp.next()
             }
 
-            eventType = xpp.next()
+            text = textContent.toString()
         }
-
-        text = textContent.toString()
 
         this.media = media.toList()
         this.links = links.toList()
