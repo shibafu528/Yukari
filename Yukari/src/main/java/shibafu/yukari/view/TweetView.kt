@@ -40,6 +40,13 @@ class TweetView : StatusView {
 
         val status = status as TwitterStatus
 
+        // 鍵垢アイコンの表示
+        if (status.originStatus.user.isProtected) {
+            ivProtected.visibility = View.VISIBLE
+        } else {
+            ivProtected.visibility = View.GONE
+        }
+
         // ふぁぼアイコンの表示
         if (status.originStatus.isFavoritedSomeone()) {
             ivFavorited.visibility = View.VISIBLE

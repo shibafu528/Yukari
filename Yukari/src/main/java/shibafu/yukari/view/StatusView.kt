@@ -233,12 +233,6 @@ abstract class StatusView : RelativeLayout {
     protected open fun updateIndicator() {
         val status = status ?: return
 
-        if (status.originStatus.user.isProtected) {
-            ivProtected.visibility = View.VISIBLE
-        } else {
-            ivProtected.visibility = View.GONE
-        }
-
         // 受信アカウントカラーの設定
         ivAccountColor.setBackgroundColor(status.representUser.AccountColor)
     }
