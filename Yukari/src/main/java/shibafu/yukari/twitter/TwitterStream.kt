@@ -74,7 +74,7 @@ class TwitterStream : ProviderStream {
             return emptyList()
         }
 
-        val ch = listOf(UserStreamChannel(service, userRecord), AutoReloadChannel(service, userRecord))
+        val ch = listOf(AutoReloadChannel(service, userRecord))
         channels += ch
         return ch
     }
