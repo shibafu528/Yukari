@@ -39,11 +39,10 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
                 }
 
                 val users = api.lookupUsers(*messages.flatMap { listOf(it.senderId, it.recipientId) }.distinct().toLongArray()).toSortedSet()
-                val responseList: MutableList<Status> = messages.map { dm ->
-                    TwitterMessage(dm,
-                            users.first { u -> u.id == dm.senderId },
-                            users.first { u -> u.id == dm.recipientId },
-                            userRecord)
+                val responseList: MutableList<Status> = messages.mapNotNull { dm ->
+                    val sender = users.firstOrNull { u -> u.id == dm.senderId } ?: return@mapNotNull null
+                    val recipient = users.firstOrNull { u -> u.id == dm.recipientId } ?: return@mapNotNull null
+                    TwitterMessage(dm, sender, recipient, userRecord)
                 }.toMutableList()
 
                 if (params.appendLoadMarker && !messages.nextCursor.isNullOrEmpty()) {
