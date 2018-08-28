@@ -3,11 +3,11 @@ package shibafu.yukari.mastodon.entity
 import android.os.Parcel
 import android.os.Parcelable
 import android.text.format.Time
+import android.util.Xml
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.safety.Whitelist
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
@@ -16,6 +16,7 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.twitter.AuthUserRecord
+import java.io.StringReader
 import java.util.*
 import kotlin.collections.LinkedHashSet
 import shibafu.yukari.entity.Status as IStatus
@@ -101,26 +102,7 @@ class DonStatus(val status: Status,
         }
     }
 
-    private fun Document.plainText(): String {
-        // https://stackoverflow.com/a/19602313
-        val doc = this.clone()
-        val outputSettings = Document.OutputSettings().prettyPrint(false)
-        doc.outputSettings(outputSettings)
-        doc.select("br").append("\\n")
-        doc.select("p").append("\\n\\n")
-        val s = doc.html().replace("\\n", "\n")
-        return Jsoup.clean(s, "", Whitelist.none(), outputSettings).trim('\n')
-    }
-
     init {
-        val content = Jsoup.parse(status.content)
-
-        if (status.spoilerText.isNotEmpty()) {
-            text = status.spoilerText + "\n\n" + content.plainText()
-        } else {
-            text = content.plainText()
-        }
-
         val media = LinkedHashSet<Media>()
         val links = LinkedHashSet<String>()
 
@@ -132,17 +114,54 @@ class DonStatus(val status: Status,
             }
         }
 
-        content.select("a:not(.mention)").forEach { element ->
-            val href = element.attr("href")
-            if (!href.isNullOrEmpty()) {
-                val m = MediaFactory.newInstance(href)
-                if (m != null) {
-                    media += m
-                } else {
-                    links += href
-                }
-            }
+        val textContent = StringBuilder()
+        if (status.spoilerText.isNotEmpty()) {
+            textContent.append(status.spoilerText)
         }
+
+        val xppFactory = XmlPullParserFactory.newInstance().apply {
+            isValidating = false
+            setFeature(Xml.FEATURE_RELAXED, true)
+        }
+        val xpp = xppFactory.newPullParser()
+        xpp.setInput(StringReader(status.content))
+
+        var eventType = xpp.eventType
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (xpp.name) {
+                        "br" -> textContent.append("\n")
+                        "p" -> {
+                            // spoilerの直後、または2つ目以降の段落開始前。空行を差し込む。
+                            if (textContent.isNotEmpty()) {
+                                textContent.append("\n\n")
+                            }
+                        }
+                        "a" -> {
+                            val classes = xpp.getAttributeValue(null, "class") ?: ""
+                            // not(.mention) -> 通常のリンクとして処理
+                            if (!classes.contains("mention")) {
+                                val href = xpp.getAttributeValue(null, "href")
+                                if (!href.isNullOrEmpty()) {
+                                    val m = MediaFactory.newInstance(href)
+                                    if (m != null) {
+                                        media += m
+                                    } else {
+                                        links += href
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                XmlPullParser.TEXT -> textContent.append(xpp.text)
+            }
+
+            eventType = xpp.next()
+        }
+
+        text = textContent.toString()
 
         this.media = media.toList()
         this.links = links.toList()
