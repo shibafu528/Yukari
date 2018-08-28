@@ -103,20 +103,22 @@ class DonStatus(val status: Status,
     }
 
     init {
-        val media = LinkedHashSet<Media>()
-        val links = LinkedHashSet<String>()
-
-        status.mediaAttachments.forEach { attachment ->
-            // TODO: videoとかgifvとかは...?
-            when (attachment.type) {
-                "image" -> media += DonPicture(attachment)
-                else -> links += attachment.remoteUrl ?: attachment.url
-            }
-        }
-
         if (isRepost) {
             text = originStatus.text
+            media = originStatus.media
+            links = originStatus.links
         } else {
+            val media = LinkedHashSet<Media>()
+            val links = LinkedHashSet<String>()
+
+            status.mediaAttachments.forEach { attachment ->
+                // TODO: videoとかgifvとかは...?
+                when (attachment.type) {
+                    "image" -> media += DonPicture(attachment)
+                    else -> links += attachment.remoteUrl ?: attachment.url
+                }
+            }
+
             val textContent = StringBuilder()
 
             if (status.spoilerText.isNotEmpty()) {
@@ -166,10 +168,10 @@ class DonStatus(val status: Status,
             }
 
             text = textContent.toString()
-        }
 
-        this.media = media.toList()
-        this.links = links.toList()
+            this.media = media.toList()
+            this.links = links.toList()
+        }
 
         metadata.isCensoredThumbs = status.isSensitive
     }
