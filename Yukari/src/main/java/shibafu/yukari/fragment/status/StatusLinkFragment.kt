@@ -128,6 +128,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         // 発言者の情報
         if (!existsUserId.contains(status.originStatus.user.id)) {
             list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
+            existsUserId += status.originStatus.user.id
         }
 
         // メンション先の情報
@@ -137,6 +138,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
             }
 
             list += UserRow(mention.id, mention.screenName)
+            existsUserId += mention.id
         }
 
         listAdapter = RowAdapter(activity, list)
