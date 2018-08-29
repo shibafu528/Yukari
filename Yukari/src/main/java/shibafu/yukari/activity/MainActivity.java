@@ -48,12 +48,14 @@ import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
+import shibafu.yukari.filter.source.FilterSource;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.StreamToggleable;
+import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.service.TwitterService;
@@ -664,20 +666,42 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private void startTweetActivity() {
         Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
-        if (sharedPreferences.getBoolean("pref_use_binded_user", false)
-                && currentPage instanceof DefaultTweetListFragment) {
-            DefaultTweetListFragment current = (DefaultTweetListFragment) this.currentPage;
-            if (current.getBoundUsers().size() == 1) {
-                switch (current.getMode()) {
-                    case TabType.TABTYPE_HOME:
-                    case TabType.TABTYPE_MENTION:
-                    case TabType.TABTYPE_DM:
-                    case TabType.TABTYPE_LIST:
-                        intent.putExtra(TweetActivity.EXTRA_USER, current.getCurrentUser());
-                        break;
+        if (sharedPreferences.getBoolean("pref_use_binded_user", false))
+            if (currentPage instanceof TimelineFragment) {
+                TimelineFragment current = (TimelineFragment) this.currentPage;
+
+                AuthUserRecord userRecord = null;
+                List<FilterSource> sources = current.getQuery().getSources();
+                for (FilterSource source : sources) {
+                    AuthUserRecord sourceAccount = source.getSourceAccount();
+                    if (sourceAccount != null) {
+                        if (userRecord == null) {
+                            userRecord = sourceAccount;
+                        } else if (userRecord.InternalId != sourceAccount.InternalId) {
+                            // 単一のアカウントに絞りこめない場合、この機能は発動させない
+                            // (過去にシングルアカウントTLでのみ有効であったことに由来する互換措置)
+                            userRecord = null;
+                            break;
+                        }
+                    }
+                }
+
+                if (userRecord != null) {
+                    intent.putExtra(TweetActivity.EXTRA_USER, userRecord);
+                }
+            } else if (currentPage instanceof DefaultTweetListFragment) {
+                DefaultTweetListFragment current = (DefaultTweetListFragment) this.currentPage;
+                if (current.getBoundUsers().size() == 1) {
+                    switch (current.getMode()) {
+                        case TabType.TABTYPE_HOME:
+                        case TabType.TABTYPE_MENTION:
+                        case TabType.TABTYPE_DM:
+                        case TabType.TABTYPE_LIST:
+                            intent.putExtra(TweetActivity.EXTRA_USER, current.getCurrentUser());
+                            break;
+                    }
                 }
             }
-        }
         startActivity(intent);
     }
 
