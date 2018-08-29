@@ -16,7 +16,6 @@ import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.streaming.AutoReloadStream
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
-import shibafu.yukari.twitter.streaming.StreamUser
 import shibafu.yukari.util.StringUtil
 import twitter4j.DirectMessage
 import twitter4j.Status
@@ -50,7 +49,7 @@ class TwitterStream : ProviderStream {
 
         val channelStates = service.database.getRecords(StreamChannelState::class.java)
         channels.forEach { ch ->
-            if ((ch is UserStreamChannel || ch is AutoReloadChannel) && !ch.isRunning) {
+            if (ch is AutoReloadChannel && !ch.isRunning) {
                 val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
                 if (state != null && state.isActive) {
                     ch.start()
@@ -111,31 +110,6 @@ class TwitterStream : ProviderStream {
 
     companion object {
         private const val LOG_TAG = "TwitterStream"
-    }
-}
-
-private class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
-    override val channelId: String = "UserStream"
-    override val channelName: String = "UserStream"
-    override val allowUserControl: Boolean = true
-    override var isRunning: Boolean = false
-        private set
-
-    private val stream: StreamUser = StreamUser(service.applicationContext, userRecord)
-
-    init {
-        stream.listener = StreamListener("TwitterStream.UserStreamChannel",
-                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
-    }
-
-    override fun start() {
-        stream.start()
-        isRunning = true
-    }
-
-    override fun stop() {
-        stream.stop()
-        isRunning = false
     }
 }
 
