@@ -35,6 +35,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
 
@@ -357,23 +358,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
     private inner class UserRow(val id: Long, val screenName: String, val user: User? = null) : Row {
         override var icon: Drawable? = ResourcesCompat.getDrawable(resources, R.drawable.yukatterload, null)
         override val label: String = "@" + screenName
-        override val actions: List<ExtraAction> = listOf(
-                ExtraAction(null, "返信", {
-                    Intent(activity, TweetActivity::class.java).apply {
-                        putExtra(TweetActivity.EXTRA_USER, userRecord)
-                        putExtra(TweetActivity.EXTRA_TEXT, "@" + screenName + " ")
-                        putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-                    }
-                }),
-                ExtraAction(null, "DMを送る", {
-                    Intent(activity, TweetActivity::class.java).apply {
-                        putExtra(TweetActivity.EXTRA_USER, userRecord)
-                        putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
-                        putExtra(TweetActivity.EXTRA_IN_REPLY_TO, id)
-                        putExtra(TweetActivity.EXTRA_DM_TARGET_SN, screenName)
-                    }
-                })
-        )
+        override val actions: List<ExtraAction>
 
         init {
             if (user != null) {
@@ -383,6 +368,28 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                         (listAdapter as RowAdapter).notifyDataSetChanged()
                     }
                 })
+            }
+
+            val replyAction = ExtraAction(null, "返信") {
+                Intent(activity, TweetActivity::class.java).apply {
+                    putExtra(TweetActivity.EXTRA_USER, userRecord)
+                    putExtra(TweetActivity.EXTRA_TEXT, "@" + screenName + " ")
+                    putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+                }
+            }
+
+            if (user is TwitterUser) {
+                val dmAction = ExtraAction(null, "DMを送る") {
+                    Intent(activity, TweetActivity::class.java).apply {
+                        putExtra(TweetActivity.EXTRA_USER, userRecord)
+                        putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
+                        putExtra(TweetActivity.EXTRA_IN_REPLY_TO, id)
+                        putExtra(TweetActivity.EXTRA_DM_TARGET_SN, screenName)
+                    }
+                }
+                actions = listOf(replyAction, dmAction)
+            } else {
+                actions = listOf(replyAction)
             }
         }
 
