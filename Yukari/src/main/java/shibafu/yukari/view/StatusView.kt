@@ -363,7 +363,9 @@ abstract class StatusView : RelativeLayout {
                 //                `23:00-59    `12:00-59      `00:00-59
                 hidden = selectedFlags and (1 shl Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) != 0
             }
-            hidden = hidden or status.originStatus.metadata.isCensoredThumbs
+            if (!pref.getBoolean("pref_prev_ignore_censored", false)) {
+                hidden = hidden or status.originStatus.metadata.isCensoredThumbs
+            }
 
             if (!hidden || pref.getBoolean("pref_prev_mosaic", false)) {
                 val mediaList = status.originStatus.media

@@ -79,6 +79,10 @@
             android:title="サムネイルのモザイク加工"
             android:summary="サムネイルを非表示にする代わりにモザイク化して表示します"
             android:defaultValue="true"/>
+        <CheckBoxPreference
+            android:key="pref_prev_ignore_censored"
+            android:title="メディアの閲覧注意フラグを無視"
+            android:summary="ツイートに含まれるメディアに対して閲覧注意フラグが設定されていても、サムネイルを隠さないようにします"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ツイート詳細画面">
         <CheckBoxPreference
