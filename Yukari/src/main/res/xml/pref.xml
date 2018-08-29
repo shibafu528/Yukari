@@ -111,7 +111,7 @@
         <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能">
             <intent
                 android:action="android.intent.action.VIEW"
-                android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD"/>
+                android:data="https://github.com/shibafu528/Yukari/wiki/%E5%AD%98%E5%9C%A8%E3%81%8C%E5%88%86%E3%81%8B%E3%82%8A%E3%81%AB%E3%81%8F%E3%81%84%E6%A9%9F%E8%83%BD"/>
         </Preference>
         <Preference android:key="pref_about_feedback" android:title="作者に連絡"/>
     </PreferenceCategory>

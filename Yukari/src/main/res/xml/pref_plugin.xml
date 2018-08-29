@@ -28,7 +28,7 @@
     <Preference android:key="pref_exvoice_document" android:title="Y4a Wiki - プラグインについて">
         <intent
             android:action="android.intent.action.VIEW"
-            android:data="https://bitbucket.org/shibafu528/yukari-for-android/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"/>
+            android:data="https://github.com/shibafu528/Yukari/wiki/%E3%83%97%E3%83%A9%E3%82%B0%E3%82%A4%E3%83%B3%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6"/>
     </Preference>
     <Preference android:key="pref_exvoice_version" android:title="ライブラリバージョン情報"/>
 </PreferenceScreen>
