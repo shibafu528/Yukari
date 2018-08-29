@@ -213,6 +213,13 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
             intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
             startActivity(intent)
         }
+
+        override fun onLongClick(): Boolean {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl))
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            return true
+        }
     }
 
     private inner class LinkRow(val url: String) : Row {
