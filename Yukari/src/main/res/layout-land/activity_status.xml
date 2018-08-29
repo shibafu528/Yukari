@@ -26,7 +26,7 @@
             android:paddingRight="10dp"
             android:paddingTop="12dp">
 
-            <shibafu.yukari.view.TweetView
+            <FrameLayout
                 android:id="@+id/status_tweet"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
