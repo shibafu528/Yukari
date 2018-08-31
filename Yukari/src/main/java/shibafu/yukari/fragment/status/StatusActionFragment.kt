@@ -3,6 +3,8 @@ package shibafu.yukari.fragment.status
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -11,7 +13,6 @@ import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.DialogFragment
-import android.text.ClipboardManager
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -60,8 +61,8 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("パーマリンクをコピー") {
-                (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                        .text = status.originStatus.url
+                val cm = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.primaryClip = ClipData.newPlainText("", status.originStatus.url)
                 showToast("リンクをコピーしました")
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
