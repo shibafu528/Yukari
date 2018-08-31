@@ -54,16 +54,16 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
     private val itemTemplates: List<Pair<StatusAction, () -> Boolean>> = listOf(
             Action("ブラウザで開く") {
                 startActivity(Intent.createChooser(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(status.url))
+                        Intent(Intent.ACTION_VIEW, Uri.parse(status.originStatus.url))
                                 .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                         null))
-            } visibleWhen { status.url != null },
+            } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("パーマリンクをコピー") {
                 (activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-                        .text = status.url
+                        .text = status.originStatus.url
                 showToast("リンクをコピーしました")
-            } visibleWhen { status.url != null },
+            } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("ブックマークに追加") {
                 twitterService.database.updateRecord(Bookmark((status as TwitterStatus).status as PreformedStatus))
