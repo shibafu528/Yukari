@@ -6,6 +6,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import org.eclipse.collections.api.set.primitive.MutableLongSet;
+import org.eclipse.collections.impl.factory.primitive.LongSets;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.FilterQuery;
 import twitter4j.Status;
@@ -31,6 +33,8 @@ public class FilterStream extends Stream{
     private static final Map<AuthUserRecord, FilterStream> instances = new HashMap<>();
 
     private List<ParsedQuery> queries = new ArrayList<>();
+    private MutableLongSet follows = LongSets.mutable.empty();
+
     private StatusAdapter statusListener = new StatusAdapter() {
         @Override
         public void onStatus(Status status) {
@@ -62,15 +66,20 @@ public class FilterStream extends Stream{
     }
 
     public void start() {
-        Log.d(LOG_TAG, String.format("Start FilterStream query: %s / user: @%s", getQuery(), getUserRecord().ScreenName));
-        stream.filter(new FilterQuery().track(getQueryArray()));
+        Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
+        stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
     }
 
     public void stop() {
-        Log.d(LOG_TAG, String.format("Shutdown FilterStream query: %s / user: @%s", getQuery(), getUserRecord().ScreenName));
+        Log.d(LOG_TAG, String.format("Shutdown FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
         stream.shutdown();
     }
 
+    public boolean hasAnyParams() {
+        return queries.size() > 0 || follows.size() > 0;
+    }
+
+    //<editor-fold desc="Track">
     public String getQuery() {
         StringBuilder sb = new StringBuilder();
         for (ParsedQuery query : queries) {
@@ -123,6 +132,25 @@ public class FilterStream extends Stream{
     public int getQueryCount() {
         return queries.size();
     }
+    //</editor-fold>
+
+    //<editor-fold desc="Follow">
+    public void addFollowId(long id) {
+        follows.add(id);
+    }
+
+    public void addFollowIds(long... id) {
+        follows.addAll(id);
+    }
+
+    public void removeFollowId(long id) {
+        follows.remove(id);
+    }
+
+    public void clearFollowId() {
+        follows.clear();
+    }
+    //</editor-fold>
 
     @Override
     protected String getStreamType() {
