@@ -32,6 +32,7 @@ public class FilterStream extends Stream{
     private static final String LOG_TAG = "FilterStream";
     private static final Map<AuthUserRecord, FilterStream> instances = new HashMap<>();
 
+    private boolean isRunning = false;
     private List<ParsedQuery> queries = new ArrayList<>();
     private MutableLongSet follows = LongSets.mutable.empty();
 
@@ -68,15 +69,21 @@ public class FilterStream extends Stream{
     public void start() {
         Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
         stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
+        isRunning = true;
     }
 
     public void stop() {
         Log.d(LOG_TAG, String.format("Shutdown FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
         stream.shutdown();
+        isRunning = false;
     }
 
     public boolean hasAnyParams() {
         return queries.size() > 0 || follows.size() > 0;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
     }
 
     //<editor-fold desc="Track">
@@ -115,7 +122,9 @@ public class FilterStream extends Stream{
             return false;
         }
 
-        return queries.add(new ParsedQuery(query));
+        boolean result = queries.add(new ParsedQuery(query));
+        restartInternal();
+        return result;
     }
 
     public boolean removeQuery(@NonNull String query) {
@@ -123,6 +132,7 @@ public class FilterStream extends Stream{
             ParsedQuery parsedQuery = iterator.next();
             if (query.equals(parsedQuery.getQuery())) {
                 iterator.remove();
+                restartInternal();
                 return true;
             }
         }
@@ -137,18 +147,22 @@ public class FilterStream extends Stream{
     //<editor-fold desc="Follow">
     public void addFollowId(long id) {
         follows.add(id);
+        restartInternal();
     }
 
     public void addFollowIds(long... id) {
         follows.addAll(id);
+        restartInternal();
     }
 
     public void removeFollowId(long id) {
         follows.remove(id);
+        restartInternal();
     }
 
     public void clearFollowId() {
         follows.clear();
+        restartInternal();
     }
     //</editor-fold>
 
@@ -162,6 +176,15 @@ public class FilterStream extends Stream{
         Intent intent = super.createBroadcast(action);
         intent.putExtra(EXTRA_FILTER_QUERY, getQuery());
         return intent;
+    }
+
+    private void restartInternal() {
+        if (isRunning) {
+            stop();
+        }
+        if (hasAnyParams()) {
+            start();
+        }
     }
 
     public static class ParsedQuery implements Parcelable {
