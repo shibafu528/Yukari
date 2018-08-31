@@ -40,14 +40,14 @@
 
                 <shibafu.yukari.common.SelectorView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     app:on_pressed="?attr/colorPrimaryDark"
                     app:on_focused="?attr/colorPrimaryDark">
 
                     <TextView
                         android:id="@+id/tvMainTab"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:layout_gravity="center_vertical"
                         android:clickable="true"
                         android:ellipsize="end"
