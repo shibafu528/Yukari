@@ -20,9 +20,7 @@ public class YukariApplication extends Application {
 
         try {
             ProviderInstaller.installIfNeeded(this);
-        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e) {
-            e.printStackTrace();
-        }
+        } catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException ignore) {}
 
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_disable_ipv6", false)) {
             java.lang.System.setProperty("java.net.preferIPv4Stack", "true");
