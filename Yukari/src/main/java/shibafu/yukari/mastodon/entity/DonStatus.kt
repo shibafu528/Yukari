@@ -130,7 +130,7 @@ class DonStatus(val status: Status,
                 setFeature(Xml.FEATURE_RELAXED, true)
             }
             val xpp = xppFactory.newPullParser()
-            xpp.setInput(StringReader(status.content))
+            xpp.setInput(StringReader("<div>" + status.content + "</div>"))
 
             var eventType = xpp.eventType
             while (eventType != XmlPullParser.END_DOCUMENT) {
