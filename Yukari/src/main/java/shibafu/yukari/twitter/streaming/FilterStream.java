@@ -6,6 +6,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import org.eclipse.collections.api.set.primitive.LongSet;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.factory.primitive.LongSets;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -15,6 +16,7 @@ import twitter4j.StatusAdapter;
 import twitter4j.StatusDeletionNotice;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -67,13 +69,13 @@ public class FilterStream extends Stream{
     }
 
     public void start() {
-        Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
+        Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQueryString(), getUserRecord().ScreenName));
         stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
         isRunning = true;
     }
 
     public void stop() {
-        Log.d(LOG_TAG, String.format("Shutdown FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQuery(), getUserRecord().ScreenName));
+        Log.d(LOG_TAG, String.format("Shutdown FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQueryString(), getUserRecord().ScreenName));
         stream.shutdown();
         isRunning = false;
     }
@@ -87,25 +89,6 @@ public class FilterStream extends Stream{
     }
 
     //<editor-fold desc="Track">
-    public String getQuery() {
-        StringBuilder sb = new StringBuilder();
-        for (ParsedQuery query : queries) {
-            if (0 < sb.length()) {
-                sb.append(",");
-            }
-            sb.append(query.getValidQuery());
-        }
-        return sb.toString();
-    }
-
-    public String[] getQueryArray() {
-        String[] queryArray = new String[queries.size()];
-        for (int i = 0; i < queryArray.length; i++) {
-            queryArray[i] = queries.get(i).getValidQuery();
-        }
-        return queryArray;
-    }
-
     public boolean contains(String query) {
         if (query == null) return false;
 
@@ -139,6 +122,10 @@ public class FilterStream extends Stream{
         return false;
     }
 
+    public Collection<ParsedQuery> getQueries() {
+        return queries;
+    }
+
     public int getQueryCount() {
         return queries.size();
     }
@@ -164,6 +151,10 @@ public class FilterStream extends Stream{
         follows.clear();
         restartInternal();
     }
+
+    public LongSet getFollowIds() {
+        return follows;
+    }
     //</editor-fold>
 
     @Override
@@ -174,7 +165,7 @@ public class FilterStream extends Stream{
     @Override
     protected Intent createBroadcast(String action) {
         Intent intent = super.createBroadcast(action);
-        intent.putExtra(EXTRA_FILTER_QUERY, getQuery());
+        intent.putExtra(EXTRA_FILTER_QUERY, getQueryString());
         return intent;
     }
 
@@ -185,6 +176,25 @@ public class FilterStream extends Stream{
         if (hasAnyParams()) {
             start();
         }
+    }
+
+    private String getQueryString() {
+        StringBuilder sb = new StringBuilder();
+        for (ParsedQuery query : queries) {
+            if (0 < sb.length()) {
+                sb.append(",");
+            }
+            sb.append(query.getValidQuery());
+        }
+        return sb.toString();
+    }
+
+    private String[] getQueryArray() {
+        String[] queryArray = new String[queries.size()];
+        for (int i = 0; i < queryArray.length; i++) {
+            queryArray[i] = queries.get(i).getValidQuery();
+        }
+        return queryArray;
     }
 
     public static class ParsedQuery implements Parcelable {
