@@ -12,6 +12,7 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
+import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
@@ -77,12 +78,10 @@ class DonStatus(val status: Status,
             }
 
             status.mentions.forEach { entity ->
-                if (userRecord.NumericId == entity.id) {
+                val fullScreenName = MastodonUtil.expandFullScreenName(entity.acct, entity.url)
+                if (userRecord.ScreenName == fullScreenName) {
                     return IStatus.RELATION_MENTIONED_TO_ME
                 }
-            }
-            if (userRecord.NumericId == status.inReplyToAccountId) {
-                return IStatus.RELATION_MENTIONED_TO_ME
             }
             if (userRecord.NumericId == user.id && userRecord.Provider.host == user.host) {
                 return IStatus.RELATION_OWNED
