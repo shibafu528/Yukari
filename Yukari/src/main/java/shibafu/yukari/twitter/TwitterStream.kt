@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import kotlinx.coroutines.experimental.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.ProviderStream
@@ -31,11 +32,13 @@ class TwitterStream : ProviderStream {
         private set
 
     private lateinit var service: TwitterService
+    private lateinit var filterStreamListener: FilterStreamListener
 
     override fun onCreate(service: TwitterService) {
         Log.d(LOG_TAG, "onCreate")
 
         this.service = service
+        this.filterStreamListener = FilterStreamListener(service.timelineHub)
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_TWITTER) {
@@ -49,10 +52,12 @@ class TwitterStream : ProviderStream {
 
         val channelStates = service.database.getRecords(StreamChannelState::class.java)
         channels.forEach { ch ->
-            if (ch is AutoReloadChannel && !ch.isRunning) {
-                val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
-                if (state != null && state.isActive) {
-                    ch.start()
+            if (ch is AutoReloadChannel || ch is FollowedStreamChannel) {
+                if (!ch.isRunning) {
+                    val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
+                    if (state != null && state.isActive) {
+                        ch.start()
+                    }
                 }
             }
         }
@@ -73,7 +78,9 @@ class TwitterStream : ProviderStream {
             return emptyList()
         }
 
-        val ch = listOf(AutoReloadChannel(service, userRecord))
+        FilterStream.getInstance(service, userRecord).listener = filterStreamListener
+
+        val ch = listOf(AutoReloadChannel(service, userRecord), FilterStreamChannel(service, userRecord), FollowedStreamChannel(service, userRecord))
         channels += ch
         return ch
     }
@@ -87,24 +94,18 @@ class TwitterStream : ProviderStream {
     }
 
     fun startFilterStream(query: String, userRecord: AuthUserRecord) {
-        val ch = channels.firstOrNull { it.userRecord == userRecord && it is FilterStreamChannel } as? FilterStreamChannel
-                ?: FilterStreamChannel(service, userRecord).apply { channels += this }
+        val ch = channels.first { it.userRecord == userRecord && it is FilterStreamChannel } as FilterStreamChannel
         ch.addQuery(query)
-        if (!ch.isRunning) {
-            ch.start()
-        }
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(service.applicationContext, "Start FilterStream:$query", Toast.LENGTH_SHORT).show()
         }
     }
 
     fun stopFilterStream(query: String, userRecord: AuthUserRecord) {
-        val ch = channels.firstOrNull { it.userRecord == userRecord && it is FilterStreamChannel } as? FilterStreamChannel
-        if (ch != null) {
-            ch.removeQuery(query)
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "Stop FilterStream:$query", Toast.LENGTH_SHORT).show()
-            }
+        val ch = channels.first { it.userRecord == userRecord && it is FilterStreamChannel } as FilterStreamChannel
+        ch.removeQuery(query)
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(service.applicationContext, "Stop FilterStream:$query", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -117,48 +118,25 @@ private class FilterStreamChannel(private val service: TwitterService, override 
     override val channelId: String = "FilterStream"
     override val channelName: String = "FilterStream"
     override val allowUserControl: Boolean = false
-    override var isRunning: Boolean = false
-        private set
-
-    val queryCount: Int
-        get() = stream.queryCount
+    override val isRunning: Boolean
+        get() = stream.isRunning
 
     private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
 
-    init {
-        stream.listener = StreamListener("TwitterStream.FilterStreamChannel",
-                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
-    }
-
     override fun start() {
-        stream.start()
-        isRunning = true
+        // FilterStream内で自動管理
     }
 
     override fun stop() {
-        stream.stop()
-        isRunning = false
+        // FilterStream内で自動管理
     }
 
     fun addQuery(query: String) {
         stream.addQuery(query)
-        if (isRunning) {
-            stream.stop()
-            stream.start()
-        }
     }
 
     fun removeQuery(query: String) {
         stream.removeQuery(query)
-        if (isRunning) {
-            stream.stop()
-            // まだクエリが残っていれば再起動
-            if (0 < stream.queryCount) {
-                stream.start()
-            } else {
-                isRunning = false
-            }
-        }
     }
 }
 
@@ -183,6 +161,47 @@ private class AutoReloadChannel(private val service: TwitterService, override va
 
     override fun stop() {
         stream.stop()
+        isRunning = false
+    }
+}
+
+private class FollowedStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+    override val channelId: String = "FollowedStream"
+    override val channelName: String = "FollowedStream"
+    override val allowUserControl: Boolean = true
+    override var isRunning: Boolean = false
+        private set
+
+    private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
+
+    override fun start() {
+        launch {
+            Log.d("FollowedStreamChannel", "Initializing FollowedStreamChannel... user: @${userRecord.ScreenName}")
+
+            val api = service.getProviderApi(userRecord)?.getApiClient(userRecord) as? Twitter
+            if (api == null) {
+                Log.e("FollowedStreamChannel", "Failed to initialize FollowedStreamChannel user: @${userRecord.ScreenName}")
+                isRunning = false
+                return@launch
+            }
+
+            try {
+                val friendIds = api.getFriendsIDs(userRecord.NumericId, -1, 5000)
+                Log.d("FollowedStreamChannel", "Collect ${friendIds.iDs.size} IDs user: @${userRecord.ScreenName}")
+                stream.addFollowIds(*friendIds.iDs)
+            } catch (e: TwitterException) {
+                e.printStackTrace()
+                isRunning = false
+                return@launch
+            }
+
+            Log.d("FollowedStreamChannel", "Start FollowedStreamChannel user: @${userRecord.ScreenName}")
+        }
+        isRunning = true
+    }
+
+    override fun stop() {
+        stream.clearFollowId()
         isRunning = false
     }
 }
@@ -261,5 +280,50 @@ private class StreamListener(private val timelineId: String,
 
     companion object {
         private const val LOG_TAG = "StreamListener"
+    }
+}
+
+private class FilterStreamListener(private val hub: TimelineHub) : shibafu.yukari.twitter.streaming.StreamListener {
+    override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {}
+
+    override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {}
+
+    override fun onFollow(from: Stream, user: User, user2: User) {}
+
+    override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {}
+
+    override fun onBlock(from: Stream, user: User, user2: User) {}
+
+    override fun onUnblock(from: Stream, user: User, user2: User) {}
+
+    override fun onStatus(from: Stream, status: Status) {
+        val filterStream = from as FilterStream
+        val text = if (status.isRetweet) status.retweetedStatus.text else status.text
+
+        if (filterStream.followIds.contains(status.user.id)) {
+            // follow着信
+            if (status.userMentionEntities.isNotEmpty() && status.text.startsWith("@")) {
+                // メンションから始まるツイートの場合、対象に自分かフォロイーが含まれている場合のみ配信
+                if (status.userMentionEntities.any { it.id == from.userRecord.NumericId || filterStream.followIds.contains(it.id) }) {
+                    hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+                }
+            } else {
+                // 通常ツイート
+                hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+            }
+        } else if (filterStream.queries.any { q -> text.contains(q.validQuery) }) {
+            // track着信
+            hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+        }
+    }
+
+    override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
+        hub.onDelete(TwitterStatus::class.java, statusDeletionNotice.statusId)
+    }
+
+    override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {}
+
+    companion object {
+        private const val TIMELINE_ID = "TwitterStream.FilterStream"
     }
 }
