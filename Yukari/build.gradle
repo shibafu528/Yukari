@@ -95,6 +95,12 @@ android {
         ignore 'MissingTranslation'
     }
 
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
     buildTypes {
         debug {
             debuggable true
@@ -215,6 +221,8 @@ dependencies {
     // Test
     testImplementation 'junit:junit:4.12'
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testImplementation "org.mockito:mockito-core:2.21.0"
+    testImplementation "org.robolectric:robolectric:3.8"
 }
 
 // Kotlin
