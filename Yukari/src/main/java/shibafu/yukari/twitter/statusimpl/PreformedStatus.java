@@ -31,7 +31,9 @@ import java.util.regex.Pattern;
 
 /**
  * Created by Shibafu on 13/10/13.
+ * @deprecated Yukari 2.1.0から {@link shibafu.yukari.twitter.entity.TwitterStatus} に移行しました。新規のコードでこのクラスを使わないでください。
  */
+@Deprecated
 public class PreformedStatus implements Status{
     private final static Pattern VIA_PATTERN = Pattern.compile("<a .*>(.+)</a>");
     private final static Pattern STATUS_PATTERN = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)$");
