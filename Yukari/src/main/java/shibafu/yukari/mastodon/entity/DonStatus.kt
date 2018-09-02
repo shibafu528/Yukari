@@ -17,6 +17,7 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.MorseCodec
 import java.io.StringReader
 import java.util.*
 import kotlin.collections.LinkedHashSet
@@ -166,7 +167,7 @@ class DonStatus(val status: Status,
                 eventType = xpp.next()
             }
 
-            text = textContent.toString()
+            text = MorseCodec.decode(textContent.toString())
 
             this.media = media.toList()
             this.links = links.toList()

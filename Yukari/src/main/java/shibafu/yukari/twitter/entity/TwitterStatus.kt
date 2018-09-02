@@ -13,6 +13,7 @@ import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.TwitterVideo
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.PreformedStatus
+import shibafu.yukari.util.MorseCodec
 import twitter4j.MediaEntity
 import java.util.*
 import java.util.regex.Pattern
@@ -34,6 +35,9 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
         status.mediaEntities.forEach { entity ->
             text = text.replace(entity.url, entity.mediaURLHttps)
         }
+
+        // モールスの復号
+        text = MorseCodec.decode(text)
 
         text
     }
