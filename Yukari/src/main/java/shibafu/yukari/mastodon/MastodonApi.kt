@@ -99,12 +99,12 @@ class MastodonApi : ProviderApi {
     override fun postStatus(userRecord: AuthUserRecord, draft: StatusDraft, mediaList: List<File>): Status {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
 
-        // 添付メディアのアップロード
-        val mediaIds = mediaList.map { file ->
-            uploadMedia(userRecord, file).id
-        }
-
         try {
+            // 添付メディアのアップロード
+            val mediaIds = mediaList.map { file ->
+                uploadMedia(userRecord, file).id
+            }
+
             val visibility = when (draft.visibility) {
                 StatusDraft.Visibility.PUBLIC -> Visibility.Public
                 StatusDraft.Visibility.UNLISTED -> Visibility.Unlisted
