@@ -7,6 +7,7 @@ import android.widget.Toast
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
+import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.service.TwitterService
@@ -48,6 +49,10 @@ class TwitterApi : ProviderApi {
             twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.twitterAccessToken))
         }
         return twitterInstances.get(userRecord.NumericId)
+    }
+
+    override fun getPostValidator(userRecord: AuthUserRecord): PostValidator {
+        return TweetValidator()
     }
 
     // 互換用

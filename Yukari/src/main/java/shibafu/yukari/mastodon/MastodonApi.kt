@@ -17,6 +17,7 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
+import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
@@ -53,6 +54,10 @@ class MastodonApi : ProviderApi {
             builder = builder.accessToken(accessToken).useStreamingApi()
         }
         return builder.build()
+    }
+
+    override fun getPostValidator(userRecord: AuthUserRecord): PostValidator {
+        return MastodonValidator()
     }
 
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {

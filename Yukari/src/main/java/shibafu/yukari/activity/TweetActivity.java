@@ -21,6 +21,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -66,6 +69,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
+import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
@@ -73,17 +77,18 @@ import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.SimpleListDialogFragment;
+import shibafu.yukari.linkage.PostValidator;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.TweetValidatorFactory;
+import shibafu.yukari.twitter.TweetValidator;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
-import shibafu.yukari.util.PostValidator;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
@@ -163,7 +168,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     //入力欄カウント系
     private EditText etInput;
     private TextView tvCount;
-    private PostValidator validator = TweetValidatorFactory.newInstance(false);
+    private List<PostValidator> validators = new ArrayList<>();
 
     //DMフラグ
     @NeedSaveState private boolean isDirectMessage = false;
@@ -363,10 +368,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             btnPost.setText("Send");
         }
 
-        // 文字数カウンタの設定
-        validator = TweetValidatorFactory.newInstance(isDirectMessage);
-        updateTweetCount();
-
         //デフォルト文章が設定されている場合は入力しておく (EXTRA_TEXT)
         String defaultText;
         if (isWebIntent) {
@@ -537,7 +538,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
                 String text = s.toString();
                 if (ibSNPicker != null) {
-                    if (countInputLength() > 0 && etInput.getSelectionStart() > 0 &&
+                    if (!text.isEmpty() && etInput.getSelectionStart() > 0 &&
                             text.charAt(etInput.getSelectionStart() - 1) == '@') {
                         ibSNPicker.setVisibility(View.VISIBLE);
                     } else {
@@ -868,11 +869,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         cameraTemp = state.getParcelable("cameraTemp");
         initialDraft = state.getParcelable("initialDraft");
 
-        validator = TweetValidatorFactory.newInstance(isDirectMessage);
         Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
 
         updateWritersView();
-        updateTweetCount();
         setVisibility(state.getInt("visibility"));
     }
 
@@ -896,11 +895,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void postTweet() {
-        int inputLength = countInputLength();
-        if (inputLength <= 0 && attachPictures.isEmpty()) {
+        if (TextUtils.isEmpty(etInput.getText()) && attachPictures.isEmpty()) {
             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
             return;
-        } else if (inputLength > validator.getMaxLength()) {
+        } else if (!isValidInputLength()) {
             Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -1003,9 +1001,47 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
+    private void updatePostValidator() {
+        if (!isTwitterServiceBound() || getTwitterService() == null) {
+            return;
+        }
+
+        validators.clear();
+        TwitterService service = getTwitterService();
+        for (AuthUserRecord writer : writers) {
+            ProviderApi api = service.getProviderApi(writer);
+            if (api != null) {
+                validators.add(api.getPostValidator(writer));
+            }
+        }
+
+        updateTweetCount();
+    }
+
+    private Map<String, Object> getPostValidatorOptions() {
+        Map<String, Object> options = new HashMap<>();
+        options.put(TweetValidator.OPTION_IS_DIRECT_MESSAGE, isDirectMessage);
+        options.put(TweetValidator.OPTION_INCLUDE_QUOTE_URL, attachPictures.isEmpty() && PATTERN_QUOTE.matcher(etInput.getText().toString()).find());
+        return options;
+    }
+
     private void updateTweetCount() {
-        // 入力の文字数をカウント
-        int remainCount = validator.getMaxLength() - countInputLength();
+        if (validators.isEmpty()) {
+            tvCount.setText("---");
+            tvCount.setTextColor(tweetCountColor);
+            return;
+        }
+
+        String inputText = etInput.getText().toString();
+        Map<String, Object> options = getPostValidatorOptions();
+        int remainCount = Integer.MAX_VALUE;
+        for (PostValidator validator : validators) {
+            int remain = validator.getMaxLength(options) - validator.getMeasuredLength(inputText, options);
+            if (remain < remainCount) {
+                remainCount = remain;
+            }
+        }
+
         tvCount.setText(String.valueOf(remainCount));
         if (remainCount < 0) {
             tvCount.setTextColor(tweetCountOverColor);
@@ -1014,18 +1050,15 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
-    private int countInputLength() {
-        // カウント対象外の添付URL判定
-        int attachmentUrlCount;
-        if (attachPictures.isEmpty() && PATTERN_QUOTE.matcher(etInput.getText().toString()).find()) {
-            attachmentUrlCount = shortUrlLength + 1;
-        } else {
-            attachmentUrlCount = 0;
+    private boolean isValidInputLength() {
+        String inputText = etInput.getText().toString();
+        Map<String, Object> options = getPostValidatorOptions();
+        for (PostValidator validator : validators) {
+            if (validator.getMaxLength(options) < validator.getMeasuredLength(inputText, options)) {
+                return false;
+            }
         }
-
-        // 入力の文字数をカウント
-        int count = validator.getMeasuredLength(etInput.getText().toString());
-        return count - attachmentUrlCount;
+        return true;
     }
 
     @Override
@@ -1076,6 +1109,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 case REQUEST_ACCOUTS: {
                     writers = (ArrayList<AuthUserRecord>) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS);
                     updateWritersView();
+                    updatePostValidator();
                     break;
                 }
             }
@@ -1402,6 +1436,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             updateWritersView();
             initialDraft.setWriters(writers);
         }
+        updatePostValidator();
 
         TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
         if (apiConfiguration != null) {
@@ -1553,7 +1588,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case REQUEST_DIALOG_DRAFT_MENU:
                 switch (which) {
                     case 0: {
-                        if (countInputLength() <= 0 && attachPictures.isEmpty()) {
+                        if (TextUtils.isEmpty(etInput.getText()) && attachPictures.isEmpty()) {
                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                         } else {
                             getTwitterService().getDatabase().updateDraft(getTweetDraft());

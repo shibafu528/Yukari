@@ -14,6 +14,7 @@ interface ProviderApi {
     fun onDestroy()
 
     fun getApiClient(userRecord: AuthUserRecord?): Any?
+    fun getPostValidator(userRecord: AuthUserRecord): PostValidator
 
     fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean
     fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean

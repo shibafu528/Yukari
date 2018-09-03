@@ -2,15 +2,26 @@ package shibafu.yukari.twitter
 
 import com.twitter.Extractor
 import com.twitter.Validator
-import shibafu.yukari.util.PostValidator
+import shibafu.yukari.linkage.PostValidator
 import java.text.Normalizer
 
 class TweetValidator : PostValidator {
+    private val validator = Validator()
     private val extractor = Extractor()
 
-    override fun getMaxLength(): Int = 280
+    override fun getMaxLength(options: Map<String, Any?>): Int {
+        if (options[OPTION_IS_DIRECT_MESSAGE] == true) {
+            return 10000
+        } else {
+            return 280
+        }
+    }
 
-    override fun getMeasuredLength(text: String): Int {
+    override fun getMeasuredLength(text: String, options: Map<String, Any?>): Int {
+        if (options[OPTION_IS_DIRECT_MESSAGE] == true) {
+            return validator.getTweetLength(text)
+        }
+
         var normalizedText = Normalizer.normalize(text, Normalizer.Form.NFC)
 
         extractor.extractURLsWithIndices(normalizedText).reversed().forEach { entity ->
@@ -23,16 +34,23 @@ class TweetValidator : PostValidator {
             val codePoint = normalizedText.codePointAt(i)
             count += codePointRanges.find { it.range.contains(codePoint) }?.weight ?: DEFAULT_WEIGHT
         }
-        return count / SCALE
-    }
 
-    override fun isValidText(text: String): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        var subtracts = 0
+        if (options[OPTION_INCLUDE_QUOTE_URL] == true) {
+            subtracts = URL_LENGTH + 1
+        }
+        return count / SCALE - subtracts
     }
 
     private data class CodePointRange(val range: IntRange, val weight: Int)
 
     companion object {
+        /** オプション : DirectMessageとして計算 (boolean) */
+        const val OPTION_IS_DIRECT_MESSAGE = "IS_DIRECT_MESSAGE"
+
+        /** オプション : 引用URL有りとして計算 (boolean) */
+        const val OPTION_INCLUDE_QUOTE_URL = "INCLUDE_QUOTE_URL"
+
         /** 文字数に換算するためのスケール */
         private const val SCALE = 100
 
@@ -57,22 +75,4 @@ class TweetValidator : PostValidator {
                 CodePointRange(range = 8242..8247, weight = 100)
         )
     }
-}
-
-class TwitterTextValidator(isDirectMessage: Boolean) : PostValidator {
-    private val validator = Validator()
-    private val maxLength = if (isDirectMessage) 10000 else Validator.MAX_TWEET_LENGTH
-
-    override fun getMaxLength(): Int = maxLength
-
-    override fun getMeasuredLength(text: String): Int = validator.getTweetLength(text)
-
-    override fun isValidText(text: String): Boolean = validator.isValidTweet(text)
-}
-
-object TweetValidatorFactory {
-    @JvmStatic
-    fun newInstance(isDirectMessage: Boolean): PostValidator =
-            if (isDirectMessage) TwitterTextValidator(true)
-            else TweetValidator()
 }
