@@ -766,7 +766,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         val position = preInsertElement(status)
         when (position) {
             PRE_INSERT_DUPLICATED -> return
-            PRE_INSERT_MERGED -> notifyDataSetChanged()
+            PRE_INSERT_MERGED -> {
+                notifyDataSetChanged()
+                return
+            }
             else -> if (!statuses.contains(status)) {
                 if (position < statuses.size && statuses[position].id == status.id) {
                     return
