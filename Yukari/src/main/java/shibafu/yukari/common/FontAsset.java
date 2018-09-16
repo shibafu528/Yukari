@@ -16,7 +16,7 @@ public class FontAsset {
 
     public static final String SYSTEM_FONT_ID = "*SYS*";
     public static final String BUNDLE_FONT_ID = "*BUNDLE*";
-    public static final String FONT_NAME = "VL-PGothic-Regular-Mixed4.ttf";
+    public static final String FONT_NAME = "Koruri-Regular.ttf";
     private static FontAsset instance;
     private Typeface font;
 
