@@ -21,9 +21,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -69,7 +66,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
-import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
@@ -524,7 +520,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         });
         etInput = (EditText) findViewById(R.id.etTweetInput);
         etInput.setTypeface(FontAsset.getInstance(this).getFont());
-        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "18")));
+        etInput.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "14")));
         etInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}

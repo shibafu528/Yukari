@@ -22,17 +22,17 @@
             android:key="pref_font_timeline"
             android:title="文字サイズの設定"
             android:summary="タイムライン上の文字サイズを設定します"
-            android:dialogTitle="文字サイズの設定 (デフォルト:14)"
+            android:dialogTitle="文字サイズの設定 (デフォルト:11)"
             android:inputType="number"
-            android:defaultValue="14"
+            android:defaultValue="11"
             android:maxLength="2"/>
         <EditTextPreference
             android:key="pref_font_input"
             android:title="入力文字サイズの設定"
             android:summary="投稿画面上の文字サイズを設定します"
-            android:dialogTitle="入力文字サイズの設定 (デフォルト:18)"
+            android:dialogTitle="入力文字サイズの設定 (デフォルト:14)"
             android:inputType="number"
-            android:defaultValue="18"
+            android:defaultValue="14"
             android:maxLength="2"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="メイン画面">

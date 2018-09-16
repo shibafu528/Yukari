@@ -103,9 +103,9 @@ abstract class StatusView : RelativeLayout {
      * 現在の状態で配下にあるViewの状態を更新する。
      */
     open fun updateView() {
-        var fontSizeStr = pref.getString("pref_font_timeline", "14")
+        var fontSizeStr = pref.getString("pref_font_timeline", "11")
         if (fontSizeStr == "") {
-            fontSizeStr = "14"
+            fontSizeStr = "11"
         }
         val fontSize = fontSizeStr.toFloat()
         val typeface = FontAsset.getInstance(context).font
