@@ -33,7 +33,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:layout_marginLeft="8dp"
-            android:layout_marginTop="-2dp"
             android:layout_toRightOf="@+id/tweet_icon"
             android:text="\uFF20null / Name"
             android:textColor="#ff419b38" />
@@ -44,7 +43,7 @@
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/tweet_name"
             android:layout_below="@+id/tweet_name"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:text="Tweet Text"
             android:textColor="?attr/tweetTextColor" />
 
@@ -54,6 +53,7 @@
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/tweet_attach"
             android:layout_below="@+id/tweet_attach"
+            android:layout_marginTop="2dp"
             android:text="2013/01/01 00:00:00 via Yukari for Android"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="#ff8b8b8b"
