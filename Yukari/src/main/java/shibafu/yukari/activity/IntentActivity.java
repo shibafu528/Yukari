@@ -7,8 +7,10 @@ import android.util.Pair;
 import android.widget.Toast;
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Twitter;
@@ -65,7 +67,7 @@ public class IntentActivity extends ListYukariBase{
                     switch (activity.getIntent().getData().getLastPathSegment()) {
                         case "yukarin":
                             StatusDraft draft = new StatusDraft();
-                            draft.setWriters(activity.primaryUser.toSingleList());
+                            draft.setWriters(activity.twitterUser.toSingleList());
                             draft.setText("＼ﾕｯｶﾘｰﾝ／");
                             activity.startService(PostService.newIntent(activity, draft));
                             break;
@@ -80,7 +82,7 @@ public class IntentActivity extends ListYukariBase{
     }
 
     protected Twitter twitter;
-    protected AuthUserRecord primaryUser;
+    protected AuthUserRecord twitterUser;
 
     private Pair<Matcher, AfterWork> matchedWork;
 
@@ -104,8 +106,19 @@ public class IntentActivity extends ListYukariBase{
 
     @Override
     public void onServiceConnected() {
-        primaryUser = getTwitterService().getPrimaryUser();
-        twitter = getTwitterService().getTwitter(primaryUser);
+        TwitterService service = getTwitterService();
+
+        // 使えそうなTwitterアカウントを探す
+        twitterUser = service.getPrimaryUser();
+        if (twitterUser == null || twitterUser.Provider.getApiType() != Provider.API_TWITTER) {
+            for (AuthUserRecord user : service.getUsers()) {
+                if (user.InternalId != twitterUser.InternalId && user.Provider.getApiType() == Provider.API_TWITTER) {
+                    twitterUser = user;
+                    break;
+                }
+            }
+        }
+        twitter = service.getTwitter(twitterUser);
 
         matchedWork.second.work(IntentActivity.this);
     }
@@ -135,7 +148,7 @@ public class IntentActivity extends ListYukariBase{
             if (twitter == null) return null;
             try {
                 twitter4j.Status status = twitter.showStatus(params[0]);
-                PreformedStatus ps = new PreformedStatus(status, primaryUser);
+                PreformedStatus ps = new PreformedStatus(status, twitterUser);
                 if (isCancelled()) return null;
                 return ps;
             } catch (TwitterException e) {
@@ -154,7 +167,7 @@ public class IntentActivity extends ListYukariBase{
             if (status != null) {
                 Intent intent = new Intent(IntentActivity.this, StatusActivity.class);
                 intent.putExtra(StatusActivity.EXTRA_STATUS, status);
-                intent.putExtra(StatusActivity.EXTRA_USER, primaryUser);
+                intent.putExtra(StatusActivity.EXTRA_USER, twitterUser);
                 startActivity(intent);
             }
             else if (!isCancelled()) {
