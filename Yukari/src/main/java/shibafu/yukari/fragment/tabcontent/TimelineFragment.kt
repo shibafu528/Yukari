@@ -105,6 +105,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
     // スクロールロック
     private var lockedScrollTimestamp = -1L
+    private var lockedUrl: String? = null
     private var lockedYPosition = 0
     private val scrollUnlockHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message?) {
@@ -805,7 +806,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
         } else if (lockedScrollTimestamp > -1) {
             for (i in statuses.indices) {
-                if (statuses[i].createdAt.time <= lockedScrollTimestamp) {
+                // ロック対象の判定は、まずタイムスタンプで粗めに探索する。同時刻の投稿があったら、URLで厳密に判定する。
+                // 同時刻で見つからなければ、記憶されているロック対象のタイムスタンプより古い投稿を代わりとする。
+                if ((statuses[i].createdAt.time == lockedScrollTimestamp && statuses[i].url == lockedUrl) ||
+                        statuses[i].createdAt.time < lockedScrollTimestamp) {
                     listView.setSelectionFromTop(i, y)
                     if (position < i) {
                         unreadSet.add(status.id)
@@ -835,6 +839,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 listView.setSelectionFromTop(lockedPosition, y)
 
                 lockedScrollTimestamp = statuses[lockedPosition].createdAt.time
+                lockedUrl = statuses[lockedPosition].url
                 lockedYPosition = y
 
                 scrollUnlockHandler.removeCallbacksAndMessages(null)
@@ -884,6 +889,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
                 if (statuses.size == 1 || firstPos == 0) {
                     listView.setSelection(0)
+                } else if (lockedScrollTimestamp > -1) {
+                    for (i in statuses.indices) {
+                        if ((statuses[i].createdAt.time == lockedScrollTimestamp && statuses[i].url == lockedUrl) ||
+                                statuses[i].createdAt.time < lockedScrollTimestamp) {
+                            listView.setSelectionFromTop(i, y)
+                            break
+                        }
+                    }
                 } else {
                     if (index < firstPos) {
                         listView.setSelectionFromTop(firstPos - 1, y)
