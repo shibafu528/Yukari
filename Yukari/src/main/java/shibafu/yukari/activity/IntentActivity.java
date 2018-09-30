@@ -12,7 +12,7 @@ import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -128,7 +128,7 @@ public class IntentActivity extends ListYukariBase{
 
     }
 
-    private class TweetLoaderTask extends ParallelAsyncTask<Long, Void, PreformedStatus> {
+    private class TweetLoaderTask extends ParallelAsyncTask<Long, Void, TwitterStatus> {
 
         private ProgressDialog currentDialog;
 
@@ -144,13 +144,13 @@ public class IntentActivity extends ListYukariBase{
         }
 
         @Override
-        protected PreformedStatus doInBackground(Long... params) {
+        protected TwitterStatus doInBackground(Long... params) {
             if (twitter == null) return null;
             try {
                 twitter4j.Status status = twitter.showStatus(params[0]);
-                PreformedStatus ps = new PreformedStatus(status, twitterUser);
+                TwitterStatus ts = new TwitterStatus(status, twitterUser);
                 if (isCancelled()) return null;
-                return ps;
+                return ts;
             } catch (TwitterException e) {
                 e.printStackTrace();
             }
@@ -158,7 +158,7 @@ public class IntentActivity extends ListYukariBase{
         }
 
         @Override
-        protected void onPostExecute(PreformedStatus status) {
+        protected void onPostExecute(TwitterStatus status) {
             if (currentDialog != null) {
                 currentDialog.dismiss();
                 currentDialog = null;
