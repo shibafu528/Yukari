@@ -818,7 +818,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     scrollUnlockHandler.removeCallbacksAndMessages(null)
                     scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200)
 
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i (Locked strict) ... $status")
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i, $lockedScrollTimestamp, $lockedUrl (Locked strict) ... $status")
                     break
                 }
             }
@@ -845,7 +845,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 scrollUnlockHandler.removeCallbacksAndMessages(null)
                 scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200)
 
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollTimestamp (Locked) ... $status")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollTimestamp, $lockedUrl (Locked) ... $status")
             }
         } else {
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
