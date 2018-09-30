@@ -860,8 +860,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             return
         }
 
-        val iterator = statuses.iterator()
+        val iterator = statuses.listIterator()
         while (iterator.hasNext()) {
+            val index = iterator.nextIndex()
             val status = iterator.next()
             if (status.javaClass == type && status.id == id) {
                 iterator.remove()
@@ -870,6 +871,27 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     unreadSet.remove(id)
                     unreadNotifierBehavior.updateUnreadNotifier()
                 }
+
+                val listView = try {
+                    listView
+                } catch (e: IllegalStateException) {
+                    break
+                }
+
+                val firstPos = listView.firstVisiblePosition
+                val firstView = listView.getChildAt(0)
+                val y = firstView?.top ?: 0
+
+                if (statuses.size == 1 || firstPos == 0) {
+                    listView.setSelection(0)
+                } else {
+                    if (index < firstPos) {
+                        listView.setSelectionFromTop(firstPos - 1, y)
+                    } else {
+                        listView.setSelectionFromTop(firstPos, y)
+                    }
+                }
+
                 break
             }
         }
