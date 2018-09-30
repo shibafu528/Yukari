@@ -104,11 +104,11 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses, unreadSet)
 
     // スクロールロック
-    private var lockedScrollId = -1L
+    private var lockedScrollTimestamp = -1L
     private var lockedYPosition = 0
     private val scrollUnlockHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message?) {
-            lockedScrollId = -1
+            lockedScrollTimestamp = -1
         }
     }
 
@@ -187,12 +187,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         onScrollListeners.add(unreadNotifierBehavior)
         onScrollListeners.add(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollId = $lockedScrollId, y = $lockedYPosition")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollTimestamp = $lockedScrollTimestamp, y = $lockedYPosition")
             }
 
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-                    lockedScrollId = -1
+                    lockedScrollTimestamp = -1
                 }
             }
         })
@@ -803,9 +803,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             listView.setSelection(0)
 
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
-        } else if (lockedScrollId > -1) {
+        } else if (lockedScrollTimestamp > -1) {
             for (i in statuses.indices) {
-                if (statuses[i].id <= lockedScrollId) {
+                if (statuses[i].createdAt.time <= lockedScrollTimestamp) {
                     listView.setSelectionFromTop(i, y)
                     if (position < i) {
                         unreadSet.add(status.id)
@@ -834,13 +834,13 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 unreadSet.add(status.id)
                 listView.setSelectionFromTop(lockedPosition, y)
 
-                lockedScrollId = statuses[lockedPosition].id
+                lockedScrollTimestamp = statuses[lockedPosition].createdAt.time
                 lockedYPosition = y
 
                 scrollUnlockHandler.removeCallbacksAndMessages(null)
                 scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200)
 
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollId (Locked) ... $status")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollTimestamp (Locked) ... $status")
             }
         } else {
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
