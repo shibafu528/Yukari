@@ -165,8 +165,8 @@ interface Status : Comparable<Status>, Serializable {
      * 同じ内容を指す、より新しい別インスタンスの情報と比較してなるべく最新かつ情報の完全性が高いインスタンスを返す
      */
     fun merge(status: Status): Status {
-        if (this.providerApiType != status.providerApiType || this.url != status.url) {
-            throw IllegalArgumentException("マージはURLとAPI Typeが揃っているインスタンス同士でないと実行できません。this[URL=$url, API=$providerApiType] : args[URL=${status.url}, API=${status.providerApiType}]")
+        if (this != status || this.providerApiType != status.providerApiType) {
+            throw IllegalArgumentException("マージは両インスタンスがEqualsかつAPI Typeが揃っていないと実行できません。this[URL=$url, API=$providerApiType] : args[URL=${status.url}, API=${status.providerApiType}]")
         }
 
         favoritesCount = status.favoritesCount

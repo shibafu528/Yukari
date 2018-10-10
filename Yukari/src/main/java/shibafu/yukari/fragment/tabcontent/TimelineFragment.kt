@@ -742,8 +742,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         } else {
             for (i in 0 until statuses.size) {
-                // Order by ID, API Type
-                if (status.url == statuses[i].url) {
+                if (status == statuses[i]) {
                     if (status.providerApiType == statuses[i].providerApiType) {
                         statuses[i] = statuses[i].merge(status)
                         return PRE_INSERT_MERGED
