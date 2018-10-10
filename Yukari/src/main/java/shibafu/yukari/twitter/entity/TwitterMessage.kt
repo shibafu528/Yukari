@@ -44,6 +44,17 @@ class TwitterMessage(val message: DirectMessage,
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TwitterMessage) return false
+
+        return this.id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return (this.id xor (this.id ushr 32)).toInt()
+    }
+
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             if (userRecord.Provider.apiType != providerApiType) {

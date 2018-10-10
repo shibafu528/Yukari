@@ -72,6 +72,17 @@ class DonStatus(val status: Status,
 
     val isLocal: Boolean = status.application != null
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DonStatus) return false
+
+        return this.status.uri == other.status.uri
+    }
+
+    override fun hashCode(): Int {
+        return status.uri.hashCode()
+    }
+
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             if (userRecord.Provider.apiType != providerApiType) {
