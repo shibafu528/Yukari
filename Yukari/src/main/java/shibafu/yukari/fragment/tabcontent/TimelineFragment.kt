@@ -104,11 +104,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses, unreadSet)
 
     // スクロールロック
-    private var lockedScrollId = -1L
+    private var lockedScrollTimestamp = -1L
+    private var lockedUrl: String? = null
     private var lockedYPosition = 0
     private val scrollUnlockHandler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message?) {
-            lockedScrollId = -1
+            lockedScrollTimestamp = -1
         }
     }
 
@@ -187,12 +188,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         onScrollListeners.add(unreadNotifierBehavior)
         onScrollListeners.add(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollId = $lockedScrollId, y = $lockedYPosition")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollTimestamp = $lockedScrollTimestamp, y = $lockedYPosition")
             }
 
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
                 if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-                    lockedScrollId = -1
+                    lockedScrollTimestamp = -1
                 }
             }
         })
@@ -741,8 +742,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         } else {
             for (i in 0 until statuses.size) {
-                // Order by ID, API Type
-                if (status.url == statuses[i].url) {
+                if (status == statuses[i]) {
                     if (status.providerApiType == statuses[i].providerApiType) {
                         statuses[i] = statuses[i].merge(status)
                         return PRE_INSERT_MERGED
@@ -766,7 +766,10 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         val position = preInsertElement(status)
         when (position) {
             PRE_INSERT_DUPLICATED -> return
-            PRE_INSERT_MERGED -> notifyDataSetChanged()
+            PRE_INSERT_MERGED -> {
+                notifyDataSetChanged()
+                return
+            }
             else -> if (!statuses.contains(status)) {
                 if (position < statuses.size && statuses[position].id == status.id) {
                     return
@@ -800,9 +803,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             listView.setSelection(0)
 
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
-        } else if (lockedScrollId > -1) {
+        } else if (lockedScrollTimestamp > -1) {
             for (i in statuses.indices) {
-                if (statuses[i].id <= lockedScrollId) {
+                // ロック対象の判定は、まずタイムスタンプで粗めに探索する。同時刻の投稿があったら、URLで厳密に判定する。
+                // 同時刻で見つからなければ、記憶されているロック対象のタイムスタンプより古い投稿を代わりとする。
+                if ((statuses[i].createdAt.time == lockedScrollTimestamp && statuses[i].url == lockedUrl) ||
+                        statuses[i].createdAt.time < lockedScrollTimestamp) {
                     listView.setSelectionFromTop(i, y)
                     if (position < i) {
                         unreadSet.add(status.id)
@@ -811,7 +817,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     scrollUnlockHandler.removeCallbacksAndMessages(null)
                     scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200)
 
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i (Locked strict) ... $status")
+                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i, $lockedScrollTimestamp, $lockedUrl (Locked strict) ... $status")
                     break
                 }
             }
@@ -831,13 +837,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 unreadSet.add(status.id)
                 listView.setSelectionFromTop(lockedPosition, y)
 
-                lockedScrollId = statuses[lockedPosition].id
+                lockedScrollTimestamp = statuses[lockedPosition].createdAt.time
+                lockedUrl = statuses[lockedPosition].url
                 lockedYPosition = y
 
                 scrollUnlockHandler.removeCallbacksAndMessages(null)
                 scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200)
 
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollId (Locked) ... $status")
+                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $lockedScrollTimestamp, $lockedUrl (Locked) ... $status")
             }
         } else {
             if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
@@ -857,8 +864,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             return
         }
 
-        val iterator = statuses.iterator()
+        val iterator = statuses.listIterator()
         while (iterator.hasNext()) {
+            val index = iterator.nextIndex()
             val status = iterator.next()
             if (status.javaClass == type && status.id == id) {
                 iterator.remove()
@@ -867,6 +875,35 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     unreadSet.remove(id)
                     unreadNotifierBehavior.updateUnreadNotifier()
                 }
+
+                val listView = try {
+                    listView
+                } catch (e: IllegalStateException) {
+                    break
+                }
+
+                val firstPos = listView.firstVisiblePosition
+                val firstView = listView.getChildAt(0)
+                val y = firstView?.top ?: 0
+
+                if (statuses.size == 1 || firstPos == 0) {
+                    listView.setSelection(0)
+                } else if (lockedScrollTimestamp > -1) {
+                    for (i in statuses.indices) {
+                        if ((statuses[i].createdAt.time == lockedScrollTimestamp && statuses[i].url == lockedUrl) ||
+                                statuses[i].createdAt.time < lockedScrollTimestamp) {
+                            listView.setSelectionFromTop(i, y)
+                            break
+                        }
+                    }
+                } else {
+                    if (index < firstPos) {
+                        listView.setSelectionFromTop(firstPos - 1, y)
+                    } else {
+                        listView.setSelectionFromTop(firstPos, y)
+                    }
+                }
+
                 break
             }
         }

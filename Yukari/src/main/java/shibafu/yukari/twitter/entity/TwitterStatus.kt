@@ -83,6 +83,17 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     val quoteEntities: LongList
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TwitterStatus) return false
+
+        return this.id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return (this.id xor (this.id ushr 32)).toInt()
+    }
+
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             if (userRecord.Provider.apiType != providerApiType) {
