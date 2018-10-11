@@ -25,22 +25,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val user: User = TwitterUser(status.user)
 
-    override val text: String = status.originStatus.text.let {
-        var text = it
-
-        // 全Entityの置換
-        status.urlEntities.forEach { entity ->
-            text = text.replace(entity.url, entity.expandedURL)
-        }
-        status.mediaEntities.forEach { entity ->
-            text = text.replace(entity.url, entity.mediaURLHttps)
-        }
-
-        // モールスの復号
-        text = MorseCodec.decode(text)
-
-        text
-    }
+    override val text: String
 
     override val recipientScreenName: String = representUser.ScreenName
 
@@ -123,67 +108,91 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
             Log.w("TwitterStatus", "PreformedStatus wrapped. Should use TwitterStatus directly.", Throwable())
         }
 
-        val media = LinkedHashSet<Media>()
-        val links = LinkedHashSet<String>()
-        val quotes = LongLists.mutable.empty()
-        status.urlEntities.forEach { entity ->
-            val m = MediaFactory.newInstance(entity.expandedURL)
-            if (m != null) {
-                media += m
-            } else {
-                links += entity.expandedURL
+        if (isRepost) {
+            text = originStatus.text
+            media = originStatus.media
+            links = originStatus.links
+            quoteEntities = (originStatus as TwitterStatus).quoteEntities
+        } else {
+            text = status.originStatus.text.let {
+                var text = it
+
+                // 全Entityの置換
+                status.urlEntities.forEach { entity ->
+                    text = text.replace(entity.url, entity.expandedURL)
+                }
+                status.mediaEntities.forEach { entity ->
+                    text = text.replace(entity.url, entity.mediaURLHttps)
+                }
+
+                // モールスの復号
+                text = MorseCodec.decode(text)
+
+                text
             }
 
-            val matcher = PATTERN_STATUS.matcher(entity.expandedURL)
-            if (matcher.find()) {
-                matcher.group(1).toLongOrNull()?.let(quotes::add)
+            val media = LinkedHashSet<Media>()
+            val links = LinkedHashSet<String>()
+            val quotes = LongLists.mutable.empty()
+            status.urlEntities.forEach { entity ->
+                val m = MediaFactory.newInstance(entity.expandedURL)
+                if (m != null) {
+                    media += m
+                } else {
+                    links += entity.expandedURL
+                }
+
+                val matcher = PATTERN_STATUS.matcher(entity.expandedURL)
+                if (matcher.find()) {
+                    matcher.group(1).toLongOrNull()?.let(quotes::add)
+                }
             }
-        }
-        if (status.quotedStatusPermalink != null) {
-            links += status.quotedStatusPermalink.expandedURL
-        }
-        if (status.quotedStatusId > -1 && !quotes.contains(status.quotedStatusId)) {
-            quotes.add(status.quotedStatusId)
-        }
+            if (status.quotedStatusPermalink != null) {
+                links += status.quotedStatusPermalink.expandedURL
+            }
+            if (status.quotedStatusId > -1 && !quotes.contains(status.quotedStatusId)) {
+                quotes.add(status.quotedStatusId)
+            }
 
-        status.mediaEntities.forEach { entity ->
-            when (entity.type) {
-                "video", "animated_gif" -> {
-                    if (entity.videoVariants.isNotEmpty()) {
-                        var removedExistsUrl = false
+            status.mediaEntities.forEach { entity ->
+                when (entity.type) {
+                    "video", "animated_gif" -> {
+                        if (entity.videoVariants.isNotEmpty()) {
+                            var removedExistsUrl = false
 
-                        var largest: MediaEntity.Variant? = null
-                        for (variant in entity.videoVariants) {
-                            if (!variant.contentType.startsWith("video/")) continue
+                            var largest: MediaEntity.Variant? = null
+                            for (variant in entity.videoVariants) {
+                                if (!variant.contentType.startsWith("video/")) continue
 
-                            if (largest == null || largest.bitrate < variant.bitrate) {
-                                largest = variant
-                            }
-                            if (!removedExistsUrl) {
-                                val iterator = media.iterator()
-                                while (iterator.hasNext()) {
-                                    if (iterator.next().browseUrl == entity.mediaURLHttps) {
-                                        iterator.remove()
-                                    }
+                                if (largest == null || largest.bitrate < variant.bitrate) {
+                                    largest = variant
                                 }
+                                if (!removedExistsUrl) {
+                                    val iterator = media.iterator()
+                                    while (iterator.hasNext()) {
+                                        if (iterator.next().browseUrl == entity.mediaURLHttps) {
+                                            iterator.remove()
+                                        }
+                                    }
 
-                                removedExistsUrl = true
+                                    removedExistsUrl = true
+                                }
                             }
-                        }
-                        if (largest != null) {
-                            media += TwitterVideo(largest.url, entity.mediaURLHttps)
+                            if (largest != null) {
+                                media += TwitterVideo(largest.url, entity.mediaURLHttps)
+                            }
                         }
                     }
-                }
-                else -> {
-                    media += MediaFactory.newInstance(entity.mediaURLHttps)
+                    else -> {
+                        media += MediaFactory.newInstance(entity.mediaURLHttps)
+                    }
                 }
             }
-        }
 
-        this.media = media.toList()
-        this.links = links.toList()
-        this.quoteEntities = quotes
+            this.media = media.toList()
+            this.links = links.toList()
+            this.quoteEntities = quotes
+        }
     }
 
     companion object {
