@@ -191,7 +191,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
             this.media = media.toList()
             this.links = links.toList()
-            this.quoteEntities = quotes
+            this.quoteEntities = quotes.distinct()
         }
     }
 
