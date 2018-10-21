@@ -1,8 +1,7 @@
 package shibafu.yukari.mastodon
 
-import android.os.Looper
+import android.content.Intent
 import android.util.Log
-import android.widget.Toast
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Handler
 import com.sys1yagi.mastodon4j.api.Retryable
@@ -104,7 +103,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, service, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
@@ -135,7 +134,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, service, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
@@ -166,7 +165,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, service, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
@@ -190,7 +189,10 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     }
 }
 
-private class StreamHandler(private val timelineId: String, private val service: TwitterService, private val userRecord: AuthUserRecord) : Handler {
+private class StreamHandler(private val timelineId: String,
+                            private val channelId: String,
+                            private val service: TwitterService,
+                            private val userRecord: AuthUserRecord) : Handler {
     private val hub: TimelineHub = service.timelineHub
 
     override fun onDelete(id: Long) {
@@ -222,14 +224,16 @@ private class StreamHandler(private val timelineId: String, private val service:
     }
 
     override fun onDisconnected(retryable: Retryable) {
-        val handler = android.os.Handler(Looper.getMainLooper())
         val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
         var timeToSleep = 10000L
 
         putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected.")
-        handler.post {
-            Toast.makeText(service, "$displayTimelineId Disconnected @${userRecord.ScreenName}", Toast.LENGTH_SHORT).show()
-        }
+        service.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_DISCONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
 
         while (true) {
             putDebugLog("$timelineId@${userRecord.ScreenName}: Waiting for $timeToSleep milliseconds.")
@@ -240,9 +244,12 @@ private class StreamHandler(private val timelineId: String, private val service:
                 retryable.retry()
                 putDebugLog("$timelineId@${userRecord.ScreenName}: Reconnected.")
 
-                handler.post {
-                    Toast.makeText(service, "$displayTimelineId Connected @${userRecord.ScreenName}", Toast.LENGTH_SHORT).show()
-                }
+                service.sendBroadcast(Intent().apply {
+                    action = TwitterService.ACTION_STREAM_CONNECTED
+                    putExtra(TwitterService.EXTRA_USER, userRecord)
+                    putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+                    putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+                })
 
                 break
             } catch (e: InterruptedException) {
