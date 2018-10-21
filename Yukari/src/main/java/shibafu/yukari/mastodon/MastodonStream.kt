@@ -110,12 +110,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.user(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.user(handler) }
         }
         isRunning = true
     }
@@ -141,12 +136,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.federatedPublic(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.federatedPublic(handler) }
         }
         isRunning = true
     }
@@ -172,12 +162,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.localPublic(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.localPublic(handler) }
         }
         isRunning = true
     }
@@ -261,5 +246,25 @@ private class StreamHandler(private val timelineId: String,
 
             timeToSleep = minOf(timeToSleep * 2, 60000)
         }
+    }
+}
+
+/**
+ * Mastodonのストリーミング接続用ヘルパーメソッド。接続に成功するまで時間を置いてリトライします。
+ * @param connector Streaming APIへの接続処理。単に [Streaming.user] などの呼出。
+ */
+private inline fun retryUntilConnect(connector: () -> Shutdownable): Shutdownable {
+    var timeToSleep = 10000L
+
+    while (true) {
+        try {
+            return connector()
+        } catch (e: Mastodon4jRequestException) {
+            e.printStackTrace()
+        }
+
+        Log.d("MastodonStream", "Failed to connect to stream api. Waiting for $timeToSleep milliseconds.")
+        Thread.sleep(timeToSleep)
+        timeToSleep = minOf(timeToSleep * 2, 60000L)
     }
 }
