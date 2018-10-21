@@ -1,8 +1,10 @@
 package shibafu.yukari.mastodon
 
+import android.content.Intent
 import android.util.Log
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Handler
+import com.sys1yagi.mastodon4j.api.Retryable
 import com.sys1yagi.mastodon4j.api.Shutdownable
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.entity.Status
@@ -19,6 +21,7 @@ import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.putDebugLog
 
 class MastodonStream : ProviderStream {
     override var channels: List<StreamChannel> = emptyList()
@@ -100,19 +103,14 @@ private class UserStreamChannel(private val service: TwitterService, override va
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.user(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.user(handler) }
         }
         isRunning = true
     }
@@ -131,19 +129,14 @@ private class PublicStreamChannel(private val service: TwitterService, override 
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.federatedPublic(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.federatedPublic(handler) }
         }
         isRunning = true
     }
@@ -162,19 +155,14 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, service.timelineHub, userRecord)
+    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, channelId, service, userRecord)
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
         launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            try {
-                shutdownable = streaming.localPublic(handler)
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-                isRunning = false
-            }
+            shutdownable = retryUntilConnect { streaming.localPublic(handler) }
         }
         isRunning = true
     }
@@ -186,7 +174,12 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     }
 }
 
-private class StreamHandler(private val timelineId: String, private val hub: TimelineHub, private val userRecord: AuthUserRecord) : Handler {
+private class StreamHandler(private val timelineId: String,
+                            private val channelId: String,
+                            private val service: TwitterService,
+                            private val userRecord: AuthUserRecord) : Handler {
+    private val hub: TimelineHub = service.timelineHub
+
     override fun onDelete(id: Long) {
         // TODO: ところでこれ、IDがインスタンスレベルでしか一意じゃない場合関係ないやつ消しとばすんですけど
         hub.onDelete(DonStatus::class.java, id)
@@ -213,5 +206,65 @@ private class StreamHandler(private val timelineId: String, private val hub: Tim
 
     override fun onStatus(status: Status) {
         hub.onStatus(timelineId, DonStatus(status, userRecord), true)
+    }
+
+    override fun onDisconnected(retryable: Retryable) {
+        val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
+        var timeToSleep = 10000L
+
+        putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected.")
+        service.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_DISCONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
+
+        while (true) {
+            putDebugLog("$timelineId@${userRecord.ScreenName}: Waiting for $timeToSleep milliseconds.")
+            try {
+                Thread.sleep(timeToSleep)
+
+                // 再接続に失敗した時は例外が出る
+                retryable.retry()
+                putDebugLog("$timelineId@${userRecord.ScreenName}: Reconnected.")
+
+                service.sendBroadcast(Intent().apply {
+                    action = TwitterService.ACTION_STREAM_CONNECTED
+                    putExtra(TwitterService.EXTRA_USER, userRecord)
+                    putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+                    putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+                })
+
+                break
+            } catch (e: InterruptedException) {
+                putDebugLog("$timelineId@${userRecord.ScreenName}: Interrupted!")
+                break
+            } catch (e: Mastodon4jRequestException) {
+                e.printStackTrace()
+            }
+
+            timeToSleep = minOf(timeToSleep * 2, 60000)
+        }
+    }
+}
+
+/**
+ * Mastodonのストリーミング接続用ヘルパーメソッド。接続に成功するまで時間を置いてリトライします。
+ * @param connector Streaming APIへの接続処理。単に [Streaming.user] などの呼出。
+ */
+private inline fun retryUntilConnect(connector: () -> Shutdownable): Shutdownable {
+    var timeToSleep = 10000L
+
+    while (true) {
+        try {
+            return connector()
+        } catch (e: Mastodon4jRequestException) {
+            e.printStackTrace()
+        }
+
+        Log.d("MastodonStream", "Failed to connect to stream api. Waiting for $timeToSleep milliseconds.")
+        Thread.sleep(timeToSleep)
+        timeToSleep = minOf(timeToSleep * 2, 60000L)
     }
 }

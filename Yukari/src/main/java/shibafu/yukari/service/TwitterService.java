@@ -22,6 +22,7 @@ import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
@@ -82,6 +83,11 @@ public class TwitterService extends Service{
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
     public static final String EXTRA_RELOAD_REMOVED = "removed";
     public static final String EXTRA_RELOAD_ADDED = "added";
+    public static final String ACTION_STREAM_CONNECTED = "shibafu.yukari.STREAM_CONNECTED";
+    public static final String ACTION_STREAM_DISCONNECTED = "shibafu.yukari.STREAM_DISCONNECTED";
+    public static final String EXTRA_USER = "user";
+    public static final String EXTRA_CHANNEL_ID = "channelId";
+    public static final String EXTRA_CHANNEL_NAME = "channelName";
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
@@ -106,7 +112,7 @@ public class TwitterService extends Service{
     private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
     //ネットワーク管理
-    private LongSparseArray<Boolean> connectivityFlags = new LongSparseArray<>();
+    private LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
 
     //Timeline Pub/Sub
     private StatusLoader statusLoader;
@@ -132,16 +138,26 @@ public class TwitterService extends Service{
         @Override
         public void onReceive(Context context, Intent intent) {
             if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_notif_connectivity", true)) {
-                if (Stream.CONNECTED_STREAM.equals(intent.getAction())) {
-                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                    if (connectivityFlags.get(userRecord.InternalId) != null) {
-                        showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Connected @" + userRecord.ScreenName);
-                        connectivityFlags.put(userRecord.InternalId, true);
+                if (ACTION_STREAM_CONNECTED.equals(intent.getAction())) {
+                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(EXTRA_USER);
+                    ArrayMap<String, Boolean> channelFlags = connectivityFlags.get(userRecord.InternalId);
+                    if (channelFlags != null) {
+                        Boolean flag = channelFlags.get(intent.getStringExtra(EXTRA_CHANNEL_ID));
+                        if (flag != null && !flag) {
+                            showToast(intent.getStringExtra(EXTRA_CHANNEL_NAME) + " Connected @" + userRecord.ScreenName);
+                            channelFlags.put(intent.getStringExtra(EXTRA_CHANNEL_ID), true);
+                        }
                     }
-                } else if (Stream.DISCONNECTED_STREAM.equals(intent.getAction())) {
-                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(Stream.EXTRA_USER);
-                    showToast(intent.getStringExtra(Stream.EXTRA_STREAM_TYPE) + "Stream Disconnected @" + userRecord.ScreenName);
-                    connectivityFlags.put(userRecord.InternalId, false);
+                } else if (ACTION_STREAM_DISCONNECTED.equals(intent.getAction())) {
+                    AuthUserRecord userRecord = (AuthUserRecord) intent.getSerializableExtra(EXTRA_USER);
+                    showToast(intent.getStringExtra(EXTRA_CHANNEL_NAME) + " Disconnected @" + userRecord.ScreenName);
+
+                    ArrayMap<String, Boolean> channelFlags = connectivityFlags.get(userRecord.InternalId);
+                    if (channelFlags == null) {
+                        channelFlags = new ArrayMap<>();
+                        connectivityFlags.put(userRecord.InternalId, channelFlags);
+                    }
+                    channelFlags.put(intent.getStringExtra(EXTRA_CHANNEL_ID), false);
                 }
             }
         }
@@ -281,8 +297,8 @@ public class TwitterService extends Service{
         }
 
         //ネットワーク状態の監視
-        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.CONNECTED_STREAM));
-        registerReceiver(streamConnectivityListener, new IntentFilter(Stream.DISCONNECTED_STREAM));
+        registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_CONNECTED));
+        registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_DISCONNECTED));
         registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
 
         // MRuby
