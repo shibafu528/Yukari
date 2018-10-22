@@ -12,6 +12,12 @@ interface Mention : Serializable {
     val id: Long
 
     /**
+     * URL
+     */
+    val url: String?
+        get() = null
+
+    /**
      * 一般的にIDと呼ばれるような、文字列形式のユーザ識別子
      */
     val screenName: String

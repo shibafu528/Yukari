@@ -7,5 +7,7 @@ import shibafu.yukari.entity.Mention as IMention
 class DonMention(mention: Mention) : IMention {
     override val id: Long = mention.id
 
+    override val url: String = mention.url
+
     override val screenName: String = MastodonUtil.expandFullScreenName(mention.acct, mention.url)
 }
