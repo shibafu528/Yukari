@@ -4,10 +4,12 @@ import android.util.Log;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
+import twitter4j.Status;
 import twitter4j.User;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -30,11 +32,25 @@ public class UserUpdateDelayer {
         thread.start();
     }
 
-    public void enqueue(User user, User... more) {
+    public void enqueue(User user) {
         synchronized (queueLock) {
             queue.offer(user);
-            for (User u : more) {
-                queue.offer(u);
+        }
+    }
+
+    public void enqueue(Collection<User> users) {
+        synchronized (queueLock) {
+            for (User user : users) {
+                queue.offer(user);
+            }
+        }
+    }
+
+    public void enqueue(Status status) {
+        synchronized (queueLock) {
+            queue.offer(status.getUser());
+            if (status.isRetweet()) {
+                queue.offer(status.getRetweetedStatus().getUser());
             }
         }
     }

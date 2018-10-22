@@ -14,6 +14,7 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
+import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.twitter.streaming.AutoReloadStream
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
@@ -33,12 +34,14 @@ class TwitterStream : ProviderStream {
 
     private lateinit var service: TwitterService
     private lateinit var filterStreamListener: FilterStreamListener
+    private lateinit var userUpdateDelayer: UserUpdateDelayer
 
     override fun onCreate(service: TwitterService) {
         Log.d(LOG_TAG, "onCreate")
 
         this.service = service
-        this.filterStreamListener = FilterStreamListener(service.timelineHub)
+        this.userUpdateDelayer = UserUpdateDelayer(service.database)
+        this.filterStreamListener = FilterStreamListener(service.timelineHub, userUpdateDelayer)
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_TWITTER) {
@@ -68,6 +71,8 @@ class TwitterStream : ProviderStream {
 
         channels.forEach(StreamChannel::stop)
         channels = emptyList()
+
+        userUpdateDelayer.shutdown()
     }
 
     override fun addUser(userRecord: AuthUserRecord): List<StreamChannel> {
@@ -80,7 +85,10 @@ class TwitterStream : ProviderStream {
 
         FilterStream.getInstance(service, userRecord).listener = filterStreamListener
 
-        val ch = listOf(AutoReloadChannel(service, userRecord), FilterStreamChannel(service, userRecord), FollowedStreamChannel(service, userRecord))
+        val ch = listOf(
+                AutoReloadChannel(service, userRecord, userUpdateDelayer),
+                FilterStreamChannel(service, userRecord), FollowedStreamChannel(service, userRecord)
+        )
         channels += ch
         return ch
     }
@@ -140,7 +148,7 @@ private class FilterStreamChannel(private val service: TwitterService, override 
     }
 }
 
-private class AutoReloadChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+private class AutoReloadChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val userUpdateDelayer: UserUpdateDelayer) : StreamChannel {
     override val channelId: String = "AutoReload"
     override val channelName: String = "AutoReload (Home & Mentions)"
     override val allowUserControl: Boolean = true
@@ -151,7 +159,10 @@ private class AutoReloadChannel(private val service: TwitterService, override va
 
     init {
         stream.listener = StreamListener("TwitterStream.AutoReloadChannel",
-                service.timelineHub, service.getProviderApi(userRecord) as TwitterApi)
+                service.timelineHub,
+                service.getProviderApi(userRecord) as TwitterApi,
+                userUpdateDelayer
+        )
     }
 
     override fun start() {
@@ -208,7 +219,8 @@ private class FollowedStreamChannel(private val service: TwitterService, overrid
 
 private class StreamListener(private val timelineId: String,
                              private val hub: TimelineHub,
-                             private val api: TwitterApi) : shibafu.yukari.twitter.streaming.StreamListener {
+                             private val api: TwitterApi,
+                             private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
     override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
         if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onFavorite: f:%s s:%d", timelineId, from.userRecord.ScreenName, status.id))
 
@@ -216,6 +228,8 @@ private class StreamListener(private val timelineId: String,
         val twitterUser = TwitterUser(user)
 
         hub.onFavorite(twitterUser, twitterStatus)
+
+        userUpdateDelayer.enqueue(user)
     }
 
     override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {
@@ -225,6 +239,8 @@ private class StreamListener(private val timelineId: String,
         val twitterUser = TwitterUser(user)
 
         hub.onUnfavorite(twitterUser, twitterStatus)
+
+        userUpdateDelayer.enqueue(user)
     }
 
     override fun onFollow(from: Stream, user: User, user2: User) {
@@ -241,6 +257,8 @@ private class StreamListener(private val timelineId: String,
                     from.userRecord)
 
             hub.onDirectMessage(timelineId, message, true)
+
+            userUpdateDelayer.enqueue(users)
         } catch (e: TwitterException) {
             e.printStackTrace()
         }
@@ -268,6 +286,8 @@ private class StreamListener(private val timelineId: String,
         }
 
         hub.onStatus(timelineId, TwitterStatus(status, from.userRecord), true)
+
+        userUpdateDelayer.enqueue(status)
     }
 
     override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
@@ -283,7 +303,8 @@ private class StreamListener(private val timelineId: String,
     }
 }
 
-private class FilterStreamListener(private val hub: TimelineHub) : shibafu.yukari.twitter.streaming.StreamListener {
+private class FilterStreamListener(private val hub: TimelineHub,
+                                   private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
     override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {}
 
     override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {}
@@ -306,14 +327,20 @@ private class FilterStreamListener(private val hub: TimelineHub) : shibafu.yukar
                 // メンションから始まるツイートの場合、対象に自分かフォロイーが含まれている場合のみ配信
                 if (status.userMentionEntities.any { it.id == from.userRecord.NumericId || filterStream.followIds.contains(it.id) }) {
                     hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+
+                    userUpdateDelayer.enqueue(status)
                 }
             } else {
                 // 通常ツイート
                 hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+
+                userUpdateDelayer.enqueue(status)
             }
         } else if (filterStream.queries.any { q -> text.contains(q.validQuery) }) {
             // track着信
             hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
+
+            userUpdateDelayer.enqueue(status)
         }
     }
 

@@ -19,8 +19,6 @@ import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
 import java.util.*
@@ -38,7 +36,6 @@ class TimelineHub(private val service: TwitterService) {
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     private val notifier: StatusNotifier = StatusNotifier(service)
-    private val userUpdateDelayer: UserUpdateDelayer = UserUpdateDelayer(service.database)
 
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()
@@ -217,11 +214,6 @@ class TimelineHub(private val service: TwitterService) {
         plc.receivedStatus.put(status.id, status)
 
         if (status is TwitterStatus) {
-            userUpdateDelayer.enqueue((status.user as TwitterUser).user)
-            if (status.isRepost) {
-                userUpdateDelayer.enqueue((status.originStatus.user as TwitterUser).user)
-            }
-
             if (passive) {
                 // ハッシュタグのキャッシュ
                 status.status.hashtagEntities.forEach {
@@ -262,7 +254,6 @@ class TimelineHub(private val service: TwitterService) {
     fun onDirectMessage(timelineId: String, status: TwitterMessage, passive: Boolean) {
         // TODO: ベタ移植なので問題があれば作り直す
 
-        userUpdateDelayer.enqueue(status.sender)
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
         if (passive && status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
@@ -319,10 +310,6 @@ class TimelineHub(private val service: TwitterService) {
             if (!(muteFlags[MuteConfig.MUTE_NOTIF_FAV] || userMuteFlags[MuteConfig.MUTE_NOTIF_FAV])) {
                 onNotify(NotifyHistory.KIND_FAVED, from, status)
             }
-        }
-
-        if (status is TwitterStatus) {
-            userUpdateDelayer.enqueue((from as TwitterUser).user)
         }
     }
 
