@@ -15,6 +15,7 @@ interface ProviderApi {
 
     fun getApiClient(userRecord: AuthUserRecord?): Any?
     fun getPostValidator(userRecord: AuthUserRecord): PostValidator
+    fun getAccountUrl(userRecord: AuthUserRecord): String
 
     fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean
     fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean

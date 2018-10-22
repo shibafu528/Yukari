@@ -11,6 +11,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -327,7 +328,7 @@ public class MenuDialogFragment extends DialogFragment {
                 dismiss();
                 Intent intent = ProfileActivity.newIntent(getActivity(),
                         (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD),
-                        data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
+                        Uri.parse(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_URL)));
                 startActivity(intent);
                 break;
             }

@@ -27,13 +27,6 @@ public class ProfileActivity extends AppCompatActivity {
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
 
-    public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, long targetId) {
-        Intent intent = new Intent(context, ProfileActivity.class);
-        intent.putExtra(EXTRA_USER, userRecord);
-        intent.putExtra(EXTRA_TARGET, targetId);
-        return intent;
-    }
-
     public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, @NonNull Uri target) {
         Intent intent = new Intent(context, ProfileActivity.class);
         intent.putExtra(EXTRA_USER, userRecord);

@@ -60,6 +60,11 @@ class MastodonApi : ProviderApi {
         return MastodonValidator()
     }
 
+    override fun getAccountUrl(userRecord: AuthUserRecord): String {
+        val (screenName, _) = MastodonUtil.splitFullScreenName(userRecord.ScreenName)
+        return "https://${userRecord.Provider.host}/@$screenName"
+    }
+
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {

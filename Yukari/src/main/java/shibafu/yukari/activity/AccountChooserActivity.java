@@ -15,6 +15,7 @@ import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
@@ -42,6 +43,8 @@ public class AccountChooserActivity extends ListYukariBase {
 
     public static final String EXTRA_SELECTED_RECORD = "selected_record";
     public static final String EXTRA_SELECTED_RECORDS = "selected_records";
+
+    public static final String EXTRA_SELECTED_URL = "selected_url";
 
     public static final String EXTRA_METADATA = "meta";
 
@@ -128,7 +131,8 @@ public class AccountChooserActivity extends ListYukariBase {
             isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
             if (!isFilterConsumerOverrode || !userRecord.isDefaultConsumer()) {
                 if (!isFilterProviderApiType || userRecord.Provider.getApiType() == filterProviderApiType) {
-                    dataList.add(new Data(userRecord, isSelected));
+                    ProviderApi api = getTwitterService().getProviderApi(userRecord);
+                    dataList.add(new Data(userRecord, api == null ? "" : api.getAccountUrl(userRecord), isSelected));
                 }
             }
         }
@@ -150,6 +154,7 @@ public class AccountChooserActivity extends ListYukariBase {
             result.putExtra(EXTRA_SELECTED_USERID, user.id);
             result.putExtra(EXTRA_SELECTED_USERSN, user.sn);
             result.putExtra(EXTRA_SELECTED_RECORD, user.record);
+            result.putExtra(EXTRA_SELECTED_URL, user.url);
             result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
@@ -164,10 +169,12 @@ public class AccountChooserActivity extends ListYukariBase {
             finish();
         } else if (!isMultipleChoose && users.size() == 1) {
             AuthUserRecord user = users.get(0);
+            ProviderApi api = getTwitterService().getProviderApi(user);
             Intent result = new Intent();
             result.putExtra(EXTRA_SELECTED_USERID, user.NumericId);
             result.putExtra(EXTRA_SELECTED_USERSN, user.ScreenName);
             result.putExtra(EXTRA_SELECTED_RECORD, user);
+            result.putExtra(EXTRA_SELECTED_URL, api == null ? "" : api.getAccountUrl(user));
             result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
             setResult(RESULT_OK, result);
             finish();
@@ -186,15 +193,17 @@ public class AccountChooserActivity extends ListYukariBase {
         String name;
         String sn;
         String imageURL;
+        String url;
         boolean checked;
         AuthUserRecord record;
 
-        private Data(AuthUserRecord record, boolean checked) {
+        private Data(AuthUserRecord record, String url, boolean checked) {
             this.record = record;
             this.id = record.NumericId;
             this.name = record.Name;
             this.sn = record.ScreenName;
             this.imageURL = record.ProfileImageUrl;
+            this.url = url;
             this.checked = checked;
         }
     }

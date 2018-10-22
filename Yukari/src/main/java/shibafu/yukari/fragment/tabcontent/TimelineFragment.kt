@@ -463,8 +463,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 when (which) {
                     // プロフィール
                     0 -> {
-                        // TODO: マルチサービス非互換
-                        val intent = ProfileActivity.newIntent(activity.applicationContext, status.representUser, status.user.id)
+                        val intent = ProfileActivity.newIntent(activity.applicationContext, status.representUser, Uri.parse(status.user.url))
                         startActivity(intent)
                     }
                     // 詳細を開く
@@ -505,7 +504,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     }
                     // 送信者
                     2 -> {
-                        val intent = ProfileActivity.newIntent(activity, status.representUser, status.user.id)
+                        val intent = ProfileActivity.newIntent(activity, status.representUser, Uri.parse(status.user.url))
                         startActivity(intent)
                     }
                     // リンクとか
@@ -518,7 +517,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         val chose = links[which - 3]
                         when (chose) {
                             is Mention -> {
-                                val intent = ProfileActivity.newIntent(activity, status.representUser, chose.id)
+                                val intent = ProfileActivity.newIntent(activity, status.representUser, Uri.parse(chose.url))
                                 startActivity(intent)
                             }
                             is Media -> {

@@ -27,8 +27,8 @@ import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
-import shibafu.yukari.entity.User
 import shibafu.yukari.fragment.base.ListTwitterFragment
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
@@ -122,13 +122,13 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
 
         // RTならRT者の情報
         if (status.isRepost) {
-            list += UserRow(status.user.id, status.user.screenName, status.user)
+            list += UserRow(status.user)
             existsUserId += status.user.id
         }
 
         // 発言者の情報
         if (!existsUserId.contains(status.originStatus.user.id)) {
-            list += UserRow(status.originStatus.user.id, status.originStatus.user.screenName, status.originStatus.user)
+            list += UserRow(status.originStatus.user)
             existsUserId += status.originStatus.user.id
         }
 
@@ -138,7 +138,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                 return@forEach
             }
 
-            list += UserRow(mention.id, mention.screenName)
+            list += UserRow(mention)
             existsUserId += mention.id
         }
 
@@ -355,25 +355,23 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
     }
 
-    private inner class UserRow(val id: Long, val screenName: String, val user: User? = null) : Row {
+    private inner class UserRow(val user: Mention) : Row {
         override var icon: Drawable? = ResourcesCompat.getDrawable(resources, R.drawable.yukatterload, null)
-        override val label: String = "@" + screenName
+        override val label: String = "@" + user.screenName
         override val actions: List<ExtraAction>
 
         init {
-            if (user != null) {
-                ImageLoaderTask.loadDrawable(context, user.profileImageUrl, BitmapCache.PROFILE_ICON_CACHE, { drawable ->
-                    icon = drawable
-                    if (isResumed) {
-                        (listAdapter as RowAdapter).notifyDataSetChanged()
-                    }
-                })
-            }
+            ImageLoaderTask.loadDrawable(context, user.profileImageUrl, BitmapCache.PROFILE_ICON_CACHE, { drawable ->
+                icon = drawable
+                if (isResumed) {
+                    (listAdapter as RowAdapter).notifyDataSetChanged()
+                }
+            })
 
             val replyAction = ExtraAction(null, "返信") {
                 Intent(activity, TweetActivity::class.java).apply {
                     putExtra(TweetActivity.EXTRA_USER, userRecord)
-                    putExtra(TweetActivity.EXTRA_TEXT, "@" + screenName + " ")
+                    putExtra(TweetActivity.EXTRA_TEXT, "@" + user.screenName + " ")
                     putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
                 }
             }
@@ -384,7 +382,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                         putExtra(TweetActivity.EXTRA_USER, userRecord)
                         putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
                         putExtra(TweetActivity.EXTRA_IN_REPLY_TO, id)
-                        putExtra(TweetActivity.EXTRA_DM_TARGET_SN, screenName)
+                        putExtra(TweetActivity.EXTRA_DM_TARGET_SN, user.screenName)
                     }
                 }
                 actions = listOf(replyAction, dmAction)
@@ -394,7 +392,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
 
         override fun onClick() {
-            val intent = ProfileActivity.newIntent(activity, userRecord, id)
+            val intent = ProfileActivity.newIntent(activity, userRecord, Uri.parse(user.url))
             startActivity(intent)
         }
     }

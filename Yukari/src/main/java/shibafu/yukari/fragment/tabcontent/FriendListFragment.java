@@ -2,6 +2,7 @@ package shibafu.yukari.fragment.tabcontent;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
@@ -71,7 +73,7 @@ public class FriendListFragment extends TwitterListFragment<User> {
 
     @Override
     public boolean onListItemClick(int position, User clickedElement) {
-        Intent intent = ProfileActivity.newIntent(getActivity(), getCurrentUser(), clickedElement.getId());
+        Intent intent = ProfileActivity.newIntent(getActivity(), getCurrentUser(), Uri.parse(TwitterUtil.getProfileUrl(clickedElement.getScreenName())));
         startActivity(intent);
         return true;
     }

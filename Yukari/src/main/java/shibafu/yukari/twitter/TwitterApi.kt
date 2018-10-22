@@ -55,6 +55,10 @@ class TwitterApi : ProviderApi {
         return TweetValidator()
     }
 
+    override fun getAccountUrl(userRecord: AuthUserRecord): String {
+        return TwitterUtil.getProfileUrl(userRecord.ScreenName)
+    }
+
     // 互換用
     fun createFavorite(userRecord: AuthUserRecord, id: Long): Boolean {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")

@@ -5,16 +5,16 @@ import java.io.Serializable
 /**
  * お前ら
  */
-interface User : Comparable<User>, Serializable {
+interface User : Comparable<User>, Serializable, Mention {
     /**
      * ID
      */
-    val id: Long
+    override val id: Long
 
     /**
      * URL
      */
-    val url: String?
+    override val url: String?
         get() = null
 
     /**
@@ -34,7 +34,7 @@ interface User : Comparable<User>, Serializable {
     /**
      * 一般的にIDと呼ばれるような、文字列形式のユーザ識別子
      */
-    val screenName: String
+    override val screenName: String
 
     /**
      * 非公開アカウント
@@ -44,7 +44,7 @@ interface User : Comparable<User>, Serializable {
     /**
      * プロフィールアイコンのURL
      */
-    val profileImageUrl: String
+    override val profileImageUrl: String
 
     /**
      * 高画質なプロフィールアイコンのURL
