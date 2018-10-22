@@ -1,7 +1,11 @@
 package shibafu.yukari.activity;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -12,6 +16,7 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
+import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
 /**
@@ -21,6 +26,20 @@ public class ProfileActivity extends AppCompatActivity {
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
+
+    public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, long targetId) {
+        Intent intent = new Intent(context, ProfileActivity.class);
+        intent.putExtra(EXTRA_USER, userRecord);
+        intent.putExtra(EXTRA_TARGET, targetId);
+        return intent;
+    }
+
+    public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, @NonNull Uri target) {
+        Intent intent = new Intent(context, ProfileActivity.class);
+        intent.putExtra(EXTRA_USER, userRecord);
+        intent.setData(target);
+        return intent;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

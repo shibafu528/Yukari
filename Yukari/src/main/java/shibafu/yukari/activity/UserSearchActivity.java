@@ -122,9 +122,9 @@ public class UserSearchActivity extends ActionBarYukariBase {
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
 
-                Intent intent = new Intent(UserSearchActivity.this, ProfileActivity.class);
-                intent.setData(Uri.parse("http://twitter.com/" + screenName));
-                intent.putExtra(ProfileActivity.EXTRA_USER, isTwitterServiceBound()? getTwitterService().getPrimaryUser():null);
+                Intent intent = ProfileActivity.newIntent(UserSearchActivity.this,
+                        isTwitterServiceBound() ? getTwitterService().getPrimaryUser() : null,
+                        Uri.parse("http://twitter.com/" + screenName));
                 startActivity(intent);
                 return true;
             }

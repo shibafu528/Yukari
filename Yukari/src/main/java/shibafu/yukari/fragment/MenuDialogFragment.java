@@ -325,9 +325,9 @@ public class MenuDialogFragment extends DialogFragment {
             case REQUEST_PROFILE:
             {
                 dismiss();
-                Intent intent = new Intent(getActivity(), ProfileActivity.class);
-                intent.putExtra(ProfileActivity.EXTRA_TARGET, data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
-                intent.putExtra(ProfileActivity.EXTRA_USER, data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
+                Intent intent = ProfileActivity.newIntent(getActivity(),
+                        (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD),
+                        data.getLongExtra(AccountChooserActivity.EXTRA_SELECTED_USERID, -1));
                 startActivity(intent);
                 break;
             }

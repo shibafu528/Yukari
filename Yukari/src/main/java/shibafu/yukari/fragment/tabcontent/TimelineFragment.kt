@@ -463,9 +463,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 when (which) {
                     // プロフィール
                     0 -> {
-                        val intent = Intent(activity.applicationContext, ProfileActivity::class.java)
-                        intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
-                        intent.putExtra(ProfileActivity.EXTRA_TARGET, status.user.id) // TODO: マルチサービス非互換
+                        // TODO: マルチサービス非互換
+                        val intent = ProfileActivity.newIntent(activity.applicationContext, status.representUser, status.user.id)
                         startActivity(intent)
                     }
                     // 詳細を開く
@@ -506,9 +505,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     }
                     // 送信者
                     2 -> {
-                        val intent = Intent(activity, ProfileActivity::class.java)
-                        intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
-                        intent.putExtra(ProfileActivity.EXTRA_TARGET, status.user.id)
+                        val intent = ProfileActivity.newIntent(activity, status.representUser, status.user.id)
                         startActivity(intent)
                     }
                     // リンクとか
@@ -521,9 +518,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         val chose = links[which - 3]
                         when (chose) {
                             is Mention -> {
-                                val intent = Intent(activity, ProfileActivity::class.java)
-                                intent.putExtra(ProfileActivity.EXTRA_USER, status.representUser)
-                                intent.putExtra(ProfileActivity.EXTRA_TARGET, chose.id)
+                                val intent = ProfileActivity.newIntent(activity, status.representUser, chose.id)
                                 startActivity(intent)
                             }
                             is Media -> {

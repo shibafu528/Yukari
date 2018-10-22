@@ -394,9 +394,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
 
         override fun onClick() {
-            val intent = Intent(activity, ProfileActivity::class.java)
-            intent.putExtra(ProfileActivity.EXTRA_USER, userRecord)
-            intent.putExtra(ProfileActivity.EXTRA_TARGET, id)
+            val intent = ProfileActivity.newIntent(activity, userRecord, id)
             startActivity(intent)
         }
     }
