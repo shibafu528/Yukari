@@ -95,7 +95,7 @@ class DonStatus(val status: Status,
                     return IStatus.RELATION_MENTIONED_TO_ME
                 }
             }
-            if (userRecord.NumericId == user.id && userRecord.Provider.host == user.host) {
+            if (userRecord.Url == user.url) {
                 return IStatus.RELATION_OWNED
             }
         }

@@ -56,7 +56,6 @@ import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
-import shibafu.yukari.twitter.streaming.Stream;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.IDs;
@@ -222,6 +221,14 @@ public class TwitterService extends Service{
         for (ProviderStream stream : providerStreams) {
             if (stream != null) {
                 stream.onCreate(this);
+            }
+        }
+
+        //ユーザデータのURLをセット
+        for (AuthUserRecord user : users) {
+            ProviderApi api = getProviderApi(user);
+            if (api != null) {
+                user.Url = api.getAccountUrl(user);
             }
         }
 
@@ -487,6 +494,10 @@ public class TwitterService extends Service{
                 addedList.add(aur);
                 users.add(aur);
                 if (!inInitialize) {
+                    ProviderApi api = getProviderApi(aur);
+                    if (api != null) {
+                        aur.Url = api.getAccountUrl(aur);
+                    }
                     ProviderStream stream = getProviderStream(aur);
                     if (stream != null) {
                         stream.addUser(aur);

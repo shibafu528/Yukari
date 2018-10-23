@@ -130,7 +130,7 @@ interface Status : Comparable<Status>, Serializable {
      */
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
         userRecords.forEach { userRecord ->
-            if (providerApiType == userRecord.Provider.apiType && user.id == userRecord.NumericId && user.host == userRecord.Provider.host) {
+            if (providerApiType == userRecord.Provider.apiType && user.url == userRecord.Url) {
                 representUser = userRecord
                 if (!receivedUsers.contains(userRecord)) {
                     receivedUsers.add(userRecord)
@@ -151,7 +151,7 @@ interface Status : Comparable<Status>, Serializable {
      * このステータスが代表受信アカウントのものであるか(削除等の強い権限を持っている)どうか判定
      */
     fun isOwnedStatus(): Boolean {
-        return providerApiType == representUser.Provider.apiType && user.id == representUser.NumericId
+        return providerApiType == representUser.Provider.apiType && user.url == representUser.Url
     }
 
     /**

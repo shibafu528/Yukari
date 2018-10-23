@@ -35,6 +35,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public String AccessTokenSecret;
     public int AccountColor;
     public Provider Provider;
+    public String Url;
 
     private twitter4j.auth.AccessToken twitterAccessToken;
 
@@ -228,6 +229,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
                 ", AccessTokenSecret=" + (TextUtils.isEmpty(AccessTokenSecret) ? "" : "****") +
                 ", AccountColor=" + AccountColor +
                 ", Provider=" + Provider +
+                ", Url=" + Url +
                 '}';
     }
 }
