@@ -57,6 +57,9 @@ class QueryCompiler {
                 "message" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.DirectMessage::class.java
                 ),
+                "search" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Search::class.java
+                ),
                 "don_local" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Local::class.java
                 ),
@@ -215,6 +218,26 @@ class QueryCompiler {
                     }
                 }
 
+                /**
+                 * [args] からTwitter検索ソースのインスタンスを作成します。
+                 */
+                private fun createTwitterSearchFilters(typeValue: String): List<FilterSource> {
+                    if (args.isEmpty()) throw FilterCompilerException("引数が指定されていません。", type)
+                    return args.map { p ->
+                        if (p.value.isBlank()) {
+                            throw FilterCompilerException("検索キーワードを空にすることはできません。", p)
+                        }
+
+                        val auth = userRecords.firstOrNull { it.isPrimary && it.Provider.apiType == Provider.API_TWITTER }
+                            ?: userRecords.firstOrNull { it.Provider.apiType == Provider.API_TWITTER }
+
+                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                                ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
+                        val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
+                        constructor.newInstance(auth, p.value)
+                    }
+                }
+
                 /** 構文解析の結果から抽出ソースのインスタンスを作成します。 */
                 fun toFilterSource(): List<FilterSource> {
                     return when (type!!.value) {
@@ -225,6 +248,7 @@ class QueryCompiler {
                         "list" -> createFiltersWithListArguments("list", 2, "(受信ユーザ/)ユーザ/リスト名")
                         "trace" -> createFiltersWithTraceArguments("trace", "受信ユーザ/起点ID")
                         "message", "messages", "dm", "dms" -> createFiltersWithAuthArguments("message")
+                        "search" -> createTwitterSearchFilters("search")
                         "don_local" -> createFiltersWithAuthArguments("don_local")
                         "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")
