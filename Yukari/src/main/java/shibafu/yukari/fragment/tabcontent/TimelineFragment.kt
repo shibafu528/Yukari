@@ -850,7 +850,9 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
      * @param id 削除対象のID
      */
     private fun deleteElement(type: Class<out Status>, id: Long) {
-        if (listView == null) {
+        val listView = try {
+            listView
+        } catch (e: IllegalStateException) {
             putWarnLog("Delete: ListView is null. DROPPED! (${type.name}, $id)")
             return
         }
@@ -865,12 +867,6 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (unreadSet.contains(id)) {
                     unreadSet.remove(id)
                     unreadNotifierBehavior.updateUnreadNotifier()
-                }
-
-                val listView = try {
-                    listView
-                } catch (e: IllegalStateException) {
-                    break
                 }
 
                 val firstPos = listView.firstVisiblePosition
