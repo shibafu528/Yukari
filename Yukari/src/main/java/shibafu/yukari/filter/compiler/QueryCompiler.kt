@@ -71,6 +71,12 @@ class QueryCompiler {
                 ),
                 "don_anon_federated" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousFederated::class.java
+                ),
+                "don_hashtag" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.HashTag::class.java
+                ),
+                "don_local_hashtag" to mapOf(
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.LocalHashTag::class.java
                 )
         )
 
@@ -253,6 +259,8 @@ class QueryCompiler {
                         "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")
                         "don_anon_federated" -> createFiltersWithListArguments("don_anon_federated", 1, "インスタンス名")
+                        "don_hashtag" -> createFiltersWithTraceArguments("don_hashtag", "受信ユーザ/ハッシュタグ")
+                        "don_local_hashtag" -> createFiltersWithTraceArguments("don_local_hashtag", "受信ユーザ/ハッシュタグ")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }
