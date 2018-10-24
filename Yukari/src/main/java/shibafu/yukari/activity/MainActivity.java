@@ -50,11 +50,11 @@ import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
 import shibafu.yukari.filter.source.DynamicChannelController;
 import shibafu.yukari.filter.source.FilterSource;
+import shibafu.yukari.filter.source.Search;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
-import shibafu.yukari.fragment.tabcontent.SearchListFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -174,8 +174,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
                 QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
                 if (quickPostFragment != null) {
-                    if (currentPage instanceof SearchListFragment) {
-                        quickPostFragment.setDefaultText(" " + ((SearchListFragment) currentPage).getStreamFilter());
+                    if (currentPage instanceof TimelineFragment) {
+                        StringBuilder defaultText = new StringBuilder();
+                        FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                        for (FilterSource source : query.getSources()) {
+                            if (source instanceof Search) {
+                                defaultText.append(" ").append(((Search) source).getQuery());
+                            }
+                        }
+                        quickPostFragment.setDefaultText(defaultText.toString());
                     } else {
                         quickPostFragment.setDefaultText("");
                     }
@@ -230,8 +237,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ibSearch.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
             popupMenu.inflate(R.menu.search);
-            if (currentPage instanceof SearchListFragment) {
-                popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
+            if (currentPage instanceof TimelineFragment) {
+                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                for (FilterSource source : query.getSources()) {
+                    if (source instanceof Search) {
+                        popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
+                        break;
+                    }
+                }
             }
             popupMenu.setOnMenuItemClickListener(menuItem -> {
                 switch (menuItem.getItemId()) {
@@ -283,9 +296,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     if (service != null && query.isConnectedAnyDynamicChannel(service)) {
                         query.disconnectAllDynamicChannel(service);
                     }
-                } else if (tabFragment instanceof SearchListFragment &&
-                        ((SearchListFragment) tabFragment).isStreaming()) {
-                    ((SearchListFragment) tabFragment).setStreaming(false);
                 }
 
                 pageList.remove(current);
@@ -317,15 +327,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 } else {
                     query.connectAllDynamicChannel(service);
                     ibStream.setImageResource(R.drawable.ic_play_d);
-                }
-            } else if (currentPage instanceof SearchListFragment) {
-                boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
-                ((SearchListFragment) currentPage).setStreaming(isStreaming);
-                if (isStreaming) {
-                    ibStream.setImageResource(R.drawable.ic_play_d);
-                }
-                else {
-                    ibStream.setImageResource(R.drawable.ic_pause_d);
                 }
             }
         });
@@ -782,13 +783,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             if (currentPage instanceof TimelineFragment) {
                 FilterQuery query = ((TimelineFragment) currentPage).getQuery();
                 onQueryCompiled((TimelineFragment) currentPage, query);
-            } else if (currentPage instanceof SearchListFragment) {
-                ibStream.setVisibility(View.VISIBLE);
-                if (((SearchListFragment) currentPage).isStreaming()) {
-                    ibStream.setImageResource(R.drawable.ic_play_d);
-                } else {
-                    ibStream.setImageResource(R.drawable.ic_pause_d);
-                }
             } else {
                 ibStream.setVisibility(View.INVISIBLE);
             }

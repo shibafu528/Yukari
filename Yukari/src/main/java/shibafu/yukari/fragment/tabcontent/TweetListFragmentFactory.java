@@ -13,11 +13,10 @@ public class TweetListFragmentFactory {
 
     public static Fragment newInstance(int tabType) {
         switch (tabType) {
-            case TabType.TABTYPE_SEARCH:
-            case TabType.TABTYPE_TRACK:
-                return new SearchListFragment();
             case TabType.TABTYPE_BOOKMARK:
                 return new BookmarkListFragment();
+            case TabType.TABTYPE_SEARCH:
+            case TabType.TABTYPE_TRACK:
             case TabType.TABTYPE_DM:
             case TabType.TABTYPE_FILTER:
             case TabType.TABTYPE_HISTORY:
@@ -33,9 +32,6 @@ public class TweetListFragmentFactory {
         Fragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
-            case TabType.TABTYPE_SEARCH:
-                b.putString(SearchListFragment.EXTRA_SEARCH_QUERY, tabInfo.getSearchKeyword());
-                break;
             case TabType.TABTYPE_LIST:
                 b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
                 break;
