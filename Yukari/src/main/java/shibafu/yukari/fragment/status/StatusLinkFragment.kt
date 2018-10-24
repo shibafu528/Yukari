@@ -116,7 +116,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
 
         // 会話
-        if (status.inReplyToId > -1) {
+        if (status.originStatus.inReplyToId > -1) {
             list += TraceRow()
         }
 
@@ -339,17 +339,16 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
     }
 
-    // TODO: トレース側が非対応で落ちる
     private inner class TraceRow : Row {
         override val icon: Drawable? = null
         override val label: String = "会話をたどる"
 
         override fun onClick() {
-            status?.let { status ->
+            status.let { status ->
                 val intent = Intent(activity, TraceActivity::class.java)
                 intent.putExtra(TweetListFragment.EXTRA_USER, userRecord)
                 intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
-                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status)
+                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status.originStatus)
                 startActivity(intent)
             }
         }
