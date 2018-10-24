@@ -250,6 +250,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 switch (menuItem.getItemId()) {
                     case R.id.action_save_search: {
                         Intent intent = new Intent(getApplicationContext(), AccountChooserActivity.class);
+                        intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, Provider.API_TWITTER);
                         startActivityForResult(intent, REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT);
                         break;
                     }
