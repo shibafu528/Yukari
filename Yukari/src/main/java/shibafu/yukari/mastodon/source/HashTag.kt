@@ -1,13 +1,17 @@
 package shibafu.yukari.mastodon.source
 
+import android.content.Context
 import com.sys1yagi.mastodon4j.api.method.Public
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
+import shibafu.yukari.filter.source.DynamicChannelController
 import shibafu.yukari.filter.source.FilterSource
+import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.mastodon.MastodonRestQuery
+import shibafu.yukari.mastodon.MastodonStream
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -30,6 +34,23 @@ class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : Fil
                     ValueNode("#$normalizedTag")
             )
     )
+
+    override fun getDynamicChannelController() = object : DynamicChannelController {
+        override fun isConnected(context: Context, stream: ProviderStream): Boolean {
+            stream as MastodonStream
+            return stream.isConnectedHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.FEDERATED)
+        }
+
+        override fun connect(context: Context, stream: ProviderStream) {
+            stream as MastodonStream
+            stream.startHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.FEDERATED)
+        }
+
+        override fun disconnect(context: Context, stream: ProviderStream) {
+            stream as MastodonStream
+            stream.stopHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.FEDERATED)
+        }
+    }
 }
 
 /**
@@ -52,4 +73,21 @@ class LocalHashTag(override val sourceAccount: AuthUserRecord, val tag: String) 
                     ValueNode("#$normalizedTag")
             )
     )
+
+    override fun getDynamicChannelController() = object : DynamicChannelController {
+        override fun isConnected(context: Context, stream: ProviderStream): Boolean {
+            stream as MastodonStream
+            return stream.isConnectedHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.LOCAL)
+        }
+
+        override fun connect(context: Context, stream: ProviderStream) {
+            stream as MastodonStream
+            stream.startHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.LOCAL)
+        }
+
+        override fun disconnect(context: Context, stream: ProviderStream) {
+            stream as MastodonStream
+            stream.stopHashTagStream(sourceAccount, normalizedTag, MastodonStream.Scope.LOCAL)
+        }
+    }
 }

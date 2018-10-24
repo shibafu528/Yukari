@@ -1,7 +1,9 @@
 package shibafu.yukari.mastodon
 
 import android.content.Intent
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Handler
 import com.sys1yagi.mastodon4j.api.Retryable
@@ -87,12 +89,46 @@ class MastodonStream : ProviderStream {
         channels -= ch
     }
 
+    fun isConnectedHashTagStream(userRecord: AuthUserRecord, tag: String, scope: Scope): Boolean {
+        return channels.any { it.userRecord == userRecord && it is HashTagStreamChannel && it.scope == scope && it.tag == tag }
+    }
+
+    fun startHashTagStream(userRecord: AuthUserRecord, tag: String, scope: Scope) {
+        if (channels.any { it.userRecord == userRecord && it is HashTagStreamChannel && it.scope == scope && it.tag == tag }) {
+            return
+        }
+
+        val ch = HashTagStreamChannel(service, userRecord, tag, scope)
+        ch.start()
+        channels += ch
+
+        android.os.Handler(Looper.getMainLooper()).post {
+            Toast.makeText(service.applicationContext, "Start HashTagStream:$tag", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun stopHashTagStream(userRecord: AuthUserRecord, tag: String, scope: Scope) {
+        val ch = channels.first { it.userRecord == userRecord && it is HashTagStreamChannel && it.scope == scope && it.tag == tag }
+        ch.stop()
+        channels -= ch
+
+        android.os.Handler(Looper.getMainLooper()).post {
+            Toast.makeText(service.applicationContext, "Stop HashTagStream:$tag", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    enum class Scope(val channelId: String, val channelName: String) {
+        FEDERATED("/hashtag", "HashTag"),
+        LOCAL("/hashtag/local", "Local HashTag")
+    }
+
     companion object {
         private const val LOG_TAG = "MastodonStream"
 
         const val USER_STREAM_ID = "MastodonStream.UserStreamChannel"
         const val PUBLIC_STREAM_ID = "MastodonStream.PublicStreamChannel"
         const val LOCAL_STREAM_ID = "MastodonStream.LocalStreamChannel"
+        const val HASHTAG_STREAM_ID = "MastodonStream.HashTagStreamChannel"
     }
 }
 
@@ -163,6 +199,40 @@ private class LocalStreamChannel(private val service: TwitterService, override v
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.localPublic(handler) }
+        }
+        isRunning = true
+    }
+
+    override fun stop() {
+        shutdownable?.shutdown()
+        shutdownable = null
+        isRunning = false
+    }
+}
+
+private class HashTagStreamChannel(private val service: TwitterService,
+                                   override val userRecord: AuthUserRecord,
+                                   val tag: String,
+                                   val scope: MastodonStream.Scope) : StreamChannel {
+    override val channelId: String = "${scope.channelId}tag=$tag"
+    override val channelName: String = "${scope.channelName} #$tag"
+    override val allowUserControl: Boolean = false
+    override var isRunning: Boolean = false
+        private set
+
+    private val handler: Handler = StreamHandler(MastodonStream.HASHTAG_STREAM_ID, channelId, service, userRecord)
+    private var shutdownable: Shutdownable? = null
+
+    override fun start() {
+        launch {
+            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
+            val streaming = Streaming(client)
+            shutdownable = retryUntilConnect {
+                when (scope) {
+                    MastodonStream.Scope.FEDERATED -> streaming.federatedHashtag(tag, handler)
+                    MastodonStream.Scope.LOCAL -> streaming.localHashtag(tag, handler)
+                }
+            }
         }
         isRunning = true
     }
