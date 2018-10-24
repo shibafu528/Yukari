@@ -50,11 +50,6 @@ public class BookmarkListFragment extends TweetListFragment {
     @Override
     public void onServiceDisconnected() {}
 
-    @Override
-    public boolean isCloseable() {
-        return true;
-    }
-
     private class BookmarkLoader extends ParallelAsyncTask<Void, Void, List<Bookmark>> {
 
         @Override

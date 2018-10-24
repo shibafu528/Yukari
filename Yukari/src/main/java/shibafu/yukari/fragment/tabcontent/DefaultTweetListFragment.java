@@ -228,11 +228,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
     public void onServiceDisconnected() {}
 
     @Override
-    public boolean isCloseable() {
-        return false;
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         getActivity().getMenuInflater().inflate(R.menu.list, menu);
         miEditList = menu.findItem(R.id.action_edit);

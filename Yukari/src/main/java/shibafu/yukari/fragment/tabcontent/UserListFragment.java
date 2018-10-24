@@ -84,11 +84,6 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
     }
 
     @Override
-    public boolean isCloseable() {
-        return false;
-    }
-
-    @Override
     public boolean onListItemClick(int position, UserList clickedElement) {
         DefaultTweetListFragment fragment = new DefaultTweetListFragment();
         Bundle args = new Bundle();

@@ -309,8 +309,6 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
     }
 
-    override fun isCloseable(): Boolean = false
-
     override fun scrollToTop() {
         try {
             listView?.setSelection(0)

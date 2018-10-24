@@ -403,6 +403,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 // If not exist...
                 if (tabType == TabType.TABTYPE_BOOKMARK) {
                     TabInfo tabInfo = new TabInfo(tabType, pageList.size(), getTwitterService().getPrimaryUser());
+                    tabInfo.setCloseable(true);
                     addTab(tabInfo);
                     viewPager.getAdapter().notifyDataSetChanged();
                     viewPager.setCurrentItem(tabInfo.getOrder());

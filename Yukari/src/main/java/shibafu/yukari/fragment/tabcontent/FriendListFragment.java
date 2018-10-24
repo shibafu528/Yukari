@@ -67,11 +67,6 @@ public class FriendListFragment extends TwitterListFragment<User> {
     }
 
     @Override
-    public boolean isCloseable() {
-        return false;
-    }
-
-    @Override
     public boolean onListItemClick(int position, User clickedElement) {
         Intent intent = ProfileActivity.newIntent(getActivity(), getCurrentUser(), Uri.parse(TwitterUtil.getProfileUrl(clickedElement.getScreenName())));
         startActivity(intent);
