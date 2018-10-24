@@ -24,6 +24,7 @@ public class TabInfo implements DBRecord, Serializable {
     private String searchKeyword;
     private String filterQuery;
     private boolean isStartup;
+    private boolean isCloseable;
 
     public TabInfo(int type, int order, AuthUserRecord bindAccount) {
         this.type = type;
@@ -182,5 +183,13 @@ public class TabInfo implements DBRecord, Serializable {
 
     public void setStartup(boolean isStartup) {
         this.isStartup = isStartup;
+    }
+
+    public boolean isCloseable() {
+        return isCloseable;
+    }
+
+    public void setCloseable(boolean closeable) {
+        isCloseable = closeable;
     }
 }

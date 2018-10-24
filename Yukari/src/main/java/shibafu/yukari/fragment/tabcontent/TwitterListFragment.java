@@ -172,7 +172,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
             long id = args.getLong(EXTRA_ID);
             elements = ((MainActivity) context).getElementsList(id);
 
-            ((MainActivity) context).registTwitterFragment(id, this);
+            ((MainActivity) context).registerTwitterFragment(id, this);
         }
         swipeRefreshColor = AttrUtil.resolveAttribute(context.getTheme(), R.attr.colorPrimary);
     }
@@ -355,7 +355,7 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
         connection.disconnect(getActivity());
 
         if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).unregistTwitterFragment(getArguments().getLong(EXTRA_ID));
+            ((MainActivity) getActivity()).unregisterTwitterFragment(getArguments().getLong(EXTRA_ID));
         }
     }
 

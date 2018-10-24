@@ -1,5 +1,6 @@
 package shibafu.yukari.filter.source
 
+import android.content.Context
 import com.google.gson.Gson
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.LoadMarker
@@ -9,9 +10,11 @@ import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
+import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.TwitterStream
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.streaming.FilterStream
 import twitter4j.Query
@@ -22,7 +25,7 @@ import java.util.*
 /**
  * Twitterの検索APIを対象とする抽出ソースです。
  */
-class Search(override val sourceAccount: AuthUserRecord?, val query: String) : FilterSource {
+class Search(override val sourceAccount: AuthUserRecord, val query: String) : FilterSource {
     private val parsedQuery = FilterStream.ParsedQuery(query)
     private val gson = Gson()
 
@@ -68,4 +71,20 @@ class Search(override val sourceAccount: AuthUserRecord?, val query: String) : F
                     ValueNode(parsedQuery.validQuery)
             )
     )
+
+    override fun getDynamicChannelController() = object : DynamicChannelController {
+        override fun isConnected(context: Context, stream: ProviderStream): Boolean {
+            return FilterStream.getInstance(context, sourceAccount).contains(parsedQuery.validQuery)
+        }
+
+        override fun connect(context: Context, stream: ProviderStream) {
+            stream as TwitterStream
+            stream.startFilterStream(parsedQuery.validQuery, sourceAccount)
+        }
+
+        override fun disconnect(context: Context, stream: ProviderStream) {
+            stream as TwitterStream
+            stream.stopFilterStream(parsedQuery.validQuery, sourceAccount)
+        }
+    }
 }

@@ -48,16 +48,17 @@ import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
+import shibafu.yukari.filter.source.DynamicChannelController;
 import shibafu.yukari.filter.source.FilterSource;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.SearchListFragment;
-import shibafu.yukari.fragment.tabcontent.StreamToggleable;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterStream;
@@ -267,17 +268,24 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         ibClose.setOnLongClickListener(view -> {
-            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
-                int current = viewPager.getCurrentItem();
-                TabInfo tabInfo = pageList.get(current);
+            int current = viewPager.getCurrentItem();
+            TabInfo tabInfo = pageList.get(current);
+            if (tabInfo.isCloseable()) {
                 Fragment tabFragment = null;
-                WeakReference<Fragment> reference = tabRegistry.get(pageList.get(current).getId());
+                WeakReference<Fragment> reference = tabRegistry.get(tabInfo.getId());
                 if (reference != null) {
                     tabFragment = reference.get();
                 }
-                if (tabFragment instanceof StreamToggleable &&
-                        ((StreamToggleable) tabFragment).isStreaming()) {
-                    ((StreamToggleable) tabFragment).setStreaming(false);
+
+                if (tabFragment instanceof TimelineFragment) {
+                    TwitterService service = getTwitterService();
+                    FilterQuery query = ((TimelineFragment) tabFragment).getQuery();
+                    if (service != null && query.isConnectedAnyDynamicChannel(service)) {
+                        query.disconnectAllDynamicChannel(service);
+                    }
+                } else if (tabFragment instanceof SearchListFragment &&
+                        ((SearchListFragment) tabFragment).isStreaming()) {
+                    ((SearchListFragment) tabFragment).setStreaming(false);
                 }
 
                 pageList.remove(current);
@@ -289,15 +297,30 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             } else return false;
         });
         ibClose.setOnClickListener(view -> {
-            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
+            if (pageList.get(viewPager.getCurrentItem()).isCloseable()) {
                 Toast.makeText(getApplicationContext(), "長押しでタブを閉じる", Toast.LENGTH_SHORT).show();
             }
         });
 
         ibStream.setOnClickListener(view -> {
-            if (currentPage instanceof StreamToggleable) {
-                boolean isStreaming = !((StreamToggleable) currentPage).isStreaming();
-                ((StreamToggleable) currentPage).setStreaming(isStreaming);
+            if (currentPage instanceof TimelineFragment) {
+                TwitterService service = getTwitterService();
+                if (service == null) {
+                    return;
+                }
+
+                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                boolean isStreaming = query.isConnectedAnyDynamicChannel(service);
+                if (isStreaming) {
+                    query.disconnectAllDynamicChannel(service);
+                    ibStream.setImageResource(R.drawable.ic_pause_d);
+                } else {
+                    query.connectAllDynamicChannel(service);
+                    ibStream.setImageResource(R.drawable.ic_play_d);
+                }
+            } else if (currentPage instanceof SearchListFragment) {
+                boolean isStreaming = !((SearchListFragment) currentPage).isStreaming();
+                ((SearchListFragment) currentPage).setStreaming(isStreaming);
                 if (isStreaming) {
                     ibStream.setImageResource(R.drawable.ic_play_d);
                 }
@@ -751,14 +774,17 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         currentPageIndex = position;
 
         if (currentPage != null) {
-            if (currentPage instanceof TimelineTab && ((TimelineTab) currentPage).isCloseable()) {
+            if (tabInfo.isCloseable()) {
                 ibClose.setVisibility(View.VISIBLE);
             } else {
                 ibClose.setVisibility(View.INVISIBLE);
             }
-            if (currentPage instanceof StreamToggleable) {
+            if (currentPage instanceof TimelineFragment) {
+                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                onQueryCompiled((TimelineFragment) currentPage, query);
+            } else if (currentPage instanceof SearchListFragment) {
                 ibStream.setVisibility(View.VISIBLE);
-                if (((StreamToggleable) currentPage).isStreaming()) {
+                if (((SearchListFragment) currentPage).isStreaming()) {
                     ibStream.setImageResource(R.drawable.ic_play_d);
                 } else {
                     ibStream.setImageResource(R.drawable.ic_pause_d);
@@ -813,6 +839,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 return;
             }
             TabInfo tabInfo = new TabInfo(TabType.TABTYPE_SEARCH, pageList.size(), userRecord, searchQuery);
+            tabInfo.setCloseable(true);
             addTab(tabInfo);
             viewPager.getAdapter().notifyDataSetChanged();
             viewPager.setCurrentItem(tabInfo.getOrder());
@@ -856,14 +883,57 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         return searchQueries.get(id);
     }
 
-    public void registTwitterFragment(long id, Fragment fragment) {
-        Log.d("MainActivity", "regist tab: " + id);
+    public void registerTwitterFragment(long id, Fragment fragment) {
+        Log.d("MainActivity", "register tab: " + id);
         tabRegistry.put(id, new WeakReference<>(fragment));
     }
 
-    public void unregistTwitterFragment(long id) {
-        Log.d("MainActivity", "unregist tab: " + id);
+    public void unregisterTwitterFragment(long id) {
+        Log.d("MainActivity", "unregister tab: " + id);
         tabRegistry.remove(id);
+    }
+
+    public void onQueryCompiled(TimelineFragment fragment, FilterQuery query) {
+        if (fragment != currentPage) {
+            return;
+        }
+
+        boolean hasDynamicChannel = false;
+        boolean isStreaming = false;
+        TwitterService service = getTwitterService();
+
+        if (service != null) {
+            for (FilterSource source : query.getSources()) {
+                DynamicChannelController dcc = source.getDynamicChannelController();
+                if (dcc != null) {
+                    hasDynamicChannel = true;
+
+                    AuthUserRecord userRecord = source.getSourceAccount();
+                    if (userRecord == null) {
+                        break;
+                    }
+
+                    ProviderStream stream = service.getProviderStream(userRecord);
+                    if (stream == null) {
+                        break;
+                    }
+
+                    isStreaming = dcc.isConnected(getApplicationContext(), stream) || isStreaming;
+                    break;
+                }
+            }
+        }
+
+        if (hasDynamicChannel) {
+            ibStream.setVisibility(View.VISIBLE);
+            if (isStreaming) {
+                ibStream.setImageResource(R.drawable.ic_play_d);
+            } else {
+                ibStream.setImageResource(R.drawable.ic_pause_d);
+            }
+        } else {
+            ibStream.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

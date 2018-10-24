@@ -3,8 +3,8 @@ package shibafu.yukari.filter.source
 import android.content.Context
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.RestQuery
-import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -36,10 +36,36 @@ interface FilterSource{
     fun getStreamFilter(): SNode = ValueNode(true)
 
     /**
-     * この抽出ソースが動的にStreamへの接続を要求する場合、接続先 [StreamChannel] のインスタンスを返します。
-     * @return [StreamChannel] のインスタンス。動的な接続先を持たない場合、nullを返します。
+     * この抽出ソースが動的にStreamへの接続を要求する場合、それを制御するためのコントローラ実装を返します。
+     * @return Streamの制御を行う [DynamicChannelController]
      */
-    fun getDynamicChannel(context: Context): StreamChannel? = null
+    fun getDynamicChannelController(): DynamicChannelController? = null
+}
+
+/**
+ * TL上から動的にStreamへの接続を行う際の制御を実装するためのインターフェースです。
+ */
+interface DynamicChannelController {
+    /**
+     * このコントローラの親となる [FilterSource] がStreamに接続済であるかどうかを取得します。
+     * @param context [Context]
+     * @param stream [FilterSource.sourceAccount] に対応する [ProviderStream] のインスタンス
+     */
+    fun isConnected(context: Context, stream: ProviderStream): Boolean
+
+    /**
+     * このコントローラの親となる [FilterSource] をStreamに接続します。
+     * @param context [Context]
+     * @param stream [FilterSource.sourceAccount] に対応する [ProviderStream] のインスタンス
+     */
+    fun connect(context: Context, stream: ProviderStream)
+
+    /**
+     * このコントローラの親となる [FilterSource] をStreamから切断します。
+     * @param context [Context]
+     * @param stream [FilterSource.sourceAccount] に対応する [ProviderStream] のインスタンス
+     */
+    fun disconnect(context: Context, stream: ProviderStream)
 }
 
 //    何を実装すべきかの参考でしか無い

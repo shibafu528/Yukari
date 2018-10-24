@@ -77,6 +77,11 @@ public class TweetListFragmentFactory {
                     query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
                 }
                 break;
+            case TabType.TABTYPE_SEARCH:
+                query.append("from search:\"")
+                        .append(tabInfo.getSearchKeyword().replaceAll("\"", "\\\""))
+                        .append("\"");
+                break;
             default:
                 return newInstance(tabInfo);
         }

@@ -117,6 +117,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
         if (context is MainActivity) {
             statuses.addAll(context.getStatusesList(timelineId))
+            context.registerTwitterFragment(arguments.getLong(TweetListFragment.EXTRA_ID), this)
         }
     }
 
@@ -217,6 +218,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             val statusesList = (activity as MainActivity).getStatusesList(timelineId)
             statusesList.clear()
             statusesList.addAll(statuses)
+            (activity as MainActivity).unregisterTwitterFragment(arguments.getLong(TweetListFragment.EXTRA_ID))
         }
     }
 
@@ -411,6 +413,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 notifyDataSetChanged()
             }
             query = FilterQuery.VOID_QUERY
+        }
+        // コンパイル完了をMainActivityに通知
+        activity.let { activity ->
+            if (activity is MainActivity) {
+                activity.onQueryCompiled(this, query)
+            }
         }
 
         // イベント購読開始

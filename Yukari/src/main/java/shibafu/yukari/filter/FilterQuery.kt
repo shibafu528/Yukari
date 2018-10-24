@@ -8,6 +8,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
+import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 
 /**
@@ -44,6 +45,49 @@ data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SN
                 ),
                 rootNode
             ).evaluate(EvaluateContext(target, userRecords).apply { this.variables.putAll(variables) }).equals(true)
+
+    /**
+     * いずれかのデータソースがStreamに接続された状態であるかチェックします。
+     * @param service [TwitterService]
+     */
+    fun isConnectedAnyDynamicChannel(service: TwitterService): Boolean {
+        sources.forEach { source ->
+            val dcc = source.getDynamicChannelController() ?: return@forEach
+            val userRecord = source.sourceAccount ?: return@forEach
+            val stream = service.getProviderStream(userRecord) ?: return@forEach
+
+            if (dcc.isConnected(service, stream)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * すべての接続可能なデータソースをStreamに接続します。
+     * @param service [TwitterService]
+     */
+    fun connectAllDynamicChannel(service: TwitterService) {
+        sources.forEach { source ->
+            val dcc = source.getDynamicChannelController() ?: return@forEach
+            val userRecord = source.sourceAccount ?: return@forEach
+            val stream = service.getProviderStream(userRecord) ?: return@forEach
+            dcc.connect(service, stream)
+        }
+    }
+
+    /**
+     * すべての接続可能なデータソースをStreamから切断します。
+     * @param service [TwitterService]
+     */
+    fun disconnectAllDynamicChannel(service: TwitterService) {
+        sources.forEach { source ->
+            val dcc = source.getDynamicChannelController() ?: return@forEach
+            val userRecord = source.sourceAccount ?: return@forEach
+            val stream = service.getProviderStream(userRecord) ?: return@forEach
+            dcc.disconnect(service, stream)
+        }
+    }
 
     companion object {
         val VOID_QUERY = FilterQuery(emptyList(), ValueNode(false))

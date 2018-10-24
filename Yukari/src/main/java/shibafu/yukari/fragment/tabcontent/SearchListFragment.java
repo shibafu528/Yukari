@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchListFragment extends TweetListFragment implements StreamToggleable {
+public class SearchListFragment extends TweetListFragment {
 
     public static final String EXTRA_SEARCH_QUERY = "search_query";
     private String searchQuery;
