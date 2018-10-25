@@ -829,7 +829,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         lockedPosition = firstPos
                     }
                 } else {
-                    lockedPosition = firstPos
+                    lockedPosition = statuses.size - 1
                 }
 
                 unreadSet.add(status.id)
