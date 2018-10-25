@@ -74,7 +74,7 @@ public class UserUpdateDelayer {
                     try {
                         for (User user : work) {
                             database.get().updateRecord(new DBUser(user));
-                            database.get().updateAccountProfile(Provider.API_TWITTER,
+                            database.get().updateAccountProfile(Provider.TWITTER.getId(),
                                     user.getId(), user.getScreenName(), user.getName(),
                                     user.getOriginalProfileImageURLHttps());
                         }

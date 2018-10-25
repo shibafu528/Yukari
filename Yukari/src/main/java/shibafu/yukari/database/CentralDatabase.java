@@ -738,53 +738,17 @@ public class CentralDatabase {
         db.replaceOrThrow(TABLE_ACCOUNTS, null, contentValues);
     }
 
-    public void updateAccountProfile(long apiType, long userId, String screenName, String name, String profileImageUrl) {
-        beginTransaction();
-        try {
-            ContentValues cv = new ContentValues();
-            cv.put(COL_ACCOUNTS_USER_ID, userId);
-            cv.put(COL_ACCOUNTS_SCREEN_NAME, screenName);
-            cv.put(COL_ACCOUNTS_DISPLAY_NAME, name);
-            cv.put(COL_ACCOUNTS_PROFILE_IMAGE_URL, profileImageUrl);
+    public void updateAccountProfile(long providerId, long userId, String screenName, String name, String profileImageUrl) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ACCOUNTS_USER_ID, userId);
+        cv.put(COL_ACCOUNTS_SCREEN_NAME, screenName);
+        cv.put(COL_ACCOUNTS_DISPLAY_NAME, name);
+        cv.put(COL_ACCOUNTS_PROFILE_IMAGE_URL, profileImageUrl);
 
-            if (apiType == Provider.API_TWITTER) {
-                db.update(TABLE_ACCOUNTS, cv, COL_ACCOUNTS_PROVIDER_ID + " IS NULL AND " + COL_ACCOUNTS_USER_ID + "=" + userId, null);
-            } else {
-                List<String> providerIds = new ArrayList<>();
-                Cursor c = db.query(true, TABLE_PROVIDERS, new String[]{COL_PROVIDERS_ID},
-                        COL_PROVIDERS_API_TYPE + "=?", new String[]{String.valueOf(apiType)},
-                        null, null, null, null);
-                try {
-                    if (c.moveToFirst()) {
-                        do {
-                            long id = c.getLong(c.getColumnIndex(COL_PROVIDERS_ID));
-                            providerIds.add(String.valueOf(id));
-                        } while (c.moveToNext());
-                    }
-                } finally {
-                    c.close();
-                }
-                if (!providerIds.isEmpty()) {
-                    StringBuilder where = new StringBuilder();
-                    where.append(COL_ACCOUNTS_PROVIDER_ID);
-                    where.append(" IN (");
-                    for (String providerId : providerIds) {
-                        if (where.length() > 0) {
-                            where.append(",");
-                        }
-                        where.append(providerId);
-                    }
-                    where.append(")");
-                    where.append(" AND ");
-                    where.append(COL_ACCOUNTS_USER_ID);
-                    where.append("=");
-                    where.append(userId);
-                    db.update(TABLE_ACCOUNTS, cv, where.toString(), null);
-                }
-            }
-            setTransactionSuccessful();
-        } finally {
-            endTransaction();
+        if (providerId == Provider.TWITTER.getId()) {
+            db.update(TABLE_ACCOUNTS, cv, COL_ACCOUNTS_PROVIDER_ID + " IS NULL AND " + COL_ACCOUNTS_USER_ID + "=" + userId, null);
+        } else {
+            db.update(TABLE_ACCOUNTS, cv, COL_ACCOUNTS_PROVIDER_ID + "=" + providerId + " AND " + COL_ACCOUNTS_USER_ID + "=" + userId, null);
         }
     }
     //</editor-fold>

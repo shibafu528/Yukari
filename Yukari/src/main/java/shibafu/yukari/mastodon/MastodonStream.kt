@@ -276,6 +276,16 @@ private class StreamHandler(private val timelineId: String,
 
     override fun onStatus(status: Status) {
         hub.onStatus(timelineId, DonStatus(status, userRecord), true)
+
+        val account = status.account
+        if (account != null && account.url == userRecord.Url) {
+            // プロフィール情報の更新
+            service.database?.updateAccountProfile(userRecord.Provider.id,
+                    account.id,
+                    MastodonUtil.expandFullScreenName(account.acct, account.url),
+                    account.displayName.takeIf { !it.isEmpty() } ?: account.userName,
+                    account.avatar)
+        }
     }
 
     override fun onDisconnected(retryable: Retryable) {
