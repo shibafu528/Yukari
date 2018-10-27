@@ -89,5 +89,9 @@
             android:key="pref_bottom_stack"
             android:title="メニューを下に寄せる"
             android:summary="ツイート詳細画面のメニューを下寄せにします"/>
+        <CheckBoxPreference
+            android:key="pref_too_late_delete_message"
+            android:title="削除メッセージをておくれさせる"
+            android:summary="削除確認メッセージがておくれます"/>
     </PreferenceCategory>
 </PreferenceScreen>
