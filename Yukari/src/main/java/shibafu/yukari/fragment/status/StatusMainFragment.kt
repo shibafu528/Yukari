@@ -156,9 +156,14 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
         }
 
         ibRetweet.setOnClickListener {
+            val message = if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
+                "過去の栄光にすがりますか？"
+            } else {
+                "リツイートしますか？"
+            }
             val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
                     .setTitle("確認")
-                    .setMessage("リツイートしますか？")
+                    .setMessage(message)
                     .setPositive("OK")
                     .setNegative("キャンセル")
                     .build()
