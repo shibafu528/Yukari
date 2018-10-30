@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -37,7 +36,6 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.api.MikutterApi;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
@@ -58,11 +56,9 @@ import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
-import twitter4j.IDs;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterAPIConfiguration;
-import twitter4j.TwitterException;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +86,6 @@ public class TwitterService extends Service{
 
     //Binder
     private final IBinder binder = new TweetReceiverBinder();
-    private TwitterAPIConfiguration apiConfiguration;
 
     public class TweetReceiverBinder extends Binder {
         public TwitterService getService() {
@@ -212,6 +207,13 @@ public class TwitterService extends Service{
         //ユーザー設定の読み込み
         userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
 
+        //ミュート設定の読み込み
+        suppressor = new Suppressor();
+        updateMuteConfig();
+
+        //オートミュート設定の読み込み
+        updateAutoMuteConfig();
+
         //APIインスタンスの生成
         for (ProviderApi api : providerApis) {
             if (api != null) {
@@ -226,74 +228,6 @@ public class TwitterService extends Service{
 
         //画像キャッシュの初期化
         BitmapCache.initialize(getApplicationContext());
-
-        //ミュート設定の読み込み
-        suppressor = new Suppressor();
-        updateMuteConfig();
-
-        //オートミュート設定の読み込み
-        updateAutoMuteConfig();
-
-        if (!users.isEmpty() && getPrimaryUser() != null) {
-            final Twitter primaryAccount = getTwitterOrPrimary(null);
-
-            //Configuration, Blocks, Mutes, No-Retweetsの取得
-            new TwitterAsyncTask<Void>(getApplicationContext()) {
-                @Override
-                protected TwitterException doInBackground(Void... params) {
-                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-                    try {
-                        if (primaryAccount != null) {
-                            apiConfiguration = primaryAccount.getAPIConfiguration();
-                        }
-
-                        if (sp.getBoolean("pref_filter_official", true) && users != null) {
-                            ArrayList<AuthUserRecord> usersClone = new ArrayList<>(users);
-                            for (AuthUserRecord userRecord : usersClone) {
-                                Twitter twitter = getTwitter(userRecord);
-                                if (twitter == null) {
-                                    continue;
-                                }
-
-                                IDs ids = null;
-                                try {
-                                    do {
-                                        ids = ids == null ? twitter.getBlocksIDs() : twitter.getBlocksIDs(ids.getNextCursor());
-
-                                        if (suppressor == null) return null;
-                                        suppressor.addBlockedIDs(ids.getIDs());
-                                    } while (ids.hasNext());
-                                } catch (TwitterException ignored) {}
-
-                                try {
-                                    long cursor = -1;
-                                    do {
-                                        ids = twitter.getMutesIDs(cursor);
-
-                                        if (suppressor == null) return null;
-                                        suppressor.addMutedIDs(ids.getIDs());
-
-                                        cursor = ids.getNextCursor();
-                                    } while (ids.hasNext());
-                                } catch (TwitterException ignored) {}
-
-                                try {
-                                    ids = twitter.getNoRetweetsFriendships();
-
-                                    if (suppressor == null) return null;
-                                    suppressor.addNoRetweetIDs(ids.getIDs());
-                                } catch (TwitterException ignored) {}
-                            }
-                        }
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                        return e;
-                    }
-                    return null;
-                }
-            }.executeParallel();
-        }
 
         //ネットワーク状態の監視
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_CONNECTED));
@@ -447,8 +381,9 @@ public class TwitterService extends Service{
         return database;
     }
 
+    @Deprecated
     public TwitterAPIConfiguration getApiConfiguration() {
-        return apiConfiguration;
+        return ((TwitterApi) getProviderApi(Provider.API_TWITTER)).getApiConfiguration();
     }
 
     public Suppressor getSuppressor() {

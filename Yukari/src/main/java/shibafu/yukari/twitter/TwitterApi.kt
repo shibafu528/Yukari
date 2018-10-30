@@ -2,8 +2,10 @@ package shibafu.yukari.twitter
 
 import android.os.Handler
 import android.os.Looper
+import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.widget.Toast
+import kotlinx.coroutines.experimental.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
@@ -13,8 +15,10 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
+import twitter4j.CursorSupport
 import twitter4j.StatusUpdate
 import twitter4j.Twitter
+import twitter4j.TwitterAPIConfiguration
 import twitter4j.TwitterException
 import twitter4j.TwitterFactory
 import twitter4j.UploadedMedia
@@ -22,6 +26,9 @@ import java.io.File
 import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
+    var apiConfiguration: TwitterAPIConfiguration? = null
+        private set
+
     private lateinit var service: TwitterService
     private lateinit var twitterFactory: TwitterFactory
 
@@ -30,6 +37,45 @@ class TwitterApi : ProviderApi {
     override fun onCreate(service: TwitterService) {
         this.service = service
         this.twitterFactory = TwitterUtil.getTwitterFactory(service)
+
+        launch {
+            // API Configurationの取得
+            val primaryAccount = service.users.firstOrNull { it.isPrimary && it.Provider.apiType == Provider.API_TWITTER }
+                    ?: service.users.firstOrNull { it.Provider.apiType == Provider.API_TWITTER }
+            if (primaryAccount != null) {
+                try {
+                    apiConfiguration = (getApiClient(primaryAccount) as Twitter).apiConfiguration
+                } catch (e: TwitterException) {
+                    e.printStackTrace()
+                }
+            }
+
+            // Blocks, Mutes, No-Retweetsの取得
+            val twitterAccounts = service.users.filter { it.Provider.apiType == Provider.API_TWITTER }
+            val suppressor = service.suppressor
+            val sp = PreferenceManager.getDefaultSharedPreferences(service)
+            if (sp.getBoolean("pref_filter_official", true) && suppressor != null) {
+                twitterAccounts.forEach { userRecord ->
+                    val twitter = getApiClient(userRecord) as? Twitter ?: return@forEach
+
+                    try {
+                        forEachCursor(twitter::getBlocksIDs) {
+                            suppressor.addBlockedIDs(it.iDs)
+                        }
+                    } catch (ignored: TwitterException) {}
+
+                    try {
+                        forEachCursor(twitter::getMutesIDs) {
+                            suppressor.addMutedIDs(it.iDs)
+                        }
+                    } catch (ignored: TwitterException) {}
+
+                    try {
+                        suppressor.addNoRetweetIDs(twitter.noRetweetsFriendships.iDs)
+                    } catch (ignored: TwitterException) {}
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -223,6 +269,15 @@ class TwitterApi : ProviderApi {
     private fun uploadMedia(userRecord: AuthUserRecord, file: File): UploadedMedia {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         return twitter.uploadMedia(file)
+    }
+
+    private inline fun <T : CursorSupport> forEachCursor(cursorSupport: (Long) -> T, action: (T) -> Unit) {
+        var cursor = -1L
+        do {
+            val cs = cursorSupport(cursor)
+            action(cs)
+            cursor = cs.nextCursor
+        } while (cs.hasNext())
     }
 
     companion object {
