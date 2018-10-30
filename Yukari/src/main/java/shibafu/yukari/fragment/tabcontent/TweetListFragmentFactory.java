@@ -21,7 +21,6 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_FILTER:
             case TabType.TABTYPE_HISTORY:
             case TabType.TABTYPE_TRACE:
-            case TabType.TABTYPE_DON_PUBLIC:
                 return new TimelineFragment();
             default:
                 return new DefaultTweetListFragment();
