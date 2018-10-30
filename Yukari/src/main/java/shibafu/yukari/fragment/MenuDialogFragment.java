@@ -326,9 +326,10 @@ public class MenuDialogFragment extends DialogFragment {
             case REQUEST_PROFILE:
             {
                 dismiss();
+                AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                 Intent intent = ProfileActivity.newIntent(getActivity(),
-                        (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD),
-                        Uri.parse(data.getStringExtra(AccountChooserActivity.EXTRA_SELECTED_URL)));
+                        userRecord,
+                        Uri.parse(userRecord.Url));
                 startActivity(intent);
                 break;
             }

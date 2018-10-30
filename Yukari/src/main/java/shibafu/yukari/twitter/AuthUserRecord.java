@@ -8,11 +8,13 @@ import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
 import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken;
+import kotlin.Pair;
 import shibafu.yukari.R;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.mastodon.MastodonUtil;
 import twitter4j.Twitter;
 
 import java.io.Serializable;
@@ -49,6 +51,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessToken = token.getToken();
         AccessTokenSecret = token.getTokenSecret();
         Provider = shibafu.yukari.database.Provider.TWITTER;
+        Url = TwitterUtil.getProfileUrl(ScreenName);
     }
 
     public AuthUserRecord(AccessToken token, Account account, Provider provider) {
@@ -58,6 +61,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessToken = token.getAccessToken();
         AccessTokenSecret = null;
         Provider = provider;
+        Url = account.getUrl();
     }
 
     public AuthUserRecord(Cursor cursor) {
@@ -75,6 +79,15 @@ public class AuthUserRecord implements Serializable, DBRecord {
             Provider = shibafu.yukari.database.Provider.TWITTER;
         } else {
             Provider = new Provider(cursor);
+        }
+        switch (Provider.getApiType()) {
+            case shibafu.yukari.database.Provider.API_TWITTER:
+                Url = TwitterUtil.getProfileUrl(ScreenName);
+                break;
+            case shibafu.yukari.database.Provider.API_MASTODON:
+                Pair<String, String> screenName = MastodonUtil.INSTANCE.splitFullScreenName(ScreenName);
+                Url = "https://" + Provider.getHost() + "/@" + screenName.getFirst();
+                break;
         }
     }
 
@@ -189,6 +202,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessToken = aur.AccessToken;
         AccessTokenSecret = aur.AccessTokenSecret;
         Provider = aur.Provider;
+        Url = aur.Url;
 
         twitterAccessToken = aur.twitterAccessToken;
     }

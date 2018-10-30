@@ -224,14 +224,6 @@ public class TwitterService extends Service{
             }
         }
 
-        //ユーザデータのURLをセット
-        for (AuthUserRecord user : users) {
-            ProviderApi api = getProviderApi(user);
-            if (api != null) {
-                user.Url = api.getAccountUrl(user);
-            }
-        }
-
         //画像キャッシュの初期化
         BitmapCache.initialize(getApplicationContext());
 
@@ -494,10 +486,6 @@ public class TwitterService extends Service{
                 addedList.add(aur);
                 users.add(aur);
                 if (!inInitialize) {
-                    ProviderApi api = getProviderApi(aur);
-                    if (api != null) {
-                        aur.Url = api.getAccountUrl(aur);
-                    }
                     ProviderStream stream = getProviderStream(aur);
                     if (stream != null) {
                         stream.addUser(aur);
