@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.support.v4.util.LongSparseArray;
 import android.text.TextUtils;
 import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken;
@@ -19,7 +18,6 @@ import twitter4j.Twitter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @DBTable(CentralDatabase.TABLE_ACCOUNTS)
@@ -40,8 +38,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public String Url;
 
     private twitter4j.auth.AccessToken twitterAccessToken;
-
-    private static LongSparseArray<HashMap<String, Object>> sessionTemporary = new LongSparseArray<>();
 
     public AuthUserRecord(twitter4j.auth.AccessToken token) {
         twitterAccessToken = token;
@@ -205,28 +201,6 @@ public class AuthUserRecord implements Serializable, DBRecord {
         Url = aur.Url;
 
         twitterAccessToken = aur.twitterAccessToken;
-    }
-
-    public Object getSessionTemporary(String key) {
-        if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<>());
-        }
-        return sessionTemporary.get(NumericId).get(key);
-    }
-
-    public Object getSessionTemporary(String key, Object ifNull) {
-        if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<>());
-        }
-        Object value = sessionTemporary.get(NumericId).get(key);
-        return value != null ? value : ifNull;
-    }
-
-    public void putSessionTemporary(String key, Object value) {
-        if (sessionTemporary.indexOfKey(NumericId) < 0) {
-            sessionTemporary.put(NumericId, new HashMap<>());
-        }
-        sessionTemporary.get(NumericId).put(key, value);
     }
 
     @Override
