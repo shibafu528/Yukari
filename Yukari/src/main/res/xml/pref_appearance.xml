@@ -84,6 +84,12 @@
             android:title="メディアの閲覧注意フラグを無視"
             android:summary="ツイートに含まれるメディアに対して閲覧注意フラグが設定されていても、サムネイルを隠さないようにします"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="タイムライン (Mastodon)">
+        <CheckBoxPreference
+            android:key="pref_always_expand_cw"
+            android:title="閲覧注意トゥートを常に展開"
+            android:summary="トゥートに閲覧注意(CW)が設定されていても、常に全文表示するようにします"/>
+    </PreferenceCategory>
     <PreferenceCategory android:title="ツイート詳細画面">
         <CheckBoxPreference
             android:key="pref_bottom_stack"

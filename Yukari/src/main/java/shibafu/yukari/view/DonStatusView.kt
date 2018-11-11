@@ -26,4 +26,18 @@ class DonStatusView : StatusView {
                 ivProtected.visibility = View.GONE
         }
     }
+
+    override fun decorateText(text: String): String {
+        val status = status as DonStatus
+        var decoratedText = text
+
+        // Content Warningの適用
+        if (!pref.getBoolean("pref_always_expand_cw", false)) {
+            if (mode == Mode.DEFAULT && status.status.spoilerText.isNotEmpty()) {
+                decoratedText = status.status.spoilerText + "\n...(content warning)..."
+            }
+        }
+
+        return super.decorateText(decoratedText)
+    }
 }
