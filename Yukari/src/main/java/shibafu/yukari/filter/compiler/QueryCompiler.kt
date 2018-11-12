@@ -189,10 +189,14 @@ class QueryCompiler {
                             Pair(userRecords.firstOrNull { it.isPrimary }, p.value)
                         } else {
                             // argument == "receiver/*"
-                            Pair(userRecords.firstOrNull { it.ScreenName.equals(subArgs.first()) }, subArgs.drop(1).joinToString("/"))
+                            Pair(userRecords.firstOrNull { it.ScreenName == subArgs.first() }, subArgs.drop(1).joinToString("/"))
                         }
 
-                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                        if (auth == null) {
+                            throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p)
+                        }
+
+                        val filterClz = findSourceClass(typeValue, auth.Provider.apiType)
                                 ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
                         val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
                         constructor.newInstance(auth, secondArgument)
@@ -214,10 +218,11 @@ class QueryCompiler {
                             throw FilterCompilerException("引数の要件を満たしていません。パターン：$requirePattern", p)
                         }
 
-                        val auth = userRecords.firstOrNull { it.ScreenName.equals(subArgs[0]) }
+                        val auth = userRecords.firstOrNull { it.ScreenName == subArgs[0] }
+                            ?: throw FilterCompilerException("この名前のアカウントは認証リスト内に存在しません。", p)
                         val originId = subArgs[1]
 
-                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                        val filterClz = findSourceClass(typeValue, auth.Provider.apiType)
                                 ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
                         val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
                         constructor.newInstance(auth, originId)
@@ -236,8 +241,9 @@ class QueryCompiler {
 
                         val auth = userRecords.firstOrNull { it.isPrimary && it.Provider.apiType == Provider.API_TWITTER }
                             ?: userRecords.firstOrNull { it.Provider.apiType == Provider.API_TWITTER }
+                            ?: throw FilterCompilerException("使用可能なTwitterアカウントがありません。", p)
 
-                        val filterClz = findSourceClass(typeValue, auth!!.Provider.apiType)
+                        val filterClz = findSourceClass(typeValue, auth.Provider.apiType)
                                 ?: throw FilterCompilerException("この名前のアカウントではこのソースを使用できません。", p)
                         val constructor = filterClz.getConstructor(AuthUserRecord::class.java, String::class.java)
                         constructor.newInstance(auth, p.value)
