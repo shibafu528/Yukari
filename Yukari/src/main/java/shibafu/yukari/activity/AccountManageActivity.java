@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,12 +16,25 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+import com.sys1yagi.mastodon4j.MastodonClient;
+import com.sys1yagi.mastodon4j.api.entity.Account;
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException;
+import com.sys1yagi.mastodon4j.api.method.Accounts;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.ColorPickerDialogFragment;
+import shibafu.yukari.mastodon.MastodonUtil;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,7 +110,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("メニュー")
-                    .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "認証情報を削除"}, (dialog, which) -> {
+                    .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "名前とアイコンの再取得", "認証情報を削除"}, (dialog, which) -> {
                         switch (which) {
                             case 0:
                                 delegate.getTwitterService().setPrimaryUser(dataList.get(position).InternalId);
@@ -111,6 +125,90 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                 dialogFragment.show(getFragmentManager(), "color");
                                 break;
                             case 2:
+                                switch (dataList.get(position).Provider.getApiType()) {
+                                    case Provider.API_TWITTER:
+                                        new ThrowableTwitterAsyncTask<AuthUserRecord, twitter4j.User>(delegate) {
+
+                                            @Override
+                                            protected ThrowableResult<User> doInBackground(AuthUserRecord... authUserRecords) {
+                                                try {
+                                                    Twitter twitter = getTwitterInstance(authUserRecords[0]);
+                                                    User user = twitter.showUser(authUserRecords[0].NumericId);
+                                                    return new ThrowableResult<>(user);
+                                                } catch (TwitterException e) {
+                                                    e.printStackTrace();
+                                                    return new ThrowableResult<>(e);
+                                                }
+                                            }
+
+                                            @Override
+                                            protected void onPostExecute(ThrowableResult<User> result) {
+                                                super.onPostExecute(result);
+                                                User user = result.getResult();
+                                                if (user != null) {
+                                                    TwitterService service = delegate.getTwitterService();
+                                                    service.getDatabase().updateAccountProfile(
+                                                            Provider.TWITTER.getId(), user.getId(), user.getScreenName(), user.getName(), user.getOriginalProfileImageURLHttps()
+                                                    );
+                                                    service.reloadUsers();
+                                                    createList();
+                                                    Toast.makeText(getActivity(), "更新しました。", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+
+                                            @Override
+                                            protected void showToast(String message) {
+                                                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                                            }
+                                        }.executeParallel(dataList.get(position));
+                                        break;
+                                    case Provider.API_MASTODON:
+                                        new ParallelAsyncTask<AuthUserRecord, Void, Account>() {
+
+                                            private Mastodon4jRequestException exception;
+                                            private AuthUserRecord userRecord;
+
+                                            @Override
+                                            protected Account doInBackground(AuthUserRecord... authUserRecords) {
+                                                userRecord = authUserRecords[0];
+                                                try {
+                                                    MastodonClient api = (MastodonClient) delegate.getTwitterService().getProviderApi(authUserRecords[0]).getApiClient(authUserRecords[0]);
+                                                    Accounts accounts = new Accounts(api);
+                                                    Account result = accounts.getAccount(authUserRecords[0].NumericId).execute();
+                                                    return result;
+                                                } catch (Mastodon4jRequestException e) {
+                                                    exception = e;
+                                                    return null;
+                                                }
+                                            }
+
+                                            @Override
+                                            protected void onPostExecute(Account account) {
+                                                super.onPostExecute(account);
+                                                if (exception != null || account == null) {
+                                                    Toast.makeText(getActivity(), "エラーが発生しました。", Toast.LENGTH_SHORT).show();
+                                                    return;
+                                                }
+
+                                                TwitterService service = delegate.getTwitterService();
+                                                service.getDatabase().updateAccountProfile(
+                                                        userRecord.Provider.getId(), account.getId(),
+                                                        MastodonUtil.INSTANCE.expandFullScreenName(account.getAcct(), account.getUrl()),
+                                                        TextUtils.isEmpty(account.getDisplayName()) ? account.getUserName() : account.getDisplayName(),
+                                                        account.getAvatar()
+                                                );
+                                                service.reloadUsers();
+                                                createList();
+                                                Toast.makeText(getActivity(), "更新しました。", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }.executeParallel(dataList.get(position));
+                                        break;
+                                    default:
+                                        Toast.makeText(getActivity(), "このアカウントでは使えない機能です。", Toast.LENGTH_SHORT).show();
+                                        break;
+                                }
+                                break;
+                            case 3:
                                 AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
                                         .setTitle("確認")
                                         .setIcon(android.R.drawable.ic_dialog_alert)
