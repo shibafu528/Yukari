@@ -79,8 +79,8 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             } visibleWhen { status is TwitterStatus },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance((status as TwitterStatus).status as PreformedStatus, this).show(childFragmentManager, "mute")
-            } visibleWhen { status is TwitterStatus },
+                MuteMenuDialogFragment.newInstance(status, this).show(childFragmentManager, "mute")
+            } visibleWhen { true },
 
             Action("ツイートを削除") {
                 val message = if (defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
@@ -342,7 +342,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
     class MuteMenuDialogFragment : DialogFragment() {
 
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-            val muteOptions = QuickMuteOption.fromStatus(arguments.getSerializable("status") as PreformedStatus)
+            val muteOptions = QuickMuteOption.fromStatus(arguments.getSerializable("status") as Status)
             val items = muteOptions.map { it.toString() }.toTypedArray()
 
             val dialog = AlertDialog.Builder(activity)
@@ -356,7 +356,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
 
         companion object {
 
-            fun newInstance(status: PreformedStatus, target: StatusActionFragment): MuteMenuDialogFragment {
+            fun newInstance(status: Status, target: StatusActionFragment): MuteMenuDialogFragment {
                 val fragment = MuteMenuDialogFragment()
                 val args = Bundle()
                 args.putSerializable("status", status)
@@ -370,15 +370,15 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
     private class QuickMuteOption private constructor(private val type: Int, private val value: String) {
 
         override fun toString(): String {
-            when (type) {
-                TYPE_TEXT -> return "本文"
-                TYPE_USER_NAME -> return "ユーザー名($value)"
-                TYPE_SCREEN_NAME -> return "スクリーンネーム(@$value)"
-                TYPE_USER_ID -> return "ユーザーID($value)"
-                TYPE_VIA -> return "クライアント名($value)"
-                TYPE_HASHTAG -> return "#" + value
-                TYPE_MENTION -> return "@" + value
-                else -> return value
+            return when (type) {
+                TYPE_TEXT -> "本文"
+                TYPE_USER_NAME -> "ユーザー名($value)"
+                TYPE_SCREEN_NAME -> "スクリーンネーム(@$value)"
+                TYPE_USER_ID -> "ユーザーID($value)"
+                TYPE_VIA -> "クライアント名($value)"
+                TYPE_HASHTAG -> "#" + value
+                TYPE_MENTION -> "@" + value
+                else -> value
             }
         }
 
@@ -402,37 +402,42 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                 }
                 TYPE_URL -> match = MuteMatch.MATCH_PARTIAL
             }
-            return Intent(context, MuteActivity::class.java).putExtra(MuteActivity.EXTRA_QUERY, query).putExtra(MuteActivity.EXTRA_SCOPE, which).putExtra(MuteActivity.EXTRA_MATCH, match)
+            return Intent(context, MuteActivity::class.java)
+                    .putExtra(MuteActivity.EXTRA_QUERY, query)
+                    .putExtra(MuteActivity.EXTRA_SCOPE, which)
+                    .putExtra(MuteActivity.EXTRA_MATCH, match)
         }
 
         companion object {
-            val TYPE_TEXT = 0
-            val TYPE_USER_NAME = 1
-            val TYPE_SCREEN_NAME = 2
-            val TYPE_USER_ID = 3
-            val TYPE_VIA = 4
-            val TYPE_HASHTAG = 5
-            val TYPE_MENTION = 6
-            val TYPE_URL = 7
+            const val TYPE_TEXT = 0
+            const val TYPE_USER_NAME = 1
+            const val TYPE_SCREEN_NAME = 2
+            const val TYPE_USER_ID = 3
+            const val TYPE_VIA = 4
+            const val TYPE_HASHTAG = 5
+            const val TYPE_MENTION = 6
+            const val TYPE_URL = 7
 
-            fun fromStatus(status: PreformedStatus): Array<QuickMuteOption> {
+            fun fromStatus(status: Status): Array<QuickMuteOption> {
                 val options = ArrayList<QuickMuteOption>()
                 options.add(QuickMuteOption(TYPE_TEXT, status.text))
-                options.add(QuickMuteOption(TYPE_USER_NAME, status.sourceUser.name))
-                options.add(QuickMuteOption(TYPE_SCREEN_NAME, status.sourceUser.screenName))
-                options.add(QuickMuteOption(TYPE_USER_ID, status.sourceUser.id.toString()))
-                options.add(QuickMuteOption(TYPE_VIA, status.source))
-                for (hashtagEntity in status.hashtagEntities) {
-                    options.add(QuickMuteOption(TYPE_HASHTAG, hashtagEntity.text))
+                options.add(QuickMuteOption(TYPE_USER_NAME, status.originStatus.user.name))
+                options.add(QuickMuteOption(TYPE_SCREEN_NAME, status.originStatus.user.screenName))
+                options.add(QuickMuteOption(TYPE_USER_ID, status.originStatus.user.id.toString()))
+                if (status.source.isNotEmpty()) {
+                    options.add(QuickMuteOption(TYPE_VIA, status.source))
                 }
-                for (userMentionEntity in status.userMentionEntities) {
-                    options.add(QuickMuteOption(TYPE_MENTION, userMentionEntity.screenName))
+                for (hashtag in status.tags) {
+                    options.add(QuickMuteOption(TYPE_HASHTAG, hashtag))
                 }
-                for (urlEntity in status.urlEntities) {
-                    options.add(QuickMuteOption(TYPE_URL, urlEntity.expandedURL))
+                for (mention in status.mentions) {
+                    options.add(QuickMuteOption(TYPE_MENTION, mention.screenName))
                 }
-                for (linkMedia in status.mediaList) {
-                    options.add(QuickMuteOption(TYPE_URL, linkMedia.browseUrl))
+                for (link in status.links) {
+                    options.add(QuickMuteOption(TYPE_URL, link))
+                }
+                for (media in status.media) {
+                    options.add(QuickMuteOption(TYPE_URL, media.browseUrl))
                 }
                 return options.toArray<QuickMuteOption>(arrayOfNulls<QuickMuteOption>(options.size))
             }
