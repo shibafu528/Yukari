@@ -202,7 +202,7 @@ public class FakeStatus implements Status {
         return 0;
     }
 
-    protected static class FakeUser implements User {
+    public static class FakeUser implements User {
         @Override
         public long getId() {
             return 0;

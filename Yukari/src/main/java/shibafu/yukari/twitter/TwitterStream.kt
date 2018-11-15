@@ -303,8 +303,8 @@ private class StreamListener(private val timelineId: String,
     }
 }
 
-private class FilterStreamListener(private val hub: TimelineHub,
-                                   private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
+internal class FilterStreamListener(private val hub: TimelineHub,
+                                    private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
     override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {}
 
     override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {}
