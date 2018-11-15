@@ -324,8 +324,12 @@ private class FilterStreamListener(private val hub: TimelineHub,
         if (filterStream.followIds.contains(status.user.id)) {
             // follow着信
             if (status.userMentionEntities.isNotEmpty() && status.text.startsWith("@")) {
-                // メンションから始まるツイートの場合、対象に自分かフォロイーが含まれている場合のみ配信
-                if (status.userMentionEntities.any { it.id == from.userRecord.NumericId || filterStream.followIds.contains(it.id) }) {
+                // メンションから始まるツイートの場合、以下の優先順で配信するか決定する
+                // 1. 発言者自身にのみ宛てた自己宛リプ
+                // 2. 自分宛のメンションが含まれている
+                // 3. 発言者以外の、自分のフォロイーに宛てている
+                if ((status.userMentionEntities.size == 1 && status.userMentionEntities[0].id == status.user.id) ||
+                        status.userMentionEntities.any { it.id == from.userRecord.NumericId || (it.id != status.user.id && filterStream.followIds.contains(it.id)) }) {
                     hub.onStatus(TIMELINE_ID, TwitterStatus(status, from.userRecord), true)
 
                     userUpdateDelayer.enqueue(status)
