@@ -37,7 +37,7 @@ class GitUtil {
 ext {
     supportLibVersion = '25.4.0'
     playServicesVersion = '11.4.0'
-    twitter4jVersion = '4.0.7-SNAPSHOT'
+    twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
 
@@ -156,11 +156,9 @@ dependencies {
 
     // Twitter4J
     compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-media-support:${twitter4jVersion}"
     compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
     compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
 //    implementation "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
-//    implementation "com.github.takke.twitter4j:twitter4j-media-support:2612db7f15"
 //    implementation "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
 //    implementation "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
 
