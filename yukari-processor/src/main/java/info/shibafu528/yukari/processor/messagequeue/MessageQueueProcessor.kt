@@ -36,6 +36,7 @@ class MessageQueueProcessor : AbstractProcessor() {
                     val queueClassName = if (annotation.queueClass.isEmpty()) "${targetClass.simpleName}Queue" else annotation.queueClass
                     val queueClassBuilder = TypeSpec.classBuilder(queueClassName)
                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                            .addSuperinterface(TypeName.get(targetClass.asType()))
 
                     // Generate fields
                     val handlerFieldSpec = FieldSpec.builder(TypeName.get(targetClass.asType()), "handler", Modifier.PRIVATE).build()
@@ -59,15 +60,12 @@ class MessageQueueProcessor : AbstractProcessor() {
                                 .addModifiers(Modifier.PUBLIC)
                                 .returns(returnType)
 
-                        // パラメータ格納クラスのビルダー生成
-                        val messageClassBuilder = TypeSpec.classBuilder("Message_${member.simpleName}")
-                                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                                .superclass(ClassName.get(Message::class.java))
+                        val messageFields = mutableListOf<Pair<TypeName, String>>()
 
                         // メソッドシグネチャを写す
                         member.parameters.forEach { param ->
                             methodBuilder.addParameter(TypeName.get(param.asType()), param.simpleName.toString(), *param.modifiers.toTypedArray())
-                            messageClassBuilder.addField(TypeName.get(param.asType()), param.simpleName.toString())
+                            messageFields += TypeName.get(param.asType()) to param.simpleName.toString()
                         }
                         member.typeParameters.forEach { typeParam ->
                             methodBuilder.addTypeVariable(TypeVariableName.get(typeParam.simpleName.toString(), *typeParam.bounds.map(TypeName::get).toTypedArray()))
@@ -76,23 +74,46 @@ class MessageQueueProcessor : AbstractProcessor() {
                             methodBuilder.addException(TypeName.get(thrown))
                         }
 
-                        // パラメータ格納クラスを生成
-                        val messageClassSpec = messageClassBuilder.build()
-                        queueClassBuilder.addType(messageClassSpec)
-
-                        // 実装を投入
-                        methodBuilder.addStatement("\$N msg = new \$N()", messageClassSpec, messageClassSpec)
-                                .addStatement("msg.methodId = \$L", proceedMethodList.size)
-                                .apply {
-                                    member.parameters.forEach { param ->
-                                        addStatement("msg.\$L = \$L", param.simpleName.toString(), param.simpleName.toString())
+                        // キュー処理の対象かどうか判定
+                        if (member.getAnnotation(PassThrough::class.java) == null) {
+                            // 対象
+                            // パラメータ格納クラスを生成
+                            val messageClassSpec = TypeSpec.classBuilder("Message_${member.simpleName}")
+                                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                    .superclass(ClassName.get(Message::class.java))
+                                    .apply {
+                                        messageFields.forEach { (type, name) ->
+                                            addField(type, name)
+                                        }
                                     }
+                                    .build()
+                            queueClassBuilder.addType(messageClassSpec)
+
+                            // 実装を投入
+                            methodBuilder.addStatement("\$N msg = new \$N()", messageClassSpec, messageClassSpec)
+                                    .addStatement("msg.methodId = \$L", proceedMethodList.size)
+                                    .apply {
+                                        member.parameters.forEach { param ->
+                                            addStatement("msg.\$L = \$L", param.simpleName.toString(), param.simpleName.toString())
+                                        }
+                                    }
+                                    .addStatement("\$N.offer(msg)", queueFieldSpec)
+
+                            proceedMethodList.add(member.simpleName.toString() to messageClassSpec)
+                        } else {
+                            // 対象外
+                            // 実装を投入
+                            val placeholders = buildString {
+                                messageFields.forEach { _ ->
+                                    if (this.isNotEmpty()) append(",")
+                                    append("\$L")
                                 }
-                                .addStatement("\$N.offer(msg)", queueFieldSpec)
+                            }
+                            methodBuilder.addStatement("\$N.\$L($placeholders)", handlerFieldSpec, member.simpleName.toString(), *messageFields.map { f -> f.second }.toTypedArray())
+                        }
 
+                        // メソッドを登録
                         queueClassBuilder.addMethod(methodBuilder.build())
-
-                        proceedMethodList.add(member.simpleName.toString() to messageClassSpec)
                     }
 
                     // Generate inner worker
