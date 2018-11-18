@@ -1568,7 +1568,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                             break;
                         case 1:
                             dialogFragment = SimpleListDialogFragment.newInstance(
-                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", getTwitterService().getTimelineHub().getHashCache().getAll(), null);
+                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", getTwitterService().getHashCache().getAll(), null);
                             break;
                         default:
                             return;

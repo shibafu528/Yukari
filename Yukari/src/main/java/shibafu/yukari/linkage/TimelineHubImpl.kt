@@ -29,9 +29,8 @@ import java.util.regex.PatternSyntaxException
 /**
  * [Status] の配信管理
  */
-class TimelineHub(private val service: TwitterService) {
-    val hashCache: HashCache = HashCache(service.applicationContext)
-
+class TimelineHubImpl(private val service: TwitterService,
+                      private val hashCache: HashCache) : TimelineHub {
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -48,7 +47,7 @@ class TimelineHub(private val service: TwitterService) {
      * オートミュート設定のインポート
      * @param autoMuteConfigs 読み込む設定
      */
-    fun setAutoMuteConfigs(autoMuteConfigs: List<AutoMuteConfig>) {
+    override fun setAutoMuteConfigs(autoMuteConfigs: List<AutoMuteConfig>) {
         this.autoMuteConfigs = autoMuteConfigs
         autoMutePatternCache.clear()
         autoMuteConfigs.filter { it.match == AutoMuteConfig.MATCH_REGEX }
@@ -65,7 +64,7 @@ class TimelineHub(private val service: TwitterService) {
      * タイムラインオブザーバの登録
      * @param observer 登録したいオブザーバ
      */
-    fun addObserver(observer: TimelineObserver) {
+    override fun addObserver(observer: TimelineObserver) {
         synchronized(observers) {
             if (!observers.contains(observer)) {
                 putDebugLog("[${observer.timelineId}] Connected TimelineHub.")
@@ -95,7 +94,7 @@ class TimelineHub(private val service: TwitterService) {
      * タイムラインオブザーバの登録解除
      * @param observer 解除したいオブザーバ
      */
-    fun removeObserver(observer: TimelineObserver) {
+    override fun removeObserver(observer: TimelineObserver) {
         synchronized(observers) {
             if (observers.contains(observer)) {
                 putDebugLog("[${observer.timelineId}] Disconnected TimelineHub.")
@@ -116,7 +115,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param status 受信したStatus
      * @param passive ストリーミング通信によって受動的に取得したStatusか？ (trueの場合、ブロードキャストされる)
      */
-    fun onStatus(timelineId: String, status: Status, passive: Boolean) {
+    override fun onStatus(timelineId: String, status: Status, passive: Boolean) {
         // Twitter DirectMessageは別処理
         if (status is TwitterMessage) {
             onDirectMessage(timelineId, status, passive)
@@ -251,7 +250,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param status 受信したStatus
      * @param passive ストリーミング通信によって受動的に取得したStatusか？ (trueの場合、ブロードキャストされる)
      */
-    fun onDirectMessage(timelineId: String, status: TwitterMessage, passive: Boolean) {
+    override fun onDirectMessage(timelineId: String, status: TwitterMessage, passive: Boolean) {
         // TODO: ベタ移植なので問題があれば作り直す
 
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
@@ -266,7 +265,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param timelineId 配信先識別子
      * @param taskKey [StatusLoader.requestRestQuery] の戻り値
      */
-    fun onRestRequestCompleted(timelineId: String, taskKey: Long) {
+    override fun onRestRequestCompleted(timelineId: String, taskKey: Long) {
         pushEventQueue(TimelineEvent.RestRequestCompleted(timelineId, taskKey))
     }
 
@@ -275,7 +274,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param timelineId 配信先識別子
      * @param taskKey [StatusLoader.requestRestQuery] の戻り値
      */
-    fun onRestRequestCancelled(timelineId: String, taskKey: Long) {
+    override fun onRestRequestCancelled(timelineId: String, taskKey: Long) {
         pushEventQueue(TimelineEvent.RestRequestCancelled(timelineId, taskKey))
     }
 
@@ -285,7 +284,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param eventBy イベントを発生させたユーザ
      * @param status イベントに関連する [Status]
      */
-    fun onNotify(@NotifyKind kind: Int, eventBy: User, status: Status) {
+    override fun onNotify(@NotifyKind kind: Int, eventBy: User, status: Status) {
         when (kind) {
             NotifyHistory.KIND_FAVED -> notifier.showNotification(R.integer.notification_faved, status, eventBy)
             NotifyHistory.KIND_RETWEETED -> notifier.showNotification(R.integer.notification_retweeted, status, eventBy)
@@ -300,7 +299,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param from お気に入り登録を実行したユーザ
      * @param status 対象の [Status]
      */
-    fun onFavorite(from: User, status: Status) {
+    override fun onFavorite(from: User, status: Status) {
         pushEventQueue(TimelineEvent.Favorite(from, status))
 
         // 自分以外によるアクションであれば通知判定を行う
@@ -318,7 +317,7 @@ class TimelineHub(private val service: TwitterService) {
      * @param from お気に入り解除を実行したユーザ
      * @param status 対象の [Status]
      */
-    fun onUnfavorite(from: User, status: Status) {
+    override fun onUnfavorite(from: User, status: Status) {
         pushEventQueue(TimelineEvent.Unfavorite(from, status))
     }
 
@@ -327,21 +326,21 @@ class TimelineHub(private val service: TwitterService) {
      * @param type 削除対象の型
      * @param id 削除対象のID
      */
-    fun onDelete(type: Class<out Status>, id: Long) {
+    override fun onDelete(type: Class<out Status>, id: Long) {
         pushEventQueue(TimelineEvent.Delete(type, id))
     }
 
     /**
      * タイムラインのクリア
      */
-    fun onWipe() {
+    override fun onWipe() {
         pushEventQueue(TimelineEvent.Wipe())
     }
 
     /**
      * タイムラインの強制リフレッシュ
      */
-    fun onForceUpdateUI() {
+    override fun onForceUpdateUI() {
         pushEventQueue(TimelineEvent.ForceUpdateUI())
     }
 

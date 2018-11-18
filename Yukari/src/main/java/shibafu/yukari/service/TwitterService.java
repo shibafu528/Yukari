@@ -34,6 +34,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.api.MikutterApi;
+import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -47,6 +48,8 @@ import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.TimelineHub;
+import shibafu.yukari.linkage.TimelineHubImpl;
+import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
@@ -95,6 +98,9 @@ public class TwitterService extends Service{
 
     //メインデータベース
     private CentralDatabase database;
+
+    //キャッシュ
+    private HashCache hashCache;
 
     //ミュート判定
     private Suppressor suppressor;
@@ -197,8 +203,12 @@ public class TwitterService extends Service{
         //データベースのオープン
         database = new CentralDatabase(this).open();
 
+        //キャッシュの読み込み
+        hashCache = new HashCache(this);
+
         //Timeline Pub/Subのセットアップ
-        timelineHub = new TimelineHub(this);
+        TimelineHub hubImpl = new TimelineHubImpl(this, hashCache);
+        timelineHub = new TimelineHubQueue(hubImpl);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
 
         //ユーザデータのロード
@@ -327,8 +337,6 @@ public class TwitterService extends Service{
             }
         }
 
-        timelineHub.getHashCache().save(this);
-
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
 
@@ -347,6 +355,9 @@ public class TwitterService extends Service{
         userExtras = new ArrayList<>();
 
         BitmapCache.dispose();
+
+        hashCache.save(this);
+        hashCache = null;
 
         database.close();
         database = null;
@@ -388,6 +399,10 @@ public class TwitterService extends Service{
 
     public Suppressor getSuppressor() {
         return suppressor;
+    }
+
+    public HashCache getHashCache() {
+        return hashCache;
     }
 
     //<editor-fold desc="ユーザ情報管理">
