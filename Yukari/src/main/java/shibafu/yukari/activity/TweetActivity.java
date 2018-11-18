@@ -81,6 +81,7 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
+import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
@@ -1434,7 +1435,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
         updatePostValidator();
 
-        TwitterAPIConfiguration apiConfiguration = getTwitterService().getApiConfiguration();
+        TwitterAPIConfiguration apiConfiguration = ((TwitterApi) getTwitterService().getProviderApi(Provider.API_TWITTER)).getApiConfiguration();
         if (apiConfiguration != null) {
             maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
             ((TextView) findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");

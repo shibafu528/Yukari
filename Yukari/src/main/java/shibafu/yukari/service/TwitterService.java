@@ -61,7 +61,6 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.TwitterAPIConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -390,11 +389,6 @@ public class TwitterService extends Service{
 
     public CentralDatabase getDatabase() {
         return database;
-    }
-
-    @Deprecated
-    public TwitterAPIConfiguration getApiConfiguration() {
-        return ((TwitterApi) getProviderApi(Provider.API_TWITTER)).getApiConfiguration();
     }
 
     public Suppressor getSuppressor() {
