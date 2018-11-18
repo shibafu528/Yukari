@@ -1,5 +1,6 @@
 package info.shibafu528.yukari.processor.messagequeue
 
+import com.squareup.javapoet.AnnotationSpec
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.JavaFile
@@ -64,7 +65,10 @@ class MessageQueueProcessor : AbstractProcessor() {
 
                         // メソッドシグネチャを写す
                         member.parameters.forEach { param ->
-                            methodBuilder.addParameter(TypeName.get(param.asType()), param.simpleName.toString(), *param.modifiers.toTypedArray())
+                            val paramSpec = ParameterSpec.builder(TypeName.get(param.asType()), param.simpleName.toString(), *param.modifiers.toTypedArray())
+                                    .addAnnotations(param.annotationMirrors.map(AnnotationSpec::get))
+                                    .build()
+                            methodBuilder.addParameter(paramSpec)
                             messageFields += TypeName.get(param.asType()) to param.simpleName.toString()
                         }
                         member.typeParameters.forEach { typeParam ->
