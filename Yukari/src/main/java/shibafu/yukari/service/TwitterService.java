@@ -49,6 +49,7 @@ import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubImpl;
+import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
@@ -206,7 +207,8 @@ public class TwitterService extends Service{
         hashCache = new HashCache(this);
 
         //Timeline Pub/Subのセットアップ
-        timelineHub = new TimelineHubImpl(this, hashCache);
+        TimelineHub hubImpl = new TimelineHubImpl(this, hashCache);
+        timelineHub = new TimelineHubQueue(hubImpl);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
 
         //ユーザデータのロード
