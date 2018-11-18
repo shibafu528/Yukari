@@ -7,7 +7,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import shibafu.yukari.database.Provider
-import shibafu.yukari.linkage.TimelineHub
+import shibafu.yukari.linkage.TimelineHubImpl
 import shibafu.yukari.twitter.entity.TwitterStatus
 
 /**
@@ -73,7 +73,7 @@ class TweetView : StatusView {
                     flInclude.visibility = View.VISIBLE
 
                     quoteEntities.forEach { quoteId ->
-                        val receivedStatus = TimelineHub.getProviderLocalCache(Provider.TWITTER.id).receivedStatus.get(quoteId)
+                        val receivedStatus = TimelineHubImpl.getProviderLocalCache(Provider.TWITTER.id).receivedStatus.get(quoteId)
                         if (receivedStatus != null) {
                             val tv = TweetView(context, singleLine).also {
                                 it.userRecords = userRecords
