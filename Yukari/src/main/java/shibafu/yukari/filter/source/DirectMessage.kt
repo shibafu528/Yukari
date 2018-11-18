@@ -15,6 +15,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterMessage
 import twitter4j.Twitter
 import twitter4j.TwitterException
+import twitter4j.User
 import java.util.*
 
 /**
@@ -38,7 +39,14 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
                     api.getDirectMessages(count, cursor)
                 }
 
-                val users = api.lookupUsers(*messages.flatMap { listOf(it.senderId, it.recipientId) }.distinct().toLongArray()).toSortedSet()
+                // レスポンスに含まれるユーザの情報を一括取得
+                val userIds = messages.flatMap { listOf(it.senderId, it.recipientId) }.distinct().toLongArray()
+                val users: Set<User> = if (userIds.isNotEmpty()) {
+                    api.lookupUsers(*userIds).toSortedSet()
+                } else {
+                    emptySet()
+                }
+
                 val responseList: MutableList<Status> = messages.mapNotNull { dm ->
                     val sender = users.firstOrNull { u -> u.id == dm.senderId } ?: return@mapNotNull null
                     val recipient = users.firstOrNull { u -> u.id == dm.recipientId } ?: return@mapNotNull null
