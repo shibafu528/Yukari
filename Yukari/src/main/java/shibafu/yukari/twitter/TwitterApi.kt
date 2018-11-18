@@ -5,7 +5,8 @@ import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.widget.Toast
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
@@ -38,7 +39,7 @@ class TwitterApi : ProviderApi {
         this.service = service
         this.twitterFactory = TwitterUtil.getTwitterFactory(service)
 
-        launch {
+        GlobalScope.launch {
             // API Configurationの取得
             val primaryAccount = service.users.firstOrNull { it.isPrimary && it.Provider.apiType == Provider.API_TWITTER }
                     ?: service.users.firstOrNull { it.Provider.apiType == Provider.API_TWITTER }

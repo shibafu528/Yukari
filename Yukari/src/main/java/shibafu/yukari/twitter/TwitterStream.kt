@@ -4,7 +4,8 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.ProviderStream
@@ -186,7 +187,7 @@ private class FollowedStreamChannel(private val service: TwitterService, overrid
     private val stream: FilterStream = FilterStream.getInstance(service, userRecord)
 
     override fun start() {
-        launch {
+        GlobalScope.launch {
             Log.d("FollowedStreamChannel", "Initializing FollowedStreamChannel... user: @${userRecord.ScreenName}")
 
             val api = service.getProviderApi(userRecord)?.getApiClient(userRecord) as? Twitter

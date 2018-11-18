@@ -12,7 +12,8 @@ import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.entity.Status
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Streaming
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.entity.NotifyHistory
@@ -143,7 +144,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
-        launch {
+        GlobalScope.launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.user(handler) }
@@ -169,7 +170,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
-        launch {
+        GlobalScope.launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.federatedPublic(handler) }
@@ -195,7 +196,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
-        launch {
+        GlobalScope.launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.localPublic(handler) }
@@ -224,7 +225,7 @@ private class HashTagStreamChannel(private val service: TwitterService,
     private var shutdownable: Shutdownable? = null
 
     override fun start() {
-        launch {
+        GlobalScope.launch {
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect {
