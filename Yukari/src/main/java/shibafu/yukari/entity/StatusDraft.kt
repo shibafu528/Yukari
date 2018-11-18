@@ -129,6 +129,8 @@ data class StatusDraft(
         }
     }
 
+    fun copyForJava() = this.copy()
+
     enum class Visibility {
         PUBLIC,
         UNLISTED,

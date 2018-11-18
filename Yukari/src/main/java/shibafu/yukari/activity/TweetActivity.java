@@ -485,7 +485,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 初期化完了時点での下書き状況のスナップショット
-        initialDraft = getTweetDraft();
+        initialDraft = getTweetDraft().copyForJava();
     }
 
     /**
