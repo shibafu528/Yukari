@@ -1,5 +1,9 @@
 package shibafu.yukari.filter.sexp
 
+import com.google.common.collect.HashBasedTable
+import com.google.common.collect.Table
+import java.lang.reflect.Method
+
 /**
  * 式ノード
  */
@@ -54,15 +58,22 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
     override val children: List<SNode> = emptyList()
 
     override fun evaluate(context: EvaluateContext): Any {
-        //TODO: これ評価毎にメソッド探索してませんか？コスト高くないですか？
         tailrec fun invoke(pathList: List<String>, target: Any?): Any? {
             if (target == null) return null
 
-            val normalizedTarget = pathList.first().toLowerCase()
-            val method = target.javaClass.methods.firstOrNull {
-                val name = it.name.toLowerCase()
-                name.equals("get" + normalizedTarget) || name.equals("is" + normalizedTarget)
-            } ?: return null
+            val targetClass = target.javaClass
+            val methodName = pathList.first()
+
+            val method = if (methodTable.contains(targetClass, methodName)) {
+                methodTable[targetClass, methodName]
+            } else {
+                val normalizedMethodName = methodName.toLowerCase()
+                val found = targetClass.methods.firstOrNull {
+                    val name = it.name.toLowerCase()
+                    name == "get$normalizedMethodName" || name == "is$normalizedMethodName"
+                } ?: return null
+                found.also { methodTable.put(targetClass, methodName, it) }
+            }
 
             return when (pathList.size) {
                 1 -> method.invoke(target)
@@ -92,6 +103,10 @@ public class VariableNode(private val path: String) : SNode, FactorNode {
 
     override fun toExpression(): String {
         return super<FactorNode>.toExpression()
+    }
+
+    companion object {
+        private val methodTable: Table<Class<*>, String, Method> = HashBasedTable.create()
     }
 }
 
