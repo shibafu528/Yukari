@@ -185,8 +185,14 @@ class QueryCompiler {
                         }
 
                         val (auth, secondArgument) = if (argumentCount == subArgs.size) {
-                            // argument == "*"
-                            Pair(userRecords.firstOrNull { it.isPrimary }, p.value)
+                            if (subArgs.size == 2 && subArgs[1].toLongOrNull() != null) {
+                                // argument == "receiver/long-id"
+                                // Owner ScreenNameを空にするために "/" を頭につける
+                                Pair(userRecords.firstOrNull { it.ScreenName == subArgs.first() }, "/" + subArgs[1])
+                            } else {
+                                // argument == "owner/*"
+                                Pair(userRecords.firstOrNull { it.isPrimary }, p.value)
+                            }
                         } else {
                             // argument == "receiver/*"
                             Pair(userRecords.firstOrNull { it.ScreenName == subArgs.first() }, subArgs.drop(1).joinToString("/"))

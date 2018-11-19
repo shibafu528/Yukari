@@ -31,9 +31,6 @@ public class TweetListFragmentFactory {
         Fragment fragment = TweetListFragmentFactory.newInstance(tabInfo.getType());
         Bundle b = new Bundle();
         switch (tabInfo.getType()) {
-            case TabType.TABTYPE_LIST:
-                b.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, tabInfo.getBindListId());
-                break;
             case TabType.TABTYPE_FILTER:
                 b.putString(TimelineFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
                 break;
@@ -76,6 +73,11 @@ public class TweetListFragmentFactory {
                 query.append("from search:\"")
                         .append(tabInfo.getSearchKeyword().replaceAll("\"", "\\\""))
                         .append("\"");
+                break;
+            case TabType.TABTYPE_LIST:
+                query.append("from list:\"")
+                        .append(tabInfo.getBindAccount().ScreenName).append("/")
+                        .append(tabInfo.getBindListId()).append("\"");
                 break;
             default:
                 return newInstance(tabInfo);

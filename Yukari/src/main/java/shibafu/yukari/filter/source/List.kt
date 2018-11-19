@@ -13,15 +13,29 @@ import shibafu.yukari.twitter.TwitterRestQuery
 public data class List(override val sourceAccount: AuthUserRecord?, val target: String) : FilterSource {
     private val ownerScreenName: String
     private val slug: String
+    private val id: Long
 
     init {
         val (ownerScreenName, slug) = target.split("/")
         this.ownerScreenName = ownerScreenName
-        this.slug = slug
+        when (val id = slug.toLongOrNull()) {
+            is Long -> {
+                this.id = id
+                this.slug = ""
+            }
+            else -> {
+                this.id = -1
+                this.slug = slug
+            }
+        }
     }
 
     override fun getRestQuery() = TwitterRestQuery { twitter, paging ->
-        twitter.getUserListStatuses(ownerScreenName, slug, paging)
+        if (id > -1) {
+            twitter.getUserListStatuses(id, paging)
+        } else {
+            twitter.getUserListStatuses(ownerScreenName, slug, paging)
+        }
     }
 
     override fun getStreamFilter(): SNode = ValueNode(false)
