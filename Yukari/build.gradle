@@ -35,7 +35,7 @@ class GitUtil {
 }
 
 ext {
-    supportLibVersion = '25.4.0'
+    supportLibVersion = '26.1.0'
     playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
@@ -58,8 +58,8 @@ ext {
 }
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '26.0.3'
 
     defaultConfig {
         applicationId "shibafu.yukari"
