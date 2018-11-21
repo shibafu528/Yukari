@@ -162,6 +162,16 @@ interface Status : Comparable<Status>, Serializable {
     }
 
     /**
+     * 指定したアカウントで、このステータスを再投稿できるか？
+     */
+    fun canRepost(userRecord: AuthUserRecord): Boolean = false
+
+    /**
+     * 指定したアカウントで、このステータスをお気に入りできるか？
+     */
+    fun canFavorite(userRecord: AuthUserRecord): Boolean = false
+
+    /**
      * 同じ内容を指す、より新しい別インスタンスの情報と比較してなるべく最新かつ情報の完全性が高いインスタンスを返す
      */
     fun merge(status: Status): Status {

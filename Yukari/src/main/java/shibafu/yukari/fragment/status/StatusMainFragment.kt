@@ -306,9 +306,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 .setDuration(BUTTON_SHOW_DURATION.toLong())
                 .start()
 
-        userRecord?.let {
-            ImageLoaderTask.loadProfileIcon(activity, ibAccount, it.ProfileImageUrl)
-        }
+        onUserChanged(userRecord)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -420,32 +418,26 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
     }
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {
-        userRecord?.let {
-            ImageLoaderTask.loadProfileIcon(activity, ibAccount, it.ProfileImageUrl)
+        if (userRecord != null) {
+            ImageLoaderTask.loadProfileIcon(activity, ibAccount, userRecord.ProfileImageUrl)
+
+            ibRetweet.isEnabled = status.canRepost(userRecord)
+            ibFavorite.isEnabled = status.canFavorite(userRecord)
+
+            if (isTwitterServiceBound) {
+                // 自分の所有ステータスの場合、ナルシストオプションが有効になってないなら強制ふぁぼ禁止にする
+                // ...セルフふぁぼができないと思いこんでいたという経緯が残ってないと意味わからんな
+                if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
+                    ibFavorite.isEnabled = false
+                }
+            }
+
+            ibFavRt.isEnabled = ibRetweet.isEnabled && ibFavorite.isEnabled
         }
     }
 
     override fun onServiceConnected() {
-        // コマンド制限の判定
-        if (status.originStatus.user.isProtected) {
-            // 鍵垢
-            ibRetweet.isEnabled = false
-            ibFavRt.isEnabled = false
-            limitedQuote = true
-        } else {
-            limitedQuote = false
-        }
-        if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED) {
-            // 自分のステータス
-            ibRetweet.isEnabled = true
-            if (defaultSharedPreferences.getBoolean("pref_narcist", false)) {
-                ibFavorite.isEnabled = true
-                ibFavRt.isEnabled = true
-            } else {
-                ibFavorite.isEnabled = false
-                ibFavRt.isEnabled = false
-            }
-        }
+        onUserChanged(userRecord)
     }
 
     override fun onServiceDisconnected() {}

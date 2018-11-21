@@ -102,6 +102,16 @@ class DonStatus(val status: Status,
         return IStatus.RELATION_NONE
     }
 
+    override fun canRepost(userRecord: AuthUserRecord): Boolean {
+        val originStatus = if (isRepost) status.reblog!! else status
+        return userRecord.Provider.apiType == Provider.API_MASTODON &&
+                (originStatus.visibility == Status.Visibility.Public.value || originStatus.visibility == Status.Visibility.Unlisted.value)
+    }
+
+    override fun canFavorite(userRecord: AuthUserRecord): Boolean {
+        return userRecord.Provider.apiType == Provider.API_MASTODON
+    }
+
     override fun merge(status: IStatus): IStatus {
         super.merge(status)
 
