@@ -100,6 +100,15 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
         return Status.RELATION_NONE
     }
 
+    override fun canRepost(userRecord: AuthUserRecord): Boolean {
+        return userRecord.Provider.apiType == Provider.API_TWITTER &&
+                (userRecord.ScreenName == originStatus.user.screenName || !originStatus.user.isProtected)
+    }
+
+    override fun canFavorite(userRecord: AuthUserRecord): Boolean {
+        return userRecord.Provider.apiType == Provider.API_TWITTER
+    }
+
     private val twitter4j.Status.originStatus: twitter4j.Status
         get() = if (this.isRetweet) this.retweetedStatus else this
 
