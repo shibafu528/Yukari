@@ -62,18 +62,18 @@ abstract class StatusView : RelativeLayout {
     protected val bgOwnResId = AttrUtil.resolveAttribute(context.theme, R.attr.tweetOwn)
 
     // View
-    protected val tvName: TextView by lazy { findViewById(R.id.tweet_name) as TextView }
-    protected val tvText: TextView by lazy { findViewById(R.id.tweet_text) as TextView }
-    protected val ivIcon: ImageView by lazy { findViewById(R.id.tweet_icon) as ImageView }
-    protected val ivRetweeterIcon: ImageView by lazy { findViewById(R.id.tweet_retweeter) as ImageView }
-    protected val ivProtected: ImageView by lazy { findViewById(R.id.tweet_protected) as ImageView }
-    protected val ivFavorited: ImageView by lazy { findViewById(R.id.tweet_faved) as ImageView }
-    protected val tvTimestamp: TextView by lazy { findViewById(R.id.tweet_timestamp) as TextView }
-    protected val llAttach: LinearLayout by lazy { findViewById(R.id.tweet_attach) as LinearLayout }
-    protected val tvReceived: TextView by lazy { findViewById(R.id.tweet_receive) as TextView }
-    protected val flInclude: LinearLayout by lazy { findViewById(R.id.tweet_include) as LinearLayout }
-    protected val ivAccountColor: ImageView by lazy { findViewById(R.id.tweet_accountcolor) as ImageView }
-    protected val ivUserColor: ImageView by lazy { findViewById(R.id.tweet_color) as ImageView }
+    protected val tvName: TextView by lazy { findViewById<TextView>(R.id.tweet_name) }
+    protected val tvText: TextView by lazy { findViewById<TextView>(R.id.tweet_text) }
+    protected val ivIcon: ImageView by lazy { findViewById<ImageView>(R.id.tweet_icon) }
+    protected val ivRetweeterIcon: ImageView by lazy { findViewById<ImageView>(R.id.tweet_retweeter) }
+    protected val ivProtected: ImageView by lazy { findViewById<ImageView>(R.id.tweet_protected) }
+    protected val ivFavorited: ImageView by lazy { findViewById<ImageView>(R.id.tweet_faved) }
+    protected val tvTimestamp: TextView by lazy { findViewById<TextView>(R.id.tweet_timestamp) }
+    protected val llAttach: LinearLayout by lazy { findViewById<LinearLayout>(R.id.tweet_attach) }
+    protected val tvReceived: TextView by lazy { findViewById<TextView>(R.id.tweet_receive) }
+    protected val flInclude: LinearLayout by lazy { findViewById<LinearLayout>(R.id.tweet_include) }
+    protected val ivAccountColor: ImageView by lazy { findViewById<ImageView>(R.id.tweet_accountcolor) }
+    protected val ivUserColor: ImageView by lazy { findViewById<ImageView>(R.id.tweet_color) }
 
     // LayoutParams
     private val lpThumb: LinearLayout.LayoutParams
@@ -409,7 +409,7 @@ abstract class StatusView : RelativeLayout {
                     val childCount = llAttach.childCount
                     if (i < childCount) {
                         while (i < childCount) {
-                            llAttach.findViewById(i).visibility = View.GONE
+                            llAttach.findViewById<View>(i).visibility = View.GONE
                             ++i
                         }
                     }

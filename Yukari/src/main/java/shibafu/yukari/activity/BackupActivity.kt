@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Spinner
@@ -63,7 +64,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         private const val DIALOG_EXPORT_FINISHED = 2
     }
 
-    val spLocation: Spinner by lazy { findViewById(R.id.spinner) as Spinner }
+    val spLocation: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +88,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 .commit()
         }
 
-        findViewById(R.id.btnExecute).setOnClickListener { onClickExecute() }
+        findViewById<Button>(R.id.btnExecute).setOnClickListener { onClickExecute() }
     }
 
     fun onClickExecute() {

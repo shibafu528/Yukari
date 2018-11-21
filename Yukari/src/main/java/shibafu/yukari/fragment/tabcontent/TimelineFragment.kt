@@ -142,7 +142,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         swipeRefreshLayout?.setColorSchemeResources(AttrUtil.resolveAttribute(context.theme, R.attr.colorPrimary))
         swipeRefreshLayout?.setOnRefreshListener(this)
 
-        val swipeActionStatusView = v.findViewById(R.id.swipeActionStatusFrame)
+        val swipeActionStatusView = v.findViewById<View>(R.id.swipeActionStatusFrame)
         swipeActionStatusView?.visibility = View.INVISIBLE
 
         unreadNotifierBehavior.onCreateView(v)
@@ -252,8 +252,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                                 val visiblePosition = position - listView.firstVisiblePosition
                                 if (visiblePosition > -1) {
                                     val view: View? = listView.getChildAt(visiblePosition)
-                                    view?.findViewById(R.id.pbLoading)?.visibility = View.VISIBLE
-                                    (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                                    view?.findViewById<View>(R.id.pbLoading)?.visibility = View.VISIBLE
+                                    view?.findViewById<TextView>(R.id.tvLoading)?.text = "loading"
                                 }
                             }
                         }

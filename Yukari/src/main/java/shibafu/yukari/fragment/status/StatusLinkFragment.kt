@@ -14,6 +14,7 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.PopupMenu
 import android.widget.TextView
@@ -168,10 +169,10 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
 
             val row = getItem(position)
             if (row != null) {
-                val tvContent = view.findViewById(R.id.statuslink_content) as TextView
+                val tvContent = view.findViewById<TextView>(R.id.statuslink_content)
                 tvContent.text = row.label
 
-                val ibActions = view.findViewById(R.id.statuslink_actions)
+                val ibActions = view.findViewById<ImageButton>(R.id.statuslink_actions)
                 ibActions.setOnClickListener { v ->
                     val menu = PopupMenu(context, v)
                     row.actions.forEachIndexed { index, action ->
