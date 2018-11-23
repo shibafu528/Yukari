@@ -32,7 +32,7 @@ class SimpleAlertDialogFragment : DialogFragment(), DialogInterface.OnClickListe
         // 大文字化対策
         if (disableCaps) {
             dialog.setOnShowListener { _ ->
-                val views = arrayOf(dialog.findViewById(android.R.id.button1),
+                val views: Array<Button?> = arrayOf(dialog.findViewById(android.R.id.button1),
                         dialog.findViewById(android.R.id.button2),
                         dialog.findViewById(android.R.id.button3))
                 for (v in views) {

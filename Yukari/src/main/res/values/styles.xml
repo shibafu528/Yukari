@@ -64,18 +64,6 @@
 
     <style name="YukariAboutTheme" parent="ColorsTheme.Light"/>
 
-    <style name="Yukari.Material.Drawable.CircularProgress" parent="Material.Drawable.CircularProgress">
-        <item name="cpd_strokeColor">?attr/colorAccent</item>
-        <item name="cpd_strokeSize">5dp</item>
-    </style>
-
-    <style name="Yukari.Material.CircularProgress" parent="">
-        <item name="pv_circular">true</item>
-        <item name="pv_autostart">true</item>
-        <item name="pv_progressMode">indeterminate</item>
-        <item name="pv_progressStyle">@style/Yukari.Material.Drawable.CircularProgress</item>
-    </style>
-
     <style name="Yukari.TextAppearance.TabTitle" parent="TextAppearance.AppCompat.Medium.Inverse">
         <item name="android:textColor">#ccc</item>
     </style>

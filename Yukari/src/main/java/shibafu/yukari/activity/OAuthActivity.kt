@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
 import com.sys1yagi.mastodon4j.api.Scope
@@ -30,14 +31,12 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Provider
-import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.TwitterException
 import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
-import java.util.concurrent.CountDownLatch
 import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken as MastodonAccessToken
 
 /**
@@ -408,7 +407,7 @@ class OAuthActivity : ActionBarYukariBase() {
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             val v = inflater!!.inflate(R.layout.fragment_oauth_mastodon, container, false)
             tilInstanceHostName = v.findViewById(R.id.tilInstanceHostName) as TextInputLayout
-            v.findViewById(R.id.btnLogin).setOnClickListener listener@ {
+            v.findViewById<Button>(R.id.btnLogin).setOnClickListener listener@ {
                 val instanceHostName = tilInstanceHostName.editText?.text.toString()
                 if (instanceHostName.isEmpty()) {
                     tilInstanceHostName.error = "入力してください。"
