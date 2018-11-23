@@ -5,10 +5,10 @@
     android:layout_height="match_parent"
     android:paddingBottom="36dp">
 
-    <com.rey.material.widget.ProgressView
-        style="@style/Yukari.Material.CircularProgress"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+    <shibafu.yukari.view.MaterialProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/pbLoading"
         android:visibility="invisible"
         android:layout_gravity="center" />
