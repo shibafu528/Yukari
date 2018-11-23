@@ -17,7 +17,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Home Timeline
  */
-class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
+data class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         Timelines(client).getHome(range).execute()
     }

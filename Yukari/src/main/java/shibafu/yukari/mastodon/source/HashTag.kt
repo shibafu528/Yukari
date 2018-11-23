@@ -17,7 +17,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * HashTag Search
  */
-class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
+data class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
     private val normalizedTag: String = tag.trim().trimStart('#')
 
     override fun getRestQuery() = MastodonRestQuery { client, range ->
@@ -56,7 +56,7 @@ class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : Fil
 /**
  * Local HashTag Search
  */
-class LocalHashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
+data class LocalHashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
     private val normalizedTag: String = tag.trim().trimStart('#')
 
     override fun getRestQuery() = MastodonRestQuery { client, range ->

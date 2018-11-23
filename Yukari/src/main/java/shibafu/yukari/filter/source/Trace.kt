@@ -14,7 +14,7 @@ import shibafu.yukari.entity.Status as IStatus
 /**
  * In-Reply-Toで繋がっている会話を取得するためのフィルタソースです。
  */
-class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
+data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
     private val originId: Long = origin.toLongOrNull() ?: TwitterUtil.getStatusIdFromUrl(origin)
 
     override fun getRestQuery() = object : RestQuery {

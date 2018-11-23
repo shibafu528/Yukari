@@ -14,7 +14,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * In-Reply-Toで繋がっている会話を取得するためのフィルタソースです。
  */
-class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
+data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
     override fun getRestQuery() = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
             api as MastodonClient

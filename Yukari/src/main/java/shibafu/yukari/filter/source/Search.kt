@@ -25,7 +25,7 @@ import java.util.*
 /**
  * Twitterの検索APIを対象とする抽出ソースです。
  */
-class Search(override val sourceAccount: AuthUserRecord, val query: String) : FilterSource {
+data class Search(override val sourceAccount: AuthUserRecord, val query: String) : FilterSource {
     private val parsedQuery = FilterStream.ParsedQuery(query)
     private val gson = Gson()
 

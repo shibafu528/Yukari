@@ -24,7 +24,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Federated Timeline
  */
-class Federated(override val sourceAccount: AuthUserRecord) : FilterSource {
+data class Federated(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
         Public(client).getFederatedPublic(range).execute()
     }
@@ -44,7 +44,7 @@ class Federated(override val sourceAccount: AuthUserRecord) : FilterSource {
 /**
  * Federated Timeline (Anonymous access)
  */
-class AnonymousFederated(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
+data class AnonymousFederated(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {

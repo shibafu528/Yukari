@@ -17,7 +17,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Mention Timeline
  */
-class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
+data class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         val excludeTypes = listOf(Notification.Type.Follow, Notification.Type.Favourite, Notification.Type.Reblog)
         Notifications(client).getNotifications(range, excludeTypes).execute().let {

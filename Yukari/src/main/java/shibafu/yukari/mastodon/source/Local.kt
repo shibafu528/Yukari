@@ -25,7 +25,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Local Timeline
  */
-class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
+data class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
         Public(client).getLocalPublic(range).execute()
     }
@@ -49,7 +49,7 @@ class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
 /**
  * Local Timeline (Anonymous access)
  */
-class AnonymousLocal(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
+data class AnonymousLocal(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {
