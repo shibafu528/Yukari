@@ -316,7 +316,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                 if (targetList != null) {
                     UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), targetList, REQUEST_D_EDIT);
                     fragment.setTargetFragment(this, 1);
-                    fragment.show(getChildFragmentManager(), "edit");
+                    fragment.show(getFragmentManager(), "edit");
                 }
                 return true;
             }
@@ -330,7 +330,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Statu
                         "キャンセル"
                 );
                 fragment.setTargetFragment(this, 1);
-                fragment.show(getChildFragmentManager(), "delete");
+                fragment.show(getFragmentManager(), "delete");
                 return true;
             }
         }

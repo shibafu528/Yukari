@@ -152,7 +152,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             case R.id.action_add:
                 UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), REQUEST_D_CREATE);
                 fragment.setTargetFragment(this, 1);
-                fragment.show(getChildFragmentManager(), "new");
+                fragment.show(getFragmentManager(), "new");
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -238,7 +238,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             {
                 UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), userList, REQUEST_D_EDIT);
                 fragment.setTargetFragment(this, 1);
-                fragment.show(getChildFragmentManager(), "edit");
+                fragment.show(getFragmentManager(), "edit");
                 return true;
             }
             case R.id.action_delete:
@@ -252,7 +252,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
                         "キャンセル"
                 );
                 fragment.setTargetFragment(this, 1);
-                fragment.show(getChildFragmentManager(), "delete");
+                fragment.show(getFragmentManager(), "delete");
                 return true;
             }
         }

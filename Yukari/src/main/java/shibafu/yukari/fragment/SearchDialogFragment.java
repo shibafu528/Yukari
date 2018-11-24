@@ -268,7 +268,6 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                 default:
                     return null;
             }
-            fragment.setTargetFragment(SearchDialogFragment.this, 0);
             return fragment;
         }
 
@@ -392,7 +391,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     "キャンセル"
             );
             dialogFragment.setTargetFragment(this, 0);
-            dialogFragment.show(getChildFragmentManager(), "dialog");
+            dialogFragment.show(getFragmentManager(), "dialog");
             return true;
         }
 
@@ -597,7 +596,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     "キャンセル"
             );
             dialogFragment.setTargetFragment(this, 0);
-            dialogFragment.show(getChildFragmentManager(), "dialog");
+            dialogFragment.show(getFragmentManager(), "dialog");
             return true;
         }
 
