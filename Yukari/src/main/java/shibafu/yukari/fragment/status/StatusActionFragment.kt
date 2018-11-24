@@ -74,12 +74,12 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             Action("リストへ追加/削除") {
                 ListRegisterDialogFragment.newInstance((status.originStatus.user as TwitterUser).user).let {
                     it.setTargetFragment(this, 0)
-                    it.show(childFragmentManager, "register")
+                    it.show(fragmentManager, "register")
                 }
             } visibleWhen { status is TwitterStatus },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance(status, this).show(childFragmentManager, "mute")
+                MuteMenuDialogFragment.newInstance(status, this).show(fragmentManager, "mute")
             } visibleWhen { true },
 
             Action("ツイートを削除") {

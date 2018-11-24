@@ -155,7 +155,7 @@ public class UserListEditDialogFragment extends DialogFragment {
                     protected void onPreExecute() {
                         super.onPreExecute();
                         dialogFragment = PostProgressDialogFragment.newInstance();
-                        dialogFragment.show(getChildFragmentManager(), "dialog");
+                        dialogFragment.show(getFragmentManager(), "dialog");
                     }
 
                     @Override

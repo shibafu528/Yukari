@@ -216,7 +216,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                 case R.id.action_add:
                 {
                     TypeChooseDialogFragment dialogFragment = new TypeChooseDialogFragment();
-                    dialogFragment.show(getChildFragmentManager(), "typechoose");
+                    dialogFragment.show(getFragmentManager(), "typechoose");
                     return true;
                 }
             }
@@ -252,7 +252,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     DIALOG_CONFIRM, "確認", "タブを削除しますか?", "OK", "キャンセル"
             );
             dialogFragment.setTargetFragment(this, DIALOG_CONFIRM);
-            dialogFragment.show(getChildFragmentManager(), "alert");
+            dialogFragment.show(getFragmentManager(), "alert");
         }
 
         public void addTab(int type, AuthUserRecord userRecord, Object... args) {

@@ -168,7 +168,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     .setNegative("キャンセル")
                     .build()
             dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
-            dialog.show(childFragmentManager, "dialog_repost_confirm")
+            dialog.show(fragmentManager, "dialog_repost_confirm")
         }
         ibRetweet.setOnLongClickListener {
             if (status.providerApiType == Provider.API_TWITTER) {
@@ -195,7 +195,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     .setNegative("キャンセル")
                     .build()
             dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
-            dialog.show(childFragmentManager, "dialog_fav_and_repost_confirm")
+            dialog.show(fragmentManager, "dialog_fav_and_repost_confirm")
         }
         ibFavRt.setOnLongClickListener {
             if (status.providerApiType == Provider.API_TWITTER) {
@@ -484,7 +484,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                         .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
                         .build()
                 dialog.setTargetFragment(this, DIALOG_FAVORITE_NUISANCE)
-                dialog.show(childFragmentManager, "dialog_favorite_nuisance")
+                dialog.show(fragmentManager, "dialog_favorite_nuisance")
                 return
             } else if (defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
                 val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAVORITE_CONFIRM)
@@ -495,7 +495,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                         .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
                         .build()
                 dialog.setTargetFragment(this, DIALOG_FAVORITE_CONFIRM)
-                dialog.show(childFragmentManager, "dialog_favorite_confirm")
+                dialog.show(fragmentManager, "dialog_favorite_confirm")
                 return
             }
         }
@@ -545,7 +545,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 null, "キャンセル",
                 *quoteStyles)
         dialog.setTargetFragment(this, DIALOG_QUOTE_SELECT)
-        dialog.show(childFragmentManager, "dialog_quote_select")
+        dialog.show(fragmentManager, "dialog_quote_select")
     }
 
     private fun quoteStatus(style: Int): Boolean {
