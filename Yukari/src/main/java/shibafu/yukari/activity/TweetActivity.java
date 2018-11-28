@@ -348,7 +348,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
         //WebIntent判定
         boolean isWebIntent = false;
-        if (dataArg != null && dataArg.getHost().equals("twitter.com")) {
+        if (dataArg != null && "twitter.com".equals(dataArg.getHost())) {
             isWebIntent = true;
         }
 
