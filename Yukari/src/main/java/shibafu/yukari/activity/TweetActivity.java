@@ -57,6 +57,7 @@ import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sys1yagi.mastodon4j.api.entity.Status.Visibility;
 import com.twitter.Extractor;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import info.shibafu528.yukari.exvoice.MRubyException;
@@ -76,6 +77,7 @@ import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.linkage.PostValidator;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderApiException;
+import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
@@ -421,6 +423,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
             case MODE_REPLY:
                 etInput.setSelection(etInput.getText().length() - restoredTagsLength);
+                // 返信先がMastodonのトゥートの場合、そのトゥートの可視性を初期値として引き継ぐ
+                if (status instanceof DonStatus) {
+                    String visibility = ((DonStatus) status).getStatus().getVisibility();
+                    if (Visibility.Public.getValue().equals(visibility)) {
+                        this.visibility = StatusDraft.Visibility.PUBLIC;
+                    } else if (Visibility.Unlisted.getValue().equals(visibility)) {
+                        this.visibility = StatusDraft.Visibility.UNLISTED;
+                    } else if (Visibility.Private.getValue().equals(visibility)) {
+                        this.visibility = StatusDraft.Visibility.PRIVATE;
+                    } else if (Visibility.Direct.getValue().equals(visibility)) {
+                        this.visibility = StatusDraft.Visibility.DIRECT;
+                    }
+                    setVisibility(this.visibility.ordinal());
+                }
                 /* fall through */
             case MODE_QUOTE: {
                 // TODO: ReplyかつinReplyToIDで復帰するパターンは下書きからのロードのみ
