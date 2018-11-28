@@ -212,7 +212,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun existsTwitterApp(): Boolean {
             try {
-                activity.packageManager.getActivityInfo(TWITTER_AUTH_ACTIVITY, PackageManager.GET_ACTIVITIES)
+                activity.packageManager.getActivityInfo(TWITTER_AUTH_ACTIVITY, PackageManager.GET_META_DATA)
                 return true
             } catch (ignored: PackageManager.NameNotFoundException) {}
 

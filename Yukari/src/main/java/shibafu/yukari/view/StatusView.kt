@@ -1,6 +1,7 @@
 package shibafu.yukari.view
 
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -8,6 +9,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
+import android.os.Build
 import android.preference.PreferenceManager
 import android.text.SpannableStringBuilder
 import android.text.Spanned
@@ -94,6 +96,7 @@ abstract class StatusView : RelativeLayout {
         initializeView(context, attrs, defStyleAttr)
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
         singleLine = false
         initializeView(context, attrs, defStyleAttr)

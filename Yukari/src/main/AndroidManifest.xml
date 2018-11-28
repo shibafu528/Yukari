@@ -27,7 +27,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter tools:ignore="GoogleAppIndexingWarning">
+            <intent-filter tools:ignore="AppLinkUrlError,GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -142,7 +142,7 @@
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
             android:label="@string/title_activity_profile">
-            <intent-filter tools:ignore="GoogleAppIndexingWarning">
+            <intent-filter tools:ignore="AppLinkUrlError,GoogleAppIndexingWarning">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
