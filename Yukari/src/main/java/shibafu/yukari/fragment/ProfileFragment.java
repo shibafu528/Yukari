@@ -52,6 +52,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
@@ -61,6 +62,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Relationship;
@@ -1094,8 +1096,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
 
             try {
+                TwitterService service = getTwitterService();
                 User user = null;
-                Twitter twitter = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user);
+                Twitter twitter = service.getTwitterOrPrimary(ProfileFragment.this.user);
                 if (twitter != null) {
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -1109,7 +1112,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 }
 
                 if (user != null) {
-                    getTwitterService().getDatabase().updateRecord(new DBUser(user));
+                    CentralDatabase database = service.getDatabase();
+                    if (database != null) {
+                        database.updateRecord(new DBUser(user));
+                    }
                     if (loadHolder == null) {
                         loadHolder = new LoadHolder(user, null);
                     }
