@@ -736,9 +736,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 intent.setPackage(ai.packageName);
                 startActivityForResult(intent, REQUEST_NOWPLAYING);
             });
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        } catch (PackageManager.NameNotFoundException ignored) {}
 
         // twiccaプラグインのロード
         Intent query = new Intent("jp.r246.twicca.ACTION_EDIT_TWEET");
