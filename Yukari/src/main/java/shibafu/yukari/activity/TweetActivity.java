@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -24,7 +25,9 @@ import android.os.Environment;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.speech.RecognizerIntent;
+import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPopupHelper;
@@ -63,6 +66,12 @@ import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import info.shibafu528.yukari.exvoice.MRubyException;
 import info.shibafu528.yukari.exvoice.ProcWrapper;
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.PermissionUtils;
+import permissions.dispatcher.RuntimePermissions;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
@@ -113,6 +122,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@RuntimePermissions
 public class TweetActivity extends ActionBarYukariBase implements DraftDialogFragment.DraftDialogEventListener, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleListDialogFragment.OnDialogChoseListener {
 
     public static final int MODE_TWEET = 0;
@@ -619,67 +629,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         // ギャラリーボタン
         ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
         ibAttach.setOnClickListener(v -> {
-            //添付上限判定
-            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
-            intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-            intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
-            intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
-            startActivityForResult(intent, REQUEST_GALLERY);
-            overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+            TweetActivityPermissionsDispatcher.openGalleryWithPermissionCheck(this);
         });
         ibAttach.setOnLongClickListener(view -> {
-            if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
-                Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
-                if (c != null) {
-                    if (c.moveToLast()) {
-                        long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
-                        attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
-                        Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
-                    }
-                    c.close();
-                }
-            }
+            TweetActivityPermissionsDispatcher.pickLatestGalleryPictureWithPermissionCheck(this);
             return true;
         });
 
         // カメラボタン
         ibCamera = (ImageButton) findViewById(R.id.ibTweetTakePic);
         ibCamera.setOnClickListener(v -> {
-            //添付上限判定
-            if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
-                Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            //SDカード使用可否のチェックを行う
-            boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-            if (!existExternal) {
-                Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            //保存先パスを作成する
-            String extStorage = Environment.getExternalStorageDirectory().getPath();
-            File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
-            if (!extDestDir.exists()) {
-                extDestDir.mkdirs();
-            }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-            String fileName = sdf.format(new Date(System.currentTimeMillis()));
-            File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
-            //コンテントプロバイダに登録
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.TITLE, fileName);
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-            values.put(MediaStore.Images.Media.DATA, destFile.getPath());
-            cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            //カメラを呼び出す
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
-            startActivityForResult(intent, REQUEST_CAMERA);
+            TweetActivityPermissionsDispatcher.launchCameraWithPermissionCheck(this);
         });
 
         // ハッシュタグ入力ボタン
@@ -903,6 +863,151 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
         outState.putParcelableArrayList("attachPictureUris", attachPictureUris);
         outState.putInt("visibility", visibility.ordinal());
+    }
+
+    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    void openGallery() {
+        //添付上限判定
+        if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+            Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
+        intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
+        intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
+        intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
+        intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
+        startActivityForResult(intent, REQUEST_GALLERY);
+        overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+    }
+
+    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    void pickLatestGalleryPicture() {
+        if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
+            Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
+            if (c != null) {
+                if (c.moveToLast()) {
+                    long id = c.getLong(c.getColumnIndex(MediaStore.Images.Media._ID));
+                    attachPicture(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id));
+                    Toast.makeText(TweetActivity.this, "最後に撮影した画像を添付します", Toast.LENGTH_LONG).show();
+                }
+                c.close();
+            }
+        }
+    }
+
+    @OnPermissionDenied(Manifest.permission.READ_EXTERNAL_STORAGE)
+    void onDeniedReadExternalStorage() {
+        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Toast.makeText(TweetActivity.this, "ギャラリーにアクセスできません。", Toast.LENGTH_SHORT).show();
+        } else {
+            currentDialog = new AlertDialog.Builder(this)
+                    .setTitle("許可が必要")
+                    .setMessage("画像を添付するには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
+                    .setPositiveButton("設定画面へ", (dialog, which) -> {
+                        currentDialog = null;
+
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.fromParts("package", getPackageName(), null));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("今はしない", (dialog, which) -> {
+                        currentDialog = null;
+                    })
+                    .create();
+            currentDialog.show();
+        }
+    }
+
+    @OnShowRationale(Manifest.permission.READ_EXTERNAL_STORAGE)
+    void showRationaleForReadExternalStorage(final PermissionRequest request) {
+        currentDialog = new AlertDialog.Builder(this)
+                .setTitle("許可が必要")
+                .setMessage("画像を添付するためには、ストレージへのアクセス許可が必要です。")
+                .setPositiveButton("許可", (dialog, which) -> {
+                    currentDialog = null;
+                    request.proceed();
+                })
+                .setNegativeButton("許可しない", (dialog, which) -> {
+                    currentDialog = null;
+                    request.cancel();
+                })
+                .create();
+        currentDialog.show();
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void launchCamera() {
+        //添付上限判定
+        if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
+            Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //SDカード使用可否のチェックを行う
+        boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+        if (!existExternal) {
+            Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //保存先パスを作成する
+        String extStorage = Environment.getExternalStorageDirectory().getPath();
+        File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
+        if (!extDestDir.exists()) {
+            extDestDir.mkdirs();
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String fileName = sdf.format(new Date(System.currentTimeMillis()));
+        File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
+        //コンテントプロバイダに登録
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.TITLE, fileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATA, destFile.getPath());
+        cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        //カメラを呼び出す
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
+        startActivityForResult(intent, REQUEST_CAMERA);
+    }
+
+    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void onDeniedWriteExternalStorage() {
+        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Toast.makeText(TweetActivity.this, "カメラを起動できません。", Toast.LENGTH_SHORT).show();
+        } else {
+            currentDialog = new AlertDialog.Builder(this)
+                    .setTitle("許可が必要")
+                    .setMessage("カメラを使用するには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
+                    .setPositiveButton("設定画面へ", (dialog, which) -> {
+                        currentDialog = null;
+
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.fromParts("package", getPackageName(), null));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("今はしない", (dialog, which) -> {
+                        currentDialog = null;
+                    })
+                    .create();
+            currentDialog.show();
+        }
+    }
+
+    @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void showRationaleForWriteExternalStorage(final PermissionRequest request) {
+        currentDialog = new AlertDialog.Builder(this)
+                .setTitle("許可が必要")
+                .setMessage("カメラを起動するためには、ストレージへのアクセス許可が必要です。")
+                .setPositiveButton("許可", (dialog, which) -> {
+                    currentDialog = null;
+                    request.proceed();
+                })
+                .setNegativeButton("許可しない", (dialog, which) -> {
+                    currentDialog = null;
+                    request.cancel();
+                })
+                .create();
+        currentDialog.show();
     }
 
     private void postTweet() {
@@ -1150,6 +1255,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        TweetActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 
@@ -1326,6 +1437,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     @Override
     public void onDraftSelected(StatusDraft selected) {
+        // TODO: 下書きに添付画像が含まれる場合、READ_EXTERNAL_STORAGEの権限が必要となる。
+        //       onCreateでチェックして、許可されたら同じintentでstartActivityしなおして、拒否されたら単にfinishするのが良いかも。
         Intent intent = selected.getTweetIntent(this);
 
         startActivity(intent);
