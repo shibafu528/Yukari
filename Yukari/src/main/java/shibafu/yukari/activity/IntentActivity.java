@@ -3,9 +3,12 @@ package shibafu.yukari.activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Pair;
+import android.view.Window;
 import android.widget.Toast;
-import shibafu.yukari.activity.base.ListYukariBase;
+import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.StatusDraft;
@@ -13,6 +16,7 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
+import shibafu.yukari.util.ThemeUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -25,7 +29,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Shibafu on 13/08/09.
  */
-public class IntentActivity extends ListYukariBase{
+public class IntentActivity extends ActionBarYukariBase {
 
     private static final List<Pair<Pattern, AfterWork>> MATCHES;
     static {
@@ -88,7 +92,12 @@ public class IntentActivity extends ListYukariBase{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        if (PreferenceManager.getDefaultSharedPreferences(this).getString("pref_theme", "light").endsWith("dark")) {
+            setTheme(R.style.ColorsTheme_Dark_Translucent_FullTransparent);
+        } else {
+            setTheme(R.style.ColorsTheme_Light_Translucent_FullTransparent);
+        }
+        super.onCreate(savedInstanceState, true);
 
         String url = getIntent().getDataString();
         for (Pair<Pattern, AfterWork> pair : MATCHES) {
