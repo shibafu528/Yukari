@@ -1,14 +1,18 @@
 package shibafu.yukari.activity
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Process
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.ListFragment
 import android.support.v4.util.SparseArrayCompat
@@ -22,6 +26,10 @@ import android.widget.ListView
 import android.widget.Spinner
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import permissions.dispatcher.NeedsPermission
+import permissions.dispatcher.OnPermissionDenied
+import permissions.dispatcher.PermissionUtils
+import permissions.dispatcher.RuntimePermissions
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.TabInfo
@@ -52,6 +60,7 @@ import java.io.FileOutputStream
 /**
  * Created by shibafu on 2016/03/13.
  */
+@RuntimePermissions
 class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener {
     companion object {
         const val EXTRA_MODE = "mode"
@@ -62,6 +71,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
 
         private const val DIALOG_IMPORT_FINISHED = 1
         private const val DIALOG_EXPORT_FINISHED = 2
+        private const val DIALOG_PERMISSION_DENIED = 3
     }
 
     val spLocation: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
@@ -88,9 +98,10 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 .commit()
         }
 
-        findViewById<Button>(R.id.btnExecute).setOnClickListener { onClickExecute() }
+        findViewById<Button>(R.id.btnExecute).setOnClickListener { onClickExecuteWithPermissionCheck() }
     }
 
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     fun onClickExecute() {
         val fragment = supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)
         if (fragment !is BackupFragment) throw RuntimeException("fragment type mismatched")
@@ -290,6 +301,25 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         }
     }
 
+    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun onDeniedWriteExternalStorage() {
+        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            showToast("ストレージにアクセスする権限がありません。")
+        } else {
+            SimpleAlertDialogFragment.newInstance(DIALOG_PERMISSION_DENIED,
+                    "許可が必要",
+                    "この操作を実行するためには、手動で設定画面からストレージへのアクセスを許可する必要があります。",
+                    "設定画面へ",
+                    "キャンセル")
+                    .show(supportFragmentManager, "permission_denied")
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        onRequestPermissionsResult(requestCode, grantResults)
+    }
+
     override fun onServiceConnected() {}
 
     override fun onServiceDisconnected() {}
@@ -309,6 +339,13 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                         PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
                 moveTaskToBack(true)
                 Process.killProcess(Process.myPid())
+            }
+            DIALOG_PERMISSION_DENIED -> {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = Uri.fromParts("package", packageName, null)
+                    startActivity(intent)
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
 
 repositories {
     mavenCentral()
@@ -192,14 +193,14 @@ dependencies {
 
     // Annotation Processor
     implementation 'com.jakewharton:butterknife:8.8.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.0'
+    kapt 'com.jakewharton:butterknife-compiler:8.8.0'
     implementation "com.github.hotchemi:permissionsdispatcher:3.3.1", {
         exclude group: 'com.android.support', module: 'support-compat'
         exclude group: 'com.android.support', module: 'support-v13'
     }
-    annotationProcessor "com.github.hotchemi:permissionsdispatcher-processor:3.3.1"
+    kapt "com.github.hotchemi:permissionsdispatcher-processor:3.3.1"
     implementation project(':yukari-processor-runtime')
-    annotationProcessor project(':yukari-processor')
+    kapt project(':yukari-processor')
 
     // デバッグ用
     debugImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
