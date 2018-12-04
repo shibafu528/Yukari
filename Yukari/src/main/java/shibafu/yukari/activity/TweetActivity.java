@@ -28,6 +28,8 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPopupHelper;
@@ -159,6 +161,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private static final int REQUEST_DIALOG_HASH_CATEGORY = 0x06;
     private static final int REQUEST_DIALOG_HASH_VALUE = 0x07;
     private static final int REQUEST_DIALOG_DRAFT_MENU = 0x08;
+
+    // PermissionsDispatcherが若いリクエスト番号を使うので、自前実装は大きめの番号から。
+    private static final int PERMISSION_REQUEST_INIT_ATTACH = 0x1000;
 
     private static final int PLUGIN_ICON_DIP = 28;
 
@@ -505,8 +510,14 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
             attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
         } else if (mediaUri != null) {
-            for (String s : mediaUri) {
-                attachPicture(Uri.parse(s));
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                for (String s : mediaUri) {
+                    attachPicture(Uri.parse(s));
+                }
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_INIT_ATTACH);
             }
         }
 
@@ -1258,6 +1269,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         TweetActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+
+        switch (requestCode) {
+            case PERMISSION_REQUEST_INIT_ATTACH:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    ArrayList<String> mediaUri = getIntent().getStringArrayListExtra(EXTRA_MEDIA);
+                    for (String s : mediaUri) {
+                        attachPicture(Uri.parse(s));
+                    }
+                    initialDraft = getTweetDraft().copyForJava();
+                } else {
+                    Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
+                }
+                break;
+        }
     }
 
     @Override
@@ -1437,8 +1462,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     @Override
     public void onDraftSelected(StatusDraft selected) {
-        // TODO: 下書きに添付画像が含まれる場合、READ_EXTERNAL_STORAGEの権限が必要となる。
-        //       onCreateでチェックして、許可されたら同じintentでstartActivityしなおして、拒否されたら単にfinishするのが良いかも。
         Intent intent = selected.getTweetIntent(this);
 
         startActivity(intent);
