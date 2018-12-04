@@ -99,7 +99,7 @@
 
         <activity
             android:name=".activity.IntentActivity"
-            android:theme="@android:style/Theme.NoDisplay" >
+            android:theme="@style/ColorsTheme.Light.Translucent.FullTransparent" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />

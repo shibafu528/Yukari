@@ -38,6 +38,11 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="ColorsTheme.Light.Translucent.FullTransparent">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/transparent</item>
+    </style>
+
     <style name="ColorsTheme.Light.Dialog.VertAnimation" parent="ColorsTheme.Light.Dialog">
         <item name="android:windowAnimationStyle">@style/Animation.Vert</item>
     </style>
@@ -75,6 +80,11 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@drawable/preview_bg</item>
         <item name="dialogStyle">@drawable/dialog_full_material_dark</item>
+    </style>
+
+    <style name="ColorsTheme.Dark.Translucent.FullTransparent">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/transparent</item>
     </style>
 
     <style name="ColorsTheme.Dark.Dialog.VertAnimation" parent="ColorsTheme.Dark.Dialog">
