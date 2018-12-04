@@ -1,5 +1,7 @@
 package shibafu.yukari.activity;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +16,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.DisplayMetrics;
@@ -35,6 +39,12 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.PermissionUtils;
+import permissions.dispatcher.RuntimePermissions;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
@@ -61,6 +71,7 @@ import java.util.Locale;
 /**
  * Created by Shibafu on 13/09/22.
  */
+@RuntimePermissions
 public class PreviewActivity extends ActionBarYukariBase {
     //TODO: DMの添付画像をダウンロードできるようにする
     //OAuthが必要なためにOSのダウンロードキューに直接ぶち込むことが出来ない
@@ -72,6 +83,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     private static final String PACKAGE_MAGICK_DECODER = "info.shibafu528.yukari.magickdecoder";
 
+    private Media media;
     private Bitmap image;
     private Matrix matrix;
     private float minScale = 1.0f;
@@ -239,7 +251,7 @@ public class PreviewActivity extends ActionBarYukariBase {
         });
 
         String mediaUrl = data.toString();
-        final Media media = MediaFactory.newInstance(mediaUrl);
+        media = MediaFactory.newInstance(mediaUrl);
 
         //とりあえず念のため見ておくか
         if (mediaUrl == null || media == null) {
@@ -483,35 +495,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         ibSave.setEnabled(false); // 実体解決完了まで無効化
         ibSave.setOnClickListener(v -> {
-            new ParallelAsyncTask<Void, Void, String>() {
-
-                @Override
-                protected String doInBackground(Void... voids) {
-                    try {
-                        DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                        DownloadManager.Request request = media.getDownloadRequest();
-                        if (request == null) {
-                            return "保存できない種類の画像です。";
-                        }
-                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                        File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                        pathExternalPublicDir.mkdirs();
-                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                        dlm.enqueue(request);
-                        return "";
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return "保存に失敗しました。";
-                }
-
-                @Override
-                protected void onPostExecute(String str) {
-                    if (!TextUtils.isEmpty(str)) {
-                        Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }.executeParallel();
+            PreviewActivityPermissionsDispatcher.onClickSaveWithPermissionCheck(PreviewActivity.this);
         });
 
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
@@ -543,6 +527,74 @@ public class PreviewActivity extends ActionBarYukariBase {
             Intent serviceIntent = new Intent(getApplicationContext(), BitmapDecoderService.class);
             bindService(serviceIntent, bdsConnection, Context.BIND_AUTO_CREATE);
         }
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void onClickSave() {
+        new ParallelAsyncTask<Void, Void, String>() {
+
+            @Override
+            protected String doInBackground(Void... voids) {
+                try {
+                    DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    DownloadManager.Request request = media.getDownloadRequest();
+                    if (request == null) {
+                        return "保存できない種類の画像です。";
+                    }
+                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                    File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    pathExternalPublicDir.mkdirs();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    dlm.enqueue(request);
+                    return "";
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return "保存に失敗しました。";
+            }
+
+            @Override
+            protected void onPostExecute(String str) {
+                if (!TextUtils.isEmpty(str)) {
+                    Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.executeParallel();
+    }
+
+    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void onDeniedReadExternalStorage() {
+        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this, "ストレージにアクセスする権限がありません。", Toast.LENGTH_SHORT).show();
+        } else {
+            new AlertDialog.Builder(this)
+                    .setTitle("許可が必要")
+                    .setMessage("画像を保存するには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
+                    .setPositiveButton("設定画面へ", (dialog, which) -> {
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                        intent.setData(Uri.fromParts("package", getPackageName(), null));
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("キャンセル", (dialog, which) -> {
+                    })
+                    .create()
+                    .show();
+        }
+    }
+
+    @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void showRationaleForReadExternalStorage(final PermissionRequest request) {
+        new AlertDialog.Builder(this)
+                .setTitle("許可が必要")
+                .setMessage("画像を保存するためには、ストレージへのアクセス許可が必要です。")
+                .setPositiveButton("許可", (dialog, which) -> {
+                    request.proceed();
+                })
+                .setNegativeButton("許可しない", (dialog, which) -> {
+                    request.cancel();
+                })
+                .create()
+                .show();
     }
 
     private void processZxing() {
@@ -589,6 +641,12 @@ public class PreviewActivity extends ActionBarYukariBase {
             unbindService(bdsConnection);
             bdsBound = false;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        PreviewActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
     private void updateMatrix() {
