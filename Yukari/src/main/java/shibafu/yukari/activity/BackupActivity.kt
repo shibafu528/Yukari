@@ -39,8 +39,8 @@ import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.DBRecord
-import shibafu.yukari.database.DBUser
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.Provider
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
@@ -157,15 +157,21 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                             val records = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"))
                                             database.importRecordMaps(AuthUserRecord::class.java, records)
 
+                                            // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
                                             val twitter = twitterService.getTwitterOrThrow(null)
-                                            records.forEach {
+                                            records.forEach eachRecord@{
+                                                // ProviderID == null -> Twitter
+                                                if (it.containsKey(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID)) {
+                                                    return@eachRecord
+                                                }
+
                                                 twitter.oAuthAccessToken = AccessToken(
                                                         it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN].toString(),
                                                         it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET].toString()
                                                 )
 
                                                 val user = twitter.showUser(twitter.oAuthAccessToken.userId)
-                                                database.updateRecord(DBUser(user))
+                                                database.updateAccountProfile(Provider.TWITTER.id, user.id, user.screenName, user.name, user.originalProfileImageURLHttps)
                                             }
                                         }
                                         2 -> importIntoDatabase(TabInfo::class.java, TabInfo::class.java, readFile("tabs.json"))
