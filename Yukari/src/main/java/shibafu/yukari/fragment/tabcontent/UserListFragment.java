@@ -26,7 +26,6 @@ import butterknife.ButterKnife;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
@@ -85,12 +84,11 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
 
     @Override
     public boolean onListItemClick(int position, UserList clickedElement) {
-        DefaultTweetListFragment fragment = new DefaultTweetListFragment();
+        TwitterListTimelineFragment fragment = new TwitterListTimelineFragment();
         Bundle args = new Bundle();
-        args.putInt(FriendListFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
-        args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-        args.putString(TweetListFragment.EXTRA_TITLE, String.format("List: @%s/%s", clickedElement.getUser().getScreenName(), clickedElement.getName()));
-        args.putLong(DefaultTweetListFragment.EXTRA_LIST_ID, clickedElement.getId());
+        args.putSerializable(TwitterListTimelineFragment.EXTRA_USER, getCurrentUser());
+        args.putString(TwitterListTimelineFragment.EXTRA_TITLE, String.format("List: @%s/%s", clickedElement.getUser().getScreenName(), clickedElement.getName()));
+        args.putLong(TwitterListTimelineFragment.EXTRA_LIST_ID, clickedElement.getId());
         fragment.setArguments(args);
         if (getActivity() instanceof ProfileActivity) {
             FragmentTransaction transaction = getFragmentManager().beginTransaction();

@@ -1,31 +1,17 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.LongSparseArray;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 import org.jetbrains.annotations.NotNull;
-import shibafu.yukari.R;
-import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
-import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
-import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
-import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.linkage.TimelineEvent;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -40,30 +26,17 @@ import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
-import twitter4j.UserList;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class DefaultTweetListFragment extends TweetListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
+public class DefaultTweetListFragment extends TweetListFragment {
 
     public static final String EXTRA_LIST_ID = "listid";
-
-    private static final int REQUEST_D_EDIT = 1;
-    private static final int REQUEST_D_DELETE = 2;
-
-    private static final int REQUEST_SUBSCRIBE = 4;
-    private static final int REQUEST_UNSUBSCRIBE = 5;
 
     private Status traceStart = null;
     private User targetUser = null;
     private long listId = -1;
-
-    private UserList targetList;
-    private MenuItem miEditList;
-    private MenuItem miDeleteList;
-    private MenuItem miSubscribeList;
-    private MenuItem miUnsubscriveList;
 
     private LongSparseArray<Long> lastStatusIds = new LongSparseArray<>();
 
@@ -109,7 +82,6 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
             }
             else if (mode == TabType.TABTYPE_LIST) {
                 listId = args.getLong(EXTRA_LIST_ID, -1);
-                setHasOptionsMenu(true);
             }
         }
     }
@@ -189,241 +161,10 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
                 executeLoader(LOADER_LOAD_INIT, user);
             }
         }
-
-        if (getMode() == TabType.TABTYPE_LIST && !(getActivity() instanceof MainActivity)) {
-            new ThrowableTwitterAsyncTask<Void, Boolean>(this) {
-                @Override
-                protected void showToast(String message) {}
-
-                @Override
-                protected ThrowableResult<Boolean> doInBackground(Void... params) {
-                    Twitter twitter = getTwitterInstance(getCurrentUser());
-                    try {
-                        targetList = twitter.showUserList(listId);
-                        return new ThrowableResult<>(true);
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                        return new ThrowableResult<>(e);
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(ThrowableResult<Boolean> result) {
-                    super.onPostExecute(result);
-                    if (!result.isException()) {
-                        if (targetList.getUser().getId() == getCurrentUser().NumericId) {
-                            miEditList.setVisible(true);
-                            miDeleteList.setVisible(true);
-                        } else {
-                            miUnsubscriveList.setVisible(true);
-                            miSubscribeList.setVisible(true);
-                        }
-                    }
-                }
-            }.executeParallel();
-        }
     }
 
     @Override
     public void onServiceDisconnected() {}
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        getActivity().getMenuInflater().inflate(R.menu.list, menu);
-        miEditList = menu.findItem(R.id.action_edit);
-        miDeleteList = menu.findItem(R.id.action_delete);
-        miSubscribeList = menu.findItem(R.id.action_subscribe);
-        miUnsubscriveList = menu.findItem(R.id.action_unsubscribe);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_show_member:
-            {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args = new Bundle();
-                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_MEMBER);
-                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, listId);
-                args.putString(TweetListFragment.EXTRA_TITLE, "Member: " + getTitle().replace("List: ", ""));
-                fragment.setArguments(args);
-                if (getActivity() instanceof ProfileActivity) {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                }
-                return true;
-            }
-            case R.id.action_show_subscriber:
-            {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args = new Bundle();
-                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_SUBSCRIBER);
-                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, listId);
-                args.putString(TweetListFragment.EXTRA_TITLE, "Subscriber: " + getTitle().replace("List: ", ""));
-                fragment.setArguments(args);
-                if (getActivity() instanceof ProfileActivity) {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                }
-                return true;
-            }
-            case R.id.action_subscribe:
-            {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(listId));
-                startActivityForResult(intent, REQUEST_SUBSCRIBE);
-                return true;
-            }
-            case R.id.action_unsubscribe:
-            {
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                intent.putExtra(AccountChooserActivity.EXTRA_METADATA, String.valueOf(listId));
-                startActivityForResult(intent, REQUEST_UNSUBSCRIBE);
-                return true;
-            }
-            case R.id.action_edit:
-            {
-                if (targetList != null) {
-                    UserListEditDialogFragment fragment = UserListEditDialogFragment.newInstance(getCurrentUser(), targetList, REQUEST_D_EDIT);
-                    fragment.setTargetFragment(this, 1);
-                    fragment.show(getFragmentManager(), "edit");
-                }
-                return true;
-            }
-            case R.id.action_delete:
-            {
-                SimpleAlertDialogFragment fragment = SimpleAlertDialogFragment.newInstance(
-                        REQUEST_D_DELETE,
-                        "確認",
-                        "リストを削除してもよろしいですか？",
-                        "OK",
-                        "キャンセル"
-                );
-                fragment.setTargetFragment(this, 1);
-                fragment.show(getFragmentManager(), "delete");
-                return true;
-            }
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
-            switch (requestCode) {
-                case REQUEST_SUBSCRIBE: {
-                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
-
-                        @Override
-                        protected void showToast(String message) {
-                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                        }
-
-                        @Override
-                        protected ThrowableResult<Boolean> doInBackground(Long... params) {
-                            Twitter twitter = getTwitterInstance(getCurrentUser());
-                            try {
-                                twitter.createUserListSubscription(params[0]);
-                                return new ThrowableResult<>(true);
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                                return new ThrowableResult<>(e);
-                            }
-                        }
-
-                        @Override
-                        protected void onPostExecute(ThrowableResult<Boolean> result) {
-                            super.onPostExecute(result);
-                            if (!result.isException()) {
-                                Toast.makeText(getActivity(), "リストを保存しました", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
-                    break;
-                }
-                case REQUEST_UNSUBSCRIBE: {
-                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
-
-                        @Override
-                        protected void showToast(String message) {
-                            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                        }
-
-                        @Override
-                        protected ThrowableResult<Boolean> doInBackground(Long... params) {
-                            Twitter twitter = getTwitterInstance(getCurrentUser());
-                            try {
-                                twitter.destroyUserListSubscription(params[0]);
-                                return new ThrowableResult<>(true);
-                            } catch (TwitterException e) {
-                                e.printStackTrace();
-                                return new ThrowableResult<>(e);
-                            }
-                        }
-
-                        @Override
-                        protected void onPostExecute(ThrowableResult<Boolean> result) {
-                            super.onPostExecute(result);
-                            if (!result.isException()) {
-                                Toast.makeText(getActivity(), "リストの保存を解除しました", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }.executeParallel(Long.valueOf(data.getStringExtra(AccountChooserActivity.EXTRA_METADATA)));
-                    break;
-                }
-            }
-        }
-    }
-
-    @Override
-    public void onDialogChose(int requestCode, int which, Bundle extras) {
-        super.onDialogChose(requestCode, which, extras);
-        if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
-            new ThrowableTwitterAsyncTask<Long, Void>(this) {
-
-                @Override
-                protected void showToast(String message) {
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
-                }
-
-                @Override
-                protected ThrowableResult<Void> doInBackground(Long... params) {
-                    Twitter twitter = getTwitterInstance(getCurrentUser());
-                    try {
-                        twitter.destroyUserList(params[0]);
-                        return new ThrowableResult<>((Void)null);
-                    } catch (TwitterException e) {
-                        e.printStackTrace();
-                        return new ThrowableResult<>(e);
-                    }
-                }
-
-                @Override
-                protected void onPostExecute(ThrowableResult<Void> result) {
-                    super.onPostExecute(result);
-                    if (!result.isException()) {
-                        Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_SHORT).show();
-                        if (getActivity() instanceof ProfileActivity) {
-                            if (getFragmentManager().getBackStackEntryCount() > 0) {
-                                getFragmentManager().popBackStackImmediate();
-                            } else {
-                                getActivity().finish();
-                            }
-                        }
-                    }
-                }
-            }.executeParallel(listId);
-        }
-    }
 
     @Override
     public void onTimelineEvent(@NotNull TimelineEvent event) {
