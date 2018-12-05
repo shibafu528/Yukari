@@ -29,7 +29,9 @@ import twitter4j.User;
 
 /**
  * Created by shibafu on 14/02/13.
+ * @deprecated Yukari 2.1.0から {@link TimelineFragment} に移行しました。新規のコードでこのクラスを使わないでください。
  */
+@Deprecated
 public class DefaultTweetListFragment extends TweetListFragment {
 
     public static final String EXTRA_LIST_ID = "listid";

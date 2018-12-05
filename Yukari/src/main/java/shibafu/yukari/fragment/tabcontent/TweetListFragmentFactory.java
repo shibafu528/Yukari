@@ -3,6 +3,7 @@ package shibafu.yukari.fragment.tabcontent;
 import android.os.Bundle;
 
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 
@@ -23,6 +24,7 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_TRACE:
                 return new TimelineFragment();
             default:
+                Log.w("TweetListFragmentFact", "DefaultTweetListFragmentが生成されます。このクラスは今後廃止されます。(Tab Type=" + tabType + ")");
                 return new DefaultTweetListFragment();
         }
     }
