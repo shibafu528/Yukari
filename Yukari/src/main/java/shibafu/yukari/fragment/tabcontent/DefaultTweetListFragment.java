@@ -20,6 +20,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
+import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
@@ -47,7 +48,6 @@ import twitter4j.UserList;
 public class DefaultTweetListFragment extends TweetListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
     public static final String EXTRA_LIST_ID = "listid";
-    public static final String EXTRA_TRACE_START = "trace_start";
 
     private static final int REQUEST_D_EDIT = 1;
     private static final int REQUEST_D_DELETE = 2;
@@ -87,7 +87,7 @@ public class DefaultTweetListFragment extends TweetListFragment implements Simpl
 
         int mode = getMode();
         if (mode == TabType.TABTYPE_TRACE) {
-            Object trace = args.getSerializable(EXTRA_TRACE_START);
+            Object trace = args.getSerializable(TraceActivity.EXTRA_TRACE_START);
             if (trace instanceof PreformedStatus) {
                 traceStart = (Status) trace;
                 if (elements.isEmpty()) {

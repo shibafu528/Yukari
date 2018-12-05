@@ -31,7 +31,6 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.base.ListTwitterFragment
-import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
@@ -349,7 +348,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
                 val intent = Intent(activity, TraceActivity::class.java)
                 intent.putExtra(TweetListFragment.EXTRA_USER, userRecord)
                 intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
-                intent.putExtra(DefaultTweetListFragment.EXTRA_TRACE_START, status.originStatus)
+                intent.putExtra(TraceActivity.EXTRA_TRACE_START, status.originStatus)
                 startActivity(intent)
             }
         }
