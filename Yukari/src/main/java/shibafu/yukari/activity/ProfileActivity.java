@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
+import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
@@ -48,7 +49,7 @@ public class ProfileActivity extends AppCompatActivity {
         final FragmentManager manager = getSupportFragmentManager();
         manager.addOnBackStackChangedListener(() -> {
             Fragment f = manager.findFragmentByTag("contain");
-            if (manager.getBackStackEntryCount() > 0 && (f instanceof TwitterListFragment || f instanceof TwitterListTimelineFragment)) {
+            if (manager.getBackStackEntryCount() > 0 && (f instanceof TimelineFragment || f instanceof TwitterListTimelineFragment || f instanceof TwitterListFragment)) {
                 actionBar.show();
             }
             else {
