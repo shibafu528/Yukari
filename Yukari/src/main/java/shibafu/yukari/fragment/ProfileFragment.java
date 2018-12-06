@@ -209,7 +209,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         args1.putSerializable(TweetListFragment.EXTRA_USER, user);
                         args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
                         args1.putString(TweetListFragment.EXTRA_TITLE, "Media: @" + loadHolder.targetUser.getScreenName());
-                        args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s/%s\" where (neq ?mediaLinkList.empty)", user.ScreenName, loadHolder.targetUser.getScreenName()));
+                        args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s/%s\" where (neq ?media.empty)", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
                         fragment.setArguments(args1);
 
