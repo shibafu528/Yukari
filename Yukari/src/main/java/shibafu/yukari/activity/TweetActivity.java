@@ -991,7 +991,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         } else {
             //サービスに投げる
             Intent intent = PostService.newIntent(TweetActivity.this, draft);
-            startService(intent);
+            ContextCompat.startForegroundService(this, intent);
 
             if (sp.getBoolean("first_guide", true)) {
                 sp.edit().putBoolean("first_guide", false).commit();

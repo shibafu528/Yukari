@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Pair;
 import android.widget.Toast;
 import shibafu.yukari.R;
@@ -66,7 +67,7 @@ public class IntentActivity extends ActionBarYukariBase {
                 activity -> {
                     switch (activity.getIntent().getData().getLastPathSegment()) {
                         case "yukarin":
-                            activity.startService(PostService.newIntent(activity, new TweetDraft.Builder().setText("＼ﾕｯｶﾘｰﾝ／").addWriter(activity.primaryUser).build()));
+                            ContextCompat.startForegroundService(activity, PostService.newIntent(activity, new TweetDraft.Builder().setText("＼ﾕｯｶﾘｰﾝ／").addWriter(activity.primaryUser).build()));
                             break;
                         default:
                             Toast.makeText(activity, "非対応タグです", Toast.LENGTH_SHORT).show();

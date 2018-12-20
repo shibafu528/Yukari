@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.Gravity;
@@ -129,7 +130,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             dialog.dismiss();
                             currentDialog = null;
 
-                            getActivity().startService(intent);
+                            ContextCompat.startForegroundService(getActivity(), intent);
                             closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -144,7 +145,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 ad.show();
                 currentDialog = ad;
             } else {
-                getActivity().startService(intent);
+                ContextCompat.startForegroundService(getActivity(), intent);
                 closeAfterFavorite();
             }
         });
@@ -155,12 +156,12 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 AuthUserRecord user = getUserRecord();
 
                 Intent intent = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
-                getActivity().startService(intent);
+                ContextCompat.startForegroundService(getActivity(), intent);
 
                 if (withQuotes) {
                     for (Long id : status.getQuoteEntities()) {
                         Intent i = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), id, user);
-                        getActivity().startService(i);
+                        ContextCompat.startForegroundService(getActivity(), i);
                     }
                 }
             }
@@ -246,7 +247,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
             private void doUnfavorite(final AuthUserRecord userRecord) {
                 Intent intent = AsyncCommandService.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
-                getActivity().startService(intent);
+                ContextCompat.startForegroundService(getActivity(), intent);
                 closeAfterFavorite();
             }
 
@@ -314,7 +315,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             dialog.dismiss();
                             currentDialog = null;
 
-                            getActivity().startService(intent);
+                            ContextCompat.startForegroundService(getActivity(), intent);
                             closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -329,7 +330,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 ad.show();
                 currentDialog = ad;
             } else {
-                getActivity().startService(intent);
+                ContextCompat.startForegroundService(getActivity(), intent);
                 closeAfterFavorite();
             }
         });
@@ -464,17 +465,18 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
             } else if (requestCode == REQUEST_RT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 //これ、RT失敗してもツイートしちゃうんですよねえ
-                getActivity().startService(PostService.newIntent(getActivity(), draft,
-                        PostService.FLAG_RETWEET,
-                        status.getId()));
+                ContextCompat.startForegroundService(getActivity(),
+                        PostService.newIntent(getActivity(), draft,
+                                PostService.FLAG_RETWEET,
+                                status.getId()));
                 getActivity().finish();
             } else if (requestCode == REQUEST_FRT_QUOTE) {
                 TweetDraft draft = (TweetDraft) data.getSerializableExtra(TweetActivity.EXTRA_DRAFT);
                 //これ、FRT失敗してもツイートしちゃうんですよねえ
-                getActivity().startService(PostService.newIntent(
-                        getActivity(), draft,
-                        PostService.FLAG_FAVORITE | PostService.FLAG_RETWEET,
-                        status.getId()));
+                ContextCompat.startForegroundService(getActivity(),
+                        PostService.newIntent(getActivity(), draft,
+                                PostService.FLAG_FAVORITE | PostService.FLAG_RETWEET,
+                                status.getId()));
                 getActivity().finish();
             } else if (requestCode == REQUEST_CHANGE) {
                 setUserRecord((AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD));
@@ -507,7 +509,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         break;
                 }
                 for (Intent intent : intents) {
-                    getActivity().startService(intent);
+                    ContextCompat.startForegroundService(getActivity(), intent);
                 }
             }
         }
