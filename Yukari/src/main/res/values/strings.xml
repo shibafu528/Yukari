@@ -61,4 +61,9 @@
 
     <string name="error_storage_not_found">[Yukari 起動エラー] ストレージエラー\nアプリの動作にはストレージが必須です\nSDカードが挿入されているか確認してください</string>
     <string name="error_broken_font">[Yukari データチェック]\nフォントファイルが壊れています\n再展開を行います</string>
+
+    <string name="notification_channel_id_general">General</string>
+    <string name="notification_channel_id_error">Error</string>
+    <string name="notification_channel_id_core_service">CoreService</string>
+    <string name="notification_channel_id_async_action">AsyncAction</string>
 </resources>
