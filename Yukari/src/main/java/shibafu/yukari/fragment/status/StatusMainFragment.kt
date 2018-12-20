@@ -6,6 +6,8 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.app.NotificationCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.PopupMenu
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -323,17 +325,19 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 REQUEST_RT_QUOTE -> {
                     val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
                     //これ、RT失敗してもツイートしちゃうんですよねえ
-                    activity.startService(PostService.newIntent(activity, draft,
-                            PostService.FLAG_RETWEET,
-                            status))
+                    ContextCompat.startForegroundService(activity,
+                            PostService.newIntent(activity, draft,
+                                    PostService.FLAG_RETWEET,
+                                    status))
                     activity.finish()
                 }
                 REQUEST_FRT_QUOTE -> {
                     val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
                     //これ、RT失敗してもツイートしちゃうんですよねえ
-                    activity.startService(PostService.newIntent(activity, draft,
-                            PostService.FLAG_RETWEET or PostService.FLAG_FAVORITE,
-                            status))
+                    ContextCompat.startForegroundService(activity,
+                            PostService.newIntent(activity, draft,
+                                    PostService.FLAG_RETWEET or PostService.FLAG_FAVORITE,
+                                    status))
                     activity.finish()
                 }
                 REQUEST_MULTI_FAVORITE -> {

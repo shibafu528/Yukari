@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.view.ViewPager;
@@ -152,7 +153,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         //サービスの常駐
         if (sharedPreferences.getBoolean("pref_enable_service", false)) {
-            startService(new Intent(getApplicationContext(), TwitterService.class));
+            ContextCompat.startForegroundService(this, new Intent(getApplicationContext(), TwitterService.class));
         }
     }
 

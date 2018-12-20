@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.ContextCompat;
 import android.util.Pair;
 import android.view.Window;
 import android.widget.Toast;
@@ -73,7 +74,7 @@ public class IntentActivity extends ActionBarYukariBase {
                             StatusDraft draft = new StatusDraft();
                             draft.setWriters(activity.twitterUser.toSingleList());
                             draft.setText("＼ﾕｯｶﾘｰﾝ／");
-                            activity.startService(PostService.newIntent(activity, draft));
+                            ContextCompat.startForegroundService(activity, PostService.newIntent(activity, draft));
                             break;
                         default:
                             Toast.makeText(activity, "非対応タグです", Toast.LENGTH_SHORT).show();
