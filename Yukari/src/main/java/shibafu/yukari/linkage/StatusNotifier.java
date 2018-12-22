@@ -198,12 +198,14 @@ public class StatusNotifier implements Releasable {
             Uri sound = getNotificationUrl(category);
             String titleHeader = "", tickerHeader = "";
             long[] pattern = null;
+            String channelId;
             switch (category) {
                 case R.integer.notification_replied:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "Reply from @";
                     tickerHeader = "リプライ : @";
                     pattern = VIB_REPLY;
+                    channelId = "mention::" + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_retweeted:
                     icon = R.drawable.ic_stat_retweet;
@@ -211,6 +213,7 @@ public class StatusNotifier implements Releasable {
                     tickerHeader = "RTされました : @";
                     pattern = VIB_RETWEET;
                     color = Color.rgb(0, 128, 0);
+                    channelId = "repost::" + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_faved:
                     icon = R.drawable.ic_stat_favorite;
@@ -218,22 +221,27 @@ public class StatusNotifier implements Releasable {
                     tickerHeader = "ふぁぼられ : @";
                     pattern = VIB_FAVED;
                     color = Color.rgb(255, 128, 0);
+                    channelId = "favorite::" + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_message:
                     icon = R.drawable.ic_stat_message;
                     titleHeader = "Message from @";
                     tickerHeader = "DM : @";
                     pattern = VIB_REPLY;
+                    channelId = "message::" + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_respond:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "RT-Respond from @";
                     tickerHeader = "RTレスポンス : @";
                     pattern = VIB_REPLY;
+                    channelId = "repost_respond::" + status.getRepresentUser().Url;
                     break;
+                default:
+                    throw new IllegalArgumentException("Undefined notification category " + category);
             }
             if (notificationType.getNotificationType() == NotificationType.TYPE_NOTIF) {
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext());
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), channelId);
                 builder.setSmallIcon(icon);
                 builder.setContentTitle(titleHeader + actionBy.getScreenName());
                 builder.setContentText(status.getUser().getScreenName() + ": " + status.getText());
