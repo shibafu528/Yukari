@@ -1,21 +1,27 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by Shibafu on 13/12/21.
@@ -188,6 +194,20 @@ public class ConfigActivity extends ActionBarYukariBase {
                         findPreference("pref_import").setOnPreferenceClickListener(preference -> {
                             startActivity(new Intent(getActivity(), BackupActivity.class).putExtra(BackupActivity.EXTRA_MODE, BackupActivity.EXTRA_MODE_IMPORT));
                             return false;
+                        });
+
+                        Preference prefRepairNotificationChannel = findPreference("pref_repair_notification_channel");
+                        prefRepairNotificationChannel.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
+                        prefRepairNotificationChannel.setOnPreferenceClickListener(preference -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
+                                NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+                                for (AuthUserRecord user : service.getUsers()) {
+                                    service.createAccountNotificationChannels(nm, user, true);
+                                }
+                                Toast.makeText(getActivity(), "修復しました。", Toast.LENGTH_SHORT).show();
+                            }
+                            return true;
                         });
                         break;
 

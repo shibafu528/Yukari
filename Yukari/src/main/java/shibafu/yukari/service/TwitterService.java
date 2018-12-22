@@ -42,6 +42,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.api.MikutterApi;
 import shibafu.yukari.common.HashCache;
+import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -427,7 +428,7 @@ public class TwitterService extends Service{
                     }
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String groupId = "account::" + aur.Url;
+                    String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + aur.Url;
 
                     for (NotificationChannel channel : nm.getNotificationChannels()) {
                         if (groupId.equals(channel.getGroup())) {
@@ -455,13 +456,7 @@ public class TwitterService extends Service{
                     }
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String groupId = "account::" + aur.Url;
-
-                    NotificationChannelGroup group = new NotificationChannelGroup(groupId, aur.ScreenName);
-                    nm.createNotificationChannelGroup(group);
-
-                    List<NotificationChannel> channels = createAccountNotificationChannels(aur, groupId);
-                    nm.createNotificationChannels(channels);
+                    createAccountNotificationChannels(nm, aur, false);
                 }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             } else {
@@ -861,41 +856,81 @@ public class TwitterService extends Service{
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * アカウントに対応する通知チャンネルを生成します。
+     * @param nm NotificationManager
+     * @param userRecord アカウント情報
+     * @param forceReplace 既に存在する場合に作り直すか？
+     */
     @RequiresApi(Build.VERSION_CODES.O)
-    private List<NotificationChannel> createAccountNotificationChannels(AuthUserRecord userRecord, String groupId) {
+    public void createAccountNotificationChannels(@NonNull NotificationManager nm, @NonNull AuthUserRecord userRecord, boolean forceReplace) {
         List<NotificationChannel> channels = new ArrayList<>();
-        AudioAttributes audioAttributes = new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
+        final AudioAttributes audioAttributes = new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
+        final String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + userRecord.Url;
 
-        NotificationChannel mentionChannel = new NotificationChannel("mention::" + userRecord.Url, "メンション通知", NotificationManager.IMPORTANCE_HIGH);
+        NotificationChannelGroup group = new NotificationChannelGroup(groupId, userRecord.ScreenName);
+        nm.createNotificationChannelGroup(group);
+
+        // Mention
+        NotificationChannel mentionChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
+        if (mentionChannel == null) {
+            mentionChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url, "メンション通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
+        }
         mentionChannel.setGroup(groupId);
         mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
         mentionChannel.setDescription("@付き投稿の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(mentionChannel);
 
-        NotificationChannel repostChannel = new NotificationChannel("repost::" + userRecord.Url, "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
+        // Repost (RT, Boost)
+        NotificationChannel repostChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
+        if (repostChannel == null) {
+            repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url, "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
+        }
         repostChannel.setGroup(groupId);
-        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), audioAttributes);
+        repostChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), audioAttributes);
         repostChannel.setDescription("あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(repostChannel);
 
-        NotificationChannel favoriteChannel = new NotificationChannel("favorite::" + userRecord.Url, "お気に入り通知", NotificationManager.IMPORTANCE_HIGH);
+        // Favorite
+        NotificationChannel favoriteChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
+        if (favoriteChannel == null) {
+            favoriteChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url, "お気に入り通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
+        }
         favoriteChannel.setGroup(groupId);
-        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), audioAttributes);
+        favoriteChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), audioAttributes);
         favoriteChannel.setDescription("あなたの投稿がお気に入り登録された時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(favoriteChannel);
 
-        NotificationChannel messageChannel = new NotificationChannel("message::" + userRecord.Url, "メッセージ通知", NotificationManager.IMPORTANCE_HIGH);
+        // Message
+        NotificationChannel messageChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
+        if (messageChannel == null) {
+            messageChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url, "メッセージ通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
+        }
         messageChannel.setGroup(groupId);
-        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        messageChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
         messageChannel.setDescription("あなた宛のメッセージを受信した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(messageChannel);
 
-        NotificationChannel repostRespondChannel = new NotificationChannel("repost_respond::" + userRecord.Url, "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
+        // Repost Respond (RT-Respond)
+        NotificationChannel repostRespondChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND);
+        if (repostRespondChannel == null) {
+            repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url, "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url);
+        }
         repostRespondChannel.setGroup(groupId);
-        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        repostRespondChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
         repostRespondChannel.setDescription("あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(repostRespondChannel);
 
-        return channels;
+        nm.createNotificationChannels(channels);
     }
 }
