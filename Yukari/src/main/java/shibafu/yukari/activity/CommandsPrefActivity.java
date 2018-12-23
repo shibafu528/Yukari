@@ -1,14 +1,27 @@
 package shibafu.yukari.activity;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.Preference;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.annotation.RawRes;
 import android.widget.Toast;
 import com.github.machinarius.preferencefragment.PreferenceFragment;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.PermissionUtils;
+import permissions.dispatcher.RuntimePermissions;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 
@@ -40,6 +53,7 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
     @Override
     public void onServiceDisconnected() {}
 
+    @RuntimePermissions
     public static class InnerFragment extends PreferenceFragment {
         private final File mediaDir = new File(Environment.getExternalStorageDirectory(), "Android/media/shibafu.yukari/Notifications");
         private final Resource[] exportResources = {
@@ -69,36 +83,82 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
             Preference prefSoundThemeExport = findPreference("pref_sound_theme_export");
             prefSoundThemeExport.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
             prefSoundThemeExport.setOnPreferenceClickListener(preference -> {
-                Resources res = getResources();
-
-                try {
-                    mediaDir.mkdirs();
-
-                    List<String> resourceAbsolutePaths = new ArrayList<>();
-                    for (Resource resource : exportResources) {
-                        try (InputStream input = res.openRawResource(resource.resId);
-                             OutputStream output = new FileOutputStream(resource.file)) {
-                            byte[] buf = new byte[4096];
-                            int length;
-                            while ((length = input.read(buf)) != -1) {
-                                output.write(buf, 0, length);
-                            }
-                        }
-
-                        resourceAbsolutePaths.add(resource.file.getAbsolutePath());
-                    }
-
-                    MediaScannerConnection.scanFile(getActivity(),
-                            resourceAbsolutePaths.toArray(new String[resourceAbsolutePaths.size()]),
-                            null, null);
-
-                    Toast.makeText(getActivity(), "エクスポートが完了しました。", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Toast.makeText(getActivity(), "エクスポート中にエラーが発生しました。", Toast.LENGTH_SHORT).show();
-                }
+                InnerFragmentPermissionsDispatcher.exportResourcesWithPermissionCheck(this);
                 return true;
             });
+        }
+
+        @SuppressLint("NeedOnRequestPermissionsResult")
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            InnerFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+        }
+
+        @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        void exportResources() {
+            Resources res = getResources();
+
+            try {
+                mediaDir.mkdirs();
+
+                List<String> resourceAbsolutePaths = new ArrayList<>();
+                for (Resource resource : exportResources) {
+                    try (InputStream input = res.openRawResource(resource.resId);
+                         OutputStream output = new FileOutputStream(resource.file)) {
+                        byte[] buf = new byte[4096];
+                        int length;
+                        while ((length = input.read(buf)) != -1) {
+                            output.write(buf, 0, length);
+                        }
+                    }
+
+                    resourceAbsolutePaths.add(resource.file.getAbsolutePath());
+                }
+
+                MediaScannerConnection.scanFile(getActivity(),
+                        resourceAbsolutePaths.toArray(new String[resourceAbsolutePaths.size()]),
+                        null, null);
+
+                Toast.makeText(getActivity(), "エクスポートが完了しました。", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(getActivity(), "エクスポート中にエラーが発生しました。", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        void onDeniedWriteExternalStorage() {
+            if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                Toast.makeText(getActivity(), "ストレージにアクセスする権限がありません。", Toast.LENGTH_SHORT).show();
+            } else {
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("許可が必要")
+                        .setMessage("この操作を実行するためには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
+                        .setPositiveButton("設定画面へ", (dialog, which) -> {
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            intent.setData(Uri.fromParts("package", getActivity().getPackageName(), null));
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("今はしない", (dialog, which) -> {})
+                        .create()
+                        .show();
+            }
+        }
+
+        @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        void showRationaleForWriteExternalStorage(final PermissionRequest request) {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("許可が必要")
+                    .setMessage("この操作を実行するためには、ストレージへのアクセス許可が必要です。")
+                    .setPositiveButton("許可", (dialog, which) -> {
+                        request.proceed();
+                    })
+                    .setNegativeButton("許可しない", (dialog, which) -> {
+                        request.cancel();
+                    })
+                    .create()
+                    .show();
         }
 
         private static class Resource {
