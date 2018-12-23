@@ -22,6 +22,7 @@ import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
@@ -205,7 +206,7 @@ public class StatusNotifier implements Releasable {
                     titleHeader = "Reply from @";
                     tickerHeader = "リプライ : @";
                     pattern = VIB_REPLY;
-                    channelId = "mention::" + status.getRepresentUser().Url;
+                    channelId = NotificationChannelPrefix.CHANNEL_MENTION + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_retweeted:
                     icon = R.drawable.ic_stat_retweet;
@@ -213,7 +214,7 @@ public class StatusNotifier implements Releasable {
                     tickerHeader = "RTされました : @";
                     pattern = VIB_RETWEET;
                     color = Color.rgb(0, 128, 0);
-                    channelId = "repost::" + status.getRepresentUser().Url;
+                    channelId = NotificationChannelPrefix.CHANNEL_REPOST + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_faved:
                     icon = R.drawable.ic_stat_favorite;
@@ -221,21 +222,21 @@ public class StatusNotifier implements Releasable {
                     tickerHeader = "ふぁぼられ : @";
                     pattern = VIB_FAVED;
                     color = Color.rgb(255, 128, 0);
-                    channelId = "favorite::" + status.getRepresentUser().Url;
+                    channelId = NotificationChannelPrefix.CHANNEL_FAVORITE + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_message:
                     icon = R.drawable.ic_stat_message;
                     titleHeader = "Message from @";
                     tickerHeader = "DM : @";
                     pattern = VIB_REPLY;
-                    channelId = "message::" + status.getRepresentUser().Url;
+                    channelId = NotificationChannelPrefix.CHANNEL_MESSAGE + status.getRepresentUser().Url;
                     break;
                 case R.integer.notification_respond:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "RT-Respond from @";
                     tickerHeader = "RTレスポンス : @";
                     pattern = VIB_REPLY;
-                    channelId = "repost_respond::" + status.getRepresentUser().Url;
+                    channelId = NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + status.getRepresentUser().Url;
                     break;
                 default:
                     throw new IllegalArgumentException("Undefined notification category " + category);
