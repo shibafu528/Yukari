@@ -116,6 +116,10 @@ public class AboutActivity extends ActionBarYukariBase {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return false;
+        }
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 touching = true;
