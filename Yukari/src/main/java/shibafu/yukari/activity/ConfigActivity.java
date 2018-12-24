@@ -56,7 +56,7 @@ public class ConfigActivity extends ActionBarYukariBase {
     @Override
     public void onServiceDisconnected() {}
 
-    public static class InnerFragment extends PreferenceFragment {
+    public static class InnerFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
         public static InnerFragment newInstance(String category) {
             InnerFragment fragment = new InnerFragment();
             Bundle args = new Bundle();
@@ -209,6 +209,8 @@ public class ConfigActivity extends ActionBarYukariBase {
                             }
                             return true;
                         });
+
+                        findPreference("pref_notif_per_account_channel").setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
                         break;
 
                     case "expert":
@@ -244,6 +246,28 @@ public class ConfigActivity extends ActionBarYukariBase {
                         findPreference("pref_exvoice_version").setSummary(summaryText);
                         break;
                     }
+                }
+            }
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        }
+
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+            if ("pref_notif_per_account_channel".equals(key)) {
+                TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
+                if (service != null) {
+                    service.reloadUsers();
                 }
             }
         }

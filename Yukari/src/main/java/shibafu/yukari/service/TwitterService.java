@@ -417,6 +417,23 @@ public class TwitterService extends Service{
         Cursor cursor = database.getAccounts();
         List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
         cursor.close();
+        //アカウント別通知チャンネルの設定をチェック
+        boolean enabledPerAccountChannel = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notif_per_account_channel", false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !enabledPerAccountChannel) {
+            //アカウント別通知チャンネルを削除
+            for (NotificationChannel channel : nm.getNotificationChannels()) {
+                String groupId = channel.getGroup();
+                if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
+                    nm.deleteNotificationChannel(channel.getId());
+                }
+            }
+            for (NotificationChannelGroup group : nm.getNotificationChannelGroups()) {
+                String groupId = group.getId();
+                if (groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
+                    nm.deleteNotificationChannelGroup(groupId);
+                }
+            }
+        }
         //消えたレコードの削除処理
         ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
@@ -455,14 +472,14 @@ public class TwitterService extends Service{
                         stream.addUser(aur);
                     }
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    createAccountNotificationChannels(nm, aur, false);
-                }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             } else {
                 AuthUserRecord existRecord = users.get(users.indexOf(aur));
                 existRecord.update(aur);
                 Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && enabledPerAccountChannel) {
+                createAccountNotificationChannels(nm, aur, false);
             }
         }
         Intent broadcastIntent = new Intent(RELOADED_USERS);
