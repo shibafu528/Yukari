@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -913,6 +914,7 @@ public class StatusManager implements Releasable {
     }
 
     private class FilterStreamListener implements StreamListener {
+        private Map<AuthUserRecord, StreamUser> pseudoStreamMap = new ArrayMap<>();
 
         @Override
         public void onFavorite(Stream from, User user, User user2, Status status) {}
@@ -935,6 +937,7 @@ public class StatusManager implements Releasable {
         @Override
         public void onStatus(Stream from, Status status) {
             FilterStream filterStream = (FilterStream) from;
+            StreamUser pseudoFrom = getPseudoStream(from.getUserRecord()); // 配信判定のごまかし用
             String text = status.isRetweet() ? status.getRetweetedStatus().getText() : status.getText();
 
             if (filterStream.getFollowIds().contains(status.getUser().getId())) {
@@ -945,24 +948,25 @@ public class StatusManager implements Releasable {
                     // 2. 自分宛のメンションが含まれている
                     // 3. 発言者以外の、自分のフォロイーに宛てている
                     if (status.getUserMentionEntities().length == 1 && status.getUserMentionEntities()[0].getId() == status.getUser().getId()) {
-                        listener.onStatus(from, status);
+                        listener.onStatus(pseudoFrom, status);
                     } else {
                         for (UserMentionEntity entity : status.getUserMentionEntities()) {
                             if (entity.getId() == from.getUserRecord().NumericId ||
                                     (entity.getId() != status.getUser().getId() && filterStream.getFollowIds().contains(entity.getId()))) {
-                                listener.onStatus(from, status);
+                                listener.onStatus(pseudoFrom, status);
                                 break;
                             }
                         }
                     }
                 } else {
                     // 通常ツイート
-                    listener.onStatus(from, status);
+                    listener.onStatus(pseudoFrom, status);
                 }
             } else {
                 for (FilterStream.ParsedQuery query : filterStream.getQueries()) {
                     if (text.contains(query.getValidQuery())) {
                         // track着信
+                        // この場合は偽装FromではなくFilterStreamでOK
                         listener.onStatus(from, status);
                         break;
                     }
@@ -977,5 +981,15 @@ public class StatusManager implements Releasable {
 
         @Override
         public void onDeletionNotice(Stream from, long directMessageId, long userId) {}
+
+        private StreamUser getPseudoStream(AuthUserRecord userRecord) {
+            if (pseudoStreamMap.containsKey(userRecord)) {
+                return pseudoStreamMap.get(userRecord);
+            }
+
+            StreamUser streamUser = new StreamUser(context, userRecord);
+            pseudoStreamMap.put(userRecord, streamUser);
+            return streamUser;
+        }
     }
 }
