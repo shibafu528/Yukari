@@ -143,6 +143,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     public static final String EXTRA_MEDIA = "media";
     public static final String EXTRA_GEO_LOCATION = "geo";
     public static final String EXTRA_DRAFT = "draft";
+    public static final String EXTRA_SPOILER_TEXT = "spoiler_text";
 
     private static final int REQUEST_GALLERY = 0x01;
     private static final int REQUEST_CAMERA = 0x02;
@@ -249,6 +250,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     //可視性
     @NeedSaveState private StatusDraft.Visibility visibility = StatusDraft.Visibility.PUBLIC;
     private ImageButton ibVisibility;
+
+    //Spoiler (Content Warning)
+    private ImageButton ibSpoiler;
+    private EditText etSpoiler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -535,6 +540,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
         }
 
+        // Spoilerの設定
+        String spoilerText = args.getStringExtra(EXTRA_SPOILER_TEXT);
+        if (!TextUtils.isEmpty(spoilerText)) {
+            etSpoiler.setText(spoilerText);
+            etSpoiler.setVisibility(View.VISIBLE);
+        }
+
         // 初期化完了時点での下書き状況のスナップショット
         initialDraft = getTweetDraft().copyForJava();
     }
@@ -606,6 +618,35 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
         });
         etInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+        etSpoiler = findViewById(R.id.etTweetSpoiler);
+        etSpoiler.setTypeface(FontAsset.getInstance(this).getFont());
+        etSpoiler.setTextSize(Integer.valueOf(sp.getString("pref_font_input", "14")));
+        etSpoiler.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // 装飾の除去
+                Object[] spanned = s.getSpans(0, s.length(), Object.class);
+                if (spanned != null) {
+                    for (Object o : spanned) {
+                        if (o instanceof CharacterStyle && (s.getSpanFlags(o) & Spanned.SPAN_COMPOSING) != Spanned.SPAN_COMPOSING) {
+                            s.removeSpan(o);
+                        }
+                    }
+                }
+            }
+        });
+        etSpoiler.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 imm.showSoftInput(etInput, InputMethodManager.SHOW_IMPLICIT);
@@ -768,6 +809,19 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         });
         setVisibility(visibility.ordinal());
 
+        // Content Warning
+        ibSpoiler = findViewById(R.id.ibTweetSpoiler);
+        ibSpoiler.setOnClickListener(v -> {
+            if (etSpoiler.getVisibility() == View.VISIBLE) {
+                etSpoiler.setText("");
+                etSpoiler.setVisibility(View.GONE);
+                etInput.requestFocus();
+            } else {
+                etSpoiler.setVisibility(View.VISIBLE);
+                etSpoiler.requestFocus();
+            }
+        });
+
         // スクリーンネーム入力支援
         ibSNPicker = (ImageButton) findViewById(R.id.ibTweetSNPicker);
         ibSNPicker.setOnClickListener(v -> {
@@ -888,6 +942,16 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
         outState.putParcelableArrayList("attachPictureUris", attachPictureUris);
         outState.putInt("visibility", visibility.ordinal());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (TextUtils.isEmpty(etSpoiler.getText())) {
+            etSpoiler.setVisibility(View.GONE);
+        } else {
+            etSpoiler.setVisibility(View.VISIBLE);
+        }
     }
 
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -1126,9 +1190,11 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
         if (showMastodonFunctions) {
             ibVisibility.setVisibility(View.VISIBLE);
+            ibSpoiler.setVisibility(View.VISIBLE);
             cbSensitive.setVisibility(View.VISIBLE);
         } else {
             ibVisibility.setVisibility(View.GONE);
+            ibSpoiler.setVisibility(View.GONE);
             cbSensitive.setVisibility(View.GONE);
         }
     }
@@ -1533,7 +1599,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     false,
                     null,
                     visibility,
-                    null);
+                    etSpoiler.getText().toString());
         } else {
             draft.setWriters(writers);
             draft.setText(etInput.getText().toString());
@@ -1547,7 +1613,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             draft.setDirectMessage(false);
             draft.setMessageTarget(null);
             draft.setVisibility(visibility);
-            draft.setSpoilerText(null);
+            draft.setSpoilerText(etSpoiler.getText().toString());
         }
         setIntent(getIntent().putExtra(EXTRA_DRAFT, draft));
         return draft;

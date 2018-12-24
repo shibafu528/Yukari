@@ -77,6 +77,7 @@
         <item name="tweetVoiceDrawable">@drawable/ic_voice_input</item>
         <item name="tweetMorseDrawable">@drawable/ic_morse</item>
         <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music</item>
+        <item name="tweetSpoilerDrawable">@drawable/ic_content_warning_dark</item>
 
         <item name="colorPrimary">@color/key_color</item>
         <item name="colorPrimaryDark">@color/key_color_2</item>
@@ -162,6 +163,7 @@
         <item name="tweetVoiceDrawable">@drawable/ic_voice_input_d</item>
         <item name="tweetMorseDrawable">@drawable/ic_morse_d</item>
         <item name="tweetNowPlayingDrawable">@drawable/ic_playing_music_d</item>
+        <item name="tweetSpoilerDrawable">@drawable/ic_content_warning_light</item>
 
         <item name="colorPrimary">@color/key_color</item>
         <item name="colorPrimaryDark">@color/key_color_2</item>

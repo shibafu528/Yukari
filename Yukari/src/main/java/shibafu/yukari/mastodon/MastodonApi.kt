@@ -131,7 +131,7 @@ class MastodonApi : ProviderApi {
                     inReplyToId,
                     mediaIds,
                     draft.isPossiblySensitive,
-                    null,
+                    draft.spoilerText,
                     visibility
             ).execute()
             return DonStatus(result, userRecord)
