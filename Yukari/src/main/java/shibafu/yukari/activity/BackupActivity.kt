@@ -2,6 +2,7 @@ package shibafu.yukari.activity
 
 import android.Manifest
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.DialogInterface
@@ -32,6 +33,7 @@ import permissions.dispatcher.PermissionUtils
 import permissions.dispatcher.RuntimePermissions
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
+import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.TabInfo
 import shibafu.yukari.common.UsedHashes
 import shibafu.yukari.common.async.SimpleAsyncTask
@@ -156,6 +158,22 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                         1 -> {
                                             val records = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"))
                                             database.importRecordMaps(AuthUserRecord::class.java, records)
+
+                                            // アカウントレベルの通知チャンネルを全て削除し、次回起動時に再生成させる
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                                nm.notificationChannels.forEach { channel ->
+                                                    val groupId = channel.group
+                                                    if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {
+                                                        nm.deleteNotificationChannel(channel.id)
+                                                    }
+                                                }
+                                                nm.notificationChannelGroups.forEach { group ->
+                                                    if (group.id.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {
+                                                        nm.deleteNotificationChannelGroup(group.id)
+                                                    }
+                                                }
+                                            }
 
                                             // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
                                             val twitter = twitterService.getTwitterOrThrow(null)
