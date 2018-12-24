@@ -269,29 +269,16 @@ public class StatusManager implements Releasable {
         filterStream.setListener(listener);
         filterStream.addQuery(query);
         filterMap.put(manager, filterStream);
-        if (isStarted) {
-            if (1 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.stop();
-            }
-            filterStream.start();
-            showToast("Start FilterStream:" + query);
-        }
+        showToast("Start FilterStream:" + query);
     }
 
     public void stopFilterStream(String query, AuthUserRecord manager) {
-        if (filterMap.containsKey(manager)) {
-            FilterStream filterStream = filterMap.get(manager);
-            filterStream.stop();
-            filterStream.removeQuery(query);
-            if (0 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.start();
-            } else {
-                filterMap.remove(manager);
-            }
-            showToast("Stop FilterStream:" + query);
+        FilterStream filterStream = FilterStream.getInstance(context, manager);
+        filterStream.removeQuery(query);
+        if (filterStream.getQueryCount() == 0) {
+            filterMap.remove(manager);
         }
+        showToast("Stop FilterStream:" + query);
     }
 
     public void reconnectAsync() {
