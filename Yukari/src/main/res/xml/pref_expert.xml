@@ -108,6 +108,10 @@
         <CheckBoxPreference
             android:key="pref_replace_auto_reload_stream"
             android:title="バックグラウンド自動リロード"
-            android:summary="UserStreamを捨て、代わりにバックグラウンドでHomeとMentionsの自動リロードを行うようにします。\nActive Accountsが対象となります。\n(※要再起動)"/>
+            android:summary="バックグラウンドでHomeとMentionsの自動リロードを行うようにします。\nActive Accountsが対象となります。\n(※要再起動)"/>
+        <CheckBoxPreference
+            android:key="pref_followed_stream"
+            android:title="疑似Homeストリーミング"
+            android:summary="FilterStreamを使い、疑似的なHome TLのストリーミングを行います。\nActive Accountsが対象となります。\n・通知は受け取れません。\n・5000フォローまでしか処理できません。\n・鍵アカウントのツイートは受信できません。\n(※要再起動)"/>
     </PreferenceCategory>
 </PreferenceScreen>
