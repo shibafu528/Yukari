@@ -70,8 +70,10 @@ public class FilterStream extends Stream{
 
     public void start() {
         Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQueryString(), getUserRecord().ScreenName));
-        stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
-        isRunning = true;
+        if (hasAnyParams()) {
+            stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
+            isRunning = true;
+        }
     }
 
     public void stop() {
