@@ -1,5 +1,8 @@
 package shibafu.yukari.service;
 
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -8,8 +11,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
@@ -17,6 +23,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.WorkerThread;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -35,6 +42,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.api.MikutterApi;
 import shibafu.yukari.common.HashCache;
+import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
@@ -177,7 +185,7 @@ public class TwitterService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_core_service))
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
                 .setContentTitle(getString(R.string.app_name))
@@ -302,7 +310,7 @@ public class TwitterService extends Service{
                     String versionString = getLatestMikutterVersion("stable");
                     if (versionString != null) {
                         Log.d("mikutter-version", versionString);
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_general))
                                 .setSmallIcon(R.drawable.ic_stat_favorite)
                                 .setContentTitle("mikutter " + versionString)
                                 .setContentText("mikutter " + versionString + " がリリースされています。")
@@ -405,9 +413,27 @@ public class TwitterService extends Service{
     }
 
     public void reloadUsers(boolean inInitialize) {
+        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         Cursor cursor = database.getAccounts();
         List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
         cursor.close();
+        //アカウント別通知チャンネルの設定をチェック
+        boolean enabledPerAccountChannel = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notif_per_account_channel", false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !enabledPerAccountChannel) {
+            //アカウント別通知チャンネルを削除
+            for (NotificationChannel channel : nm.getNotificationChannels()) {
+                String groupId = channel.getGroup();
+                if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
+                    nm.deleteNotificationChannel(channel.getId());
+                }
+            }
+            for (NotificationChannelGroup group : nm.getNotificationChannelGroups()) {
+                String groupId = group.getId();
+                if (groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
+                    nm.deleteNotificationChannelGroup(groupId);
+                }
+            }
+        }
         //消えたレコードの削除処理
         ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
@@ -417,6 +443,17 @@ public class TwitterService extends Service{
                     if (stream != null) {
                         stream.removeUser(aur);
                     }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + aur.Url;
+
+                    for (NotificationChannel channel : nm.getNotificationChannels()) {
+                        if (groupId.equals(channel.getGroup())) {
+                            nm.deleteNotificationChannel(channel.getId());
+                        }
+                    }
+
+                    nm.deleteNotificationChannelGroup(groupId);
                 }
                 removeList.add(aur);
                 Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
@@ -440,6 +477,9 @@ public class TwitterService extends Service{
                 AuthUserRecord existRecord = users.get(users.indexOf(aur));
                 existRecord.update(aur);
                 Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && enabledPerAccountChannel) {
+                createAccountNotificationChannels(nm, aur, false);
             }
         }
         Intent broadcastIntent = new Intent(RELOADED_USERS);
@@ -831,5 +871,83 @@ public class TwitterService extends Service{
 
     private void showToast(final String text) {
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * アカウントに対応する通知チャンネルを生成します。
+     * @param nm NotificationManager
+     * @param userRecord アカウント情報
+     * @param forceReplace 既に存在する場合に作り直すか？
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    public void createAccountNotificationChannels(@NonNull NotificationManager nm, @NonNull AuthUserRecord userRecord, boolean forceReplace) {
+        List<NotificationChannel> channels = new ArrayList<>();
+        final AudioAttributes audioAttributes = new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
+        final String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + userRecord.Url;
+
+        NotificationChannelGroup group = new NotificationChannelGroup(groupId, userRecord.ScreenName);
+        nm.createNotificationChannelGroup(group);
+
+        // Mention
+        NotificationChannel mentionChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
+        if (mentionChannel == null) {
+            mentionChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url, "メンション通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
+        }
+        mentionChannel.setGroup(groupId);
+        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        mentionChannel.setDescription("@付き投稿の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(mentionChannel);
+
+        // Repost (RT, Boost)
+        NotificationChannel repostChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
+        if (repostChannel == null) {
+            repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url, "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
+        }
+        repostChannel.setGroup(groupId);
+        repostChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), audioAttributes);
+        repostChannel.setDescription("あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(repostChannel);
+
+        // Favorite
+        NotificationChannel favoriteChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
+        if (favoriteChannel == null) {
+            favoriteChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url, "お気に入り通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
+        }
+        favoriteChannel.setGroup(groupId);
+        favoriteChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), audioAttributes);
+        favoriteChannel.setDescription("あなたの投稿がお気に入り登録された時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(favoriteChannel);
+
+        // Message
+        NotificationChannel messageChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
+        if (messageChannel == null) {
+            messageChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url, "メッセージ通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
+        }
+        messageChannel.setGroup(groupId);
+        messageChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        messageChannel.setDescription("あなた宛のメッセージを受信した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(messageChannel);
+
+        // Repost Respond (RT-Respond)
+        NotificationChannel repostRespondChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND);
+        if (repostRespondChannel == null) {
+            repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url, "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
+        } else if (forceReplace) {
+            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url);
+        }
+        repostRespondChannel.setGroup(groupId);
+        repostRespondChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        repostRespondChannel.setDescription("あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(repostRespondChannel);
+
+        nm.createNotificationChannels(channels);
     }
 }

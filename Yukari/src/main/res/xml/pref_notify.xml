@@ -30,4 +30,12 @@
         android:title="ストリーミング通信状態通知"
         android:summary="ストリーミングに接続・切断された時にメッセージを表示します"
         android:defaultValue="true"/>
+    <Preference
+        android:key="pref_notif_system_config"
+        android:title="システムの通知設定を開く"
+        android:summary="Android 8.0以降ではシステムの通知設定からカスタマイズできます。"/>
+    <CheckBoxPreference
+        android:key="pref_notif_per_account_channel"
+        android:title="アカウント別の通知設定を使う"
+        android:summary="システムの通知設定の項目を、アカウント別に分割します。\nアカウントごとに細かな設定を行えるようになります。\n(※Android 8.0以上のみ有効)"/>
 </PreferenceScreen>

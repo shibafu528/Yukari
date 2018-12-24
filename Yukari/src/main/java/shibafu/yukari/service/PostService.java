@@ -97,7 +97,7 @@ public class PostService extends IntentService{
             return;
         }
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_async_action))
                 .setTicker("ツイートを送信中")
                 .setContentTitle("ツイートを送信中")
                 .setContentText(draft.getText())
@@ -318,7 +318,7 @@ public class PostService extends IntentService{
     }
 
     private void showErrorMessage(int id, StatusDraft draft, String reason) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_error))
                 .setTicker("ツイートに失敗しました")
                 .setContentTitle("ツイートに失敗しました")
                 .setContentText(reason)

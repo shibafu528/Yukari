@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.text.Spanned
 import android.text.TextWatcher
@@ -163,7 +164,7 @@ class QuickPostFragment : Fragment() {
             )
 
             //サービス起動
-            activity?.startService(PostService.newIntent(context.applicationContext, draft))
+            ContextCompat.startForegroundService(activity, PostService.newIntent(context.applicationContext, draft))
 
             //投稿欄を掃除する
             etTweet.setText("")

@@ -40,6 +40,10 @@
                 android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
         </Preference>
+        <Preference
+            android:key="pref_repair_notification_channel"
+            android:title="通知チャンネルの修復"
+            android:summary="システムの通知設定の項目を修復します。システム設定で通知音をカスタマイズしている場合、その情報は失われます。\n(※Android 8.0以上のみ有効)"/>
         <CheckBoxPreference
             android:key="pref_show_menubutton"
             android:title="メニューボタンを表示"
