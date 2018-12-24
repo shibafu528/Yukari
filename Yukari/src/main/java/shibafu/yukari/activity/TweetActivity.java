@@ -374,8 +374,22 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
             if (args.hasExtra(Intent.EXTRA_TITLE)) {
                 defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
-            } else if (args.hasExtra(Intent.EXTRA_SUBJECT) && (!sp.getBoolean("pref_remove_screenshot_subject", false) || !args.getStringExtra(Intent.EXTRA_SUBJECT).startsWith("Screenshot ("))) {
-                defaultText = args.getStringExtra(Intent.EXTRA_SUBJECT) + " " + defaultText;
+            } else if (args.hasExtra(Intent.EXTRA_SUBJECT)) {
+                boolean insertSubject = true;
+                String subject = args.getStringExtra(Intent.EXTRA_SUBJECT);
+
+                // 「スクショ共有の本文を削除」オプションの判定
+                if (sp.getBoolean("pref_remove_screenshot_subject", false) && subject.startsWith("Screenshot (")) {
+                    insertSubject = false;
+                }
+                // EXTRA_TEXTと内容が完全に被るなら要らない
+                if (defaultText != null && defaultText.contains(subject)) {
+                    insertSubject = false;
+                }
+
+                if (insertSubject) {
+                    defaultText = subject + " " + defaultText;
+                }
             }
         } else {
             defaultText = args.getStringExtra(EXTRA_TEXT);
