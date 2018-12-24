@@ -26,8 +26,7 @@ public class NicoVideo extends MemoizeMedia {
     protected String resolveThumbnailUrl() throws IOException {
         Matcher matcher = URL_PATTERN.matcher(getBrowseUrl());
         if (matcher.find()) {
-            return ("http://tn-skr$.smilevideo.jp/smile?i=" + matcher.group(1))
-                    .replace("$", String.valueOf((Integer.valueOf(matcher.group(1)) % 4) + 1));
+            return ("http://tn.smilevideo.jp/smile?i=" + matcher.group(1));
         }
         return null;
     }
