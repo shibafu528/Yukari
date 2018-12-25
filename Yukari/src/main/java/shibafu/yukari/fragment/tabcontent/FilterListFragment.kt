@@ -182,8 +182,8 @@ public class FilterListFragment : TweetListFragment(), StatusListener {
                     val visiblePosition = position - listView.firstVisiblePosition
                     if (visiblePosition > -1) {
                         val view: View? = listView.getChildAt(visiblePosition)
-                        (view?.findViewById(R.id.pbLoading) as? View)?.visibility = View.VISIBLE
-                        (view?.findViewById(R.id.tvLoading) as? TextView)?.text = "loading"
+                        view?.findViewById<View>(R.id.pbLoading)?.visibility = View.VISIBLE
+                        view?.findViewById<TextView>(R.id.tvLoading)?.text = "loading"
                     }
                     // Debug Log
 //                    putDebugLog("onListItemClick : Current firstVisiblePosition = ${listView.firstVisiblePosition}")

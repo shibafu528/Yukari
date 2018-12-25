@@ -187,7 +187,7 @@ class TweetView : StatusView {
                     var i: Int = 0
                     while (i < mlSize) {
                         val media = mediaList[i]
-                        iv = llAttach.findViewById(i) as ImageView?
+                        iv = llAttach.findViewById<ImageView>(i)
                         if (iv == null) {
                             iv = ImageView(context)
                             iv.id = i
@@ -220,7 +220,7 @@ class TweetView : StatusView {
                     val childCount = llAttach.childCount
                     if (i < childCount) {
                         while (i < childCount) {
-                            llAttach.findViewById(i).visibility = View.GONE
+                            llAttach.findViewById<View>(i).visibility = View.GONE
                             ++i
                         }
                     }
