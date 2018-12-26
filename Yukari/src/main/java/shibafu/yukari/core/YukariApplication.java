@@ -2,13 +2,23 @@ package shibafu.yukari.core;
 
 import android.app.Application;
 import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import com.squareup.leakcanary.LeakCanary;
 import shibafu.yukari.R;
+import shibafu.yukari.common.NotificationChannelPrefix;
 import twitter4j.AlternativeHttpClientImpl;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 2015/08/29.
@@ -56,6 +66,8 @@ public class YukariApplication extends Application {
                     "バックグラウンド処理",
                     NotificationManager.IMPORTANCE_LOW);
             nm.createNotificationChannel(asyncActionChannel);
+
+            createAllAccountNotificationChannels(nm);
         }
 
         if (LeakCanary.isInAnalyzerProcess(this)) {
@@ -68,5 +80,56 @@ public class YukariApplication extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
 //        MultiDex.install(this);
+    }
+
+    /**
+     * すべてのアカウント向けの共通通知チャンネルを生成します。
+     * @param nm NotificationManager
+     */
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createAllAccountNotificationChannels(@NonNull NotificationManager nm) {
+        List<NotificationChannel> channels = new ArrayList<>();
+        final AudioAttributes audioAttributes = new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
+        final String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + "all";
+
+        NotificationChannelGroup group = new NotificationChannelGroup(groupId, "すべてのアカウント");
+        nm.createNotificationChannelGroup(group);
+
+        // Mention
+        NotificationChannel mentionChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + "all", "メンション通知", NotificationManager.IMPORTANCE_HIGH);
+        mentionChannel.setGroup(groupId);
+        mentionChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        mentionChannel.setDescription("@付き投稿の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(mentionChannel);
+
+        // Repost (RT, Boost)
+        NotificationChannel repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + "all", "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
+        repostChannel.setGroup(groupId);
+        repostChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_rt"), audioAttributes);
+        repostChannel.setDescription("あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(repostChannel);
+
+        // Favorite
+        NotificationChannel favoriteChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + "all", "お気に入り通知", NotificationManager.IMPORTANCE_HIGH);
+        favoriteChannel.setGroup(groupId);
+        favoriteChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_fav"), audioAttributes);
+        favoriteChannel.setDescription("あなたの投稿がお気に入り登録された時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(favoriteChannel);
+
+        // Message
+        NotificationChannel messageChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + "all", "メッセージ通知", NotificationManager.IMPORTANCE_HIGH);
+        messageChannel.setGroup(groupId);
+        messageChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        messageChannel.setDescription("あなた宛のメッセージを受信した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(messageChannel);
+
+        // Repost Respond (RT-Respond)
+        NotificationChannel repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + "all", "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
+        repostRespondChannel.setGroup(groupId);
+        repostRespondChannel.setSound(Uri.parse("android.resource://shibafu.yukari/raw/se_reply"), audioAttributes);
+        repostRespondChannel.setDescription("あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        channels.add(repostRespondChannel);
+
+        nm.createNotificationChannels(channels);
     }
 }
