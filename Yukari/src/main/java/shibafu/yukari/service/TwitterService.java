@@ -149,7 +149,7 @@ public class TwitterService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_core_service))
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
                 .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
                 .setContentTitle(getString(R.string.app_name))
@@ -321,7 +321,7 @@ public class TwitterService extends Service{
                     String versionString = getLatestMikutterVersion("stable");
                     if (versionString != null) {
                         Log.d("mikutter-version", versionString);
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_general))
                                 .setSmallIcon(R.drawable.ic_stat_favorite)
                                 .setContentTitle("mikutter " + versionString)
                                 .setContentText("mikutter " + versionString + " がリリースされています。")

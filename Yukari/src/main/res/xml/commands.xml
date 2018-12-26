@@ -92,10 +92,14 @@
         <ListPreference
             android:key="pref_sound_theme"
             android:title="サウンドテーマ"
-            android:summary="通知音のテーマを設定します\n事前にAbout画面を連打して、ボイスモードを有効にしてください"
+            android:summary="通知音のテーマを設定します\n事前にAbout画面を連打して、ボイスモードを有効にしてください\n(※ Android 7.1以下のみ有効)"
             android:defaultValue="yukari_fav"
             android:entries="@array/pref_sound_theme_entries"
             android:entryValues="@array/pref_sound_theme_values"/>
+        <Preference
+            android:key="pref_sound_theme_export"
+            android:title="サウンドテーマをエクスポート"
+            android:summary="システムの通知設定で使える通知音をストレージにエクスポートします。\n(※ Android 8.0以上のみ有効)"/>
         <CheckBoxPreference
             android:key="j_yukari_joke_voices"
             android:title="ゆかりさんをいじる"

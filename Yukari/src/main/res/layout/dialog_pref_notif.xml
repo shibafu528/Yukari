@@ -78,4 +78,14 @@
             android:id="@+id/rbNotifToast" />
     </RadioGroup>
 
+    <TextView
+        android:id="@+id/tvNotifOreoNotice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:text="Android 8.0以上の端末でステータス通知を使う場合、ここでサウンドとバイブレーションの設定をしても無視されます。\n「システムの通知設定を開く」から設定してください。"/>
+
 </LinearLayout>

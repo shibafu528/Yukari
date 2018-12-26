@@ -23,6 +23,7 @@ import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.service.PostService;
@@ -206,12 +207,15 @@ class StatusNotifier implements Releasable {
             Uri sound = getNotificationUrl(category);
             String titleHeader = "", tickerHeader = "";
             long[] pattern = null;
+            String channelId;
+            String channelIdSuffix = "all"; // y4a 2.1以降との互換で、全アカウント共通設定のチャンネルIDを使う。2.0ではアカウント別通知設定に対応しない。
             switch (category) {
                 case R.integer.notification_replied:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "Reply from @";
                     tickerHeader = "リプライ : @";
                     pattern = VIB_REPLY;
+                    channelId = NotificationChannelPrefix.CHANNEL_MENTION + channelIdSuffix;
                     break;
                 case R.integer.notification_retweeted:
                     icon = R.drawable.ic_stat_retweet;
@@ -219,6 +223,7 @@ class StatusNotifier implements Releasable {
                     tickerHeader = "RTされました : @";
                     pattern = VIB_RETWEET;
                     color = Color.rgb(0, 128, 0);
+                    channelId = NotificationChannelPrefix.CHANNEL_REPOST + channelIdSuffix;
                     break;
                 case R.integer.notification_faved:
                     icon = R.drawable.ic_stat_favorite;
@@ -226,22 +231,27 @@ class StatusNotifier implements Releasable {
                     tickerHeader = "ふぁぼられ : @";
                     pattern = VIB_FAVED;
                     color = Color.rgb(255, 128, 0);
+                    channelId = NotificationChannelPrefix.CHANNEL_FAVORITE + channelIdSuffix;
                     break;
                 case R.integer.notification_message:
                     icon = R.drawable.ic_stat_message;
                     titleHeader = "Message from @";
                     tickerHeader = "DM : @";
                     pattern = VIB_REPLY;
+                    channelId = NotificationChannelPrefix.CHANNEL_MESSAGE + channelIdSuffix;
                     break;
                 case R.integer.notification_respond:
                     icon = R.drawable.ic_stat_reply;
                     titleHeader = "RT-Respond from @";
                     tickerHeader = "RTレスポンス : @";
                     pattern = VIB_REPLY;
+                    channelId = NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + channelIdSuffix;
                     break;
+                default:
+                    throw new IllegalArgumentException("Undefined notification category " + category);
             }
             if (notificationType.getNotificationType() == NotificationType.TYPE_NOTIF) {
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext());
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), channelId);
                 builder.setSmallIcon(icon);
                 builder.setContentTitle(titleHeader + actionBy.getScreenName());
                 builder.setContentText(delegate.getUser(status).getScreenName() + ": " + delegate.getText(status));
