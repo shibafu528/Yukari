@@ -545,6 +545,15 @@ public class StatusManager implements Releasable {
     }
 
     /**
+     * 指定したユーザでUserStream受信したものとみなして、Statusを配信キューに挿入します。
+     * @param userRecord 受信ユーザ
+     * @param status Status
+     */
+    public void pushStatus(AuthUserRecord userRecord, Status status) {
+        listener.onStatus(new StreamUser(context, userRecord), status);
+    }
+
+    /**
      * 参照をラップし、同期操作を行う機能を提供します。
      * @param <T> 参照の型
      */

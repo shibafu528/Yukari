@@ -686,7 +686,10 @@ public class TwitterService extends Service{
         if (twitter == null) {
             throw new IllegalStateException("Twitterとの通信の準備に失敗しました");
         }
-        twitter.updateStatus(status);
+        Status updated = twitter.updateStatus(status);
+        if (updated != null && statusManager != null) {
+            statusManager.pushStatus(user, updated);
+        }
     }
 
     public UploadedMedia uploadMedia(AuthUserRecord user, InputStream inputStream) throws TwitterException, IOException {
