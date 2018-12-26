@@ -2,6 +2,7 @@ package shibafu.yukari.common;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import shibafu.yukari.R;
 
 /**
@@ -61,6 +63,10 @@ public class NotificationPreference extends DialogPreference{
         }
         else {
             ((RadioButton)notificationTypeGroup.findViewById(R.id.rbNotifToast)).setChecked(true);
+        }
+        TextView tvOreoNotice = view.findViewById(R.id.tvNotifOreoNotice);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            tvOreoNotice.setVisibility(View.GONE);
         }
         return view;
     }

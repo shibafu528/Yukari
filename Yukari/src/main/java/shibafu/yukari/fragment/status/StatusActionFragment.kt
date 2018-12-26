@@ -70,7 +70,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             Action("リストへ追加/削除") {
                 ListRegisterDialogFragment.newInstance(status!!.sourceUser).let {
                     it.setTargetFragment(this, 0)
-                    it.show(childFragmentManager, "register")
+                    it.show(fragmentManager, "register")
                 }
             } visibleWhen { true },
 

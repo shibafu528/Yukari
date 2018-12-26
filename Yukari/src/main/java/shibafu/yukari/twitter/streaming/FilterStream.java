@@ -6,6 +6,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import org.eclipse.collections.api.set.primitive.LongSet;
+import org.eclipse.collections.api.set.primitive.MutableLongSet;
+import org.eclipse.collections.impl.factory.primitive.LongSets;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.FilterQuery;
 import twitter4j.Status;
@@ -13,6 +16,7 @@ import twitter4j.StatusAdapter;
 import twitter4j.StatusDeletionNotice;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +34,10 @@ public class FilterStream extends Stream{
     private static final String LOG_TAG = "FilterStream";
     private static final Map<AuthUserRecord, FilterStream> instances = new HashMap<>();
 
+    private boolean isRunning = false;
     private List<ParsedQuery> queries = new ArrayList<>();
+    private MutableLongSet follows = LongSets.mutable.empty();
+
     private StatusAdapter statusListener = new StatusAdapter() {
         @Override
         public void onStatus(Status status) {
@@ -62,34 +69,28 @@ public class FilterStream extends Stream{
     }
 
     public void start() {
-        Log.d(LOG_TAG, String.format("Start FilterStream query: %s / user: @%s", getQuery(), getUserRecord().ScreenName));
-        stream.filter(new FilterQuery().track(getQueryArray()));
+        Log.d(LOG_TAG, String.format("Start FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQueryString(), getUserRecord().ScreenName));
+        if (hasAnyParams()) {
+            stream.filter(new FilterQuery().track(getQueryArray()).follow(follows.toArray()));
+            isRunning = true;
+        }
     }
 
     public void stop() {
-        Log.d(LOG_TAG, String.format("Shutdown FilterStream query: %s / user: @%s", getQuery(), getUserRecord().ScreenName));
+        Log.d(LOG_TAG, String.format("Shutdown FilterStream follow: %d ID(s), query: %s / user: @%s", follows.size(), getQueryString(), getUserRecord().ScreenName));
         stream.shutdown();
+        isRunning = false;
     }
 
-    public String getQuery() {
-        StringBuilder sb = new StringBuilder();
-        for (ParsedQuery query : queries) {
-            if (0 < sb.length()) {
-                sb.append(",");
-            }
-            sb.append(query.getValidQuery());
-        }
-        return sb.toString();
+    public boolean hasAnyParams() {
+        return queries.size() > 0 || follows.size() > 0;
     }
 
-    public String[] getQueryArray() {
-        String[] queryArray = new String[queries.size()];
-        for (int i = 0; i < queryArray.length; i++) {
-            queryArray[i] = queries.get(i).getValidQuery();
-        }
-        return queryArray;
+    public boolean isRunning() {
+        return isRunning;
     }
 
+    //<editor-fold desc="Track">
     public boolean contains(String query) {
         if (query == null) return false;
 
@@ -106,7 +107,9 @@ public class FilterStream extends Stream{
             return false;
         }
 
-        return queries.add(new ParsedQuery(query));
+        boolean result = queries.add(new ParsedQuery(query));
+        restartInternal();
+        return result;
     }
 
     public boolean removeQuery(@NonNull String query) {
@@ -114,15 +117,47 @@ public class FilterStream extends Stream{
             ParsedQuery parsedQuery = iterator.next();
             if (query.equals(parsedQuery.getQuery())) {
                 iterator.remove();
+                restartInternal();
                 return true;
             }
         }
         return false;
     }
 
+    public Collection<ParsedQuery> getQueries() {
+        return queries;
+    }
+
     public int getQueryCount() {
         return queries.size();
     }
+    //</editor-fold>
+
+    //<editor-fold desc="Follow">
+    public void addFollowId(long id) {
+        follows.add(id);
+        restartInternal();
+    }
+
+    public void addFollowIds(long... id) {
+        follows.addAll(id);
+        restartInternal();
+    }
+
+    public void removeFollowId(long id) {
+        follows.remove(id);
+        restartInternal();
+    }
+
+    public void clearFollowId() {
+        follows.clear();
+        restartInternal();
+    }
+
+    public LongSet getFollowIds() {
+        return follows;
+    }
+    //</editor-fold>
 
     @Override
     protected String getStreamType() {
@@ -132,8 +167,36 @@ public class FilterStream extends Stream{
     @Override
     protected Intent createBroadcast(String action) {
         Intent intent = super.createBroadcast(action);
-        intent.putExtra(EXTRA_FILTER_QUERY, getQuery());
+        intent.putExtra(EXTRA_FILTER_QUERY, getQueryString());
         return intent;
+    }
+
+    private void restartInternal() {
+        if (isRunning) {
+            stop();
+        }
+        if (hasAnyParams()) {
+            start();
+        }
+    }
+
+    private String getQueryString() {
+        StringBuilder sb = new StringBuilder();
+        for (ParsedQuery query : queries) {
+            if (0 < sb.length()) {
+                sb.append(",");
+            }
+            sb.append(query.getValidQuery());
+        }
+        return sb.toString();
+    }
+
+    private String[] getQueryArray() {
+        String[] queryArray = new String[queries.size()];
+        for (int i = 0; i < queryArray.length; i++) {
+            queryArray[i] = queries.get(i).getValidQuery();
+        }
+        return queryArray;
     }
 
     public static class ParsedQuery implements Parcelable {

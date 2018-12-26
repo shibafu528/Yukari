@@ -10,15 +10,15 @@ import shibafu.yukari.R
 
 class WelcomeActivity : AppCompatActivity() {
 
-    val btnLogin by lazy { findViewById(R.id.btnLogin) as Button }
-    val btnImport by lazy { findViewById(R.id.btnImport) as Button }
+    val btnLogin by lazy { findViewById<Button>(R.id.btnLogin) }
+    val btnImport by lazy { findViewById<Button>(R.id.btnImport) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
         setContentView(R.layout.activity_welcome)
 
-        val txtTitle = findViewById(R.id.textView) as TextView
+        val txtTitle = findViewById<TextView>(R.id.textView)
         val typeface = Typeface.createFromAsset(assets, "Roboto-Thin.ttf")
         txtTitle.typeface = typeface
 

@@ -113,7 +113,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                         "確認", "設定を削除しますか?", "OK", "キャンセル"
                 );
                 dialogFragment.setTargetFragment(InnerFragment.this, 1);
-                dialogFragment.show(getChildFragmentManager(), "alert");
+                dialogFragment.show(getFragmentManager(), "alert");
                 return true;
             });
 

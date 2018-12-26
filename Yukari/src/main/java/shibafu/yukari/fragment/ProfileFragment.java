@@ -52,6 +52,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
@@ -61,6 +62,7 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
@@ -912,13 +914,13 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 ListRegisterDialogFragment dialogFragment =
                         ListRegisterDialogFragment.newInstance(loadHolder.targetUser);
                 dialogFragment.setTargetFragment(ProfileFragment.this, 1);
-                dialogFragment.show(getChildFragmentManager(), "list");
+                dialogFragment.show(getFragmentManager(), "list");
                 return true;
             }
             case R.id.action_mute: {
                 MuteMenuDialogFragment dialogFragment =
                         MuteMenuDialogFragment.newInstance(loadHolder.targetUser, ProfileFragment.this);
-                dialogFragment.show(getChildFragmentManager(), "mute");
+                dialogFragment.show(getFragmentManager(), "mute");
                 return true;
             }
             case R.id.action_set_color_label: {
@@ -927,7 +929,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                                 getTargetUserColor(), "colorLabel"
                         );
                 dialogFragment.setTargetFragment(ProfileFragment.this, 2);
-                dialogFragment.show(getChildFragmentManager(), "colorLabel");
+                dialogFragment.show(getFragmentManager(), "colorLabel");
                 return true;
             }
             case R.id.action_edit_profile: {
@@ -1111,8 +1113,9 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
 
             try {
+                TwitterService service = getTwitterService();
                 User user = null;
-                Twitter twitter = getTwitterService().getTwitterOrPrimary(ProfileFragment.this.user);
+                Twitter twitter = service.getTwitterOrPrimary(ProfileFragment.this.user);
                 if (twitter != null) {
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -1126,7 +1129,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 }
 
                 if (user != null) {
-                    getTwitterService().getDatabase().updateRecord(new DBUser(user));
+                    CentralDatabase database = service.getDatabase();
+                    if (database != null) {
+                        database.updateRecord(new DBUser(user));
+                    }
                     if (loadHolder == null) {
                         loadHolder = new LoadHolder(user, null);
                     }

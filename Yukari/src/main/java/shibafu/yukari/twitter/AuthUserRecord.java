@@ -185,6 +185,10 @@ public class AuthUserRecord implements Serializable, DBRecord{
         sessionTemporary.get(NumericId).put(key, value);
     }
 
+    public String getUrl() {
+        return "https://twitter.com/" + ScreenName;
+    }
+
     @Override
     public String toString() {
         return "AuthUserRecord{" +

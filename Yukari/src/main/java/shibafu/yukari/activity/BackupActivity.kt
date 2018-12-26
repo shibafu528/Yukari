@@ -1,21 +1,29 @@
 package shibafu.yukari.activity
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Process
 import android.preference.PreferenceManager
+import android.provider.Settings
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.ListFragment
+import android.support.v4.content.ContextCompat
 import android.support.v4.util.SparseArrayCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ListView
 import android.widget.Spinner
@@ -60,9 +68,12 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
 
         private const val DIALOG_IMPORT_FINISHED = 1
         private const val DIALOG_EXPORT_FINISHED = 2
+        private const val DIALOG_PERMISSION_DENIED = 3
+
+        private const val PERMISSION_REQUEST_EXECUTE = 1
     }
 
-    val spLocation: Spinner by lazy { findViewById(R.id.spinner) as Spinner }
+    val spLocation: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +97,15 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 .commit()
         }
 
-        findViewById(R.id.btnExecute).setOnClickListener { onClickExecute() }
+        findViewById<Button>(R.id.btnExecute).setOnClickListener {
+            if (ContextCompat.checkSelfPermission(this,  Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                onClickExecute()
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        PERMISSION_REQUEST_EXECUTE)
+            }
+        }
     }
 
     fun onClickExecute() {
@@ -286,6 +305,27 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == PERMISSION_REQUEST_EXECUTE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                onClickExecute()
+            } else {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                    showToast("ストレージにアクセスする権限がありません。")
+                } else {
+                    SimpleAlertDialogFragment.newInstance(DIALOG_PERMISSION_DENIED,
+                            "許可が必要",
+                            "この操作を実行するためには、手動で設定画面からストレージへのアクセスを許可する必要があります。",
+                            "設定画面へ",
+                            "キャンセル")
+                            .show(supportFragmentManager, "permission_denied")
+                }
+            }
+        }
+    }
+
     override fun onServiceConnected() {
         showToast("インポート・エクスポート画面を使用している間、UserStreamは切断されます。")
         twitterService.statusManager.stopAsync()
@@ -308,6 +348,13 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                         PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
                 moveTaskToBack(true)
                 Process.killProcess(Process.myPid())
+            }
+            DIALOG_PERMISSION_DENIED -> {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    intent.data = Uri.fromParts("package", packageName, null)
+                    startActivity(intent)
+                }
             }
         }
     }
@@ -365,7 +412,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         }
 
         private class ViewHolder(view: View) {
-            val checkBox: CheckBox = view.findViewById(R.id.checkBox) as CheckBox
+            val checkBox: CheckBox = view.findViewById(R.id.checkBox)
         }
     }
 }

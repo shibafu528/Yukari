@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NicoSeiga extends MemoizeMedia {
-    private static final Pattern URL_PATTERN = Pattern.compile("http://(?:(?:sp\\.)?seiga\\.nicovideo\\.jp/seiga(?:/#!)?|nico\\.ms)/im(\\d+)");
+    private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:(?:sp\\.)?seiga\\.nicovideo\\.jp/seiga(?:/#!)?|nico\\.ms)/im(\\d+)");
 
     /**
      * @param browseUrl メディアの既知のURL

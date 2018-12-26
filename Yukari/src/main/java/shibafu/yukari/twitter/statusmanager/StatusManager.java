@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.LruCache;
 import android.util.Log;
@@ -48,6 +49,7 @@ import shibafu.yukari.util.Releasable;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.DirectMessage;
 import twitter4j.HashtagEntity;
+import twitter4j.IDs;
 import twitter4j.Paging;
 import twitter4j.ResponseList;
 import twitter4j.Status;
@@ -117,6 +119,7 @@ public class StatusManager implements Releasable {
     private List<Stream> streamUsers = new ArrayList<>();
     private Map<AuthUserRecord, FilterStream> filterMap = new HashMap<>();
     private StreamListenerEx listener = new StreamListenerEx();
+    private FilterStreamListener filterStreamListener = new FilterStreamListener();
 
     private SyncReference<List<StatusListener>> statusListeners = new SyncReference<>(new ArrayList<>());
     private SyncReference<Map<String, Pair<StatusListener, Queue<EventBuffer>>>> statusBuffer = new SyncReference<>(new HashMap<>());
@@ -238,18 +241,42 @@ public class StatusManager implements Releasable {
     }
 
     public void startUserStream(AuthUserRecord userRecord) {
-        Stream su;
         if (sharedPreferences.getBoolean("pref_replace_auto_reload_stream", false)) {
-            su = new AutoReloadStream(context, userRecord);
-        } else {
-            // R.I.P. UserStream (2018/08/24 0:00 JST)
-            //su = new StreamUser(context, userRecord);
-            return;
+            Stream su = new AutoReloadStream(context, userRecord);
+            su.setListener(listener);
+            streamUsers.add(su);
+            if (isStarted) {
+                su.start();
+            }
         }
-        su.setListener(listener);
-        streamUsers.add(su);
-        if (isStarted) {
-            su.start();
+        if (sharedPreferences.getBoolean("pref_followed_stream", false)) {
+            FilterStream filterStream = FilterStream.getInstance(context, userRecord);
+            filterStream.setListener(filterStreamListener);
+            filterMap.put(userRecord, filterStream);
+
+            new TwitterAsyncTask<Void>(context) {
+                @Override
+                protected TwitterException doInBackground(Void... voids) {
+                    Log.d("FollowedStream", "Initializing FollowedStream... user: @" + userRecord.ScreenName);
+
+                    Twitter twitter = service.getTwitter(userRecord);
+                    if (twitter == null) {
+                        Log.e("FollowedStream", "Failed to initialize FollowedStream user: @" + userRecord.ScreenName);
+                        return null;
+                    }
+
+                    try {
+                        IDs friendIds = twitter.getFriendsIDs(userRecord.NumericId, -1, 5000);
+                        Log.d("FollowedStream", "Collect " + friendIds.getIDs().length + " IDs user: @" + userRecord.ScreenName);
+                        filterStream.addFollowIds(friendIds.getIDs());
+                    } catch (TwitterException e) {
+                        return e;
+                    }
+
+                    Log.d("FollowedStream", "Start FollowedStream... user: @" + userRecord.ScreenName);
+                    return null;
+                }
+            }.executeParallel();
         }
     }
 
@@ -262,36 +289,24 @@ public class StatusManager implements Releasable {
                 break;
             }
         }
+        FilterStream filterStream = FilterStream.getInstance(context, userRecord);
+        if (!filterStream.getFollowIds().isEmpty()) {
+            filterStream.clearFollowId();
+        }
+        filterMap.remove(userRecord);
     }
 
     public void startFilterStream(String query, AuthUserRecord manager) {
         FilterStream filterStream = FilterStream.getInstance(context, manager);
-        filterStream.setListener(listener);
+        filterStream.setListener(filterStreamListener);
         filterStream.addQuery(query);
-        filterMap.put(manager, filterStream);
-        if (isStarted) {
-            if (1 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.stop();
-            }
-            filterStream.start();
-            showToast("Start FilterStream:" + query);
-        }
+        showToast("Start FilterStream:" + query);
     }
 
     public void stopFilterStream(String query, AuthUserRecord manager) {
-        if (filterMap.containsKey(manager)) {
-            FilterStream filterStream = filterMap.get(manager);
-            filterStream.stop();
-            filterStream.removeQuery(query);
-            if (0 < filterStream.getQueryCount()) {
-                // 再起動
-                filterStream.start();
-            } else {
-                filterMap.remove(manager);
-            }
-            showToast("Stop FilterStream:" + query);
-        }
+        FilterStream filterStream = FilterStream.getInstance(context, manager);
+        filterStream.removeQuery(query);
+        showToast("Stop FilterStream:" + query);
     }
 
     public void reconnectAsync() {
@@ -527,6 +542,15 @@ public class StatusManager implements Releasable {
      */
     public boolean isWorkingRestQuery(long taskKey) {
         return workingRestQueries.get(taskKey) != null && !workingRestQueries.get(taskKey).isCancelled();
+    }
+
+    /**
+     * 指定したユーザでUserStream受信したものとみなして、Statusを配信キューに挿入します。
+     * @param userRecord 受信ユーザ
+     * @param status Status
+     */
+    public void pushStatus(AuthUserRecord userRecord, Status status) {
+        listener.onStatus(new StreamUser(context, userRecord), status);
     }
 
     /**
@@ -898,4 +922,83 @@ public class StatusManager implements Releasable {
         }
     }
 
+    private class FilterStreamListener implements StreamListener {
+        private Map<AuthUserRecord, StreamUser> pseudoStreamMap = new ArrayMap<>();
+
+        @Override
+        public void onFavorite(Stream from, User user, User user2, Status status) {}
+
+        @Override
+        public void onUnfavorite(Stream from, User user, User user2, Status status) {}
+
+        @Override
+        public void onFollow(Stream from, User user, User user2) {}
+
+        @Override
+        public void onDirectMessage(Stream from, DirectMessage directMessage) {}
+
+        @Override
+        public void onBlock(Stream from, User user, User user2) {}
+
+        @Override
+        public void onUnblock(Stream from, User user, User user2) {}
+
+        @Override
+        public void onStatus(Stream from, Status status) {
+            FilterStream filterStream = (FilterStream) from;
+            StreamUser pseudoFrom = getPseudoStream(from.getUserRecord()); // 配信判定のごまかし用
+            String text = status.isRetweet() ? status.getRetweetedStatus().getText() : status.getText();
+
+            if (filterStream.getFollowIds().contains(status.getUser().getId())) {
+                // follow着信
+                if (status.getUserMentionEntities().length != 0 && status.getText().startsWith("@")) {
+                    // メンションから始まるツイートの場合、以下の優先順で配信するか決定する
+                    // 1. 発言者自身にのみ宛てた自己宛リプ
+                    // 2. 自分宛のメンションが含まれている
+                    // 3. 発言者以外の、自分のフォロイーに宛てている
+                    if (status.getUserMentionEntities().length == 1 && status.getUserMentionEntities()[0].getId() == status.getUser().getId()) {
+                        listener.onStatus(pseudoFrom, status);
+                    } else {
+                        for (UserMentionEntity entity : status.getUserMentionEntities()) {
+                            if (entity.getId() == from.getUserRecord().NumericId ||
+                                    (entity.getId() != status.getUser().getId() && filterStream.getFollowIds().contains(entity.getId()))) {
+                                listener.onStatus(pseudoFrom, status);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // 通常ツイート
+                    listener.onStatus(pseudoFrom, status);
+                }
+            } else {
+                for (FilterStream.ParsedQuery query : filterStream.getQueries()) {
+                    if (text.contains(query.getValidQuery())) {
+                        // track着信
+                        // この場合は偽装FromではなくFilterStreamでOK
+                        listener.onStatus(from, status);
+                        break;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onDelete(Stream from, StatusDeletionNotice statusDeletionNotice) {
+            listener.onDelete(from, statusDeletionNotice);
+        }
+
+        @Override
+        public void onDeletionNotice(Stream from, long directMessageId, long userId) {}
+
+        private StreamUser getPseudoStream(AuthUserRecord userRecord) {
+            if (pseudoStreamMap.containsKey(userRecord)) {
+                return pseudoStreamMap.get(userRecord);
+            }
+
+            StreamUser streamUser = new StreamUser(context, userRecord);
+            pseudoStreamMap.put(userRecord, streamUser);
+            return streamUser;
+        }
+    }
 }

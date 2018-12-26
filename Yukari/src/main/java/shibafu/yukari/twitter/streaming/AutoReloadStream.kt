@@ -18,7 +18,7 @@ import twitter4j.TwitterException
 class AutoReloadStream(private val context: Context,
                        private val user: AuthUserRecord) : Stream(context, user) {
     private var workerThread: Thread? = null
-    private val receivedMentionIds: MutableLongSet = LongSets.mutable.empty()
+    private val receivedIds: MutableLongSet = LongSets.mutable.empty()
 
     override fun getStreamType(): String = "AutoReload"
 
@@ -51,15 +51,19 @@ class AutoReloadStream(private val context: Context,
                         val mentionsResponse = twitter.mentionsTimeline
 
                         homeResponse.reversed().forEach {
-                            listener?.onStatus(this@AutoReloadStream, it)
+                            if (!receivedIds.contains(it.id)) {
+                                listener?.onStatus(this@AutoReloadStream, it)
+                                receivedIds.add(it.id)
+                            }
                         }
                         mentionsResponse.reversed().forEach {
-                            // 初回ロードでは通知が爆発するので一回捨てる どうせTL側でロードしているので
-                            if (!inFirstLoop && !receivedMentionIds.contains(it.id)) {
+                            if (inFirstLoop) {
+                                // 初回ロードでは通知が爆発するので受信済フラグだけ立てて全部捨てる どうせTL側でロードしているので
+                                receivedIds.add(it.id)
+                            } else if (!receivedIds.contains(it.id)) {
                                 listener?.onStatus(this@AutoReloadStream, it)
+                                receivedIds.add(it.id)
                             }
-                            // Mentionsは再通知防止のため、一度受信したものはリスナーに流さない
-                            receivedMentionIds.add(it.id)
                         }
 
                         Log.d(LOG_TAG, "RateLimitStatus Home : remaining = ${homeResponse.rateLimitStatus.remaining}, " +

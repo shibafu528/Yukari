@@ -1,13 +1,16 @@
 package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -175,6 +178,30 @@ public class ConfigActivity extends ActionBarYukariBase {
                                         selectedStates[which] = isChecked;
                                     });
                             builder.create().show();
+                            return true;
+                        });
+                        break;
+
+                    case "notify":
+                        Preference prefNotifSystemConfig = findPreference("pref_notif_system_config");
+                        prefNotifSystemConfig.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
+                        prefNotifSystemConfig.setOnPreferenceClickListener(preference -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                try {
+                                    // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
+                                    // ベンダーオリジナルのActivityが起動されることがある。
+                                    // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
+                                    Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+                                    intent.setClassName("com.android.settings", "com.android.settings.Settings$AppNotificationSettingsActivity");
+                                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                                    startActivity(intent);
+                                } catch (ActivityNotFoundException e) {
+                                    // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
+                                    Intent intent = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);
+                                    intent.putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+                                    startActivity(intent);
+                                }
+                            }
                             return true;
                         });
                         break;
