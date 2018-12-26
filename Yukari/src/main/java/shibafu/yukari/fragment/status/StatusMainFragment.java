@@ -130,7 +130,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             dialog.dismiss();
                             currentDialog = null;
 
-                            ContextCompat.startForegroundService(getActivity(), intent);
+                            getActivity().startService(intent);
                             closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -145,7 +145,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 ad.show();
                 currentDialog = ad;
             } else {
-                ContextCompat.startForegroundService(getActivity(), intent);
+                getActivity().startService(intent);
                 closeAfterFavorite();
             }
         });
@@ -156,12 +156,12 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 AuthUserRecord user = getUserRecord();
 
                 Intent intent = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), user);
-                ContextCompat.startForegroundService(getActivity(), intent);
+                getActivity().startService(intent);
 
                 if (withQuotes) {
                     for (Long id : status.getQuoteEntities()) {
                         Intent i = AsyncCommandService.createFavorite(getActivity().getApplicationContext(), id, user);
-                        ContextCompat.startForegroundService(getActivity(), i);
+                        getActivity().startService(i);
                     }
                 }
             }
@@ -247,7 +247,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
 
             private void doUnfavorite(final AuthUserRecord userRecord) {
                 Intent intent = AsyncCommandService.destroyFavorite(getActivity().getApplicationContext(), status.getOriginStatus().getId(), userRecord);
-                ContextCompat.startForegroundService(getActivity(), intent);
+                getActivity().startService(intent);
                 closeAfterFavorite();
             }
 
@@ -315,7 +315,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                             dialog.dismiss();
                             currentDialog = null;
 
-                            ContextCompat.startForegroundService(getActivity(), intent);
+                            getActivity().startService(intent);
                             closeAfterFavorite();
                         })
                         .setNegativeButton("キャンセル", (dialog, which) -> {
@@ -330,7 +330,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                 ad.show();
                 currentDialog = ad;
             } else {
-                ContextCompat.startForegroundService(getActivity(), intent);
+                getActivity().startService(intent);
                 closeAfterFavorite();
             }
         });
@@ -509,7 +509,7 @@ public class StatusMainFragment extends TwitterFragment implements StatusChildUI
                         break;
                 }
                 for (Intent intent : intents) {
-                    ContextCompat.startForegroundService(getActivity(), intent);
+                    getActivity().startService(intent);
                 }
             }
         }
