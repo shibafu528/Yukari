@@ -174,7 +174,7 @@
                 android:id="@+id/ibTweetSpoiler"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="?attr/tweetSpoilerDrawable"
+                app:srcCompat="?attr/tweetSpoilerDrawable"
                 android:visibility="gone"/>
 
             <ImageButton
