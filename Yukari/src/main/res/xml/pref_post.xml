@@ -27,4 +27,10 @@
             android:summary="「RTしてから言及」使用時に入力欄に自動挿入する文字列を設定します"
             android:defaultValue=" ＞RT"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="Mastodon">
+        <EditTextPreference
+            android:key="pref_toot_cw_default_text"
+            android:title="CWの既定値"
+            android:summary="Content Warningを有効にした時に自動挿入する文字列を設定します"/>
+    </PreferenceCategory>
 </PreferenceScreen>

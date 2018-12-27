@@ -817,6 +817,11 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 etSpoiler.setVisibility(View.GONE);
                 etInput.requestFocus();
             } else {
+                String defaultText = sp.getString("pref_toot_cw_default_text", "");
+                if (!TextUtils.isEmpty(defaultText)) {
+                    etSpoiler.setText(defaultText);
+                    etSpoiler.selectAll();
+                }
                 etSpoiler.setVisibility(View.VISIBLE);
                 etSpoiler.requestFocus();
             }
