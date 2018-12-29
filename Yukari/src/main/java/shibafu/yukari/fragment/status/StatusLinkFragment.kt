@@ -212,9 +212,15 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         override val label: String = media.browseUrl
 
         override fun onClick() {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl), activity, PreviewActivity::class.java)
-            intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
-            startActivity(intent)
+            if (media.canPreview()) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl), activity, PreviewActivity::class.java)
+                intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
+                startActivity(intent)
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
         }
 
         override fun onLongClick(): Boolean {
