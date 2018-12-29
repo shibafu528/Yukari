@@ -16,6 +16,7 @@ import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
+import shibafu.yukari.media2.impl.DonVideo
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.MorseCodec
 import java.io.StringReader
@@ -133,9 +134,9 @@ class DonStatus(val status: Status,
             val links = LinkedHashSet<String>()
 
             status.mediaAttachments.forEach { attachment ->
-                // TODO: videoとかgifvとかは...?
                 when (attachment.type) {
                     "image" -> media += DonPicture(attachment)
+                    "video", "gifv" -> media += DonVideo(attachment)
                     else -> links += attachment.remoteUrl ?: attachment.url
                 }
             }
