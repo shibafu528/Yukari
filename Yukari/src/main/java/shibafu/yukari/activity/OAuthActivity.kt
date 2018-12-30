@@ -27,6 +27,9 @@ import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Accounts
 import com.sys1yagi.mastodon4j.api.method.Apps
+import permissions.dispatcher.NeedsPermission
+import permissions.dispatcher.OnPermissionDenied
+import permissions.dispatcher.RuntimePermissions
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
@@ -34,6 +37,7 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
+import shibafu.yukari.util.showToast
 import twitter4j.TwitterException
 import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
@@ -327,9 +331,8 @@ class OAuthActivity : ActionBarYukariBase() {
         }
     }
 
+    @RuntimePermissions
     class TwitterAppAuthFragment : Fragment() {
-        var waitingActivityResult: Boolean = false
-
         override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
             return inflater?.inflate(R.layout.activity_parent, container, false)
         }
@@ -338,39 +341,31 @@ class OAuthActivity : ActionBarYukariBase() {
             super.onViewCreated(view, savedInstanceState)
 
             if (savedInstanceState == null) {
-                val intent = Intent().setComponent(TWITTER_AUTH_ACTIVITY)
-                intent.putExtra("ck", getString(R.string.twitter_consumer_key))
-                intent.putExtra("cs", getString(R.string.twitter_consumer_secret))
-                try {
-                    startActivityForResult(intent, REQUEST_TWITTER)
-                } catch (e: SecurityException) {
-                    e.printStackTrace()
-                    Toast.makeText(activity.applicationContext, "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show()
-
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, TwitterOAuthFragment())
-                            .commit()
-                }
-            } else {
-                waitingActivityResult = savedInstanceState.getBoolean("waitingActivityResult")
+                executeTwitterAuthActivityWithPermissionCheck()
             }
         }
 
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
             super.onActivityResult(requestCode, resultCode, data)
 
-            if (requestCode == REQUEST_TWITTER && data != null) {
-                val extras = data.extras
-                val accessToken = AccessToken(
-                        extras.getString("tk"),
-                        extras.getString("ts"),
-                        extras.getLong("user_id"))
-                val activity = activity as OAuthActivity
+            if (requestCode == REQUEST_TWITTER) {
+                if (resultCode == RESULT_OK && data != null) {
+                    val extras = data.extras
+                    val accessToken = AccessToken(
+                            extras.getString("tk"),
+                            extras.getString("ts"),
+                            extras.getLong("user_id"))
+                    val activity = activity as OAuthActivity
 
-                try {
-                    activity.saveAccessToken(accessToken)
-                    waitingActivityResult = false
-                } catch (e: IllegalArgumentException) {
+                    try {
+                        activity.saveAccessToken(accessToken)
+                    } catch (e: IllegalArgumentException) {
+                        Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
+                        activity.supportFragmentManager.beginTransaction()
+                                .replace(R.id.frame, ProviderChooserFragment())
+                                .commit()
+                    }
+                } else {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
                     activity.supportFragmentManager.beginTransaction()
                             .replace(R.id.frame, ProviderChooserFragment())
@@ -379,22 +374,34 @@ class OAuthActivity : ActionBarYukariBase() {
             }
         }
 
-        override fun onResume() {
-            super.onResume()
+        override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            onRequestPermissionsResult(requestCode, grantResults)
+        }
 
-            if (waitingActivityResult) {
-                Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
+        @NeedsPermission("com.twitter.android.permission.AUTH_APP")
+        fun executeTwitterAuthActivity() {
+            val intent = Intent().setComponent(TWITTER_AUTH_ACTIVITY)
+            intent.putExtra("ck", getString(R.string.twitter_consumer_key))
+            intent.putExtra("cs", getString(R.string.twitter_consumer_secret))
+            try {
+                startActivityForResult(intent, REQUEST_TWITTER)
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+                Toast.makeText(activity.applicationContext, "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show()
+
                 activity.supportFragmentManager.beginTransaction()
-                        .replace(R.id.frame, ProviderChooserFragment())
+                        .replace(R.id.frame, TwitterOAuthFragment())
                         .commit()
-            } else {
-                waitingActivityResult = true
             }
         }
 
-        override fun onSaveInstanceState(outState: Bundle?) {
-            super.onSaveInstanceState(outState)
-            outState?.putBoolean("waitingActivityResult", waitingActivityResult)
+        @OnPermissionDenied("com.twitter.android.permission.AUTH_APP")
+        fun onDeniedTwitterAuth() {
+            showToast("公式アプリから認証するには権限の許可が必要です。")
+            activity.supportFragmentManager.beginTransaction()
+                    .replace(R.id.frame, ProviderChooserFragment())
+                    .commit()
         }
     }
 
