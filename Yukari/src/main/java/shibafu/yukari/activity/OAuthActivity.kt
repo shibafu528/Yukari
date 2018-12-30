@@ -264,9 +264,7 @@ class OAuthActivity : ActionBarYukariBase() {
                             startActivity(intent)
                         } else {
                             Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
-                            activity.supportFragmentManager.beginTransaction()
-                                    .replace(R.id.frame, ProviderChooserFragment())
-                                    .commit()
+                            activity.supportFragmentManager.popBackStack()
                         }
                     }
                 }
@@ -287,9 +285,7 @@ class OAuthActivity : ActionBarYukariBase() {
             if (requestToken != null) {
                 if (verifier == null) {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, ProviderChooserFragment())
-                            .commit()
+                    activity.supportFragmentManager.popBackStack()
                 } else {
                     val task = object : AsyncTask<Void, Void, AccessToken>() {
                         var dialog: LoadDialogFragment? = null
@@ -319,9 +315,7 @@ class OAuthActivity : ActionBarYukariBase() {
                                 activity.saveAccessToken(accessToken)
                             } else {
                                 Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
-                                activity.supportFragmentManager.beginTransaction()
-                                        .replace(R.id.frame, ProviderChooserFragment())
-                                        .commit()
+                                activity.supportFragmentManager.popBackStack()
                             }
                         }
                     }
@@ -361,15 +355,11 @@ class OAuthActivity : ActionBarYukariBase() {
                         activity.saveAccessToken(accessToken)
                     } catch (e: IllegalArgumentException) {
                         Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                        activity.supportFragmentManager.beginTransaction()
-                                .replace(R.id.frame, ProviderChooserFragment())
-                                .commit()
+                        activity.supportFragmentManager.popBackStack()
                     }
                 } else {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, ProviderChooserFragment())
-                            .commit()
+                    activity.supportFragmentManager.popBackStack()
                 }
             }
         }
@@ -399,9 +389,7 @@ class OAuthActivity : ActionBarYukariBase() {
         @OnPermissionDenied("com.twitter.android.permission.AUTH_APP")
         fun onDeniedTwitterAuth() {
             showToast("公式アプリから認証するには権限の許可が必要です。")
-            activity.supportFragmentManager.beginTransaction()
-                    .replace(R.id.frame, ProviderChooserFragment())
-                    .commit()
+            activity.supportFragmentManager.popBackStack()
         }
     }
 
@@ -459,9 +447,7 @@ class OAuthActivity : ActionBarYukariBase() {
                 val authorizeCode = authorizeCode
                 if (authorizeCode == null) {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, ProviderChooserFragment())
-                            .commit()
+                    activity.supportFragmentManager.popBackStack()
                 } else {
                     finishAuthorize(currentProvider, authorizeCode)
                 }
@@ -511,9 +497,7 @@ class OAuthActivity : ActionBarYukariBase() {
                         startAuthorize(registeredProvider)
                     } else {
                         Toast.makeText(activity, "アプリの登録中にエラーが発生しました\nインスタンス名が正確であること、サーバがダウンしていないことを確認してください", Toast.LENGTH_LONG).show()
-                        activity.supportFragmentManager.beginTransaction()
-                                .replace(R.id.frame, ProviderChooserFragment())
-                                .commit()
+                        activity.supportFragmentManager.popBackStack()
                     }
                 }
             }.executeParallel()
@@ -558,9 +542,7 @@ class OAuthActivity : ActionBarYukariBase() {
                         startActivity(intent)
                     } else {
                         Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
-                        activity.supportFragmentManager.beginTransaction()
-                                .replace(R.id.frame, ProviderChooserFragment())
-                                .commit()
+                        activity.supportFragmentManager.popBackStack()
                     }
                 }
             }.executeParallel()
@@ -629,9 +611,7 @@ class OAuthActivity : ActionBarYukariBase() {
                         activity.finish()
                     } else {
                         Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
-                        activity.supportFragmentManager.beginTransaction()
-                                .replace(R.id.frame, ProviderChooserFragment())
-                                .commit()
+                        activity.supportFragmentManager.popBackStack()
                     }
                 }
             }.executeParallel()
