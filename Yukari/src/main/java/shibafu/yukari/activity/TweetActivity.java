@@ -143,6 +143,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     public static final String EXTRA_MEDIA = "media";
     public static final String EXTRA_GEO_LOCATION = "geo";
     public static final String EXTRA_DRAFT = "draft";
+    public static final String EXTRA_VISIBILITY = "visibility";
     public static final String EXTRA_SPOILER_TEXT = "spoiler_text";
 
     private static final int REQUEST_GALLERY = 0x01;
@@ -539,6 +540,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         PERMISSION_REQUEST_INIT_ATTACH);
             }
         }
+
+        // 可視性の設定
+        setVisibility(args.getIntExtra(EXTRA_VISIBILITY, StatusDraft.Visibility.PUBLIC.ordinal()));
 
         // Spoilerの設定
         String spoilerText = args.getStringExtra(EXTRA_SPOILER_TEXT);

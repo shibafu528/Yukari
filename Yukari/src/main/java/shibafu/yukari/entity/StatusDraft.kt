@@ -103,6 +103,7 @@ data class StatusDraft(
         if (useGeoLocation) {
             intent.putExtra(TweetActivity.EXTRA_GEO_LOCATION, GeoLocation(geoLatitude, geoLongitude))
         }
+        intent.putExtra(TweetActivity.EXTRA_VISIBILITY, visibility.ordinal)
         intent.putExtra(TweetActivity.EXTRA_SPOILER_TEXT, spoilerText)
         intent.putExtra(TweetActivity.EXTRA_DRAFT, this)
         return intent
