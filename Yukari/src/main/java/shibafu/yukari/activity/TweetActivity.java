@@ -111,6 +111,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.text.BreakIterator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -733,18 +734,26 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 appendTextInto("ｗ");
             } else {
                 String text = etInput.getText().toString().substring(Math.min(start, end), Math.max(start, end));
-                char[] chr = text.toCharArray();
-                int grass = text.length() - 1;
-                StringBuilder sb = new StringBuilder();
-                for (char c : chr) {
-                    sb.append(c);
-                    if (grass > 0) {
-                        sb.append("ｗ");
-                        --grass;
+                StringBuilder newText = new StringBuilder();
+
+                BreakIterator breakIterator = BreakIterator.getCharacterInstance();
+                breakIterator.setText(text);
+
+                int graphemeStart = breakIterator.first();
+                int graphemeEnd = breakIterator.next();
+
+                while (graphemeEnd != BreakIterator.DONE) {
+                    newText.append(text, graphemeStart, graphemeEnd);
+
+                    graphemeStart = graphemeEnd;
+                    graphemeEnd = breakIterator.next();
+
+                    if (graphemeEnd != BreakIterator.DONE) {
+                        newText.append("ｗ");
                     }
                 }
-                text = sb.toString();
-                etInput.getText().replace(Math.min(start, end), Math.max(start, end), text);
+
+                etInput.getText().replace(Math.min(start, end), Math.max(start, end), newText.toString());
             }
         });
 
