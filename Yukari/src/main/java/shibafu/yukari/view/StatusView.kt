@@ -268,12 +268,6 @@ abstract class StatusView : RelativeLayout {
             if (status.isRepost) {
                 setBackgroundResource(bgRetweetResId)
 
-                if (status.originStatus.user.isProtected) {
-                    ivProtected.visibility = View.VISIBLE
-                } else {
-                    ivProtected.visibility = View.INVISIBLE
-                }
-
                 ivRetweeterIcon.visibility = View.VISIBLE
                 ImageLoaderTask.loadProfileIcon(context,
                         ivRetweeterIcon,
