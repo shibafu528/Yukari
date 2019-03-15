@@ -1,15 +1,18 @@
 package shibafu.yukari.service;
 
-import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.JobIntentService;
 import android.text.format.DateUtils;
 import android.util.Log;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Stream;
+import shibafu.yukari.common.JobSchedulerId;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
 
@@ -23,7 +26,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/03/04.
  */
-public class CacheCleanerService extends IntentService {
+public class CacheCleanerService extends JobIntentService {
 
     private static final Comparator<File> COMPARATOR = (lhs, rhs) -> {
         long sub = rhs.lastModified() - lhs.lastModified();
@@ -32,12 +35,12 @@ public class CacheCleanerService extends IntentService {
         else               return -1;
     };
 
-    public CacheCleanerService() {
-        super("CacheCleanerService");
+    public static void enqueueWork(Context context) {
+        enqueueWork(context, CacheCleanerService.class, JobSchedulerId.JOB_CACHE_CLEANER, new Intent());
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void onHandleWork(@NonNull Intent intent) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         File cacheRoot;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {

@@ -380,7 +380,7 @@ public class TwitterService extends Service{
 
         stopForeground(true);
 
-        startService(new Intent(this, CacheCleanerService.class));
+        CacheCleanerService.enqueueWork(this);
 
         System.gc();
 
