@@ -73,7 +73,7 @@ public class TweetListFragmentFactory {
                 break;
             case TabType.TABTYPE_SEARCH:
                 query.append("from search:\"")
-                        .append(tabInfo.getSearchKeyword().replaceAll("\"", "\\\""))
+                        .append(tabInfo.getSearchKeyword().replaceAll("\"", "\\\\\""))
                         .append("\"");
                 break;
             case TabType.TABTYPE_LIST:
