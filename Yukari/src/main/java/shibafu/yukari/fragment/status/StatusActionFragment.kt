@@ -75,7 +75,7 @@ public class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemCli
             } visibleWhen { true },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance(status!!, this).show(childFragmentManager, "mute")
+                MuteMenuDialogFragment.newInstance(status!!, this).show(fragmentManager, "mute")
             } visibleWhen { true },
 
             Action("ツイートを削除") {
