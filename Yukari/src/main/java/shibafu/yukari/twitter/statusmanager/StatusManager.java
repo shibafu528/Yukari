@@ -399,6 +399,10 @@ public class StatusManager implements Releasable {
 
                     @Override
                     protected TwitterException doInBackground(@NotNull Void... params) {
+                        if (service == null) {
+                            return null;
+                        }
+
                         Twitter twitter = service.getTwitter(userRecord);
                         if (twitter != null) {
                             try {
@@ -765,7 +769,7 @@ public class StatusManager implements Releasable {
             class Worker implements Runnable {
 
                 private void onStatus(final Stream from, Status status) {
-                    if (from == null || status == null || status.getUser() == null || statusListeners == null) {
+                    if (from == null || status == null || status.getUser() == null || statusListeners == null || sharedPreferences == null) {
                         if (PUT_STREAM_LOG) Log.d(LOG_TAG, "onStatus, NullPointer!");
                         return;
                     }
