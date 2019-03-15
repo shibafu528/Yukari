@@ -186,11 +186,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     @OnClick(R.id.llMenuAccountParent)
     void onClickTitle() {
-        if (getTargetFragment() != null) {
-            getTargetFragment().startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
-        } else {
-            startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
-        }
+        startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
     }
 
     @OnItemClick(R.id.listView)
