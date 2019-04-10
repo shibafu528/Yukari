@@ -1,5 +1,7 @@
 include ':Yukari'
-include ':yukari-exvoice'
+if (getProperty("yukari.exvoice.build").toBoolean()) {
+    include ':yukari-exvoice'
+}
 include ':GalleryMultiPicker:library'
 include ':twpfparser'
 include ':yukari-processor-runtime'
