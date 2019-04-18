@@ -164,7 +164,7 @@ dependencies {
 
     // Mastodon
 //    implementation "com.github.sys1yagi.mastodon4j:mastodon4j:${mastodon4jVersion}"
-    implementation "com.github.shibafu528.mastodon4j:mastodon4j:5b315eb"
+    implementation "com.github.shibafu528.mastodon4j:mastodon4j:9da45686a123de974857315dcd85de01acfebb6d"
 
     // パーサ
     implementation 'com.google.code.gson:gson:2.8.1'
