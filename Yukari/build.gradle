@@ -116,7 +116,7 @@ android {
     }
     flavorDimensions "stage"
     productFlavors {
-        main {
+        stable {
             dimension "stage"
         }
         alpha {

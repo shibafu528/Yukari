@@ -9,22 +9,19 @@ repositories {
 }
 
 dependencies {
-    compile project(':yukari-processor-runtime')
-    compile 'com.squareup:javapoet:1.2.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation project(':yukari-processor-runtime')
+    implementation 'com.squareup:javapoet:1.2.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
 buildscript {
-    ext.kotlin_version = '1.1.60'
+    ext.kotlin_version = '1.3.10'
     repositories {
         mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-repositories {
-    mavenCentral()
 }
 
 def defaultEncoding = 'UTF-8'
