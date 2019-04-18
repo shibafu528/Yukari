@@ -155,9 +155,9 @@ dependencies {
     implementation project(':GalleryMultiPicker:library')
 
     // Twitter4J
-    compile "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
-    compile "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
+    implementation "org.twitter4j:twitter4j-core:${twitter4jVersion}"
+    implementation "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
+    implementation "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
 //    implementation "com.github.takke.twitter4j:twitter4j-core:2612db7f15"
 //    implementation "com.github.takke.twitter4j:twitter4j-stream:2612db7f15"
 //    implementation "com.github.takke.twitter4j:twitter4j-http2-support:2612db7f15"
