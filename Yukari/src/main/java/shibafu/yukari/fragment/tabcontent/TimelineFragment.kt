@@ -9,6 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.preference.PreferenceManager
+import android.support.annotation.UiThread
+import android.support.annotation.WorkerThread
 import android.support.v4.util.LongSparseArray
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.app.AppCompatActivity
@@ -600,6 +602,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         }
     }
 
+    @WorkerThread
     override fun onTimelineEvent(event: TimelineEvent) {
         if (isDetached || activity == null) {
             // デタッチ状態か親Activityが無い場合はだいたい何もできないので捨てる
@@ -633,12 +636,16 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (event.timelineId == timelineId) {
                     if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
 
-                    finishRestRequest(event.taskKey)
+                    handler.post {
+                        finishRestRequest(event.taskKey)
+                    }
                 }
             }
             is TimelineEvent.RestRequestCancelled -> {
                 if (event.timelineId == timelineId) {
-                    finishRestRequest(event.taskKey)
+                    handler.post {
+                        finishRestRequest(event.taskKey)
+                    }
                 }
             }
             is TimelineEvent.Notify -> {
@@ -647,10 +654,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 }
             }
             is TimelineEvent.Favorite -> {
-                setFavoriteState(event.from, event.status, true)
+                handler.post {
+                    setFavoriteState(event.from, event.status, true)
+                }
             }
             is TimelineEvent.Unfavorite -> {
-                setFavoriteState(event.from, event.status, false)
+                handler.post {
+                    setFavoriteState(event.from, event.status, false)
+                }
             }
             is TimelineEvent.Delete -> {
                 handler.post { deleteElement(event.type, event.id) }
@@ -870,16 +881,17 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
      * RESTリクエストのロードマーカーを削除し、リクエスト中状態を解除します。
      * @param taskKey 非同期処理キー
      */
+    @UiThread
     private fun finishRestRequest(taskKey: Long) {
         loadingTaskKeys.remove(taskKey)
         if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
             statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
-                handler.post { deleteElement(it.javaClass, it.id) }
+                deleteElement(it.javaClass, it.id)
             }
             queryingLoadMarkers.remove(taskKey)
         }
         if (loadingTaskKeys.isEmpty()) {
-            handler.post { swipeRefreshLayout?.isRefreshing = false }
+            swipeRefreshLayout?.isRefreshing = false
         }
     }
 
@@ -889,6 +901,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
      * @param eventStatus 対象の [Status]
      * @param isFavorited お気に入り状態
      */
+    @UiThread
     private fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
         statuses.forEach { status ->
             if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
@@ -896,9 +909,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
                     status.receivedUsers.add(eventStatus.representUser)
                 }
-                handler.post {
-                    notifyDataSetChanged()
-                }
+                notifyDataSetChanged()
                 return
             }
         }
