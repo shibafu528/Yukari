@@ -286,7 +286,9 @@ abstract class StatusView : RelativeLayout {
      * 本文欄のテキストの加工を行う。
      */
     protected open fun decorateText(text: String): String {
+        val status = status ?: return text
         val multilineMode = pref.getString("pref_mode_multiline", "0").toInt()
+        val shortenRepeatText = pref.getBoolean("pref_shorten_repeat_text", false)
 
         var decoratedText = text
 
@@ -321,6 +323,10 @@ abstract class StatusView : RelativeLayout {
                     sb.append(" ...")
                 }
                 decoratedText = sb.toString()
+            }
+            // 反復圧縮
+            if (status.metadata.isTooManyRepeatText && shortenRepeatText) {
+                decoratedText = status.metadata.repeatedSequence + "\n...(repeat)..."
             }
         }
 
