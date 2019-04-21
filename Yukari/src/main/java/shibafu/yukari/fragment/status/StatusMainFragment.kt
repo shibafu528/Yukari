@@ -6,7 +6,6 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.app.NotificationCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.PopupMenu
 import android.view.Gravity
@@ -158,19 +157,28 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
         }
 
         ibRetweet.setOnClickListener {
-            val message = if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
-                "過去の栄光にすがりますか？"
+            if (defaultSharedPreferences.getBoolean("pref_dialog_rt", true)) {
+                val message = if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
+                    "過去の栄光にすがりますか？"
+                } else {
+                    "リツイートしますか？"
+                }
+                val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
+                        .setTitle("確認")
+                        .setMessage(message)
+                        .setPositive("OK")
+                        .setNegative("キャンセル")
+                        .build()
+                dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
+                dialog.show(fragmentManager, "dialog_repost_confirm")
             } else {
-                "リツイートしますか？"
+                val userRecord = userRecord ?: return@setOnClickListener
+
+                val intent = AsyncCommandService.createRepost(activity, status, userRecord)
+                activity.startService(intent)
+
+                closeAfterFavorite()
             }
-            val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
-                    .setTitle("確認")
-                    .setMessage(message)
-                    .setPositive("OK")
-                    .setNegative("キャンセル")
-                    .build()
-            dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
-            dialog.show(fragmentManager, "dialog_repost_confirm")
         }
         ibRetweet.setOnLongClickListener {
             if (status.providerApiType == Provider.API_TWITTER) {
@@ -190,14 +198,23 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
         }
 
         ibFavRt.setOnClickListener {
-            val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAV_AND_REPOST_CONFIRM)
-                    .setTitle("確認")
-                    .setMessage("お気に入りに登録してRTしますか？")
-                    .setPositive("OK")
-                    .setNegative("キャンセル")
-                    .build()
-            dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
-            dialog.show(fragmentManager, "dialog_fav_and_repost_confirm")
+            if (defaultSharedPreferences.getBoolean("pref_dialog_favrt", true)) {
+                val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAV_AND_REPOST_CONFIRM)
+                        .setTitle("確認")
+                        .setMessage("お気に入りに登録してRTしますか？")
+                        .setPositive("OK")
+                        .setNegative("キャンセル")
+                        .build()
+                dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
+                dialog.show(fragmentManager, "dialog_fav_and_repost_confirm")
+            } else {
+                val userRecord = userRecord ?: return@setOnClickListener
+
+                val intent = AsyncCommandService.createFavAndRepost(activity, status, userRecord)
+                activity.startService(intent)
+
+                closeAfterFavorite()
+            }
         }
         ibFavRt.setOnLongClickListener {
             if (status.providerApiType == Provider.API_TWITTER) {
