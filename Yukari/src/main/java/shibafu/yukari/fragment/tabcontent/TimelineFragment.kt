@@ -601,42 +601,6 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     }
 
     override fun onTimelineEvent(event: TimelineEvent) {
-        fun finishRestRequest(taskKey: Long) {
-            loadingTaskKeys.remove(taskKey)
-            if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
-                statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
-                    handler.post { deleteElement(it.javaClass, it.id) }
-                }
-                queryingLoadMarkers.remove(taskKey)
-            }
-            if (loadingTaskKeys.isEmpty()) {
-                handler.post { swipeRefreshLayout?.isRefreshing = false }
-            }
-        }
-        fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
-            statuses.forEach { status ->
-                if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
-                    status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                    if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
-                        status.receivedUsers.add(eventStatus.representUser)
-                    }
-                    handler.post {
-                        notifyDataSetChanged()
-                    }
-                    return
-                }
-            }
-            mutedStatuses.forEach { status ->
-                if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
-                    status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                    if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
-                        status.receivedUsers.add(eventStatus.representUser)
-                    }
-                    return
-                }
-            }
-        }
-
         if (isDetached || activity == null) {
             // デタッチ状態か親Activityが無い場合はだいたい何もできないので捨てる
             putWarnLog("[EVENT DROPPED!] Fragment is detached or parent actiivty is null.")
@@ -898,6 +862,53 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 }
 
                 break
+            }
+        }
+    }
+
+    /**
+     * RESTリクエストのロードマーカーを削除し、リクエスト中状態を解除します。
+     * @param taskKey 非同期処理キー
+     */
+    private fun finishRestRequest(taskKey: Long) {
+        loadingTaskKeys.remove(taskKey)
+        if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
+            statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
+                handler.post { deleteElement(it.javaClass, it.id) }
+            }
+            queryingLoadMarkers.remove(taskKey)
+        }
+        if (loadingTaskKeys.isEmpty()) {
+            handler.post { swipeRefreshLayout?.isRefreshing = false }
+        }
+    }
+
+    /**
+     * TL上の要素のお気に入り状態を更新します。
+     * @param eventFrom お気に入り登録・解除を実行したユーザ
+     * @param eventStatus 対象の [Status]
+     * @param isFavorited お気に入り状態
+     */
+    private fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
+        statuses.forEach { status ->
+            if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+                status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
+                if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                    status.receivedUsers.add(eventStatus.representUser)
+                }
+                handler.post {
+                    notifyDataSetChanged()
+                }
+                return
+            }
+        }
+        mutedStatuses.forEach { status ->
+            if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+                status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
+                if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                    status.receivedUsers.add(eventStatus.representUser)
+                }
+                return
             }
         }
     }
