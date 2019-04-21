@@ -577,6 +577,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         tvTweetBy.setOnClickListener(v -> {
             Intent intent = new Intent(TweetActivity.this, AccountChooserActivity.class);
             intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE, true);
+            intent.putExtra(AccountChooserActivity.EXTRA_MULTIPLE_CHOOSE_QUICK_SELECT, true);
             intent.putExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS, writers);
             startActivityForResult(intent, REQUEST_ACCOUTS);
         });

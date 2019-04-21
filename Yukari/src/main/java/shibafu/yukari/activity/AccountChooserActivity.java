@@ -37,6 +37,8 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_FILTER_CONSUMER_OVERRODE = "consumer_overrode";
     //API Typeでフィルタする
     public static final String EXTRA_FILTER_PROVIDER_API_TYPE = "provider_api_type";
+    //複数選択モードで名前部分をタップした時に1アカウント選択で確定させる
+    public static final String EXTRA_MULTIPLE_CHOOSE_QUICK_SELECT = "multiple_choose_quick_choose";
 
     public static final String EXTRA_SELECTED_USERSN = "selected_sn";
     public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
@@ -47,6 +49,7 @@ public class AccountChooserActivity extends ListYukariBase {
     public static final String EXTRA_METADATA = "meta";
 
     private boolean isMultipleChoose = false;
+    private boolean isMultipleChooseQuickSelect = false;
     private boolean isFilterConsumerOverrode = false;
     private boolean isFilterProviderApiType = false;
     private int filterProviderApiType = 0;
@@ -67,6 +70,7 @@ public class AccountChooserActivity extends ListYukariBase {
         }
 
         isMultipleChoose = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE, false);
+        isMultipleChooseQuickSelect = args.getBooleanExtra(EXTRA_MULTIPLE_CHOOSE_QUICK_SELECT, false);
         isFilterConsumerOverrode = args.getBooleanExtra(EXTRA_FILTER_CONSUMER_OVERRODE, false);
         isFilterProviderApiType = args.hasExtra(EXTRA_FILTER_PROVIDER_API_TYPE);
         filterProviderApiType = args.getIntExtra(EXTRA_FILTER_PROVIDER_API_TYPE, 0);
@@ -141,12 +145,20 @@ public class AccountChooserActivity extends ListYukariBase {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
-        if (isMultipleChoose) {
+        Data user = dataList.get(position);
+
+        if (isMultipleChoose && isMultipleChooseQuickSelect) {
+            Intent result = new Intent();
+            ArrayList<AuthUserRecord> userRecords = new ArrayList<>();
+            userRecords.add(user.record);
+            result.putExtra(EXTRA_SELECTED_RECORDS, userRecords);
+            result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
+            setResult(RESULT_OK, result);
+            finish();
+        } else if (isMultipleChoose) {
             CheckBox cb = ((Adapter.ViewHolder)v.getTag()).checkBox;
             cb.setChecked(!cb.isChecked());
-        }
-        else {
-            Data user = dataList.get(position);
+        } else {
             Intent result = new Intent();
             result.putExtra(EXTRA_SELECTED_USERID, user.id);
             result.putExtra(EXTRA_SELECTED_USERSN, user.sn);
@@ -237,6 +249,7 @@ public class AccountChooserActivity extends ListYukariBase {
                 vh.ivIcon.setImageResource(R.drawable.yukatterload);
                 ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, d.imageURL);
                 vh.checkBox.setTag(position);
+                vh.checkBox.setClickable(isMultipleChooseQuickSelect);
                 vh.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     int position1 = (Integer)buttonView.getTag();
                     getItem(position1).checked = isChecked;
