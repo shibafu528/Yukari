@@ -33,8 +33,9 @@ class DonStatusView : StatusView {
 
         // Content Warningの適用
         if (!pref.getBoolean("pref_always_expand_cw", false)) {
-            if (mode == Mode.DEFAULT && status.status.spoilerText.isNotEmpty()) {
-                decoratedText = status.status.spoilerText + "\n...(content warning)..."
+            val originStatus = status.originStatus as DonStatus
+            if (mode == Mode.DEFAULT && originStatus.status.spoilerText.isNotEmpty()) {
+                decoratedText = originStatus.status.spoilerText + "\n...(content warning)..."
             }
         }
 
