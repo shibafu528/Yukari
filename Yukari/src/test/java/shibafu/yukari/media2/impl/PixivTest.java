@@ -12,11 +12,12 @@ public class PixivTest {
         Assert.assertNotNull(resolveInfo);
         Assert.assertNotNull(resolveInfo.getStream());
 
-        byte[] header = new byte[2];
-        int read = resolveInfo.getStream().read(header, 0, header.length);
-        Assert.assertEquals(header.length, read);
+        byte[] buffer = new byte[15];
+        int read = resolveInfo.getStream().read(buffer, 0, buffer.length);
+        Assert.assertEquals(buffer.length, read);
 
-        Assert.assertArrayEquals(new byte[]{(byte) 0xff, (byte) 0xd8}, header);
+        String dtd = new String(buffer);
+        Assert.assertEquals("<!doctype html>", dtd.toLowerCase());
     }
 
     @Test
