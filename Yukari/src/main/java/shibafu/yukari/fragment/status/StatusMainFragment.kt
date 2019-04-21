@@ -454,6 +454,9 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
             }
 
             ibFavRt.isEnabled = ibRetweet.isEnabled && ibFavorite.isEnabled
+
+            // RT可能なステータスのみ引用可能として扱う
+            limitedQuote = !status.canRepost(userRecord)
         }
     }
 
