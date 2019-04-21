@@ -317,6 +317,9 @@ abstract class StatusView : RelativeLayout {
                 val sb = StringBuilder()
                 val limit = if (multilineMode == Config.OMISSION_AFTER_4) 3 else 7
                 lines.take(limit).forEach {
+                    if (sb.isNotEmpty()) {
+                        sb.append("\n")
+                    }
                     sb.append(it)
                 }
                 if (lines.size > limit) {
