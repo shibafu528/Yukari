@@ -51,7 +51,7 @@ data class Search(override val sourceAccount: AuthUserRecord, val query: String)
                 if (params.appendLoadMarker && result.hasNext() && responseList.isNotEmpty()) {
                     val last = responseList.last()
                     val stringQuery = gson.toJson(result.nextQuery())
-                    responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1), stringQuery)
+                    responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1000), stringQuery)
                 }
 
                 return responseList

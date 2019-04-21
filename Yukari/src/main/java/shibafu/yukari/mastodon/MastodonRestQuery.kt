@@ -31,7 +31,7 @@ class MastodonRestQuery(private val resolver: (MastodonClient, Range) -> Pageabl
                     LoadMarker(params.maxId, Provider.API_MASTODON, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate)
                 } else {
                     val last = list.last()
-                    LoadMarker(last.id - 1, Provider.API_MASTODON, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1))
+                    LoadMarker(last.id - 1, Provider.API_MASTODON, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1000))
                 }
             }
 

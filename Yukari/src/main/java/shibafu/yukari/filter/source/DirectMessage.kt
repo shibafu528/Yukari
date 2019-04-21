@@ -58,7 +58,7 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
                         responseList += LoadMarker(params.maxId, Provider.API_TWITTER, params.maxId, userRecord, params.loadMarkerTag, params.loadMarkerDate, messages.nextCursor)
                     } else {
                         val last = responseList.last()
-                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1), messages.nextCursor)
+                        responseList += LoadMarker(last.id - 1, Provider.API_TWITTER, last.id, userRecord, params.loadMarkerTag, Date(last.createdAt.time - 1000), messages.nextCursor)
                     }
                 }
 
