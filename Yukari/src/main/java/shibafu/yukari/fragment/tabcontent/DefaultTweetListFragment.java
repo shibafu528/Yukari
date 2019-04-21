@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.util.LongSparseArray;
+import android.util.Log;
 import android.view.View;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.MainActivity;
@@ -13,6 +14,7 @@ import shibafu.yukari.activity.TraceActivity;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.linkage.TimelineEvent;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.PRListFactory;
@@ -246,7 +248,13 @@ public class DefaultTweetListFragment extends TweetListFragment {
         @Override
         protected PreformedResponseList<PreformedStatus> doInBackground(Params... params) {
             try {
-                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].getUserRecord());
+                TwitterService service = getTwitterService();
+                if (service == null) {
+                    Log.d("DefaultRESTLoader", "TwitterService is null !!");
+                    return null;
+                }
+
+                Twitter twitter = service.getTwitterOrThrow(params[0].getUserRecord());
                 ResponseList<twitter4j.Status> responseList = null;
                 Paging paging = params[0].getPaging();
                 if (!isNarrowMode) paging.setCount(60);
