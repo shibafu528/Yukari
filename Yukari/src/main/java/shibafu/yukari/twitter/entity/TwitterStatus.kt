@@ -113,8 +113,13 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
         get() = if (this.isRetweet) this.retweetedStatus else this
 
     init {
-        if (status is PreformedStatus) {
+        // PreformedStatusではこの先の処理のように加工した値が取れてしまうため、ラップされている内部のStatusを参照する。
+        // 互換性が不要であればinit内では単に this#status を参照して良い。
+        val status = if (status is PreformedStatus) {
             Log.w("TwitterStatus", "PreformedStatus wrapped. Should use TwitterStatus directly.", Throwable())
+            status.baseStatus
+        } else {
+            status
         }
 
         if (isRepost) {
