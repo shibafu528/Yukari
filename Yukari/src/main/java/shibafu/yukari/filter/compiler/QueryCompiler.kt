@@ -60,6 +60,9 @@ class QueryCompiler {
                 "search" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.Search::class.java
                 ),
+                "favorite" to mapOf(
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.Favorite::class.java
+                ),
                 "don_local" to mapOf(
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Local::class.java
                 ),
@@ -267,6 +270,7 @@ class QueryCompiler {
                         "trace" -> createFiltersWithTraceArguments("trace", "受信ユーザ/起点ID")
                         "message", "messages", "dm", "dms" -> createFiltersWithAuthArguments("message")
                         "search" -> createTwitterSearchFilters("search")
+                        "favorite", "favorites" -> createFiltersWithListArguments("favorite", 1, "(受信ユーザ/)対象ユーザ")
                         "don_local" -> createFiltersWithAuthArguments("don_local")
                         "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")
