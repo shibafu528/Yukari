@@ -718,16 +718,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
             } else if (currentPage instanceof DefaultTweetListFragment) {
                 DefaultTweetListFragment current = (DefaultTweetListFragment) this.currentPage;
-                if (current.getBoundUsers().size() == 1) {
-                    switch (current.getMode()) {
-                        case TabType.TABTYPE_HOME:
-                        case TabType.TABTYPE_MENTION:
-                        case TabType.TABTYPE_DM:
-                        case TabType.TABTYPE_LIST:
-                            intent.putExtra(TweetActivity.EXTRA_USER, current.getCurrentUser());
-                            break;
-                    }
-                }
+                throw new RuntimeException("DefaultTweetListFragmentは死んでいるはずでは？ Title: " + current.getTitle() + ", Type: " + current.getMode());
             }
         startActivity(intent);
     }
