@@ -67,7 +67,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("ブックマークに追加") {
-                twitterService.database.updateRecord(Bookmark((status as TwitterStatus).status as PreformedStatus))
+                twitterService.database.updateRecord(Bookmark(PreformedStatus((status as TwitterStatus).status, status.representUser)))
                 showToast("ブックマークしました")
             } visibleWhen { status is TwitterStatus },
 
