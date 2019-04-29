@@ -181,13 +181,14 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
         cvTweets = v.findViewById(R.id.cvProfileTweets);
         cvTweets.setOnClickListener(view -> {
-            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_USER);
+            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
-            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_USER);
+            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
             args1.putSerializable(TweetListFragment.EXTRA_USER, user);
             args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
             args1.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
+            args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s/%s\"", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
             fragment.setArguments(args1);
 
@@ -227,13 +228,14 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         });
         cvFavorites = v.findViewById(R.id.cvProfileFavorites);
         cvFavorites.setOnClickListener(view -> {
-            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FAVORITE);
+            Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
-            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FAVORITE);
+            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
             args1.putSerializable(TweetListFragment.EXTRA_USER, user);
             args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
             args1.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
+            args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from favorite:\"%s/%s\"", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
             fragment.setArguments(args1);
 
