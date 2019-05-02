@@ -36,7 +36,7 @@ dependencies {
 //    compile "com.android.support:multidex:1.0.2"
 
     // Play Services
-    implementation "com.google.android.gms:play-services-drive:${playServicesVersion}"
+    implementation "com.google.android.gms:play-services-base:${playServicesVersion}"
 
     // UI互換
     implementation 'com.github.machinarius:preferencefragment:0.1.1'
