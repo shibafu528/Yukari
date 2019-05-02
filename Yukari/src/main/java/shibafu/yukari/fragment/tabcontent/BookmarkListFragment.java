@@ -1,5 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
+import android.support.annotation.NonNull;
 import com.annimon.stream.Collectors;
 import com.annimon.stream.Optional;
 import com.annimon.stream.Stream;
@@ -8,18 +9,21 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.entity.Status;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 /**
  * Created by shibafu on 14/02/13.
  */
-public class BookmarkListFragment extends TweetListFragment {
+public class BookmarkListFragment extends TweetListFragment implements QueryableTab {
 
     @Override
     protected void executeLoader(int requestMode, AuthUserRecord userRecord) {
@@ -49,6 +53,20 @@ public class BookmarkListFragment extends TweetListFragment {
 
     @Override
     public void onServiceDisconnected() {}
+
+    @NonNull
+    @Override
+    public Collection<Status> getQueryableElements() {
+        // スレッドセーフに列挙を実行したい
+        List<PreformedStatus> copyOfElements = new ArrayList<>(elements);
+        List<Status> queryableElements = new ArrayList<>();
+
+        for (PreformedStatus element : copyOfElements) {
+            queryableElements.add(new TwitterStatus(element, element.getRepresentUser()));
+        }
+
+        return queryableElements;
+    }
 
     private class BookmarkLoader extends ParallelAsyncTask<Void, Void, List<Bookmark>> {
 
