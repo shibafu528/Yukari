@@ -25,12 +25,9 @@ import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.AutoMuteConfig;
-import shibafu.yukari.fragment.DriveConnectionDialogFragment;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 
@@ -85,14 +82,9 @@ public class AutoMuteActivity extends ActionBarYukariBase{
     }
 
     public static class InnerFragment extends ListFragment implements
-            SimpleAlertDialogFragment.OnDialogChoseListener,
-            DriveConnectionDialogFragment.OnDriveImportCompletedListener {
-        private static final String DRIVE_FILE_NAME = "automute.json";
-        private static final String DRIVE_MIME_TYPE = "application/json";
+            SimpleAlertDialogFragment.OnDialogChoseListener {
 
         private static final int DIALOG_DELETE = 0;
-        private static final int DIALOG_IMPORT = 1;
-        private static final int DIALOG_EXPORT = 2;
 
         private List<AutoMuteConfig> configs;
         private AutoMuteConfig deleteReserve = null;
@@ -130,35 +122,6 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                 case R.id.action_add: {
                     AutoMuteConfigDialogFragment dialogFragment = AutoMuteConfigDialogFragment.newInstance(null, this);
                     dialogFragment.show(getFragmentManager(), "config");
-                    return true;
-                }
-                case R.id.action_import: {
-                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            DIALOG_IMPORT,
-                            "Driveからインポート",
-                            "Driveから設定をインポートします。\nこの端末のオートミュート設定は全て上書きされます！！\n実行してもよろしいですか？",
-                            "OK",
-                            "キャンセル"
-                    );
-                    dialogFragment.setTargetFragment(this, 0);
-                    dialogFragment.show(getFragmentManager(), "dimport");
-                    return true;
-                }
-                case R.id.action_export: {
-                    SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                            DIALOG_EXPORT,
-                            "Driveにエクスポート",
-                            "Driveに設定をエクスポートします。\n既にエクスポートしたデータがある場合上書きします。\n実行してもよろしいですか？",
-                            "OK",
-                            "キャンセル"
-                    );
-                    dialogFragment.setTargetFragment(this, 0);
-                    dialogFragment.show(getFragmentManager(), "dimport");
-                    return true;
-                }
-                case R.id.action_sign_out: {
-                    DriveConnectionDialogFragment fragment = DriveConnectionDialogFragment.newInstance(DriveConnectionDialogFragment.MODE_SIGN_OUT);
-                    fragment.show(getFragmentManager(), "sign_out");
                     return true;
                 }
             }
@@ -199,26 +162,8 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                         }
                         deleteReserve = null;
                         break;
-                    case DIALOG_IMPORT:
-                        DriveConnectionDialogFragment.newInstance(DRIVE_FILE_NAME, DRIVE_MIME_TYPE, this)
-                                .show(getFragmentManager(), "import");
-                        break;
-                    case DIALOG_EXPORT:
-                        DriveConnectionDialogFragment.newInstance(
-                                DRIVE_FILE_NAME, DRIVE_MIME_TYPE, new Gson().toJson(configs).getBytes())
-                                .show(getFragmentManager(), "export");
-                        break;
                 }
             }
-        }
-
-        @Override
-        public void onDriveImportCompleted(byte[] bytes) {
-            List<AutoMuteConfig> newConfigs = new Gson().fromJson(new String(bytes), new TypeToken<List<AutoMuteConfig>>(){}.getType());
-            TwitterService twitterService = ((AutoMuteActivity) getActivity()).getTwitterService();
-            twitterService.getDatabase().importRecords(newConfigs);
-            twitterService.updateAutoMuteConfig();
-            reloadList();
         }
 
         private class Adapter extends ArrayAdapter<AutoMuteConfig> {

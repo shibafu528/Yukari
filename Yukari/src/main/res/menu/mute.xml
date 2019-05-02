@@ -6,10 +6,4 @@
         android:title="条件の追加"
         android:icon="@drawable/ic_action_add"
         yukari:showAsAction="always"/>
-    <item android:id="@+id/action_import"
-        android:title="Driveからインポート"/>
-    <item android:id="@+id/action_export"
-        android:title="Driveにエクスポート"/>
-    <item android:id="@+id/action_sign_out"
-        android:title="Driveサインアウト"/>
 </menu>
