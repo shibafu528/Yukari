@@ -152,7 +152,11 @@ dependencies {
     // UI追加
     implementation 'com.larswerkman:HoloColorPicker:1.4'
     implementation 'com.code-troopers.betterpickers:library:3.1.0'
-    implementation project(':GalleryMultiPicker:library')
+    implementation project(':GalleryMultiPicker:library'), {
+        // TODO: y4a側のsupport libのバージョンを28系に上げれば、ここは消せる
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+        exclude group: 'com.android.support', module: 'design'
+    }
 
     // Twitter4J
     implementation "org.twitter4j:twitter4j-core:${twitter4jVersion}"
