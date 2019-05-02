@@ -36,7 +36,7 @@ class GitUtil {
 }
 
 ext {
-    supportLibVersion = '26.1.0'
+    supportLibVersion = '28.0.0'
     playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'

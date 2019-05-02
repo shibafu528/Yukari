@@ -87,7 +87,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
 
             if (!(status.getStatusRelation(listOf(userRecord)) == Status.RELATION_MENTIONED_TO_ME && status.mentions.size == 1) &&
                     status.mentions.isNotEmpty() && defaultSharedPreferences.getBoolean("pref_choose_reply_to", true)) {
-                val popupMenu = PopupMenu(activity, ibReply)
+                val popupMenu = PopupMenu(requireContext(), ibReply)
                 popupMenu.inflate(R.menu.reply_to)
                 popupMenu.setOnMenuItemClickListener { menuItem ->
                     when (menuItem.itemId) {
@@ -123,7 +123,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 // お気に入り未登録
                 val canRecursiveFavorite = status is TwitterStatus && !status.quoteEntities.isEmpty
                 if (defaultSharedPreferences.getBoolean("pref_fav_with_quotes", false) && canRecursiveFavorite) {
-                    val popupMenu = PopupMenu(context, ibFavorite)
+                    val popupMenu = PopupMenu(requireContext(), ibFavorite)
                     popupMenu.menu.add(Menu.NONE, 0, Menu.NONE, "お気に入り登録")
                     popupMenu.menu.add(Menu.NONE, 1, Menu.NONE, "引用もまとめてお気に入り登録")
                     popupMenu.setOnMenuItemClickListener { menuItem ->
@@ -174,6 +174,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
             } else {
                 val userRecord = userRecord ?: return@setOnClickListener
 
+                val activity = requireActivity()
                 val intent = AsyncCommandService.createRepost(activity, status, userRecord)
                 activity.startService(intent)
 
@@ -210,6 +211,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
             } else {
                 val userRecord = userRecord ?: return@setOnClickListener
 
+                val activity = requireActivity()
                 val intent = AsyncCommandService.createFavAndRepost(activity, status, userRecord)
                 activity.startService(intent)
 
@@ -286,7 +288,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
         return v
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val delta = resources.getDimensionPixelSize(R.dimen.status_button_delta).toFloat()
 
@@ -337,10 +339,11 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return
                 }
                 REQUEST_REPLY, REQUEST_QUOTE -> {
-                    activity.finish()
+                    requireActivity().finish()
                 }
                 REQUEST_RT_QUOTE -> {
                     val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
+                    val activity = requireActivity()
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     ContextCompat.startForegroundService(activity,
                             PostService.newIntent(activity, draft,
@@ -350,6 +353,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 }
                 REQUEST_FRT_QUOTE -> {
                     val draft = data?.getParcelableExtra(TweetActivity.EXTRA_DRAFT) as? StatusDraft ?: return
+                    val activity = requireActivity()
                     //これ、RT失敗してもツイートしちゃうんですよねえ
                     ContextCompat.startForegroundService(activity,
                             PostService.newIntent(activity, draft,
@@ -361,6 +365,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     if (data == null) {
                         return
                     }
+                    val activity = requireActivity()
                     val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
                     selectedUsers.map { AsyncCommandService.createFavorite(activity.applicationContext, status, it) }
                             .forEach { activity.startService(it) }
@@ -369,6 +374,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     if (data == null) {
                         return
                     }
+                    val activity = requireActivity()
                     val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
                     selectedUsers.map { AsyncCommandService.createRepost(activity.applicationContext, status, it) }
                             .forEach { activity.startService(it) }
@@ -377,6 +383,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                     if (data == null) {
                         return
                     }
+                    val activity = requireActivity()
                     val selectedUsers = data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORDS) as ArrayList<AuthUserRecord>
                     selectedUsers.map { AsyncCommandService.createFavAndRepost(activity.applicationContext, status, it) }
                             .forEach { activity.startService(it) }
@@ -409,6 +416,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     val userRecord = userRecord ?: return
 
+                    val activity = requireActivity()
                     val intent = AsyncCommandService.createRepost(activity, status, userRecord)
                     activity.startService(intent)
 
@@ -419,6 +427,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     val userRecord = userRecord ?: return
 
+                    val activity = requireActivity()
                     val intent = AsyncCommandService.createFavAndRepost(activity, status, userRecord)
                     activity.startService(intent)
 
@@ -524,6 +533,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
             }
         }
 
+        val activity = requireActivity()
         val intent = AsyncCommandService.createFavorite(activity, status, userRecord)
         activity.startService(intent)
 
@@ -540,6 +550,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
     private fun destroyFavorite() {
         val userRecord = userRecord ?: return
 
+        val activity = requireActivity()
         val intent = AsyncCommandService.destroyFavorite(activity, status, userRecord)
         activity.startService(intent)
 
@@ -548,7 +559,7 @@ class StatusMainFragment : TwitterFragment(), StatusChildUI, SimpleAlertDialogFr
 
     private fun closeAfterFavorite() {
         if (defaultSharedPreferences.getBoolean("pref_close_after_fav", false)) {
-            activity.finish()
+            requireActivity().finish()
         }
     }
 

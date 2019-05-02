@@ -64,13 +64,13 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
             }
         }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         if (defaultSharedPreferences.getString("pref_theme", "light").endsWith("dark")) {
-            view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
+            view.setBackgroundResource(R.drawable.dialog_full_material_dark)
         } else {
-            view?.setBackgroundResource(R.drawable.dialog_full_material_light)
+            view.setBackgroundResource(R.drawable.dialog_full_material_light)
         }
     }
 
@@ -142,7 +142,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
             existsUserId += mention.id
         }
 
-        listAdapter = RowAdapter(activity, list)
+        listAdapter = RowAdapter(requireActivity(), list)
         listView.setOnItemLongClickListener { _, _, position, _ ->
             val row = list[position]
             row.onLongClick()
@@ -237,7 +237,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         override val actions: List<ExtraAction> = {
             val uri = Uri.parse(url)
             val intent = Intent(ACTION_LINK_ACCEL, uri)
-            val pm = activity.packageManager
+            val pm = requireActivity().packageManager
             pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).map { resolveInfo ->
                 ExtraAction(resolveInfo.loadIcon(pm), resolveInfo.loadLabel(pm).toString(), {
                     val grantName = try {
@@ -397,7 +397,7 @@ class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
         }
 
         override fun onClick() {
-            val intent = ProfileActivity.newIntent(activity, userRecord, Uri.parse(user.url))
+            val intent = ProfileActivity.newIntent(requireActivity(), userRecord, Uri.parse(user.url))
             startActivity(intent)
         }
     }

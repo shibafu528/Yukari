@@ -169,11 +169,11 @@ class OAuthActivity : ActionBarYukariBase() {
     class ProviderChooserFragment : ListFragment() {
         private lateinit var adapter: ArrayAdapter<Option>
 
-        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater?.inflate(R.layout.fragment_oauth_provider, container, false)
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            return inflater.inflate(R.layout.fragment_oauth_provider, container, false)
         }
 
-        override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
             adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1)
@@ -216,7 +216,7 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private fun existsTwitterApp(): Boolean {
             try {
-                activity.packageManager.getActivityInfo(TWITTER_AUTH_ACTIVITY, PackageManager.GET_META_DATA)
+                requireActivity().packageManager.getActivityInfo(TWITTER_AUTH_ACTIVITY, PackageManager.GET_META_DATA)
                 return true
             } catch (ignored: PackageManager.NameNotFoundException) {}
 
@@ -236,11 +236,11 @@ class OAuthActivity : ActionBarYukariBase() {
         var requestToken: RequestToken? = null
         var verifier: String? = null
 
-        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater?.inflate(R.layout.activity_parent, container, false)
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            return inflater.inflate(R.layout.activity_parent, container, false)
         }
 
-        override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
             if (savedInstanceState == null) {
@@ -264,7 +264,7 @@ class OAuthActivity : ActionBarYukariBase() {
                             startActivity(intent)
                         } else {
                             Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
-                            activity.supportFragmentManager.popBackStack()
+                            requireActivity().supportFragmentManager.popBackStack()
                         }
                     }
                 }
@@ -274,9 +274,9 @@ class OAuthActivity : ActionBarYukariBase() {
             }
         }
 
-        override fun onSaveInstanceState(outState: Bundle?) {
+        override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
-            outState?.putSerializable("requestToken", requestToken)
+            outState.putSerializable("requestToken", requestToken)
         }
 
         override fun onResume() {
@@ -285,7 +285,7 @@ class OAuthActivity : ActionBarYukariBase() {
             if (requestToken != null) {
                 if (verifier == null) {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.popBackStack()
+                    requireActivity().supportFragmentManager.popBackStack()
                 } else {
                     val task = object : AsyncTask<Void, Void, AccessToken>() {
                         var dialog: LoadDialogFragment? = null
@@ -327,11 +327,11 @@ class OAuthActivity : ActionBarYukariBase() {
 
     @RuntimePermissions
     class TwitterAppAuthFragment : Fragment() {
-        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater?.inflate(R.layout.activity_parent, container, false)
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            return inflater.inflate(R.layout.activity_parent, container, false)
         }
 
-        override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
             if (savedInstanceState == null) {
@@ -359,7 +359,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     }
                 } else {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.popBackStack()
+                    requireActivity().supportFragmentManager.popBackStack()
                 }
             }
         }
@@ -378,9 +378,9 @@ class OAuthActivity : ActionBarYukariBase() {
                 startActivityForResult(intent, REQUEST_TWITTER)
             } catch (e: SecurityException) {
                 e.printStackTrace()
-                Toast.makeText(activity.applicationContext, "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireActivity().applicationContext, "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show()
 
-                activity.supportFragmentManager.beginTransaction()
+                requireActivity().supportFragmentManager.beginTransaction()
                         .replace(R.id.frame, TwitterOAuthFragment())
                         .commit()
             }
@@ -389,7 +389,7 @@ class OAuthActivity : ActionBarYukariBase() {
         @OnPermissionDenied("com.twitter.android.permission.AUTH_APP")
         fun onDeniedTwitterAuth() {
             showToast("公式アプリから認証するには権限の許可が必要です。")
-            activity.supportFragmentManager.popBackStack()
+            requireActivity().supportFragmentManager.popBackStack()
         }
     }
 
@@ -399,8 +399,8 @@ class OAuthActivity : ActionBarYukariBase() {
 
         private lateinit var tilInstanceHostName: TextInputLayout
 
-        override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            val v = inflater!!.inflate(R.layout.fragment_oauth_mastodon, container, false)
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            val v = inflater.inflate(R.layout.fragment_oauth_mastodon, container, false)
             tilInstanceHostName = v.findViewById(R.id.tilInstanceHostName) as TextInputLayout
             v.findViewById<Button>(R.id.btnLogin).setOnClickListener listener@ {
                 val instanceHostName = tilInstanceHostName.editText?.text.toString()
@@ -434,9 +434,9 @@ class OAuthActivity : ActionBarYukariBase() {
             return v
         }
 
-        override fun onSaveInstanceState(outState: Bundle?) {
+        override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
-            outState?.putSerializable("currentProvider", currentProvider)
+            outState.putSerializable("currentProvider", currentProvider)
         }
 
         override fun onResume() {
@@ -447,7 +447,7 @@ class OAuthActivity : ActionBarYukariBase() {
                 val authorizeCode = authorizeCode
                 if (authorizeCode == null) {
                     Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    activity.supportFragmentManager.popBackStack()
+                    requireActivity().supportFragmentManager.popBackStack()
                 } else {
                     finishAuthorize(currentProvider, authorizeCode)
                 }

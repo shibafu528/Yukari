@@ -89,7 +89,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
 
             var adapter = listAdapter as? ChannelListAdapter
             if (adapter == null) {
-                adapter = ChannelListAdapter(context, channelList.toMutableList())
+                adapter = ChannelListAdapter(requireContext(), channelList.toMutableList())
                 listAdapter = adapter
             } else {
                 adapter.clear()

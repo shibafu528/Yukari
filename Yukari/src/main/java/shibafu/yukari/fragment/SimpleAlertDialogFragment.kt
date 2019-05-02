@@ -9,7 +9,7 @@ import android.widget.Button
 
 class SimpleAlertDialogFragment : DialogFragment(), DialogInterface.OnClickListener {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val args = arguments
+        val args = arguments ?: throw IllegalStateException("arguments is null!")
         val iconId = args.getInt(ARG_ICON, -1)
         val title = args.getString(ARG_TITLE)
         val message = args.getString(ARG_MESSAGE)
@@ -18,7 +18,7 @@ class SimpleAlertDialogFragment : DialogFragment(), DialogInterface.OnClickListe
         val negative = args.getString(ARG_NEGATIVE)
         val disableCaps = args.getBoolean(ARG_DISABLE_CAPS)
 
-        val builder = AlertDialog.Builder(activity)
+        val builder = AlertDialog.Builder(requireActivity())
 
         if (iconId > -1) builder.setIcon(iconId)
         if (title != null) builder.setTitle(title)
@@ -59,6 +59,7 @@ class SimpleAlertDialogFragment : DialogFragment(), DialogInterface.OnClickListe
         }
 
         if (listener != null) {
+            val arguments = arguments ?: throw IllegalStateException("arguments is null!")
             listener.onDialogChose(arguments.getInt(ARG_REQUEST_CODE), i, arguments.getBundle(ARG_EXTRAS))
         }
     }

@@ -71,7 +71,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     override val timelineId: String
         get() {
             val args = arguments
-            if (args.containsKey(TwitterListFragment.EXTRA_ID)) {
+            if (args != null && args.containsKey(TwitterListFragment.EXTRA_ID)) {
                 return args.getLong(TwitterListFragment.EXTRA_ID).toString()
             } else {
                 return this.toString()
@@ -119,29 +119,29 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
 
         if (context is MainActivity) {
             statuses.addAll(context.getStatusesList(timelineId))
-            context.registerTwitterFragment(arguments.getLong(TweetListFragment.EXTRA_ID), this)
+            context.registerTwitterFragment(arguments!!.getLong(TweetListFragment.EXTRA_ID), this)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val arguments = arguments
+        val arguments = arguments ?: Bundle()
         title = arguments.getString(TwitterListFragment.EXTRA_TITLE) ?: ""
         mode = arguments.getInt(TwitterListFragment.EXTRA_MODE, -1)
         rawQuery = arguments.getString(EXTRA_FILTER_QUERY) ?: FilterQuery.VOID_QUERY_STRING
         arguments.getSerializable(TwitterListFragment.EXTRA_USER)?.let { users += it as AuthUserRecord }
     }
 
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         when (mode) {
             TabType.TABTYPE_TRACE, TabType.TABTYPE_DM ->
                 return super.onCreateView(inflater, container, savedInstanceState)
         }
-        val v = inflater!!.inflate(R.layout.fragment_swipelist, container, false)
+        val v = inflater.inflate(R.layout.fragment_swipelist, container, false)
 
         swipeRefreshLayout = v.findViewById(R.id.swipe_refresh_layout) as SwipeRefreshLayout?
-        swipeRefreshLayout?.setColorSchemeResources(AttrUtil.resolveAttribute(context.theme, R.attr.colorPrimary))
+        swipeRefreshLayout?.setColorSchemeResources(AttrUtil.resolveAttribute(requireContext().theme, R.attr.colorPrimary))
         swipeRefreshLayout?.setOnRefreshListener(this)
 
         val swipeActionStatusView = v.findViewById<View>(R.id.swipeActionStatusFrame)
@@ -160,7 +160,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
     override fun onResume() {
         super.onResume()
 
-        val activity = activity
+        val activity = requireActivity()
         if (activity !is MainActivity) {
             if (activity is AppCompatActivity) {
                 activity.supportActionBar?.title = title
@@ -173,7 +173,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
         blockingDoubleClick = false
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         statusAdapter = TweetAdapter(context, users, null, statuses)
         listAdapter = statusAdapter
@@ -220,7 +220,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             val statusesList = (activity as MainActivity).getStatusesList(timelineId)
             statusesList.clear()
             statusesList.addAll(statuses)
-            (activity as MainActivity).unregisterTwitterFragment(arguments.getLong(TweetListFragment.EXTRA_ID))
+            (activity as MainActivity).unregisterTwitterFragment(arguments!!.getLong(TweetListFragment.EXTRA_ID))
         }
     }
 
@@ -352,6 +352,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         } catch (e: IllegalStateException) {
             e.printStackTrace()
+            val activity = activity
             if (activity?.applicationContext != null) {
                 Toast.makeText(activity.applicationContext, e.localizedMessage, Toast.LENGTH_SHORT).show()
             }
@@ -471,12 +472,12 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                 when (which) {
                     // プロフィール
                     0 -> {
-                        val intent = ProfileActivity.newIntent(activity.applicationContext, status.representUser, Uri.parse(status.user.url))
+                        val intent = ProfileActivity.newIntent(requireActivity().applicationContext, status.representUser, Uri.parse(status.user.url))
                         startActivity(intent)
                     }
                     // 詳細を開く
                     1 -> {
-                        val intent = Intent(activity.applicationContext, StatusActivity::class.java)
+                        val intent = Intent(requireActivity().applicationContext, StatusActivity::class.java)
                         intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)
                         intent.putExtra(StatusActivity.EXTRA_STATUS, status.status)
                         startActivity(intent)
@@ -512,7 +513,7 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                     }
                     // 送信者
                     2 -> {
-                        val intent = ProfileActivity.newIntent(activity, status.representUser, Uri.parse(status.user.url))
+                        val intent = ProfileActivity.newIntent(requireActivity(), status.representUser, Uri.parse(status.user.url))
                         startActivity(intent)
                     }
                     // リンクとか
@@ -525,14 +526,14 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
                         val chose = links[which - 3]
                         when (chose) {
                             is Mention -> {
-                                val intent = ProfileActivity.newIntent(activity, status.representUser, Uri.parse(chose.url))
+                                val intent = ProfileActivity.newIntent(requireActivity(), status.representUser, Uri.parse(chose.url))
                                 startActivity(intent)
                             }
                             is Media -> {
                                 val intent = Intent(
                                         Intent.ACTION_VIEW,
                                         Uri.parse(chose.browseUrl),
-                                        activity.applicationContext,
+                                        requireActivity().applicationContext,
                                         PreviewActivity::class.java)
                                 intent.putExtra(PreviewActivity.EXTRA_USER, status.representUser)
                                 startActivity(intent)

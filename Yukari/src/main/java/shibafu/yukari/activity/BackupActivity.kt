@@ -377,8 +377,10 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
     class BackupFragment : ListFragment() {
         val checkedStates = SparseArrayCompat<Boolean>()
 
-        override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
+
+            val activity = requireActivity()
 
             val options = activity.resources.getStringArray(R.array.backup_options)
 
@@ -391,11 +393,9 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
             listAdapter = BackupOptionListAdapter(activity, options)
         }
 
-        override fun onSaveInstanceState(outState: Bundle?) {
+        override fun onSaveInstanceState(outState: Bundle) {
             super.onSaveInstanceState(outState)
-            outState?.let {
-                checkedStates.forEach { i, b -> outState.putBoolean(i.toString(), b) }
-            }
+            checkedStates.forEach { i, b -> outState.putBoolean(i.toString(), b) }
         }
 
         override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {

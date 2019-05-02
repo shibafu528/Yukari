@@ -61,7 +61,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("パーマリンクをコピー") {
-                val cm = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val cm = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.primaryClip = ClipData.newPlainText("", status.originStatus.url)
                 showToast("リンクをコピーしました")
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
@@ -118,13 +118,13 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
             }
         }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         if (defaultSharedPreferences.getString("pref_theme", "light").endsWith("dark")) {
-            view?.setBackgroundResource(R.drawable.dialog_full_material_dark)
+            view.setBackgroundResource(R.drawable.dialog_full_material_dark)
         } else {
-            view?.setBackgroundResource(R.drawable.dialog_full_material_light)
+            view.setBackgroundResource(R.drawable.dialog_full_material_light)
         }
     }
 
@@ -137,8 +137,8 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                 } else {
                     val query = Intent("jp.r246.twicca.ACTION_SHOW_TWEET").addCategory(Intent.CATEGORY_DEFAULT)
 
-                    activity.packageManager.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY)
-                        .sortedWith(ResolveInfo.DisplayNameComparator(activity.packageManager))
+                    requireActivity().packageManager.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY)
+                        .sortedWith(ResolveInfo.DisplayNameComparator(requireActivity().packageManager))
                         .map { TwiccaPluginAction(it) }
                 }
 
@@ -164,7 +164,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        childFragmentManager.fragments?.forEach {
+        childFragmentManager.fragments.forEach {
             it.onActivityResult(requestCode, resultCode, data)
         }
     }
@@ -186,13 +186,13 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
                         twitterService.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
                     }
                 }
-                activity.finish()
+                requireActivity().finish()
             }
         }
     }
 
     private fun onSelectedMuteOption(muteOption: QuickMuteOption) {
-        startActivity(muteOption.toIntent(activity))
+        startActivity(muteOption.toIntent(requireActivity()))
     }
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
@@ -259,7 +259,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
      * Twicca Pluginとの相互運用コマンドクラス
      */
     private inner class TwiccaPluginAction(private val resolveInfo: ResolveInfo) : StatusAction() {
-        override val label: String = resolveInfo.activityInfo.loadLabel(activity.packageManager).toString()
+        override val label: String = resolveInfo.activityInfo.loadLabel(requireActivity().packageManager).toString()
 
         override fun onClick() {
             val status = this@StatusActionFragment.status.originStatus
@@ -342,6 +342,7 @@ class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListe
     class MuteMenuDialogFragment : DialogFragment() {
 
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+            val arguments = arguments ?: throw IllegalStateException("arguments is null!")
             val muteOptions = QuickMuteOption.fromStatus(arguments.getSerializable("status") as Status)
             val items = muteOptions.map { it.toString() }.toTypedArray()
 
