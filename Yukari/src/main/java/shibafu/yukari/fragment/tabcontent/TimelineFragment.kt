@@ -62,7 +62,7 @@ import twitter4j.TwitterException
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, QueryableTab, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING
@@ -601,6 +601,8 @@ open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserv
             }
         }
     }
+
+    override fun getQueryableElements(): MutableCollection<Status> = ArrayList(statuses)
 
     @WorkerThread
     override fun onTimelineEvent(event: TimelineEvent) {

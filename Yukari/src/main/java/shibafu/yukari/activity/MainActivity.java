@@ -56,6 +56,7 @@ import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
 import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
+import shibafu.yukari.fragment.tabcontent.QueryableTab;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -72,8 +73,8 @@ import twitter4j.TwitterResponse;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -264,7 +265,11 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         startActivity(new Intent(getApplicationContext(), UserSearchActivity.class));
                         break;
                     case R.id.action_query:
-                        startActivityForResult(new Intent(getApplicationContext(), QueryEditorActivity.class), REQUEST_QUERY);
+                        if (currentPage instanceof QueryableTab) {
+                            startActivityForResult(new Intent(getApplicationContext(), QueryEditorActivity.class), REQUEST_QUERY);
+                        } else {
+                            Toast.makeText(getApplicationContext(), "このタブではクエリを実行できません。", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                 }
                 return false;
@@ -661,26 +666,31 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
                 case REQUEST_QUERY: {
                     try {
+                        if (!(currentPage instanceof QueryableTab)) {
+                            Toast.makeText(getApplicationContext(), "クエリの実行に失敗しました。", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
                         long time = System.currentTimeMillis();
 
                         List<AuthUserRecord> users = getTwitterService().getUsers();
                         String rawQuery = data.getStringExtra(Intent.EXTRA_TEXT);
                         FilterQuery query = QueryCompiler.compile(users, rawQuery);
                         TabInfo tabInfo = new TabInfo(TabType.TABTYPE_FILTER, pageList.size(), null, rawQuery);
-                        ArrayList<TwitterResponse> elements = new ArrayList<>(pageElements.get(pageList.get(viewPager.getCurrentItem()).getId()));
-                        for (Iterator<TwitterResponse> iterator = elements.iterator(); iterator.hasNext(); ) {
-                            TwitterResponse element = iterator.next();
-                            if (!query.evaluate(element, users, new HashMap<>())) {
-                                iterator.remove();
+                        Collection<Status> queryableElements = ((QueryableTab) currentPage).getQueryableElements();
+                        ArrayList<Status> resultElements = new ArrayList<>();
+                        for (Status element : queryableElements) {
+                            if (query.evaluate(element, users, new HashMap<>())) {
+                                resultElements.add(element);
                             }
                         }
-                        pageElements.put(tabInfo.getId(), elements);
+                        pageStatuses.put(String.valueOf(tabInfo.getId()), resultElements);
                         addTab(tabInfo);
                         viewPager.getAdapter().notifyDataSetChanged();
                         viewPager.setCurrentItem(tabInfo.getOrder());
 
                         time = System.currentTimeMillis() - time;
-                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n%s\n処理時間: %d ms\n抽出件数: %d 件", rawQuery, time, elements.size()), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n%s\n処理時間: %d ms\n抽出件数: %d 件", rawQuery, time, resultElements.size()), Toast.LENGTH_LONG).show();
                     } catch (FilterCompilerException | TokenizeException e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_LONG).show();
