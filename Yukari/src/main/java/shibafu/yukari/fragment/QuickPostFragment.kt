@@ -47,7 +47,7 @@ class QuickPostFragment : Fragment() {
         set(value) {
             field = value
             if (value != null) {
-                ImageLoaderTask.loadProfileIcon(context.applicationContext, ibSelectAccount, value.ProfileImageUrl)
+                ImageLoaderTask.loadProfileIcon(requireContext().applicationContext, ibSelectAccount, value.ProfileImageUrl)
             }
         }
 
@@ -55,7 +55,7 @@ class QuickPostFragment : Fragment() {
     private lateinit var ibSelectAccount: ImageButton
     private lateinit var ibTweet: ImageButton
     private lateinit var etTweet: EditText
-    private val imm by lazy { context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
+    private val imm by lazy { requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -74,7 +74,7 @@ class QuickPostFragment : Fragment() {
         return v
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         ibCloseTweet.setOnClickListener { onClickClose() }
@@ -117,12 +117,10 @@ class QuickPostFragment : Fragment() {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle?) {
+    override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState?.let {
-            outState.putString("defaultText", defaultText)
-            outState.putSerializable("selectedAccount", selectedAccount)
-        }
+        outState.putString("defaultText", defaultText)
+        outState.putSerializable("selectedAccount", selectedAccount)
     }
 
     fun onClickClose() {
@@ -137,7 +135,7 @@ class QuickPostFragment : Fragment() {
     }
 
     fun onClickSelectAccount() {
-        val intent = Intent(context.applicationContext, AccountChooserActivity::class.java)
+        val intent = Intent(requireContext().applicationContext, AccountChooserActivity::class.java)
         startActivityForResult(intent, REQUEST_CHOOSE_ACCOUNT)
     }
 
@@ -164,7 +162,8 @@ class QuickPostFragment : Fragment() {
             )
 
             //サービス起動
-            ContextCompat.startForegroundService(activity, PostService.newIntent(context.applicationContext, draft))
+            val context = requireContext()
+            ContextCompat.startForegroundService(context, PostService.newIntent(context.applicationContext, draft))
 
             //投稿欄を掃除する
             etTweet.setText("")

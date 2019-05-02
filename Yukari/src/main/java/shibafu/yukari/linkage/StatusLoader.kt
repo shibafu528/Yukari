@@ -142,7 +142,7 @@ class StatusLoader(private val context: Context,
      * @return 実行中かつ中断されていなければ true
      */
     fun isRequestWorking(taskKey: Long): Boolean =
-            workingRequests.get(taskKey) != null && !workingRequests.get(taskKey).isCancelled
+            workingRequests.get(taskKey)?.let { !it.isCancelled } ?: false
 
     /**
      * 実行中の全てのリクエストをキャンセルします。
