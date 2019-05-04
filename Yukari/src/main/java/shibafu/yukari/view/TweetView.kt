@@ -101,15 +101,4 @@ class TweetView : StatusView {
             hideTextViews()
         }
     }
-
-    override fun decorateText(text: String): String {
-        var decoratedText = super.decorateText(text)
-        val status = status as TwitterStatus
-
-        if (mode == Mode.DEFAULT && status.metadata.isTooManyRepeatText && pref.getBoolean("pref_shorten_repeat_text", false)) {
-            decoratedText = status.metadata.repeatedSequence + "\n...(repeat)..."
-        }
-
-        return decoratedText
-    }
 }
