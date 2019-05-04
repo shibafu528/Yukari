@@ -55,7 +55,6 @@ import shibafu.yukari.filter.source.Search;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
-import shibafu.yukari.fragment.tabcontent.DefaultTweetListFragment;
 import shibafu.yukari.fragment.tabcontent.QueryableTab;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
@@ -703,7 +702,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private void startTweetActivity() {
         Intent intent = new Intent(getApplicationContext(), TweetActivity.class);
-        if (sharedPreferences.getBoolean("pref_use_binded_user", false))
+        if (sharedPreferences.getBoolean("pref_use_binded_user", false)) {
             if (currentPage instanceof TimelineFragment) {
                 TimelineFragment current = (TimelineFragment) this.currentPage;
 
@@ -726,10 +725,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 if (userRecord != null) {
                     intent.putExtra(TweetActivity.EXTRA_USER, userRecord);
                 }
-            } else if (currentPage instanceof DefaultTweetListFragment) {
-                DefaultTweetListFragment current = (DefaultTweetListFragment) this.currentPage;
-                throw new RuntimeException("DefaultTweetListFragmentは死んでいるはずでは？ Title: " + current.getTitle() + ", Type: " + current.getMode());
             }
+        }
         startActivity(intent);
     }
 
