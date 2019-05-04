@@ -11,6 +11,8 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
+import android.text.Spannable
+import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -156,10 +158,10 @@ abstract class StatusView : RelativeLayout {
             sb.setSpan(StyleSpan(Typeface.BOLD), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.setSpan(ForegroundColorSpan(Color.parseColor("#ff419b38")), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             sb.append(" ")
-            sb.append(text.replace("\n", " "))
+            sb.append(decorateTextSpan(text.replace("\n", " ")))
             tvText.text = sb
         } else {
-            tvText.text = text
+            tvText.text = decorateTextSpan(text)
         }
     }
 
@@ -334,6 +336,13 @@ abstract class StatusView : RelativeLayout {
         }
 
         return decoratedText
+    }
+
+    /**
+     * 本文欄のテキストをSpannableとして加工する。絵文字などの処理に使う。
+     */
+    protected open fun decorateTextSpan(text: String): Spannable {
+        return SpannableString(text)
     }
 
     /**
