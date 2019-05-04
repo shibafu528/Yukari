@@ -49,4 +49,8 @@
         <attr name="on_focused" format="reference"/>
     </declare-styleable>
     <attr name="listSortableHandleDrawable" format="reference"/>
+    <attr name="statusVisibilityPublicDrawable" format="reference"/>
+    <attr name="statusVisibilityUnlistedDrawable" format="reference"/>
+    <attr name="statusVisibilityPrivateDrawable" format="reference"/>
+    <attr name="statusVisibilityDirectDrawable" format="reference"/>
 </resources>

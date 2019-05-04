@@ -6,14 +6,18 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import shibafu.yukari.R
 import shibafu.yukari.database.Provider
 import shibafu.yukari.linkage.TimelineHubImpl
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.util.AttrUtil
 
 /**
  * [TwitterStatus]を表示するためのビュー
  */
 class TweetView : StatusView {
+    private val visibilityPrivateResId = AttrUtil.resolveAttribute(context.theme, R.attr.statusVisibilityPrivateDrawable)
+
     constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr)
@@ -42,6 +46,7 @@ class TweetView : StatusView {
 
         // 鍵垢アイコンの表示
         if (status.originStatus.user.isProtected) {
+            ivProtected.setImageResource(visibilityPrivateResId)
             ivProtected.visibility = View.VISIBLE
         } else {
             ivProtected.visibility = View.GONE

@@ -43,6 +43,11 @@
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
 
         <item name="listSortableHandleDrawable">@drawable/sortable_light</item>
+
+        <item name="statusVisibilityPublicDrawable">@drawable/ic_visibility_public_dark_18dp</item>
+        <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_dark_18dp</item>
+        <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_dark_18dp</item>
+        <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_dark_18dp</item>
     </style>
 
     <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
@@ -84,6 +89,11 @@
         <item name="colorAccent">@color/key_color_accent</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="statusVisibilityPublicDrawable">@drawable/ic_visibility_public_dark_18dp</item>
+        <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_dark_18dp</item>
+        <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_dark_18dp</item>
+        <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_dark_18dp</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark" parent="Theme.AppCompat">
@@ -129,6 +139,11 @@
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
 
         <item name="listSortableHandleDrawable">@drawable/sortable_dark</item>
+
+        <item name="statusVisibilityPublicDrawable">@drawable/ic_visibility_public_light_18dp</item>
+        <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_light_18dp</item>
+        <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_light_18dp</item>
+        <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
@@ -170,6 +185,11 @@
         <item name="colorAccent">@color/key_color_accent</item>
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
+
+        <item name="statusVisibilityPublicDrawable">@drawable/ic_visibility_public_light_18dp</item>
+        <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_light_18dp</item>
+        <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_light_18dp</item>
+        <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
     </style>
 
 </resources>
