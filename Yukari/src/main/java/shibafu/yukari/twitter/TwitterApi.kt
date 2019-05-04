@@ -205,7 +205,11 @@ class TwitterApi : ProviderApi {
                 update.isPossiblySensitive = draft.isPossiblySensitive
 
                 val result = twitter.updateStatus(update)
-                return TwitterStatus(result, userRecord)
+                val status = TwitterStatus(result, userRecord)
+
+                service.timelineHub?.onStatus("Twitter.PostStatus", status, true)
+
+                return status
             }
         } catch (e: TwitterException) {
             throw ProviderApiException("${e.errorCode} ${e.errorMessage}", e)
@@ -233,6 +237,9 @@ class TwitterApi : ProviderApi {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             twitter.destroyStatus(status.id)
+
+            service.timelineHub?.onDelete(TwitterStatus::class.java, status.id)
+
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ツイートを削除しました", Toast.LENGTH_SHORT).show()
             }
