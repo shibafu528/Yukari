@@ -31,9 +31,10 @@ class DonStatusView : StatusView {
         super.updateIndicator()
 
         val status = status as DonStatus
+        val originStatus = status.originStatus as DonStatus
 
         // 可視性アイコンの表示
-        when (status.status.visibility) {
+        when (originStatus.status.visibility) {
             Status.Visibility.Unlisted.value -> {
                 ivProtected.setImageResource(visibilityUnlistedResId)
                 ivProtected.visibility = View.VISIBLE
