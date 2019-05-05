@@ -25,8 +25,11 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
-import android.text.util.Linkify;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,6 +47,7 @@ import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.MuteActivity;
 import shibafu.yukari.activity.PreviewActivity;
+import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.Suppressor;
@@ -78,6 +82,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -473,30 +478,48 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
 
             //TODO: リンクがうまくはれてないことがしばしばあるよ
 
-            //URLを展開する
+            // URLを展開する
             URLEntity[] urlEntities = holder.targetUser.getDescriptionURLEntities();
-            if (urlEntities != null) for (URLEntity entity : urlEntities) {
+            if (urlEntities == null) {
+                urlEntities = new URLEntity[0];
+            }
+            for (URLEntity entity : urlEntities) {
                 bio = bio.replace(entity.getURL(), entity.getExpandedURL());
             }
 
-            //改行コードをBRタグにする
-            bio = bio.replaceAll("\\r\\n", "<br>").replaceAll("\\n", "<br>");
+            // Spannable化
+            SpannableString spannableBio = new SpannableString(bio);
 
-            //エスケープしてテキストを表示
-            tvBio.setText(Html.fromHtml(bio).toString());
-            Linkify.addLinks(tvBio, Linkify.WEB_URLS);
+            // URLをリンク化
+            for (URLEntity entity : urlEntities) {
+                Pattern pattern = Pattern.compile(entity.getExpandedURL(), Pattern.LITERAL);
+                Matcher matcher = pattern.matcher(spannableBio);
+
+                while (matcher.find()) {
+                    spannableBio.setSpan(new URLSpan(entity.getExpandedURL()), matcher.start(), matcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+            }
+
+            // ScreenNameをリンク化
+            Pattern screenNamePattern = Pattern.compile("@([a-zA-Z0-9_]{1,15})");
+            Matcher screenNameMatcher = screenNamePattern.matcher(spannableBio);
+            while (screenNameMatcher.find()) {
+                String screenName = screenNameMatcher.group(1);
+                spannableBio.setSpan(new ScreenNameSpan(user, TwitterUtil.getProfileUrl(screenName)), screenNameMatcher.start(), screenNameMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            // ハッシュタグをリンク化
+            Pattern hashTagPattern = Pattern.compile("[#\\uFF03]([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
+            Matcher hashTagMatcher = hashTagPattern.matcher(spannableBio);
+            while (hashTagMatcher.find()) {
+                String tag = hashTagMatcher.group(1);
+                spannableBio.setSpan(new HashTagSpan(tag), hashTagMatcher.start(), hashTagMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+
+            // 表示
+            tvBio.setText(spannableBio);
+            tvBio.setMovementMethod(LinkMovementMethod.getInstance());
             Log.d("ProfileFragment", "Profile: " + tvBio.getText());
-
-            //ScreenNameに対するリンク張り
-            Pattern pattern = Pattern.compile("@[a-zA-Z0-9_]{1,15}");
-            String jumpUrl = "content://shibafu.yukari.link/user/";
-            Linkify.addLinks(tvBio, pattern, jumpUrl);
-            //Hashtagに対するリンク張り
-            pattern = Pattern.compile(
-                    "(?:#|\\uFF03)([a-zA-Z0-9_\\u3041-\\u3094\\u3099-\\u309C\\u30A1-\\u30FA\\u3400-\\uD7FF\\uFF10-\\uFF19\\uFF20-\\uFF3A\\uFF41-\\uFF5A\\uFF66-\\uFF9E]+)");
-            final String jumpUrlHash = "content://shibafu.yukari.link/hash/";
-            Linkify.TransformFilter filter = (match, url) -> jumpUrlHash + match.group(match.groupCount());
-            Linkify.addLinks(tvBio, pattern, jumpUrlHash, null, filter);
         }
 
         if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("j_owakare_block", false)) {
@@ -1246,6 +1269,41 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                     })
                     .create();
             return dialog;
+        }
+    }
+
+    private static class ScreenNameSpan extends ClickableSpan {
+        private AuthUserRecord userRecord;
+        private String url;
+
+        public ScreenNameSpan(AuthUserRecord userRecord, String url) {
+            this.userRecord = userRecord;
+            this.url = url;
+        }
+
+        @Override
+        public void onClick(@NonNull View widget) {
+            Intent intent = ProfileActivity.newIntent(widget.getContext(), userRecord, Uri.parse(url));
+            widget.getContext().startActivity(intent);
+        }
+    }
+
+    private static class HashTagSpan extends ClickableSpan {
+        private String tag;
+
+        public HashTagSpan(String tag) {
+            if (tag.startsWith("#")) {
+                this.tag = tag;
+            } else {
+                this.tag = "#" + tag;
+            }
+        }
+
+        @Override
+        public void onClick(@NonNull View widget) {
+            Intent intent = new Intent(widget.getContext(), MainActivity.class);
+            intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, tag);
+            widget.getContext().startActivity(intent);
         }
     }
 }

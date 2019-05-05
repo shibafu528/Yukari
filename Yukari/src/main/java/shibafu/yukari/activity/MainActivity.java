@@ -392,10 +392,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         if (intent.hasExtra(EXTRA_SEARCH_WORD)) {
             onSearchQuery(intent.getStringExtra(EXTRA_SEARCH_WORD), false, false);
         }
-        else if (intent.getData() != null && intent.getData().getHost().equals("shibafu.yukari.link")) {
-            String hash = "#" + intent.getData().getLastPathSegment();
-            onSearchQuery(hash, false, false);
-        }
         else if (intent.hasExtra(EXTRA_SHOW_TAB)) {
             int tabType = intent.getIntExtra(EXTRA_SHOW_TAB, -1);
             if (tabType > -1) {

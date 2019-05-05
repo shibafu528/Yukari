@@ -156,11 +156,6 @@
             </intent-filter>
         </activity>
 
-        <provider
-            android:name="shibafu.yukari.provider.LinkProvider"
-            android:authorities="${applicationId}.link"
-            android:exported="false" />
-
         <activity
             android:name=".plugin.MorseInputActivity"
             android:icon="@drawable/ic_launcher_morse"
