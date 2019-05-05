@@ -54,6 +54,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
 import shibafu.yukari.fragment.tabcontent.FriendListFragment;
@@ -939,6 +940,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             }
             case R.id.action_set_priority: {
                 Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+                intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, Provider.API_TWITTER);
                 startActivityForResult(intent, REQUEST_PRIORITY_ACCOUNT);
                 return true;
             }
