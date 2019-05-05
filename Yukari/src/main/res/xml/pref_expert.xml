@@ -89,7 +89,7 @@
         <CheckBoxPreference
             android:key="pref_enable_service"
             android:title="Serviceの常駐"
-            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定しますが、RAMが解放されにくくなるのでマルチタスクには不利です"/>
+            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定します"/>
         <CheckBoxPreference
             android:key="pref_remove_name_newline"
             android:title="ユーザー名から改行文字を取り除く"
@@ -104,6 +104,6 @@
         <CheckBoxPreference
             android:key="pref_lock_scroll_after_reload"
             android:title="フィルタTL再読込後スクロール位置を保持"
-            android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします。\n※※フィルタタブでしか使えません※※"/>
+            android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします"/>
     </PreferenceCategory>
 </PreferenceScreen>
