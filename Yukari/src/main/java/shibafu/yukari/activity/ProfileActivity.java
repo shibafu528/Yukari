@@ -12,8 +12,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
+import com.deploygate.sdk.DeployGate;
 import shibafu.yukari.R;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
@@ -22,15 +24,28 @@ import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * Created by Shibafu on 13/08/10.
  */
 public class ProfileActivity extends AppCompatActivity {
+    private static final String LOG_TAG = ProfileActivity.class.getSimpleName();
 
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
 
     public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, @NonNull Uri target) {
+        // userRecord引数は将来的にNonNullにする。大半の呼出では指定されているはずだが、しばらくの間は調査する。
+        if (userRecord == null) {
+            StringWriter sw = new StringWriter();
+            sw.write("userRecordが省略されています。Yukari 2.1以降では非推奨です。\n");
+            new Throwable().printStackTrace(new PrintWriter(sw));
+            Log.w(LOG_TAG, sw.toString());
+            DeployGate.logWarn(sw.toString());
+        }
+
         Intent intent = new Intent(context, ProfileActivity.class);
         intent.putExtra(EXTRA_USER, userRecord);
         intent.setData(target);
