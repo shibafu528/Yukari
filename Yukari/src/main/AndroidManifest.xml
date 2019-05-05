@@ -30,14 +30,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter tools:ignore="AppLinkUrlError,GoogleAppIndexingWarning">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="vnd.${applicationId}/hash" />
-            </intent-filter>
             <meta-data
                 android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts"/>
@@ -145,16 +137,7 @@
 
         <activity
             android:name="shibafu.yukari.activity.ProfileActivity"
-            android:label="@string/title_activity_profile">
-            <intent-filter tools:ignore="AppLinkUrlError,GoogleAppIndexingWarning">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:mimeType="vnd.${applicationId}/user" />
-            </intent-filter>
-        </activity>
+            android:label="@string/title_activity_profile"/>
 
         <activity
             android:name=".plugin.MorseInputActivity"
