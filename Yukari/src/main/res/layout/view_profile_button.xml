@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -23,7 +24,7 @@
             android:id="@+id/tvProfileButtonCount"
             android:text="-"
             android:textSize="18sp"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@+id/ivProfileButtonIcon"
             android:layout_alignTop="@+id/ivProfileButtonIcon"
@@ -31,16 +32,21 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_marginLeft="8dp"
-            android:gravity="center_vertical"/>
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="18sp"/>
 
         <TextView
             android:id="@+id/tvProfileButtonText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvProfileButtonCount"
             android:layout_alignLeft="@+id/tvProfileButtonCount"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:maxLines="1"
+            app:autoSizeTextType="uniform"
             tools:text="Tweets"/>
 
     </RelativeLayout>
