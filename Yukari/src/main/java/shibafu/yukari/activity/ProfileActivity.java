@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 import com.deploygate.sdk.DeployGate;
 import shibafu.yukari.R;
+import shibafu.yukari.database.Provider;
+import shibafu.yukari.fragment.MastodonProfileFragment;
 import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
@@ -97,7 +99,13 @@ public class ProfileActivity extends AppCompatActivity {
 
                 FragmentTransaction ft = manager.beginTransaction();
                 ft.replace(R.id.frame, fragment, FRAGMENT_TAG_CONTENT).commit();
-            } else {
+            } else if (user != null && user.Provider.getApiType() == Provider.API_MASTODON) {
+                // Mastodonアカウントで開いた場合、Mastodonのユーザプロフィールとして開いてみる
+                MastodonProfileFragment fragment = MastodonProfileFragment.Companion.newInstance(user, intent.getData());
+                manager.beginTransaction()
+                        .replace(R.id.frame, fragment, FRAGMENT_TAG_CONTENT)
+                        .commit();
+            }  else {
                 // 非対応ホストの場合は他のアプリに頑張ってもらう
                 Intent newIntent = new Intent(Intent.ACTION_VIEW, uri);
                 newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
