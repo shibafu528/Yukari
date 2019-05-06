@@ -92,7 +92,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
         fragment.setArguments(args);
         if (getActivity() instanceof ProfileActivity) {
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
             transaction.addToBackStack(null);
             transaction.commit();
         }
@@ -189,7 +189,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
                 fragment.setArguments(args);
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
@@ -207,7 +207,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
                 fragment.setArguments(args);
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }

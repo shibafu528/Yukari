@@ -114,7 +114,7 @@ public class TwitterListTimelineFragment extends TwitterFragment implements Simp
                 fragment.setArguments(args);
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
@@ -131,7 +131,7 @@ public class TwitterListTimelineFragment extends TwitterFragment implements Simp
                 fragment.setArguments(args);
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.frame, fragment, "contain");
+                    transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }

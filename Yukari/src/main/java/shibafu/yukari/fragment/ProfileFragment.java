@@ -199,7 +199,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.setArguments(args1);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
             transaction.addToBackStack(null);
             transaction.commit();
         });
@@ -221,7 +221,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                         fragment.setArguments(args1);
 
                         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        transaction.replace(R.id.frame, fragment, "contain");
+                        transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                         transaction.addToBackStack(null);
                         transaction.commit();
                         return true;
@@ -246,7 +246,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.setArguments(args1);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
             transaction.addToBackStack(null);
             transaction.commit();
         });
@@ -263,7 +263,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.setArguments(args1);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
             transaction.addToBackStack(null);
             transaction.commit();
         });
@@ -280,7 +280,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             fragment.setArguments(args1);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
-            transaction.replace(R.id.frame, fragment, "contain");
+            transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
             transaction.addToBackStack(null);
             transaction.commit();
         });
@@ -900,7 +900,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 args1.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
                 fragment.setArguments(args1);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 return true;
@@ -914,7 +914,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 args1.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
                 fragment.setArguments(args1);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 return true;
@@ -956,7 +956,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
                 fragment.setArguments(args1);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.frame, fragment, "contain");
+                transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);
                 transaction.commit();
                 return true;

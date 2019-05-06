@@ -36,6 +36,8 @@ public class ProfileActivity extends AppCompatActivity {
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TARGET = "target";
 
+    public static final String FRAGMENT_TAG_CONTENT = "content";
+
     public static Intent newIntent(@NonNull Context context, @Nullable AuthUserRecord userRecord, @NonNull Uri target) {
         // userRecord引数は将来的にNonNullにする。大半の呼出では指定されているはずだが、しばらくの間は調査する。
         if (userRecord == null) {
@@ -63,7 +65,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         final FragmentManager manager = getSupportFragmentManager();
         manager.addOnBackStackChangedListener(() -> {
-            Fragment f = manager.findFragmentByTag("contain");
+            Fragment f = manager.findFragmentByTag(FRAGMENT_TAG_CONTENT);
             if (manager.getBackStackEntryCount() > 0 && (f instanceof TimelineFragment || f instanceof TwitterListTimelineFragment || f instanceof TwitterListFragment)) {
                 actionBar.show();
             }
@@ -83,16 +85,18 @@ public class ProfileActivity extends AppCompatActivity {
                 return;
             }
 
+            final AuthUserRecord user = (AuthUserRecord) intent.getSerializableExtra(EXTRA_USER);
+
             if ("twitter.com".equals(uri.getHost()) && !TextUtils.isEmpty(uri.getLastPathSegment())) {
                 ProfileFragment fragment = new ProfileFragment();
                 Bundle b = new Bundle();
-                b.putSerializable(ProfileFragment.EXTRA_USER, intent.getSerializableExtra(EXTRA_USER));
+                b.putSerializable(ProfileFragment.EXTRA_USER, user);
                 b.putLong(ProfileFragment.EXTRA_TARGET, intent.getLongExtra(EXTRA_TARGET, -1));
                 b.putParcelable("data", intent.getData());
                 fragment.setArguments(b);
 
                 FragmentTransaction ft = manager.beginTransaction();
-                ft.replace(R.id.frame, fragment, "contain").commit();
+                ft.replace(R.id.frame, fragment, FRAGMENT_TAG_CONTENT).commit();
             } else {
                 // 非対応ホストの場合は他のアプリに頑張ってもらう
                 Intent newIntent = new Intent(Intent.ACTION_VIEW, uri);
