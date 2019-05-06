@@ -55,7 +55,6 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
     private lateinit var tvScreenName: TextView
     private lateinit var tvBiography: TextView
     private lateinit var pbTweets: ProfileButton
-    private lateinit var pbFavorites: ProfileButton
     private lateinit var pbFollows: ProfileButton
     private lateinit var pbFollowers: ProfileButton
     private lateinit var tvSince: TextView
@@ -87,7 +86,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val v = inflater.inflate(R.layout.fragment_profile, container, false)
+        val v = inflater.inflate(R.layout.fragment_mastodon_profile, container, false)
 
         val toolbar = v.findViewById<Toolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.profile)
@@ -118,7 +117,6 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         tvScreenName = v.findViewById(R.id.tvProfileScreenName)
         tvBiography = v.findViewById(R.id.tvProfileBio)
         pbTweets = v.findViewById(R.id.cvProfileTweets)
-        pbFavorites = v.findViewById(R.id.cvProfileFavorites)
         pbFollows = v.findViewById(R.id.cvProfileFollows)
         pbFollowers = v.findViewById(R.id.cvProfileFollowers)
         tvSince = v.findViewById(R.id.tvProfileSince)
@@ -132,7 +130,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
             fragment.arguments = Bundle().apply {
                 putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
                 putSerializable(TweetListFragment.EXTRA_USER, currentUser)
-                putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + user.screenName)
+                putString(TweetListFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from user:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 
@@ -293,7 +291,6 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         tvBiography.text = HtmlCompat.fromHtml(account.note, HtmlCompat.FROM_HTML_MODE_COMPACT)
 
         pbTweets.count = account.statusesCount.toString()
-        pbFavorites.count = "-"
         pbFollows.count = account.followingCount.toString()
         pbFollowers.count = account.followersCount.toString()
 
