@@ -70,6 +70,7 @@ import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.view.ProfileButton;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -111,8 +112,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
     private ImageView ivProfileIcon, ivHeader;
     private ImageView ivProtected;
     private TextView tvName, tvScreenName, tvBio, tvLocation, tvWeb, tvSince, tvUserId;
-    private View cvTweets, cvFavorites, cvFollows, cvFollowers;
-    private TextView tvTweetsCount, tvFavoritesCount, tvFollowsCount, tvFollowersCount;
+    private ProfileButton pbTweets, pbFavorites, pbFollows, pbFollowers;
     private Button btnFollowManage, btnOwakareBlock;
     private ImageView ivUserColor;
     private Toolbar toolbar;
@@ -186,8 +186,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         tvUserId = (TextView) v.findViewById(R.id.tvProfileUserId);
         tvUserId.setText("#" + targetId);
 
-        cvTweets = v.findViewById(R.id.cvProfileTweets);
-        cvTweets.setOnClickListener(view -> {
+        pbTweets = v.findViewById(R.id.cvProfileTweets);
+        pbTweets.setOnClickListener(view -> {
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
@@ -204,7 +204,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             transaction.addToBackStack(null);
             transaction.commit();
         });
-        cvTweets.setOnLongClickListener(view -> {
+        pbTweets.setOnLongClickListener(view -> {
             PopupMenu menu = new PopupMenu(getContext(), view);
             menu.getMenu().add(Menu.NONE, 0, Menu.NONE, "画像付きツイートを表示");
             menu.setOnMenuItemClickListener(item -> {
@@ -233,8 +233,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             menu.show();
             return true;
         });
-        cvFavorites = v.findViewById(R.id.cvProfileFavorites);
-        cvFavorites.setOnClickListener(view -> {
+        pbFavorites = v.findViewById(R.id.cvProfileFavorites);
+        pbFavorites.setOnClickListener(view -> {
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
@@ -251,8 +251,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             transaction.addToBackStack(null);
             transaction.commit();
         });
-        cvFollows = v.findViewById(R.id.cvProfileFollows);
-        cvFollows.setOnClickListener(view -> {
+        pbFollows = v.findViewById(R.id.cvProfileFollows);
+        pbFollows.setOnClickListener(view -> {
             Fragment fragment = new FriendListFragment();
             Bundle args1 = new Bundle();
 
@@ -268,8 +268,8 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             transaction.addToBackStack(null);
             transaction.commit();
         });
-        cvFollowers = v.findViewById(R.id.cvProfileFollowers);
-        cvFollowers.setOnClickListener(view -> {
+        pbFollowers = v.findViewById(R.id.cvProfileFollowers);
+        pbFollowers.setOnClickListener(view -> {
             Fragment fragment = new FriendListFragment();
             Bundle args1 = new Bundle();
 
@@ -285,10 +285,6 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
             transaction.addToBackStack(null);
             transaction.commit();
         });
-        tvTweetsCount = (TextView) v.findViewById(R.id.tvProfileTweetsCount);
-        tvFavoritesCount = (TextView) v.findViewById(R.id.tvProfileFavoritesCount);
-        tvFollowsCount = (TextView) v.findViewById(R.id.tvProfileFollowsCount);
-        tvFollowersCount = (TextView) v.findViewById(R.id.tvProfileFollowersCount);
 
         btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
         btnFollowManage.setOnClickListener(view -> {
@@ -519,10 +515,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         }
         tvUserId.setText("#" + holder.targetUser.getId());
 
-        tvTweetsCount.setText(String.valueOf(holder.targetUser.getStatusesCount()));
-        tvFavoritesCount.setText(String.valueOf(holder.targetUser.getFavouritesCount()));
-        tvFollowsCount.setText(String.valueOf(holder.targetUser.getFriendsCount()));
-        tvFollowersCount.setText(String.valueOf(holder.targetUser.getFollowersCount()));
+        pbTweets.setCount(String.valueOf(holder.targetUser.getStatusesCount()));
+        pbFavorites.setCount(String.valueOf(holder.targetUser.getFavouritesCount()));
+        pbFollows.setCount(String.valueOf(holder.targetUser.getFriendsCount()));
+        pbFollowers.setCount(String.valueOf(holder.targetUser.getFollowersCount()));
 
         ivUserColor.setBackgroundColor(getTargetUserColor());
         if (holder.targetUser.getProfileLinkColor() != null) {

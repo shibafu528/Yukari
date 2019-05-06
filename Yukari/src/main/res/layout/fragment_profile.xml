@@ -110,7 +110,7 @@
             android:layout_height="0dp"
             android:layout_centerHorizontal="true"/>
 
-        <android.support.v7.widget.CardView
+        <shibafu.yukari.view.ProfileButton
             android:id="@+id/cvProfileTweets"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -122,50 +122,11 @@
             android:layout_marginLeft="16dp"
             android:layout_marginRight="4dp"
             android:clickable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackground"
+            app:iconSrc="?attr/profileTweetsDrawable"
+            app:text="Tweets"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <ImageView
-                    android:id="@+id/ivProfileTweetsIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:src="?attr/profileTweetsDrawable"/>
-
-                <TextView
-                    android:id="@+id/tvProfileTweetsCount"
-                    android:text="0"
-                    android:textSize="18sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/ivProfileTweetsIcon"
-                    android:layout_alignTop="@+id/ivProfileTweetsIcon"
-                    android:layout_alignBottom="@+id/ivProfileTweetsIcon"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginLeft="8dp"
-                    android:gravity="center_vertical"/>
-
-                <TextView
-                    android:text="Tweets"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvProfileTweetsCount"
-                    android:layout_alignLeft="@+id/tvProfileTweetsCount"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"/>
-
-            </RelativeLayout>
-
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
+        <shibafu.yukari.view.ProfileButton
             android:id="@+id/cvProfileFavorites"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -177,50 +138,11 @@
             android:layout_marginLeft="4dp"
             android:layout_marginRight="16dp"
             android:clickable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackground"
+            app:iconSrc="?attr/profileFavoritesDrawable"
+            app:text="Favorites"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <ImageView
-                    android:id="@+id/ivProfileFavoritesIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:src="?attr/profileFavoritesDrawable"/>
-
-                <TextView
-                    android:id="@+id/tvProfileFavoritesCount"
-                    android:text="0"
-                    android:textSize="18sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/ivProfileFavoritesIcon"
-                    android:layout_alignTop="@+id/ivProfileFavoritesIcon"
-                    android:layout_alignBottom="@+id/ivProfileFavoritesIcon"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginLeft="8dp"
-                    android:gravity="center_vertical"/>
-
-                <TextView
-                    android:text="Favorites"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvProfileFavoritesCount"
-                    android:layout_alignLeft="@+id/tvProfileFavoritesCount"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"/>
-
-            </RelativeLayout>
-
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
+        <shibafu.yukari.view.ProfileButton
             android:id="@+id/cvProfileFollows"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -230,50 +152,11 @@
             android:layout_marginTop="8dp"
             android:layout_marginRight="4dp"
             android:clickable="true"
-            android:foreground="?attr/selectableItemBackground">
+            android:foreground="?attr/selectableItemBackground"
+            app:iconSrc="?attr/profileFollowsDrawable"
+            app:text="Follows"/>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <ImageView
-                    android:id="@+id/ivProfileFollowsIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:src="?attr/profileFollowsDrawable"/>
-
-                <TextView
-                    android:id="@+id/tvProfileFollowsCount"
-                    android:text="0"
-                    android:textSize="18sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/ivProfileFollowsIcon"
-                    android:layout_alignTop="@+id/ivProfileFollowsIcon"
-                    android:layout_alignBottom="@+id/ivProfileFollowsIcon"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginLeft="8dp"
-                    android:gravity="center_vertical"/>
-
-                <TextView
-                    android:text="Follows"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvProfileFollowsCount"
-                    android:layout_alignLeft="@+id/tvProfileFollowsCount"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"/>
-
-            </RelativeLayout>
-
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
+        <shibafu.yukari.view.ProfileButton
             android:id="@+id/cvProfileFollowers"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -283,48 +166,9 @@
             android:layout_marginTop="8dp"
             android:layout_marginLeft="4dp"
             android:clickable="true"
-            android:foreground="?attr/selectableItemBackground">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="8dp">
-
-                <ImageView
-                    android:id="@+id/ivProfileFollowersIcon"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_alignParentTop="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true"
-                    android:src="?attr/profileFollowersDrawable"/>
-
-                <TextView
-                    android:id="@+id/tvProfileFollowersCount"
-                    android:text="0"
-                    android:textSize="18sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/ivProfileFollowersIcon"
-                    android:layout_alignTop="@+id/ivProfileFollowersIcon"
-                    android:layout_alignBottom="@+id/ivProfileFollowersIcon"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginLeft="8dp"
-                    android:gravity="center_vertical"/>
-
-                <TextView
-                    android:text="Followers"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tvProfileFollowersCount"
-                    android:layout_alignLeft="@+id/tvProfileFollowersCount"
-                    android:layout_alignParentRight="true"
-                    android:layout_alignParentEnd="true"/>
-
-            </RelativeLayout>
-
-        </android.support.v7.widget.CardView>
+            android:foreground="?attr/selectableItemBackground"
+            app:iconSrc="?attr/profileFollowersDrawable"
+            app:text="Followers"/>
 
         <android.support.v7.widget.CardView
             android:id="@+id/cvProfileBio"

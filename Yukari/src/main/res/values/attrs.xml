@@ -53,4 +53,9 @@
     <attr name="statusVisibilityUnlistedDrawable" format="reference"/>
     <attr name="statusVisibilityPrivateDrawable" format="reference"/>
     <attr name="statusVisibilityDirectDrawable" format="reference"/>
+    <declare-styleable name="ProfileButton">
+        <attr name="iconSrc" format="reference"/>
+        <attr name="text" format="string|reference"/>
+        <attr name="count" format="string|reference"/>
+    </declare-styleable>
 </resources>

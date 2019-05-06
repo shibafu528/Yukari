@@ -12,6 +12,7 @@ import android.text.format.DateUtils
 import android.text.format.Time
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -39,11 +40,12 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.view.ProfileButton
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener {
+class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var ivIcon: ImageView
@@ -52,10 +54,10 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
     private lateinit var tvName: TextView
     private lateinit var tvScreenName: TextView
     private lateinit var tvBiography: TextView
-    private lateinit var tvTweetsCount: TextView
-    private lateinit var tvFavoritesCount: TextView
-    private lateinit var tvFollowsCount: TextView
-    private lateinit var tvFollowersCount: TextView
+    private lateinit var pbTweets: ProfileButton
+    private lateinit var pbFavorites: ProfileButton
+    private lateinit var pbFollows: ProfileButton
+    private lateinit var pbFollowers: ProfileButton
     private lateinit var tvSince: TextView
     private lateinit var tvUserId: TextView
     private lateinit var cvTweets: CardView
@@ -89,6 +91,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
 
         val toolbar = v.findViewById<Toolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.profile)
+        toolbar.setOnMenuItemClickListener(this)
 
         progressBar = v.findViewById(R.id.progressBar)
 
@@ -114,10 +117,10 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         tvName = v.findViewById(R.id.tvProfileName)
         tvScreenName = v.findViewById(R.id.tvProfileScreenName)
         tvBiography = v.findViewById(R.id.tvProfileBio)
-        tvTweetsCount = v.findViewById(R.id.tvProfileTweetsCount)
-        tvFavoritesCount = v.findViewById(R.id.tvProfileFavoritesCount)
-        tvFollowsCount = v.findViewById(R.id.tvProfileFollowsCount)
-        tvFollowersCount = v.findViewById(R.id.tvProfileFollowersCount)
+        pbTweets = v.findViewById(R.id.cvProfileTweets)
+        pbFavorites = v.findViewById(R.id.cvProfileFavorites)
+        pbFollows = v.findViewById(R.id.cvProfileFollows)
+        pbFollowers = v.findViewById(R.id.cvProfileFollowers)
         tvSince = v.findViewById(R.id.tvProfileSince)
         tvUserId = v.findViewById(R.id.tvProfileUserId)
 
@@ -181,6 +184,29 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         when (requestCode) {
             DIALOG_REQUEST_LOAD -> requireActivity().finish()
         }
+    }
+
+    override fun onMenuItemClick(item: MenuItem?): Boolean {
+        val user = targetUser
+        if (user == null) {
+            Toast.makeText(context, "何か調子が悪いみたいです。画面を一度開き直してみてください。", Toast.LENGTH_SHORT).show()
+            return true
+        }
+
+        if (item == null) {
+            return false
+        }
+
+        when (item.itemId) {
+            R.id.action_browser -> {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(user.url))
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(intent)
+                return true
+            }
+        }
+
+        return false
     }
 
     private suspend fun getTwitterServiceAwait(): TwitterService? {
@@ -266,10 +292,10 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         // あと、この方法だと最後に1行不自然な空白がある。pタグのせい？
         tvBiography.text = HtmlCompat.fromHtml(account.note, HtmlCompat.FROM_HTML_MODE_COMPACT)
 
-        tvTweetsCount.text = account.statusesCount.toString()
-        tvFavoritesCount.text = "-"
-        tvFollowsCount.text = account.followingCount.toString()
-        tvFollowersCount.text = account.followersCount.toString()
+        pbTweets.count = account.statusesCount.toString()
+        pbFavorites.count = "-"
+        pbFollows.count = account.followingCount.toString()
+        pbFollowers.count = account.followersCount.toString()
 
         val createdAt = Time().apply { parse3339(account.createdAt) }
         val dateStr = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US).format(Date(createdAt.toMillis(true)))
@@ -277,7 +303,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         val tpd = account.statusesCount.toFloat() / totalDay
 
         tvSince.text = String.format("%s (%d日, %.2ftweet/day)", dateStr, totalDay, tpd)
-        tvUserId.text = "#" + user.id
+        tvUserId.text = "#${user.id} (${currentUser.Provider.host})"
     }
 
     companion object {
