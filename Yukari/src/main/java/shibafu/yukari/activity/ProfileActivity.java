@@ -112,6 +112,10 @@ public class ProfileActivity extends AppCompatActivity {
                 startActivity(newIntent);
                 finish();
             }
+        } else {
+            if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+                actionBar.hide();
+            }
         }
     }
 
