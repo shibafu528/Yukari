@@ -45,7 +45,8 @@ class QueryCompiler {
                         Provider.API_MASTODON to shibafu.yukari.mastodon.source.Mention::class.java
                 ),
                 "user" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.User::class.java
+                        Provider.API_TWITTER to shibafu.yukari.filter.source.User::class.java,
+                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.User::class.java
                 ),
                 "list" to mapOf(
                         Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
