@@ -81,7 +81,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         targetUrl = args.getParcelable(EXTRA_TARGET_URL) as Uri
 
         if (savedInstanceState != null) {
-            targetUser = savedInstanceState.getSerializable(STATE_TARGET_USER) as DonUser?
+            targetUser = savedInstanceState.getParcelable(STATE_TARGET_USER)
         }
     }
 
@@ -164,7 +164,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState.putSerializable(STATE_TARGET_USER, targetUser)
+        outState.putParcelable(STATE_TARGET_USER, targetUser)
     }
 
     override fun onDestroy() {
