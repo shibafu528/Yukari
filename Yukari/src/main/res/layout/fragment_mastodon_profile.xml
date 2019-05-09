@@ -177,6 +177,30 @@
             app:layout_constraintStart_toEndOf="@id/cvProfileFollows"/>
 
         <android.support.v7.widget.CardView
+            android:id="@+id/cvProfileNotice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginEnd="16dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/cvProfileFollows"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <TextView
+                style="?android:attr/textAppearanceSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:text="リモートユーザーのプロフィールは情報が不十分な可能性があります。より正確な情報はメニューの「ブラウザで開く」から参照することができます。"/>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
             android:id="@+id/cvProfileBio"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -186,7 +210,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginEnd="16dp"
-            app:layout_constraintTop_toBottomOf="@id/cvProfileFollows"
+            app:layout_constraintTop_toBottomOf="@id/cvProfileNotice"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
@@ -229,18 +253,38 @@
                 android:layout_height="wrap_content"
                 android:padding="8dp">
 
+                <TextView
+                    style="?android:attr/textAppearanceLarge"
+                    android:id="@+id/tvProfileDetailHeader"
+                    android:text="内部プロパティ"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    style="?android:attr/textAppearanceSmall"
+                    android:id="@+id/tvProfileDetailSubHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@id/tvProfileDetailHeader"
+                    android:layout_alignBaseline="@id/tvProfileDetailHeader"
+                    android:layout_marginLeft="4dp"
+                    android:textSize="12sp"
+                    tools:text="in example.com"/>
+
                 <ImageView
                     android:id="@+id/ivProfileSince"
                     app:srcCompat="?attr/profileSinceDrawable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"/>
+                    android:layout_below="@id/tvProfileDetailHeader"
+                    android:layout_marginTop="8dp"/>
 
                 <TextView
                     android:id="@+id/tvProfileSince"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
+                    android:layout_below="@id/tvProfileDetailHeader"
                     android:layout_alignTop="@+id/ivProfileSince"
                     android:layout_toRightOf="@+id/ivProfileSince"
                     android:layout_alignParentRight="true"

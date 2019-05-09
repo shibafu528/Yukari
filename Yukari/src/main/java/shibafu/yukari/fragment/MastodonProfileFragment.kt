@@ -10,6 +10,7 @@ import android.support.v7.widget.CardView
 import android.support.v7.widget.Toolbar
 import android.text.format.DateUtils
 import android.text.format.Time
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -59,9 +60,11 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
     private lateinit var pbFollowers: ProfileButton
     private lateinit var tvSince: TextView
     private lateinit var tvUserId: TextView
+    private lateinit var tvDetailSubHeader: TextView
     private lateinit var cvTweets: CardView
     private lateinit var cvFollows: CardView
     private lateinit var cvFollowers: CardView
+    private lateinit var cvNotice: CardView
 
     private lateinit var currentUser: AuthUserRecord
     private lateinit var targetUrl: Uri
@@ -121,6 +124,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         pbFollowers = v.findViewById(R.id.cvProfileFollowers)
         tvSince = v.findViewById(R.id.tvProfileSince)
         tvUserId = v.findViewById(R.id.tvProfileUserId)
+        tvDetailSubHeader = v.findViewById(R.id.tvProfileDetailSubHeader)
 
         cvTweets = v.findViewById(R.id.cvProfileTweets)
         cvTweets.setOnClickListener {
@@ -143,6 +147,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
 
         cvFollows = v.findViewById(R.id.cvProfileFollows)
         cvFollowers = v.findViewById(R.id.cvProfileFollowers)
+        cvNotice = v.findViewById(R.id.cvProfileNotice)
 
         val appBarLayout = v.findViewById<AppBarLayout>(R.id.appBarLayout)
         appBarLayout.addOnOffsetChangedListener(ProfileFragment.AppBarOffsetChangedCallback(ivIcon))
@@ -286,9 +291,16 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
             ivProtected.visibility = View.GONE
         }
 
+        if (currentUser.Provider.host == user.host) {
+            cvNotice.visibility = View.GONE
+        } else {
+            cvNotice.visibility = View.VISIBLE
+        }
+
         // TODO: 適切なリンクのハンドリングをするために自前でのパースを検討する
         // あと、この方法だと最後に1行不自然な空白がある。pタグのせい？
         tvBiography.text = HtmlCompat.fromHtml(account.note, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        tvBiography.movementMethod = LinkMovementMethod.getInstance()
 
         pbTweets.count = account.statusesCount.toString()
         pbFollows.count = account.followingCount.toString()
@@ -299,8 +311,9 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         val totalDay = ((System.currentTimeMillis() - createdAt.toMillis(true)) / DateUtils.DAY_IN_MILLIS).toInt()
         val tpd = account.statusesCount.toFloat() / totalDay
 
-        tvSince.text = String.format("%s (%d日, %.2ftweet/day)", dateStr, totalDay, tpd)
-        tvUserId.text = "#${user.id} (${currentUser.Provider.host})"
+        tvDetailSubHeader.text = "in ${currentUser.Provider.host}"
+        tvSince.text = String.format("%s (%d日, %.2ftoots/day)", dateStr, totalDay, tpd)
+        tvUserId.text = "#${user.id}"
     }
 
     companion object {
