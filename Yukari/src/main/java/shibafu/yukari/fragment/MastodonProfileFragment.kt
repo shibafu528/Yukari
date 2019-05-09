@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -92,7 +93,7 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         val v = inflater.inflate(R.layout.fragment_mastodon_profile, container, false)
 
         val toolbar = v.findViewById<Toolbar>(R.id.toolbar)
-        toolbar.inflateMenu(R.menu.profile)
+        toolbar.inflateMenu(R.menu.mastodon_profile)
         toolbar.setOnMenuItemClickListener(this)
 
         progressBar = v.findViewById(R.id.progressBar)
@@ -148,6 +149,10 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         cvFollows = v.findViewById(R.id.cvProfileFollows)
         cvFollowers = v.findViewById(R.id.cvProfileFollowers)
         cvNotice = v.findViewById(R.id.cvProfileNotice)
+
+        // TODO: まだフォロー管理できないのでさよなら
+        val btnFollowManage = v.findViewById<Button>(R.id.btnProfileFollow)
+        btnFollowManage.visibility = View.GONE
 
         val appBarLayout = v.findViewById<AppBarLayout>(R.id.appBarLayout)
         appBarLayout.addOnOffsetChangedListener(ProfileFragment.AppBarOffsetChangedCallback(ivIcon))
