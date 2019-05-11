@@ -1,12 +1,15 @@
 package shibafu.yukari.fragment
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.getTwitterServiceAwait
+import shibafu.yukari.util.showToast
 import twitter4j.Twitter
 import twitter4j.TwitterException
 import twitter4j.User
@@ -70,6 +73,9 @@ class TwitterUserListFragment : AbstractUserListFragment<TwitterUser, TwitterUse
             }
         } catch (e: TwitterException) {
             e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                showToast("通信エラー: ${e.statusCode}:${e.errorCode}\n${e.errorMessage}")
+            }
             return@async null
         }
     }

@@ -125,8 +125,6 @@ abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.
 
                 pageCursor = nextCursor
 
-                changeFooterProgress(false)
-
                 if (nextCursor == null) {
                     // remove footer
                     try {
@@ -137,6 +135,8 @@ abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.
                     }
                 }
             }
+
+            changeFooterProgress(false)
         }
     }
 

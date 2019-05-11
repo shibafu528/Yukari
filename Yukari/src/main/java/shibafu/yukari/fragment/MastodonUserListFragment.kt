@@ -1,6 +1,8 @@
 package shibafu.yukari.fragment
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Range
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
@@ -11,6 +13,8 @@ import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.getTwitterServiceAwait
+import shibafu.yukari.util.showToast
+import java.io.IOException
 
 
 class MastodonUserListFragment : AbstractUserListFragment<DonUser, MastodonUserListFragment.PageCursor>() {
@@ -50,6 +54,18 @@ class MastodonUserListFragment : AbstractUserListFragment<DonUser, MastodonUserL
             pageable.part.map { DonUser(it) } to nextCursor
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
+            Handler(Looper.getMainLooper()).post {
+                val response = e.response
+                if (response != null) {
+                    try {
+                        val responseBody = response.body()?.string()
+                        showToast("通信エラー: ${response.code()}\n$responseBody")
+                    } catch (e: IOException) {
+                        showToast("通信エラー: ${response.code()}\nUnknown error")
+                    }
+                }
+                showToast("通信エラー\nUnknown error")
+            }
             null
         }
     }
