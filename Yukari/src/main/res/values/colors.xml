@@ -82,4 +82,7 @@
     <color name="akari_footer">#ccF08C18</color>
     <drawable name="akari_focus">#caFFECB3</drawable>
     <drawable name="akari_press">#caFFC107</drawable>
+
+    <color name="mastodon_verified_dark">#79bd9a</color>
+    <color name="mastodon_verified_light">#3c754d</color>
 </resources>

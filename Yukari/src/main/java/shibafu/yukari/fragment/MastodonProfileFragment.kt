@@ -2,9 +2,11 @@ package shibafu.yukari.fragment
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.AppBarLayout
+import android.support.v4.content.res.ResourcesCompat
 import android.support.v4.text.HtmlCompat
 import android.support.v7.widget.CardView
 import android.support.v7.widget.Toolbar
@@ -16,6 +18,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -41,9 +44,11 @@ import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.view.ProfileButton
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.roundToInt
 
 class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
 
@@ -64,6 +69,8 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     private lateinit var cvFollows: CardView
     private lateinit var cvFollowers: CardView
     private lateinit var cvNotice: CardView
+    private lateinit var cvFields: CardView
+    private lateinit var llFields: LinearLayout
 
     private lateinit var currentUser: AuthUserRecord
     private lateinit var targetUrl: Uri
@@ -171,6 +178,8 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         }
 
         cvNotice = v.findViewById(R.id.cvProfileNotice)
+        cvFields = v.findViewById(R.id.cvProfileFields)
+        llFields = v.findViewById(R.id.llProfileFields)
 
         // TODO: まだフォロー管理できないのでさよなら
         val btnFollowManage = v.findViewById<Button>(R.id.btnProfileFollow)
@@ -324,6 +333,55 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         pbTweets.count = account.statusesCount.toString()
         pbFollows.count = account.followingCount.toString()
         pbFollowers.count = account.followersCount.toString()
+
+        if (account.fields.isEmpty()) {
+            cvFields.visibility = View.GONE
+        } else {
+            cvFields.visibility = View.VISIBLE
+            llFields.removeAllViews()
+
+            val density = resources.displayMetrics.density
+            val verifiedColorId = AttrUtil.resolveAttribute(requireActivity().theme, R.attr.mastodonVerifiedColor)
+            val verifiedColor = ResourcesCompat.getColor(resources, verifiedColorId, requireActivity().theme)
+
+            account.fields.forEachIndexed { index, field ->
+                if (index != 0) {
+                    val ivDivider = ImageView(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, density.roundToInt()).apply {
+                            topMargin = (density * 8).roundToInt()
+                            bottomMargin = (density * 8).roundToInt()
+                        }
+
+                        scaleType = ImageView.ScaleType.FIT_XY
+                        setImageResource(android.R.drawable.divider_horizontal_textfield)
+                    }
+
+                    llFields.addView(ivDivider)
+                }
+
+                val tvName = TextView(context, null, R.style.TextAppearance_AppCompat).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+                    text = field.name
+                    typeface = Typeface.DEFAULT_BOLD
+
+                    if (field.verifiedAt != null) {
+                        text = "✓ " + field.name
+                        setTextColor(verifiedColor)
+                    }
+                }
+                llFields.addView(tvName)
+
+                val tvValue = TextView(context).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        topMargin = (density * 2).roundToInt()
+                    }
+
+                    text = HtmlCompat.fromHtml(field.value, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                }
+                llFields.addView(tvValue)
+            }
+        }
 
         val createdAt = ZonedDateTime.parse(account.createdAt)
         val dateStr = createdAt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))

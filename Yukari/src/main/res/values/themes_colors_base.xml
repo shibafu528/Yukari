@@ -48,6 +48,8 @@
         <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_dark_18dp</item>
         <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_dark_18dp</item>
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_dark_18dp</item>
+
+        <item name="mastodonVerifiedColor">@color/mastodon_verified_light</item>
     </style>
 
     <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
@@ -94,6 +96,8 @@
         <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_dark_18dp</item>
         <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_dark_18dp</item>
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_dark_18dp</item>
+
+        <item name="mastodonVerifiedColor">@color/mastodon_verified_light</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark" parent="Theme.AppCompat">
@@ -144,6 +148,8 @@
         <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_light_18dp</item>
         <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_light_18dp</item>
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
+
+        <item name="mastodonVerifiedColor">@color/mastodon_verified_dark</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
@@ -190,6 +196,8 @@
         <item name="statusVisibilityUnlistedDrawable">@drawable/ic_visibility_unlisted_light_18dp</item>
         <item name="statusVisibilityPrivateDrawable">@drawable/ic_visibility_private_light_18dp</item>
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
+
+        <item name="mastodonVerifiedColor">@color/mastodon_verified_dark</item>
     </style>
 
 </resources>

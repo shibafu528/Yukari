@@ -58,4 +58,5 @@
         <attr name="text" format="string|reference"/>
         <attr name="count" format="string|reference"/>
     </declare-styleable>
+    <attr name="mastodonVerifiedColor" format="color|reference"/>
 </resources>
