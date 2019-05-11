@@ -28,8 +28,6 @@ class TwitterUserListFragment : AbstractUserListFragment<TwitterUser, TwitterUse
         targetUserId = (arguments.getSerializable(EXTRA_TARGET_USER) as? User)?.id ?: -1
     }
 
-    override fun onServiceDisconnected() {}
-
     override suspend fun takeNextPageAsync(cursor: PageCursor?) = async(Dispatchers.IO) {
         try {
             val service = getTwitterServiceAwait() ?: return@async null

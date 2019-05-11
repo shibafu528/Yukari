@@ -145,7 +145,31 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         }
 
         cvFollows = v.findViewById(R.id.cvProfileFollows)
+        cvFollows.setOnClickListener {
+            val user = targetUser ?: return@setOnClickListener
+
+            val fragment = MastodonUserListFragment.newFollowingListInstance(currentUser, "Follow: @${user.screenName}", user.id)
+
+            val fm = fragmentManager ?: return@setOnClickListener
+            fm.beginTransaction()
+                    .replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT)
+                    .addToBackStack(null)
+                    .commit()
+        }
+
         cvFollowers = v.findViewById(R.id.cvProfileFollowers)
+        cvFollowers.setOnClickListener {
+            val user = targetUser ?: return@setOnClickListener
+
+            val fragment = MastodonUserListFragment.newFollowerListInstance(currentUser, "Follower: @${user.screenName}", user.id)
+
+            val fm = fragmentManager ?: return@setOnClickListener
+            fm.beginTransaction()
+                    .replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT)
+                    .addToBackStack(null)
+                    .commit()
+        }
+
         cvNotice = v.findViewById(R.id.cvProfileNotice)
 
         // TODO: まだフォロー管理できないのでさよなら
