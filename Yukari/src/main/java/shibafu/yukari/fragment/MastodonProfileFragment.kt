@@ -69,6 +69,10 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     private lateinit var cvFollows: CardView
     private lateinit var cvFollowers: CardView
     private lateinit var cvNotice: CardView
+    private lateinit var cvMoved: CardView
+    private lateinit var ivMovedIcon: ImageView
+    private lateinit var tvMovedName: TextView
+    private lateinit var tvMovedScreenName: TextView
     private lateinit var cvFields: CardView
     private lateinit var llFields: LinearLayout
 
@@ -176,6 +180,17 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                     .addToBackStack(null)
                     .commit()
         }
+
+        cvMoved = v.findViewById(R.id.cvProfileMoved)
+        cvMoved.setOnClickListener {
+            val user = targetUser?.account?.moved ?: return@setOnClickListener
+
+            startActivity(ProfileActivity.newIntent(requireContext(), currentUser, Uri.parse(user.url)))
+        }
+
+        ivMovedIcon = cvMoved.findViewById(R.id.user_icon)
+        tvMovedName = cvMoved.findViewById(R.id.user_name)
+        tvMovedScreenName = cvMoved.findViewById(R.id.user_sn)
 
         cvNotice = v.findViewById(R.id.cvProfileNotice)
         cvFields = v.findViewById(R.id.cvProfileFields)
@@ -333,6 +348,19 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         pbTweets.count = account.statusesCount.toString()
         pbFollows.count = account.followingCount.toString()
         pbFollowers.count = account.followersCount.toString()
+
+        val movedAccount = account.moved
+        if (movedAccount == null) {
+            cvMoved.visibility = View.GONE
+        } else {
+            val movedUser = DonUser(movedAccount)
+
+            ImageLoaderTask.loadProfileIcon(requireContext(), ivMovedIcon, movedUser.biggerProfileImageUrl)
+            tvMovedName.text = movedUser.name
+            tvMovedScreenName.text = "@" + movedUser.screenName
+
+            cvMoved.visibility = View.VISIBLE
+        }
 
         if (account.fields.isEmpty()) {
             cvFields.visibility = View.GONE
