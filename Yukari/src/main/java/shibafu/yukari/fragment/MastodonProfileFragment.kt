@@ -26,7 +26,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZonedDateTime
@@ -42,8 +41,8 @@ import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.view.ProfileButton
 import kotlin.coroutines.CoroutineContext
 
@@ -215,14 +214,6 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         }
 
         return false
-    }
-
-    private suspend fun getTwitterServiceAwait(): TwitterService? {
-        while (!isTwitterServiceBound) {
-            delay(100)
-        }
-
-        return twitterService
     }
 
     private fun loadProfile() = launch {
