@@ -8,8 +8,6 @@ import android.support.design.widget.AppBarLayout
 import android.support.v4.text.HtmlCompat
 import android.support.v7.widget.CardView
 import android.support.v7.widget.Toolbar
-import android.text.format.DateUtils
-import android.text.format.Time
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
@@ -30,6 +28,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.ZonedDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import org.threeten.bp.temporal.ChronoUnit
 import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
@@ -43,8 +45,6 @@ import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.view.ProfileButton
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
@@ -311,9 +311,9 @@ class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgres
         pbFollows.count = account.followingCount.toString()
         pbFollowers.count = account.followersCount.toString()
 
-        val createdAt = Time().apply { parse3339(account.createdAt) }
-        val dateStr = SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US).format(Date(createdAt.toMillis(true)))
-        val totalDay = ((System.currentTimeMillis() - createdAt.toMillis(true)) / DateUtils.DAY_IN_MILLIS).toInt()
+        val createdAt = ZonedDateTime.parse(account.createdAt)
+        val dateStr = createdAt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+        val totalDay = createdAt.until(LocalDateTime.now(), ChronoUnit.DAYS)
         val tpd = account.statusesCount.toFloat() / totalDay
 
         tvDetailSubHeader.text = "in ${currentUser.Provider.host}"

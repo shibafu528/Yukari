@@ -15,6 +15,7 @@ import android.support.annotation.RequiresApi;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
+import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.squareup.leakcanary.LeakCanary;
 import shibafu.yukari.R;
 import shibafu.yukari.common.NotificationChannelPrefix;
@@ -45,6 +46,8 @@ public class YukariApplication extends Application {
             AlternativeHttpClientImpl.sPreferHttp2 = false;
             AlternativeHttpClientImpl.sPreferSpdy = false;
         }
+
+        AndroidThreeTen.init(this);
 
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

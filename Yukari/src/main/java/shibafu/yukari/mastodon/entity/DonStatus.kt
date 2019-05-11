@@ -2,10 +2,11 @@ package shibafu.yukari.mastodon.entity
 
 import android.os.Parcel
 import android.os.Parcelable
-import android.text.format.Time
 import android.util.Xml
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
+import org.threeten.bp.DateTimeUtils
+import org.threeten.bp.ZonedDateTime
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
@@ -39,11 +40,7 @@ class DonStatus(val status: Status,
     override val recipientScreenName: String
         get() = representUser.ScreenName
 
-    override val createdAt: Date = {
-        val time = Time()
-        time.parse3339(status.createdAt)
-        Date(time.toMillis(false))
-    }()
+    override val createdAt: Date = DateTimeUtils.toDate(ZonedDateTime.parse(status.createdAt).toInstant())
 
     override val source: String
         get() = status.application?.name ?: ""
