@@ -23,7 +23,7 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.TwitterUserListFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
-import shibafu.yukari.fragment.base.TwitterFragment;
+import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -32,7 +32,7 @@ import twitter4j.UserList;
 /**
  * Twitterリストに関するメニューコマンドを備えた、プロフィール内でのリスト表示専用Fragment
  */
-public class TwitterListTimelineFragment extends TwitterFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
+public class TwitterListTimelineFragment extends YukariBaseFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
     public static final String EXTRA_USER = "user";
     public static final String EXTRA_TITLE = "title";
     public static final String EXTRA_LIST_ID = "listId";

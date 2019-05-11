@@ -30,7 +30,7 @@ import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
-import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
@@ -39,7 +39,7 @@ import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
 
-class StatusLinkFragment : ListTwitterFragment(), StatusChildUI {
+class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     private val status: Status
         get() {
             val activity = this.activity

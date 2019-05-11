@@ -43,7 +43,7 @@ import shibafu.yukari.filter.compiler.FilterCompilerException
 import shibafu.yukari.filter.compiler.QueryCompiler
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.SimpleListDialogFragment
-import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
@@ -62,7 +62,7 @@ import twitter4j.TwitterException
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListTwitterFragment(), TimelineTab, TimelineObserver, QueryableTab, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObserver, QueryableTab, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING

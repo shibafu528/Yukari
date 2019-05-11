@@ -29,7 +29,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * [shibafu.yukari.entity.User] の一覧を問い合わせて、画面にリストアップするためのFragment
  */
-abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.PageCursor> : ListTwitterFragment(), CoroutineScope {
+abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.PageCursor> : ListYukariBaseFragment(), CoroutineScope {
     var title: String = ""
 
     protected lateinit var currentUser: AuthUserRecord

@@ -60,7 +60,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
-import shibafu.yukari.fragment.base.TwitterFragment;
+import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -89,7 +89,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Shibafu on 13/08/10.
  */
-public class ProfileFragment extends TwitterFragment implements FollowDialogFragment.FollowDialogCallback, ColorPickerDialogFragment.ColorPickerCallback, Toolbar.OnMenuItemClickListener {
+public class ProfileFragment extends YukariBaseFragment implements FollowDialogFragment.FollowDialogCallback, ColorPickerDialogFragment.ColorPickerCallback, Toolbar.OnMenuItemClickListener {
 
     // TODO:画面回転とかが加わるとたまに「ユーザー情報の取得に失敗」メッセージを出力して復帰に失敗するみたい
 

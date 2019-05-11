@@ -31,7 +31,7 @@ import shibafu.yukari.database.MuteMatch
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
-import shibafu.yukari.fragment.base.ListTwitterFragment
+import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
@@ -44,7 +44,7 @@ import java.util.regex.Pattern
 /**
  * Created by shibafu on 2016/02/05.
  */
-class StatusActionFragment : ListTwitterFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener, StatusChildUI {
+class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickListener, SimpleAlertDialogFragment.OnDialogChoseListener, StatusChildUI {
     companion object {
         private const val REQUEST_DELETE = 0
     }

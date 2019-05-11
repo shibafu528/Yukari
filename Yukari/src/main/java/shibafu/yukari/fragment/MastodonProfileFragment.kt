@@ -36,7 +36,7 @@ import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
-import shibafu.yukari.fragment.base.TwitterFragment
+import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
@@ -46,7 +46,7 @@ import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.view.ProfileButton
 import kotlin.coroutines.CoroutineContext
 
-class MastodonProfileFragment : TwitterFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
+class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var ivIcon: ImageView
