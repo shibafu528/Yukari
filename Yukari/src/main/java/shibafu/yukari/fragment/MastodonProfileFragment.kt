@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.threeten.bp.LocalDateTime
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
@@ -304,7 +303,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
 
         val createdAt = ZonedDateTime.parse(account.createdAt)
         val dateStr = createdAt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
-        val totalDay = createdAt.until(LocalDateTime.now(), ChronoUnit.DAYS)
+        val totalDay = createdAt.until(ZonedDateTime.now(), ChronoUnit.DAYS)
         val tpd = account.statusesCount.toFloat() / totalDay
 
         tvDetailSubHeader.text = "in ${currentUser.Provider.host}"
