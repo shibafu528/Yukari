@@ -29,6 +29,7 @@ import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.fragment.TwitterUserListFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
@@ -179,14 +180,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
         switch (item.getItemId()) {
             case R.id.action_show_member:
             {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args = new Bundle();
-                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_MEMBER);
-                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, userList.getId());
-                args.putString(TweetListFragment.EXTRA_TITLE, "Member: " + userList.getFullName());
-                fragment.setArguments(args);
+                TwitterUserListFragment fragment = TwitterUserListFragment.newListMembersInstance(getCurrentUser(), "Member: " + userList.getFullName(), userList.getId());
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
@@ -197,14 +191,7 @@ public class UserListFragment extends TwitterListFragment<UserList> implements S
             }
             case R.id.action_show_subscriber:
             {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args = new Bundle();
-                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_LIST_SUBSCRIBER);
-                args.putSerializable(TweetListFragment.EXTRA_USER, getCurrentUser());
-                args.putSerializable(TweetListFragment.EXTRA_SHOW_USER, targetUser);
-                args.putLong(FriendListFragment.EXTRA_TARGET_LIST_ID, userList.getId());
-                args.putString(TweetListFragment.EXTRA_TITLE, "Subscriber: " + userList.getFullName());
-                fragment.setArguments(args);
+                TwitterUserListFragment fragment = TwitterUserListFragment.newListSubscribersInstance(getCurrentUser(), "Subscriber: " + userList.getFullName(), userList.getId());
                 if (getActivity() instanceof ProfileActivity) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);

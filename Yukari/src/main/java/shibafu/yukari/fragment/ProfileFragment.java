@@ -61,7 +61,6 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.TwitterFragment;
-import shibafu.yukari.fragment.tabcontent.FriendListFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
@@ -253,15 +252,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         });
         pbFollows = v.findViewById(R.id.cvProfileFollows);
         pbFollows.setOnClickListener(view -> {
-            Fragment fragment = new FriendListFragment();
-            Bundle args1 = new Bundle();
-
-            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FRIEND);
-            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-            args1.putString(TweetListFragment.EXTRA_TITLE, "Follow: @" + loadHolder.targetUser.getScreenName());
-
-            fragment.setArguments(args1);
+            Fragment fragment = TwitterUserListFragment.newFriendListInstance(user, "Follow: @" + loadHolder.targetUser.getScreenName(), loadHolder.targetUser);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
@@ -270,15 +261,7 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
         });
         pbFollowers = v.findViewById(R.id.cvProfileFollowers);
         pbFollowers.setOnClickListener(view -> {
-            Fragment fragment = new FriendListFragment();
-            Bundle args1 = new Bundle();
-
-            args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_FOLLOWER);
-            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-            args1.putString(TweetListFragment.EXTRA_TITLE, "Follower: @" + loadHolder.targetUser.getScreenName());
-
-            fragment.setArguments(args1);
+            Fragment fragment = TwitterUserListFragment.newFollowerListInstance(user, "Follower: @" + loadHolder.targetUser.getScreenName(), loadHolder.targetUser);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
@@ -919,13 +902,10 @@ public class ProfileFragment extends TwitterFragment implements FollowDialogFrag
                 return true;
             }
             case R.id.action_block_list: {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args1 = new Bundle();
-                args1.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_BLOCKING);
-                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                args1.putString(TweetListFragment.EXTRA_TITLE, "Blocking: @" + loadHolder.targetUser.getScreenName());
-                fragment.setArguments(args1);
+                TwitterUserListFragment fragment = TwitterUserListFragment.newBlockingListInstance(
+                        user,
+                        "Blocking: @" + loadHolder.targetUser.getScreenName(),
+                        loadHolder.targetUser);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);

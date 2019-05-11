@@ -23,14 +23,15 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
-import shibafu.yukari.fragment.tabcontent.FriendListFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.database.Provider;
+import shibafu.yukari.fragment.TwitterUserListFragment;
+import shibafu.yukari.twitter.AuthUserRecord;
 
 /**
  * Created by shibafu on 14/06/01.
@@ -73,13 +74,30 @@ public class UserSearchActivity extends ActionBarYukariBase {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                FriendListFragment fragment = new FriendListFragment();
-                Bundle args = new Bundle();
-                args.putInt(FriendListFragment.EXTRA_MODE, FriendListFragment.MODE_SEARCH);
-                args.putSerializable(TweetListFragment.EXTRA_USER, isTwitterServiceBound()? getTwitterService().getPrimaryUser() : null);
-                args.putString(FriendListFragment.EXTRA_SEARCH_QUERY, s);
-                args.putString(TweetListFragment.EXTRA_TITLE, "Search: " + s);
-                fragment.setArguments(args);
+                while (!isTwitterServiceBound()) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        return true;
+                    }
+                }
+
+                AuthUserRecord user = getTwitterService().getPrimaryUser();
+                if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
+                    for (AuthUserRecord userRecord : getTwitterService().getUsers()) {
+                        if (userRecord.Provider.getApiType() == Provider.API_TWITTER) {
+                            user = userRecord;
+                            break;
+                        }
+                    }
+
+                    if (user == null) {
+                        Toast.makeText(UserSearchActivity.this, "使用可能なTwitterアカウントが無いため、ユーザー検索を利用できません。", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                }
+
+                TwitterUserListFragment fragment = TwitterUserListFragment.newSearchInstance(user, "Search: " + s, s);
 
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment).commit();
