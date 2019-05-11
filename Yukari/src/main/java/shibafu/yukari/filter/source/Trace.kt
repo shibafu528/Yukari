@@ -1,5 +1,7 @@
 package shibafu.yukari.filter.source
 
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
@@ -14,6 +16,7 @@ import shibafu.yukari.entity.Status as IStatus
 /**
  * In-Reply-Toで繋がっている会話を取得するためのフィルタソースです。
  */
+@Source(apiType = Provider.API_TWITTER, slug = "trace")
 data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
     private val originId: Long = origin.toLongOrNull() ?: TwitterUtil.getStatusIdFromUrl(origin)
 

@@ -1,5 +1,7 @@
 package shibafu.yukari.filter.source
 
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.NotNode
@@ -14,6 +16,7 @@ import shibafu.yukari.twitter.TwitterRestQuery
  *
  * Created by shibafu on 15/07/26.
  */
+@Source(apiType = Provider.API_TWITTER, slug = "mention")
 public data class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getRestQuery() = TwitterRestQuery { twitter, paging -> twitter.getMentionsTimeline(paging) }

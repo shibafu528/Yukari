@@ -1,5 +1,7 @@
 package shibafu.yukari.filter.source
 
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.EqualsNode
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
@@ -12,6 +14,7 @@ import shibafu.yukari.twitter.TwitterRestQuery
  *
  * Created by shibafu on 15/07/26.
  */
+@Source(apiType = Provider.API_TWITTER, slug = "user")
 public data class User(override val sourceAccount: AuthUserRecord?, val target: String) : FilterSource {
     private val targetId: Long? = if (target.startsWith("#")) target.substring(1).toLong() else null
 

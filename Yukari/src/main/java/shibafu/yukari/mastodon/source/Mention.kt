@@ -3,6 +3,8 @@ package shibafu.yukari.mastodon.source
 import com.sys1yagi.mastodon4j.api.Pageable
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.method.Notifications
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.NotNode
@@ -17,6 +19,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Mention Timeline
  */
+@Source(apiType = Provider.API_MASTODON, slug = "mention")
 data class Mention(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         val excludeTypes = listOf(Notification.Type.Follow, Notification.Type.Favourite, Notification.Type.Reblog)

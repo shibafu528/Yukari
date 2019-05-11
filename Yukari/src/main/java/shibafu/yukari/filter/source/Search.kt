@@ -2,6 +2,7 @@ package shibafu.yukari.filter.source
 
 import android.content.Context
 import com.google.gson.Gson
+import info.shibafu528.yukari.processor.filter.Source
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Status
@@ -25,6 +26,7 @@ import java.util.*
 /**
  * Twitterの検索APIを対象とする抽出ソースです。
  */
+@Source(apiType = Provider.API_TWITTER, slug = "search")
 data class Search(override val sourceAccount: AuthUserRecord, val query: String) : FilterSource {
     private val parsedQuery = FilterStream.ParsedQuery(query)
     private val gson = Gson()

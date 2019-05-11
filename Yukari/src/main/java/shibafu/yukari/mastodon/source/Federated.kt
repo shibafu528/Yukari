@@ -5,6 +5,7 @@ import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Range
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Public
+import info.shibafu528.yukari.processor.filter.Source
 import okhttp3.OkHttpClient
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
@@ -24,6 +25,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Federated Timeline
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_federated")
 data class Federated(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
         Public(client).getFederatedPublic(range).execute()
@@ -44,6 +46,7 @@ data class Federated(override val sourceAccount: AuthUserRecord) : FilterSource 
 /**
  * Federated Timeline (Anonymous access)
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_anon_federated")
 data class AnonymousFederated(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {

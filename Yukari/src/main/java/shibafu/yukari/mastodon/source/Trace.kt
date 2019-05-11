@@ -3,6 +3,8 @@ package shibafu.yukari.mastodon.source
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Statuses
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.source.FilterSource
@@ -14,6 +16,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * In-Reply-Toで繋がっている会話を取得するためのフィルタソースです。
  */
+@Source(apiType = Provider.API_MASTODON, slug = "trace")
 data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String) : FilterSource {
     override fun getRestQuery() = object : RestQuery {
         override fun getRestResponses(userRecord: AuthUserRecord, api: Any, params: RestQuery.Params): List<Status> {

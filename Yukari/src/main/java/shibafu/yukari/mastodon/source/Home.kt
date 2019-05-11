@@ -1,6 +1,7 @@
 package shibafu.yukari.mastodon.source
 
 import com.sys1yagi.mastodon4j.api.method.Timelines
+import info.shibafu528.yukari.processor.filter.Source
 import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
@@ -17,6 +18,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Home Timeline
  */
+@Source(apiType = Provider.API_MASTODON, slug = "home")
 data class Home(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         Timelines(client).getHome(range).execute()

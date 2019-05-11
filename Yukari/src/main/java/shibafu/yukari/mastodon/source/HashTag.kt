@@ -2,6 +2,8 @@ package shibafu.yukari.mastodon.source
 
 import android.content.Context
 import com.sys1yagi.mastodon4j.api.method.Public
+import info.shibafu528.yukari.processor.filter.Source
+import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
 import shibafu.yukari.filter.sexp.SNode
@@ -17,6 +19,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * HashTag Search
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_hashtag")
 data class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
     private val normalizedTag: String = tag.trim().trimStart('#')
 
@@ -56,6 +59,7 @@ data class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) 
 /**
  * Local HashTag Search
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_local_hashtag")
 data class LocalHashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
     private val normalizedTag: String = tag.trim().trimStart('#')
 

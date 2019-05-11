@@ -35,55 +35,6 @@ class QueryCompiler {
         const val DEFAULT_QUERY: String = "from all"
         private val LOG_TAG = QueryCompiler::class.java.simpleName
 
-        private val SOURCES: Map<String, Map<Int, Class<out FilterSource>>> = mapOf(
-                "home" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Home::class.java,
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Home::class.java
-                ),
-                "mention" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Mention::class.java,
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Mention::class.java
-                ),
-                "user" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.User::class.java,
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.User::class.java
-                ),
-                "list" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.List::class.java
-                ),
-                "trace" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Trace::class.java,
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Trace::class.java
-                ),
-                "message" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.DirectMessage::class.java
-                ),
-                "search" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Search::class.java
-                ),
-                "favorite" to mapOf(
-                        Provider.API_TWITTER to shibafu.yukari.filter.source.Favorite::class.java
-                ),
-                "don_local" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Local::class.java
-                ),
-                "don_anon_local" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousLocal::class.java
-                ),
-                "don_federated" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.Federated::class.java
-                ),
-                "don_anon_federated" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.AnonymousFederated::class.java
-                ),
-                "don_hashtag" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.HashTag::class.java
-                ),
-                "don_local_hashtag" to mapOf(
-                        Provider.API_MASTODON to shibafu.yukari.mastodon.source.LocalHashTag::class.java
-                )
-        )
-
         /**
          * クエリ文字列を解釈し、ソースリストと式オブジェクトにコンパイルします。
          * @param userRecords ソースリストに関連付けるユーザのリスト
@@ -143,9 +94,9 @@ class QueryCompiler {
                     args = listOf()
                 }
 
-                /** [SOURCES]から対応する抽出ソースのクラスを検索 */
+                /** [typeValue]と[apiType]の組み合わせに対応する抽出ソースのクラスを検索 */
                 private fun findSourceClass(typeValue: String, apiType: Int): Class<out FilterSource>? {
-                    return SOURCES[typeValue]?.get(apiType)
+                    return Sources.MAP[typeValue]?.get(apiType)
                 }
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */

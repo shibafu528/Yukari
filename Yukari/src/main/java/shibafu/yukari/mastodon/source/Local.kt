@@ -5,6 +5,7 @@ import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Range
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Public
+import info.shibafu528.yukari.processor.filter.Source
 import okhttp3.OkHttpClient
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
@@ -25,6 +26,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 /**
  * Local Timeline
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_local")
 data class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
     override fun getRestQuery(): RestQuery = MastodonRestQuery { client, range ->
         Public(client).getLocalPublic(range).execute()
@@ -49,6 +51,7 @@ data class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
 /**
  * Local Timeline (Anonymous access)
  */
+@Source(apiType = Provider.API_MASTODON, slug = "don_anon_local")
 data class AnonymousLocal(override val sourceAccount: AuthUserRecord, val instance: String) : FilterSource {
     // び、微妙～～
     override fun getRestQuery(): RestQuery = object : RestQuery {

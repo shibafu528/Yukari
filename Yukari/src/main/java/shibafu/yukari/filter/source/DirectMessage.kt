@@ -1,5 +1,6 @@
 package shibafu.yukari.filter.source
 
+import info.shibafu528.yukari.processor.filter.Source
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Status
@@ -23,6 +24,7 @@ import java.util.*
  *
  * Created by shibafu on 15/07/26.
  */
+@Source(apiType = Provider.API_TWITTER, slug = "message")
 data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSource {
 
     override fun getRestQuery() = object : RestQuery {
