@@ -42,6 +42,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
+import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.common.span.UserProfileSpan
@@ -289,6 +290,14 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         }
 
         when (item.itemId) {
+            R.id.action_send_mention -> {
+                val intent = Intent(requireContext(), TweetActivity::class.java)
+                intent.putExtra(TweetActivity.EXTRA_USER, currentUser)
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+                intent.putExtra(TweetActivity.EXTRA_TEXT, "@${targetUser?.screenName} ")
+                startActivity(intent)
+                return true
+            }
             R.id.action_browser -> {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(user.url))
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK

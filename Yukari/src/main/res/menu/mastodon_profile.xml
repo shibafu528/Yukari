@@ -12,10 +12,10 @@
         android:title="スクリーンネームで検索"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_search_d"/>
+    -->
     <item
         android:id="@+id/action_send_mention"
         android:title="トゥートを送る"/>
-    -->
     <item
         android:id="@+id/action_browser"
         android:title="ブラウザで開く"/>
