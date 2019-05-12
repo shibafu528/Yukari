@@ -239,9 +239,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         job.cancel()
     }
 
-    override fun onServiceConnected() {
-        // TODO
-    }
+    override fun onServiceConnected() {}
 
     override fun onServiceDisconnected() {}
 
@@ -351,8 +349,6 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
             cvNotice.visibility = View.VISIBLE
         }
 
-        // TODO: 適切なリンクのハンドリングをするために自前でのパースを検討する
-        // あと、この方法だと最後に1行不自然な空白がある。pタグのせい？
         tvBiography.text = parseHtml(account.note)
         tvBiography.movementMethod = LinkMovementMethod.getInstance()
 
