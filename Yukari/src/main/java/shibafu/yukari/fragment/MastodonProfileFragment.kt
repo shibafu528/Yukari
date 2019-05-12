@@ -58,7 +58,7 @@ import java.io.StringReader
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 
-class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
+class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var ivIcon: ImageView
@@ -260,6 +260,17 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
 
     override fun onServiceDisconnected() {}
 
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
+        when (requestCode) {
+            DIALOG_REQUEST_LOAD_FAILED -> {
+                if (which == DialogInterface.BUTTON_POSITIVE) {
+                    startActivity(Intent(Intent.ACTION_VIEW, targetUrl).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
+                requireActivity().finish()
+            }
+        }
+    }
+
     override fun onProgressDialogCancel(requestCode: Int, dialog: DialogInterface?) {
         when (requestCode) {
             DIALOG_REQUEST_LOAD -> requireActivity().finish()
@@ -334,8 +345,13 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         Log.d(MastodonProfileFragment::class.java.simpleName, "Load done.")
 
         if (result == null) {
-            Toast.makeText(requireActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show()
-            requireActivity().finish()
+            val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_LOAD_FAILED)
+                    .setMessage("ユーザー情報の取得に失敗しました。代わりにブラウザで開きますか？")
+                    .setPositive("OK")
+                    .setNegative("キャンセル")
+                    .build()
+            dialog.setTargetFragment(this@MastodonProfileFragment, DIALOG_REQUEST_LOAD_FAILED)
+            dialog.show(fragmentManager, FRAGMENT_TAG_LOAD_FAILED)
         } else {
             val (user, pinnedCount) = result
 
@@ -529,8 +545,10 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         private const val STATE_TARGET_PINNED_COUNT = "targetPinnedCount"
 
         private const val FRAGMENT_TAG_LOAD = "loadProgress"
+        private const val FRAGMENT_TAG_LOAD_FAILED = "loadFailedAlert"
 
         private const val DIALOG_REQUEST_LOAD = 0
+        private const val DIALOG_REQUEST_LOAD_FAILED = 1
 
         fun newInstance(user: AuthUserRecord, targetUrl: Uri): MastodonProfileFragment {
             return MastodonProfileFragment().apply {
