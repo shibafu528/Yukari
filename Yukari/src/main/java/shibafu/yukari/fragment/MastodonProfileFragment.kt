@@ -27,6 +27,7 @@ import android.widget.TextView
 import android.widget.Toast
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
+import com.sys1yagi.mastodon4j.api.method.Accounts
 import com.sys1yagi.mastodon4j.api.method.Public
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,6 +68,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     private lateinit var tvScreenName: TextView
     private lateinit var tvBiography: TextView
     private lateinit var pbTweets: ProfileButton
+    private lateinit var pbPinnedToots: ProfileButton
     private lateinit var pbFollows: ProfileButton
     private lateinit var pbFollowers: ProfileButton
     private lateinit var tvSince: TextView
@@ -93,6 +95,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     }
 
     private var targetUser: DonUser? = null
+    private var targetPinnedCount: String = ""
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -106,6 +109,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
 
         if (savedInstanceState != null) {
             targetUser = savedInstanceState.getParcelable(STATE_TARGET_USER)
+            targetPinnedCount = savedInstanceState.getString(STATE_TARGET_PINNED_COUNT, "")
         }
     }
 
@@ -157,6 +161,25 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                 putSerializable(TweetListFragment.EXTRA_USER, currentUser)
                 putString(TweetListFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from user:\"${currentUser.ScreenName}/${user.screenName}\"")
+            }
+
+            val fm = fragmentManager ?: return@setOnClickListener
+            fm.beginTransaction()
+                    .replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT)
+                    .addToBackStack(null)
+                    .commit()
+        }
+
+        pbPinnedToots = v.findViewById(R.id.cvProfilePinnedToots)
+        pbPinnedToots.setOnClickListener {
+            val user = targetUser ?: return@setOnClickListener
+
+            val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
+            fragment.arguments = Bundle().apply {
+                putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
+                putSerializable(TweetListFragment.EXTRA_USER, currentUser)
+                putString(TweetListFragment.EXTRA_TITLE, "Pinned: @" + user.screenName)
+                putString(TimelineFragment.EXTRA_FILTER_QUERY, "from don_user_pinned:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 
             val fm = fragmentManager ?: return@setOnClickListener
@@ -284,7 +307,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         progressDialog.setTargetFragment(this@MastodonProfileFragment, DIALOG_REQUEST_LOAD)
         progressDialog.show(fragmentManager, FRAGMENT_TAG_LOAD)
 
-        val user = async(Dispatchers.IO) {
+        val result = async(Dispatchers.IO) {
             try {
                 val service = getTwitterServiceAwait() ?: return@async null
 
@@ -294,7 +317,18 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                 val result = Public(client).getSearch(targetUrl.toString(), true).execute()
                 val account = result.accounts.firstOrNull() ?: return@async null
 
-                DonUser(account)
+                val pinnedResult = Accounts(client).getStatuses(account.id, pinned = true).execute()
+                val pinnedCount = run {
+                    val link = pinnedResult.link
+
+                    if (link != null && link.nextPath.isNotEmpty()) {
+                        "${pinnedResult.part.size}+"
+                    } else {
+                        pinnedResult.part.size.toString()
+                    }
+                }
+
+                DonUser(account) to pinnedCount
             } catch (e: Mastodon4jRequestException) {
                 e.printStackTrace()
                 null
@@ -305,11 +339,14 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
 
         Log.d(MastodonProfileFragment::class.java.simpleName, "Load done.")
 
-        if (user == null) {
+        if (result == null) {
             Toast.makeText(requireActivity(), "ユーザー情報の取得に失敗しました", Toast.LENGTH_SHORT).show()
             requireActivity().finish()
         } else {
+            val (user, pinnedCount) = result
+
             targetUser = user
+            targetPinnedCount = pinnedCount
 
             if (isResumed) {
                 showProfile(user)
@@ -353,6 +390,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         tvBiography.movementMethod = LinkMovementMethod.getInstance()
 
         pbTweets.count = account.statusesCount.toString()
+        pbPinnedToots.count = targetPinnedCount
         pbFollows.count = account.followingCount.toString()
         pbFollowers.count = account.followersCount.toString()
 
@@ -494,6 +532,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         const val EXTRA_TARGET_URL = "targetUrl"
 
         private const val STATE_TARGET_USER = "targetUser"
+        private const val STATE_TARGET_PINNED_COUNT = "targetPinnedCount"
 
         private const val FRAGMENT_TAG_LOAD = "loadProgress"
 

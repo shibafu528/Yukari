@@ -229,6 +229,7 @@ class QueryCompiler {
                         "don_anon_federated" -> createFiltersWithListArguments("don_anon_federated", 1, "インスタンス名")
                         "don_hashtag" -> createFiltersWithTraceArguments("don_hashtag", "受信ユーザ/ハッシュタグ")
                         "don_local_hashtag" -> createFiltersWithTraceArguments("don_local_hashtag", "受信ユーザ/ハッシュタグ")
+                        "don_user_pinned" -> createFiltersWithListArguments("don_user_pinned", 1, "(受信ユーザ/)対象ユーザ")
 
                         else -> throw FilterCompilerException("抽出ソースの指定が正しくありません。", type)
                     }

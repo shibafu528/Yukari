@@ -140,23 +140,40 @@
             app:text="Toots"
             app:layout_constraintTop_toBottomOf="@id/frameLayout2"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/cvProfileFollows"/>
+            app:layout_constraintEnd_toStartOf="@id/cvProfilePinnedToots"/>
+
+        <shibafu.yukari.view.ProfileButton
+            android:id="@+id/cvProfilePinnedToots"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:clickable="true"
+            android:foreground="?attr/selectableItemBackground"
+            app:iconSrc="?attr/profileTweetsDrawable"
+            app:text="Pinned"
+            app:layout_constraintTop_toBottomOf="@id/frameLayout2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/cvProfileTweets"/>
 
         <shibafu.yukari.view.ProfileButton
             android:id="@+id/cvProfileFollows"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginLeft="4dp"
-            android:layout_marginStart="4dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
             android:layout_marginRight="4dp"
             android:layout_marginEnd="4dp"
             android:clickable="true"
             android:foreground="?attr/selectableItemBackground"
             app:iconSrc="?attr/profileFollowsDrawable"
             app:text="Follows"
-            app:layout_constraintTop_toBottomOf="@id/frameLayout2"
-            app:layout_constraintStart_toEndOf="@id/cvProfileTweets"
+            app:layout_constraintTop_toBottomOf="@id/cvProfileTweets"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/cvProfileFollowers"/>
 
         <shibafu.yukari.view.ProfileButton
@@ -172,7 +189,7 @@
             android:foreground="?attr/selectableItemBackground"
             app:iconSrc="?attr/profileFollowersDrawable"
             app:text="Followers"
-            app:layout_constraintTop_toBottomOf="@+id/frameLayout2"
+            app:layout_constraintTop_toBottomOf="@id/cvProfileTweets"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cvProfileFollows"/>
 
