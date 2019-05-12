@@ -7,11 +7,14 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.AppBarLayout
 import android.support.v4.content.res.ResourcesCompat
-import android.support.v4.text.HtmlCompat
 import android.support.v7.widget.CardView
 import android.support.v7.widget.Toolbar
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
+import android.text.style.URLSpan
 import android.util.Log
+import android.util.Xml
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -33,11 +36,14 @@ import kotlinx.coroutines.launch
 import org.threeten.bp.ZonedDateTime
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.temporal.ChronoUnit
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.R
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.common.span.UserProfileSpan
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
@@ -47,6 +53,7 @@ import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.view.ProfileButton
+import java.io.StringReader
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 
@@ -80,6 +87,10 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     private lateinit var targetUrl: Uri
 
     private val job = Job()
+    private val xppFactory = XmlPullParserFactory.newInstance().apply {
+        isValidating = false
+        setFeature(Xml.FEATURE_RELAXED, true)
+    }
 
     private var targetUser: DonUser? = null
 
@@ -342,7 +353,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
 
         // TODO: 適切なリンクのハンドリングをするために自前でのパースを検討する
         // あと、この方法だと最後に1行不自然な空白がある。pタグのせい？
-        tvBiography.text = HtmlCompat.fromHtml(account.note, HtmlCompat.FROM_HTML_MODE_COMPACT)
+        tvBiography.text = parseHtml(account.note)
         tvBiography.movementMethod = LinkMovementMethod.getInstance()
 
         pbTweets.count = account.statusesCount.toString()
@@ -405,7 +416,8 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                         topMargin = (density * 2).roundToInt()
                     }
 
-                    text = HtmlCompat.fromHtml(field.value, HtmlCompat.FROM_HTML_MODE_COMPACT)
+                    text = parseHtml(field.value)
+                    movementMethod = LinkMovementMethod.getInstance()
                 }
                 llFields.addView(tvValue)
             }
@@ -419,6 +431,66 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         tvDetailSubHeader.text = "in ${currentUser.Provider.host}"
         tvSince.text = String.format("%s (%d日, %.2ftoots/day)", dateStr, totalDay, tpd)
         tvUserId.text = "#${user.id}"
+    }
+
+    private fun parseHtml(html: String): CharSequence {
+        val ssb = SpannableStringBuilder()
+
+        val xpp = xppFactory.newPullParser()
+        xpp.setInput(StringReader("<div>$html</div>"))
+
+        var eventType = xpp.eventType
+        var linkMarker: LinkMarker? = null
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            when (eventType) {
+                XmlPullParser.START_TAG -> {
+                    when (xpp.name) {
+                        "br" -> ssb.append("\n")
+                        "p" -> {
+                            // 2つ目以降の段落開始前。空行を差し込む。
+                            if (ssb.isNotEmpty()) {
+                                ssb.append("\n\n")
+                            }
+                        }
+                        "a" -> {
+                            val href = xpp.getAttributeValue(null, "href").orEmpty()
+                            val classes = xpp.getAttributeValue(null, "class").orEmpty()
+                            linkMarker = when {
+                                classes.contains("u-url") -> LinkMarker.Mention(ssb.length, href)
+                                classes.contains("hashtag") -> LinkMarker.HashTag(ssb.length, href)
+                                else -> LinkMarker.Standard(ssb.length, href)
+                            }
+                        }
+                    }
+                }
+                XmlPullParser.END_TAG -> {
+                    when (xpp.name) {
+                        "a" -> {
+                            if (linkMarker != null) {
+                                val span = when (linkMarker) {
+                                    is LinkMarker.Standard -> URLSpan(linkMarker.href)
+                                    is LinkMarker.Mention -> UserProfileSpan(currentUser, linkMarker.href)
+                                    is LinkMarker.HashTag -> URLSpan(linkMarker.href)
+                                }
+                                ssb.setSpan(span, linkMarker.start, ssb.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                linkMarker = null
+                            }
+                        }
+                    }
+                }
+                XmlPullParser.TEXT -> ssb.append(xpp.text)
+            }
+
+            eventType = xpp.next()
+        }
+
+        return ssb
+    }
+
+    private sealed class LinkMarker(val start: Int) {
+        class Standard(start: Int, val href: String) : LinkMarker(start)
+        class Mention(start: Int, val href: String) : LinkMarker(start)
+        class HashTag(start: Int, val href: String) : LinkMarker(start)
     }
 
     companion object {

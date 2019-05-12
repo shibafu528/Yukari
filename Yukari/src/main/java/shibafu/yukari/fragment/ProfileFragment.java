@@ -28,7 +28,6 @@ import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.text.style.URLSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -56,6 +55,8 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.common.span.HashTagSpan;
+import shibafu.yukari.common.span.UserProfileSpan;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
@@ -459,7 +460,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             Matcher screenNameMatcher = screenNamePattern.matcher(spannableBio);
             while (screenNameMatcher.find()) {
                 String screenName = screenNameMatcher.group(1);
-                spannableBio.setSpan(new ScreenNameSpan(user, TwitterUtil.getProfileUrl(screenName)), screenNameMatcher.start(), screenNameMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spannableBio.setSpan(new UserProfileSpan(user, TwitterUtil.getProfileUrl(screenName)), screenNameMatcher.start(), screenNameMatcher.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
 
             // ハッシュタグをリンク化
@@ -1220,41 +1221,6 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                     })
                     .create();
             return dialog;
-        }
-    }
-
-    private static class ScreenNameSpan extends ClickableSpan {
-        private AuthUserRecord userRecord;
-        private String url;
-
-        public ScreenNameSpan(AuthUserRecord userRecord, String url) {
-            this.userRecord = userRecord;
-            this.url = url;
-        }
-
-        @Override
-        public void onClick(@NonNull View widget) {
-            Intent intent = ProfileActivity.newIntent(widget.getContext(), userRecord, Uri.parse(url));
-            widget.getContext().startActivity(intent);
-        }
-    }
-
-    private static class HashTagSpan extends ClickableSpan {
-        private String tag;
-
-        public HashTagSpan(String tag) {
-            if (tag.startsWith("#")) {
-                this.tag = tag;
-            } else {
-                this.tag = "#" + tag;
-            }
-        }
-
-        @Override
-        public void onClick(@NonNull View widget) {
-            Intent intent = new Intent(widget.getContext(), MainActivity.class);
-            intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, tag);
-            widget.getContext().startActivity(intent);
         }
     }
 
