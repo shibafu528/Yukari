@@ -74,9 +74,6 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
     private lateinit var tvSince: TextView
     private lateinit var tvUserId: TextView
     private lateinit var tvDetailSubHeader: TextView
-    private lateinit var cvTweets: CardView
-    private lateinit var cvFollows: CardView
-    private lateinit var cvFollowers: CardView
     private lateinit var cvNotice: CardView
     private lateinit var cvMoved: CardView
     private lateinit var ivMovedIcon: ImageView
@@ -144,15 +141,12 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
         tvName = v.findViewById(R.id.tvProfileName)
         tvScreenName = v.findViewById(R.id.tvProfileScreenName)
         tvBiography = v.findViewById(R.id.tvProfileBio)
-        pbTweets = v.findViewById(R.id.cvProfileTweets)
-        pbFollows = v.findViewById(R.id.cvProfileFollows)
-        pbFollowers = v.findViewById(R.id.cvProfileFollowers)
         tvSince = v.findViewById(R.id.tvProfileSince)
         tvUserId = v.findViewById(R.id.tvProfileUserId)
         tvDetailSubHeader = v.findViewById(R.id.tvProfileDetailSubHeader)
 
-        cvTweets = v.findViewById(R.id.cvProfileTweets)
-        cvTweets.setOnClickListener {
+        pbTweets = v.findViewById(R.id.cvProfileTweets)
+        pbTweets.setOnClickListener {
             val user = targetUser ?: return@setOnClickListener
 
             val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
@@ -189,8 +183,8 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                     .commit()
         }
 
-        cvFollows = v.findViewById(R.id.cvProfileFollows)
-        cvFollows.setOnClickListener {
+        pbFollows = v.findViewById(R.id.cvProfileFollows)
+        pbFollows.setOnClickListener {
             val user = targetUser ?: return@setOnClickListener
 
             val fragment = MastodonUserListFragment.newFollowingListInstance(currentUser, "Follow: @${user.screenName}", user.id)
@@ -202,8 +196,8 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleProg
                     .commit()
         }
 
-        cvFollowers = v.findViewById(R.id.cvProfileFollowers)
-        cvFollowers.setOnClickListener {
+        pbFollowers = v.findViewById(R.id.cvProfileFollowers)
+        pbFollowers.setOnClickListener {
             val user = targetUser ?: return@setOnClickListener
 
             val fragment = MastodonUserListFragment.newFollowerListInstance(currentUser, "Follower: @${user.screenName}", user.id)
