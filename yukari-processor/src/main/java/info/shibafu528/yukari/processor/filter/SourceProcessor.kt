@@ -30,7 +30,7 @@ class SourceProcessor : AbstractProcessor() {
                         return@forEach
                     }
 
-                    if (!element.interfaces.any { it == filterSourceType.asType() }) {
+                    if (!processingEnv.typeUtils.isAssignable(element.asType(), filterSourceType.asType())) {
                         processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, "${element.simpleName} was not implemented FilterSource.", element)
                         return@forEach
                     }
