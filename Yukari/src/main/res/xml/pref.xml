@@ -108,6 +108,16 @@
                 android:targetPackage="@string/applicationId"
                 android:targetClass="shibafu.yukari.activity.LicenseActivity"/>
         </Preference>
+        <Preference android:key="pref_about_project" android:title="ソースコード">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/shibafu528/Yukari"/>
+        </Preference>
+        <Preference android:key="pref_about_project" android:title="リリースノート (更新履歴)">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/shibafu528/Yukari/wiki/Release-Notes"/>
+        </Preference>
         <Preference android:key="pref_about_faq" android:title="Y4a Wiki - 存在が分かりにくい機能">
             <intent
                 android:action="android.intent.action.VIEW"
