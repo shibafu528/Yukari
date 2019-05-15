@@ -888,11 +888,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
         Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
         llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
-        final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
+        // TODO: dimen resourceにしろバカ
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout.LayoutParams lpPluginButton = new LinearLayout.LayoutParams((int)(52 * density), (int)(48 * density));
         for (ResolveInfo ri : plugins) {
             ImageButton imageButton = new AppCompatImageButton(this);
-            Bitmap sourceIcon = ((BitmapDrawable) ri.activityInfo.loadIcon(pm)).getBitmap();
-            imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
+            imageButton.setImageDrawable(ri.activityInfo.loadIcon(pm));
+            imageButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
             imageButton.setTag(ri);
             imageButton.setOnClickListener(v -> {
                 ResolveInfo ri1 = (ResolveInfo) v.getTag();
@@ -924,7 +926,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 toast.show();
                 return true;
             });
-            llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+            llTweetExtra.addView(imageButton, lpPluginButton);
         }
     }
 
