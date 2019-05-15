@@ -888,9 +888,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         List<ResolveInfo> plugins = pm.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY);
         Collections.sort(plugins, new ResolveInfo.DisplayNameComparator(pm));
         llTweetExtra = (LinearLayout) findViewById(R.id.llTweetExtra);
-        // TODO: dimen resourceにしろバカ
-        float density = getResources().getDisplayMetrics().density;
-        LinearLayout.LayoutParams lpPluginButton = new LinearLayout.LayoutParams((int)(52 * density), (int)(48 * density));
+        LinearLayout.LayoutParams lpPluginButton = new LinearLayout.LayoutParams(
+                getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_width),
+                getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_height));
         for (ResolveInfo ri : plugins) {
             ImageButton imageButton = new AppCompatImageButton(this);
             imageButton.setImageDrawable(ri.activityInfo.loadIcon(pm));

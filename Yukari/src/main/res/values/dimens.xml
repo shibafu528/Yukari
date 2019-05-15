@@ -20,4 +20,7 @@
     <dimen name="status_button_delta_half">50dp</dimen>
 
     <dimen name="attach_picture_size">78dp</dimen>
+
+    <dimen name="tweet_plugin_button_width">52dp</dimen>
+    <dimen name="tweet_plugin_button_height">48dp</dimen>
 </resources>
