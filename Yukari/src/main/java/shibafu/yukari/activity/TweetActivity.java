@@ -168,8 +168,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     // PermissionsDispatcherが若いリクエスト番号を使うので、自前実装は大きめの番号から。
     private static final int PERMISSION_REQUEST_INIT_ATTACH = 0x1000;
 
-    private static final int PLUGIN_ICON_DIP = 28;
-
     private static final int TITLE_AREA_MAX_LINES = 3;
 
     private static final Pattern PATTERN_PREFIX = Pattern.compile("(@[0-9a-zA-Z_]{1,15} )+.*");
@@ -1702,12 +1700,14 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     final String slug = Optional.ofNullable((String) entry.get("slug")).orElse("missing_slug");
                     final String label = Optional.ofNullable((String) entry.get("label")).orElse(slug);
                     final ProcWrapper exec = (ProcWrapper) entry.get("exec");
-                    final int iconSize = (int) (getResources().getDisplayMetrics().density * PLUGIN_ICON_DIP);
+                    final LinearLayout.LayoutParams lpPluginButton = new LinearLayout.LayoutParams(
+                            getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_width),
+                            getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_height));
                     {
                         ImageButton imageButton = new AppCompatImageButton(this);
-                        Bitmap sourceIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_tweet);
-                        imageButton.setImageBitmap(Bitmap.createScaledBitmap(sourceIcon, iconSize, iconSize, true));
+                        imageButton.setImageResource(R.drawable.ic_launcher_tweet);
                         imageButton.setTag(exec);
+                        imageButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                         imageButton.setOnClickListener(v -> {
                             Map<String, String> extra = new LinkedHashMap<>();
 
@@ -1760,7 +1760,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                             toast.show();
                             return true;
                         });
-                        llTweetExtra.addView(imageButton, FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+                        llTweetExtra.addView(imageButton, lpPluginButton);
                     }
                 });
                 isLoadedPluggaloid = true;
