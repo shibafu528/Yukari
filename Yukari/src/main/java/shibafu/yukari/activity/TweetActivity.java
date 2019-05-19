@@ -541,7 +541,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 可視性の設定
-        setVisibility(args.getIntExtra(EXTRA_VISIBILITY, StatusDraft.Visibility.PUBLIC.ordinal()));
+        if (args.hasExtra(EXTRA_VISIBILITY)) {
+            setVisibility(args.getIntExtra(EXTRA_VISIBILITY, StatusDraft.Visibility.PUBLIC.ordinal()));
+        }
 
         // Spoilerの設定
         String spoilerText = args.getStringExtra(EXTRA_SPOILER_TEXT);
