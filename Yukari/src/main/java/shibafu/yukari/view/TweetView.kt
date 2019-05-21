@@ -7,8 +7,6 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import shibafu.yukari.R
-import shibafu.yukari.database.Provider
-import shibafu.yukari.linkage.TimelineHubImpl
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
 
@@ -68,33 +66,6 @@ class TweetView : StatusView {
     override fun updateDecoration() {
         super.updateDecoration()
         val status = status as TwitterStatus
-
-        // 引用対応
-        when (mode) {
-            Mode.DEFAULT, Mode.DETAIL -> {
-                val quoteEntities = status.quoteEntities
-                if (quoteEntities.size() > 0) {
-                    flInclude.removeAllViews()
-                    flInclude.visibility = View.VISIBLE
-
-                    quoteEntities.forEach { quoteId ->
-                        val receivedStatus = TimelineHubImpl.getProviderLocalCache(Provider.TWITTER.id).receivedStatus.get(quoteId)
-                        if (receivedStatus != null) {
-                            val tv = TweetView(context, singleLine).also {
-                                it.userRecords = userRecords
-                                it.userExtras = userExtras
-                                it.mode = mode or Mode.INCLUDE
-                                it.status = receivedStatus
-                            }
-                            flInclude.addView(tv)
-                        }
-                    }
-                } else {
-                    flInclude.visibility = View.GONE
-                }
-            }
-            else -> flInclude.visibility = View.GONE
-        }
 
         // ハイパーミュート
         if (pref.getBoolean("j_fullmute", false)) {

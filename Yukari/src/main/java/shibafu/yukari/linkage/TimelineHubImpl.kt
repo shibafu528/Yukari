@@ -7,20 +7,27 @@ import android.support.v4.util.LongSparseArray
 import android.support.v4.util.LruCache
 import info.shibafu528.yukari.exvoice.converter.StatusConverter
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationType
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
+import twitter4j.Twitter
+import twitter4j.TwitterException
 import java.util.*
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.regex.Pattern
@@ -210,7 +217,7 @@ class TimelineHubImpl(private val service: TwitterService,
         }
 
         // キャッシュ登録
-        plc.receivedStatus.put(status.id, status)
+        putStatusCache(status)
 
         if (status is TwitterStatus) {
             if (passive) {
@@ -223,9 +230,8 @@ class TimelineHubImpl(private val service: TwitterService,
             // 引用ツイートのキャッシュ
             if (status.status.quotedStatus != null) {
                 val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
-                plc.receivedStatus.put(quotedStatus.id, quotedStatus)
+                putStatusCache(quotedStatus)
             }
-            // TODO: 昔はこのへんで引用ツイートの再帰取得リクエストしてた (StatusManagerの履歴参照)
 
             // mruby連携
             if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
@@ -238,6 +244,38 @@ class TimelineHubImpl(private val service: TwitterService,
                         message.dispose()
                     }
                 }
+            }
+        }
+
+        // キャッシュされていないTwitter引用を検索
+        status.links.forEach { url ->
+            if (findStatusByUrl(url) != null) {
+                return@forEach
+            }
+
+            val statusId = TwitterUtil.getStatusIdFromUrl(url)
+            if (statusId == -1L) {
+                return@forEach
+            }
+
+            val userRecord = if (status is TwitterStatus) {
+                status.representUser
+            } else {
+                service.findPreferredUser(Provider.API_TWITTER) ?: return@forEach
+            }
+
+            GlobalScope.launch(Dispatchers.IO) {
+                val api = service.getProviderApi(Provider.API_TWITTER)
+                val twitter = api.getApiClient(userRecord) as Twitter
+
+                try {
+                    val s = twitter.showStatus(statusId)
+                    putStatusCache(TwitterStatus(s, userRecord))
+                } catch (e: TwitterException) {
+                    e.printStackTrace()
+                }
+
+                service.timelineHub?.onForceUpdateUI()
             }
         }
     }
@@ -373,6 +411,8 @@ class TimelineHubImpl(private val service: TwitterService,
 
         private val providerLocalCaches: LongSparseArray<ProviderLocalCache> = LongSparseArray()
 
+        private val statusCache: LruCache<String, Status> = LruCache(512)
+
         /**
          * Provider固有キャッシュの取得
          * @param providerId ProviderのID
@@ -384,6 +424,23 @@ class TimelineHubImpl(private val service: TwitterService,
                 providerLocalCaches.put(providerId, cache)
             }
             return cache
+        }
+
+        /**
+         * [statusCache] からURLがマッチする [Status] を検索
+         */
+        fun findStatusByUrl(url: String): Status? {
+            return statusCache[url]
+        }
+
+        /**
+         * [statusCache] に [Status] を登録
+         */
+        private fun putStatusCache(status: Status) {
+            val url = status.url
+            if (url != null) {
+                statusCache.put(url, status)
+            }
         }
     }
 }
@@ -473,6 +530,5 @@ interface TimelineObserver {
  * Providerごとに持つキャッシュ情報
  */
 class ProviderLocalCache {
-    var receivedStatus: LruCache<Long, Status> = LruCache(512)
     var repostResponseStandBy: LongSparseArray<Pair<Status, Long>> = LongSparseArray()
 }

@@ -570,6 +570,30 @@ public class TwitterService extends Service{
         //データベースからアカウントをリロードする
         reloadUsers();
     }
+
+    /**
+     * 指定のAPI形式を扱える認証情報を検索します。プライマリフラグが設定されていれば、それを優先します。
+     * @param apiType API形式。{@link Provider} 内の定数を参照。
+     * @return 適合する認証情報。見つからない場合は null
+     */
+    @Nullable
+    public AuthUserRecord findPreferredUser(int apiType) {
+        AuthUserRecord found = null;
+
+        for (AuthUserRecord user : users) {
+            if (user.Provider.getApiType() == apiType) {
+                if (user.isPrimary) {
+                    return user;
+                }
+
+                if (found == null) {
+                    found = user;
+                }
+            }
+        }
+
+        return found;
+    }
     //</editor-fold>
 
     //<editor-fold desc="UserExtras">

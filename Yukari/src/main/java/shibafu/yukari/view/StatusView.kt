@@ -32,7 +32,10 @@ import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.Status
+import shibafu.yukari.linkage.TimelineHubImpl
+import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil
 import java.util.*
@@ -282,6 +285,37 @@ abstract class StatusView : RelativeLayout {
 
         // 添付対応
         updateAttaches(status)
+
+        // 引用対応
+        when (mode) {
+            Mode.DEFAULT, Mode.DETAIL -> {
+                if (status.links.isNotEmpty()) {
+                    flInclude.removeAllViews()
+                    flInclude.visibility = View.VISIBLE
+
+                    status.links.forEach { url ->
+                        val quotedStatus = TimelineHubImpl.findStatusByUrl(url)
+
+                        // TODO: あぁ〜うまいことやりてえ。なんでFactoryになってないの。
+                        val sv = when (quotedStatus) {
+                            is TwitterStatus -> TweetView(context, singleLine)
+                            is DonStatus -> DonStatusView(context, singleLine)
+                            else -> return@forEach
+                        }
+
+                        sv.userRecords = userRecords
+                        sv.userExtras = userExtras
+                        sv.mode = mode or Mode.INCLUDE
+                        sv.status = quotedStatus
+
+                        flInclude.addView(sv)
+                    }
+                } else {
+                    flInclude.visibility = View.GONE
+                }
+            }
+            else -> flInclude.visibility = View.GONE
+        }
     }
 
     /**
