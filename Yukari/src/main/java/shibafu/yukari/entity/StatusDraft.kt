@@ -19,7 +19,7 @@ data class StatusDraft(
         var writers: ArrayList<AuthUserRecord> = ArrayList(),
         var text: String = "",
         var dateTime: Long = System.currentTimeMillis(),
-        var inReplyTo: String? = null,
+        var inReplyTo: InReplyToId? = null,
         var isQuoted: Boolean = false,
         var attachPictures: ArrayList<Uri> = ArrayList(),
         var useGeoLocation: Boolean = false,
@@ -35,7 +35,7 @@ data class StatusDraft(
     constructor(cursor: Cursor) : this(
             text = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_TEXT)),
             dateTime = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_DATETIME)),
-            inReplyTo = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IN_REPLY_TO)),
+            inReplyTo = cursor.getString(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IN_REPLY_TO))?.let { InReplyToId.fromString(it) },
             isQuoted = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_IS_QUOTED)) == 1,
             useGeoLocation = cursor.getInt(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_USE_GEO_LOCATION)) == 1,
             geoLatitude = cursor.getDouble(cursor.getColumnIndex(CentralDatabase.COL_DRAFTS_GEO_LATITUDE)),
@@ -61,7 +61,7 @@ data class StatusDraft(
             values.put(CentralDatabase.COL_DRAFTS_WRITER_ID, writer.InternalId)
             values.put(CentralDatabase.COL_DRAFTS_DATETIME, dateTime)
             values.put(CentralDatabase.COL_DRAFTS_TEXT, text)
-            values.put(CentralDatabase.COL_DRAFTS_IN_REPLY_TO, inReplyTo)
+            values.put(CentralDatabase.COL_DRAFTS_IN_REPLY_TO, inReplyTo?.toJson())
             values.put(CentralDatabase.COL_DRAFTS_IS_QUOTED, isQuoted)
             if (attachPictures.isNotEmpty()) {
                 val pictures = buildString {
@@ -92,11 +92,11 @@ data class StatusDraft(
         intent.putExtra(TweetActivity.EXTRA_WRITERS, writers)
         if (isDirectMessage) {
             intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
-            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, inReplyTo)
+            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, inReplyTo?.url)
             intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, messageTarget)
-        } else if (!inReplyTo.isNullOrEmpty()) {
+        } else if (inReplyTo != null) {
             intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, inReplyTo)
+            intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, inReplyTo?.url) // TODO: temporary hack
         } else {
             intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_TWEET)
         }
@@ -116,7 +116,7 @@ data class StatusDraft(
             dest.writeList(writers)
             dest.writeString(text)
             dest.writeLong(dateTime)
-            dest.writeString(inReplyTo)
+            dest.writeParcelable(inReplyTo, flags)
             dest.writeByte(if (isQuoted) 1 else 0)
             dest.writeTypedList(attachPictures)
             dest.writeByte(if (useGeoLocation) 1 else 0)
@@ -147,7 +147,7 @@ data class StatusDraft(
                         source.readArrayList(this.javaClass.classLoader) as ArrayList<AuthUserRecord>,
                         source.readString(),
                         source.readLong(),
-                        source.readString(),
+                        source.readParcelable(InReplyToId::class.java.classLoader),
                         source.readByte() == 1.toByte(),
                         source.createTypedArrayList(Uri.CREATOR),
                         source.readByte() == 1.toByte(),

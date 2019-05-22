@@ -118,9 +118,9 @@ class MastodonApi : ProviderApi {
             }
 
             // 返信先URLが設定されている場合は対象のインスタンスローカルなIDを取得
-            val inReplyToUrl = draft.inReplyTo
-            val inReplyToId = if (inReplyToUrl != null && inReplyToUrl.isNotEmpty()) {
-                showStatus(userRecord, inReplyToUrl).id
+            val inReplyTo = draft.inReplyTo
+            val inReplyToId = if (inReplyTo != null) {
+                showStatus(userRecord, inReplyTo.url).id
             } else {
                 null
             }

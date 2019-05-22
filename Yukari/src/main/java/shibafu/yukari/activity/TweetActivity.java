@@ -80,6 +80,7 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
@@ -1577,7 +1578,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         writers,
                         etInput.getText().toString(),
                         System.currentTimeMillis(),
-                        String.valueOf(directMessageDestId),
+                        new InReplyToId(String.valueOf(directMessageDestId)),
                         false,
                         AttachPicture.toUriList(attachPictures),
                         false,
@@ -1592,7 +1593,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             } else {
                 draft.setWriters(writers);
                 draft.setText(etInput.getText().toString());
-                draft.setInReplyTo(String.valueOf(directMessageDestId));
+                draft.setInReplyTo(new InReplyToId(String.valueOf(directMessageDestId)));
                 draft.setQuoted(false);
                 draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
                 draft.setUseGeoLocation(false);
@@ -1609,7 +1610,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     writers,
                     etInput.getText().toString(),
                     System.currentTimeMillis(),
-                    (status == null) ? null : status.getUrl(),
+                    (status == null || status.getUrl() == null) ? null : new InReplyToId(status.getUrl()),
                     false,
                     AttachPicture.toUriList(attachPictures),
                     false,
@@ -1624,7 +1625,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         } else {
             draft.setWriters(writers);
             draft.setText(etInput.getText().toString());
-            draft.setInReplyTo((status == null) ? null : status.getUrl());
+            draft.setInReplyTo((status == null || status.getUrl() == null) ? null : new InReplyToId(status.getUrl()));
             draft.setQuoted(false);
             draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
             draft.setUseGeoLocation(false);

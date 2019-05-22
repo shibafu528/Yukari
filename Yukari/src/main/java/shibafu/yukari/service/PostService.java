@@ -20,6 +20,7 @@ import android.util.Log;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderApi;
@@ -302,13 +303,15 @@ public class PostService extends IntentService{
                 long inReplyToId = intent.getLongExtra(TweetActivity.EXTRA_IN_REPLY_TO, -1);
 
                 draft.setMessageTarget(targetSN);
-                draft.setInReplyTo(String.valueOf(inReplyToId));
+                draft.setInReplyTo(new InReplyToId(String.valueOf(inReplyToId)));
                 draft.setDirectMessage(true);
                 draft.setText(String.valueOf(voiceInput));
             } else {
                 Status inReplyToStatus = (Status) intent.getSerializableExtra(TweetActivity.EXTRA_STATUS);
 
-                draft.setInReplyTo(inReplyToStatus.getUrl());
+                if (inReplyToStatus.getUrl() != null) {
+                    draft.setInReplyTo(new InReplyToId(inReplyToStatus.getUrl()));
+                }
                 draft.setText(prefix + voiceInput);
             }
 
