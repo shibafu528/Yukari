@@ -211,7 +211,7 @@ interface Status : Comparable<Status>, Serializable {
         }
     }
 
-    fun getInReplyToId(): InReplyToId = InReplyToId(url.orEmpty())
+    fun getInReplyTo(): InReplyToId = InReplyToId(url.orEmpty())
 
     override fun compareTo(other: Status): Int {
         if (this === other) return 0

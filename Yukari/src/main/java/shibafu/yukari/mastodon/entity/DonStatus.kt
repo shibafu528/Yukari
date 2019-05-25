@@ -132,8 +132,8 @@ class DonStatus(val status: Status,
         }
     }
 
-    override fun getInReplyToId(): InReplyToId {
-        val inReplyTo = super.getInReplyToId()
+    override fun getInReplyTo(): InReplyToId {
+        val inReplyTo = super.getInReplyTo()
         perProviderId.forEachKeyValue { key, value ->
             inReplyTo[Provider.API_MASTODON, key] = value.toString()
         }
