@@ -15,6 +15,7 @@ import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
@@ -117,10 +118,11 @@ class MastodonApi : ProviderApi {
                 StatusDraft.Visibility.DIRECT -> Visibility.Direct
             }
 
-            // 返信先URLが設定されている場合は対象のインスタンスローカルなIDを取得
+            // 返信先が設定されている場合、対象のインスタンスローカルなIDが埋め込まれていればそのIDを使用する
+            // インスタンスローカルなIDが未知の場合は、サーバからの取得を試みる
             val inReplyTo = draft.inReplyTo
             val inReplyToId = if (inReplyTo != null) {
-                showStatus(userRecord, inReplyTo.url).id
+                inReplyTo[Provider.API_MASTODON, userRecord.Provider.host]?.toLong() ?: showStatus(userRecord, inReplyTo.url).id
             } else {
                 null
             }

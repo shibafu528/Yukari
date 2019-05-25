@@ -1610,7 +1610,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     writers,
                     etInput.getText().toString(),
                     System.currentTimeMillis(),
-                    (status == null || status.getUrl() == null) ? null : new InReplyToId(status.getUrl()),
+                    status == null ? null : status.getInReplyToId(),
                     false,
                     AttachPicture.toUriList(attachPictures),
                     false,
@@ -1625,7 +1625,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         } else {
             draft.setWriters(writers);
             draft.setText(etInput.getText().toString());
-            draft.setInReplyTo((status == null || status.getUrl() == null) ? null : new InReplyToId(status.getUrl()));
+            draft.setInReplyTo(status == null ? null : status.getInReplyToId());
             draft.setQuoted(false);
             draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
             draft.setUseGeoLocation(false);

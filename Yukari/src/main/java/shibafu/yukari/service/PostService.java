@@ -309,9 +309,7 @@ public class PostService extends IntentService{
             } else {
                 Status inReplyToStatus = (Status) intent.getSerializableExtra(TweetActivity.EXTRA_STATUS);
 
-                if (inReplyToStatus.getUrl() != null) {
-                    draft.setInReplyTo(new InReplyToId(inReplyToStatus.getUrl()));
-                }
+                draft.setInReplyTo(inReplyToStatus.getInReplyToId());
                 draft.setText(prefix + voiceInput);
             }
 
