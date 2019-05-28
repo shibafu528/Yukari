@@ -588,7 +588,11 @@ public class CentralDatabase {
                         COL_DRAFTS_WRITER_ID + ", " +
                         COL_DRAFTS_TEXT + ", " +
                         COL_DRAFTS_DATETIME + ", " +
-                        "CASE WHEN " + COL_DRAFTS_IN_REPLY_TO + " IS NULL OR " + COL_DRAFTS_IN_REPLY_TO + " <= 0 THEN NULL ELSE 'https://twitter.com/null/status/'||" + COL_DRAFTS_IN_REPLY_TO + " END, " +
+                        "CASE WHEN " + COL_DRAFTS_IN_REPLY_TO + " IS NULL OR " + COL_DRAFTS_IN_REPLY_TO + " <= 0 THEN NULL " +
+                        "     ELSE CASE WHEN " + COL_DRAFTS_IS_DIRECT_MESSAGE + " = 1 THEN 'https://twitter.com/intent/user?user_id='||" + COL_DRAFTS_IN_REPLY_TO +
+                        "               ELSE 'https://twitter.com/null/status/'||" + COL_DRAFTS_IN_REPLY_TO +
+                        "          END " +
+                        " END, " +
                         COL_DRAFTS_IS_QUOTED + ", " +
                         COL_DRAFTS_ATTACHED_PICTURE + ", " +
                         COL_DRAFTS_USE_GEO_LOCATION + ", " +
@@ -599,7 +603,7 @@ public class CentralDatabase {
                         COL_DRAFTS_IS_FAILED_DELIVERY + ", " +
                         COL_DRAFTS_MESSAGE_TARGET + ", " +
                         "0, " +
-                        "NULL, " +
+                        "NULL " +
                         " FROM tmp_Drafts"
                 );
                 db.execSQL("DROP TABLE tmp_Drafts");
