@@ -25,6 +25,7 @@ import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.CompatUtil;
 
@@ -302,7 +303,7 @@ public class PostService extends IntentService{
                 long inReplyToId = intent.getLongExtra(TweetActivity.EXTRA_IN_REPLY_TO, -1);
 
                 draft.setMessageTarget(targetSN);
-                draft.setInReplyTo(String.valueOf(inReplyToId));
+                draft.setInReplyTo(TwitterUtil.getUrlFromUserId(inReplyToId));
                 draft.setDirectMessage(true);
                 draft.setText(String.valueOf(voiceInput));
             } else {
