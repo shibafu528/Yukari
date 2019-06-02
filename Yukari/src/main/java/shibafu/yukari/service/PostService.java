@@ -299,10 +299,10 @@ public class PostService extends IntentService{
 
             if (mode == TweetActivity.MODE_DM) {
                 String targetSN = intent.getStringExtra(TweetActivity.EXTRA_DM_TARGET_SN);
-                long inReplyToId = intent.getLongExtra(TweetActivity.EXTRA_IN_REPLY_TO, -1);
+                String inReplyTo = intent.getStringExtra(TweetActivity.EXTRA_IN_REPLY_TO);
 
                 draft.setMessageTarget(targetSN);
-                draft.setInReplyTo(String.valueOf(inReplyToId));
+                draft.setInReplyTo(inReplyTo);
                 draft.setDirectMessage(true);
                 draft.setText(String.valueOf(voiceInput));
             } else {

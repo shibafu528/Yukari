@@ -50,6 +50,7 @@ import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
@@ -495,7 +496,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                         val intent = Intent(activity, TweetActivity::class.java)
                         intent.putExtra(TweetActivity.EXTRA_USER, status.representUser)
                         intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
-                        intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.user.id)
+                        intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(status.user.id))
                         intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.user.screenName)
                         startActivity(intent)
                     }

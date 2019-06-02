@@ -1,6 +1,7 @@
 package shibafu.yukari.twitter;
 
 import android.content.Context;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import shibafu.yukari.R;
 import twitter4j.TwitterFactory;
@@ -64,5 +65,34 @@ public class TwitterUtil {
             }
         }
         return -1;
+    }
+
+    /**
+     * TwitterのUser Intent URLをパースし、IDを取得します。
+     * @param url User Intent URL (https://twitter.com/intent/user?user_id=xxxx)
+     * @return User ID, 不正なURLの場合は -1
+     */
+    public static long getUserIdFromUrl(String url) {
+        Pattern pattern = Pattern.compile("^https?://(?:www\\.)?twitter\\.com/intent/user\\?");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            Uri uri = Uri.parse(url);
+            String idString = uri.getQueryParameter("user_id");
+            try {
+                return Long.valueOf(idString);
+            } catch (NumberFormatException e) {
+                return -1;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * TwitterのUser IDをUser Intent URLに変換します。
+     * @param id User ID
+     * @return User Intent URL (https://twitter.com/intent/user?user_id=xxxx)
+     */
+    public static String getUrlFromUserId(long id) {
+        return "https://twitter.com/intent/user?user_id=" + id;
     }
 }
