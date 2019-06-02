@@ -378,7 +378,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         //DM判定
         isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
         if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestId = TwitterUtil.getUserIdFromUrl(args.getStringExtra(EXTRA_IN_REPLY_TO));
             directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
             //表題変更
             tvTitle.setText("DirectMessage to @" + directMessageDestSN);

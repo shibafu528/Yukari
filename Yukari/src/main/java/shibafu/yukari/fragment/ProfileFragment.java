@@ -834,7 +834,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             case R.id.action_send_message: {
                 Intent intent = new Intent(getActivity(), TweetActivity.class);
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, loadHolder.targetUser.getId());
+                intent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()));
                 intent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, loadHolder.targetUser.getScreenName());
                 startActivity(intent);
                 return true;

@@ -29,6 +29,7 @@ import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.User;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.CompatUtil;
 import shibafu.yukari.util.Releasable;
 
@@ -323,7 +324,7 @@ public class StatusNotifier implements Releasable {
                             Intent replyIntent = new Intent(context.getApplicationContext(), TweetActivity.class);
                             replyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
                             replyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                            replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.getUser().getId());
+                            replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(status.getUser().getId()));
                             replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.getUser().getScreenName());
                             builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
                                             context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -333,7 +334,7 @@ public class StatusNotifier implements Releasable {
                             Intent voiceReplyIntent = new Intent(context.getApplicationContext(), PostService.class);
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_USER, status.getRepresentUser());
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM);
-                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, status.getUser().getId());
+                            voiceReplyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(status.getUser().getId()));
                             voiceReplyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.getUser().getScreenName());
                             NotificationCompat.Action voiceReply = new NotificationCompat.Action
                                     .Builder(R.drawable.ic_stat_reply, "声で返信",
