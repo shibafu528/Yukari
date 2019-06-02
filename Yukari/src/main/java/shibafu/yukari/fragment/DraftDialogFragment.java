@@ -20,6 +20,7 @@ import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -173,7 +174,7 @@ public class DraftDialogFragment extends DialogFragment {
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
                 if (d.isDirectMessage()) {
-                    DBUser dbUser = service.getDatabase().getUser(Long.valueOf(d.getInReplyTo().getUrl()));
+                    DBUser dbUser = service.getDatabase().getUser(TwitterUtil.getUserIdFromUrl(d.getInReplyTo().getUrl()));
                     info += "DM to " + (dbUser!=null? "@" + dbUser.getScreenName() : "(Unknown User)") + "\n";
                 }
                 if (d.isFailedDelivery()) {

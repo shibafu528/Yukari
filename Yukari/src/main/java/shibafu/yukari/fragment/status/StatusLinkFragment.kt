@@ -34,6 +34,7 @@ import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
@@ -386,7 +387,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                     Intent(activity, TweetActivity::class.java).apply {
                         putExtra(TweetActivity.EXTRA_USER, userRecord)
                         putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_DM)
-                        putExtra(TweetActivity.EXTRA_IN_REPLY_TO, id)
+                        putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(user.id))
                         putExtra(TweetActivity.EXTRA_DM_TARGET_SN, user.screenName)
                     }
                 }

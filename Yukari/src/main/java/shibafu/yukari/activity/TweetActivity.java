@@ -96,6 +96,7 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
 import shibafu.yukari.twitter.TwitterApi;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
@@ -378,7 +379,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         //DM判定
         isDirectMessage = args.getIntExtra(EXTRA_MODE, MODE_TWEET) == MODE_DM;
         if (isDirectMessage) {
-            directMessageDestId = args.getLongExtra(EXTRA_IN_REPLY_TO, -1);
+            directMessageDestId = TwitterUtil.getUserIdFromUrl(args.getStringExtra(EXTRA_IN_REPLY_TO));
             directMessageDestSN = args.getStringExtra(EXTRA_DM_TARGET_SN);
             //表題変更
             tvTitle.setText("DirectMessage to @" + directMessageDestSN);
@@ -1188,7 +1189,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
             setResult(RESULT_OK);
         }
-        finish();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // 投稿後に投稿画面をタスクに残さない
+            finishAndRemoveTask();
+        } else {
+            finish();
+        }
     }
 
     private void updateWritersView() {
@@ -1578,7 +1585,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         writers,
                         etInput.getText().toString(),
                         System.currentTimeMillis(),
-                        new InReplyToId(String.valueOf(directMessageDestId)),
+                        new InReplyToId(TwitterUtil.getUrlFromUserId(directMessageDestId)),
                         false,
                         AttachPicture.toUriList(attachPictures),
                         false,
@@ -1593,7 +1600,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             } else {
                 draft.setWriters(writers);
                 draft.setText(etInput.getText().toString());
-                draft.setInReplyTo(new InReplyToId(String.valueOf(directMessageDestId)));
+                draft.setInReplyTo(new InReplyToId(TwitterUtil.getUrlFromUserId(directMessageDestId)));
                 draft.setQuoted(false);
                 draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
                 draft.setUseGeoLocation(false);

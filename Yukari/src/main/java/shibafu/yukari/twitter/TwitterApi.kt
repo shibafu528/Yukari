@@ -162,7 +162,10 @@ class TwitterApi : ProviderApi {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             if (draft.isDirectMessage) {
-                val inReplyTo = draft.inReplyTo?.url?.toLongOrNull() ?: throw ProviderApiException("返信先に不正な値が指定されました。")
+                val inReplyTo = draft.inReplyTo?.url?.let { TwitterUtil.getUserIdFromUrl(it) } ?: -1
+                if (inReplyTo == -1L) {
+                    throw ProviderApiException("返信先に不正な値が指定されました。")
+                }
                 val users = twitter.lookupUsers(inReplyTo, userRecord.NumericId)
                 val result = twitter.sendDirectMessage(inReplyTo, draft.text)
                 return TwitterMessage(result,

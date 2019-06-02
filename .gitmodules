@@ -1,9 +1,9 @@
 [submodule "GalleryMultiPicker"]
 	path = GalleryMultiPicker
-	url = git@github.com:shibafu528/GalleryMultiPicker.git
+	url = https://github.com/shibafu528/GalleryMultiPicker.git
 [submodule "twpfparser"]
 	path = twpfparser
-	url = git@github.com:shibafu528/twpfparser.git
+	url = https://github.com/shibafu528/twpfparser.git
 [submodule "yukari-exvoice"]
 	path = yukari-exvoice
-	url = git@github.com:shibafu528/yukari-exvoice.git
+	url = https://github.com/shibafu528/yukari-exvoice.git
