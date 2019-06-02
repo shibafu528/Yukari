@@ -174,7 +174,6 @@ dependencies {
         exclude group: 'com.beust', module: 'jcommander'
     }
     implementation 'com.twitter:twitter-text:1.13.0'
-    implementation 'com.github.wakamesoba98:totoridipjp4j:11607b8da4'
     implementation project(':twpfparser')
 
     // 通信

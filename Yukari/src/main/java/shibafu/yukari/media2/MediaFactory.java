@@ -14,7 +14,6 @@ import shibafu.yukari.media2.impl.RouterCake;
 import shibafu.yukari.media2.impl.SimplePicture;
 import shibafu.yukari.media2.impl.SixHundredEUR;
 import shibafu.yukari.media2.impl.Sunoho;
-import shibafu.yukari.media2.impl.Totori;
 import shibafu.yukari.media2.impl.Twimg;
 import shibafu.yukari.media2.impl.Twipple;
 import shibafu.yukari.media2.impl.Twitpic;
@@ -74,8 +73,6 @@ public class MediaFactory {
                 media = new SixHundredEUR(browseUrl);
             } else if (browseUrl.contains("sunoho.com/p/i") || browseUrl.contains("gyazo.sunoho.com/i")) {
                 media = new Sunoho(browseUrl);
-            } else if ((browseUrl.endsWith("/") ? browseUrl.substring(0, browseUrl.length() - 1) : browseUrl).equals("http://totori.dip.jp")) {
-                media = new Totori(browseUrl);
             } else if (browseUrl.contains("p.twipple.jp")) {
                 media = new Twipple(browseUrl);
             } else if (browseUrl.contains("twitpic.com")) {
