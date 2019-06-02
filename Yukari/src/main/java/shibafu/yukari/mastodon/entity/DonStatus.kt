@@ -5,11 +5,13 @@ import android.os.Parcelable
 import android.util.Xml
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
+import org.eclipse.collections.impl.map.mutable.primitive.ObjectLongHashMap
 import org.threeten.bp.DateTimeUtils
 import org.threeten.bp.ZonedDateTime
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.InReplyToId
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
@@ -70,6 +72,9 @@ class DonStatus(val status: Status,
 
     val isLocal: Boolean = status.application != null
 
+    var perProviderId = ObjectLongHashMap.newWithKeysValues(representUser.Provider.host, status.id)
+        private set
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DonStatus) return false
@@ -114,11 +119,25 @@ class DonStatus(val status: Status,
         super.merge(status)
 
         // ローカルトゥートを優先
-        if (status is DonStatus && !this.isLocal && status.isLocal) {
-            return status
+        if (status is DonStatus) {
+            if (!this.isLocal && status.isLocal) {
+                status.perProviderId.putAll(perProviderId)
+                return status
+            } else {
+                perProviderId.putAll(status.perProviderId)
+                return this
+            }
         } else {
             return this
         }
+    }
+
+    override fun getInReplyTo(): InReplyToId {
+        val inReplyTo = super.getInReplyTo()
+        perProviderId.forEachKeyValue { key, value ->
+            inReplyTo[Provider.API_MASTODON, key] = value.toString()
+        }
+        return inReplyTo
     }
 
     init {
@@ -206,6 +225,12 @@ class DonStatus(val status: Status,
             it.writeInt(favoritesCount)
             it.writeInt(repostsCount)
             it.writeList(receivedUsers)
+
+            it.writeInt(perProviderId.size())
+            perProviderId.forEachKeyValue { key, value ->
+                it.writeString(key)
+                it.writeLong(value)
+            }
         }
     }
 
@@ -220,6 +245,16 @@ class DonStatus(val status: Status,
                 donStatus.favoritesCount = source.readInt()
                 donStatus.repostsCount = source.readInt()
                 donStatus.receivedUsers = source.readArrayList(this.javaClass.classLoader) as MutableList<AuthUserRecord>
+
+                val perProviderIdSize = source.readInt()
+                val perProviderId = ObjectLongHashMap<String>(perProviderIdSize)
+                for (i in 0 until perProviderIdSize) {
+                    val key = source.readString()
+                    val value = source.readLong()
+                    perProviderId.put(key, value)
+                }
+                donStatus.perProviderId = perProviderId
+
                 return donStatus
             }
 

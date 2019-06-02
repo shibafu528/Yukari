@@ -80,6 +80,7 @@ import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.fragment.DraftDialogFragment;
@@ -1584,7 +1585,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         writers,
                         etInput.getText().toString(),
                         System.currentTimeMillis(),
-                        TwitterUtil.getUrlFromUserId(directMessageDestId),
+                        new InReplyToId(TwitterUtil.getUrlFromUserId(directMessageDestId)),
                         false,
                         AttachPicture.toUriList(attachPictures),
                         false,
@@ -1599,7 +1600,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             } else {
                 draft.setWriters(writers);
                 draft.setText(etInput.getText().toString());
-                draft.setInReplyTo(TwitterUtil.getUrlFromUserId(directMessageDestId));
+                draft.setInReplyTo(new InReplyToId(TwitterUtil.getUrlFromUserId(directMessageDestId)));
                 draft.setQuoted(false);
                 draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
                 draft.setUseGeoLocation(false);
@@ -1616,7 +1617,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     writers,
                     etInput.getText().toString(),
                     System.currentTimeMillis(),
-                    (status == null) ? null : status.getUrl(),
+                    status == null ? null : status.getInReplyTo(),
                     false,
                     AttachPicture.toUriList(attachPictures),
                     false,
@@ -1631,7 +1632,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         } else {
             draft.setWriters(writers);
             draft.setText(etInput.getText().toString());
-            draft.setInReplyTo((status == null) ? null : status.getUrl());
+            draft.setInReplyTo(status == null ? null : status.getInReplyTo());
             draft.setQuoted(false);
             draft.setAttachPictures(AttachPicture.toUriList(attachPictures));
             draft.setUseGeoLocation(false);

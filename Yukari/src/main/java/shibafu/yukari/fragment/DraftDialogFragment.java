@@ -174,7 +174,7 @@ public class DraftDialogFragment extends DialogFragment {
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
                 if (d.isDirectMessage()) {
-                    DBUser dbUser = service.getDatabase().getUser(TwitterUtil.getUserIdFromUrl(d.getInReplyTo()));
+                    DBUser dbUser = service.getDatabase().getUser(TwitterUtil.getUserIdFromUrl(d.getInReplyTo().getUrl()));
                     info += "DM to " + (dbUser!=null? "@" + dbUser.getScreenName() : "(Unknown User)") + "\n";
                 }
                 if (d.isFailedDelivery()) {
