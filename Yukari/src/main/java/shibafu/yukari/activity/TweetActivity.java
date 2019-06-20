@@ -16,8 +16,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -52,7 +50,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -168,7 +165,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private static final int REQUEST_DIALOG_DRAFT_MENU = 0x08;
 
     // PermissionsDispatcherが若いリクエスト番号を使うので、自前実装は大きめの番号から。
-    private static final int PERMISSION_REQUEST_INIT_ATTACH = 0x1000;
+    private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA = 0x1000;
+    private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM = 0x1001;
 
     private static final int TITLE_AREA_MAX_LINES = 3;
 
@@ -529,7 +527,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM);
+            }
         } else if (mediaUri != null) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 for (String s : mediaUri) {
@@ -538,7 +542,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             } else {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_INIT_ATTACH);
+                        PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA);
             }
         }
 
@@ -1380,12 +1384,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         TweetActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_INIT_ATTACH:
+            case PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     ArrayList<String> mediaUri = getIntent().getStringArrayListExtra(EXTRA_MEDIA);
                     for (String s : mediaUri) {
                         attachPicture(Uri.parse(s));
                     }
+                    initialDraft = getTweetDraft().copyForJava();
+                } else {
+                    Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    attachPicture(getIntent().getParcelableExtra(Intent.EXTRA_STREAM));
                     initialDraft = getTweetDraft().copyForJava();
                 } else {
                     Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
