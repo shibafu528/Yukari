@@ -1,5 +1,6 @@
 package shibafu.yukari.service;
 
+import android.Manifest;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -16,6 +18,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.RemoteInput;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
@@ -129,6 +132,11 @@ public class PostService extends IntentService{
         }
 
         //添付メディアのアップロード準備
+        if (!draft.getAttachPictures().isEmpty() && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            nm.cancel(0);
+            showErrorMessage(1, draft, "ストレージへのアクセス許可がありません");
+            return;
+        }
         List<File> uploadMediaList;
         try {
             uploadMediaList = prepareUploadMedia(draft.getAttachPictures(), imageResizeLength);
