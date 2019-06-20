@@ -757,9 +757,12 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 if (statusCapacity < statuses.size) {
                     val iterator = statuses.listIterator(statusCapacity)
                     while (iterator.hasNext()) {
-                        unreadSet.remove(iterator.next().id)
-                        iterator.remove()
-                        notifyDataSetChanged()
+                        val s = iterator.next()
+                        if (s !is LoadMarker) {
+                            unreadSet.remove(s.id)
+                            iterator.remove()
+                            notifyDataSetChanged()
+                        }
                     }
                 }
             }
