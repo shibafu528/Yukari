@@ -193,7 +193,7 @@ class TimelineHubImpl(private val service: TwitterService,
                 if (match) {
                     putDebugLog("[$timelineId] AutoMute! : @${status.user.screenName}")
 
-                    // TODO: サービスに関係なく消えてしまうリスク
+                    // TODO: サービスに関係なく消えてしまうので、ミュート設定にProvider指定を入れることがあるならここで設定しても良いかも
                     service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
                     service.updateMuteConfig()
                     return@forEach

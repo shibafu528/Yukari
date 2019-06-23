@@ -38,6 +38,10 @@ public class UserExtras implements DBRecord {
         }
     }
 
+    /**
+     * 対象ユーザのURL (IDという呼称は過去のものを引きずっているだけ)
+     * @return
+     */
     public String getId() {
         return id;
     }
