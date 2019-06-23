@@ -38,6 +38,8 @@ import java.util.regex.PatternSyntaxException
  */
 class TimelineHubImpl(private val service: TwitterService,
                       private val hashCache: HashCache) : TimelineHub {
+    private val startupTime: Long = System.currentTimeMillis()
+
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -207,7 +209,8 @@ class TimelineHubImpl(private val service: TwitterService,
                 // RTレスポンス待機
                 plc.repostResponseStandBy.put(status.user.id, Pair(status, System.currentTimeMillis()))
             } else if (!status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_MENTION] &&
-                    status.providerApiType == status.representUser.Provider.apiType) {
+                    status.providerApiType == status.representUser.Provider.apiType &&
+                    status.createdAt.time > startupTime) {
                 status.mentions.forEach { mention ->
                     if (mention.id == status.representUser.NumericId) {
                         notifier.showNotification(R.integer.notification_replied, status, status.user)
