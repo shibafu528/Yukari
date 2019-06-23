@@ -25,6 +25,7 @@ import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.putDebugLog
+import java.util.concurrent.RejectedExecutionException
 
 class MastodonStream : ProviderStream {
     override var channels: List<StreamChannel> = emptyList()
@@ -323,6 +324,11 @@ private class StreamHandler(private val timelineId: String,
                 break
             } catch (e: Mastodon4jRequestException) {
                 e.printStackTrace()
+            } catch (e: RejectedExecutionException) {
+                // mastodon4jで使われているExecutorがShutdown状態か調べる手段は存在しない
+                // この例外が出るのはだいたいShutdown後にリトライを試みて弾かれた時なので、諦める
+                putDebugLog("$timelineId@${userRecord.ScreenName}: Rejected!")
+                break
             }
 
             timeToSleep = minOf(timeToSleep * 2, 60000)
