@@ -45,7 +45,7 @@ class DonStatus(val status: Status,
     override val createdAt: Date = DateTimeUtils.toDate(ZonedDateTime.parse(status.createdAt).toInstant())
 
     override val source: String
-        get() = status.application.name
+        get() = status.application?.name ?: ""
 
     override val isRepost: Boolean
         get() = status.reblog != null
