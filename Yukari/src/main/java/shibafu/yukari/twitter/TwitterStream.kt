@@ -292,11 +292,11 @@ private class StreamListener(private val timelineId: String,
     }
 
     override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
-        hub.onDelete(TwitterStatus::class.java, statusDeletionNotice.statusId)
+        hub.onDelete(from.userRecord.Provider.host, statusDeletionNotice.statusId)
     }
 
     override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {
-        hub.onDelete(TwitterMessage::class.java, directMessageId)
+        hub.onDelete(from.userRecord.Provider.host, directMessageId)
     }
 
     companion object {
@@ -350,7 +350,7 @@ internal class FilterStreamListener(private val hub: TimelineHub,
     }
 
     override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
-        hub.onDelete(TwitterStatus::class.java, statusDeletionNotice.statusId)
+        hub.onDelete(from.userRecord.Provider.host, statusDeletionNotice.statusId)
     }
 
     override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {}

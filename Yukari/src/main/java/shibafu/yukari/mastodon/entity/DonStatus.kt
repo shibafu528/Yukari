@@ -68,6 +68,8 @@ class DonStatus(val status: Status,
 
     override val providerApiType: Int = Provider.API_MASTODON
 
+    override val providerHost: String = representUser.Provider.host
+
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     val isLocal: Boolean = user.host == representUser.Provider.host

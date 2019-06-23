@@ -364,11 +364,11 @@ class TimelineHubImpl(private val service: TwitterService,
 
     /**
      * 削除イベントの発生
-     * @param type 削除対象の型
+     * @param providerHost 発生元 [Provider] のホスト名
      * @param id 削除対象のID
      */
-    override fun onDelete(type: Class<out Status>, id: Long) {
-        pushEventQueue(TimelineEvent.Delete(type, id))
+    override fun onDelete(providerHost: String, id: Long) {
+        pushEventQueue(TimelineEvent.Delete(providerHost, id))
     }
 
     /**
@@ -495,10 +495,10 @@ sealed class TimelineEvent(val timelineId: String) {
 
     /**
      * 削除イベントの発生
-     * @property type 削除対象の型
+     * @property providerHost 削除対象の [Provider] ホスト名
      * @property id 削除対象のID
      */
-    class Delete(val type: Class<out Status>, val id: Long) : TimelineEvent("")
+    class Delete(val providerHost: String, val id: Long) : TimelineEvent("")
 
     /**
      * タイムラインのクリア

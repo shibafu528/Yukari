@@ -242,7 +242,7 @@ class TwitterApi : ProviderApi {
         try {
             twitter.destroyStatus(status.id)
 
-            service.timelineHub?.onDelete(TwitterStatus::class.java, status.id)
+            service.timelineHub?.onDelete(Provider.TWITTER.host, status.id)
 
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ツイートを削除しました", Toast.LENGTH_SHORT).show()

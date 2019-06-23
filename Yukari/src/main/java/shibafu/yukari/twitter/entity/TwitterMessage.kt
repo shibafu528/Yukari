@@ -42,6 +42,8 @@ class TwitterMessage(val message: DirectMessage,
 
     override val providerApiType: Int = Provider.API_TWITTER
 
+    override val providerHost: String = Provider.TWITTER.host
+
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     override fun equals(other: Any?): Boolean {

@@ -668,8 +668,8 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 }
             }
             is TimelineEvent.Delete -> {
-                handler.post { deleteElement(event.type, event.id) }
-                mutedStatuses.removeAll { it.javaClass == event.type && it.id == event.id }
+                handler.post { deleteElement(event.providerHost, event.id) }
+                mutedStatuses.removeAll { it.providerHost == event.providerHost && it.id == event.id }
             }
             is TimelineEvent.Wipe -> {
                 handler.post {
@@ -834,14 +834,14 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
 
     /**
      * TLから要素を削除します。
-     * @param type 削除対象の型
+     * @param providerHost 削除対象の [Provider] ホスト名
      * @param id 削除対象のID
      */
-    private fun deleteElement(type: Class<out Status>, id: Long) {
+    private fun deleteElement(providerHost: String, id: Long) {
         val listView = try {
             listView
         } catch (e: IllegalStateException) {
-            putWarnLog("Delete: ListView is null. DROPPED! (${type.name}, $id)")
+            putWarnLog("Delete: ListView is null. DROPPED! ($providerHost, $id)")
             return
         }
 
@@ -849,7 +849,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         while (iterator.hasNext()) {
             val index = iterator.nextIndex()
             val status = iterator.next()
-            if (status.javaClass == type && status.id == id) {
+            if (status.providerHost == providerHost && status.id == id) {
                 iterator.remove()
                 notifyDataSetChanged()
                 if (unreadSet.contains(id)) {
@@ -893,7 +893,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         loadingTaskKeys.remove(taskKey)
         if (queryingLoadMarkers.indexOfKey(taskKey) > -1) {
             statuses.firstOrNull { it is LoadMarker && it.taskKey == taskKey }?.let {
-                deleteElement(it.javaClass, it.id)
+                deleteElement(it.providerHost, it.id)
             }
             queryingLoadMarkers.remove(taskKey)
         }

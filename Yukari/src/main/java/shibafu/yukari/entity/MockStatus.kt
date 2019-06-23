@@ -25,5 +25,10 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
     override val providerApiType: Int = Provider.API_SYSTEM
+    override val providerHost: String = HOST
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+
+    companion object {
+        const val HOST = "mock.yukari.internal"
+    }
 }

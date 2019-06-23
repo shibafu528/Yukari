@@ -43,4 +43,9 @@ class LoadMarker(override val id: Long,
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override val providerHost: String = HOST
+
+    companion object {
+        const val HOST = "load-marker.yukari.internal"
+    }
 }

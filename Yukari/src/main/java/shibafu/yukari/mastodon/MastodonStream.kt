@@ -253,8 +253,7 @@ private class StreamHandler(private val timelineId: String,
     private val hub: TimelineHub = service.timelineHub
 
     override fun onDelete(id: Long) {
-        // TODO: ところでこれ、IDがインスタンスレベルでしか一意じゃない場合関係ないやつ消しとばすんですけど
-        hub.onDelete(DonStatus::class.java, id)
+        hub.onDelete(userRecord.Provider.host, id)
     }
 
     override fun onNotification(notification: Notification) {

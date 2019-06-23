@@ -27,7 +27,7 @@ public interface TimelineHub {
     void onNotify(@NotifyKind int kind, @NonNull User eventBy, @NonNull Status status);
     void onFavorite(@NonNull User from, @NonNull Status status);
     void onUnfavorite(@NonNull User from, @NonNull Status status);
-    void onDelete(@NonNull Class<? extends Status> type, long id);
+    void onDelete(@NonNull String providerHost, long id);
     void onWipe();
     void onForceUpdateUI();
 }

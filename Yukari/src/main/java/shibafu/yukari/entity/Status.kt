@@ -110,6 +110,11 @@ interface Status : Comparable<Status>, Serializable {
     val providerApiType: Int
 
     /**
+     * このステータスを受信した [shibafu.yukari.database.Provider] のホスト名
+     */
+    val providerHost: String
+
+    /**
      * 代表受信アカウント
      */
     var representUser: AuthUserRecord

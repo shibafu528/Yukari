@@ -18,6 +18,7 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
     override val providerApiType: Int = Provider.API_SYSTEM
+    override val providerHost: String = HOST
     override var representUser: AuthUserRecord
         get() = status.representUser
         set(value) {
@@ -32,5 +33,7 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
     companion object {
         const val KIND_FAVED = 0
         const val KIND_RETWEETED = 1
+
+        const val HOST = "notify-history.yukari.internal"
     }
 }

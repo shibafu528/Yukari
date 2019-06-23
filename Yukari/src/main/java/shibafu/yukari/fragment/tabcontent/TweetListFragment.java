@@ -24,6 +24,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.database.MuteConfig;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.User;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
@@ -415,7 +416,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
             final User from = ((TimelineEvent.Unfavorite) event).getFrom();
             final shibafu.yukari.entity.Status status = ((TimelineEvent.Unfavorite) event).getStatus();
             onFavoriteStateChanged(from, status, false);
-        } else if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getType() == TwitterStatus.class) {
+        } else if (event instanceof TimelineEvent.Delete && ((TimelineEvent.Delete) event).getProviderHost().equals(Provider.TWITTER.getHost())) {
             TimelineEvent.Delete deleteEvent = (TimelineEvent.Delete) event;
             getHandler().post(() -> deleteElement(deleteEvent.getId()));
             for (Iterator<PreformedStatus> iterator = stash.iterator(); iterator.hasNext(); ) {
