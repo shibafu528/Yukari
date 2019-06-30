@@ -4,6 +4,7 @@ import shibafu.yukari.common.TabInfo
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.Provider
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
@@ -14,6 +15,12 @@ class AccountMigrator : ConfigFileMigrator<AuthUserRecord> {
     override val latestVersion = 1
 
     constructor() : super(AuthUserRecord::class.java, {})
+}
+
+class ProviderMigrator : ConfigFileMigrator<Provider> {
+    override val latestVersion = 1
+
+    constructor() : super(Provider::class.java, {})
 }
 
 class TabInfoMigrator : ConfigFileMigrator<TabInfo> {

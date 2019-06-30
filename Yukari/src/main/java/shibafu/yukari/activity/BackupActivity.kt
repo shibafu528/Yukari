@@ -156,8 +156,14 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                 try {
                                     when (i) {
                                         1 -> {
-                                            val records = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"))
-                                            database.importRecordMaps(AuthUserRecord::class.java, records)
+                                            val accounts = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"))
+                                            database.importRecordMaps(AuthUserRecord::class.java, accounts)
+
+                                            // providers.jsonは古いバージョンからのインポートの場合は存在しない
+                                            try {
+                                                val providers = ConfigFileUtility.importFromJson(Provider::class.java, readFile("providers.json"))
+                                                database.importRecordMaps(Provider::class.java, providers)
+                                            } catch (ignore: FileNotFoundException) {}
 
                                             // アカウントレベルの通知チャンネルを全て削除し、次回起動時に再生成させる
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -169,7 +175,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                                     }
                                                 }
                                                 nm.notificationChannelGroups.forEach { group ->
-                                                    if (group.id.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {
+                                                    if (group.id.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {9
                                                         nm.deleteNotificationChannelGroup(group.id)
                                                     }
                                                 }
@@ -177,7 +183,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
 
                                             // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
                                             val twitter = twitterService.getTwitterOrThrow(null)
-                                            records.forEach eachRecord@{
+                                            accounts.forEach eachRecord@{
                                                 // ProviderID == null -> Twitter
                                                 if (it.containsKey(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID)) {
                                                     return@eachRecord
@@ -265,7 +271,10 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                         fragment.checkedStates.forEach { i, b ->
                             @Suppress("UNCHECKED_CAST")
                             when (i) {
-                                1 -> exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
+                                1 -> {
+                                    exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
+                                    exports["providers.json"] = ConfigFileUtility.exportToJson(Provider::class.java, database.getRecordMaps(Provider::class.java) as List<Map<String, Any?>>)
+                                }
                                 2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
                                 3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
                                 4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)

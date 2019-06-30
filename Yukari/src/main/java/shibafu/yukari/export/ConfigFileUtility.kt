@@ -7,6 +7,7 @@ import shibafu.yukari.common.TabInfo
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
+import shibafu.yukari.database.Provider
 import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
@@ -74,6 +75,7 @@ object ConfigFileUtility {
      */
     private var filters: Map<Class<*>, ConfigFileMigrator<*>> = mapOf(
             AuthUserRecord::class.java to AccountMigrator(),
+            Provider::class.java to ProviderMigrator(),
             TabInfo::class.java to TabInfoMigrator(),
             MuteConfig::class.java to MuteConfigMigrator(),
             AutoMuteConfig::class.java to AutoMuteConfigMigrator(),
