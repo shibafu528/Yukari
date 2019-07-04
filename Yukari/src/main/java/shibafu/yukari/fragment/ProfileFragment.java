@@ -557,7 +557,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
     private int getTargetUserColor() {
         if (isTwitterServiceBound() && getTwitterService() != null) {
-            String url = TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName());
+            String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
             for (UserExtras userExtra : getTwitterService().getUserExtras()) {
                 if (url.equals(userExtra.getId())) {
                     return userExtra.getColor();
@@ -730,7 +730,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 if (resultCode == Activity.RESULT_OK) {
                     AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
-                        getTwitterService().setPriority(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), userRecord);
+                        getTwitterService().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
                         updateMenuItems();
 
@@ -764,7 +764,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     @Override
     public void onColorPicked(int color, String tag) {
         if (isTwitterServiceBound()) {
-            getTwitterService().setColor(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), color);
+            getTwitterService().setColor(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), color);
             showProfile(loadHolder);
         } else {
             //TODO: 遅延処理にすべきかなあ
@@ -786,7 +786,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             if (loadHolder != null && loadHolder.targetUser != null) {
                 Runnable task = () -> {
                     List<UserExtras> userExtras = getTwitterService().getUserExtras();
-                    String url = TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName());
+                    String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
                     Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
                     AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
                     if (priorityAccount != null) {
@@ -920,7 +920,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_unset_priority: {
-                getTwitterService().setPriority(TwitterUtil.getProfileUrl(loadHolder.targetUser.getScreenName()), null);
+                getTwitterService().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
                 Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
 
                 user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);

@@ -172,7 +172,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         tweetView.setUserExtras(getTwitterService().getUserExtras());
         tweetView.updateView();
 
-        AuthUserRecord priorityUser = getTwitterService().getPriority(status.getOriginStatus().getUser().getUrl());
+        AuthUserRecord priorityUser = getTwitterService().getPriority(status.getOriginStatus().getUser().getIdenticalUrl());
         if (priorityUser != null) {
             setUserRecord(priorityUser);
         }
