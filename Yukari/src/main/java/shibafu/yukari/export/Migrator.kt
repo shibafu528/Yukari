@@ -57,14 +57,15 @@ class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
     override val latestVersion = 2
 
     constructor() : super(StatusDraft::class.java, {
-        version(1, {
+        migrateTo(1) {
             val inReplyToId: Long? = it["InReplyTo"].toString().toLongOrNull()
             if (inReplyToId == null || inReplyToId <= 0) {
                 it["InReplyTo"] = null
             } else {
                 it["InReplyTo"] = "https://twitter.com/null/status/$inReplyToId"
             }
-        })
+        }
+        oldName(1..1, "TweetDraft")
     })
 }
 

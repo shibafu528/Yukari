@@ -26,7 +26,16 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
      */
     abstract val latestVersion: Int
 
-    private val migrator: Map<Int, (MutableMap<String, Any?>) -> Unit> = MigratorBuilder().let { it.setup(); it.migrator }
+    private val migrator: Map<Int, (MutableMap<String, Any?>) -> Unit>
+
+    private val oldNames: Map<IntRange, String>
+
+    init {
+        val builder = MigratorBuilder().apply(setup)
+
+        migrator = builder.migrator
+        oldNames = builder.oldNames
+    }
 
     /**
      * 設定データを最新のバージョンにマイグレーションします。
@@ -52,16 +61,36 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
         return config
     }
 
+    /**
+     * 設定データの型に対応するキー (クラス名) を取得します。
+     * @param version 設定データのバージョン
+     * @return キー
+     */
+    fun getClassName(version: Int): String {
+        oldNames.forEach { (range, name) -> if (range.contains(version)) return name }
+        return clazz.simpleName
+    }
+
     protected class MigratorBuilder {
         val migrator: MutableMap<Int, (MutableMap<String, Any?>) -> Unit> = hashMapOf()
+        val oldNames: MutableMap<IntRange, String> = hashMapOf()
 
         /**
          * 指定のバージョンのコンフィグJSONに対するマイグレーション処理を定義します。
          * @param version 処理対象のバージョン
          * @param migrator マイグレーション処理
          */
-        fun version(version: Int, migrator: (MutableMap<String, Any?>) -> Unit) {
+        fun migrateTo(version: Int, migrator: (MutableMap<String, Any?>) -> Unit) {
             this.migrator[version] = migrator
+        }
+
+        /**
+         * 過去に使用されていたクラス名を定義し、別名として読み込み可能にします。
+         * @param version 古いクラス名が使用されていたバージョン範囲
+         * @param oldClassName 古いクラス名
+         */
+        fun oldName(version: IntRange, oldClassName: String) {
+            this.oldNames[version] = oldClassName
         }
     }
 }
@@ -136,7 +165,9 @@ object ConfigFileUtility {
                 else -> java.lang.Integer.valueOf(it.toString())
             }
         }
-        val contents = decodedJson[clazz.simpleName] ?: throw InvalidJsonException("invalid json : not contains key '${clazz.simpleName}'")
+        val className = filter.getClassName(version)
+
+        val contents = decodedJson[className] ?: throw InvalidJsonException("invalid json : not contains key '$className'")
 
         @Suppress("UNCHECKED_CAST")
         if (contents is Map<*, *>) {
@@ -145,7 +176,7 @@ object ConfigFileUtility {
             return contents.map { filter.toLatestDataObject(it as MutableMap<String, Any?>, version) }
         }
 
-        throw InvalidJsonException("invalid json : invalid format key '${clazz.simpleName}'")
+        throw InvalidJsonException("invalid json : invalid format key '$className'")
     }
 }
 
