@@ -622,7 +622,7 @@ public class CentralDatabase {
                         ") SELECT " +
                         "'https://twitter.com/intent/user?user_id='||" + COL_UEXTRAS_ID + ", " +
                         COL_UEXTRAS_COLOR + ", " +
-                        COL_UEXTRAS_PRIORITY_ID +
+                        "CASE " + COL_UEXTRAS_PRIORITY_ID + when + " END " +
                         " FROM tmp_UserExtras"
                 );
                 db.execSQL("DROP TABLE tmp_UserExtras");
