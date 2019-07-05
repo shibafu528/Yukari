@@ -608,13 +608,24 @@ public class CentralDatabase {
                 );
                 db.execSQL("DROP TABLE tmp_Drafts");
 
-                db.execSQL("DROP TABLE " + TABLE_USER_EXTRAS);
+                db.execSQL("ALTER TABLE " + TABLE_USER_EXTRAS + " RENAME TO tmp_UserExtras");
                 db.execSQL(
                         "CREATE TABLE " + TABLE_USER_EXTRAS + " (" +
                                 COL_UEXTRAS_ID + " TEXT PRIMARY KEY, " +
                                 COL_UEXTRAS_COLOR + " INTEGER, " +
                                 COL_UEXTRAS_PRIORITY_ID + " INTEGER)"
                 );
+                db.execSQL("INSERT INTO " + TABLE_USER_EXTRAS + "(" +
+                        COL_UEXTRAS_ID + ", " +
+                        COL_UEXTRAS_COLOR + ", " +
+                        COL_UEXTRAS_PRIORITY_ID +
+                        ") SELECT " +
+                        "'https://twitter.com/intent/user?user_id='||" + COL_UEXTRAS_ID + ", " +
+                        COL_UEXTRAS_COLOR + ", " +
+                        "CASE " + COL_UEXTRAS_PRIORITY_ID + when + " END " +
+                        " FROM tmp_UserExtras"
+                );
+                db.execSQL("DROP TABLE tmp_UserExtras");
 
                 ++oldVersion;
             }
