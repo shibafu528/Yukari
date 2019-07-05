@@ -18,6 +18,14 @@ interface User : Comparable<User>, Serializable, Mention {
         get() = null
 
     /**
+     * 同一性のあるURL
+     *
+     * [url] との違いとして、こちらは内部でIDとして使用することを想定するため、アプリおよびサービスのライフサイクル内での同一性が確保されている必要がある。
+     */
+    val identicalUrl: String?
+        get() = url
+
+    /**
      * URLのHost
      *
      * ホストの判定が必要な場合に、パース負荷軽減のために参照する。

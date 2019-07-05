@@ -696,7 +696,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         // 自身の所有するStatusの場合、書き換えてはいけない
         if (!status.isOwnedStatus()) {
             // 優先アカウント設定が存在するか？
-            val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.url }
+            val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
             if (userExtras != null && userExtras.priorityAccount != null) {
                 status.representUser = userExtras.priorityAccount
                 if (!status.receivedUsers.contains(userExtras.priorityAccount)) {

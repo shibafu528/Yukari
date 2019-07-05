@@ -383,7 +383,7 @@ public abstract class TweetListFragment extends TwitterListFragment<PreformedSta
         } else if (getTwitterService() != null) {
             //優先アカウントチェック
             List<UserExtras> userExtras = getTwitterService().getUserExtras();
-            String url = TwitterUtil.getProfileUrl(status.getSourceUser().getScreenName());
+            String url = TwitterUtil.getUrlFromUserId(status.getSourceUser().getId());
             Optional<UserExtras> first = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
             if (first.isPresent() && first.get().getPriorityAccount() != null) {
                 status.setOwner(first.get().getPriorityAccount());
