@@ -12,9 +12,21 @@ import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.twitter.AuthUserRecord
 
 class AccountMigrator : ConfigFileMigrator<AuthUserRecord> {
-    override val latestVersion = 1
+    override val latestVersion = 2
 
-    constructor() : super(AuthUserRecord::class.java, {})
+    constructor() : super(AuthUserRecord::class.java, {
+        // Version 2
+        migrateTo(2) { config, _ ->
+            config["UserId"] = config["_id"]
+            config["ScreenName"] = ""
+            config["DisplayName"] = ""
+            config["ProfileImageUrl"] = ""
+
+            config.remove("_id")
+            config.remove("ConsumerKey")
+            config.remove("ConsumerSecret")
+        }
+    })
 }
 
 class ProviderMigrator : ConfigFileMigrator<Provider> {
