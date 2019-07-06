@@ -54,6 +54,7 @@ import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.getTwitterServiceAwait
+import shibafu.yukari.util.showToast
 import shibafu.yukari.view.ProfileButton
 import java.io.StringReader
 import kotlin.coroutines.CoroutineContext
@@ -225,9 +226,10 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         cvFields = v.findViewById(R.id.cvProfileFields)
         llFields = v.findViewById(R.id.llProfileFields)
 
-        // TODO: まだフォロー管理できないのでさよなら
         val btnFollowManage = v.findViewById<Button>(R.id.btnProfileFollow)
-        btnFollowManage.visibility = View.GONE
+        btnFollowManage.setOnClickListener {
+            showToast("まだ未対応です")
+        }
 
         val appBarLayout = v.findViewById<AppBarLayout>(R.id.appBarLayout)
         appBarLayout.addOnOffsetChangedListener(ProfileFragment.AppBarOffsetChangedCallback(ivIcon))
