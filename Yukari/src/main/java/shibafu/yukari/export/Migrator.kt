@@ -54,9 +54,15 @@ class AutoMuteConfigMigrator : ConfigFileMigrator<AutoMuteConfig> {
 }
 
 class UserExtrasMigrator : ConfigFileMigrator<UserExtras> {
-    override val latestVersion = 1
+    override val latestVersion = 2
 
-    constructor() : super(UserExtras::class.java, {})
+    constructor() : super(UserExtras::class.java, {
+        // Version 2
+        migrateTo(2) { config, _ ->
+            // _idをURLに変換
+            config["_id"] = "https://twitter.com/intent/user?user_id=${config["_id"]}"
+        }
+    })
 }
 
 class BookmarkMigrator : ConfigFileMigrator<Bookmark.SerializeEntity> {
