@@ -272,22 +272,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
         btnFollowManage.setOnClickListener(view -> {
-            FollowDialogFragment fragment = new FollowDialogFragment();
-            Bundle args1 = new Bundle();
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, createKnownRelationshipList());
-            fragment.setArguments(args1);
+            FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList());
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
         });
         if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("allow_all_r4s", false)) {
             btnFollowManage.setOnLongClickListener(v1 -> {
-                FollowDialogFragment fragment = new FollowDialogFragment();
-                Bundle args1 = new Bundle();
-                args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-                args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, createKnownRelationshipList());
-                args1.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
-                fragment.setArguments(args1);
+                FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList(), true, true);
                 fragment.setTargetFragment(ProfileFragment.this, 0);
                 fragment.show(getFragmentManager(), "follow");
                 return true;
@@ -295,12 +286,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
         }
         btnOwakareBlock = (Button) v.findViewById(R.id.btnBlock);
         btnOwakareBlock.setOnClickListener(v2 -> {
-            FollowDialogFragment fragment = new FollowDialogFragment();
-            Bundle args1 = new Bundle();
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
-            fragment.setArguments(args1);
+            FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList(), true, true);
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
         });

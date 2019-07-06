@@ -36,6 +36,7 @@ public class FollowDialogFragment extends DialogFragment {
     public static final String ARGUMENT_TARGET = "target";
     public static final String ARGUMENT_KNOWN_RELATIONS = "known_relations";
     public static final String ARGUMENT_ALL_R4S = "r4s";
+    public static final String ARGUMENT_ALLOW_R4S = "allow_r4s";
 
     public static final int RELATION_NONE = 0;
     public static final int RELATION_FOLLOW = 1;
@@ -49,49 +50,34 @@ public class FollowDialogFragment extends DialogFragment {
     private List<ListEntry> entryList = new ArrayList<>();
     private User targetUser;
     private ListView listView;
+    private boolean allowR4s;
 
-    public interface FollowDialogCallback {
-        void onChangedRelationships(List<RelationClaim> claims);
+    public static FollowDialogFragment newInstance(User targetUser, ArrayList<KnownRelationship> knownRelations) {
+        return newInstance(targetUser, knownRelations, true, false);
     }
 
-    public static class KnownRelationship implements Serializable {
-        private AuthUserRecord userRecord;
-        private Relationship relationship;
-
-        public KnownRelationship(AuthUserRecord userRecord, Relationship relationship) {
-            this.userRecord = userRecord;
-            this.relationship = relationship;
-        }
+    public static FollowDialogFragment newInstance(User targetUser, ArrayList<KnownRelationship> knownRelations, boolean allowR4s) {
+        return newInstance(targetUser, knownRelations, allowR4s, false);
     }
 
-    public static class RelationClaim {
-        private AuthUserRecord sourceAccount;
-        private long targetUser;
-        private int newRelation;
+    public static FollowDialogFragment newInstance(User targetUser, ArrayList<KnownRelationship> knownRelations, boolean allowR4s, boolean allR4s) {
+        FollowDialogFragment fragment = new FollowDialogFragment();
+        Bundle args = new Bundle();
 
-        public RelationClaim(AuthUserRecord sourceAccount, long targetUser, int newRelation) {
-            this.sourceAccount = sourceAccount;
-            this.targetUser = targetUser;
-            this.newRelation = newRelation;
-        }
+        args.putSerializable(ARGUMENT_TARGET, targetUser);
+        args.putSerializable(ARGUMENT_KNOWN_RELATIONS, knownRelations);
+        args.putBoolean(ARGUMENT_ALLOW_R4S, allowR4s);
+        args.putBoolean(ARGUMENT_ALL_R4S, allR4s);
 
-        public AuthUserRecord getSourceAccount() {
-            return sourceAccount;
-        }
-
-        public long getTargetUser() {
-            return targetUser;
-        }
-
-        public int getNewRelation() {
-            return newRelation;
-        }
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(ARGUMENT_TARGET);
+        allowR4s = args.getBoolean(ARGUMENT_ALLOW_R4S);
 
         listView = new ListView(getActivity());
         listView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
@@ -136,7 +122,54 @@ public class FollowDialogFragment extends DialogFragment {
         return dialog;
     }
 
-    private class ListEntry {
+    /**
+     * 操作結果のコールバック用インターフェース
+     */
+    public interface FollowDialogCallback {
+        void onChangedRelationships(List<RelationClaim> claims);
+    }
+
+    /**
+     * 現在のフォロー関係
+     */
+    public static class KnownRelationship implements Serializable {
+        private AuthUserRecord userRecord;
+        private Relationship relationship;
+
+        public KnownRelationship(AuthUserRecord userRecord, Relationship relationship) {
+            this.userRecord = userRecord;
+            this.relationship = relationship;
+        }
+    }
+
+    /**
+     * フォロー関係の変更要求
+     */
+    public static class RelationClaim {
+        private AuthUserRecord sourceAccount;
+        private long targetUser;
+        private int newRelation;
+
+        public RelationClaim(AuthUserRecord sourceAccount, long targetUser, int newRelation) {
+            this.sourceAccount = sourceAccount;
+            this.targetUser = targetUser;
+            this.newRelation = newRelation;
+        }
+
+        public AuthUserRecord getSourceAccount() {
+            return sourceAccount;
+        }
+
+        public long getTargetUser() {
+            return targetUser;
+        }
+
+        public int getNewRelation() {
+            return newRelation;
+        }
+    }
+
+    private static class ListEntry {
         private AuthUserRecord userRecord;
         private Relationship relationship;
         private int beforeRelation;
@@ -249,6 +282,7 @@ public class FollowDialogFragment extends DialogFragment {
 
                     PopupMenu popupMenu = new PopupMenu(getContext(), view);
                     popupMenu.inflate(R.menu.follow);
+                    popupMenu.getMenu().findItem(R.id.action_report).setVisible(allowR4s);
                     popupMenu.getMenu().findItem(R.id.action_cutoff).setVisible(visibleCutoff);
                     popupMenu.setOnMenuItemClickListener(menuItem -> {
                         switch (menuItem.getItemId()) {
