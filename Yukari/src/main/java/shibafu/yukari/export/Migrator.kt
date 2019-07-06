@@ -37,9 +37,17 @@ class ProviderMigrator : ConfigFileMigrator<Provider> {
 }
 
 class TabInfoMigrator : ConfigFileMigrator<TabInfo> {
-    override val latestVersion = 1
+    override val latestVersion = 2
 
-    constructor() : super(TabInfo::class.java, {})
+    constructor() : super(TabInfo::class.java, {
+        // Version 2
+        migrateTo(2) { config, db ->
+            // BindAccountIdをTwitter IDからInternal Account IDに変換
+            findInternalAccountId(db, (config["BindAccountId"] as Double).toLong())?.let {
+                config["BindAccountId"] = it
+            }
+        }
+    })
 }
 
 class MuteConfigMigrator : ConfigFileMigrator<MuteConfig> {
