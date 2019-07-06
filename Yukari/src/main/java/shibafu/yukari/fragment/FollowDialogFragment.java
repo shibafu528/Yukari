@@ -1,11 +1,11 @@
 package shibafu.yukari.fragment;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,16 +18,15 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
 import twitter4j.User;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by shibafu on 14/01/25.
@@ -55,7 +54,17 @@ public class FollowDialogFragment extends DialogFragment {
         void onChangedRelationships(List<RelationClaim> claims);
     }
 
-    public class RelationClaim {
+    public static class KnownRelationship implements Serializable {
+        private AuthUserRecord userRecord;
+        private Relationship relationship;
+
+        public KnownRelationship(AuthUserRecord userRecord, Relationship relationship) {
+            this.userRecord = userRecord;
+            this.relationship = relationship;
+        }
+    }
+
+    public static class RelationClaim {
         private AuthUserRecord sourceAccount;
         private long targetUser;
         private int newRelation;
@@ -87,11 +96,9 @@ public class FollowDialogFragment extends DialogFragment {
         listView = new ListView(getActivity());
         listView.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
 
-        LinkedHashMap<AuthUserRecord, Relationship> relationships =
-                (LinkedHashMap<AuthUserRecord, Relationship>) ((Object[]) args.getSerializable(ARGUMENT_KNOWN_RELATIONS))[0];
-        for (AuthUserRecord userRecord : relationships.keySet()) {
-            Relationship relationship = relationships.get(userRecord);
-            entryList.add(new ListEntry(userRecord, relationship));
+        List<KnownRelationship> relationships = (List<KnownRelationship>) args.getSerializable(ARGUMENT_KNOWN_RELATIONS);
+        for (KnownRelationship entry : relationships) {
+            entryList.add(new ListEntry(entry.userRecord, entry.relationship));
         }
 
         if (args.getBoolean(ARGUMENT_ALL_R4S, false)) {

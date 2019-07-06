@@ -275,7 +275,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             FollowDialogFragment fragment = new FollowDialogFragment();
             Bundle args1 = new Bundle();
             args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+            args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, createKnownRelationshipList());
             fragment.setArguments(args1);
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
@@ -285,7 +285,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 FollowDialogFragment fragment = new FollowDialogFragment();
                 Bundle args1 = new Bundle();
                 args1.putSerializable(FollowDialogFragment.ARGUMENT_TARGET, loadHolder.targetUser);
-                args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, new Object[]{loadHolder.relationships});
+                args1.putSerializable(FollowDialogFragment.ARGUMENT_KNOWN_RELATIONS, createKnownRelationshipList());
                 args1.putSerializable(FollowDialogFragment.ARGUMENT_ALL_R4S, true);
                 fragment.setArguments(args1);
                 fragment.setTargetFragment(ProfileFragment.this, 0);
@@ -941,6 +941,17 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             return ifEmpty;
         }
         return text;
+    }
+
+    private ArrayList<FollowDialogFragment.KnownRelationship> createKnownRelationshipList() {
+        ArrayList<FollowDialogFragment.KnownRelationship> entryList = new ArrayList<>();
+
+        for (AuthUserRecord userRecord : loadHolder.relationships.keySet()) {
+            Relationship relationship = loadHolder.relationships.get(userRecord);
+            entryList.add(new FollowDialogFragment.KnownRelationship(userRecord, relationship));
+        }
+
+        return entryList;
     }
 
     private static class LoadHolder implements Parcelable{
