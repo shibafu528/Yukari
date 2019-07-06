@@ -57,15 +57,25 @@ class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
     override val latestVersion = 2
 
     constructor() : super(StatusDraft::class.java, {
-        migrateTo(1) { config, _ ->
+        oldName(1..1, "TweetDraft")
+
+        // Version 2
+        migrateTo(2) { config, _ ->
+            val isDirectMessage = (config["IsDirectMessage"] ?: "0").toString()
             val inReplyToId: Long? = config["InReplyTo"].toString().toLongOrNull()
+
+            // InReplyToをURLに変換
             if (inReplyToId == null || inReplyToId <= 0) {
                 config["InReplyTo"] = null
+            } else if (isDirectMessage == "1") {
+                config["InReplyTo"] = "https://twitter.com/intent/user?user_id=$inReplyToId"
             } else {
                 config["InReplyTo"] = "https://twitter.com/null/status/$inReplyToId"
             }
+
+            // VisibilityはPublic固定
+            config["Visibility"] = 0L
         }
-        oldName(1..1, "TweetDraft")
     })
 }
 
