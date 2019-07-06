@@ -1210,8 +1210,18 @@ public class CentralDatabase {
                     values.put(entry.getKey(), (Double) entry.getValue());
                 } else if (entry.getValue() instanceof String) {
                     values.put(entry.getKey(), (String) entry.getValue());
-                } else if (entry.getValue() instanceof byte[]) {
-                    values.put(entry.getKey(), (byte[]) entry.getValue());
+                } else if (entry.getValue() instanceof List) {
+                    // ここではbyte[]になりそこねたList<Double>が来ることのみを想定している
+
+                    List byteList = (List) entry.getValue();
+                    byte[] buf = new byte[byteList.size()];
+
+                    for (int i = 0; i < buf.length; i++) {
+                        double v = (double) byteList.get(i);
+                        buf[i] = (byte) v;
+                    }
+
+                    values.put(entry.getKey(), buf);
                 }
             }
 
