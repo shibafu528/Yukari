@@ -11,7 +11,8 @@ class ConfigFileUtilityTest {
             val filters = ConfigFileUtility::class.java.getDeclaredField("filters")
             filters.isAccessible = true
             filters.set(ConfigFileUtility, mapOf<Class<*>, ConfigFileMigrator<*>>(
-                    ConfigTestEntity::class.java to TestMigrator()
+                    ConfigTestEntity::class.java to TestMigrator(),
+                    ConfigRenameTestEntity::class.java to RenameTestMigrator()
             ))
         }
     }
@@ -41,6 +42,23 @@ class ConfigFileUtilityTest {
         assertEquals(114514.0, records.first()["num2"])
         assertEquals("114514", records.first()["numstr"])
     }
+
+    @Test fun importFromRenamedJsonTest() {
+        val json1 = """{"version":1,"ConfigRenameTestEntityOld":[{"str":"abcde"}]}"""
+        val records1 = ConfigFileUtility.importFromJson(ConfigRenameTestEntity::class.java, json1)
+        assertEquals(1, records1.size)
+        assertEquals("abcde", records1.first()["str"])
+
+        val json2 = """{"version":2,"ConfigRenameTestEntityOld":[{"str":"abcde"}]}"""
+        val records2 = ConfigFileUtility.importFromJson(ConfigRenameTestEntity::class.java, json2)
+        assertEquals(1, records2.size)
+        assertEquals("abcde", records1.first()["str"])
+
+        val json3 = """{"version":3,"ConfigRenameTestEntity":[{"str":"abcde"}]}"""
+        val records3 = ConfigFileUtility.importFromJson(ConfigRenameTestEntity::class.java, json3)
+        assertEquals(1, records3.size)
+        assertEquals("abcde", records1.first()["str"])
+    }
 }
 
 /**
@@ -60,15 +78,31 @@ class TestMigrator : ConfigFileMigrator<ConfigTestEntity> {
 
     constructor() : super(ConfigTestEntity::class.java, {
         // version 1 -> 2
-        version(2) {
+        migrateTo(2) {
             it["num2"] = it["num"]
             it["str"] = it["strold"]
             it["numstr"] = (it["num"] as Number).toInt().toString()
         }
         // version 2 -> 3
-        version(3) {
+        migrateTo(3) {
             it.remove("str")
             it.remove("num2")
         }
+    })
+}
+
+/**
+ * コンフィグマイグレーションのクラス改名テスト用エンティティ
+ */
+data class ConfigRenameTestEntity(var str: String)
+
+/**
+ * コンフィグマイグレーションのクラス改名テスト用マイグレータ
+ */
+class RenameTestMigrator : ConfigFileMigrator<ConfigRenameTestEntity> {
+    override val latestVersion: Int = 3
+
+    constructor() : super(ConfigRenameTestEntity::class.java, {
+        oldName(1..2, "ConfigRenameTestEntityOld")
     })
 }

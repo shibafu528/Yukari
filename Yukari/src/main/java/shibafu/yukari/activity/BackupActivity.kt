@@ -153,20 +153,20 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                             }
 
                             fun <F, T : DBRecord> importIntoDatabase(from: Class<F>, to: Class<T>, json: String)
-                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json))
+                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
                             fun <F> importIntoDatabase(from: Class<F>, to: String, json: String)
-                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json))
+                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
 
                             fragment.checkedStates.forEach { i, b ->
                                 try {
                                     when (i) {
                                         1 -> {
-                                            val accounts = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"))
+                                            val accounts = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"), database)
                                             database.importRecordMaps(AuthUserRecord::class.java, accounts)
 
                                             // providers.jsonは古いバージョンからのインポートの場合は存在しない
                                             try {
-                                                val providers = ConfigFileUtility.importFromJson(Provider::class.java, readFile("providers.json"))
+                                                val providers = ConfigFileUtility.importFromJson(Provider::class.java, readFile("providers.json"), database)
                                                 database.importRecordMaps(Provider::class.java, providers)
                                             } catch (ignore: FileNotFoundException) {}
 

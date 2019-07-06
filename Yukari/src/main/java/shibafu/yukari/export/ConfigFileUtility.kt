@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonWriter
 import shibafu.yukari.common.TabInfo
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
+import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.SearchHistory
@@ -26,15 +27,25 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
      */
     abstract val latestVersion: Int
 
-    private val migrator: Map<Int, (MutableMap<String, Any?>) -> Unit> = MigratorBuilder().let { it.setup(); it.migrator }
+    private val migrator: Map<Int, (MutableMap<String, Any?>, CentralDatabase) -> Unit>
+
+    private val oldNames: Map<IntRange, String>
+
+    init {
+        val builder = MigratorBuilder().apply(setup)
+
+        migrator = builder.migrator
+        oldNames = builder.oldNames
+    }
 
     /**
      * 設定データを最新のバージョンにマイグレーションします。
      * @param config 設定データ
      * @param version 設定データのバージョン
+     * @param database データベース接続
      * @return 設定データ
      */
-    fun toLatestDataObject(config: MutableMap<String, Any?>, version: Int): MutableMap<String, Any?> {
+    fun toLatestDataObject(config: MutableMap<String, Any?>, version: Int, database: CentralDatabase): MutableMap<String, Any?> {
         // バージョン番号チェック
         if (version > latestVersion) {
             throw IncompatibleConfigVersionException("未対応バージョンのデータが指定されています。")
@@ -45,23 +56,43 @@ abstract class ConfigFileMigrator<out T> protected constructor (private val claz
         // マイグレーションを実行
         if (version < latestVersion) {
             for (i in version + 1..latestVersion) {
-                migrator[i]?.invoke(config)
+                migrator[i]?.invoke(config, database)
             }
         }
 
         return config
     }
 
+    /**
+     * 設定データの型に対応するキー (クラス名) を取得します。
+     * @param version 設定データのバージョン
+     * @return キー
+     */
+    fun getClassName(version: Int): String {
+        oldNames.forEach { (range, name) -> if (range.contains(version)) return name }
+        return clazz.simpleName
+    }
+
     protected class MigratorBuilder {
-        val migrator: MutableMap<Int, (MutableMap<String, Any?>) -> Unit> = hashMapOf()
+        val migrator: MutableMap<Int, (MutableMap<String, Any?>, CentralDatabase) -> Unit> = hashMapOf()
+        val oldNames: MutableMap<IntRange, String> = hashMapOf()
 
         /**
          * 指定のバージョンのコンフィグJSONに対するマイグレーション処理を定義します。
          * @param version 処理対象のバージョン
          * @param migrator マイグレーション処理
          */
-        fun version(version: Int, migrator: (MutableMap<String, Any?>) -> Unit) {
+        fun migrateTo(version: Int, migrator: (MutableMap<String, Any?>, CentralDatabase) -> Unit) {
             this.migrator[version] = migrator
+        }
+
+        /**
+         * 過去に使用されていたクラス名を定義し、別名として読み込み可能にします。
+         * @param version 古いクラス名が使用されていたバージョン範囲
+         * @param oldClassName 古いクラス名
+         */
+        fun oldName(version: IntRange, oldClassName: String) {
+            this.oldNames[version] = oldClassName
         }
     }
 }
@@ -115,12 +146,13 @@ object ConfigFileUtility {
      * 古いバージョンのJSONは自動的にマイグレーションを行います。
      * @param clazz 設定データの型
      * @param json JSON
+     * @param database データベース接続 (データベースの情報に依存してマイグレーションする必要がある時に使用)
      * @return 設定データ
      * @throws IllegalArgumentException 型に対応するマイグレータが登録されていない場合にスローされます。
      * @throws InvalidJsonException JSONに必要な情報が含まれていない場合など、不適切なJSONであった場合にスローされます。
      */
     @Throws(InvalidJsonException::class)
-    fun <T> importFromJson(clazz: Class<T>, json: String): List<MutableMap<String, Any?>> {
+    fun <T> importFromJson(clazz: Class<T>, json: String, database: CentralDatabase): List<MutableMap<String, Any?>> {
         @Suppress("UNCHECKED_CAST")
         val filter = filters[clazz] as? ConfigFileMigrator<T> ?: throw IllegalArgumentException("invalid argument 'clazz' : $clazz")
 
@@ -136,16 +168,18 @@ object ConfigFileUtility {
                 else -> java.lang.Integer.valueOf(it.toString())
             }
         }
-        val contents = decodedJson[clazz.simpleName] ?: throw InvalidJsonException("invalid json : not contains key '${clazz.simpleName}'")
+        val className = filter.getClassName(version)
+
+        val contents = decodedJson[className] ?: throw InvalidJsonException("invalid json : not contains key '$className'")
 
         @Suppress("UNCHECKED_CAST")
         if (contents is Map<*, *>) {
-            return listOf(filter.toLatestDataObject(contents as MutableMap<String, Any?>, version))
+            return listOf(filter.toLatestDataObject(contents as MutableMap<String, Any?>, version, database))
         } else if (contents is Collection<*>) {
-            return contents.map { filter.toLatestDataObject(it as MutableMap<String, Any?>, version) }
+            return contents.map { filter.toLatestDataObject(it as MutableMap<String, Any?>, version, database) }
         }
 
-        throw InvalidJsonException("invalid json : invalid format key '${clazz.simpleName}'")
+        throw InvalidJsonException("invalid json : invalid format key '$className'")
     }
 }
 
