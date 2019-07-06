@@ -42,8 +42,8 @@ ext {
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
 
-    y4aVersionMajor = 2
-    y4aVersionMinor = 1
+    y4aVersionMajor = 3
+    y4aVersionMinor = 0
     y4aVersionPatch = 0
     y4aVersionSuffix = '-dev'
     y4aCodeName = 'linkage'
