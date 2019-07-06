@@ -20,9 +20,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.entity.User;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.Relationship;
-import twitter4j.User;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -249,8 +249,8 @@ public class FollowDialogFragment extends DialogFragment {
                 ImageLoaderTask.loadProfileIcon(getContext(), ivOwn, e.getUserRecord().ProfileImageUrl);
 
                 ImageView ivTarget = (ImageView) v.findViewById(R.id.ivFoTarget);
-                ivTarget.setTag(targetUser.getProfileImageURLHttps());
-                ImageLoaderTask.loadProfileIcon(getContext(), ivTarget, targetUser.getBiggerProfileImageURLHttps());
+                ivTarget.setTag(targetUser.getBiggerProfileImageUrl());
+                ImageLoaderTask.loadProfileIcon(getContext(), ivTarget, targetUser.getBiggerProfileImageUrl());
 
                 final ImageView ivRelation = (ImageView) v.findViewById(R.id.ivFollowStatus);
                 final Button btnFollow = (Button) v.findViewById(R.id.btnFollow);

@@ -70,6 +70,7 @@ import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
+import shibafu.yukari.twitter.entity.TwitterUser;
 import shibafu.yukari.view.ProfileButton;
 import twitter4j.Relationship;
 import twitter4j.Twitter;
@@ -272,13 +273,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         btnFollowManage = (Button) v.findViewById(R.id.btnProfileFollow);
         btnFollowManage.setOnClickListener(view -> {
-            FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList());
+            FollowDialogFragment fragment = FollowDialogFragment.newInstance(new TwitterUser(loadHolder.targetUser), createKnownRelationshipList());
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
         });
         if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getBoolean("allow_all_r4s", false)) {
             btnFollowManage.setOnLongClickListener(v1 -> {
-                FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList(), true, true);
+                FollowDialogFragment fragment = FollowDialogFragment.newInstance(new TwitterUser(loadHolder.targetUser), createKnownRelationshipList(), true, true);
                 fragment.setTargetFragment(ProfileFragment.this, 0);
                 fragment.show(getFragmentManager(), "follow");
                 return true;
@@ -286,7 +287,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
         }
         btnOwakareBlock = (Button) v.findViewById(R.id.btnBlock);
         btnOwakareBlock.setOnClickListener(v2 -> {
-            FollowDialogFragment fragment = FollowDialogFragment.newInstance(loadHolder.targetUser, createKnownRelationshipList(), true, true);
+            FollowDialogFragment fragment = FollowDialogFragment.newInstance(new TwitterUser(loadHolder.targetUser), createKnownRelationshipList(), true, true);
             fragment.setTargetFragment(ProfileFragment.this, 0);
             fragment.show(getFragmentManager(), "follow");
         });
