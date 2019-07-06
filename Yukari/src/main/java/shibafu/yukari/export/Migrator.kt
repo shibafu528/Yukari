@@ -80,9 +80,17 @@ class UserExtrasMigrator : ConfigFileMigrator<UserExtras> {
 }
 
 class BookmarkMigrator : ConfigFileMigrator<Bookmark.SerializeEntity> {
-    override val latestVersion = 1
+    override val latestVersion = 2
 
-    constructor() : super(Bookmark.SerializeEntity::class.java, {})
+    constructor() : super(Bookmark.SerializeEntity::class.java, {
+        // Version 2
+        migrateTo(2) { config, db ->
+            // ReceiverIdをTwitter IDからInternal Account IDに変換
+            findInternalAccountId(db, (config["ReceiverId"] as Double).toLong())?.let {
+                config["ReceiverId"] = it
+            }
+        }
+    })
 }
 
 class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
