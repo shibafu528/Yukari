@@ -3,6 +3,7 @@ package shibafu.yukari.export
 import shibafu.yukari.common.TabInfo
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.Bookmark
+import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.SearchHistory
@@ -78,12 +79,17 @@ class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
         oldName(1..1, "TweetDraft")
 
         // Version 2
-        migrateTo(2) { config, _ ->
+        migrateTo(2) { config, db ->
+            // WriterIdをTwitter IDからInternal Account IDに変換
+            findInternalAccountId(db, (config["WriterId"] as Double).toLong())?.let {
+                config["WriterId"] = it
+            }
+
             val isDirectMessage = (config["IsDirectMessage"] ?: "0").toString()
-            val inReplyToId: Long? = config["InReplyTo"].toString().toLongOrNull()
+            val inReplyToId = (config["InReplyTo"] as Double).toLong()
 
             // InReplyToをURLに変換
-            if (inReplyToId == null || inReplyToId <= 0) {
+            if (inReplyToId <= 0) {
                 config["InReplyTo"] = null
             } else if (isDirectMessage == "1") {
                 config["InReplyTo"] = "https://twitter.com/intent/user?user_id=$inReplyToId"
@@ -107,4 +113,29 @@ class StreamChannelStateMigrator : ConfigFileMigrator<StreamChannelState> {
     override val latestVersion = 1
 
     constructor() : super(StreamChannelState::class.java, {})
+}
+
+/**
+ * DB内のアカウント情報から、指定したTwitter IDに対応するレコードを検索してキーを返却する。
+ * 見つからなかった場合は null を返す。
+ * @param database データベース
+ * @param userId 検索対象のTwitter ID
+ * @return 内部アカウントID、ヒットしなかった場合は null
+ */
+private fun findInternalAccountId(database: CentralDatabase, userId: Long): Long? {
+    database.accounts.use {
+        if (!it.moveToFirst()) return null
+
+        do {
+            val id = it.getLong(it.getColumnIndex(CentralDatabase.COL_ACCOUNTS_ID))
+            val uid = it.getLong(it.getColumnIndex(CentralDatabase.COL_ACCOUNTS_USER_ID))
+            val isTwitterAccount = it.isNull(it.getColumnIndex(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID))
+
+            if (isTwitterAccount && uid == userId) {
+                return id
+            }
+        } while (it.moveToNext())
+    }
+
+    return null
 }
