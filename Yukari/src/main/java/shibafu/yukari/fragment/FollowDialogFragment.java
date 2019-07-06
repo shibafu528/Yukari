@@ -84,7 +84,7 @@ public class FollowDialogFragment extends DialogFragment {
 
         List<KnownRelationship> relationships = (List<KnownRelationship>) args.getSerializable(ARGUMENT_KNOWN_RELATIONS);
         for (KnownRelationship entry : relationships) {
-            entryList.add(new ListEntry(entry.userRecord, entry.relationship));
+            entryList.add(new ListEntry(entry));
         }
 
         if (args.getBoolean(ARGUMENT_ALL_R4S, false)) {
@@ -134,11 +134,30 @@ public class FollowDialogFragment extends DialogFragment {
      */
     public static class KnownRelationship implements Serializable {
         private AuthUserRecord userRecord;
-        private Relationship relationship;
+        private int relation;
+        private boolean isMyself;
+        private boolean isFollower;
+
+        public KnownRelationship(AuthUserRecord userRecord, int relation, boolean isMyself, boolean isFollower) {
+            this.userRecord = userRecord;
+            this.relation = relation;
+            this.isMyself = isMyself;
+            this.isFollower = isFollower;
+        }
 
         public KnownRelationship(AuthUserRecord userRecord, Relationship relationship) {
             this.userRecord = userRecord;
-            this.relationship = relationship;
+
+            if (relationship.isSourceBlockingTarget()) {
+                relation = RELATION_BLOCK;
+            } else if (relationship.isSourceFollowingTarget()) {
+                relation = RELATION_FOLLOW;
+            } else {
+                relation = RELATION_NONE;
+            }
+
+            isMyself = userRecord.NumericId == relationship.getTargetUserId();
+            isFollower = relationship.isTargetFollowingSource();
         }
     }
 
@@ -171,35 +190,21 @@ public class FollowDialogFragment extends DialogFragment {
 
     private static class ListEntry {
         private AuthUserRecord userRecord;
-        private Relationship relationship;
         private int beforeRelation;
         private int afterRelation;
-        private boolean isTargetfollower;
+        private boolean isMyself;
+        private boolean isFollower;
 
-        private ListEntry(AuthUserRecord userRecord, Relationship relationship) {
-            this.userRecord = userRecord;
-            this.relationship = relationship;
-
-            if (relationship.isSourceBlockingTarget()) {
-                beforeRelation = RELATION_BLOCK;
-            }
-            else if (relationship.isSourceFollowingTarget()) {
-                beforeRelation = RELATION_FOLLOW;
-            }
-            else {
-                beforeRelation = RELATION_NONE;
-            }
-            afterRelation = beforeRelation;
-
-            isTargetfollower = relationship.isTargetFollowingSource();
+        private ListEntry(KnownRelationship known) {
+            this.userRecord = known.userRecord;
+            this.beforeRelation = known.relation;
+            this.afterRelation = beforeRelation;
+            this.isMyself = known.isMyself;
+            this.isFollower = known.isFollower;
         }
 
         public AuthUserRecord getUserRecord() {
             return userRecord;
-        }
-
-        public Relationship getRelationship() {
-            return relationship;
         }
 
         public int getBeforeRelation() {
@@ -210,8 +215,12 @@ public class FollowDialogFragment extends DialogFragment {
             return afterRelation;
         }
 
-        public boolean isTargetfollower() {
-            return isTargetfollower;
+        public boolean isMyself() {
+            return isMyself;
+        }
+
+        public boolean isFollower() {
+            return isFollower;
         }
     }
 
@@ -305,12 +314,11 @@ public class FollowDialogFragment extends DialogFragment {
                 });
 
                 TextView tvFoYou = (TextView) v.findViewById(R.id.tvFoYou);
-                if (e.getRelationship().getSourceUserId() == e.getRelationship().getTargetUserId()) {
+                if (e.isMyself()) {
                     btnFollow.setVisibility(View.GONE);
                     ibMenu.setVisibility(View.GONE);
                     tvFoYou.setVisibility(View.VISIBLE);
-                }
-                else {
+                } else {
                     btnFollow.setVisibility(View.VISIBLE);
                     ibMenu.setVisibility(View.VISIBLE);
                     tvFoYou.setVisibility(View.GONE);
@@ -335,14 +343,14 @@ public class FollowDialogFragment extends DialogFragment {
             }
             else if (e.getAfterRelation() == RELATION_FOLLOW) {
                 btnFollow.setText("フォロー解除");
-                if (e.isTargetfollower) {
+                if (e.isFollower) {
                     ivRelation.setImageResource(R.drawable.ic_f_friend);
                 }
                 else {
                     ivRelation.setImageResource(R.drawable.ic_f_follow);
                 }
             }
-            else if (e.isTargetfollower) {
+            else if (e.isFollower) {
                 btnFollow.setText("フォロー");
                 ivRelation.setImageResource(R.drawable.ic_f_follower);
             }
