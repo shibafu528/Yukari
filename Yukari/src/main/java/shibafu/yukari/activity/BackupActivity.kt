@@ -17,6 +17,7 @@ import android.provider.Settings
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.ListFragment
 import android.support.v4.util.SparseArrayCompat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,6 +51,7 @@ import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.util.LOG_TAG
 import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set
 import shibafu.yukari.util.showToast
@@ -58,6 +60,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
+import java.lang.Exception
 
 /**
  * Created by shibafu on 2016/03/13.
@@ -74,6 +77,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         private const val DIALOG_IMPORT_FINISHED = 1
         private const val DIALOG_EXPORT_FINISHED = 2
         private const val DIALOG_PERMISSION_DENIED = 3
+        private const val DIALOG_IMPORT_FAILED = 4
     }
 
     val spLocation: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
@@ -118,6 +122,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
             EXTRA_MODE_IMPORT -> {
                 object : SimpleAsyncTask() {
                     private var progressFragment: DialogFragment? = null
+                    private var causedException: Exception? = null
 
                     override fun doInBackground(vararg p0: Void?): Void? {
                         database.beginTransaction()
@@ -239,6 +244,8 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                             }
 
                             database.setTransactionSuccessful()
+                        } catch (e: Exception) {
+                            causedException = e
                         } finally {
                             database.endTransaction()
                         }
@@ -255,10 +262,21 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                         super.onPostExecute(result)
                         progressFragment?.dismiss()
                         progressFragment = null
-                        SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
-                                "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
-                                "OK", null)
-                                .show(supportFragmentManager, "import_finished")
+
+                        val causedException = this.causedException
+                        if (causedException == null) {
+                            SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
+                                    "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
+                                    "OK", null)
+                                    .show(supportFragmentManager, "import_finished")
+                        } else {
+                            Log.e(LOG_TAG, "", causedException)
+
+                            SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FAILED,
+                                    "インポート失敗", "設定のインポート中にエラーが発生しました。",
+                                    "OK", null)
+                                    .show(supportFragmentManager, "import_finished")
+                        }
                     }
                 }.execute()
             }

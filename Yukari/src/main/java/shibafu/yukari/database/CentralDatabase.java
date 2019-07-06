@@ -1215,7 +1215,7 @@ public class CentralDatabase {
                 }
             }
 
-            db.insert(tableName, null, values);
+            db.insertOrThrow(tableName, null, values);
         }
     }
 
