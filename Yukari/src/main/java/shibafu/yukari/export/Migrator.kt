@@ -59,9 +59,14 @@ class UserExtrasMigrator : ConfigFileMigrator<UserExtras> {
 
     constructor() : super(UserExtras::class.java, {
         // Version 2
-        migrateTo(2) { config, _ ->
+        migrateTo(2) { config, db ->
             // _idをURLに変換
             config["_id"] = "https://twitter.com/intent/user?user_id=${config["_id"]}"
+
+            // PriorityAccountIdをTwitter IDからInternal Account IDに変換
+            findInternalAccountId(db, (config["PriorityAccountId"] as Double).toLong())?.let {
+                config["PriorityAccountId"] = it
+            }
         }
     })
 }
