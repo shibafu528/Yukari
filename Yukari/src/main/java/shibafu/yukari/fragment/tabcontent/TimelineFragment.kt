@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
+import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -65,7 +66,7 @@ import twitter4j.TwitterException
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObserver, QueryableTab, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObserver, QueryableTab, AdapterView.OnItemLongClickListener, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING
@@ -197,6 +198,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 onScrollListeners.forEach { it.onScrollStateChanged(view, scrollState) }
             }
         })
+        listView.setOnItemLongClickListener(this)
         onScrollListeners.add(unreadNotifierBehavior)
         onScrollListeners.add(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
@@ -319,6 +321,37 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 blockingDoubleClick = true
             }
         }
+    }
+
+    override fun onItemLongClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long): Boolean {
+        if (blockingDoubleClick) {
+            return false
+        }
+
+        if (position < statuses.size) {
+            val result =
+                    when (val clickedElement = statuses[position]) {
+                        is TwitterStatus, is DonStatus -> {
+                            val action = when {
+                                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_left", "")
+                                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_right", "")
+                                else -> defaultSharedPreferences.getString("pref_timeline_long_click_action_center", "")
+                            }
+
+                            onGeneralItemClick(position, clickedElement, action.orEmpty())
+                        }
+                        else -> false
+                    }
+
+            // コマンド実行成功後、次回onResumeまでクリックイベントを無視する
+            if (result && enableDoubleClickBlocker) {
+                blockingDoubleClick = true
+            }
+
+            return result
+        }
+
+        return false
     }
 
     override fun scrollToTop() {

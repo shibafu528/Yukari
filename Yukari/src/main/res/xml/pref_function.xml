@@ -28,6 +28,24 @@
             android:entries="@array/pref_timeline_click_action_entries"
             android:entryValues="@array/pref_timeline_click_action_values"
             android:defaultValue="open_detail"/>
+        <ListPreference
+            android:key="pref_timeline_long_click_action_left"
+            android:title="左側をロングタップした時の動作"
+            android:summary="TLの左側25%%を長押しした時に呼び出す機能を選択します"
+            android:entries="@array/pref_timeline_click_action_entries"
+            android:entryValues="@array/pref_timeline_click_action_values"/>
+        <ListPreference
+            android:key="pref_timeline_long_click_action_center"
+            android:title="中央をロングタップした時の動作"
+            android:summary="TLの中央を長押しした時に呼び出す機能を選択します"
+            android:entries="@array/pref_timeline_click_action_entries"
+            android:entryValues="@array/pref_timeline_click_action_values"/>
+        <ListPreference
+            android:key="pref_timeline_long_click_action_right"
+            android:title="右側をロングタップした時の動作"
+            android:summary="TLの右側25%%を長押しした時に呼び出す機能を選択します"
+            android:entries="@array/pref_timeline_click_action_entries"
+            android:entryValues="@array/pref_timeline_click_action_values"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ツイート詳細画面">
         <CheckBoxPreference
