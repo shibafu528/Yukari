@@ -115,6 +115,9 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         }
     }
 
+    // ListView Xタッチ座標 (画面幅に対する割合)
+    private var listViewXTouchPercent: Float = 0f
+
     override fun onAttach(context: Context?) {
         super.onAttach(context)
 
@@ -179,6 +182,10 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         statusAdapter = TweetAdapter(context, users, null, statuses)
         listAdapter = statusAdapter
 
+        listView.setOnTouchListener { v, event ->
+            listViewXTouchPercent = event.x * 100 / v.width
+            false
+        }
         listView.setOnScrollListener(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
                 onScrollListeners.forEach { it.onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount) }
