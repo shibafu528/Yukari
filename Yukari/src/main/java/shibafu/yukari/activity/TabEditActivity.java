@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.ListFragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -112,7 +113,11 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         if (resultCode == RESULT_OK) {
             AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
             String template = data.getStringExtra(AccountChooserActivity.EXTRA_METADATA);
-            addTab(requestCode, userRecord, template);
+            if (TextUtils.isEmpty(template)) {
+                addTab(requestCode, userRecord);
+            } else {
+                addTab(requestCode, userRecord, template);
+            }
         }
     }
 
