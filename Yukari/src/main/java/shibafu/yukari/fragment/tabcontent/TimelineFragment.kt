@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.preference.PreferenceManager
 import android.support.annotation.UiThread
 import android.support.annotation.WorkerThread
 import android.support.v4.util.LongSparseArray
@@ -28,7 +27,6 @@ import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.StatusActivity
-import shibafu.yukari.activity.TraceActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
@@ -51,7 +49,6 @@ import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
-import shibafu.yukari.service.AsyncCommandService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
@@ -848,7 +845,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 // 同一の投稿が見つからなければ、記憶されているロック対象のタイムスタンプより古い投稿を代わりとする。
                 if (statuses[i] == locked || statuses[i].createdAt.time < locked.createdAt.time) {
                     listView.setSelectionFromTop(i, y)
-                    if (position < i) {
+                    if (position < i && status !is LoadMarker) {
                         unreadSet.add(status.id)
                     }
 
@@ -872,7 +869,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     lockedPosition = statuses.size - 1
                 }
 
-                unreadSet.add(status.id)
+                if (status !is LoadMarker) {
+                    unreadSet.add(status.id)
+                }
                 listView.setSelectionFromTop(lockedPosition, y)
 
                 lockedTarget = statuses[lockedPosition]
