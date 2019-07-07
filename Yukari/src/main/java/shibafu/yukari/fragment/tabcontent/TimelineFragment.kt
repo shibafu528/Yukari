@@ -231,80 +231,78 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         }
 
         if (position < statuses.size) {
-            val result: Boolean = {
-                val clickedElement = statuses[position]
-                when (clickedElement) {
-                    is LoadMarker -> {
-                        if (clickedElement.taskKey < 0) {
-                            query.sources.firstOrNull { it.hashCode().toString() == clickedElement.loadMarkerTag }?.let {
-                                // リクエストの発行
-                                val userRecord = it.sourceAccount ?: return@let
-                                val restQuery = it.getRestQuery() ?: return@let
-                                val params = RestQuery.Params(maxId = clickedElement.id,
-                                        loadMarkerTag = it.hashCode().toString(),
-                                        loadMarkerDate = clickedElement.createdAt,
-                                        stringCursor = clickedElement.stringCursor,
-                                        longCursor = clickedElement.longCursor)
-                                val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
-                                        userRecord, restQuery, params)
-                                clickedElement.taskKey = taskKey
-                                loadingTaskKeys += taskKey
-                                queryingLoadMarkers.put(taskKey, clickedElement.id)
-                                statusCapacity += 100
-                                // Viewの表示更新
-                                val visiblePosition = position - listView.firstVisiblePosition
-                                if (visiblePosition > -1) {
-                                    val view: View? = listView.getChildAt(visiblePosition)
-                                    view?.findViewById<View>(R.id.pbLoading)?.visibility = View.VISIBLE
-                                    view?.findViewById<TextView>(R.id.tvLoading)?.text = "loading"
+            val result =
+                    when (val clickedElement = statuses[position]) {
+                        is LoadMarker -> {
+                            if (clickedElement.taskKey < 0) {
+                                query.sources.firstOrNull { it.hashCode().toString() == clickedElement.loadMarkerTag }?.let {
+                                    // リクエストの発行
+                                    val userRecord = it.sourceAccount ?: return@let
+                                    val restQuery = it.getRestQuery() ?: return@let
+                                    val params = RestQuery.Params(maxId = clickedElement.id,
+                                            loadMarkerTag = it.hashCode().toString(),
+                                            loadMarkerDate = clickedElement.createdAt,
+                                            stringCursor = clickedElement.stringCursor,
+                                            longCursor = clickedElement.longCursor)
+                                    val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
+                                            userRecord, restQuery, params)
+                                    clickedElement.taskKey = taskKey
+                                    loadingTaskKeys += taskKey
+                                    queryingLoadMarkers.put(taskKey, clickedElement.id)
+                                    statusCapacity += 100
+                                    // Viewの表示更新
+                                    val visiblePosition = position - listView.firstVisiblePosition
+                                    if (visiblePosition > -1) {
+                                        val view: View? = listView.getChildAt(visiblePosition)
+                                        view?.findViewById<View>(R.id.pbLoading)?.visibility = View.VISIBLE
+                                        view?.findViewById<TextView>(R.id.tvLoading)?.text = "loading"
+                                    }
                                 }
                             }
+                            false // ダブルクリックブロックの対象外
                         }
-                        false // ダブルクリックブロックの対象外
-                    }
-                    is TwitterStatus, is DonStatus -> {
-                        val intent = Intent(activity, StatusActivity::class.java)
-                        intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
-                        intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
-                        startActivity(intent)
-                        true
-                    }
-                    is TwitterMessage -> {
-                        val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
-                            clickedElement.mentions.map { "@" + it.screenName } +
-                                    clickedElement.media.map { it.browseUrl } +
-                                    clickedElement.links +
-                                    clickedElement.tags
-                        } else {
-                            clickedElement.media.map { it.browseUrl } +
-                                    clickedElement.links +
-                                    clickedElement.tags
+                        is TwitterStatus, is DonStatus -> {
+                            val intent = Intent(activity, StatusActivity::class.java)
+                            intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
+                            intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
+                            startActivity(intent)
+                            true
                         }
-                        val bundle = Bundle()
-                        bundle.putSerializable(EXTRA_STATUS, clickedElement)
-                        val items = listOf("返信する", "削除する", "@${clickedElement.user.screenName}") + links
-                        val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_TWITTER_MESSAGE_MENU,
-                                "@${clickedElement.user.screenName}:${clickedElement.text}",
-                                null, null, null,
-                                items, bundle)
-                        dialog.setTargetFragment(this, 0)
-                        dialog.show(fragmentManager, "twitter_message_menu")
-                        true
+                        is TwitterMessage -> {
+                            val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
+                                clickedElement.mentions.map { "@" + it.screenName } +
+                                        clickedElement.media.map { it.browseUrl } +
+                                        clickedElement.links +
+                                        clickedElement.tags
+                            } else {
+                                clickedElement.media.map { it.browseUrl } +
+                                        clickedElement.links +
+                                        clickedElement.tags
+                            }
+                            val bundle = Bundle()
+                            bundle.putSerializable(EXTRA_STATUS, clickedElement)
+                            val items = listOf("返信する", "削除する", "@${clickedElement.user.screenName}") + links
+                            val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_TWITTER_MESSAGE_MENU,
+                                    "@${clickedElement.user.screenName}:${clickedElement.text}",
+                                    null, null, null,
+                                    items, bundle)
+                            dialog.setTargetFragment(this, 0)
+                            dialog.show(fragmentManager, "twitter_message_menu")
+                            true
+                        }
+                        is NotifyHistory -> {
+                            val bundle = Bundle()
+                            bundle.putSerializable(EXTRA_STATUS, clickedElement)
+                            val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
+                                    "メニュー", null, null, null,
+                                    listOf("@${clickedElement.user.screenName}", "詳細を開く"),
+                                    bundle)
+                            dialog.setTargetFragment(this, 0)
+                            dialog.show(fragmentManager, "history_menu")
+                            true
+                        }
+                        else -> false
                     }
-                    is NotifyHistory -> {
-                        val bundle = Bundle()
-                        bundle.putSerializable(EXTRA_STATUS, clickedElement)
-                        val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
-                                "メニュー", null, null, null,
-                                listOf("@${clickedElement.user.screenName}", "詳細を開く"),
-                                bundle)
-                        dialog.setTargetFragment(this, 0)
-                        dialog.show(fragmentManager, "history_menu")
-                        true
-                    }
-                    else -> false
-                }
-            }()
             // コマンド実行成功後、次回onResumeまでクリックイベントを無視する
             if (result && enableDoubleClickBlocker) {
                 blockingDoubleClick = true
