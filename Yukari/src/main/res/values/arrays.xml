@@ -259,7 +259,6 @@
         <item>お気に入りに追加</item>
         <item>リツイート</item>
         <item>Fav+RT</item>
-        <item>引用する</item>
         <item>プロフィールを表示</item>
         <item>会話を表示</item>
     </string-array>
@@ -272,7 +271,6 @@
         <item>favorite</item>
         <item>repost</item>
         <item>fav_and_repost</item>
-        <item>quote</item>
         <item>open_profile</item>
         <item>open_thread</item>
     </string-array>
