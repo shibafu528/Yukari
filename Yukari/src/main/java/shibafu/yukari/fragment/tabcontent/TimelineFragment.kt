@@ -269,11 +269,29 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                             false // ダブルクリックブロックの対象外
                         }
                         is TwitterStatus, is DonStatus -> {
-                            val intent = Intent(activity, StatusActivity::class.java)
-                            intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
-                            intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
-                            startActivity(intent)
-                            true
+                            val action = when {
+                                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_click_action_left", "open_detail")
+                                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_click_action_right", "open_detail")
+                                else -> defaultSharedPreferences.getString("pref_timeline_click_action_center", "open_detail")
+                            }
+
+                            when (action) {
+                                "open_detail" -> {
+                                    val intent = Intent(activity, StatusActivity::class.java)
+                                    intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
+                                    intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
+                                    startActivity(intent)
+                                    true
+                                }
+                                "open_profile" -> {
+                                    val intent = ProfileActivity.newIntent(requireContext(),
+                                            clickedElement.representUser,
+                                            Uri.parse(clickedElement.originStatus.user.url))
+                                    startActivity(intent)
+                                    true
+                                }
+                                else -> false
+                            }
                         }
                         is TwitterMessage -> {
                             val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
