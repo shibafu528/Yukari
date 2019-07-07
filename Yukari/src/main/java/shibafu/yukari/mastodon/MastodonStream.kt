@@ -136,7 +136,7 @@ class MastodonStream : ProviderStream {
 
 private class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
     override val channelId: String = "/user"
-    override val channelName: String = "Home and Notifications (/user)"
+    override val channelName: String = "ホームTLと通知 (/user)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
@@ -164,7 +164,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
 
 private class PublicStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
     override val channelId: String = "/public"
-    override val channelName: String = "Federated (/public)"
+    override val channelName: String = "連合TL (/public)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
@@ -192,7 +192,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
 
 private class LocalStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
     override val channelId: String = "/public/local"
-    override val channelName: String = "Local (/public/local)"
+    override val channelName: String = "ローカルTL (/public/local)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set

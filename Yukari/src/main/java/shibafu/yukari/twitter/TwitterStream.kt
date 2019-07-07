@@ -151,7 +151,7 @@ private class FilterStreamChannel(private val service: TwitterService, override 
 
 private class AutoReloadChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val userUpdateDelayer: UserUpdateDelayer) : StreamChannel {
     override val channelId: String = "AutoReload"
-    override val channelName: String = "AutoReload (Home & Mentions)"
+    override val channelName: String = "自動リロード (Home & Mentions)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
@@ -179,7 +179,7 @@ private class AutoReloadChannel(private val service: TwitterService, override va
 
 private class FollowedStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
     override val channelId: String = "FollowedStream"
-    override val channelName: String = "FollowedStream"
+    override val channelName: String = "疑似Homeストリーミング"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
