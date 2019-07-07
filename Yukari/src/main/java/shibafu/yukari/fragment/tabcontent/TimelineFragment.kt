@@ -1022,6 +1022,75 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                     }
                 }
             }
+        },
+        REPOST {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
+                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_rt", false)) {
+                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_REPOST)
+                            .setTitle("確認")
+                            .setMessage("リツイートしますか？")
+                            .setPositive("OK")
+                            .setNegative("キャンセル")
+                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
+                            .build()
+                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_REPOST)
+                    dialog.show(fragmentManager, "dialog_repost_confirm")
+                } else {
+                    val activity = requireActivity()
+                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
+                    activity.startService(intent)
+                }
+
+                false
+            }
+
+            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
+                if (requestCode == DIALOG_REQUEST_ACTION_REPOST && which == DialogInterface.BUTTON_POSITIVE) {
+                    val status = extras?.getSerializable("status") as? Status
+                    if (status != null) {
+                        val activity = requireActivity()
+                        val intent = AsyncCommandService.createRepost(activity, status, status.representUser)
+                        activity.startService(intent)
+                    }
+                }
+            }
+        },
+        FAV_AND_REPOST {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
+                // 自分のステータスの場合、ナルシストオプションを有効にしていない場合は中断
+                if (clickedElement.isOwnedStatus() && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
+                    return@proc false
+                }
+
+                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_favrt", false)) {
+                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
+                            .setTitle("確認")
+                            .setMessage("お気に入りに登録してRTしますか？")
+                            .setPositive("OK")
+                            .setNegative("キャンセル")
+                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
+                            .build()
+                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
+                    dialog.show(fragmentManager, "dialog_fav_repost_confirm")
+                } else {
+                    val activity = requireActivity()
+                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
+                    activity.startService(intent)
+                }
+
+                false
+            }
+
+            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
+                if (requestCode == DIALOG_REQUEST_ACTION_FAV_AND_REPOST && which == DialogInterface.BUTTON_POSITIVE) {
+                    val status = extras?.getSerializable("status") as? Status
+                    if (status != null) {
+                        val activity = requireActivity()
+                        val intent = AsyncCommandService.createFavAndRepost(activity, status, status.representUser)
+                        activity.startService(intent)
+                    }
+                }
+            }
         }
         ;
 
@@ -1050,13 +1119,20 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         /** ダイアログID : TwitterMessage 削除確認 */
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_DELETE = 3
 
+        /** ダイアログID : Action Favorite 確認 */
         private const val DIALOG_REQUEST_ACTION_FAVORITE = 10
+        /** ダイアログID : Action Repost 確認 */
+        private const val DIALOG_REQUEST_ACTION_REPOST = 11
+        /** ダイアログID : Action Fav&Repost 確認 */
+        private const val DIALOG_REQUEST_ACTION_FAV_AND_REPOST = 12
 
         private val ITEM_CLICK_ACTIONS = mapOf(
                 "open_detail" to TimelineItemClickAction.OPEN_DETAIL,
                 "open_profile" to TimelineItemClickAction.OPEN_PROFILE,
                 "open_thread" to TimelineItemClickAction.OPEN_THREAD,
-                "favorite" to TimelineItemClickAction.FAVORITE
+                "favorite" to TimelineItemClickAction.FAVORITE,
+                "repost" to TimelineItemClickAction.REPOST,
+                "fav_and_repost" to TimelineItemClickAction.FAV_AND_REPOST
         )
     }
 }
