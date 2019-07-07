@@ -50,6 +50,7 @@ import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
+import shibafu.yukari.service.AsyncCommandService
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
@@ -276,7 +277,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                                 else -> defaultSharedPreferences.getString("pref_timeline_click_action_center", "open_detail")
                             }
 
-                            onGeneralItemClick(position, clickedElement, action)
+                            onGeneralItemClick(position, clickedElement, action.orEmpty())
                         }
                         is TwitterMessage -> {
                             val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
@@ -610,6 +611,11 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 }
             }
         }
+
+        // 要素クリックイベントでダイアログを使用した場合のコールバック処理
+        ITEM_CLICK_ACTIONS.forEach { (_, instance) ->
+            instance.onDialogChose().invoke(this, requestCode, which, extras)
+        }
     }
 
     override fun getQueryableElements(): MutableCollection<Status> = ArrayList(statuses)
@@ -695,35 +701,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
     }
 
     private fun onGeneralItemClick(position: Int, clickedElement: Status, action: String): Boolean {
-        return when (action) {
-            "open_detail" -> {
-                val intent = Intent(activity, StatusActivity::class.java)
-                intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
-                intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
-                startActivity(intent)
-                true
-            }
-            "open_profile" -> {
-                val intent = ProfileActivity.newIntent(requireContext(),
-                        clickedElement.representUser,
-                        Uri.parse(clickedElement.originStatus.user.url))
-                startActivity(intent)
-                true
-            }
-            "open_thread" -> {
-                if (clickedElement.originStatus.inReplyToId > -1) {
-                    val intent = Intent(activity, TraceActivity::class.java)
-                    intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
-                    intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
-                    startActivity(intent)
-                    true
-                } else {
-                    false
-                }
-            }
-            else -> false
-        }
+        return ITEM_CLICK_ACTIONS[action]?.onItemClick()?.invoke(this, clickedElement) ?: false
     }
 
     /**
@@ -975,6 +953,82 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         statusAdapter?.notifyDataSetChanged()
     }
 
+    private enum class TimelineItemClickAction {
+        OPEN_DETAIL {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
+                val intent = Intent(activity, StatusActivity::class.java)
+                intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
+                intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
+                startActivity(intent)
+                true
+            }
+        },
+        OPEN_PROFILE {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
+                val intent = ProfileActivity.newIntent(requireContext(),
+                        clickedElement.representUser,
+                        Uri.parse(clickedElement.originStatus.user.url))
+                startActivity(intent)
+                true
+            }
+        },
+        OPEN_THREAD {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
+                if (clickedElement.originStatus.inReplyToId > -1) {
+                    val intent = Intent(activity, TraceActivity::class.java)
+                    intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
+                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
+                    intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
+                    startActivity(intent)
+                    true
+                } else {
+                    false
+                }
+            }
+        },
+        FAVORITE {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
+                // 自分のステータスの場合、ナルシストオプションを有効にしていない場合は中断
+                if (clickedElement.isOwnedStatus() && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
+                    return@proc false
+                }
+
+                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
+                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_FAVORITE)
+                            .setTitle("確認")
+                            .setMessage("お気に入り登録しますか？")
+                            .setPositive("OK")
+                            .setNegative("キャンセル")
+                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
+                            .build()
+                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_FAVORITE)
+                    dialog.show(fragmentManager, "dialog_favorite_confirm")
+                } else {
+                    val activity = requireActivity()
+                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
+                    activity.startService(intent)
+                }
+
+                false
+            }
+
+            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
+                if (requestCode == DIALOG_REQUEST_ACTION_FAVORITE && which == DialogInterface.BUTTON_POSITIVE) {
+                    val status = extras?.getSerializable("status") as? Status
+                    if (status != null) {
+                        val activity = requireActivity()
+                        val intent = AsyncCommandService.createFavorite(activity, status, status.representUser)
+                        activity.startService(intent)
+                    }
+                }
+            }
+        }
+        ;
+
+        abstract fun onItemClick() : TimelineFragment.(Status) -> Boolean
+        open fun onDialogChose() : TimelineFragment.(Int, Int, Bundle?) -> Unit = { _, _, _ -> }
+    }
+
     companion object {
         const val EXTRA_FILTER_QUERY = "filterQuery"
 
@@ -995,6 +1049,15 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_MENU = 2
         /** ダイアログID : TwitterMessage 削除確認 */
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_DELETE = 3
+
+        private const val DIALOG_REQUEST_ACTION_FAVORITE = 10
+
+        private val ITEM_CLICK_ACTIONS = mapOf(
+                "open_detail" to TimelineItemClickAction.OPEN_DETAIL,
+                "open_profile" to TimelineItemClickAction.OPEN_PROFILE,
+                "open_thread" to TimelineItemClickAction.OPEN_THREAD,
+                "favorite" to TimelineItemClickAction.FAVORITE
+        )
     }
 }
 
