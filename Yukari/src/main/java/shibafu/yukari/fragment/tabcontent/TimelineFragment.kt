@@ -276,35 +276,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                                 else -> defaultSharedPreferences.getString("pref_timeline_click_action_center", "open_detail")
                             }
 
-                            when (action) {
-                                "open_detail" -> {
-                                    val intent = Intent(activity, StatusActivity::class.java)
-                                    intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
-                                    intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
-                                    startActivity(intent)
-                                    true
-                                }
-                                "open_profile" -> {
-                                    val intent = ProfileActivity.newIntent(requireContext(),
-                                            clickedElement.representUser,
-                                            Uri.parse(clickedElement.originStatus.user.url))
-                                    startActivity(intent)
-                                    true
-                                }
-                                "open_thread" -> {
-                                    if (clickedElement.originStatus.inReplyToId > -1) {
-                                        val intent = Intent(activity, TraceActivity::class.java)
-                                        intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
-                                        intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
-                                        intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
-                                        startActivity(intent)
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-                                else -> false
-                            }
+                            onGeneralItemClick(position, clickedElement, action)
                         }
                         is TwitterMessage -> {
                             val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
@@ -719,6 +691,38 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                     notifyDataSetChanged()
                 }
             }
+        }
+    }
+
+    private fun onGeneralItemClick(position: Int, clickedElement: Status, action: String): Boolean {
+        return when (action) {
+            "open_detail" -> {
+                val intent = Intent(activity, StatusActivity::class.java)
+                intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
+                intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
+                startActivity(intent)
+                true
+            }
+            "open_profile" -> {
+                val intent = ProfileActivity.newIntent(requireContext(),
+                        clickedElement.representUser,
+                        Uri.parse(clickedElement.originStatus.user.url))
+                startActivity(intent)
+                true
+            }
+            "open_thread" -> {
+                if (clickedElement.originStatus.inReplyToId > -1) {
+                    val intent = Intent(activity, TraceActivity::class.java)
+                    intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
+                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
+                    intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
+                    startActivity(intent)
+                    true
+                } else {
+                    false
+                }
+            }
+            else -> false
         }
     }
 
