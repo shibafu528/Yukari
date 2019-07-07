@@ -27,6 +27,7 @@ import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.PreviewActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.StatusActivity
+import shibafu.yukari.activity.TraceActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
@@ -289,6 +290,18 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                                             Uri.parse(clickedElement.originStatus.user.url))
                                     startActivity(intent)
                                     true
+                                }
+                                "open_thread" -> {
+                                    if (clickedElement.originStatus.inReplyToId > -1) {
+                                        val intent = Intent(activity, TraceActivity::class.java)
+                                        intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
+                                        intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
+                                        intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
+                                        startActivity(intent)
+                                        true
+                                    } else {
+                                        false
+                                    }
                                 }
                                 else -> false
                             }
