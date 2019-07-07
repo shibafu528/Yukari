@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ListView
 import android.widget.TextView
 import shibafu.yukari.R
@@ -25,7 +26,12 @@ class ChannelManageActivity : ActionBarYukariBase() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_parent)
+
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        findViewById<LinearLayout>(R.id.llFrameTitle).visibility = View.VISIBLE
+        findViewById<TextView>(R.id.tvFrameTitle).text = "ストリーミング通信(または自動取得)を有効にしたいチャンネルにチェックを入れてください。\nチャンネルは各アカウントごとに受信する内容(または自動取得の方式)で分かれています。"
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                     .replace(R.id.frame, ChannelListFragment(), "list")
