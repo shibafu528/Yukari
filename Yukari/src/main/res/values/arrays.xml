@@ -251,4 +251,28 @@
         <item>その他の設定</item>
     </string-array>
 
+    <string-array name="pref_timeline_click_action_entries">
+        <item>何もしない</item>
+        <item>詳細画面を開く</item>
+        <item>返信</item>
+        <item>全員に返信</item>
+        <item>お気に入りに追加</item>
+        <item>リツイート</item>
+        <item>Fav+RT</item>
+        <item>プロフィールを表示</item>
+        <item>会話を表示</item>
+    </string-array>
+
+    <string-array name="pref_timeline_click_action_values">
+        <item/>
+        <item>open_detail</item>
+        <item>reply</item>
+        <item>reply_all</item>
+        <item>favorite</item>
+        <item>repost</item>
+        <item>fav_and_repost</item>
+        <item>open_profile</item>
+        <item>open_thread</item>
+    </string-array>
+
 </resources>
