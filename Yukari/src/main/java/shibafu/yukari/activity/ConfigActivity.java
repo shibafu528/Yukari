@@ -154,6 +154,24 @@ public class ConfigActivity extends ActionBarYukariBase {
                     return true;
                 });
 
+                findPreference("pref_about_feedback_mastodon").setOnPreferenceClickListener(preference -> {
+                    Intent intent = new Intent(getActivity(), TweetActivity.class);
+                    String text = " #yukari4a @yukari4a@ertona.net";
+                    PackageManager pm = getActivity().getPackageManager();
+                    try {
+                        PackageInfo packageInfo = pm.getPackageInfo(getActivity().getPackageName(), 0);
+                        String[] versionText = packageInfo.versionName.split(" ");
+                        if (versionText.length > 1) {
+                            text += " //ver." + versionText[0];
+                        }
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    intent.putExtra(TweetActivity.EXTRA_TEXT, text);
+                    startActivity(intent);
+                    return true;
+                });
+
             } else {
                 switch (category) {
                     case "appearance":
