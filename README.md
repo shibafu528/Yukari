@@ -31,12 +31,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
-
-/androidmagick 以下には https://github.com/paulasiimwe/Android-ImageMagick をGradleベースのプロジェクトに変換し、本プロジェクトでは使用していないファイルを削除したものが含まれます。  
-このディレクトリ以下には MIT License が適用されます。
-
-```
-Android-ImageMagick
-Copyright (c) 2018 paulasiimwe
-See https://opensource.org/licenses/MIT for more detail.
-```
