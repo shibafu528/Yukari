@@ -31,8 +31,8 @@
         android:defaultValue="true"/>
     <CheckBoxPreference
         android:key="pref_dialog_swipe"
-        android:title="TLタッチ拡張時に確認"
-        android:summary="TLタッチ拡張による各種クイック操作時に確認を行います"/>
+        android:title="ショートカット使用時に確認"
+        android:summary="TLから直接ショートカット操作をした時に確認を行います"/>
     <CheckBoxPreference
         android:key="pref_dialog_quit"
         android:title="アプリ終了時に確認"
