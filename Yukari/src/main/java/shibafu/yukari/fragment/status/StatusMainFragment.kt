@@ -17,7 +17,6 @@ import android.widget.ImageButton
 import android.widget.Toast
 import shibafu.yukari.R
 import shibafu.yukari.activity.AccountChooserActivity
-import shibafu.yukari.activity.MainActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
@@ -394,19 +393,6 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
 
     override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
-            DIALOG_FAVORITE_NUISANCE -> {
-                when (which) {
-                    DialogInterface.BUTTON_POSITIVE -> {
-                        createFavorite(withQuotes = extras?.getBoolean("withQuotes") ?: false, skipCheck = true)
-                    }
-                    DialogInterface.BUTTON_NEUTRAL -> {
-                        val intent = Intent(activity, MainActivity::class.java)
-                        val query = String.format("\"%s\" -RT", status.originStatus.text)
-                        intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, query)
-                        startActivity(intent)
-                    }
-                }
-            }
             DIALOG_FAVORITE_CONFIRM -> {
                 if (which == DialogInterface.BUTTON_POSITIVE) {
                     createFavorite(withQuotes = extras?.getBoolean("withQuotes") ?: false, skipCheck = true)
@@ -507,19 +493,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
         val userRecord = userRecord ?: return
 
         if (!skipCheck) {
-            if (defaultSharedPreferences.getBoolean("pref_guard_nuisance", true) && NUISANCES.contains(status.source)) {
-                val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAVORITE_NUISANCE)
-                        .setTitle("確認")
-                        .setMessage("このツイートは${status.originStatus}を使用して投稿されています。お気に入り登録してもよろしいですか？")
-                        .setPositive("ふぁぼる")
-                        .setNeutral("本文で検索")
-                        .setNegative("キャンセル")
-                        .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
-                        .build()
-                dialog.setTargetFragment(this, DIALOG_FAVORITE_NUISANCE)
-                dialog.show(fragmentManager, "dialog_favorite_nuisance")
-                return
-            } else if (defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
+            if (defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
                 val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAVORITE_CONFIRM)
                         .setTitle("確認")
                         .setMessage("お気に入り登録しますか？")
@@ -624,13 +598,6 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
 
     companion object {
         private const val BUTTON_SHOW_DURATION = 260
-        private val NUISANCES = arrayOf(
-                "ShootingStar",
-                "TheWorld",
-                "Biyon",
-                "MoonStrike",
-                "NightFox"
-        )
 
         private const val REQUEST_CHANGE_ACCOUNT = 0
         private const val REQUEST_REPLY = 1
@@ -641,7 +608,6 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
         private const val REQUEST_MULTI_REPOST = 6
         private const val REQUEST_MULTI_FAVRT = 7
 
-        private const val DIALOG_FAVORITE_NUISANCE = 0
         private const val DIALOG_FAVORITE_CONFIRM = 1
         private const val DIALOG_REPOST_CONFIRM = 2
         private const val DIALOG_FAV_AND_REPOST_CONFIRM = 3
