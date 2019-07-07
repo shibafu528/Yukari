@@ -78,21 +78,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
     }
 
     public void addTab(int type) {
-        if (type < 0) return;
-        boolean requireBind = (type & 0x80) == 0x80;
-        type &= 0x7f;
-        if (!requireBind && (
-                   type == TabType.TABTYPE_HOME
-                || type == TabType.TABTYPE_MENTION
-                || type == TabType.TABTYPE_DM
-                || type == TabType.TABTYPE_HISTORY
-                || type == TabType.TABTYPE_FILTER)) {
-            findInnerFragment().addTab(type, null);
-        }
-        else {
-            Intent intent = new Intent(this, AccountChooserActivity.class);
-            startActivityForResult(intent, type);
-        }
+        findInnerFragment().addTab(type, null);
     }
 
     public void addTab(int type, AuthUserRecord userRecord) {
@@ -108,6 +94,11 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         if (type == TabType.TABTYPE_LIST && args.length == 2) {
             findInnerFragment().addTab(type, userRecord, args);
         }
+    }
+
+    public void chooseAccountAndAddTab(int type) {
+        Intent intent = new Intent(this, AccountChooserActivity.class);
+        startActivityForResult(intent, type);
     }
 
     @Override
@@ -410,25 +401,33 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
                     .setItems(items, (dialog, which) -> {
-                        int type = 0;
-                        if (which % 2 == 1) {
-                            type = 0x80;
-                        }
+                        boolean requireBind = false;
+                        int type;
                         switch (which) {
                             case 0:
+                                type = TabType.TABTYPE_HOME;
+                                break;
                             case 1:
-                                type |= TabType.TABTYPE_HOME;
+                                type = TabType.TABTYPE_HOME;
+                                requireBind = true;
                                 break;
                             case 2:
+                                type = TabType.TABTYPE_MENTION;
+                                break;
                             case 3:
-                                type |= TabType.TABTYPE_MENTION;
+                                type = TabType.TABTYPE_MENTION;
+                                requireBind = true;
                                 break;
                             case 4:
+                                type = TabType.TABTYPE_DM;
+                                break;
                             case 5:
-                                type |= TabType.TABTYPE_DM;
+                                type = TabType.TABTYPE_DM;
+                                requireBind = true;
                                 break;
                             case 6:
-                                type |= TabType.TABTYPE_LIST;
+                                type = TabType.TABTYPE_LIST;
+                                requireBind = true;
                                 break;
                             case 7:
                                 type = TabType.TABTYPE_HISTORY;
@@ -437,10 +436,13 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                                 type = TabType.TABTYPE_FILTER;
                                 break;
                             default:
-                                type = -1;
-                                break;
+                                throw new RuntimeException();
                         }
-                        ((TabEditActivity)getActivity()).addTab(type);
+                        if (requireBind) {
+                            ((TabEditActivity)getActivity()).chooseAccountAndAddTab(type);
+                        } else {
+                            ((TabEditActivity)getActivity()).addTab(type);
+                        }
                     });
             return builder.create();
         }
