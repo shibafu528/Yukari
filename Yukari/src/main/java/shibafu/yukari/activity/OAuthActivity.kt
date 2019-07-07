@@ -144,7 +144,7 @@ class OAuthActivity : ActionBarYukariBase() {
             override fun onPostExecute(aBoolean: Boolean) {
                 dialog?.dismiss()
                 if (aBoolean) {
-                    Toast.makeText(this@OAuthActivity, "認証成功", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@OAuthActivity, "認証成功！\nメニューの「Active Accounts」からTL自動取得の設定ができます。", Toast.LENGTH_LONG).show()
                     setResult(Activity.RESULT_OK)
                     if (intent.getBooleanExtra(EXTRA_REBOOT, false)) {
                         startActivity(Intent(this@OAuthActivity, MainActivity::class.java))
@@ -603,7 +603,7 @@ class OAuthActivity : ActionBarYukariBase() {
                         service.database.addAccount(userRecord)
                         service.reloadUsers()
 
-                        Toast.makeText(activity, "認証成功", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, "認証成功！\nメニューの「Active Accounts」からストリーミングの設定ができます。", Toast.LENGTH_LONG).show()
                         activity.setResult(Activity.RESULT_OK)
                         if (activity.intent.getBooleanExtra(EXTRA_REBOOT, false)) {
                             startActivity(Intent(activity, MainActivity::class.java))
