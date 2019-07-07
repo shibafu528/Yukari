@@ -986,6 +986,38 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 }
             }
         },
+        REPLY {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
+                val intent = Intent(activity, TweetActivity::class.java)
+                intent.putExtra(TweetActivity.EXTRA_USER, clickedElement.representUser)
+                intent.putExtra(TweetActivity.EXTRA_STATUS, clickedElement.originStatus)
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + clickedElement.originStatus.user.screenName + " ")
+                startActivity(intent)
+                true
+            }
+        },
+        REPLY_ALL {
+            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
+                val userRecord = clickedElement.representUser
+
+                val intent = Intent(activity, TweetActivity::class.java)
+                intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
+                intent.putExtra(TweetActivity.EXTRA_STATUS, clickedElement.originStatus)
+                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
+                intent.putExtra(TweetActivity.EXTRA_TEXT, buildString {
+                    append("@").append(clickedElement.originStatus.user.screenName).append(" ")
+                    clickedElement.mentions.forEach { mention ->
+                        if (!this.toString().contains("@" + mention.screenName) && mention.screenName != userRecord.ScreenName) {
+                            append("@").append(mention.screenName).append(" ")
+                        }
+                    }
+                })
+
+                startActivity(intent)
+                true
+            }
+        },
         FAVORITE {
             override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
                 // 自分のステータスの場合、ナルシストオプションを有効にしていない場合は中断
@@ -1037,7 +1069,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                     dialog.show(fragmentManager, "dialog_repost_confirm")
                 } else {
                     val activity = requireActivity()
-                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
+                    val intent = AsyncCommandService.createRepost(activity, clickedElement, clickedElement.representUser)
                     activity.startService(intent)
                 }
 
@@ -1074,7 +1106,7 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                     dialog.show(fragmentManager, "dialog_fav_repost_confirm")
                 } else {
                     val activity = requireActivity()
-                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
+                    val intent = AsyncCommandService.createFavAndRepost(activity, clickedElement, clickedElement.representUser)
                     activity.startService(intent)
                 }
 
@@ -1130,6 +1162,8 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 "open_detail" to TimelineItemClickAction.OPEN_DETAIL,
                 "open_profile" to TimelineItemClickAction.OPEN_PROFILE,
                 "open_thread" to TimelineItemClickAction.OPEN_THREAD,
+                "reply" to TimelineItemClickAction.REPLY,
+                "reply_all" to TimelineItemClickAction.REPLY_ALL,
                 "favorite" to TimelineItemClickAction.FAVORITE,
                 "repost" to TimelineItemClickAction.REPOST,
                 "fav_and_repost" to TimelineItemClickAction.FAV_AND_REPOST
