@@ -93,11 +93,16 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
     public void addTab(int type, AuthUserRecord userRecord, Object... args) {
         if (type == TabType.TABTYPE_LIST && args.length == 2) {
             findInnerFragment().addTab(type, userRecord, args);
+        } else if (type == TabType.TABTYPE_FILTER && args.length == 1) {
+            String template = (String) args[0];
+            template = template.replace("@@", userRecord.ScreenName);
+            findInnerFragment().addTab(type, userRecord, template);
         }
     }
 
-    public void chooseAccountAndAddTab(int type) {
+    public void chooseAccountAndAddTab(int type, String template) {
         Intent intent = new Intent(this, AccountChooserActivity.class);
+        intent.putExtra(AccountChooserActivity.EXTRA_METADATA, template);
         startActivityForResult(intent, type);
     }
 
@@ -106,7 +111,8 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-            addTab(requestCode, userRecord);
+            String template = data.getStringExtra(AccountChooserActivity.EXTRA_METADATA);
+            addTab(requestCode, userRecord, template);
         }
     }
 
@@ -261,14 +267,19 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     database.updateRecord(new TabInfo(type, tabs.size() + 1, userRecord));
                     reloadList();
                     break;
-                case TabType.TABTYPE_FILTER:
-                    database.updateRecord(new TabInfo(
+                case TabType.TABTYPE_FILTER: {
+                    TabInfo info = new TabInfo(
                             type,
                             tabs.size() + 1,
                             null,
-                            QueryCompiler.DEFAULT_QUERY));
+                            QueryCompiler.DEFAULT_QUERY);
+                    if (args.length == 1) {
+                        info.setFilterQuery((String) args[0]);
+                    }
+                    database.updateRecord(info);
                     reloadList();
                     break;
+                }
                 case TabType.TABTYPE_LIST:
                     database.updateRecord(new TabInfo(
                             type,
@@ -396,13 +407,16 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     "DM (Single Account)",
                     "List",
                     "History",
-                    "Filter"
+                    "Filter",
+                    "Mastodon ローカルTL",
+                    "Mastodon 連合TL"
             };
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity())
                     .setTitle("タブの種類を選択")
                     .setItems(items, (dialog, which) -> {
                         boolean requireBind = false;
                         int type;
+                        String template = "";
                         switch (which) {
                             case 0:
                                 type = TabType.TABTYPE_HOME;
@@ -435,11 +449,21 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                             case 8:
                                 type = TabType.TABTYPE_FILTER;
                                 break;
+                            case 9:
+                                type = TabType.TABTYPE_FILTER;
+                                requireBind = true;
+                                template = "from don_local:\"@@\"";
+                                break;
+                            case 10:
+                                type = TabType.TABTYPE_FILTER;
+                                requireBind = true;
+                                template = "from don_federated:\"@@\"";
+                                break;
                             default:
                                 throw new RuntimeException();
                         }
                         if (requireBind) {
-                            ((TabEditActivity)getActivity()).chooseAccountAndAddTab(type);
+                            ((TabEditActivity)getActivity()).chooseAccountAndAddTab(type, template);
                         } else {
                             ((TabEditActivity)getActivity()).addTab(type);
                         }
