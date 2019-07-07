@@ -146,6 +146,8 @@ private class UserStreamChannel(private val service: TwitterService, override va
 
     override fun start() {
         GlobalScope.launch {
+            Log.d(UserStreamChannel::class.java.simpleName, "${MastodonStream.USER_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
+
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.user(handler) }
@@ -172,6 +174,8 @@ private class PublicStreamChannel(private val service: TwitterService, override 
 
     override fun start() {
         GlobalScope.launch {
+            Log.d(PublicStreamChannel::class.java.simpleName, "${MastodonStream.PUBLIC_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
+
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.federatedPublic(handler) }
@@ -198,6 +202,8 @@ private class LocalStreamChannel(private val service: TwitterService, override v
 
     override fun start() {
         GlobalScope.launch {
+            Log.d(LocalStreamChannel::class.java.simpleName, "${MastodonStream.LOCAL_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
+
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect { streaming.localPublic(handler) }
@@ -227,6 +233,8 @@ private class HashTagStreamChannel(private val service: TwitterService,
 
     override fun start() {
         GlobalScope.launch {
+            Log.d(HashTagStreamChannel::class.java.simpleName, "${MastodonStream.HASHTAG_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
+
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
             shutdownable = retryUntilConnect {
@@ -332,6 +340,10 @@ private class StreamHandler(private val timelineId: String,
 
             timeToSleep = minOf(timeToSleep * 2, 60000)
         }
+    }
+
+    override fun onClose() {
+        putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected. Connection close.")
     }
 }
 
