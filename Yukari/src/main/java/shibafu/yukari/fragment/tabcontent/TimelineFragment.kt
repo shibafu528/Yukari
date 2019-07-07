@@ -66,7 +66,14 @@ import twitter4j.TwitterException
 /**
  * 時系列順に要素を並べて表示するタブの基底クラス
  */
-open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObserver, QueryableTab, AdapterView.OnItemLongClickListener, SwipeRefreshLayout.OnRefreshListener, SimpleListDialogFragment.OnDialogChoseListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+open class TimelineFragment : ListYukariBaseFragment(),
+        TimelineTab,
+        TimelineObserver,
+        QueryableTab,
+        AdapterView.OnItemLongClickListener,
+        SwipeRefreshLayout.OnRefreshListener,
+        SimpleListDialogFragment.OnDialogChoseListener,
+        SimpleAlertDialogFragment.OnDialogChoseListener {
     var title: String = ""
     var mode: Int = 0
     var rawQuery: String = FilterQuery.VOID_QUERY_STRING
@@ -986,183 +993,6 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         statusAdapter?.notifyDataSetChanged()
     }
 
-    private enum class TimelineItemClickAction {
-        OPEN_DETAIL {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
-                val intent = Intent(activity, StatusActivity::class.java)
-                intent.putExtra(StatusActivity.EXTRA_STATUS, clickedElement)
-                intent.putExtra(StatusActivity.EXTRA_USER, clickedElement.representUser)
-                startActivity(intent)
-                true
-            }
-        },
-        OPEN_PROFILE {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
-                val intent = ProfileActivity.newIntent(requireContext(),
-                        clickedElement.representUser,
-                        Uri.parse(clickedElement.originStatus.user.url))
-                startActivity(intent)
-                true
-            }
-        },
-        OPEN_THREAD {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
-                if (clickedElement.originStatus.inReplyToId > -1) {
-                    val intent = Intent(activity, TraceActivity::class.java)
-                    intent.putExtra(TweetListFragment.EXTRA_USER, clickedElement.representUser)
-                    intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace")
-                    intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
-                    startActivity(intent)
-                    true
-                } else {
-                    false
-                }
-            }
-        },
-        REPLY {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
-                val intent = Intent(activity, TweetActivity::class.java)
-                intent.putExtra(TweetActivity.EXTRA_USER, clickedElement.representUser)
-                intent.putExtra(TweetActivity.EXTRA_STATUS, clickedElement.originStatus)
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-                intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + clickedElement.originStatus.user.screenName + " ")
-                startActivity(intent)
-                true
-            }
-        },
-        REPLY_ALL {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
-                val userRecord = clickedElement.representUser
-
-                val intent = Intent(activity, TweetActivity::class.java)
-                intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
-                intent.putExtra(TweetActivity.EXTRA_STATUS, clickedElement.originStatus)
-                intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-                intent.putExtra(TweetActivity.EXTRA_TEXT, buildString {
-                    append("@").append(clickedElement.originStatus.user.screenName).append(" ")
-                    clickedElement.mentions.forEach { mention ->
-                        if (!this.toString().contains("@" + mention.screenName) && mention.screenName != userRecord.ScreenName) {
-                            append("@").append(mention.screenName).append(" ")
-                        }
-                    }
-                })
-
-                startActivity(intent)
-                true
-            }
-        },
-        FAVORITE {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
-                // 自分のステータスの場合、ナルシストオプションを有効にしていない場合は中断
-                if (clickedElement.isOwnedStatus() && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
-                    return@proc false
-                }
-
-                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_fav", false)) {
-                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_FAVORITE)
-                            .setTitle("確認")
-                            .setMessage("お気に入り登録しますか？")
-                            .setPositive("OK")
-                            .setNegative("キャンセル")
-                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
-                            .build()
-                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_FAVORITE)
-                    dialog.show(fragmentManager, "dialog_favorite_confirm")
-                } else {
-                    val activity = requireActivity()
-                    val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
-                    activity.startService(intent)
-                }
-
-                false
-            }
-
-            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
-                if (requestCode == DIALOG_REQUEST_ACTION_FAVORITE && which == DialogInterface.BUTTON_POSITIVE) {
-                    val status = extras?.getSerializable("status") as? Status
-                    if (status != null) {
-                        val activity = requireActivity()
-                        val intent = AsyncCommandService.createFavorite(activity, status, status.representUser)
-                        activity.startService(intent)
-                    }
-                }
-            }
-        },
-        REPOST {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
-                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_rt", false)) {
-                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_REPOST)
-                            .setTitle("確認")
-                            .setMessage("リツイートしますか？")
-                            .setPositive("OK")
-                            .setNegative("キャンセル")
-                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
-                            .build()
-                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_REPOST)
-                    dialog.show(fragmentManager, "dialog_repost_confirm")
-                } else {
-                    val activity = requireActivity()
-                    val intent = AsyncCommandService.createRepost(activity, clickedElement, clickedElement.representUser)
-                    activity.startService(intent)
-                }
-
-                false
-            }
-
-            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
-                if (requestCode == DIALOG_REQUEST_ACTION_REPOST && which == DialogInterface.BUTTON_POSITIVE) {
-                    val status = extras?.getSerializable("status") as? Status
-                    if (status != null) {
-                        val activity = requireActivity()
-                        val intent = AsyncCommandService.createRepost(activity, status, status.representUser)
-                        activity.startService(intent)
-                    }
-                }
-            }
-        },
-        FAV_AND_REPOST {
-            override fun onItemClick(): TimelineFragment.(Status) -> Boolean = proc@{ clickedElement ->
-                // 自分のステータスの場合、ナルシストオプションを有効にしていない場合は中断
-                if (clickedElement.isOwnedStatus() && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
-                    return@proc false
-                }
-
-                if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_favrt", false)) {
-                    val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
-                            .setTitle("確認")
-                            .setMessage("お気に入りに登録してRTしますか？")
-                            .setPositive("OK")
-                            .setNegative("キャンセル")
-                            .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
-                            .build()
-                    dialog.setTargetFragment(this, DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
-                    dialog.show(fragmentManager, "dialog_fav_repost_confirm")
-                } else {
-                    val activity = requireActivity()
-                    val intent = AsyncCommandService.createFavAndRepost(activity, clickedElement, clickedElement.representUser)
-                    activity.startService(intent)
-                }
-
-                false
-            }
-
-            override fun onDialogChose(): TimelineFragment.(Int, Int, Bundle?) -> Unit = { requestCode, which, extras ->
-                if (requestCode == DIALOG_REQUEST_ACTION_FAV_AND_REPOST && which == DialogInterface.BUTTON_POSITIVE) {
-                    val status = extras?.getSerializable("status") as? Status
-                    if (status != null) {
-                        val activity = requireActivity()
-                        val intent = AsyncCommandService.createFavAndRepost(activity, status, status.representUser)
-                        activity.startService(intent)
-                    }
-                }
-            }
-        }
-        ;
-
-        abstract fun onItemClick() : TimelineFragment.(Status) -> Boolean
-        open fun onDialogChose() : TimelineFragment.(Int, Int, Bundle?) -> Unit = { _, _, _ -> }
-    }
-
     companion object {
         const val EXTRA_FILTER_QUERY = "filterQuery"
 
@@ -1185,11 +1015,11 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_DELETE = 3
 
         /** ダイアログID : Action Favorite 確認 */
-        private const val DIALOG_REQUEST_ACTION_FAVORITE = 10
+        internal const val DIALOG_REQUEST_ACTION_FAVORITE = 10
         /** ダイアログID : Action Repost 確認 */
-        private const val DIALOG_REQUEST_ACTION_REPOST = 11
+        internal const val DIALOG_REQUEST_ACTION_REPOST = 11
         /** ダイアログID : Action Fav&Repost 確認 */
-        private const val DIALOG_REQUEST_ACTION_FAV_AND_REPOST = 12
+        internal const val DIALOG_REQUEST_ACTION_FAV_AND_REPOST = 12
 
         private val ITEM_CLICK_ACTIONS = mapOf(
                 "open_detail" to TimelineItemClickAction.OPEN_DETAIL,
@@ -1201,88 +1031,5 @@ open class TimelineFragment : ListYukariBaseFragment(), TimelineTab, TimelineObs
                 "repost" to TimelineItemClickAction.REPOST,
                 "fav_and_repost" to TimelineItemClickAction.FAV_AND_REPOST
         )
-    }
-}
-
-/**
- * 未読ビューの振る舞い制御
- */
-private class UnreadNotifierBehavior(private val parent: TimelineFragment,
-                                     private val statuses: MutableList<Status>,
-                                     private val unreadSet: LongHashSet) : AbsListView.OnScrollListener {
-    private var lastShowedFirstItemId: Long = -1
-    private var lastShowedFirstItemY = 0
-    private var unreadNotifierView: View? = null
-    private var tvUnreadCount: TextView? = null
-
-    fun onCreateView(parentView: View) {
-        unreadNotifierView = parentView.findViewById(R.id.unreadNotifier)
-        tvUnreadCount = unreadNotifierView?.findViewById(R.id.textView) as TextView
-    }
-
-    fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        val unreadNotifier = unreadNotifierView
-        if (unreadNotifier != null) {
-            if (PreferenceManager.getDefaultSharedPreferences(parent.activity).getString("pref_theme", "light").endsWith("dark")) {
-                unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_dark)
-            } else {
-                unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_light)
-            }
-
-            unreadNotifier.setOnClickListener { _ -> parent.scrollToOldestUnread() }
-        }
-    }
-
-    fun onStart() {
-        if (lastShowedFirstItemId > -1) {
-            for (position in 0 until statuses.size) {
-                if (statuses[position].id == lastShowedFirstItemId) {
-                    parent.listView.setSelectionFromTop(position, lastShowedFirstItemY)
-                    break
-                }
-            }
-            updateUnreadNotifier()
-        }
-    }
-
-    fun onStop() {
-        lastShowedFirstItemId = parent.listView.getItemIdAtPosition(parent.listView.firstVisiblePosition)
-        lastShowedFirstItemY = parent.listView.getChildAt(0)?.top ?: 0
-    }
-
-    fun onDetach() {
-        unreadNotifierView = null
-        tvUnreadCount = null
-    }
-
-    fun updateUnreadNotifier() {
-        val unreadNotifier = unreadNotifierView ?: return
-
-        if (unreadSet.size() < 1) {
-            unreadNotifier.visibility = View.INVISIBLE
-            return
-        }
-        tvUnreadCount?.text = "新着 ${unreadSet.size()}件"
-
-        unreadNotifier.visibility = View.VISIBLE
-    }
-
-    fun clearUnreadNotifier() {
-        unreadSet.clear()
-        updateUnreadNotifier()
-    }
-
-    override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {}
-
-    override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-        var i = firstVisibleItem
-        while (i < i + visibleItemCount && i < statuses.size) {
-            val element = statuses[firstVisibleItem]
-            if (unreadSet.contains(element.id)) {
-                unreadSet.remove(element.id)
-            }
-            ++i
-        }
-        updateUnreadNotifier()
     }
 }
