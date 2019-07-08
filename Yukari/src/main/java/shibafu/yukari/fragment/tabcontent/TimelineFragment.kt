@@ -352,7 +352,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 blockingDoubleClick = true
             }
 
-            return result
+            return true
         }
 
         return false
