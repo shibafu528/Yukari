@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -80,6 +81,8 @@ public class YukariApplication extends Application {
             createAllAccountNotificationChannels(nm);
         }
 
+        migratePreference();
+
         if (LeakCanary.isInAnalyzerProcess(this)) {
             return;
         }
@@ -141,5 +144,33 @@ public class YukariApplication extends Application {
         channels.add(repostRespondChannel);
 
         nm.createNotificationChannels(channels);
+    }
+
+    /**
+     * マイグレーションの必要な設定を検出し、修正します。
+     */
+    private void migratePreference() {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // ver 3.0.0
+        {
+            SharedPreferences.Editor edit = sp.edit();
+
+            // 文字サイズの設定
+            if (sp.contains("pref_font_timeline") && !sp.getBoolean("pref_font_timeline__migrate_3_0_0", false)) {
+                int size = (int) (Integer.valueOf(sp.getString("pref_font_timeline", "14")) * 0.8);
+                edit.putString("pref_font_timeline", String.valueOf(size));
+            }
+            edit.putBoolean("pref_font_timeline__migrate_3_0_0", true);
+
+            // 入力文字サイズの設定
+            if (sp.contains("pref_font_input") && !sp.getBoolean("pref_font_input__migrate_3_0_0", false)) {
+                int size = (int) (Integer.valueOf(sp.getString("pref_font_input", "18")) * 0.8);
+                edit.putString("pref_font_input", String.valueOf(size));
+            }
+            edit.putBoolean("pref_font_input__migrate_3_0_0", true);
+
+            edit.apply();
+        }
     }
 }
