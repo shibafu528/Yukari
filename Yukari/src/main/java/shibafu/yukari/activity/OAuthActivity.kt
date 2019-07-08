@@ -5,7 +5,6 @@ import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.ComponentName
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
@@ -27,9 +26,6 @@ import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Accounts
 import com.sys1yagi.mastodon4j.api.method.Apps
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.OnPermissionDenied
-import permissions.dispatcher.RuntimePermissions
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
@@ -37,7 +33,6 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
-import shibafu.yukari.util.showToast
 import twitter4j.TwitterException
 import twitter4j.auth.AccessToken
 import twitter4j.auth.RequestToken
@@ -179,11 +174,6 @@ class OAuthActivity : ActionBarYukariBase() {
             adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1)
 
             adapter.add(Option.TWITTER)
-
-            if (existsTwitterApp()) {
-                adapter.add(Option.TWITTER_APP)
-            }
-
             adapter.add(Option.MASTODON)
 
             listAdapter = adapter
@@ -199,12 +189,6 @@ class OAuthActivity : ActionBarYukariBase() {
                             .addToBackStack(null)
                             .commit()
                 }
-                Option.TWITTER_APP -> {
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, TwitterAppAuthFragment())
-                            .addToBackStack(null)
-                            .commit()
-                }
                 Option.MASTODON -> {
                     activity.supportFragmentManager.beginTransaction()
                             .replace(R.id.frame, MastodonOAuthFragment())
@@ -214,18 +198,8 @@ class OAuthActivity : ActionBarYukariBase() {
             }
         }
 
-        private fun existsTwitterApp(): Boolean {
-            try {
-                requireActivity().packageManager.getActivityInfo(TWITTER_AUTH_ACTIVITY, PackageManager.GET_META_DATA)
-                return true
-            } catch (ignored: PackageManager.NameNotFoundException) {}
-
-            return false
-        }
-
         private enum class Option(val label: String) {
             TWITTER("Twitter"),
-            TWITTER_APP("Twitter (公式アプリを起動)"),
             MASTODON("Mastodon");
 
             override fun toString(): String = label
@@ -322,74 +296,6 @@ class OAuthActivity : ActionBarYukariBase() {
                     task.execute()
                 }
             }
-        }
-    }
-
-    @RuntimePermissions
-    class TwitterAppAuthFragment : Fragment() {
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater.inflate(R.layout.activity_parent, container, false)
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-
-            if (savedInstanceState == null) {
-                executeTwitterAuthActivityWithPermissionCheck()
-            }
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-
-            if (requestCode == REQUEST_TWITTER) {
-                if (resultCode == RESULT_OK && data != null) {
-                    val extras = data.extras
-                    val accessToken = AccessToken(
-                            extras.getString("tk"),
-                            extras.getString("ts"),
-                            extras.getLong("user_id"))
-                    val activity = activity as OAuthActivity
-
-                    try {
-                        activity.saveAccessToken(accessToken)
-                    } catch (e: IllegalArgumentException) {
-                        Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                        activity.supportFragmentManager.popBackStack()
-                    }
-                } else {
-                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    requireActivity().supportFragmentManager.popBackStack()
-                }
-            }
-        }
-
-        override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-            onRequestPermissionsResult(requestCode, grantResults)
-        }
-
-        @NeedsPermission("com.twitter.android.permission.AUTH_APP")
-        fun executeTwitterAuthActivity() {
-            val intent = Intent().setComponent(TWITTER_AUTH_ACTIVITY)
-            intent.putExtra("ck", getString(R.string.twitter_consumer_key))
-            intent.putExtra("cs", getString(R.string.twitter_consumer_secret))
-            try {
-                startActivityForResult(intent, REQUEST_TWITTER)
-            } catch (e: SecurityException) {
-                e.printStackTrace()
-                Toast.makeText(requireActivity().applicationContext, "実行権限が不足しています。ブラウザでの認証に切り替えます。", Toast.LENGTH_LONG).show()
-
-                requireActivity().supportFragmentManager.beginTransaction()
-                        .replace(R.id.frame, TwitterOAuthFragment())
-                        .commit()
-            }
-        }
-
-        @OnPermissionDenied("com.twitter.android.permission.AUTH_APP")
-        fun onDeniedTwitterAuth() {
-            showToast("公式アプリから認証するには権限の許可が必要です。")
-            requireActivity().supportFragmentManager.popBackStack()
         }
     }
 
