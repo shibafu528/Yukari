@@ -69,6 +69,9 @@ public class FontSelectorActivity extends AppCompatActivity {
 
             fonts.add(new Pair<>(FontAsset.BUNDLE_FONT_ID, FontAsset.getBundleFont(getContext().getAssets())));
             fonts.add(new Pair<>(FontAsset.SYSTEM_FONT_ID, Typeface.DEFAULT));
+            if (FontAsset.SYSTEM_FONT_ID.equals(currentFile)) {
+                selectedIndex = 1;
+            }
 
             File fontDir = new File(getActivity().getExternalFilesDir(null), "font");
             if (!fontDir.exists()) {
