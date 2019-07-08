@@ -158,14 +158,14 @@ public class YukariApplication extends Application {
 
             // 文字サイズの設定
             if (sp.contains("pref_font_timeline") && !sp.getBoolean("pref_font_timeline__migrate_3_0_0", false)) {
-                int size = (int) (Integer.valueOf(sp.getString("pref_font_timeline", "14")) * 0.8);
+                int size = (int) (Integer.parseInt(sp.getString("pref_font_timeline", "14")) * 0.8);
                 edit.putString("pref_font_timeline", String.valueOf(size));
             }
             edit.putBoolean("pref_font_timeline__migrate_3_0_0", true);
 
             // 入力文字サイズの設定
             if (sp.contains("pref_font_input") && !sp.getBoolean("pref_font_input__migrate_3_0_0", false)) {
-                int size = (int) (Integer.valueOf(sp.getString("pref_font_input", "18")) * 0.8);
+                int size = (int) (Integer.parseInt(sp.getString("pref_font_input", "18")) * 0.8);
                 edit.putString("pref_font_input", String.valueOf(size));
             }
             edit.putBoolean("pref_font_input__migrate_3_0_0", true);
