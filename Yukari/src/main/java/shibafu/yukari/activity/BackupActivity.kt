@@ -220,6 +220,11 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                                         11 -> {
                                             val records: Map<String, Any?> = Gson().fromJson(readFile("prefs.json"), object : TypeToken<Map<String, Any?>>() {}.type)
                                             val spEdit = PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+
+                                            // マイグレーションフラグを削除する (インポートしたデータがそれらのマイグレーションを実施済であれば、それも入っているはずなので)
+                                            spEdit.remove("pref_font_timeline__migrate_3_0_0")
+                                            spEdit.remove("pref_font_input__migrate_3_0_0")
+
                                             records.forEach {
                                                 var value = it.value
                                                 if (value is Double) {
