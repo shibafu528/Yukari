@@ -483,6 +483,8 @@ open class TimelineFragment : ListYukariBaseFragment(),
             }
             if (loadingTaskKeys.isEmpty()) {
                 swipeRefreshLayout?.isRefreshing = false
+            } else {
+                swipeRefreshLayout?.isRefreshing = true
             }
         }
     }
