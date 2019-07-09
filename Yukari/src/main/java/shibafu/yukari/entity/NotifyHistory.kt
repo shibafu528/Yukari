@@ -24,6 +24,11 @@ class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User
         set(value) {
             status.representUser = value
         }
+    override var representOverrode: Boolean
+        get() = status.representOverrode
+        set(value) {
+            status.representOverrode = value
+        }
     override var receivedUsers: MutableList<AuthUserRecord>
         get() = status.receivedUsers
         set(value) {

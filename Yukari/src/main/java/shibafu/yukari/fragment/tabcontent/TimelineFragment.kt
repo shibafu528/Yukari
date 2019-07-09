@@ -756,6 +756,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
             if (userExtras != null && userExtras.priorityAccount != null) {
                 status.representUser = userExtras.priorityAccount
+                status.representOverrode = true
                 if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
                     status.receivedUsers.add(userExtras.priorityAccount)
                 }

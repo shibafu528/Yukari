@@ -28,6 +28,7 @@ class ExceptionStatus(override val id: Long,
     override val metadata: StatusPreforms = StatusPreforms()
     override val providerApiType: Int = Provider.API_SYSTEM
     override val providerHost: String = HOST
+    override var representOverrode: Boolean = false
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     companion object {

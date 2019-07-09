@@ -120,6 +120,11 @@ interface Status : Comparable<Status>, Serializable {
     var representUser: AuthUserRecord
 
     /**
+     * 代表受信アカウントが高優先度なアカウントでロックされているかどうか
+     */
+    var representOverrode: Boolean
+
+    /**
      * 同一のステータスを受信した全てのアカウント
      */
     var receivedUsers: MutableList<AuthUserRecord>
@@ -137,6 +142,7 @@ interface Status : Comparable<Status>, Serializable {
         userRecords.forEach { userRecord ->
             if (providerApiType == userRecord.Provider.apiType && user.url == userRecord.Url) {
                 representUser = userRecord
+                representOverrode = true
                 if (!receivedUsers.contains(userRecord)) {
                     receivedUsers.add(userRecord)
                 }

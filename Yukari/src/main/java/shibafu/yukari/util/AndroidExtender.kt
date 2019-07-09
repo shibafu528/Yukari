@@ -2,6 +2,7 @@ package shibafu.yukari.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Parcel
 import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
 import android.support.v4.util.SparseArrayCompat
@@ -118,4 +119,16 @@ public fun <T, R> SparseArrayCompat<T>.map(operation: (Int, T) -> R): List<R> {
 
 public operator fun <T> SparseArrayCompat<T>.set(key: Int, value: T) {
     this.put(key, value)
+}
+
+fun Parcel.writeBoolean(value: Boolean) {
+    if (value) {
+        this.writeByte(1)
+    } else {
+        this.writeByte(0)
+    }
+}
+
+fun Parcel.readBoolean(): Boolean {
+    return this.readByte() == 1.toByte()
 }
