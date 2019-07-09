@@ -204,6 +204,38 @@ interface Status : Comparable<Status>, Serializable {
         status.receivedUsers = receivedUsers
         status.metadata.favoritedUsers = metadata.favoritedUsers
 
+        // 代表アカウントの再決定
+        /*
+         * 代表アカウントは次の優先順位で決定する。
+         *
+         * 1. Statusの所有者 (originStatus.user本人)
+         * 2. 優先設定されたアカウント
+         * 3. Mentionsで指名されたアカウント (Mentions内に所有するアカウントが複数ある場合、Mentions内でindexが一番若いアカウント)
+         * 4. プライマリアカウント
+         * 5. その他のアカウント
+         *
+         * このうち、1〜2については「高優先度判定」としてここでは取り扱わない。
+         * (外部で決定し、その際にrepresentOverrodeフラグを設定することでマージ時の代表再決定をスキップする)
+         *
+         * 3〜5については、マージ対象となる2つのStatus双方のreceivedUsersを先にマージし、そこに含まれるアカウント間で決定する。
+         */
+        if (!representOverrode && status.representOverrode) {
+            representOverrode = true
+            representUser = status.representUser
+        } else if (representOverrode && !status.representOverrode) {
+            status.representOverrode = true
+            status.representUser = representUser
+        } else if (!representOverrode && !status.representOverrode) {
+            // TODO: メンション判定の手法
+
+            // 受信アカウントの中にプライマリアカウントがいれば、そのアカウントで上書き
+            val primary = receivedUsers.firstOrNull { it.isPrimary }
+            if (primary != null) {
+                representUser = primary
+                status.representUser = primary
+            }
+        }
+
         return this
     }
 
