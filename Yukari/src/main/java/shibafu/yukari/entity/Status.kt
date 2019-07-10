@@ -230,13 +230,18 @@ interface Status : Comparable<Status>, Serializable {
             status.representOverrode = true
             status.representUser = representUser
         } else if (!representOverrode && !status.representOverrode) {
-            // TODO: メンション判定の手法
-
-            // 受信アカウントの中にプライマリアカウントがいれば、そのアカウントで上書き
-            val primary = receivedUsers.firstOrNull { it.isPrimary }
-            if (primary != null) {
-                representUser = primary
-                status.representUser = primary
+            // メンションを受けているアカウントがあれば、そのアカウントで上書き
+            val mentioned = mentions.mapNotNull { mention -> receivedUsers.firstOrNull(mention::isMentionedTo) }.firstOrNull()
+            if (mentioned != null) {
+                representUser = mentioned
+                status.representUser = mentioned
+            } else {
+                // 受信アカウントの中にプライマリアカウントがいれば、そのアカウントで上書き
+                val primary = receivedUsers.firstOrNull { it.isPrimary }
+                if (primary != null) {
+                    representUser = primary
+                    status.representUser = primary
+                }
             }
         }
 
