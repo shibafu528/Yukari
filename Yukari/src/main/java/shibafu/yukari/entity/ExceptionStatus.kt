@@ -17,6 +17,7 @@ class ExceptionStatus(override val id: Long,
         override val isProtected: Boolean = false
         override val profileImageUrl: String = ""
         override val biggerProfileImageUrl: String = ""
+        override fun isMentionedTo(userRecord: AuthUserRecord): Boolean = false
     }
 
     override val text: String = exception.message ?: "例外が発生しました"

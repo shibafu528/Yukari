@@ -1,6 +1,8 @@
 package shibafu.yukari.twitter.entity
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.User
+import shibafu.yukari.twitter.AuthUserRecord
 
 class TwitterUser(val user: twitter4j.User) : User {
     override val id: Long
@@ -29,4 +31,12 @@ class TwitterUser(val user: twitter4j.User) : User {
 
     override val biggerProfileImageUrl: String
         get() = user.biggerProfileImageURLHttps
+
+    override fun isMentionedTo(userRecord: AuthUserRecord): Boolean {
+        if (userRecord.Provider.apiType != Provider.API_TWITTER) {
+            return false
+        }
+
+        return userRecord.ScreenName == screenName
+    }
 }

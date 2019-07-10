@@ -15,6 +15,7 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
         override val isProtected: Boolean = false
         override val profileImageUrl: String = ""
         override val biggerProfileImageUrl: String = ""
+        override fun isMentionedTo(userRecord: AuthUserRecord): Boolean = false
     }
 
     override val text: String = ""
