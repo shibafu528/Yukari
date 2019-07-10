@@ -122,6 +122,10 @@ class DonStatus(val status: Status,
     }
 
     override fun merge(status: IStatus): IStatus {
+        if (this === status) {
+            return this
+        }
+
         super.merge(status)
 
         // ローカルトゥートを優先
