@@ -32,6 +32,7 @@ class LoadMarker(override val id: Long,
         override val isProtected: Boolean = false
         override val profileImageUrl: String = ""
         override val biggerProfileImageUrl: String = ""
+        override fun isMentionedTo(userRecord: AuthUserRecord): Boolean = false
     }
 
     override val text: String
@@ -42,6 +43,7 @@ class LoadMarker(override val id: Long,
     override var favoritesCount: Int = 0
     override var repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
+    override var representOverrode: Boolean = false
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
     override val providerHost: String = HOST
 

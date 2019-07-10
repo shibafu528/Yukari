@@ -5,8 +5,10 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Account
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.User
 import shibafu.yukari.mastodon.MastodonUtil
+import shibafu.yukari.twitter.AuthUserRecord
 
 class DonUser(val account: Account?) : User, Parcelable {
     override val id: Long = account?.id ?: 0
@@ -17,6 +19,14 @@ class DonUser(val account: Account?) : User, Parcelable {
     override val isProtected: Boolean = account?.isLocked ?: false
     override val profileImageUrl: String = account?.avatar ?: ""
     override val biggerProfileImageUrl: String = account?.avatar ?: ""
+
+    override fun isMentionedTo(userRecord: AuthUserRecord): Boolean {
+        if (userRecord.Provider.apiType != Provider.API_MASTODON) {
+            return false
+        }
+
+        return userRecord.ScreenName == screenName
+    }
 
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0

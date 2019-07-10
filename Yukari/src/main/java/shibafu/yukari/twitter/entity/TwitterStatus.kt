@@ -66,6 +66,8 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val providerHost: String = Provider.TWITTER.host
 
+    override var representOverrode: Boolean = false
+
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     val quoteEntities: LongList

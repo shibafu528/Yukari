@@ -675,7 +675,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
                         "timelineId" to event.timelineId
                 )
 
-                if (statuses.contains(status)) return
                 if (status !is LoadMarker && !query.evaluate(status, users, queryVariables)) return
 
                 if (event.muted) {
@@ -756,6 +755,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
             if (userExtras != null && userExtras.priorityAccount != null) {
                 status.representUser = userExtras.priorityAccount
+                status.representOverrode = true
                 if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
                     status.receivedUsers.add(userExtras.priorityAccount)
                 }

@@ -15,6 +15,7 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
         override val isProtected: Boolean = false
         override val profileImageUrl: String = ""
         override val biggerProfileImageUrl: String = ""
+        override fun isMentionedTo(userRecord: AuthUserRecord): Boolean = false
     }
 
     override val text: String = ""
@@ -26,6 +27,7 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
     override val metadata: StatusPreforms = StatusPreforms()
     override val providerApiType: Int = Provider.API_SYSTEM
     override val providerHost: String = HOST
+    override var representOverrode: Boolean = false
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
     companion object {

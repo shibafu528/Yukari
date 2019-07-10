@@ -1,5 +1,6 @@
 package shibafu.yukari.entity
 
+import shibafu.yukari.twitter.AuthUserRecord
 import java.io.Serializable
 
 /**
@@ -29,4 +30,9 @@ interface Mention : Serializable {
      */
     val profileImageUrl: String
         get() = ""
+
+    /**
+     * 引数で指定されたアカウントに対するメンションかどうかを判定する。
+     */
+    fun isMentionedTo(userRecord: AuthUserRecord): Boolean
 }

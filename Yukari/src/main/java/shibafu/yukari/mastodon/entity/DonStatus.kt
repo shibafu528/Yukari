@@ -22,6 +22,8 @@ import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.media2.impl.DonVideo
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.MorseCodec
+import shibafu.yukari.util.readBoolean
+import shibafu.yukari.util.writeBoolean
 import java.io.StringReader
 import java.util.*
 import kotlin.collections.LinkedHashSet
@@ -69,6 +71,8 @@ class DonStatus(val status: Status,
     override val providerApiType: Int = Provider.API_MASTODON
 
     override val providerHost: String = representUser.Provider.host
+
+    override var representOverrode: Boolean = false
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
 
@@ -118,6 +122,10 @@ class DonStatus(val status: Status,
     }
 
     override fun merge(status: IStatus): IStatus {
+        if (this === status) {
+            return this
+        }
+
         super.merge(status)
 
         // ローカルトゥートを優先
@@ -226,6 +234,7 @@ class DonStatus(val status: Status,
             it.writeParcelable(metadata, 0)
             it.writeInt(favoritesCount)
             it.writeInt(repostsCount)
+            it.writeBoolean(representOverrode)
             it.writeList(receivedUsers)
 
             it.writeInt(perProviderId.size())
@@ -246,6 +255,7 @@ class DonStatus(val status: Status,
                 val donStatus = DonStatus(status, representUser, metadata)
                 donStatus.favoritesCount = source.readInt()
                 donStatus.repostsCount = source.readInt()
+                donStatus.representOverrode = source.readBoolean()
                 donStatus.receivedUsers = source.readArrayList(this.javaClass.classLoader) as MutableList<AuthUserRecord>
 
                 val perProviderIdSize = source.readInt()

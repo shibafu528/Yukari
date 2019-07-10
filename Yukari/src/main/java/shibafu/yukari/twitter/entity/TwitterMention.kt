@@ -1,6 +1,8 @@
 package shibafu.yukari.twitter.entity
 
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
+import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.UserMentionEntity
 
@@ -19,5 +21,13 @@ class TwitterMention : Mention {
         this.id = id
         this.url = TwitterUtil.getProfileUrl(screenName)
         this.screenName = screenName
+    }
+
+    override fun isMentionedTo(userRecord: AuthUserRecord): Boolean {
+        if (userRecord.Provider.apiType != Provider.API_TWITTER) {
+            return false
+        }
+
+        return userRecord.ScreenName == screenName
     }
 }
