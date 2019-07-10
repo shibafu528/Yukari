@@ -675,7 +675,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
                         "timelineId" to event.timelineId
                 )
 
-                if (statuses.contains(status)) return
                 if (status !is LoadMarker && !query.evaluate(status, users, queryVariables)) return
 
                 if (event.muted) {
