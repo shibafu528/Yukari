@@ -141,7 +141,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
      */
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
         userRecords.forEach { userRecord ->
-            if (providerApiType == userRecord.Provider.apiType && user.url == userRecord.Url) {
+            if (providerApiType == userRecord.Provider.apiType && originStatus.user.url == userRecord.Url) {
                 representUser = userRecord
                 representOverrode = true
                 if (!receivedUsers.contains(userRecord)) {
