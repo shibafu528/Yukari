@@ -70,7 +70,8 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            statuses.postFavourite(status.id).execute()
+            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            statuses.postFavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
@@ -88,7 +89,8 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            statuses.postUnfavourite(status.id).execute()
+            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            statuses.postUnfavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
@@ -156,7 +158,8 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            statuses.postReblog(status.id).execute()
+            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            statuses.postReblog(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
@@ -174,7 +177,8 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            statuses.deleteStatus(status.id)
+            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            statuses.deleteStatus(localId)
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "トゥートを削除しました", Toast.LENGTH_SHORT).show()
             }
@@ -210,5 +214,30 @@ class MastodonApi : ProviderApi {
                         RequestBody.create(MediaType.parse("image/png"), file)
                 )
         ).execute()
+    }
+
+    /**
+     * 可能な範囲で [status] のインスタンスローカルなIDを取得します。
+     * @param userRecord 操作アカウント
+     * @param status IDを取得したい [Status]
+     * @return インスタンスローカルID、取得に失敗した場合は -1
+     * @throws Mastodon4jRequestException サーバへのリクエストを試行し、失敗した場合にスロー
+     */
+    @Throws(Mastodon4jRequestException::class)
+    private fun resolveLocalId(userRecord: AuthUserRecord, status: DonStatus): Long? {
+        if (status.providerHost == userRecord.Provider.host) {
+            return status.id
+        }
+
+        val perProviderId = status.perProviderId.getIfAbsent(userRecord.Provider.host, -1L)
+        if (perProviderId != -1L) {
+            return perProviderId
+        }
+
+        val client = getApiClient(userRecord) as? MastodonClient ?: return -1
+        val public = Public(client)
+        val searchResult = public.getSearch(status.url, true).execute()
+        val localStatus = searchResult.statuses.firstOrNull() ?: return -1
+        return localStatus.id
     }
 }

@@ -78,7 +78,7 @@ class DonStatus(val status: Status,
 
     val isLocal: Boolean = user.host == representUser.Provider.host
 
-    var perProviderId = ObjectLongHashMap.newWithKeysValues(representUser.Provider.host, status.id)
+    var perProviderId: ObjectLongHashMap<String> = ObjectLongHashMap.newWithKeysValues(representUser.Provider.host, status.id)
         private set
 
     override fun equals(other: Any?): Boolean {
