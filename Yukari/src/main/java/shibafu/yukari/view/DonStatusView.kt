@@ -68,7 +68,7 @@ class DonStatusView : StatusView {
     }
 
     override fun decorateTextSpan(text: String): Spannable {
-        val status = status as DonStatus
+        val status = status?.originStatus as DonStatus
         val spannable = SpannableString(text)
 
         // カスタム絵文字の出現部分を列挙
