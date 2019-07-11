@@ -15,7 +15,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-import com.deploygate.sdk.DeployGate;
 import shibafu.yukari.R;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.MastodonProfileFragment;
@@ -48,7 +47,6 @@ public class ProfileActivity extends AppCompatActivity {
             sw.write("userRecordが省略されています。Yukari 2.1以降では非推奨です。\n");
             new Throwable().printStackTrace(new PrintWriter(sw));
             Log.w(LOG_TAG, sw.toString());
-            DeployGate.logWarn(sw.toString());
         }
 
         Intent intent = new Intent(context, ProfileActivity.class);
