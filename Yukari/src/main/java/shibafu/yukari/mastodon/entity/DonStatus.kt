@@ -92,6 +92,12 @@ class DonStatus(val status: Status,
         return status.uri.hashCode()
     }
 
+    override fun clone(): IStatus {
+        val s = super.clone() as DonStatus
+        s.perProviderId = ObjectLongHashMap(perProviderId)
+        return s
+    }
+
     override fun getStatusRelation(userRecords: List<AuthUserRecord>): Int {
         userRecords.forEach { userRecord ->
             if (userRecord.Provider.apiType != providerApiType) {

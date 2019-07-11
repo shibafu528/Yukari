@@ -4,11 +4,12 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.AuthUserRecord
 import java.io.Serializable
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * タイムラインに表示できたりするやつ
  */
-interface Status : Comparable<Status>, Serializable {
+interface Status : Comparable<Status>, Serializable, Cloneable {
     /**
      * ID
      */
@@ -284,6 +285,12 @@ interface Status : Comparable<Status>, Serializable {
         }
         if (this.createdAt < other.createdAt) return -1
         return 1
+    }
+
+    public override fun clone(): Status {
+        val s = super.clone() as Status
+        s.receivedUsers = ArrayList(receivedUsers)
+        return s
     }
 
     companion object {

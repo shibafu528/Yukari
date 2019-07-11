@@ -680,12 +680,12 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 if (event.muted) {
                     if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")
 
-                    mutedStatuses += status
+                    mutedStatuses += status.clone()
                 } else {
                     if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
 
                     val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
-                    handler.post { insertElement(status, !event.passive && useScrollLock && status !is LoadMarker) }
+                    handler.post { insertElement(status.clone(), !event.passive && useScrollLock && status !is LoadMarker) }
                 }
             }
             is TimelineEvent.RestRequestCompleted -> {
