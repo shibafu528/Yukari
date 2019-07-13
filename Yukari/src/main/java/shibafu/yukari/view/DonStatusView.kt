@@ -52,6 +52,21 @@ class DonStatusView : StatusView {
         }
     }
 
+    override fun updateDecoration() {
+        super.updateDecoration()
+
+        val status = status as DonStatus
+        val originStatus = status.originStatus as DonStatus
+
+        if (mode == Mode.DEFAULT) {
+            // CW強制展開が設定されていない場合、CW内の引用は表示しない
+            val ignoreCensored = pref.getBoolean("pref_always_expand_cw", false)
+            if (!ignoreCensored && originStatus.status.spoilerText.isNotEmpty()) {
+                flInclude.visibility = View.GONE
+            }
+        }
+    }
+
     override fun decorateText(text: String): String {
         val status = status as DonStatus
         var decoratedText = text
