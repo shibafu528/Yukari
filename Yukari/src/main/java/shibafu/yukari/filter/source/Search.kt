@@ -48,7 +48,10 @@ data class Search(override val sourceAccount: AuthUserRecord, val query: String)
 
                 // Search APIはExtended Entitiesなどが欠落している時代があったため、ここでは安全をとってLookup APIで再取得する
                 val ids = result.tweets.map { it.id }.toLongArray()
-                val responseList: MutableList<Status> = api.lookup(*ids).map { TwitterStatus(it, userRecord) }.toMutableList()
+                val responseList: MutableList<Status> = api.lookup(*ids)
+                        .map { TwitterStatus(it, userRecord) }
+                        .sortedByDescending { it.id }
+                        .toMutableList()
 
                 if (params.appendLoadMarker && result.hasNext() && responseList.isNotEmpty()) {
                     val last = responseList.last()
