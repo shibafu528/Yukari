@@ -91,7 +91,10 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", message, "OK", "キャンセル")
                 dialog.setTargetFragment(this, REQUEST_DELETE)
                 dialog.show(fragmentManager, "delete")
-            } visibleWhen { status is Bookmark || status.user.id == userRecord?.NumericId }
+            } visibleWhen {
+                val status = status
+                status.user.id == userRecord?.NumericId || (status is TwitterStatus && status.status is Bookmark)
+            }
     )
 
     private val status: Status
@@ -180,8 +183,8 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                     val status = status
                     val userRecord = userRecord ?: return@executeParallel
 
-                    if (status is Bookmark) {
-                        twitterService.database.deleteRecord(status)
+                    if (status is TwitterStatus && status.status is Bookmark) {
+                        twitterService.database.deleteRecord(status.status)
                     } else {
                         twitterService.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
                     }
