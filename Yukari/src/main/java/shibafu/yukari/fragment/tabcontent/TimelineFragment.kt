@@ -146,7 +146,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         when (mode) {
-            TabType.TABTYPE_TRACE, TabType.TABTYPE_DM ->
+            TabType.TABTYPE_TRACE ->
                 return super.onCreateView(inflater, container, savedInstanceState)
         }
         val v = inflater.inflate(R.layout.fragment_swipelist, container, false)
