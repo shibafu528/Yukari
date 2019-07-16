@@ -16,6 +16,7 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.ShadowUser
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
@@ -75,6 +76,9 @@ class MastodonApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+
+            service.timelineHub?.onFavorite(ShadowUser(userRecord), status)
+
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
@@ -94,6 +98,9 @@ class MastodonApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+
+            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), status)
+
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
