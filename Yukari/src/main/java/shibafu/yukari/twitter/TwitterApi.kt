@@ -8,6 +8,7 @@ import android.widget.Toast
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.ShadowUser
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
@@ -110,10 +111,13 @@ class TwitterApi : ProviderApi {
     fun createFavorite(userRecord: AuthUserRecord, id: Long): Boolean {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
-            twitter.createFavorite(id)
+            val status = twitter.createFavorite(id)
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+
+            service.timelineHub?.onFavorite(ShadowUser(userRecord), TwitterStatus(status, userRecord))
+
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
@@ -131,6 +135,9 @@ class TwitterApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+
+            service.timelineHub?.onFavorite(ShadowUser(userRecord), status)
+
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
@@ -148,6 +155,9 @@ class TwitterApi : ProviderApi {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
+
+            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), status)
+
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
