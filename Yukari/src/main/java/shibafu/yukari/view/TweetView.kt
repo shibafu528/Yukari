@@ -50,13 +50,6 @@ class TweetView : StatusView {
             ivProtected.visibility = View.GONE
         }
 
-        // ふぁぼアイコンの表示
-        if (status.originStatus.isFavoritedSomeone()) {
-            ivFavorited.visibility = View.VISIBLE
-        } else {
-            ivFavorited.visibility = View.GONE
-        }
-
         // ユーザーカラーラベルの設定
         val color = userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.color ?: Color.TRANSPARENT
         ivUserColor.setBackgroundColor(color)

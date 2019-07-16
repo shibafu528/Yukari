@@ -243,6 +243,13 @@ abstract class StatusView : RelativeLayout {
 
         // 受信アカウントカラーの設定
         ivAccountColor.setBackgroundColor(status.representUser.AccountColor)
+
+        // ふぁぼアイコンの表示
+        if (status.originStatus.isFavoritedSomeone()) {
+            ivFavorited.visibility = View.VISIBLE
+        } else {
+            ivFavorited.visibility = View.GONE
+        }
     }
 
     /**
