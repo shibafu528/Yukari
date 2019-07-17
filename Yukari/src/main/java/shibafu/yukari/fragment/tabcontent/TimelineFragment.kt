@@ -970,9 +970,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
     @UiThread
     private fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
         statuses.forEach { status ->
-            if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+            if (status == eventStatus) {
                 status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                if (!status.receivedUsers.contains(eventStatus.representUser)) {
                     status.receivedUsers.add(eventStatus.representUser)
                 }
                 notifyDataSetChanged()
@@ -980,9 +980,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
             }
         }
         mutedStatuses.forEach { status ->
-            if (status.javaClass == eventStatus.javaClass && status.id == eventStatus.id) {
+            if (status == eventStatus) {
                 status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                if (status.user.id == eventStatus.representUser.NumericId && !status.receivedUsers.contains(eventStatus.representUser)) {
+                if (!status.receivedUsers.contains(eventStatus.representUser)) {
                     status.receivedUsers.add(eventStatus.representUser)
                 }
                 return
