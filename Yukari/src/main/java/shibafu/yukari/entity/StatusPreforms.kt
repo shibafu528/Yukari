@@ -22,6 +22,8 @@ class StatusPreforms : Serializable, Parcelable {
 
     /**
      * お気に入り登録
+     *
+     * ここに入れていいのは [shibafu.yukari.twitter.AuthUserRecord.InternalId] のみ。
      */
     var favoritedUsers: MutableLongBooleanMap = LongBooleanHashMap() // TODO: 表示側は？
 
