@@ -46,6 +46,7 @@ import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.database.ApiType;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
@@ -584,7 +585,7 @@ public class TwitterService extends Service{
      * @return 適合する認証情報。見つからない場合は null
      */
     @Nullable
-    public AuthUserRecord findPreferredUser(int apiType) {
+    public AuthUserRecord findPreferredUser(@ApiType int apiType) {
         AuthUserRecord found = null;
 
         for (AuthUserRecord user : users) {
