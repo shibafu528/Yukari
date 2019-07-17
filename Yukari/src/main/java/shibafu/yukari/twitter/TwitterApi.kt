@@ -131,12 +131,12 @@ class TwitterApi : ProviderApi {
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
-            twitter.createFavorite(status.id)
+            val favoritedStatus = twitter.createFavorite(status.id)
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onFavorite(ShadowUser(userRecord), status)
+            service.timelineHub?.onFavorite(ShadowUser(userRecord), TwitterStatus(favoritedStatus, userRecord))
 
             return true
         } catch (e: TwitterException) {
@@ -151,12 +151,12 @@ class TwitterApi : ProviderApi {
     override fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
         val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
-            twitter.destroyFavorite(status.id)
+            val unfavoriteStatus = twitter.destroyFavorite(status.id)
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), status)
+            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), TwitterStatus(unfavoriteStatus, userRecord))
 
             return true
         } catch (e: TwitterException) {
