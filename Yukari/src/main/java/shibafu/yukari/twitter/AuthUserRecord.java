@@ -36,6 +36,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
     public int AccountColor;
     public Provider Provider;
     public String Url;
+    public String IdenticalUrl;
 
     private twitter4j.auth.AccessToken twitterAccessToken;
 
@@ -48,6 +49,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessTokenSecret = token.getTokenSecret();
         Provider = shibafu.yukari.database.Provider.TWITTER;
         Url = TwitterUtil.getProfileUrl(ScreenName);
+        IdenticalUrl = TwitterUtil.getUrlFromUserId(token.getUserId());
     }
 
     public AuthUserRecord(AccessToken token, Account account, Provider provider) {
@@ -58,6 +60,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessTokenSecret = null;
         Provider = provider;
         Url = account.getUrl();
+        IdenticalUrl = account.getUrl();
     }
 
     public AuthUserRecord(Cursor cursor) {
@@ -79,10 +82,12 @@ public class AuthUserRecord implements Serializable, DBRecord {
         switch (Provider.getApiType()) {
             case shibafu.yukari.database.Provider.API_TWITTER:
                 Url = TwitterUtil.getProfileUrl(ScreenName);
+                IdenticalUrl = TwitterUtil.getUrlFromUserId(NumericId);
                 break;
             case shibafu.yukari.database.Provider.API_MASTODON:
                 Pair<String, String> screenName = MastodonUtil.INSTANCE.splitFullScreenName(ScreenName);
                 Url = "https://" + Provider.getHost() + "/@" + screenName.getFirst();
+                IdenticalUrl = Url;
                 break;
         }
     }
@@ -199,6 +204,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
         AccessTokenSecret = aur.AccessTokenSecret;
         Provider = aur.Provider;
         Url = aur.Url;
+        IdenticalUrl = aur.IdenticalUrl;
 
         twitterAccessToken = aur.twitterAccessToken;
     }
@@ -218,6 +224,7 @@ public class AuthUserRecord implements Serializable, DBRecord {
                 ", AccountColor=" + AccountColor +
                 ", Provider=" + Provider +
                 ", Url=" + Url +
+                ", IdenticalUrl=" + IdenticalUrl +
                 '}';
     }
 }

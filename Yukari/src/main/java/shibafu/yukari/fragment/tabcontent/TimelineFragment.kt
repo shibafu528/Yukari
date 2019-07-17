@@ -970,8 +970,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
     @UiThread
     private fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
         // ユーザー操作によるお気に入り状態更新以外は無視
-        // TODO: identicalUrlを使うべきでは？しかしAuthUserRecord側に無い
-        if (eventFrom.url != eventStatus.representUser.Url) {
+        if (eventFrom.identicalUrl != eventStatus.representUser.IdenticalUrl) {
             return
         }
         val eventUser = eventStatus.representUser
