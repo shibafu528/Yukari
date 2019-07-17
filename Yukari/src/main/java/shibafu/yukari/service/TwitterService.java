@@ -489,20 +489,27 @@ public class TwitterService extends Service{
         Log.d(LOG_TAG, "Reloaded users. User=" + users.size());
     }
 
+    @NonNull
     public List<AuthUserRecord> getUsers() {
         return users != null ? users : new ArrayList<>();
     }
 
+    @Nullable
     public AuthUserRecord getPrimaryUser() {
-        if (users != null && !users.isEmpty()) {
-            for (AuthUserRecord userRecord : users) {
-                if (userRecord.isPrimary) {
-                    return userRecord;
-                }
-            }
-            return users.get(0);
+        // アカウントが1つも無いなら無理
+        if (users == null || users.isEmpty()) {
+            return null;
         }
-        return null;
+
+        // プライマリアカウントを探して返す
+        for (AuthUserRecord userRecord : users) {
+            if (userRecord.isPrimary) {
+                return userRecord;
+            }
+        }
+
+        // プライマリアカウントが無いなら、とりあえず最初のレコードを返す
+        return users.get(0);
     }
 
     public void setPrimaryUser(long id) {
