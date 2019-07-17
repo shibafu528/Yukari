@@ -170,7 +170,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
      * いずれかの受信アカウントによって、このステータスがお気に入り登録されているか？
      */
     fun isFavoritedSomeone(): Boolean {
-        return receivedUsers.map { it.NumericId }.any { metadata.favoritedUsers.get(it) }
+        return receivedUsers.map { it.InternalId }.any { metadata.favoritedUsers.get(it) }
     }
 
     /**
@@ -202,8 +202,8 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
             if (!receivedUsers.contains(userRecord)) {
                 receivedUsers.add(userRecord)
             }
-            if (status.metadata.favoritedUsers.get(userRecord.NumericId)) {
-                metadata.favoritedUsers.put(userRecord.NumericId, true)
+            if (status.metadata.favoritedUsers.get(userRecord.InternalId)) {
+                metadata.favoritedUsers.put(userRecord.InternalId, true)
             }
         }
         status.receivedUsers = receivedUsers

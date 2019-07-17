@@ -115,7 +115,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             val status = status
             val userRecord = userRecord ?: return@setOnClickListener
 
-            if (status.metadata.favoritedUsers.get(userRecord.NumericId)) {
+            if (status.metadata.favoritedUsers.get(userRecord.InternalId)) {
                 // お気に入り登録済
                 destroyFavorite()
             } else {

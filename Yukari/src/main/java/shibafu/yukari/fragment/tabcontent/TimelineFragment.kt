@@ -969,11 +969,18 @@ open class TimelineFragment : ListYukariBaseFragment(),
      */
     @UiThread
     private fun setFavoriteState(eventFrom: User, eventStatus: Status, isFavorited: Boolean) {
+        // ユーザー操作によるお気に入り状態更新以外は無視
+        // TODO: identicalUrlを使うべきでは？しかしAuthUserRecord側に無い
+        if (eventFrom.url != eventStatus.representUser.Url) {
+            return
+        }
+        val eventUser = eventStatus.representUser
+
         statuses.forEach { status ->
             if (status == eventStatus) {
-                status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                if (!status.receivedUsers.contains(eventStatus.representUser)) {
-                    status.receivedUsers.add(eventStatus.representUser)
+                status.metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
+                if (!status.receivedUsers.contains(eventUser)) {
+                    status.receivedUsers.add(eventUser)
                 }
                 notifyDataSetChanged()
                 return
@@ -981,9 +988,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
         mutedStatuses.forEach { status ->
             if (status == eventStatus) {
-                status.metadata.favoritedUsers.put(eventFrom.id, isFavorited)
-                if (!status.receivedUsers.contains(eventStatus.representUser)) {
-                    status.receivedUsers.add(eventStatus.representUser)
+                status.metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
+                if (!status.receivedUsers.contains(eventUser)) {
+                    status.receivedUsers.add(eventUser)
                 }
                 return
             }

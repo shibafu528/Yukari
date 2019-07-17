@@ -7,6 +7,7 @@ import shibafu.yukari.twitter.AuthUserRecord
  */
 class ShadowUser(userRecord: AuthUserRecord) : User {
     override val id: Long = userRecord.NumericId
+    override val url: String? = userRecord.Url
     override val name: String = userRecord.Name
     override val screenName: String = userRecord.ScreenName
     override val isProtected: Boolean = false
