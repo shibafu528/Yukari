@@ -72,12 +72,12 @@ class MastodonApi : ProviderApi {
         try {
             val statuses = Statuses(client)
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
-            statuses.postFavourite(localId).execute()
+            val favoritedStatus = statuses.postFavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onFavorite(ShadowUser(userRecord), status)
+            service.timelineHub?.onFavorite(ShadowUser(userRecord), DonStatus(favoritedStatus, userRecord))
 
             return true
         } catch (e: Mastodon4jRequestException) {
@@ -94,12 +94,12 @@ class MastodonApi : ProviderApi {
         try {
             val statuses = Statuses(client)
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
-            statuses.postUnfavourite(localId).execute()
+            val unfavoritedStatus = statuses.postUnfavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), status)
+            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), DonStatus(unfavoritedStatus, userRecord))
 
             return true
         } catch (e: Mastodon4jRequestException) {
