@@ -3,6 +3,7 @@ package shibafu.yukari.mastodon
 import android.net.Uri
 
 object MastodonUtil {
+    private val REGEX_HOST_COMPRESS = Regex("[a-zA-Z]{4,}")
     private val compressedHostCache: MutableMap<String, String> = hashMapOf()
 
     fun expandFullScreenName(acct: String, url: String): String =
@@ -27,13 +28,9 @@ object MastodonUtil {
             return acct
         }
 
-        val compressedHost = compressedHostCache[splitAcct[1]] ?: splitAcct[1].split('.')
-                .joinToString(".") { label ->
-                    if (label.length > 3) {
-                        "${label.first()}${label.length - 2}${label.last()}"
-                    } else {
-                        label
-                    }
+        val compressedHost = compressedHostCache[splitAcct[1]] ?: splitAcct[1]
+                .replace(REGEX_HOST_COMPRESS) {
+                    "${it.value.first()}${it.value.length - 2}${it.value.last()}"
                 }
                 .also { compressedHostCache[splitAcct[1]] = it }
 
