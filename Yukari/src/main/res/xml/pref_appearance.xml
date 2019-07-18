@@ -89,6 +89,10 @@
             android:key="pref_always_expand_cw"
             android:title="閲覧注意トゥートを常に展開"
             android:summary="トゥートに閲覧注意(CW)が設定されていても、常に全文表示するようにします"/>
+        <CheckBoxPreference
+            android:key="pref_compress_acct"
+            android:title="ホスト名を省略表示"
+            android:summary="Acctのホスト名部分を省略します。"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="ツイート詳細画面">
         <CheckBoxPreference

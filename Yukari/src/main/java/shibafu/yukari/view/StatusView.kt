@@ -33,6 +33,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.TimelineHubImpl
+import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
@@ -135,11 +136,12 @@ abstract class StatusView : RelativeLayout {
         val status = status ?: return
 
         val user = status.originStatus.user
+        val screenName = if (pref.getBoolean("pref_compress_acct", false)) { MastodonUtil.compressAcct(user.screenName) } else { user.screenName }
         val displayName = if (pref.getBoolean("pref_remove_name_newline", false)) { user.name.replace("\n", "") } else { user.name }
 
         tvName.typeface = typeface
         tvName.textSize = fontSize
-        tvName.text = "@${user.screenName} / $displayName"
+        tvName.text = "@$screenName / $displayName"
     }
 
     /**
