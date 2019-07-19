@@ -38,6 +38,9 @@
 -dontwarn twitter4j.**
 -keep class twitter4j.** { *; }
 
+# mastodon4j
+-keep class com.sys1yagi.mastodon4j.** { *; }
+
 # Zxing
 -dontwarn com.google.zxing.**
 
