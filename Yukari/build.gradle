@@ -102,6 +102,22 @@ android {
         }
     }
 
+    signingConfigs {
+        def releaseStoreFile = System.getenv('SIGNING_STORE_FILE')
+        if (releaseStoreFile != null && releaseStoreFile != '' && file(releaseStoreFile).exists()) {
+            println "[SigningConfigs] Use keystore file for release build: ${releaseStoreFile}"
+
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword System.getenv('SIGNING_STORE_PASSWORD')
+                keyAlias System.getenv('SIGNING_KEY_ALIAS')
+                keyPassword System.getenv('SIGNING_KEY_PASSWORD')
+            }
+        } else {
+            println "[SigningConfigs] SIGNING_STORE_FILE is not defined."
+        }
+    }
+
     buildTypes {
         debug {
             debuggable true
@@ -112,6 +128,9 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            if (signingConfigs.hasProperty('release')) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     flavorDimensions "stage"
