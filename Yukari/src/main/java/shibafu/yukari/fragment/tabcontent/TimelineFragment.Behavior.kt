@@ -15,7 +15,7 @@ import shibafu.yukari.entity.Status
 internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
                                       private val statuses: MutableList<Status>,
                                       private val unreadSet: LongHashSet) : AbsListView.OnScrollListener {
-    private var lastShowedFirstItemId: Long = -1
+    private var lastShowedFirstItem: Status? = null
     private var lastShowedFirstItemY = 0
     private var unreadNotifierView: View? = null
     private var tvUnreadCount: TextView? = null
@@ -39,19 +39,23 @@ internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
     }
 
     fun onStart() {
-        if (lastShowedFirstItemId > -1) {
-            for (position in 0 until statuses.size) {
-                if (statuses[position].id == lastShowedFirstItemId) {
-                    parent.listView.setSelectionFromTop(position, lastShowedFirstItemY)
-                    break
-                }
+        val lastShowedFirstItem = lastShowedFirstItem
+        if (lastShowedFirstItem != null) {
+            val indexOf = statuses.indexOf(lastShowedFirstItem)
+            if (indexOf != -1) {
+                parent.listView.setSelectionFromTop(indexOf, lastShowedFirstItemY)
             }
             updateUnreadNotifier()
         }
     }
 
     fun onStop() {
-        lastShowedFirstItemId = parent.listView.getItemIdAtPosition(parent.listView.firstVisiblePosition)
+        val firstVisiblePosition = parent.listView.firstVisiblePosition
+        if (firstVisiblePosition < statuses.size) {
+            lastShowedFirstItem = statuses[firstVisiblePosition]
+        } else {
+            lastShowedFirstItem = null
+        }
         lastShowedFirstItemY = parent.listView.getChildAt(0)?.top ?: 0
     }
 
