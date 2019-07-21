@@ -2,6 +2,7 @@ package shibafu.yukari.linkage
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.util.LruCache
@@ -433,7 +434,7 @@ class TimelineHubImpl(private val service: TwitterService,
          * [statusCache] からURLがマッチする [Status] を検索
          */
         fun findStatusByUrl(url: String): Status? {
-            return statusCache[url]
+            return statusCache[url] ?: statusCache[Uri.parse(url).buildUpon().clearQuery().toString()]
         }
 
         /**
