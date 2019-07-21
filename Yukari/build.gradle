@@ -45,7 +45,7 @@ ext {
     y4aVersionMajor = 3
     y4aVersionMinor = 0
     y4aVersionPatch = 1
-    y4aVersionSuffix = '-dev'
+    y4aVersionSuffix = ''
     y4aCodeName = 'linkage'
 
     y4aRevision = GitUtil.revHash.substring(0, 7)
