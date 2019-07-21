@@ -78,6 +78,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val status = status
+        val originStatus = status.originStatus
 
         // リスト要素の作成
         val list = arrayListOf<Row>()
@@ -87,7 +88,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         val existsUserId = mutableSetOf<Long>()
 
         // 添付画像
-        status.media.forEach { media ->
+        originStatus.media.forEach { media ->
             if (existsUrl.contains(media.browseUrl)) {
                 return@forEach
             }
@@ -97,7 +98,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         }
 
         // URL
-        status.links.forEach { link ->
+        originStatus.links.forEach { link ->
             if (existsUrl.contains(link)) {
                 return@forEach
             }
@@ -107,17 +108,17 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         }
 
         // ハッシュタグ
-        status.tags.forEach { tag ->
+        originStatus.tags.forEach { tag ->
             list += TagRow("#" + tag)
         }
 
         // (Twitter) 位置情報
-        if (status is TwitterStatus && status.status.geoLocation != null) {
-            list += GeoLocationRow(status.status.geoLocation)
+        if (originStatus is TwitterStatus && originStatus.status.geoLocation != null) {
+            list += GeoLocationRow(originStatus.status.geoLocation)
         }
 
         // 会話
-        if (status.originStatus.inReplyToId > -1) {
+        if (originStatus.inReplyToId > -1) {
             list += TraceRow()
         }
 
@@ -128,13 +129,13 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         }
 
         // 発言者の情報
-        if (!existsUserId.contains(status.originStatus.user.id)) {
-            list += UserRow(status.originStatus.user)
-            existsUserId += status.originStatus.user.id
+        if (!existsUserId.contains(originStatus.user.id)) {
+            list += UserRow(originStatus.user)
+            existsUserId += originStatus.user.id
         }
 
         // メンション先の情報
-        status.originStatus.mentions.forEach { mention ->
+        originStatus.mentions.forEach { mention ->
             if (existsUserId.contains(mention.id)) {
                 return@forEach
             }
