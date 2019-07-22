@@ -6,6 +6,7 @@ import org.eclipse.collections.api.list.primitive.MutableLongList;
 import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.MuteMatch;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.User;
 
@@ -65,6 +66,16 @@ public class Suppressor {
 
     public boolean[] decision(shibafu.yukari.entity.Status status) {
         boolean[] result = new boolean[7];
+
+        if (status instanceof TwitterStatus) {
+            if (blockedIDs.binarySearch(status.getOriginStatus().getUser().getId()) > -1 ||
+                    mutedIDs.binarySearch(status.getOriginStatus().getUser().getId()) > -1) {
+                result[MuteConfig.MUTE_TWEET_RTED] = true;
+                return result;
+            } else if (noRetweetIDs.binarySearch(status.getUser().getId()) > -1) {
+                result[MuteConfig.MUTE_RETWEET] = true;
+            }
+        }
 
         for (MuteConfig config : configs) {
             if (config.expired()) continue;
