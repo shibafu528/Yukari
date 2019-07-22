@@ -1,0 +1,239 @@
+{
+  "created_at": "Thu Jul 11 14:56:09 +0000 2019",
+  "id": 1149331550514761700,
+  "id_str": "1149331550514761728",
+  "text": "RT @yukari4a: Yukari 3.0.0.2064 をただいまPlayストアにアップロードしました。\n\n全然書けていないのですが、Yukari 3.0の変更点紹介はこちらからどうぞ。\n\nhttps://t.co/EhAp6t0gj9\n\n#yukari4a",
+  "truncated": false,
+  "entities": {
+    "hashtags": [
+      {
+        "text": "yukari4a",
+        "indices": [
+          124,
+          133
+        ]
+      }
+    ],
+    "symbols": [],
+    "user_mentions": [
+      {
+        "screen_name": "yukari4a",
+        "name": "Yukari for Android",
+        "id": 2257710474,
+        "id_str": "2257710474",
+        "indices": [
+          3,
+          12
+        ]
+      }
+    ],
+    "urls": [
+      {
+        "url": "https://t.co/EhAp6t0gj9",
+        "expanded_url": "https://github.com/shibafu528/Yukari/wiki/3.0.0",
+        "display_url": "github.com/shibafu528/Yuk…",
+        "indices": [
+          99,
+          122
+        ]
+      }
+    ]
+  },
+  "source": "<a href=\"https://about.twitter.com/products/tweetdeck\" rel=\"nofollow\">TweetDeck</a>",
+  "in_reply_to_status_id": null,
+  "in_reply_to_status_id_str": null,
+  "in_reply_to_user_id": null,
+  "in_reply_to_user_id_str": null,
+  "in_reply_to_screen_name": null,
+  "user": {
+    "id": 26197127,
+    "id_str": "26197127",
+    "name": "芝生",
+    "screen_name": "shibafu528",
+    "location": "あの世",
+    "description": "好きな分野はPHPとAndroidアプリ開発。\nかつてTwitterクライアント Yukariを作っていました。 \nTwitterの使い方が分からなくなり、今はMastodonにいます。  \nヘッダー絵: @calrchi2525",
+    "url": "https://t.co/wEWvYly8ny",
+    "entities": {
+      "url": {
+        "urls": [
+          {
+            "url": "https://t.co/wEWvYly8ny",
+            "expanded_url": "https://social.mikutter.hachune.net/@shibafu528",
+            "display_url": "social.mikutter.hachune.net/@shibafu528",
+            "indices": [
+              0,
+              23
+            ]
+          }
+        ]
+      },
+      "description": {
+        "urls": []
+      }
+    },
+    "protected": true,
+    "followers_count": 484,
+    "friends_count": 761,
+    "listed_count": 40,
+    "created_at": "Tue Mar 24 07:43:01 +0000 2009",
+    "favourites_count": 66500,
+    "utc_offset": null,
+    "time_zone": null,
+    "geo_enabled": false,
+    "verified": false,
+    "statuses_count": 225895,
+    "lang": null,
+    "contributors_enabled": false,
+    "is_translator": false,
+    "is_translation_enabled": false,
+    "profile_background_color": "C6EBC1",
+    "profile_background_image_url": "http://abs.twimg.com/images/themes/theme1/bg.png",
+    "profile_background_image_url_https": "https://abs.twimg.com/images/themes/theme1/bg.png",
+    "profile_background_tile": false,
+    "profile_image_url": "http://pbs.twimg.com/profile_images/1088984609298178048/Yk0TZGUt_normal.jpg",
+    "profile_image_url_https": "https://pbs.twimg.com/profile_images/1088984609298178048/Yk0TZGUt_normal.jpg",
+    "profile_banner_url": "https://pbs.twimg.com/profile_banners/26197127/1464613116",
+    "profile_link_color": "7849BA",
+    "profile_sidebar_border_color": "CFEBC1",
+    "profile_sidebar_fill_color": "E8FFE3",
+    "profile_text_color": "333333",
+    "profile_use_background_image": false,
+    "has_extended_profile": false,
+    "default_profile": false,
+    "default_profile_image": false,
+    "following": false,
+    "follow_request_sent": false,
+    "notifications": false,
+    "translator_type": "none"
+  },
+  "geo": null,
+  "coordinates": null,
+  "place": null,
+  "contributors": null,
+  "retweeted_status": {
+    "created_at": "Thu Jul 11 14:52:33 +0000 2019",
+    "id": 1149330644104704000,
+    "id_str": "1149330644104704002",
+    "text": "Yukari 3.0.0.2064 をただいまPlayストアにアップロードしました。\n\n全然書けていないのですが、Yukari 3.0の変更点紹介はこちらからどうぞ。\n\nhttps://t.co/EhAp6t0gj9\n\n#yukari4a",
+    "truncated": false,
+    "entities": {
+      "hashtags": [
+        {
+          "text": "yukari4a",
+          "indices": [
+            110,
+            119
+          ]
+        }
+      ],
+      "symbols": [],
+      "user_mentions": [],
+      "urls": [
+        {
+          "url": "https://t.co/EhAp6t0gj9",
+          "expanded_url": "https://github.com/shibafu528/Yukari/wiki/3.0.0",
+          "display_url": "github.com/shibafu528/Yuk…",
+          "indices": [
+            85,
+            108
+          ]
+        }
+      ]
+    },
+    "source": "<a href=\"https://about.twitter.com/products/tweetdeck\" rel=\"nofollow\">TweetDeck</a>",
+    "in_reply_to_status_id": null,
+    "in_reply_to_status_id_str": null,
+    "in_reply_to_user_id": null,
+    "in_reply_to_user_id_str": null,
+    "in_reply_to_screen_name": null,
+    "user": {
+      "id": 2257710474,
+      "id_str": "2257710474",
+      "name": "Yukari for Android",
+      "screen_name": "yukari4a",
+      "location": "",
+      "description": "Android用Twitterクライアント「Yukari」の公式アカウントです。質問や報告等お気軽にどうぞ、答えられる範囲で答えます。 ハッシュタグは #yukari4a 。 \nMastodonにもアカウントありますよ。https://t.co/JHtoTya7bT",
+      "url": "http://t.co/CyciCxQOxW",
+      "entities": {
+        "url": {
+          "urls": [
+            {
+              "url": "http://t.co/CyciCxQOxW",
+              "expanded_url": "http://yukari.shibafu528.info",
+              "display_url": "yukari.shibafu528.info",
+              "indices": [
+                0,
+                22
+              ]
+            }
+          ]
+        },
+        "description": {
+          "urls": [
+            {
+              "url": "https://t.co/JHtoTya7bT",
+              "expanded_url": "https://ertona.net/@yukari4a",
+              "display_url": "ertona.net/@yukari4a",
+              "indices": [
+                110,
+                133
+              ]
+            }
+          ]
+        }
+      },
+      "protected": false,
+      "followers_count": 354,
+      "friends_count": 7,
+      "listed_count": 17,
+      "created_at": "Sun Dec 22 13:20:41 +0000 2013",
+      "favourites_count": 10,
+      "utc_offset": null,
+      "time_zone": null,
+      "geo_enabled": false,
+      "verified": false,
+      "statuses_count": 363,
+      "lang": null,
+      "contributors_enabled": false,
+      "is_translator": false,
+      "is_translation_enabled": false,
+      "profile_background_color": "642D8B",
+      "profile_background_image_url": "http://abs.twimg.com/images/themes/theme10/bg.gif",
+      "profile_background_image_url_https": "https://abs.twimg.com/images/themes/theme10/bg.gif",
+      "profile_background_tile": true,
+      "profile_image_url": "http://pbs.twimg.com/profile_images/450833831000424448/tV6ZPPXW_normal.png",
+      "profile_image_url_https": "https://pbs.twimg.com/profile_images/450833831000424448/tV6ZPPXW_normal.png",
+      "profile_banner_url": "https://pbs.twimg.com/profile_banners/2257710474/1398260871",
+      "profile_link_color": "642D8B",
+      "profile_sidebar_border_color": "FFFFFF",
+      "profile_sidebar_fill_color": "7AC3EE",
+      "profile_text_color": "3D1957",
+      "profile_use_background_image": true,
+      "has_extended_profile": false,
+      "default_profile": false,
+      "default_profile_image": false,
+      "following": true,
+      "follow_request_sent": false,
+      "notifications": false,
+      "translator_type": "none"
+    },
+    "geo": null,
+    "coordinates": null,
+    "place": null,
+    "contributors": null,
+    "is_quote_status": false,
+    "retweet_count": 23,
+    "favorite_count": 14,
+    "favorited": false,
+    "retweeted": true,
+    "possibly_sensitive": false,
+    "lang": "ja"
+  },
+  "is_quote_status": false,
+  "retweet_count": 23,
+  "favorite_count": 0,
+  "favorited": false,
+  "retweeted": true,
+  "possibly_sensitive": false,
+  "lang": "ja"
+}
