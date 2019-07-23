@@ -131,4 +131,88 @@ class SuppressorTest {
 
         result[MuteConfig.MUTE_TWEET].shouldBeFalse()
     }
+
+    @Test
+    fun 本文部分一致でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_TEXT, MuteMatch.MATCH_PARTIAL, MuteConfig.MUTE_TWEET, "おふとん"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun 本文正規表現検索でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_TEXT, MuteMatch.MATCH_REGEX, MuteConfig.MUTE_TWEET, "^(そろ){2}"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun ユーザ名完全一致でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_USER_NAME, MuteMatch.MATCH_EXACT, MuteConfig.MUTE_TWEET, "芝生"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun ScreenName完全一致でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_USER_SN, MuteMatch.MATCH_EXACT, MuteConfig.MUTE_TWEET, "shibafu528"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun ID完全一致でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_USER_ID, MuteMatch.MATCH_EXACT, MuteConfig.MUTE_TWEET, "26197127"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun via完全一致でヒットした場合はミュートされる() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_VIA, MuteMatch.MATCH_EXACT, MuteConfig.MUTE_TWEET, "StarryEyes (g)"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeTrue()
+    }
+
+    @Test
+    fun 正規表現検索でパターンが不正な場合はミュートされない() {
+        val s = Suppressor().apply {
+            configs = listOf(MuteConfig(MuteConfig.SCOPE_TEXT, MuteMatch.MATCH_REGEX, MuteConfig.MUTE_TWEET, "{"))
+        }
+
+        val st = TwitterObjectFactory.createStatus(ClassLoader.getSystemResource("shibafu/yukari/twitter/1152983728563507201.json").readText())
+        val result = s.decision(TwitterStatus(st, twitterUserRecord))
+
+        result[MuteConfig.MUTE_TWEET].shouldBeFalse()
+    }
 }
