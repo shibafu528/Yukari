@@ -2,11 +2,9 @@ package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import com.annimon.stream.Stream;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import twitter4j.Status;
-import twitter4j.auth.AccessToken;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,7 +12,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by shibafu on 14/11/02.
@@ -47,22 +44,6 @@ public class Bookmark extends PreformedStatus implements DBRecord{
         return values;
     }
 
-    public static Bookmark deserialize(SerializeEntity entity, List<AuthUserRecord> userRecords) {
-        AuthUserRecord receivedUser = Stream.of(userRecords)
-                .filter(u -> u.InternalId == entity.receiverId)
-                .findFirst()
-                .orElse(new AuthUserRecord(new AccessToken("", "", entity.receiverId)));
-        return new Bookmark(new PreformedStatus(byteArrayToStatus(entity.blob), receivedUser));
-    }
-
-    public SerializeEntity serialize() {
-        SerializeEntity entity = new SerializeEntity();
-        entity.receiverId = getRepresentUser().InternalId;
-        entity.saveDate = saveDate.getTime();
-        entity.blob = statusToByteArray();
-        return entity;
-    }
-
     private byte[] statusToByteArray() {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -87,9 +68,8 @@ public class Bookmark extends PreformedStatus implements DBRecord{
         }
     }
 
-    public static class SerializeEntity {
-        long receiverId;
-        long saveDate;
-        byte[] blob;
-    }
+    /**
+     * インポート・エクスポート時の型としてのみ使用。いずれ廃止して、Bookmarkクラスを参照するべき。
+     */
+    public static class SerializeEntity {}
 }
