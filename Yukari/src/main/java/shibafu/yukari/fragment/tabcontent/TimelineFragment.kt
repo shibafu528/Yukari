@@ -79,8 +79,8 @@ open class TimelineFragment : ListYukariBaseFragment(),
     override val timelineId: String
         get() {
             val args = arguments
-            if (args != null && args.containsKey(TwitterListFragment.EXTRA_ID)) {
-                return args.getLong(TwitterListFragment.EXTRA_ID).toString()
+            if (args != null && args.containsKey(EXTRA_ID)) {
+                return args.getLong(EXTRA_ID).toString()
             } else {
                 return this.toString()
             }
@@ -131,7 +131,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
         if (context is MainActivity) {
             statuses.addAll(context.getStatusesList(timelineId))
-            context.registerTwitterFragment(arguments!!.getLong(TwitterListFragment.EXTRA_ID), this)
+            context.registerTwitterFragment(arguments!!.getLong(EXTRA_ID), this)
         }
     }
 
@@ -139,10 +139,10 @@ open class TimelineFragment : ListYukariBaseFragment(),
         super.onCreate(savedInstanceState)
 
         val arguments = arguments ?: Bundle()
-        title = arguments.getString(TwitterListFragment.EXTRA_TITLE) ?: ""
-        mode = arguments.getInt(TwitterListFragment.EXTRA_MODE, -1)
+        title = arguments.getString(EXTRA_TITLE) ?: ""
+        mode = arguments.getInt(EXTRA_MODE, -1)
         rawQuery = arguments.getString(EXTRA_FILTER_QUERY) ?: FilterQuery.VOID_QUERY_STRING
-        arguments.getSerializable(TwitterListFragment.EXTRA_USER)?.let { users += it as AuthUserRecord }
+        arguments.getSerializable(EXTRA_USER)?.let { users += it as AuthUserRecord }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -237,7 +237,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             val statusesList = (activity as MainActivity).getStatusesList(timelineId)
             statusesList.clear()
             statusesList.addAll(statuses)
-            (activity as MainActivity).unregisterTwitterFragment(arguments!!.getLong(TwitterListFragment.EXTRA_ID))
+            (activity as MainActivity).unregisterTwitterFragment(arguments!!.getLong(EXTRA_ID))
         }
     }
 
@@ -679,11 +679,11 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 if (status !is LoadMarker && !query.evaluate(status, users, queryVariables)) return
 
                 if (event.muted) {
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")
+                    if (USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")
 
                     mutedStatuses += status.clone()
                 } else {
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
+                    if (USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
 
                     val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
                     handler.post { insertElement(status.clone(), !event.passive && useScrollLock && status !is LoadMarker) }
@@ -691,7 +691,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             }
             is TimelineEvent.RestRequestCompleted -> {
                 if (event.timelineId == timelineId) {
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
+                    if (USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
 
                     handler.post {
                         finishRestRequest(event.taskKey)
@@ -842,7 +842,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         if (!useScrollLock && (statuses.size == 1 || firstPos == 0 && y > -1)) {
             listView.setSelection(0)
 
-            if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
+            if (USE_INSERT_LOG) putDebugLog("Scroll Position = 0 (Top) ... $status")
         } else if (locked != null) {
             for (i in statuses.indices) {
                 // 同一の投稿が見つからなければ、記憶されているロック対象のタイムスタンプより古い投稿を代わりとする。
@@ -855,7 +855,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     scrollUnlockHandler.removeCallbacksAndMessages(null)
                     scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, i, y), 200)
 
-                    if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $i, ${locked.createdAt.time}, ${locked.url} (Locked strict) ... $status")
+                    if (USE_INSERT_LOG) putDebugLog("Scroll Position = $i, ${locked.createdAt.time}, ${locked.url} (Locked strict) ... $status")
                     break
                 }
             }
@@ -883,10 +883,10 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 scrollUnlockHandler.removeCallbacksAndMessages(null)
                 scrollUnlockHandler.sendMessageDelayed(scrollUnlockHandler.obtainMessage(0, firstPos + 1, y), 200)
 
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = ${statuses[lockedPosition].createdAt.time}, ${statuses[lockedPosition].url} (Locked) ... $status")
+                if (USE_INSERT_LOG) putDebugLog("Scroll Position = ${statuses[lockedPosition].createdAt.time}, ${statuses[lockedPosition].url} (Locked) ... $status")
             }
         } else {
-            if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
+            if (USE_INSERT_LOG) putDebugLog("Scroll Position = $firstPos (Not changed) ... $status")
         }
 
         unreadNotifierBehavior.updateUnreadNotifier()
@@ -1002,7 +1002,14 @@ open class TimelineFragment : ListYukariBaseFragment(),
     }
 
     companion object {
+        const val EXTRA_ID = "id"
+        const val EXTRA_TITLE = "title"
+        const val EXTRA_MODE = "mode"
+        const val EXTRA_USER = "user"
+        const val EXTRA_SHOW_USER = "show_user"
         const val EXTRA_FILTER_QUERY = "filterQuery"
+
+        private const val USE_INSERT_LOG = false
 
         /** TL容量の初期化係数 */
         private const val CAPACITY_INITIAL_FACTOR = 256

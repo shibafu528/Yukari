@@ -36,8 +36,8 @@ internal enum class TimelineItemClickAction {
         override fun onItemClick(): TimelineFragment.(Status) -> Boolean = { clickedElement ->
             if (clickedElement.originStatus.inReplyToId > -1) {
                 val intent = Intent(activity, TraceActivity::class.java)
-                intent.putExtra(TwitterListFragment.EXTRA_USER, clickedElement.representUser)
-                intent.putExtra(TwitterListFragment.EXTRA_TITLE, "Trace")
+                intent.putExtra(TimelineFragment.EXTRA_USER, clickedElement.representUser)
+                intent.putExtra(TimelineFragment.EXTRA_TITLE, "Trace")
                 intent.putExtra(TraceActivity.EXTRA_TRACE_START, clickedElement.originStatus)
                 startActivity(intent)
                 true

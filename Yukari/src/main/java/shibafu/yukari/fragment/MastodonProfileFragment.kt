@@ -153,9 +153,9 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
             val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
             fragment.arguments = Bundle().apply {
-                putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
-                putSerializable(TwitterListFragment.EXTRA_USER, currentUser)
-                putString(TwitterListFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
+                putInt(TimelineFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
+                putSerializable(TimelineFragment.EXTRA_USER, currentUser)
+                putString(TimelineFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from user:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 
@@ -172,9 +172,9 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
             val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
             fragment.arguments = Bundle().apply {
-                putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
-                putSerializable(TwitterListFragment.EXTRA_USER, currentUser)
-                putString(TwitterListFragment.EXTRA_TITLE, "Pinned: @" + user.screenName)
+                putInt(TimelineFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
+                putSerializable(TimelineFragment.EXTRA_USER, currentUser)
+                putString(TimelineFragment.EXTRA_TITLE, "Pinned: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from don_user_pinned:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 

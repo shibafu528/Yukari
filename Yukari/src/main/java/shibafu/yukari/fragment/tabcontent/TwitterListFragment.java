@@ -61,15 +61,15 @@ public abstract class TwitterListFragment<T extends TwitterResponse>
                     TimelineTab,
                     TimelineObserver {
 
-    public static final String EXTRA_ID = "id";
-    public static final String EXTRA_TITLE = "title";
-    public static final String EXTRA_MODE = "mode";
-    public static final String EXTRA_USER = "user";
-    public static final String EXTRA_SHOW_USER = "show_user";
+    /*package*/ static final String EXTRA_ID = "id";
+    /*package*/ static final String EXTRA_TITLE = "title";
+    /*package*/ static final String EXTRA_MODE = "mode";
+    /*package*/ static final String EXTRA_USER = "user";
+    /*package*/ static final String EXTRA_SHOW_USER = "show_user";
 
-    public static final int LOADER_LOAD_INIT   = 0;
-    public static final int LOADER_LOAD_MORE   = 1;
-    public static final int LOADER_LOAD_UPDATE = 2;
+    protected static final int LOADER_LOAD_INIT   = 0;
+    protected static final int LOADER_LOAD_MORE   = 1;
+    protected static final int LOADER_LOAD_UPDATE = 2;
 
     /** {@link PrepareInsertResultCode} : 同時に返すpositionに挿入可能 */
     protected static final int PREPARE_INSERT_ALLOWED = 0;

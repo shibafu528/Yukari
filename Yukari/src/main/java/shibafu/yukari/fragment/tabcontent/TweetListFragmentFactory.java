@@ -37,10 +37,10 @@ public class TweetListFragmentFactory {
                 b.putString(TimelineFragment.EXTRA_FILTER_QUERY, "where (nil)");
                 break;
         }
-        b.putLong(TwitterListFragment.EXTRA_ID, tabInfo.getId());
-        b.putString(TwitterListFragment.EXTRA_TITLE, tabInfo.getTitle());
-        b.putInt(TwitterListFragment.EXTRA_MODE, tabInfo.getType());
-        b.putSerializable(TwitterListFragment.EXTRA_USER, tabInfo.getBindAccount());
+        b.putLong(TimelineFragment.EXTRA_ID, tabInfo.getId());
+        b.putString(TimelineFragment.EXTRA_TITLE, tabInfo.getTitle());
+        b.putInt(TimelineFragment.EXTRA_MODE, tabInfo.getType());
+        b.putSerializable(TimelineFragment.EXTRA_USER, tabInfo.getBindAccount());
         fragment.setArguments(b);
 
         return fragment;
@@ -83,10 +83,10 @@ public class TweetListFragmentFactory {
         }
         Bundle b = new Bundle();
         b.putString(TimelineFragment.EXTRA_FILTER_QUERY, query.toString());
-        b.putLong(TwitterListFragment.EXTRA_ID, tabInfo.getId());
-        b.putString(TwitterListFragment.EXTRA_TITLE, tabInfo.getTitle());
-        b.putInt(TwitterListFragment.EXTRA_MODE, tabInfo.getType());
-        b.putSerializable(TwitterListFragment.EXTRA_USER, tabInfo.getBindAccount());
+        b.putLong(TimelineFragment.EXTRA_ID, tabInfo.getId());
+        b.putString(TimelineFragment.EXTRA_TITLE, tabInfo.getTitle());
+        b.putInt(TimelineFragment.EXTRA_MODE, tabInfo.getType());
+        b.putSerializable(TimelineFragment.EXTRA_USER, tabInfo.getBindAccount());
         fragment.setArguments(b);
 
         return fragment;

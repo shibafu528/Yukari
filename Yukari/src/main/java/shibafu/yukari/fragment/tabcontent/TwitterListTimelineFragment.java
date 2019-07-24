@@ -80,9 +80,9 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
 
             TimelineFragment fragment = new TimelineFragment();
             Bundle childArgs = new Bundle();
-            childArgs.putSerializable(TwitterListFragment.EXTRA_USER, user);
-            childArgs.putString(TwitterListFragment.EXTRA_TITLE, title);
-            childArgs.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
+            childArgs.putSerializable(TimelineFragment.EXTRA_USER, user);
+            childArgs.putString(TimelineFragment.EXTRA_TITLE, title);
+            childArgs.putInt(TimelineFragment.EXTRA_MODE, TabType.TABTYPE_LIST);
             childArgs.putString(TimelineFragment.EXTRA_FILTER_QUERY, query.toString());
             fragment.setArguments(childArgs);
 

@@ -33,7 +33,7 @@ public class TraceActivity extends FragmentActivity {
         setContentView(R.layout.activity_parent);
 
         if (savedInstanceState == null) {
-            AuthUserRecord userRecord = (AuthUserRecord) getIntent().getSerializableExtra(TwitterListFragment.EXTRA_USER);
+            AuthUserRecord userRecord = (AuthUserRecord) getIntent().getSerializableExtra(TimelineFragment.EXTRA_USER);
             Status status = (Status) getIntent().getSerializableExtra(EXTRA_TRACE_START);
 
             StringBuilder query = new StringBuilder();
@@ -45,7 +45,7 @@ public class TraceActivity extends FragmentActivity {
 
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
             Bundle args = new Bundle(getIntent().getExtras());
-            args.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
+            args.putInt(TimelineFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
             args.putString(TimelineFragment.EXTRA_FILTER_QUERY, query.toString());
             fragment.setArguments(args);
 
