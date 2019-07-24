@@ -191,7 +191,7 @@ class TwitterApi : ProviderApi {
                     val matcher = PATTERN_TWITTER.matcher(text)
                     if (matcher.find()) {
                         attachmentUrl = matcher.group().trim()
-                        text = matcher.replaceAll(text)
+                        text = matcher.replaceAll("")
                     }
                 }
 
