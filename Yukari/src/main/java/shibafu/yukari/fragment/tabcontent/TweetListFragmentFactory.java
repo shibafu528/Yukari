@@ -13,7 +13,7 @@ public class TweetListFragmentFactory {
     public static Fragment newInstance(int tabType) {
         switch (tabType) {
             case TabType.TABTYPE_BOOKMARK:
-                return new BookmarkListFragment();
+                return new BookmarkTimelineFragment();
             case TabType.TABTYPE_SEARCH:
             case TabType.TABTYPE_TRACK:
             case TabType.TABTYPE_DM:

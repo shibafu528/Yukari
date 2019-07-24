@@ -92,11 +92,12 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
     protected var statusAdapter: TweetAdapter? = null
 
+    // SwipeRefreshLayout
+    protected var swipeRefreshLayout: SwipeRefreshLayout? = null
+        private set
+
     // タイムライン容量制限
     private var statusCapacity: Int = 256
-
-    // SwipeRefreshLayout
-    private var swipeRefreshLayout: SwipeRefreshLayout? = null
 
     private val handler: Handler = Handler(Looper.getMainLooper())
     private val onScrollListeners: MutableList<AbsListView.OnScrollListener> = arrayListOf()
@@ -797,7 +798,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
      * @param status Status
      * @param useScrollLock スクロールロックを使うかどうか
      */
-    private fun insertElement(status: Status, useScrollLock: Boolean) {
+    protected fun insertElement(status: Status, useScrollLock: Boolean) {
         val position = preInsertElement(status)
         when (position) {
             PRE_INSERT_DUPLICATED -> return
@@ -896,7 +897,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
      * @param providerHost 削除対象の [Provider] ホスト名
      * @param id 削除対象のID
      */
-    private fun deleteElement(providerHost: String, id: Long) {
+    protected fun deleteElement(providerHost: String, id: Long) {
         val listView = try {
             listView
         } catch (e: IllegalStateException) {
