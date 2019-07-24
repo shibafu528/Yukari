@@ -10,7 +10,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 
@@ -33,7 +33,7 @@ public class TraceActivity extends FragmentActivity {
         setContentView(R.layout.activity_parent);
 
         if (savedInstanceState == null) {
-            AuthUserRecord userRecord = (AuthUserRecord) getIntent().getSerializableExtra(TweetListFragment.EXTRA_USER);
+            AuthUserRecord userRecord = (AuthUserRecord) getIntent().getSerializableExtra(TwitterListFragment.EXTRA_USER);
             Status status = (Status) getIntent().getSerializableExtra(EXTRA_TRACE_START);
 
             StringBuilder query = new StringBuilder();
@@ -45,7 +45,7 @@ public class TraceActivity extends FragmentActivity {
 
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_TRACE);
             Bundle args = new Bundle(getIntent().getExtras());
-            args.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
+            args.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_TRACE);
             args.putString(TimelineFragment.EXTRA_FILTER_QUERY, query.toString());
             fragment.setArguments(args);
 

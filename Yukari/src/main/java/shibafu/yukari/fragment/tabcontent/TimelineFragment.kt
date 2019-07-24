@@ -131,7 +131,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
         if (context is MainActivity) {
             statuses.addAll(context.getStatusesList(timelineId))
-            context.registerTwitterFragment(arguments!!.getLong(TweetListFragment.EXTRA_ID), this)
+            context.registerTwitterFragment(arguments!!.getLong(TwitterListFragment.EXTRA_ID), this)
         }
     }
 
@@ -237,7 +237,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             val statusesList = (activity as MainActivity).getStatusesList(timelineId)
             statusesList.clear()
             statusesList.addAll(statuses)
-            (activity as MainActivity).unregisterTwitterFragment(arguments!!.getLong(TweetListFragment.EXTRA_ID))
+            (activity as MainActivity).unregisterTwitterFragment(arguments!!.getLong(TwitterListFragment.EXTRA_ID))
         }
     }
 

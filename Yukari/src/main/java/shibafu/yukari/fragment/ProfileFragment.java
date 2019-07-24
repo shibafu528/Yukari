@@ -63,7 +63,6 @@ import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.UserListFragment;
@@ -192,10 +191,10 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
-            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
-            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-            args1.putString(TweetListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
+            args1.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
+            args1.putSerializable(TwitterListFragment.EXTRA_USER, user);
+            args1.putSerializable(TwitterListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TwitterListFragment.EXTRA_TITLE, "Tweets: @" + loadHolder.targetUser.getScreenName());
             args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s/%s\"", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
             fragment.setArguments(args1);
@@ -214,10 +213,10 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                         Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
                         Bundle args1 = new Bundle();
 
-                        args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
-                        args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                        args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                        args1.putString(TweetListFragment.EXTRA_TITLE, "Media: @" + loadHolder.targetUser.getScreenName());
+                        args1.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
+                        args1.putSerializable(TwitterListFragment.EXTRA_USER, user);
+                        args1.putSerializable(TwitterListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                        args1.putString(TwitterListFragment.EXTRA_TITLE, "Media: @" + loadHolder.targetUser.getScreenName());
                         args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from user:\"%s/%s\" where (neq ?media.empty)", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
                         fragment.setArguments(args1);
@@ -239,10 +238,10 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             Fragment fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER);
             Bundle args1 = new Bundle();
 
-            args1.putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
-            args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-            args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-            args1.putString(TweetListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
+            args1.putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER);
+            args1.putSerializable(TwitterListFragment.EXTRA_USER, user);
+            args1.putSerializable(TwitterListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+            args1.putString(TwitterListFragment.EXTRA_TITLE, "Favorites: @" + loadHolder.targetUser.getScreenName());
             args1.putString(TimelineFragment.EXTRA_FILTER_QUERY, String.format("from favorite:\"%s/%s\"", user.ScreenName, loadHolder.targetUser.getScreenName()));
 
             fragment.setArguments(args1);
@@ -837,9 +836,9 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 UserListFragment fragment = new UserListFragment();
                 Bundle args1 = new Bundle();
                 args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
-                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                args1.putString(TweetListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
+                args1.putSerializable(TwitterListFragment.EXTRA_USER, user);
+                args1.putSerializable(TwitterListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                args1.putString(TwitterListFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
                 fragment.setArguments(args1);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
@@ -851,9 +850,9 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 UserListFragment fragment = new UserListFragment();
                 Bundle args1 = new Bundle();
                 args1.putInt(TwitterListFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
-                args1.putSerializable(TweetListFragment.EXTRA_USER, user);
-                args1.putSerializable(TweetListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                args1.putString(TweetListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
+                args1.putSerializable(TwitterListFragment.EXTRA_USER, user);
+                args1.putSerializable(TwitterListFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
+                args1.putString(TwitterListFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
                 fragment.setArguments(args1);
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);

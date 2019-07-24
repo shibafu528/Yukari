@@ -48,8 +48,8 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.common.span.UserProfileSpan
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
-import shibafu.yukari.fragment.tabcontent.TweetListFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
@@ -153,9 +153,9 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
             val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
             fragment.arguments = Bundle().apply {
-                putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
-                putSerializable(TweetListFragment.EXTRA_USER, currentUser)
-                putString(TweetListFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
+                putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
+                putSerializable(TwitterListFragment.EXTRA_USER, currentUser)
+                putString(TwitterListFragment.EXTRA_TITLE, "Toots: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from user:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 
@@ -172,9 +172,9 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
             val fragment = TweetListFragmentFactory.newInstance(TabType.TABTYPE_FILTER)
             fragment.arguments = Bundle().apply {
-                putInt(TweetListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
-                putSerializable(TweetListFragment.EXTRA_USER, currentUser)
-                putString(TweetListFragment.EXTRA_TITLE, "Pinned: @" + user.screenName)
+                putInt(TwitterListFragment.EXTRA_MODE, TabType.TABTYPE_FILTER)
+                putSerializable(TwitterListFragment.EXTRA_USER, currentUser)
+                putString(TwitterListFragment.EXTRA_TITLE, "Pinned: @" + user.screenName)
                 putString(TimelineFragment.EXTRA_FILTER_QUERY, "from don_user_pinned:\"${currentUser.ScreenName}/${user.screenName}\"")
             }
 

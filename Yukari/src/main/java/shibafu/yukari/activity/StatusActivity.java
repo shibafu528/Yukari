@@ -22,7 +22,7 @@ import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
 import shibafu.yukari.fragment.status.StatusMainFragment;
-import shibafu.yukari.fragment.tabcontent.TweetListFragment;
+import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
@@ -134,8 +134,8 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         if (status.getOriginStatus().getInReplyToId() > 0) {
             tweetView.setOnClickListener(v -> {
                 Intent intent = new Intent(getApplicationContext(), TraceActivity.class);
-                intent.putExtra(TweetListFragment.EXTRA_USER, user);
-                intent.putExtra(TweetListFragment.EXTRA_TITLE, "Trace");
+                intent.putExtra(TwitterListFragment.EXTRA_USER, user);
+                intent.putExtra(TwitterListFragment.EXTRA_TITLE, "Trace");
                 intent.putExtra(TraceActivity.EXTRA_TRACE_START, status.getOriginStatus());
                 startActivity(intent);
             });
