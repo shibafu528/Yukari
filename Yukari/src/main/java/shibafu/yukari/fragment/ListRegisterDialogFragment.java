@@ -31,6 +31,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.Provider;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.twitter.AuthUserRecord;
 import twitter4j.PagableResponseList;
@@ -89,7 +90,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         } else {
             throw new RuntimeException("TwitterServiceDelegate cannot find.");
         }
-        currentUser = delegate.getTwitterService().getPrimaryUser();
+        currentUser = delegate.getTwitterService().findPreferredUser(Provider.API_TWITTER);
 
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(ARG_TARGET_USER);
@@ -186,7 +187,9 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     @OnClick(R.id.llMenuAccountParent)
     void onClickTitle() {
-        startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
+        Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
+        intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, Provider.API_TWITTER);
+        startActivityForResult(intent, REQUEST_CHOOSE);
     }
 
     @OnItemClick(R.id.listView)
