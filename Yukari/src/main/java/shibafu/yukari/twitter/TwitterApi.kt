@@ -17,6 +17,7 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.util.putDebugLog
 import twitter4j.CursorSupport
 import twitter4j.StatusUpdate
 import twitter4j.Twitter
@@ -188,10 +189,15 @@ class TwitterApi : ProviderApi {
 
                 // 画像添付なしで、ツイートを引用している場合は1つだけattachmentUrlに移動させる
                 if (mediaList.isEmpty()) {
-                    val matcher = PATTERN_TWITTER.matcher(text)
+                    val matcher = PATTERN_QUOTE.matcher(text)
                     if (matcher.find()) {
-                        attachmentUrl = matcher.group().trim()
-                        text = matcher.replaceAll("")
+                        val matchUrl = matcher.group().trim()
+                        val newText = matcher.replaceAll("")
+                        // 本文が空になってしまうと投稿できないため、その場合はattachmentUrlに移動させない
+                        if (newText.isNotEmpty()) {
+                            attachmentUrl = matchUrl
+                            text = newText
+                        }
                     }
                 }
 
@@ -217,6 +223,8 @@ class TwitterApi : ProviderApi {
 
                 // フラグ付きメディアの設定
                 update.isPossiblySensitive = draft.isPossiblySensitive
+
+                putDebugLog(update.toString())
 
                 val result = twitter.updateStatus(update)
                 val status = TwitterStatus(result, userRecord)
@@ -304,5 +312,6 @@ class TwitterApi : ProviderApi {
 
     companion object {
         private val PATTERN_TWITTER = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\$")
+        private val PATTERN_QUOTE = Pattern.compile("\\shttps?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\$")
     }
 }
