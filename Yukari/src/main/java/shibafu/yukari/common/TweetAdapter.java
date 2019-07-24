@@ -7,8 +7,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 import shibafu.yukari.R;
+import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
@@ -170,6 +172,7 @@ public class TweetAdapter extends BaseAdapter {
 
                 View progressBar = convertView.findViewById(R.id.pbLoading);
                 TextView textView = (TextView) convertView.findViewById(R.id.tvLoading);
+                ImageView ivIcon = convertView.findViewById(R.id.ivLoading);
 
                 if (statusLoader != null && statusLoader.get() != null && statusLoader.get().isRequestWorking(loadMarker.getTaskKey())) {
                     progressBar.setVisibility(View.VISIBLE);
@@ -177,6 +180,13 @@ public class TweetAdapter extends BaseAdapter {
                 } else {
                     progressBar.setVisibility(View.INVISIBLE);
                     textView.setText("more");
+                }
+
+                if (preferences.getBoolean("pref_show_load_more_user", false)) {
+                    ivIcon.setVisibility(View.VISIBLE);
+                    ImageLoaderTask.loadProfileIcon(context, ivIcon, loadMarker.getRepresentUser().ProfileImageUrl);
+                } else {
+                    ivIcon.setVisibility(View.GONE);
                 }
                 break;
         }

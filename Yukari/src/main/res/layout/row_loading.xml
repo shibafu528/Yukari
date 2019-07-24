@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/pbLoading"
         android:visibility="invisible"
-        android:layout_gravity="center" />
+        android:layout_centerInParent="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -19,6 +19,17 @@
         android:text="more"
         android:id="@+id/tvLoading"
         android:textColor="#777"
-        android:layout_gravity="center" />
+        android:layout_centerInParent="true" />
 
-</FrameLayout>
+    <ImageView
+        android:id="@+id/ivLoading"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_toLeftOf="@id/tvLoading"
+        android:layout_toStartOf="@id/tvLoading"
+        android:layout_centerVertical="true"
+        android:visibility="gone"/>
+
+</RelativeLayout>

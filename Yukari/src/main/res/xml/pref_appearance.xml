@@ -83,6 +83,10 @@
             android:key="pref_prev_ignore_censored"
             android:title="メディアの閲覧注意フラグを無視"
             android:summary="ツイートに含まれるメディアに対して閲覧注意フラグが設定されていても、サムネイルを隠さないようにします"/>
+        <CheckBoxPreference
+            android:key="pref_show_load_more_user"
+            android:title="more行に対応するアカウントを表示"
+            android:summary="more行に、それがどのアカウントに対応しているかアイコンで表示します"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="タイムライン (Mastodon)">
         <CheckBoxPreference
