@@ -17,8 +17,6 @@ import android.support.v4.app.RemoteInput;
 import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.widget.Toast;
-import info.shibafu528.yukari.processor.autorelease.AutoRelease;
-import info.shibafu528.yukari.processor.autorelease.AutoReleaser;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -31,7 +29,6 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.CompatUtil;
-import shibafu.yukari.util.Releasable;
 
 import java.io.File;
 import java.util.HashMap;
@@ -40,7 +37,7 @@ import java.util.Map;
 /**
  * Created by shibafu on 2015/07/27.
  */
-public class StatusNotifier implements Releasable {
+public class StatusNotifier {
     private static final String LOG_TAG = "StatusNotifier";
 
     //バイブレーションパターン
@@ -55,13 +52,13 @@ public class StatusNotifier implements Releasable {
     private static final String USER_SE_RETWEET = "se_retweet.wav";
     private static final String USER_SE_FAVORITE = "se_favorite.wav";
 
-    @AutoRelease TwitterService service;
-    @AutoRelease Context context;
-    @AutoRelease Handler handler;
-    @AutoRelease SharedPreferences sharedPreferences;
-    @AutoRelease NotificationManager notificationManager;
-    @AutoRelease AudioManager audioManager;
-    @AutoRelease Vibrator vibrator;
+    private TwitterService service;
+    private Context context;
+    private Handler handler;
+    private SharedPreferences sharedPreferences;
+    private NotificationManager notificationManager;
+    private AudioManager audioManager;
+    private Vibrator vibrator;
 
     private boolean useUserFileOnReply = false;
     private boolean useUserFileOnRetweet = false;
@@ -375,11 +372,6 @@ public class StatusNotifier implements Releasable {
         }
     }
 
-    @Override
-    public void release() {
-        AutoReleaser.release(this);
-    }
-    
     private static class SoundEffects {
         public Uri reply;
         public Uri favorite;

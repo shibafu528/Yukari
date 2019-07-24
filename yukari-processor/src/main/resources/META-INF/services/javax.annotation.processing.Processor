@@ -1,4 +1,3 @@
 info.shibafu528.yukari.processor.messagequeue.MessageQueueProcessor
-info.shibafu528.yukari.processor.autorelease.AutoReleaseProcessor
 info.shibafu528.yukari.processor.database.ContentValuesProcessor
 info.shibafu528.yukari.processor.filter.SourceProcessor
