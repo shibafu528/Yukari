@@ -12,20 +12,16 @@ import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.twitter.statusmanager.UserUpdateDelayer
 import shibafu.yukari.twitter.streaming.AutoReloadStream
 import shibafu.yukari.twitter.streaming.FilterStream
 import shibafu.yukari.twitter.streaming.Stream
 import shibafu.yukari.util.StringUtil
-import twitter4j.DirectMessage
 import twitter4j.Status
 import twitter4j.StatusDeletionNotice
 import twitter4j.Twitter
 import twitter4j.TwitterException
-import twitter4j.User
 
 private const val PUT_STREAM_LOG = false
 
@@ -222,57 +218,6 @@ private class StreamListener(private val timelineId: String,
                              private val hub: TimelineHub,
                              private val api: TwitterApi,
                              private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
-    override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {
-        if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onFavorite: f:%s s:%d", timelineId, from.userRecord.ScreenName, status.id))
-
-        val twitterStatus = TwitterStatus(status, from.userRecord)
-        val twitterUser = TwitterUser(user)
-
-        hub.onFavorite(twitterUser, twitterStatus)
-
-        userUpdateDelayer.enqueue(user)
-    }
-
-    override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {
-        if (PUT_STREAM_LOG) Log.d(LOG_TAG, String.format("[%s] onUnfavorite: f:%s s:%s", timelineId, from.userRecord.ScreenName, status.text))
-
-        val twitterStatus = TwitterStatus(status, from.userRecord)
-        val twitterUser = TwitterUser(user)
-
-        hub.onUnfavorite(twitterUser, twitterStatus)
-
-        userUpdateDelayer.enqueue(user)
-    }
-
-    override fun onFollow(from: Stream, user: User, user2: User) {
-
-    }
-
-    override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {
-        try {
-            val twitter = api.getApiClient(from.userRecord) as Twitter
-            val users = twitter.lookupUsers(directMessage.recipientId, directMessage.senderId)
-            val message = TwitterMessage(directMessage,
-                    users.first { it.id == directMessage.senderId },
-                    users.first { it.id == directMessage.recipientId },
-                    from.userRecord)
-
-            hub.onDirectMessage(timelineId, message, true)
-
-            userUpdateDelayer.enqueue(users)
-        } catch (e: TwitterException) {
-            e.printStackTrace()
-        }
-    }
-
-    override fun onBlock(from: Stream, user: User, user2: User) {
-
-    }
-
-    override fun onUnblock(from: Stream, user: User, user2: User) {
-
-    }
-
     override fun onStatus(from: Stream, status: Status) {
         if (PUT_STREAM_LOG) {
             Log.d(LOG_TAG,
@@ -295,10 +240,6 @@ private class StreamListener(private val timelineId: String,
         hub.onDelete(from.userRecord.Provider.host, statusDeletionNotice.statusId)
     }
 
-    override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {
-        hub.onDelete(from.userRecord.Provider.host, directMessageId)
-    }
-
     companion object {
         private const val LOG_TAG = "StreamListener"
     }
@@ -306,18 +247,6 @@ private class StreamListener(private val timelineId: String,
 
 internal class FilterStreamListener(private val hub: TimelineHub,
                                     private val userUpdateDelayer: UserUpdateDelayer) : shibafu.yukari.twitter.streaming.StreamListener {
-    override fun onFavorite(from: Stream, user: User, user2: User, status: Status) {}
-
-    override fun onUnfavorite(from: Stream, user: User, user2: User, status: Status) {}
-
-    override fun onFollow(from: Stream, user: User, user2: User) {}
-
-    override fun onDirectMessage(from: Stream, directMessage: DirectMessage) {}
-
-    override fun onBlock(from: Stream, user: User, user2: User) {}
-
-    override fun onUnblock(from: Stream, user: User, user2: User) {}
-
     override fun onStatus(from: Stream, status: Status) {
         val filterStream = from as FilterStream
         val text = if (status.isRetweet) status.retweetedStatus.text else status.text
@@ -352,8 +281,6 @@ internal class FilterStreamListener(private val hub: TimelineHub,
     override fun onDelete(from: Stream, statusDeletionNotice: StatusDeletionNotice) {
         hub.onDelete(from.userRecord.Provider.host, statusDeletionNotice.statusId)
     }
-
-    override fun onDeletionNotice(from: Stream, directMessageId: Long, userId: Long) {}
 
     companion object {
         private const val TIMELINE_ID = "TwitterStream.FilterStream"
