@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -31,12 +34,47 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
     private var mode: Int = -1
     private var targetUserId: Long = -1
 
+    private lateinit var addMenu: MenuItem
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val arguments = arguments ?: Bundle.EMPTY
         mode = arguments.getInt(EXTRA_MODE, -1)
         targetUserId = arguments.getLong(EXTRA_TARGET_USER_ID, -1)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        if (menu != null) {
+            addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "新規作成")
+                    .setIcon(R.drawable.ic_action_add)
+                    .setVisible(false)
+            addMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.action_add -> {
+                val fragment = UserListEditDialogFragment.newInstance(currentUser, DIALOG_REQUEST_CREATE)
+                fragment.setTargetFragment(this, DIALOG_REQUEST_CREATE)
+                fragment.show(requireFragmentManager(), "new")
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        if (mode == MODE_FOLLOWING && targetUserId == currentUser.NumericId) {
+            addMenu.isVisible = true
+        }
     }
 
     override fun createListAdapter(): ArrayAdapter<UserList> = UserListAdapter(requireContext(), elements)
@@ -135,6 +173,8 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
 
         private const val EXTRA_MODE = "mode"
         private const val EXTRA_TARGET_USER_ID = "targetUserId"
+
+        private const val DIALOG_REQUEST_CREATE = 1
 
         @JvmStatic
         fun newFollowingListInstance(user: AuthUserRecord, title: String, targetUserId: Long): TwitterListFragment {
