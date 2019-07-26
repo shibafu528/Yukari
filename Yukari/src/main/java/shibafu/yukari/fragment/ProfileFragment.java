@@ -64,8 +64,6 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
-import shibafu.yukari.fragment.tabcontent.UserListFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -833,13 +831,10 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_following_list: {
-                UserListFragment fragment = new UserListFragment();
-                Bundle args1 = new Bundle();
-                args1.putInt(TimelineFragment.EXTRA_MODE, UserListFragment.MODE_FOLLOWING);
-                args1.putSerializable(TimelineFragment.EXTRA_USER, user);
-                args1.putSerializable(TimelineFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                args1.putString(TimelineFragment.EXTRA_TITLE, "Lists: @" + loadHolder.targetUser.getScreenName());
-                fragment.setArguments(args1);
+                TwitterListFragment fragment = TwitterListFragment.newFollowingListInstance(
+                        user,
+                        "Lists: @" + loadHolder.targetUser.getScreenName(),
+                        loadHolder.targetUser.getId());
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);
@@ -847,13 +842,10 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_membership_list: {
-                UserListFragment fragment = new UserListFragment();
-                Bundle args1 = new Bundle();
-                args1.putInt(TimelineFragment.EXTRA_MODE, UserListFragment.MODE_MEMBERSHIP);
-                args1.putSerializable(TimelineFragment.EXTRA_USER, user);
-                args1.putSerializable(TimelineFragment.EXTRA_SHOW_USER, loadHolder.targetUser);
-                args1.putString(TimelineFragment.EXTRA_TITLE, "Listed: @" + loadHolder.targetUser.getScreenName());
-                fragment.setArguments(args1);
+                TwitterListFragment fragment = TwitterListFragment.newMembershipListInstance(
+                        user,
+                        "Listed: @" + loadHolder.targetUser.getScreenName(),
+                        loadHolder.targetUser.getId());
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 transaction.replace(R.id.frame, fragment, ProfileActivity.FRAGMENT_TAG_CONTENT);
                 transaction.addToBackStack(null);
