@@ -64,10 +64,8 @@ import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.streaming.FilterStream;
-import shibafu.yukari.util.ReferenceHolder;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterResponse;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -101,9 +99,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private Fragment currentPage;
     private ArrayList<TabInfo> pageList = new ArrayList<>();
     private Map<String, List<Status>> pageStatuses = new ArrayMap<>();
-    private Map<Long, ArrayList<? extends TwitterResponse>> pageElements = new ArrayMap<>();
-    private Map<Long, LongSparseArray<Long>> lastStatusIdsArrays = new ArrayMap<>();
-    private Map<Long, ReferenceHolder<twitter4j.Query>> searchQueries = new ArrayMap<>();
     @BindView(R.id.tvMainTab)     TextView tvTabText;
     @BindView(R.id.pager)         ViewPager viewPager;
     @BindView(R.id.ibClose)       ImageButton ibClose;
@@ -465,15 +460,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         viewPager = null;
         sharedPreferences = null;
 
-        for (ArrayList<? extends TwitterResponse> list : pageElements.values()) {
-            list.clear();
-        }
-        pageElements.clear();
-        for (LongSparseArray<Long> array : lastStatusIdsArrays.values()) {
-            array.clear();
-        }
-        lastStatusIdsArrays.clear();
-        searchQueries.clear();
+        pageStatuses.clear();
     }
 
     @Override
@@ -842,27 +829,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             pageStatuses.put(id, new ArrayList<>());
         }
         return pageStatuses.get(id);
-    }
-
-    public <T extends TwitterResponse> ArrayList<T> getElementsList(long id) {
-        if (!pageElements.containsKey(id)) {
-            pageElements.put(id, new ArrayList<T>());
-        }
-        return (ArrayList<T>) pageElements.get(id);
-    }
-
-    public LongSparseArray<Long> getLastStatusIdsArray(long id) {
-        if (!lastStatusIdsArrays.containsKey(id)) {
-            lastStatusIdsArrays.put(id, new LongSparseArray<>());
-        }
-        return lastStatusIdsArrays.get(id);
-    }
-
-    public ReferenceHolder<twitter4j.Query> getSearchQuery(long id) {
-        if (!searchQueries.containsKey(id)) {
-            searchQueries.put(id, new ReferenceHolder<>());
-        }
-        return searchQueries.get(id);
     }
 
     public void registerTwitterFragment(long id, Fragment fragment) {
