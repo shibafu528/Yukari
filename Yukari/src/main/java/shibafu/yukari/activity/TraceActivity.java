@@ -10,7 +10,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.twitter.AuthUserRecord;
 

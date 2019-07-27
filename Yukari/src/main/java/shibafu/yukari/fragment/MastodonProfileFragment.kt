@@ -49,7 +49,6 @@ import shibafu.yukari.common.span.UserProfileSpan
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.AttrUtil

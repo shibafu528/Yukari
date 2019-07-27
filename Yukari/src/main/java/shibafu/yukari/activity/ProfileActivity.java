@@ -22,7 +22,6 @@ import shibafu.yukari.fragment.ProfileFragment;
 import shibafu.yukari.fragment.base.AbstractPaginateListFragment;
 import shibafu.yukari.fragment.base.AbstractUserListFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
-import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
@@ -71,7 +70,6 @@ public class ProfileActivity extends AppCompatActivity {
             if (manager.getBackStackEntryCount() > 0 && (
                     f instanceof TimelineFragment ||
                             f instanceof TwitterListTimelineFragment ||
-                            f instanceof TwitterListFragment ||
                             f instanceof AbstractUserListFragment ||
                             f instanceof AbstractPaginateListFragment
             )) {

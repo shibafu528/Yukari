@@ -207,7 +207,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         onScrollListeners.add(unreadNotifierBehavior)
         onScrollListeners.add(object : AbsListView.OnScrollListener {
             override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-                if (TwitterListFragment.USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollTimestamp = ${lockedTarget?.createdAt?.time ?: -1}, y = $lockedYPosition")
+                if (USE_INSERT_LOG) putDebugLog("onScroll called, lockedScrollTimestamp = ${lockedTarget?.createdAt?.time ?: -1}, y = $lockedYPosition")
             }
 
             override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {
