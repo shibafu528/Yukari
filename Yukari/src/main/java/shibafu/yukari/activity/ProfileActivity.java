@@ -19,6 +19,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.MastodonProfileFragment;
 import shibafu.yukari.fragment.ProfileFragment;
+import shibafu.yukari.fragment.base.AbstractPaginateListFragment;
 import shibafu.yukari.fragment.base.AbstractUserListFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListFragment;
@@ -67,7 +68,13 @@ public class ProfileActivity extends AppCompatActivity {
         final FragmentManager manager = getSupportFragmentManager();
         manager.addOnBackStackChangedListener(() -> {
             Fragment f = manager.findFragmentByTag(FRAGMENT_TAG_CONTENT);
-            if (manager.getBackStackEntryCount() > 0 && (f instanceof TimelineFragment || f instanceof TwitterListTimelineFragment || f instanceof TwitterListFragment || f instanceof AbstractUserListFragment)) {
+            if (manager.getBackStackEntryCount() > 0 && (
+                    f instanceof TimelineFragment ||
+                            f instanceof TwitterListTimelineFragment ||
+                            f instanceof TwitterListFragment ||
+                            f instanceof AbstractUserListFragment ||
+                            f instanceof AbstractPaginateListFragment
+            )) {
                 actionBar.show();
             }
             else {
