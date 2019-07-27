@@ -106,6 +106,12 @@ abstract class AbstractPaginateListFragment<T, PC : AbstractPaginateListFragment
 
     protected abstract suspend fun takeNextPageAsync(cursor: PC?): Deferred<Pair<List<T>, PC?>?>
 
+    protected fun refresh() {
+        elements.clear()
+        (listAdapter as ArrayAdapter<*>).notifyDataSetChanged()
+        takeNextPage(null)
+    }
+
     private fun takeNextPage(cursor: PC?) {
         launch {
             changeFooterProgress(true)
