@@ -566,7 +566,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             when (style) {
                 0 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " RT @${status.originStatus.user.screenName}: ${status.originStatus.text}")
                 1 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " QT @${status.originStatus.user.screenName}: ${status.originStatus.text}")
-                2 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " " + status.url)
+                2 -> intent.putExtra(TweetActivity.EXTRA_TEXT, " " + status.originStatus.url)
             }
             startActivityForResult(intent, REQUEST_QUOTE)
         } else {
