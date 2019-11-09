@@ -65,7 +65,7 @@ public class MediaFactory {
                 media = new Nijie(browseUrl);
             } else if (browseUrl.contains("photozou.jp")) {
                 media = new Photozou(browseUrl);
-            } else if (browseUrl.contains("pixiv.net/member_illust.php")) {
+            } else if (browseUrl.contains("pixiv.net/member_illust.php") || browseUrl.contains("pixiv.net/artworks/")) {
                 media = new Pixiv(browseUrl);
             } else if (RouterCake.ORIGIN_URL.equals(browseUrl)) {
                 media = new RouterCake(browseUrl);
