@@ -39,6 +39,11 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
         loadBookmark()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
+
     private fun loadBookmark() = launch {
         swipeRefreshLayout?.isRefreshing = true
 
