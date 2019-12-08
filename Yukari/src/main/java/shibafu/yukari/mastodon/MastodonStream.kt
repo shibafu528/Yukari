@@ -150,7 +150,7 @@ private class UserStreamChannel(private val service: TwitterService, override va
 
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = retryUntilConnect { streaming.user(handler) }
+            shutdownable = retryUntilConnect("${MastodonStream.USER_STREAM_ID}@${userRecord.ScreenName}") { streaming.user(handler) }
         }
         isRunning = true
     }
@@ -178,7 +178,7 @@ private class PublicStreamChannel(private val service: TwitterService, override 
 
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = retryUntilConnect { streaming.federatedPublic(handler) }
+            shutdownable = retryUntilConnect("${MastodonStream.PUBLIC_STREAM_ID}@${userRecord.ScreenName}") { streaming.federatedPublic(handler) }
         }
         isRunning = true
     }
@@ -206,7 +206,7 @@ private class LocalStreamChannel(private val service: TwitterService, override v
 
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = retryUntilConnect { streaming.localPublic(handler) }
+            shutdownable = retryUntilConnect("${MastodonStream.LOCAL_STREAM_ID}@${userRecord.ScreenName}") { streaming.localPublic(handler) }
         }
         isRunning = true
     }
@@ -237,7 +237,7 @@ private class HashTagStreamChannel(private val service: TwitterService,
 
             val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
             val streaming = Streaming(client)
-            shutdownable = retryUntilConnect {
+            shutdownable = retryUntilConnect("${MastodonStream.HASHTAG_STREAM_ID}@${userRecord.ScreenName}") {
                 when (scope) {
                     MastodonStream.Scope.FEDERATED -> streaming.federatedHashtag(tag, handler)
                     MastodonStream.Scope.LOCAL -> streaming.localHashtag(tag, handler)
@@ -349,9 +349,10 @@ private class StreamHandler(private val timelineId: String,
 
 /**
  * Mastodonのストリーミング接続用ヘルパーメソッド。接続に成功するまで時間を置いてリトライします。
+ * @param tag ログ識別用のタグ
  * @param connector Streaming APIへの接続処理。単に [Streaming.user] などの呼出。
  */
-private inline fun retryUntilConnect(connector: () -> Shutdownable): Shutdownable {
+private inline fun retryUntilConnect(tag: String, connector: () -> Shutdownable): Shutdownable {
     var timeToSleep = 10000L
 
     while (true) {
@@ -359,9 +360,13 @@ private inline fun retryUntilConnect(connector: () -> Shutdownable): Shutdownabl
             return connector()
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
+            val res = e.response
+            if (res != null) {
+                Log.d("MastodonStream", "$tag: Response dump ->\n$res")
+            }
         }
 
-        Log.d("MastodonStream", "Failed to connect to stream api. Waiting for $timeToSleep milliseconds.")
+        Log.d("MastodonStream", "$tag: Failed to connect to stream api. Waiting for $timeToSleep milliseconds.")
         Thread.sleep(timeToSleep)
         timeToSleep = minOf(timeToSleep * 2, 60000L)
     }
