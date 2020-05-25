@@ -74,9 +74,13 @@ public class TweetListFragmentFactory {
                         .append("\"");
                 break;
             case TabType.TABTYPE_LIST:
-                query.append("from list:\"")
-                        .append(tabInfo.getBindAccount().ScreenName).append("/")
-                        .append(tabInfo.getBindListId()).append("\"");
+                if (tabInfo.getBindAccount() == null) {
+                    query.append("where (nil)");
+                } else {
+                    query.append("from list:\"")
+                            .append(tabInfo.getBindAccount().ScreenName).append("/")
+                            .append(tabInfo.getBindListId()).append("\"");
+                }
                 break;
             default:
                 return newInstance(tabInfo);
