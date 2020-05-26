@@ -4,7 +4,9 @@ import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
+import android.util.Log
 import android.widget.Toast
+import com.deploygate.sdk.DeployGate
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
@@ -26,6 +28,8 @@ import twitter4j.TwitterException
 import twitter4j.TwitterFactory
 import twitter4j.UploadedMedia
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
@@ -97,7 +101,16 @@ class TwitterApi : ProviderApi {
         if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
             twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.twitterAccessToken))
         }
-        return twitterInstances.get(userRecord.NumericId)
+
+        val twitter = twitterInstances.get(userRecord.NumericId)
+        if (twitter?.oAuthAccessToken?.userId != userRecord.NumericId) {
+            val sw = StringWriter()
+            sw.write("TwitterインスタンスキャッシュのAccessTokenと、要求しているアカウントのUserIDが一致しません!\n")
+            Throwable().printStackTrace(PrintWriter(sw))
+            DeployGate.logError(sw.toString())
+            Log.w(javaClass.simpleName, sw.toString())
+        }
+        return twitter
     }
 
     override fun getPostValidator(userRecord: AuthUserRecord): PostValidator {
