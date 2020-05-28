@@ -86,7 +86,9 @@ class TwitterApi : ProviderApi {
     }
 
     override fun onDestroy() {
-        twitterInstances.clear()
+        synchronized(twitterInstances) {
+            twitterInstances.clear()
+        }
     }
 
     override fun getApiClient(userRecord: AuthUserRecord?): Any? {
@@ -98,19 +100,21 @@ class TwitterApi : ProviderApi {
             return null
         }
 
-        if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
-            twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.twitterAccessToken))
-        }
+        return synchronized(twitterInstances) {
+            if (twitterInstances.indexOfKey(userRecord.NumericId) < 0) {
+                twitterInstances.put(userRecord.NumericId, twitterFactory.getInstance(userRecord.twitterAccessToken))
+            }
 
-        val twitter = twitterInstances.get(userRecord.NumericId)
-        if (twitter?.oAuthAccessToken?.userId != userRecord.NumericId) {
-            val sw = StringWriter()
-            sw.write("TwitterインスタンスキャッシュのAccessTokenと、要求しているアカウントのUserIDが一致しません!\n")
-            Throwable().printStackTrace(PrintWriter(sw))
-            DeployGate.logError(sw.toString())
-            Log.w(javaClass.simpleName, sw.toString())
+            twitterInstances.get(userRecord.NumericId).also {
+                if (it?.oAuthAccessToken?.userId != userRecord.NumericId) {
+                    val sw = StringWriter()
+                    sw.write("TwitterインスタンスキャッシュのAccessTokenと、要求しているアカウントのUserIDが一致しません!\n")
+                    Throwable().printStackTrace(PrintWriter(sw))
+                    DeployGate.logError(sw.toString())
+                    Log.w(javaClass.simpleName, sw.toString())
+                }
+            }
         }
-        return twitter
     }
 
     override fun getPostValidator(userRecord: AuthUserRecord): PostValidator {
