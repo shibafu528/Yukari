@@ -4,9 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
-import android.util.Log
 import android.widget.Toast
-import com.deploygate.sdk.DeployGate
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import shibafu.yukari.database.Provider
@@ -28,8 +26,6 @@ import twitter4j.TwitterException
 import twitter4j.TwitterFactory
 import twitter4j.UploadedMedia
 import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
 import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
@@ -107,11 +103,7 @@ class TwitterApi : ProviderApi {
 
             twitterInstances.get(userRecord.NumericId).also {
                 if (it?.oAuthAccessToken?.userId != userRecord.NumericId) {
-                    val sw = StringWriter()
-                    sw.write("TwitterインスタンスキャッシュのAccessTokenと、要求しているアカウントのUserIDが一致しません!\n")
-                    Throwable().printStackTrace(PrintWriter(sw))
-                    DeployGate.logError(sw.toString())
-                    Log.w(javaClass.simpleName, sw.toString())
+                    throw InstanceCacheBrokenException()
                 }
             }
         }
@@ -331,4 +323,6 @@ class TwitterApi : ProviderApi {
         private val PATTERN_TWITTER = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\$")
         private val PATTERN_QUOTE = Pattern.compile("\\shttps?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?\$")
     }
+
+    class InstanceCacheBrokenException : Exception("TwitterインスタンスキャッシュのAccessTokenと、要求しているアカウントのUserIDが一致しません!")
 }
