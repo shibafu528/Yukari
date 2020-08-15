@@ -357,6 +357,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             R.id.ibSearch, R.id.ibMenu, R.id.ibClose, R.id.ibStream, R.id.ivTweet,
             R.id.ibCloseTweet, R.id.ibAccount, R.id.etTweetInput, R.id.ibTweet})
     boolean onTouchFooter(View v, MotionEvent event) {
+        if (sharedPreferences.getBoolean("pref_show_tweetbutton", false) && sharedPreferences.getBoolean("pref_disable_tweet_gesture", false)) {
+            return v.getId() == R.id.tweetgesture;
+        }
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 tweetGestureYStart = event.getY();

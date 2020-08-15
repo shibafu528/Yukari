@@ -48,6 +48,11 @@
             android:key="pref_show_tweetbutton"
             android:title="投稿ボタンを表示"
             android:summary="投稿画面を呼び出すボタンを表示します"/>
+        <CheckBoxPreference
+            android:key="pref_disable_tweet_gesture"
+            android:title="ツイートジェスチャーを無効化"
+            android:summary="ツイート画面をスライドで開くジェスチャーを無効にします\n投稿ボタンを表示している場合に限り設定できます"
+            android:dependency="pref_show_tweetbutton"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="タイムライン">
         <CheckBoxPreference
