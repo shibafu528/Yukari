@@ -66,4 +66,9 @@
     <string name="notification_channel_id_error">Error</string>
     <string name="notification_channel_id_core_service">CoreService</string>
     <string name="notification_channel_id_async_action">AsyncAction</string>
+
+    <string name="mastodon_status_visibility_public">公開</string>
+    <string name="mastodon_status_visibility_unlisted">未収載</string>
+    <string name="mastodon_status_visibility_private">フォロワー限定</string>
+    <string name="mastodon_status_visibility_direct">ダイレクト</string>
 </resources>

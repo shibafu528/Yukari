@@ -792,28 +792,28 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             public void onClick(View v) {
                 PopupMenu menu = new PopupMenu(TweetActivity.this, v);
 
-                MenuItem publicItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PUBLIC.ordinal(), Menu.NONE, "公開");
+                MenuItem publicItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PUBLIC.ordinal(), Menu.NONE, R.string.mastodon_status_visibility_public);
                 if (usingDarkTheme) {
                     publicItem.setIcon(R.drawable.ic_visibility_public_light);
                 } else {
                     publicItem.setIcon(R.drawable.ic_visibility_public_dark);
                 }
 
-                MenuItem unlistedItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.UNLISTED.ordinal(), Menu.NONE, "未収載");
+                MenuItem unlistedItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.UNLISTED.ordinal(), Menu.NONE, R.string.mastodon_status_visibility_unlisted);
                 if (usingDarkTheme) {
                     unlistedItem.setIcon(R.drawable.ic_visibility_unlisted_light);
                 } else {
                     unlistedItem.setIcon(R.drawable.ic_visibility_unlisted_dark);
                 }
 
-                MenuItem privateItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PRIVATE.ordinal(), Menu.NONE, "非公開");
+                MenuItem privateItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.PRIVATE.ordinal(), Menu.NONE, R.string.mastodon_status_visibility_private);
                 if (usingDarkTheme) {
                     privateItem.setIcon(R.drawable.ic_visibility_private_light);
                 } else {
                     privateItem.setIcon(R.drawable.ic_visibility_private_dark);
                 }
 
-                MenuItem directItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.DIRECT.ordinal(), Menu.NONE, "ダイレクト");
+                MenuItem directItem = menu.getMenu().add(Menu.NONE, StatusDraft.Visibility.DIRECT.ordinal(), Menu.NONE, R.string.mastodon_status_visibility_direct);
                 if (usingDarkTheme) {
                     directItem.setIcon(R.drawable.ic_visibility_direct_light);
                 } else {

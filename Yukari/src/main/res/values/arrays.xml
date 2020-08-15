@@ -276,10 +276,10 @@
     </string-array>
 
     <string-array name="pref_toot_visibility_default_entries">
-        <item>公開</item>
-        <item>未収載</item>
-        <item>非公開</item>
-        <item>ダイレクト</item>
+        <item>@string/mastodon_status_visibility_public</item>
+        <item>@string/mastodon_status_visibility_unlisted</item>
+        <item>@string/mastodon_status_visibility_private</item>
+        <item>@string/mastodon_status_visibility_direct</item>
     </string-array>
 
     <string-array name="pref_toot_visibility_default_values">
