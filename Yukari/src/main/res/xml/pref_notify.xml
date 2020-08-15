@@ -1,41 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <shibafu.yukari.common.NotificationPreference
-        android:key="pref_notif_mention"
-        android:title="メンション通知"
-        android:summary="返信(@ツイート)を受信した際に通知します"
-        android:defaultValue="5"/>
-    <shibafu.yukari.common.NotificationPreference
-        android:key="pref_notif_rt"
-        android:title="リツイート通知"
-        android:summary="リツイートされた際に通知します"
-        android:defaultValue="5"/>
-    <shibafu.yukari.common.NotificationPreference
-        android:key="pref_notif_fav"
-        android:title="お気に入り通知"
-        android:summary="ツイートがお気に入りに追加された際に通知します"
-        android:defaultValue="5"/>
-    <shibafu.yukari.common.NotificationPreference
-        android:key="pref_notif_dm"
-        android:title="メッセージ通知"
-        android:summary="ダイレクトメッセージを受信した際に通知します"
-        android:defaultValue="5"/>
-    <shibafu.yukari.common.NotificationPreference
-        android:key="pref_notif_respond"
-        android:title="RTレスポンス通知"
-        android:summary="RTに対する反応を受信した際に通知します"
-        android:defaultValue="0"/>
-    <CheckBoxPreference
-        android:key="pref_notif_connectivity"
-        android:title="ストリーミング通信状態通知"
-        android:summary="ストリーミングに接続・切断された時にメッセージを表示します"
-        android:defaultValue="true"/>
     <Preference
-        android:key="pref_notif_system_config"
-        android:title="システムの通知設定を開く"
-        android:summary="Android 8.0以降ではシステムの通知設定からカスタマイズできます。"/>
-    <CheckBoxPreference
-        android:key="pref_notif_per_account_channel"
-        android:title="アカウント別の通知設定を使う"
-        android:summary="システムの通知設定の項目を、アカウント別に分割します。\nアカウントごとに細かな設定を行えるようになります。\n(※Android 8.0以上のみ有効)"/>
+        android:title="⚠️ 通知機能に関する注意"
+        android:summary="ほとんどの通知はMastodonアカウントでのみ機能します。Twitterアカウントではご利用いただけません。"
+        android:selectable="false"/>
+    <PreferenceCategory android:title="通知のカスタマイズ">
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_mention"
+            android:title="メンション通知"
+            android:summary="返信(@ツイート)を受信した際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_rt"
+            android:title="リツイート通知"
+            android:summary="リツイートされた際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_fav"
+            android:title="お気に入り通知"
+            android:summary="ツイートがお気に入りに追加された際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_dm"
+            android:title="メッセージ通知"
+            android:summary="ダイレクトメッセージを受信した際に通知します"
+            android:defaultValue="5"/>
+        <shibafu.yukari.common.NotificationPreference
+            android:key="pref_notif_respond"
+            android:title="RTレスポンス通知"
+            android:summary="RTに対する反応を受信した際に通知します"
+            android:defaultValue="0"/>
+        <CheckBoxPreference
+            android:key="pref_notif_connectivity"
+            android:title="ストリーミング通信状態通知"
+            android:summary="ストリーミングに接続・切断された時にメッセージを表示します"
+            android:defaultValue="true"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Android 8.0以降向けの設定">
+        <Preference
+            android:key="pref_notif_system_config"
+            android:title="システムの通知設定を開く"
+            android:summary="Android 8.0以降ではシステムの通知設定からカスタマイズできます。"/>
+        <CheckBoxPreference
+            android:key="pref_notif_per_account_channel"
+            android:title="アカウント別の通知設定を使う"
+            android:summary="システムの通知設定の項目を、アカウント別に分割します。\nアカウントごとに細かな設定を行えるようになります。\n(※Android 8.0以上のみ有効)"/>
+    </PreferenceCategory>
 </PreferenceScreen>
