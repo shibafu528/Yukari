@@ -76,8 +76,8 @@
             android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
         <CheckBoxPreference
             android:key="pref_extended_touch_event"
-            android:title="TLタッチ拡張"
-            android:summary="TL上のタッチイベントを増やします"/>
+            android:title="サムネイルをタップしてプレビュー"
+            android:summary="TL上のサムネイルをタップしたらプレビュー画面を表示できるようにします\n(旧称: TLタッチ拡張)"/>
         <CheckBoxPreference
             android:key="pref_force_http1"
             android:title="http1.1を優先使用"
