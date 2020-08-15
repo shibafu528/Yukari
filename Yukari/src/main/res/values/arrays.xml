@@ -275,4 +275,18 @@
         <item>open_thread</item>
     </string-array>
 
+    <string-array name="pref_toot_visibility_default_entries">
+        <item>公開</item>
+        <item>未収載</item>
+        <item>非公開</item>
+        <item>ダイレクト</item>
+    </string-array>
+
+    <string-array name="pref_toot_visibility_default_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
 </resources>

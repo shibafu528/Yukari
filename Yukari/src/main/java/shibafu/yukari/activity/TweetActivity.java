@@ -547,6 +547,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 可視性の設定
+        try {
+            setVisibility(Integer.parseInt(sp.getString("pref_toot_visibility_default", "0")));
+        } catch (NumberFormatException ignored) {}
         if (args.hasExtra(EXTRA_VISIBILITY)) {
             setVisibility(args.getIntExtra(EXTRA_VISIBILITY, StatusDraft.Visibility.PUBLIC.ordinal()));
         }
