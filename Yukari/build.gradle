@@ -201,13 +201,9 @@ dependencies {
 
     // プラグインシステム
     if (getProperty("yukari.exvoice.build").toBoolean()) {
-        implementation project(':yukari-exvoice'), {
-            exclude group: 'org.twitter4j', module: 'twitter4j-core'
-        }
+        implementation project(':yukari-exvoice')
     } else {
-        implementation 'info.shibafu528.yukari:yukari-exvoice:20180820.221014', {
-            exclude group: 'org.twitter4j', module: 'twitter4j-core'
-        }
+        implementation 'info.shibafu528.yukari:yukari-exvoice:20200829.181200'
     }
 
     // Annotation Processor
@@ -230,6 +226,7 @@ dependencies {
 
     // いろいろ
     implementation 'com.annimon:stream:1.0.8'
+    implementation 'com.google.guava:guava:22.0-android'
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
     implementation 'org.eclipse.collections:eclipse-collections:7.1.0'
     implementation 'com.jakewharton.threetenabp:threetenabp:1.2.0'

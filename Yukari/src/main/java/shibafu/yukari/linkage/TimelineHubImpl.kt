@@ -6,7 +6,6 @@ import android.net.Uri
 import android.preference.PreferenceManager
 import android.support.v4.util.LongSparseArray
 import android.support.v4.util.LruCache
-import info.shibafu528.yukari.exvoice.converter.StatusConverter
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -25,6 +24,7 @@ import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
+import shibafu.yukari.util.StatusConverter
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
 import twitter4j.Twitter
