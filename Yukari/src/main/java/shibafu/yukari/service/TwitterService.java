@@ -65,6 +65,7 @@ import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
+import shibafu.yukari.plugin.VirtualWorldPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
@@ -271,6 +272,7 @@ public class TwitterService extends Service{
             Miquire.loadAll(mRuby);
             // Javaプラグインのロード
             mRuby.registerPlugin(AndroidCompatPlugin.class);
+            mRuby.registerPlugin(VirtualWorldPlugin.class);
             // ユーザプラグインのロード
             // TODO: ホワイトリストが必要だよねー
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
