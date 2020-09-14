@@ -203,7 +203,7 @@ dependencies {
     if (getProperty("yukari.exvoice.build").toBoolean()) {
         implementation project(':yukari-exvoice')
     } else {
-        implementation 'info.shibafu528.yukari:yukari-exvoice:20200829.181200'
+        implementation 'info.shibafu528.yukari:yukari-exvoice:20200914.000937'
     }
 
     // Annotation Processor
