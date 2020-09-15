@@ -33,6 +33,9 @@ import android.support.v4.util.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
 import info.shibafu528.yukari.exvoice.MRuby;
+import info.shibafu528.yukari.exvoice.miquire.Miquire;
+import info.shibafu528.yukari.exvoice.miquire.MiquireResult;
+import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.Response;
@@ -62,6 +65,7 @@ import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
+import shibafu.yukari.plugin.VirtualWorldPlugin;
 import shibafu.yukari.twitter.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
@@ -115,7 +119,6 @@ public class TwitterService extends Service{
 
     //MRuby VM
     private MRuby mRuby;
-    private Thread mRubyThread;
     private StringBuffer mRubyStdOut = new StringBuffer();
     private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
 
@@ -265,9 +268,11 @@ public class TwitterService extends Service{
                 mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": ").append(value).append("\n");
             });
             // ブートストラップの実行およびバンドルRubyプラグインのロード
-            mRuby.loadString("Android.require_assets 'bootstrap.rb'");
+            mRuby.requireAssets("bootstrap.rb");
+            Miquire.loadAll(mRuby);
             // Javaプラグインのロード
             mRuby.registerPlugin(AndroidCompatPlugin.class);
+            mRuby.registerPlugin(VirtualWorldPlugin.class);
             // ユーザプラグインのロード
             // TODO: ホワイトリストが必要だよねー
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
@@ -279,27 +284,19 @@ public class TwitterService extends Service{
                     if (!pluginDir.exists()) {
                         pluginDir.mkdirs();
                     }
-                    // プラグインファイルを探索してロード
-                    com.annimon.stream.Stream.of(pluginDir.listFiles(pathname -> pathname.isFile() && pathname.getName().endsWith(".rb")))
-                            .forEach(value -> {
-                                mRuby.printStringCallback("Require: " + value.getAbsolutePath());
-                                mRuby.loadString("require '" + value.getAbsolutePath() + "'");
-                            });
+                    Miquire.appendLoadPath(mRuby, pluginDir.getAbsolutePath());
+                    MiquireResult result = Miquire.loadAll(mRuby);
+                    if (result.getFailure().length > 0) {
+                        StringBuilder sb = new StringBuilder("プラグインの読み込みに失敗しました:");
+                        for (String slug : result.getFailure()) {
+                            sb.append("\n");
+                            sb.append(slug);
+                        }
+                        showToast(sb.toString());
+                    }
                 }
             }
-            // クロックの供給開始
-            mRubyThread = new Thread(() -> {
-                try {
-                    //noinspection InfiniteLoopStatement
-                    while (true) {
-                        mRuby.callTopLevelProc("tick");
-                        Thread.sleep(500);
-                    }
-                } catch (InterruptedException e) {
-                    Log.d("ExVoiceRunner", "Interrupt!");
-                }
-            }, "ExVoiceRunner");
-            mRubyThread.start();
+            Plugin.call(mRuby, "boot");
         }
 
         //mikutter更新通知
@@ -370,10 +367,6 @@ public class TwitterService extends Service{
         database.close();
         database = null;
 
-        if (mRubyThread != null) {
-            mRubyThread.interrupt();
-            mRubyThread = null;
-        }
         if (mRuby != null) {
             mRuby.close();
             mRuby = null;

@@ -41,6 +41,7 @@ ext {
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
+    exvoiceVersion = '20200915.230759'
 
     y4aVersionMajor = 3
     y4aVersionMinor = 0
@@ -203,7 +204,7 @@ dependencies {
     if (getProperty("yukari.exvoice.build").toBoolean()) {
         implementation project(':yukari-exvoice')
     } else {
-        implementation 'info.shibafu528.yukari:yukari-exvoice:20200829.181200'
+        implementation "info.shibafu528.yukari:yukari-exvoice:$exvoiceVersion"
     }
 
     // Annotation Processor

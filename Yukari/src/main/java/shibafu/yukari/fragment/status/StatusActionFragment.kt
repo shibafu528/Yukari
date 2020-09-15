@@ -313,6 +313,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 val status = this@StatusActionFragment.status
 
                 val extra = mapOf<String, String>(
+                        "url" to status.url.orEmpty(),
                         "id" to status.id.toString(),
                         "created_at" to status.createdAt.time.toString(),
                         "user_screen_name" to status.user.screenName,
