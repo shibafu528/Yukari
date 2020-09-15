@@ -7,18 +7,6 @@ module Yukari
   end
 end
 
-unless Diva::Model(:twitter_tweet)
-  class Message
-    register :twitter_tweet, name: 'Tweet'
-  end
-end
-
-unless Diva::Model(:twitter_user)
-  class User
-    register :twitter_user, name: 'Twitter User'
-  end
-end
-
 Plugin.create :yukari do
   vworld = Yukari::World.new({})
 

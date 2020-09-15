@@ -35,7 +35,7 @@ class VirtualWorldPlugin(mRuby: MRuby) : Plugin(mRuby, "yukari") {
         val intent = Intent(context, TweetActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-            putExtra(TweetActivity.EXTRA_IN_REPLY_TO, message["id"]?.toString()) // TODO: idよりurlのほうが良さそう
+            putExtra(TweetActivity.EXTRA_IN_REPLY_TO, message["perma_link"]?.toString())
             putExtra(TweetActivity.EXTRA_TEXT, body)
         }
         onMainThread {
