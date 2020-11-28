@@ -32,7 +32,8 @@ public class TwitterServiceConnection {
 
     public void disconnect(Context context) {
         context.unbindService(connection);
-        serviceBound = false;
+        // FIXME: ここでフラグをfalseにするのが正しいが、正しくしてしまうとTimelineFragment等がクラッシュするようになる
+        // serviceBound = false;
     }
 
     private ServiceConnection connection = new ServiceConnection() {
