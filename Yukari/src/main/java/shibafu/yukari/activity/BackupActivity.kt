@@ -28,6 +28,11 @@ import android.widget.ListView
 import android.widget.Spinner
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.PermissionUtils
@@ -61,12 +66,13 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.lang.Exception
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by shibafu on 2016/03/13.
  */
 @RuntimePermissions
-class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener {
+class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener, CoroutineScope {
     companion object {
         const val EXTRA_MODE = "mode"
         const val EXTRA_MODE_IMPORT = 0
@@ -80,7 +86,12 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         private const val DIALOG_IMPORT_FAILED = 4
     }
 
-    val spLocation: Spinner by lazy { findViewById<Spinner>(R.id.spinner) }
+    private val job = Job()
+
+    private lateinit var spLocation: Spinner
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,6 +115,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 .commit()
         }
 
+        spLocation = findViewById(R.id.spinner)
         findViewById<Button>(R.id.btnExecute).setOnClickListener { onClickExecuteWithPermissionCheck() }
     }
 
@@ -117,242 +129,43 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
             return
         }
 
+        val selectedLocation = spLocation.selectedItemPosition
         val database = twitterService.database
         when (intent.getIntExtra(EXTRA_MODE, EXTRA_MODE_EXPORT)) {
-            EXTRA_MODE_IMPORT -> {
-                object : SimpleAsyncTask() {
-                    private var progressFragment: DialogFragment? = null
-                    private var causedException: Exception? = null
+            EXTRA_MODE_IMPORT -> launch {
+                val progressFragment = MaintenanceActivity.SimpleProgressDialogFragment.newInstance(null, "インポート中...", true, false)
+                progressFragment.show(supportFragmentManager, "progress")
 
-                    override fun doInBackground(vararg p0: Void?): Void? {
-                        database.beginTransaction()
-                        try {
-                            val readFile: (String) -> String = when (spLocation.selectedItemPosition) {
-                                0 -> lambda@ { fileName ->
-                                    // import from file
-                                    val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
-                                    if (!directory.exists()) {
-                                        directory.mkdirs()
-                                    }
+                val causedException = importAsync(fragment, database, selectedLocation).await()
 
-                                    val file = File(directory, fileName)
-                                    if (!file.exists()) {
-                                        throw FileNotFoundException("not found : $fileName")
-                                    }
-                                    FileInputStream(file).use {
-                                        it.reader().use {
-                                            return@lambda it.readText()
-                                        }
-                                    }
-                                }
-                                1 -> lambda@ { fileName ->
-                                    // import from Google Drive
-                                    return@lambda ""
-                                }
-                                else -> throw RuntimeException("invalid location choose")
-                            }
+                progressFragment.dismiss()
 
-                            fun <F, T : DBRecord> importIntoDatabase(from: Class<F>, to: Class<T>, json: String)
-                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
-                            fun <F> importIntoDatabase(from: Class<F>, to: String, json: String)
-                                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
+                if (causedException == null) {
+                    SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
+                            "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
+                            "OK", null)
+                            .show(supportFragmentManager, "import_finished")
+                } else {
+                    Log.e(LOG_TAG, "", causedException)
 
-                            fragment.checkedStates.forEach { i, b ->
-                                try {
-                                    when (i) {
-                                        1 -> {
-                                            val accounts = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"), database)
-                                            database.importRecordMaps(AuthUserRecord::class.java, accounts)
-
-                                            // providers.jsonは古いバージョンからのインポートの場合は存在しない
-                                            try {
-                                                val providers = ConfigFileUtility.importFromJson(Provider::class.java, readFile("providers.json"), database)
-                                                database.importRecordMaps(Provider::class.java, providers)
-                                            } catch (ignore: FileNotFoundException) {}
-
-                                            // アカウントレベルの通知チャンネルを全て削除し、次回起動時に再生成させる
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                                                nm.notificationChannels.forEach { channel ->
-                                                    val groupId = channel.group
-                                                    if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {
-                                                        nm.deleteNotificationChannel(channel.id)
-                                                    }
-                                                }
-                                                nm.notificationChannelGroups.forEach { group ->
-                                                    if (group.id.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {9
-                                                        nm.deleteNotificationChannelGroup(group.id)
-                                                    }
-                                                }
-                                            }
-
-                                            // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
-                                            val twitter = twitterService.getTwitterOrThrow(null)
-                                            accounts.forEach eachRecord@{
-                                                // ProviderID == null -> Twitter
-                                                if (it.containsKey(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID)) {
-                                                    return@eachRecord
-                                                }
-
-                                                twitter.oAuthAccessToken = AccessToken(
-                                                        it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN].toString(),
-                                                        it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET].toString()
-                                                )
-
-                                                val user = twitter.showUser(twitter.oAuthAccessToken.userId)
-                                                database.updateAccountProfile(Provider.TWITTER.id, user.id, user.screenName, user.name, user.originalProfileImageURLHttps)
-                                            }
-                                        }
-                                        2 -> importIntoDatabase(TabInfo::class.java, TabInfo::class.java, readFile("tabs.json"))
-                                        3 -> importIntoDatabase(MuteConfig::class.java, MuteConfig::class.java, readFile("mute.json"))
-                                        4 -> importIntoDatabase(AutoMuteConfig::class.java, AutoMuteConfig::class.java, readFile("automute.json"))
-                                        5 -> importIntoDatabase(UserExtras::class.java, UserExtras::class.java, readFile("user_extras.json"))
-                                        6 -> importIntoDatabase(Bookmark.SerializeEntity::class.java, Bookmark::class.java, readFile("bookmarks.json"))
-                                        7 -> importIntoDatabase(StatusDraft::class.java, CentralDatabase.TABLE_DRAFTS, readFile("drafts.json"))
-                                        8 -> importIntoDatabase(SearchHistory::class.java, SearchHistory::class.java, readFile("draftsearch_history.json"))
-                                        9 -> {
-                                            val records: List<String> = Gson().fromJson(readFile("used_tags.json"), object : TypeToken<List<String>>() {}.type)
-                                            val usedHashes = UsedHashes(applicationContext)
-                                            records.forEach { usedHashes.put(it) }
-                                            usedHashes.save(applicationContext)
-                                        }
-                                        10 -> importIntoDatabase(StreamChannelState::class.java, StreamChannelState::class.java, readFile("stream_channel_states.json"))
-                                        11 -> {
-                                            val records: Map<String, Any?> = Gson().fromJson(readFile("prefs.json"), object : TypeToken<Map<String, Any?>>() {}.type)
-                                            val spEdit = PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
-
-                                            // マイグレーションフラグを削除する (インポートしたデータがそれらのマイグレーションを実施済であれば、それも入っているはずなので)
-                                            spEdit.remove("pref_font_timeline__migrate_3_0_0")
-                                            spEdit.remove("pref_font_input__migrate_3_0_0")
-
-                                            records.forEach {
-                                                var value = it.value
-                                                if (value is Double) {
-                                                    if (value - Math.floor(value) == 0.0) {
-                                                        value = value.toInt()
-                                                    } else {
-                                                        value = value.toFloat()
-                                                    }
-                                                }
-                                                when (value) {
-                                                    is String -> spEdit.putString(it.key, value)
-                                                    is Long -> spEdit.putLong(it.key, value)
-                                                    is Int -> spEdit.putInt(it.key, value)
-                                                    is Float -> spEdit.putFloat(it.key, value)
-                                                    is Boolean -> spEdit.putBoolean(it.key, value)
-                                                }
-                                            }
-                                            spEdit.apply()
-                                        }
-                                    }
-                                } catch (e: FileNotFoundException) {}
-                            }
-
-                            database.setTransactionSuccessful()
-                        } catch (e: Exception) {
-                            causedException = e
-                        } finally {
-                            database.endTransaction()
-                        }
-                        return null
-                    }
-
-                    override fun onPreExecute() {
-                        super.onPreExecute()
-                        progressFragment = MaintenanceActivity.SimpleProgressDialogFragment.newInstance(null, "インポート中...", true, false)
-                        progressFragment?.show(supportFragmentManager, "progress")
-                    }
-
-                    override fun onPostExecute(result: Void?) {
-                        super.onPostExecute(result)
-                        progressFragment?.dismiss()
-                        progressFragment = null
-
-                        val causedException = this.causedException
-                        if (causedException == null) {
-                            SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FINISHED,
-                                    "インポート完了", "設定を反映させるため、アプリを再起動します。\nOKをタップした後、そのまましばらくお待ち下さい。",
-                                    "OK", null)
-                                    .show(supportFragmentManager, "import_finished")
-                        } else {
-                            Log.e(LOG_TAG, "", causedException)
-
-                            SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FAILED,
-                                    "インポート失敗", "設定のインポート中にエラーが発生しました。",
-                                    "OK", null)
-                                    .show(supportFragmentManager, "import_finished")
-                        }
-                    }
-                }.execute()
+                    SimpleAlertDialogFragment.newInstance(DIALOG_IMPORT_FAILED,
+                            "インポート失敗", "設定のインポート中にエラーが発生しました。",
+                            "OK", null)
+                            .show(supportFragmentManager, "import_finished")
+                }
             }
-            EXTRA_MODE_EXPORT -> {
-                object : SimpleAsyncTask() {
-                    private var progressFragment: DialogFragment? = null
 
-                    override fun doInBackground(vararg p0: Void?): Void? {
-                        val exports = mutableMapOf<String, String>()
-                        fragment.checkedStates.forEach { i, b ->
-                            @Suppress("UNCHECKED_CAST")
-                            when (i) {
-                                1 -> {
-                                    exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
-                                    exports["providers.json"] = ConfigFileUtility.exportToJson(Provider::class.java, database.getRecordMaps(Provider::class.java) as List<Map<String, Any?>>)
-                                }
-                                2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
-                                3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
-                                4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
-                                5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
-                                6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
-                                7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(StatusDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
-                                8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
-                                9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
-                                10 -> exports["stream_channel_states.json"] = ConfigFileUtility.exportToJson(StreamChannelState::class.java, database.getRecordMaps(CentralDatabase.TABLE_STREAM_CHANNEL_STATES) as List<Map<String, Any?>>)
-                                11 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
-                            }
-                        }
+            EXTRA_MODE_EXPORT -> launch {
+                val progressFragment = MaintenanceActivity.SimpleProgressDialogFragment.newInstance(null, "エクスポート中...", true, false)
+                progressFragment.show(supportFragmentManager, "progress")
 
-                        exports.forEach { entry ->
-                            when (spLocation.selectedItemPosition) {
-                                0 -> {
-                                    // export to file
-                                    val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
-                                    if (!directory.exists()) {
-                                        directory.mkdirs()
-                                    }
+                exportAsync(fragment, database, selectedLocation).await()
 
-                                    val file = File(directory, entry.key)
-                                    FileOutputStream(file).use {
-                                        it.writer().use {
-                                            it.write(entry.value)
-                                            it.flush()
-                                        }
-                                    }
-                                }
-                                1 -> {
-                                    // export to Google Drive
-                                }
-                            }
-                        }
-
-                        return null
-                    }
-
-                    override fun onPreExecute() {
-                        super.onPreExecute()
-                        progressFragment = MaintenanceActivity.SimpleProgressDialogFragment.newInstance(null, "エクスポート中...", true, false)
-                        progressFragment?.show(supportFragmentManager, "progress")
-                    }
-
-                    override fun onPostExecute(result: Void?) {
-                        super.onPostExecute(result)
-                        progressFragment?.dismiss()
-                        progressFragment = null
-                        SimpleAlertDialogFragment.newInstance(DIALOG_EXPORT_FINISHED,
-                                "エクスポート完了", "エクスポートが完了しました。",
-                                "OK", null)
-                                .show(supportFragmentManager, "export_finished")
-                    }
-                }.execute()
+                progressFragment.dismiss()
+                SimpleAlertDialogFragment.newInstance(DIALOG_EXPORT_FINISHED,
+                        "エクスポート完了", "エクスポートが完了しました。",
+                        "OK", null)
+                        .show(supportFragmentManager, "export_finished")
             }
         }
     }
@@ -374,6 +187,11 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         onRequestPermissionsResult(requestCode, grantResults)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
     }
 
     override fun onServiceConnected() {}
@@ -401,6 +219,185 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     intent.data = Uri.fromParts("package", packageName, null)
                     startActivity(intent)
+                }
+            }
+        }
+    }
+
+    private fun importAsync(fragment: BackupFragment, database: CentralDatabase, selectedLocation: Int) = async(Dispatchers.IO) {
+        database.beginTransaction()
+        try {
+            val readFile: (String) -> String = when (selectedLocation) {
+                0 -> lambda@ { fileName ->
+                    // import from file
+                    val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
+                    if (!directory.exists()) {
+                        directory.mkdirs()
+                    }
+
+                    val file = File(directory, fileName)
+                    if (!file.exists()) {
+                        throw FileNotFoundException("not found : $fileName")
+                    }
+                    FileInputStream(file).use {
+                        it.reader().use {
+                            return@lambda it.readText()
+                        }
+                    }
+                }
+                1 -> lambda@ { fileName ->
+                    // import from Google Drive
+                    return@lambda ""
+                }
+                else -> throw RuntimeException("invalid location choose")
+            }
+
+            fun <F, T : DBRecord> importIntoDatabase(from: Class<F>, to: Class<T>, json: String)
+                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
+            fun <F> importIntoDatabase(from: Class<F>, to: String, json: String)
+                    = database.importRecordMaps(to, ConfigFileUtility.importFromJson(from, json, database))
+
+            fragment.checkedStates.forEach { i, b ->
+                try {
+                    when (i) {
+                        1 -> {
+                            val accounts = ConfigFileUtility.importFromJson(AuthUserRecord::class.java, readFile("accounts.json"), database)
+                            database.importRecordMaps(AuthUserRecord::class.java, accounts)
+
+                            // providers.jsonは古いバージョンからのインポートの場合は存在しない
+                            try {
+                                val providers = ConfigFileUtility.importFromJson(Provider::class.java, readFile("providers.json"), database)
+                                database.importRecordMaps(Provider::class.java, providers)
+                            } catch (ignore: FileNotFoundException) {}
+
+                            // アカウントレベルの通知チャンネルを全て削除し、次回起動時に再生成させる
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                nm.notificationChannels.forEach { channel ->
+                                    val groupId = channel.group
+                                    if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {
+                                        nm.deleteNotificationChannel(channel.id)
+                                    }
+                                }
+                                nm.notificationChannelGroups.forEach { group ->
+                                    if (group.id.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT)) {9
+                                        nm.deleteNotificationChannelGroup(group.id)
+                                    }
+                                }
+                            }
+
+                            // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
+                            val twitter = twitterService.getTwitterOrThrow(null)
+                            accounts.forEach eachRecord@{
+                                // ProviderID == null -> Twitter
+                                if (it.containsKey(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID)) {
+                                    return@eachRecord
+                                }
+
+                                twitter.oAuthAccessToken = AccessToken(
+                                        it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN].toString(),
+                                        it[CentralDatabase.COL_ACCOUNTS_ACCESS_TOKEN_SECRET].toString()
+                                )
+
+                                val user = twitter.showUser(twitter.oAuthAccessToken.userId)
+                                database.updateAccountProfile(Provider.TWITTER.id, user.id, user.screenName, user.name, user.originalProfileImageURLHttps)
+                            }
+                        }
+                        2 -> importIntoDatabase(TabInfo::class.java, TabInfo::class.java, readFile("tabs.json"))
+                        3 -> importIntoDatabase(MuteConfig::class.java, MuteConfig::class.java, readFile("mute.json"))
+                        4 -> importIntoDatabase(AutoMuteConfig::class.java, AutoMuteConfig::class.java, readFile("automute.json"))
+                        5 -> importIntoDatabase(UserExtras::class.java, UserExtras::class.java, readFile("user_extras.json"))
+                        6 -> importIntoDatabase(Bookmark.SerializeEntity::class.java, Bookmark::class.java, readFile("bookmarks.json"))
+                        7 -> importIntoDatabase(StatusDraft::class.java, CentralDatabase.TABLE_DRAFTS, readFile("drafts.json"))
+                        8 -> importIntoDatabase(SearchHistory::class.java, SearchHistory::class.java, readFile("draftsearch_history.json"))
+                        9 -> {
+                            val records: List<String> = Gson().fromJson(readFile("used_tags.json"), object : TypeToken<List<String>>() {}.type)
+                            val usedHashes = UsedHashes(applicationContext)
+                            records.forEach { usedHashes.put(it) }
+                            usedHashes.save(applicationContext)
+                        }
+                        10 -> importIntoDatabase(StreamChannelState::class.java, StreamChannelState::class.java, readFile("stream_channel_states.json"))
+                        11 -> {
+                            val records: Map<String, Any?> = Gson().fromJson(readFile("prefs.json"), object : TypeToken<Map<String, Any?>>() {}.type)
+                            val spEdit = PreferenceManager.getDefaultSharedPreferences(applicationContext).edit()
+
+                            // マイグレーションフラグを削除する (インポートしたデータがそれらのマイグレーションを実施済であれば、それも入っているはずなので)
+                            spEdit.remove("pref_font_timeline__migrate_3_0_0")
+                            spEdit.remove("pref_font_input__migrate_3_0_0")
+
+                            records.forEach {
+                                var value = it.value
+                                if (value is Double) {
+                                    if (value - Math.floor(value) == 0.0) {
+                                        value = value.toInt()
+                                    } else {
+                                        value = value.toFloat()
+                                    }
+                                }
+                                when (value) {
+                                    is String -> spEdit.putString(it.key, value)
+                                    is Long -> spEdit.putLong(it.key, value)
+                                    is Int -> spEdit.putInt(it.key, value)
+                                    is Float -> spEdit.putFloat(it.key, value)
+                                    is Boolean -> spEdit.putBoolean(it.key, value)
+                                }
+                            }
+                            spEdit.apply()
+                        }
+                    }
+                } catch (e: FileNotFoundException) {}
+            }
+
+            database.setTransactionSuccessful()
+        } catch (e: Exception) {
+            return@async e
+        } finally {
+            database.endTransaction()
+        }
+        null
+    }
+
+    private fun exportAsync(fragment: BackupFragment, database: CentralDatabase, selectedLocation: Int) = async(Dispatchers.IO) {
+        val exports = mutableMapOf<String, String>()
+        fragment.checkedStates.forEach { i, b ->
+            @Suppress("UNCHECKED_CAST")
+            when (i) {
+                1 -> {
+                    exports["accounts.json"] = ConfigFileUtility.exportToJson(AuthUserRecord::class.java, database.getRecordMaps(AuthUserRecord::class.java) as List<Map<String, Any?>>)
+                    exports["providers.json"] = ConfigFileUtility.exportToJson(Provider::class.java, database.getRecordMaps(Provider::class.java) as List<Map<String, Any?>>)
+                }
+                2 -> exports["tabs.json"] = ConfigFileUtility.exportToJson(TabInfo::class.java, database.getRecordMaps(TabInfo::class.java) as List<Map<String, Any?>>)
+                3 -> exports["mute.json"] = ConfigFileUtility.exportToJson(MuteConfig::class.java, database.getRecordMaps(MuteConfig::class.java) as List<Map<String, Any?>>)
+                4 -> exports["automute.json"] = ConfigFileUtility.exportToJson(AutoMuteConfig::class.java, database.getRecordMaps(AutoMuteConfig::class.java) as List<Map<String, Any?>>)
+                5 -> exports["user_extras.json"] = ConfigFileUtility.exportToJson(UserExtras::class.java, database.getRecordMaps(UserExtras::class.java) as List<Map<String, Any?>>)
+                6 -> exports["bookmarks.json"] = ConfigFileUtility.exportToJson(Bookmark.SerializeEntity::class.java, database.getRecordMaps(Bookmark::class.java) as List<Map<String, Any?>>)
+                7 -> exports["drafts.json"] = ConfigFileUtility.exportToJson(StatusDraft::class.java, database.getRecordMaps(CentralDatabase.TABLE_DRAFTS) as List<Map<String, Any?>>)
+                8 -> exports["search_history.json"] = ConfigFileUtility.exportToJson(SearchHistory::class.java, database.getRecordMaps(SearchHistory::class.java) as List<Map<String, Any?>>)
+                9 -> exports["used_tags.json"] = Gson().toJson(UsedHashes(applicationContext).all)
+                10 -> exports["stream_channel_states.json"] = ConfigFileUtility.exportToJson(StreamChannelState::class.java, database.getRecordMaps(CentralDatabase.TABLE_STREAM_CHANNEL_STATES) as List<Map<String, Any?>>)
+                11 -> exports["prefs.json"] = Gson().toJson(PreferenceManager.getDefaultSharedPreferences(applicationContext).all)
+            }
+        }
+
+        exports.forEach { entry ->
+            when (selectedLocation) {
+                0 -> {
+                    // export to file
+                    val directory = File(Environment.getExternalStorageDirectory(), "Yukari4a")
+                    if (!directory.exists()) {
+                        directory.mkdirs()
+                    }
+
+                    val file = File(directory, entry.key)
+                    FileOutputStream(file).use {
+                        it.writer().use {
+                            it.write(entry.value)
+                            it.flush()
+                        }
+                    }
+                }
+                1 -> {
+                    // export to Google Drive
                 }
             }
         }
