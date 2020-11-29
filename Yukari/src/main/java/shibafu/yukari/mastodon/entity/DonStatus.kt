@@ -241,7 +241,7 @@ class DonStatus(val status: Status,
             it.writeInt(favoritesCount)
             it.writeInt(repostsCount)
             it.writeBoolean(representOverrode)
-            it.writeList(receivedUsers)
+            it.writeList(receivedUsers.toList())
 
             it.writeInt(perProviderId.size())
             perProviderId.forEachKeyValue { key, value ->

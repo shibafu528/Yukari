@@ -113,7 +113,7 @@ data class StatusDraft(
 
     override fun writeToParcel(dest: Parcel?, flags: Int) {
         dest?.let {
-            dest.writeList(writers)
+            dest.writeList(writers.toList())
             dest.writeString(text)
             dest.writeLong(dateTime)
             dest.writeParcelable(inReplyTo, flags)
