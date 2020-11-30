@@ -121,7 +121,7 @@ public operator fun <T> SparseArrayCompat<T>.set(key: Int, value: T) {
     this.put(key, value)
 }
 
-fun Parcel.writeBoolean(value: Boolean) {
+fun Parcel.writeBooleanCompat(value: Boolean) {
     if (value) {
         this.writeByte(1)
     } else {
@@ -129,6 +129,6 @@ fun Parcel.writeBoolean(value: Boolean) {
     }
 }
 
-fun Parcel.readBoolean(): Boolean {
+fun Parcel.readBooleanCompat(): Boolean {
     return this.readByte() == 1.toByte()
 }

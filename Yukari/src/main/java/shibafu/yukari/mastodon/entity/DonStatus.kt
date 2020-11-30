@@ -22,8 +22,8 @@ import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.media2.impl.DonVideo
 import shibafu.yukari.twitter.AuthUserRecord
 import shibafu.yukari.util.MorseCodec
-import shibafu.yukari.util.readBoolean
-import shibafu.yukari.util.writeBoolean
+import shibafu.yukari.util.readBooleanCompat
+import shibafu.yukari.util.writeBooleanCompat
 import java.io.StringReader
 import java.util.*
 import kotlin.collections.LinkedHashSet
@@ -240,7 +240,7 @@ class DonStatus(val status: Status,
             it.writeParcelable(metadata, 0)
             it.writeInt(favoritesCount)
             it.writeInt(repostsCount)
-            it.writeBoolean(representOverrode)
+            it.writeBooleanCompat(representOverrode)
             it.writeList(receivedUsers.toList())
 
             it.writeInt(perProviderId.size())
@@ -261,7 +261,7 @@ class DonStatus(val status: Status,
                 val donStatus = DonStatus(status, representUser, metadata)
                 donStatus.favoritesCount = source.readInt()
                 donStatus.repostsCount = source.readInt()
-                donStatus.representOverrode = source.readBoolean()
+                donStatus.representOverrode = source.readBooleanCompat()
                 donStatus.receivedUsers = source.readArrayList(this.javaClass.classLoader) as MutableList<AuthUserRecord>
 
                 val perProviderIdSize = source.readInt()
