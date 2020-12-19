@@ -119,6 +119,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -1062,31 +1063,46 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
             return;
         }
-        //SDカード使用可否のチェックを行う
-        boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-        if (!existExternal) {
-            Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
-            return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            //SDカード使用可否のチェックを行う
+            boolean existExternal = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+            if (!existExternal) {
+                Toast.makeText(TweetActivity.this, "ストレージが使用できないため、カメラを起動できません", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            //保存先パスを作成する
+            String extStorage = Environment.getExternalStorageDirectory().getPath();
+            File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
+            if (!extDestDir.exists()) {
+                extDestDir.mkdirs();
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String fileName = sdf.format(new Date(System.currentTimeMillis()));
+            File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
+            //コンテントプロバイダに登録
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DATA, destFile.getPath());
+            cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            //カメラを呼び出す
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
+            startActivityForResult(intent, REQUEST_CAMERA);
+        } else {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            String fileName = sdf.format(new Date(System.currentTimeMillis()));
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.TITLE, fileName);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName + ".jpg");
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, String.format(Locale.US, "DCIM/%s/", getPackageName()));
+            cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            //カメラを呼び出す
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
+            startActivityForResult(intent, REQUEST_CAMERA);
         }
-        //保存先パスを作成する
-        String extStorage = Environment.getExternalStorageDirectory().getPath();
-        File extDestDir = new File(extStorage + "/DCIM/" + getPackageName());
-        if (!extDestDir.exists()) {
-            extDestDir.mkdirs();
-        }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-        String fileName = sdf.format(new Date(System.currentTimeMillis()));
-        File destFile = new File(extDestDir.getPath() + "/" + fileName + ".jpg");
-        //コンテントプロバイダに登録
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.TITLE, fileName);
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-        values.put(MediaStore.Images.Media.DATA, destFile.getPath());
-        cameraTemp = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        //カメラを呼び出す
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraTemp);
-        startActivityForResult(intent, REQUEST_CAMERA);
     }
 
     @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
