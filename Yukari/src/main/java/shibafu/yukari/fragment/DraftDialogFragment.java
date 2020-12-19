@@ -19,7 +19,7 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 
 import java.text.SimpleDateFormat;

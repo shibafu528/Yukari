@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.verify
 import org.eclipse.collections.impl.factory.primitive.LongSets
 import org.junit.Test
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.statusimpl.FakeStatus

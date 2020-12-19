@@ -31,7 +31,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.TwitterUserListFragment;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 
 /**
  * Created by shibafu on 14/06/01.

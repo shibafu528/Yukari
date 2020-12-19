@@ -20,7 +20,7 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.media2.impl.DonVideo
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.MorseCodec
 import shibafu.yukari.util.readBooleanCompat
 import shibafu.yukari.util.writeBooleanCompat

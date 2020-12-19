@@ -12,7 +12,7 @@ import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterMessage
 import twitter4j.Twitter
 import twitter4j.TwitterException

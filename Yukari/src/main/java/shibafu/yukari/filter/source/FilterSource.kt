@@ -5,7 +5,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.RestQuery
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * フィルタシステムにおける抽出ソースを表す抽象クラスです。

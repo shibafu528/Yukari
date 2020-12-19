@@ -90,7 +90,7 @@ import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterUtil;

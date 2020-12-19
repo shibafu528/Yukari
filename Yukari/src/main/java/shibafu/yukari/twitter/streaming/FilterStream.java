@@ -9,7 +9,7 @@ import android.util.Log;
 import org.eclipse.collections.api.set.primitive.LongSet;
 import org.eclipse.collections.api.set.primitive.MutableLongSet;
 import org.eclipse.collections.impl.factory.primitive.LongSets;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.FilterQuery;
 import twitter4j.Status;
 import twitter4j.StatusAdapter;

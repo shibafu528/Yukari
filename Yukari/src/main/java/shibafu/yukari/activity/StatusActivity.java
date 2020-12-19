@@ -24,7 +24,7 @@ import shibafu.yukari.fragment.status.StatusLinkFragment;
 import shibafu.yukari.fragment.status.StatusMainFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.mastodon.entity.DonStatus;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.DonStatusView;

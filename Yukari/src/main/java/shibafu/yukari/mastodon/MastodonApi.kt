@@ -24,7 +24,7 @@ import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.io.File
 import java.io.IOException
 

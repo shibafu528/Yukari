@@ -1,8 +1,8 @@
 package shibafu.yukari.twitter.entity
 
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.User
-import shibafu.yukari.twitter.AuthUserRecord
 
 class TwitterUser(val user: twitter4j.User) : User {
     override val id: Long

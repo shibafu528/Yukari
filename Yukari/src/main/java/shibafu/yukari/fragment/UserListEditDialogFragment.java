@@ -16,7 +16,7 @@ import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.UserList;

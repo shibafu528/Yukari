@@ -35,7 +35,7 @@ import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;

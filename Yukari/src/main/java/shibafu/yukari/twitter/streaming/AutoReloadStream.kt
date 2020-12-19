@@ -7,7 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import org.eclipse.collections.api.set.primitive.MutableLongSet
 import org.eclipse.collections.impl.factory.primitive.LongSets
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.RateLimitStatus
 import twitter4j.TwitterException

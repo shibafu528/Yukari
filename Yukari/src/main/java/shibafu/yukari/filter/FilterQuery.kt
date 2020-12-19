@@ -9,7 +9,7 @@ import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * コンパイルされた抽出クエリを表します。

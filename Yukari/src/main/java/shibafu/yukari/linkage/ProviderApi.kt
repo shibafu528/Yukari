@@ -3,7 +3,7 @@ package shibafu.yukari.linkage
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.io.File
 
 /**

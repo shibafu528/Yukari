@@ -5,7 +5,7 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterStatus
 import twitter4j.Status

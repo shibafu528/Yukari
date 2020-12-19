@@ -23,7 +23,7 @@ import shibafu.yukari.fragment.base.AbstractPaginateListFragment;
 import shibafu.yukari.fragment.base.AbstractUserListFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
 import java.io.PrintWriter;

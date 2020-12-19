@@ -1,7 +1,7 @@
 package shibafu.yukari.linkage
 
 import shibafu.yukari.entity.Status
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.util.*
 
 /**

@@ -18,7 +18,7 @@ import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 

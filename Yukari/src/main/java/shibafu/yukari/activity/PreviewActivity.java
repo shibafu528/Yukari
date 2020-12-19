@@ -47,7 +47,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.BitmapUtil;

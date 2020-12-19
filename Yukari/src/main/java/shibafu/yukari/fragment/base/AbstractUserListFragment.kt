@@ -23,7 +23,7 @@ import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.User
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import kotlin.coroutines.CoroutineContext
 
 /**

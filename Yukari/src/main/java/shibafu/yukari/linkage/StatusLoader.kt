@@ -9,9 +9,8 @@ import android.util.Log
 import android.widget.Toast
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import shibafu.yukari.common.async.ParallelAsyncTask
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import twitter4j.TwitterException
-import shibafu.yukari.entity.Status as IStatus
 
 /**
  * 非同期RESTリクエストの受付とAPI呼出の一元管理

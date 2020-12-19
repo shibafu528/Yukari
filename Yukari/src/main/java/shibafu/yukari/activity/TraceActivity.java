@@ -11,7 +11,7 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 
 /**
  * Created by Shibafu on 13/08/29.

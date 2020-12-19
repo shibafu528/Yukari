@@ -31,7 +31,7 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.fragment.base.AbstractPaginateListFragment
 import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import twitter4j.Twitter

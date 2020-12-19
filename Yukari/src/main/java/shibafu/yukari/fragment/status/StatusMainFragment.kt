@@ -29,7 +29,7 @@ import shibafu.yukari.fragment.SimpleListDialogFragment
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.service.AsyncCommandService
 import shibafu.yukari.service.PostService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.defaultSharedPreferences
 import java.util.*
@@ -335,7 +335,8 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
         if (resultCode == Activity.RESULT_OK) {
             when (requestCode) {
                 REQUEST_CHANGE_ACCOUNT -> {
-                    userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return
+                    userRecord = data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord
+                            ?: return
                 }
                 REQUEST_REPLY, REQUEST_QUOTE -> {
                     requireActivity().finish()

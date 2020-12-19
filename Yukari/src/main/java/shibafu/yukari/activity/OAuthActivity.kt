@@ -31,7 +31,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.Provider
 import shibafu.yukari.mastodon.MastodonApi
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.TwitterException
 import twitter4j.auth.AccessToken

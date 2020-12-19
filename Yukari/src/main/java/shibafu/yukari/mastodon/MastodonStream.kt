@@ -23,7 +23,7 @@ import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.putDebugLog
 import java.util.concurrent.RejectedExecutionException
 

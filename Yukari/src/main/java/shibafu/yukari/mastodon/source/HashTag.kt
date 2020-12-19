@@ -14,7 +14,7 @@ import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.mastodon.MastodonStream
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * HashTag Search

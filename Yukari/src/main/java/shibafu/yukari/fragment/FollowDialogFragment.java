@@ -21,7 +21,7 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.entity.User;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Relationship;
 
 import java.io.Serializable;

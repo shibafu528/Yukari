@@ -1,5 +1,6 @@
 package shibafu.yukari.twitter
 
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Status

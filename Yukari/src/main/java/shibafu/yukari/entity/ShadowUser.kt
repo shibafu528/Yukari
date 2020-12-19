@@ -1,6 +1,6 @@
 package shibafu.yukari.entity
 
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * 内部イベント処理用のUserスタブ

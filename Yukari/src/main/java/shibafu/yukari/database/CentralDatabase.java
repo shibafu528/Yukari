@@ -10,7 +10,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.StatusDraft;
-import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

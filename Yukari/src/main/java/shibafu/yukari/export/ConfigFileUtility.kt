@@ -13,7 +13,7 @@ import shibafu.yukari.database.SearchHistory
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.StatusDraft
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.io.StringWriter
 
 /**

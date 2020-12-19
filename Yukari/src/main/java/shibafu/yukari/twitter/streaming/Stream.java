@@ -6,7 +6,7 @@ import android.util.Log;
 
 import shibafu.yukari.R;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.ConnectionLifeCycleListener;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;

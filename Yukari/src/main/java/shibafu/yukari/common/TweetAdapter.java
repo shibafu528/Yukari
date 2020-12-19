@@ -18,7 +18,7 @@ import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.mastodon.entity.DonStatus;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.view.DonStatusView;

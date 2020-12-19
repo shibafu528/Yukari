@@ -1,7 +1,7 @@
 package shibafu.yukari.linkage
 
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * [shibafu.yukari.database.Provider] ごとの内部実装を持ったストリーミング通信管理の実装。

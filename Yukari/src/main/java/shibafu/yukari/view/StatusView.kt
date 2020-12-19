@@ -35,7 +35,7 @@ import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.TimelineHubImpl
 import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.StringUtil

@@ -3,7 +3,7 @@ package shibafu.yukari.twitter.streaming;
 import android.content.Context;
 import android.util.Log;
 
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Status;
 import twitter4j.StatusAdapter;
 import twitter4j.StatusDeletionNotice;

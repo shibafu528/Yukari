@@ -21,7 +21,7 @@ import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.sexp.UrlHostEqualPredicate
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * Local Timeline

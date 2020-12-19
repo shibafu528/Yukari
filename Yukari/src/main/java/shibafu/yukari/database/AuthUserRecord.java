@@ -1,4 +1,4 @@
-package shibafu.yukari.twitter;
+package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,11 +9,8 @@ import com.sys1yagi.mastodon4j.api.entity.Account;
 import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken;
 import kotlin.Pair;
 import shibafu.yukari.R;
-import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.DBRecord;
-import shibafu.yukari.database.DBTable;
-import shibafu.yukari.database.Provider;
 import shibafu.yukari.mastodon.MastodonUtil;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 
 import java.io.Serializable;

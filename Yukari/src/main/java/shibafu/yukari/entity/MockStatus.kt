@@ -1,7 +1,7 @@
 package shibafu.yukari.entity
 
 import shibafu.yukari.database.Provider
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.util.*
 
 /**

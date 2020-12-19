@@ -3,7 +3,7 @@ package shibafu.yukari.twitter.statusimpl;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.media2.impl.TwitterVideo;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.MorseCodec;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.GeoLocation;

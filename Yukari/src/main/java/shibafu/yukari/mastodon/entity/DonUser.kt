@@ -8,7 +8,7 @@ import com.sys1yagi.mastodon4j.api.entity.Account
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.User
 import shibafu.yukari.mastodon.MastodonUtil
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 class DonUser(val account: Account?) : User, Parcelable {
     override val id: Long = account?.id ?: 0

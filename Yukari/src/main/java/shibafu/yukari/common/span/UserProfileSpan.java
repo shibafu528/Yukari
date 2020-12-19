@@ -6,7 +6,7 @@ import android.support.annotation.NonNull;
 import android.text.style.ClickableSpan;
 import android.view.View;
 import shibafu.yukari.activity.ProfileActivity;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 
 public class UserProfileSpan extends ClickableSpan {
     private AuthUserRecord userRecord;

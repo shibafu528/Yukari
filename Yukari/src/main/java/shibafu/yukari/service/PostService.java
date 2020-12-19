@@ -28,7 +28,7 @@ import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderApiException;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.CompatUtil;
 

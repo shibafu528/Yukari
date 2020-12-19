@@ -1,6 +1,6 @@
 package shibafu.yukari.filter.sexp
 
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * クエリ評価のパラメータや状態を保持します。

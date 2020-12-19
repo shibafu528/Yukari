@@ -24,7 +24,7 @@ import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.service.PostService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.showToast
 import twitter4j.util.CharacterUtil
 

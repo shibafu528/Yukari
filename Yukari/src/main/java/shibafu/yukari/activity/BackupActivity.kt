@@ -56,8 +56,7 @@ import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
-import shibafu.yukari.service.TwitterService
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.LOG_TAG
 import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set

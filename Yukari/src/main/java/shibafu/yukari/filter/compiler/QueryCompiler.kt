@@ -21,7 +21,7 @@ import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * クエリ文字列を解釈し、ソースリストと式オブジェクトに変換する機能を提供します。

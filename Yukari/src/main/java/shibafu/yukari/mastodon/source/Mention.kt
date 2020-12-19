@@ -14,7 +14,7 @@ import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.mastodon.MastodonRestQuery
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * Mention Timeline

@@ -9,7 +9,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.database.CentralDatabase
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import twitter4j.GeoLocation
 
 /**

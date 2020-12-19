@@ -14,7 +14,7 @@ import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterStream
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.streaming.FilterStream

@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
 import android.util.Pair;
-import android.view.Window;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
@@ -15,9 +14,8 @@ import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.util.ThemeUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 

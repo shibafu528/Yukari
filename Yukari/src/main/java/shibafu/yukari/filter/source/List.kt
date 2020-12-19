@@ -4,7 +4,7 @@ import info.shibafu528.yukari.processor.filter.Source
 import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterRestQuery
 
 /**

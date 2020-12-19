@@ -2,7 +2,6 @@ package shibafu.yukari.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
-import shibafu.yukari.twitter.AuthUserRecord;
 
 import java.util.Collection;
 

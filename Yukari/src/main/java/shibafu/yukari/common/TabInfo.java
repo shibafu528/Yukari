@@ -6,7 +6,7 @@ import android.text.TextUtils;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBRecord;
 import shibafu.yukari.database.DBTable;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 
 import java.io.Serializable;
 import java.util.Random;

@@ -7,7 +7,7 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.source.All
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.filter.source.Home
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.statusimpl.FakeStatus
 import twitter4j.auth.AccessToken
 import java.lang.reflect.InvocationTargetException

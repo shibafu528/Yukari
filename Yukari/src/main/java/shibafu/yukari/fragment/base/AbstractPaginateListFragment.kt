@@ -15,7 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import shibafu.yukari.R
 import shibafu.yukari.activity.MainActivity
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import kotlin.coroutines.CoroutineContext
 
 /**

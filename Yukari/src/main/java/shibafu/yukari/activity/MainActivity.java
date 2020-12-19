@@ -61,7 +61,7 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;

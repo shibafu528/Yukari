@@ -2,7 +2,7 @@ package shibafu.yukari.twitter.entity
 
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.UserMentionEntity
 

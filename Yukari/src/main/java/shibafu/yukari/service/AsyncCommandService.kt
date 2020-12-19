@@ -9,7 +9,7 @@ import android.os.IBinder
 import shibafu.yukari.BuildConfig
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putErrorLog

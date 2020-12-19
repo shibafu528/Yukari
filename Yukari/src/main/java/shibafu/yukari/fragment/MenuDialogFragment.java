@@ -48,7 +48,7 @@ import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
 
 import java.util.ArrayList;

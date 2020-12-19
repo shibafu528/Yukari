@@ -5,7 +5,7 @@ import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import twitter4j.DirectMessage
 import java.util.*
 

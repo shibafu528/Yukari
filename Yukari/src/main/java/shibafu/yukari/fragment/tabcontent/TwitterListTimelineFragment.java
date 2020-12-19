@@ -24,7 +24,7 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.fragment.TwitterUserListFragment;
 import shibafu.yukari.fragment.UserListEditDialogFragment;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.UserList;

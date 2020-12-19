@@ -1,6 +1,6 @@
 package shibafu.yukari.filter.source
 
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * 全ての受信ツイートを対象とする抽出ソースです。

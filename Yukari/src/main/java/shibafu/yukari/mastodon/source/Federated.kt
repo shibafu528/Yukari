@@ -20,7 +20,7 @@ import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 
 /**
  * Federated Timeline

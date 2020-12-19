@@ -1,7 +1,7 @@
 package shibafu.yukari.entity
 
 import shibafu.yukari.media2.Media
-import shibafu.yukari.twitter.AuthUserRecord
+import shibafu.yukari.database.AuthUserRecord
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList

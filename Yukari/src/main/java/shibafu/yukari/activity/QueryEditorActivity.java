@@ -18,7 +18,7 @@ import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -15,8 +15,7 @@ import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.linkage.ProviderApi;
-import shibafu.yukari.twitter.AuthUserRecord;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
 import java.util.ArrayList;
