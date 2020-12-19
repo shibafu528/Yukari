@@ -32,6 +32,8 @@ import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.common.async.ThrowableAsyncTask
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask
+import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.database.Bookmark
 import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Mention
@@ -49,7 +51,6 @@ import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
@@ -277,7 +278,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                             }
                             false // ダブルクリックブロックの対象外
                         }
-                        is TwitterStatus, is DonStatus -> {
+                        is TwitterStatus, is DonStatus, is Bookmark -> {
                             val action = when {
                                 listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_click_action_left", "open_detail")
                                 listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_click_action_right", "open_detail")
@@ -336,7 +337,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         if (position < statuses.size) {
             val result =
                     when (val clickedElement = statuses[position]) {
-                        is TwitterStatus, is DonStatus -> {
+                        is TwitterStatus, is DonStatus, is Bookmark -> {
                             val action = when {
                                 listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_left", "")
                                 listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_right", "")

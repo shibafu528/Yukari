@@ -18,6 +18,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
+import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
@@ -118,7 +119,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         mViewPager.setOffscreenPageLimit(3);
 
         FrameLayout statusViewFrame = (FrameLayout) findViewById(R.id.status_tweet);
-        if (status instanceof TwitterStatus) {
+        if (status instanceof TwitterStatus || status instanceof Bookmark) {
             tweetView = new TweetView(this);
         } else if (status instanceof DonStatus) {
             tweetView = new DonStatusView(this);

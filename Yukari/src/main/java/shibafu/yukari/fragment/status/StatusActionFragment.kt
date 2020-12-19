@@ -67,7 +67,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("ブックマークに追加") {
-                twitterService.database.updateRecord(Bookmark(PreformedStatus((status as TwitterStatus).status, status.representUser)))
+                twitterService.database.updateRecord(Bookmark(status as TwitterStatus))
                 showToast("ブックマークしました")
             } visibleWhen { status is TwitterStatus },
 
@@ -93,7 +93,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 dialog.show(fragmentManager, "delete")
             } visibleWhen {
                 val status = status
-                status.user.id == userRecord?.NumericId || (status is TwitterStatus && status.status is Bookmark)
+                status.user.id == userRecord?.NumericId || status is Bookmark
             }
     )
 
@@ -183,8 +183,8 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                     val status = status
                     val userRecord = userRecord ?: return@executeParallel
 
-                    if (status is TwitterStatus && status.status is Bookmark) {
-                        twitterService.database.deleteRecord(status.status)
+                    if (status is Bookmark) {
+                        twitterService.database.deleteRecord(status)
                     } else {
                         twitterService.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
                     }

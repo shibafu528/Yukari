@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
@@ -111,7 +112,7 @@ public class TweetAdapter extends BaseAdapter {
             return VT_MESSAGE;
         } else if (item instanceof NotifyHistory) {
             return VT_HISTORY;
-        } else if (item instanceof TwitterStatus) {
+        } else if (item instanceof TwitterStatus || item instanceof Bookmark) {
             return VT_TWEET;
         } else if (item instanceof DonStatus) {
             return VT_DON_STATUS;

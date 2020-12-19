@@ -7,6 +7,7 @@ import android.database.CursorWindow;
 import android.database.sqlite.SQLiteCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.StatusDraft;
@@ -1126,7 +1127,10 @@ public class CentralDatabase {
         }
         try {
             Long id = (Long) clz.getMethod(annotation.deleteKeyMethodName()).invoke(record);
-            db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
+            int affected = db.delete(annotation.value(), annotation.idColumnName() + "=" + id, null);
+            if (affected == 0) {
+                Log.w(CentralDatabase.class.getSimpleName(), "Record was not deleted!! Table = " + annotation.value() + ", ID = " + id);
+            }
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

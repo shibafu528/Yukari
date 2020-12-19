@@ -8,8 +8,6 @@ import kotlinx.coroutines.launch
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.Status
-import shibafu.yukari.twitter.TwitterUtil
-import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.getTwitterServiceAwait
 import kotlin.coroutines.CoroutineContext
 
@@ -58,39 +56,38 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
         val mutedIds = mutedStatuses.map(Status::id).toMutableList()
 
         val suppressor = twitterService.suppressor
-        val userExtras = twitterService.userExtras
 
         var mute: BooleanArray
         bookmarks.forEach { status ->
-            val checkOwn = twitterService.isMyTweet(status)
-            if (checkOwn != null) {
-                status.setOwner(checkOwn)
-            } else {
-                val url = TwitterUtil.getUrlFromUserId(status.sourceUser.id)
-                val first = userExtras.firstOrNull { it.id == url }
-                if (first != null && first.priorityAccount != null) {
-                    status.setOwner(first.priorityAccount)
+            status.setRepresentIfOwned(twitterService.users)
+            if (!status.isOwnedStatus()) {
+                // 優先アカウント設定が存在するか？
+                val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
+                if (userExtras != null && userExtras.priorityAccount != null) {
+                    status.representUser = userExtras.priorityAccount
+                    status.representOverrode = true
+                    if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
+                        status.receivedUsers.add(userExtras.priorityAccount)
+                    }
                 }
             }
 
             mute = suppressor.decision(status)
             if (mute[MuteConfig.MUTE_IMAGE_THUMB]) {
-                status.isCensoredThumbs = true
+                status.metadata.isCensoredThumbs = true
             }
             val isMuted = mute[MuteConfig.MUTE_TWEET_RTED] ||
-                    (!status.isRetweet && mute[MuteConfig.MUTE_TWEET]) ||
-                    (status.isRetweet && mute[MuteConfig.MUTE_RETWEET])
-
-            val twitterStatus = TwitterStatus(status, status.representUser)
+                    (!status.isRepost && mute[MuteConfig.MUTE_TWEET]) ||
+                    (status.isRepost && mute[MuteConfig.MUTE_RETWEET])
 
             if (isMuted) {
-                mutedStatuses += twitterStatus
+                mutedStatuses += status
 
                 if (mutedIds.contains(status.id)) {
                     mutedIds.remove(status.id)
                 }
             } else {
-                insertElement(twitterStatus, false)
+                insertElement(status, false)
 
                 if (shownIds.contains(status.id)) {
                     shownIds.remove(status.id)

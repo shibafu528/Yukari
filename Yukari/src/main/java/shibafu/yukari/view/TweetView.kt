@@ -7,6 +7,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import shibafu.yukari.R
+import shibafu.yukari.database.Bookmark
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.AttrUtil
 
@@ -24,7 +25,7 @@ class TweetView : StatusView {
     override fun updateTimestamp(typeface: Typeface, fontSize: Float) {
         super.updateTimestamp(typeface, fontSize)
 
-        val status = status as TwitterStatus
+        val status = (status as? Bookmark)?.twitterStatus ?: status as TwitterStatus
 
         // ジオタグの表示
         val originStatus = status.originStatus as TwitterStatus
@@ -40,7 +41,7 @@ class TweetView : StatusView {
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val status = status as TwitterStatus
+        val status = (status as? Bookmark)?.twitterStatus ?: status as TwitterStatus
 
         // 鍵垢アイコンの表示
         if (status.originStatus.user.isProtected) {
@@ -58,7 +59,6 @@ class TweetView : StatusView {
     @SuppressLint("SetTextI18n")
     override fun updateDecoration() {
         super.updateDecoration()
-        val status = status as TwitterStatus
 
         // ハイパーミュート
         if (pref.getBoolean("j_fullmute", false)) {

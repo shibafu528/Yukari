@@ -10,10 +10,10 @@ import butterknife.ButterKnife;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.AuthUserRecord;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
+import shibafu.yukari.twitter.entity.TwitterStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -86,7 +86,7 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
                                     continue;
                                 }
                                 try {
-                                    Bookmark bookmark = new Bookmark(new PreformedStatus(twitter.showStatus(id), userRecord));
+                                    Bookmark bookmark = new Bookmark(new TwitterStatus(twitter.showStatus(id), userRecord));
                                     database.updateRecord(bookmark);
                                     ++repairCount;
                                 } catch (TwitterException e) {
