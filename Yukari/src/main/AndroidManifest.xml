@@ -287,9 +287,6 @@
         <activity
             android:name=".activity.WelcomeActivity"/>
 
-        <service
-            android:name=".service.BitmapDecoderService"/>
-
         <activity
             android:name=".activity.ChannelManageActivity"
             android:label="@string/title_activity_channel_manage"/>
