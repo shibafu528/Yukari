@@ -94,8 +94,6 @@ import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterUtil;
-import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
@@ -334,12 +332,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         final Intent args = getIntent();
 
         //statusを取得する (EXTRA_STATUS)
-        Object status = args.getSerializableExtra(EXTRA_STATUS);
-        if (status instanceof PreformedStatus) {
-            this.status = new TwitterStatus((PreformedStatus) status, ((PreformedStatus) status).getRepresentUser());
-        } else {
-            this.status = (Status) status;
-        }
+        this.status = (Status) args.getSerializableExtra(EXTRA_STATUS);
 
         if (savedInstanceState != null) {
             restoreState(savedInstanceState);

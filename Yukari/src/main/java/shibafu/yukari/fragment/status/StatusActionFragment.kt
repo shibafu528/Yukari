@@ -35,7 +35,6 @@ import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.showToast
 import java.util.*

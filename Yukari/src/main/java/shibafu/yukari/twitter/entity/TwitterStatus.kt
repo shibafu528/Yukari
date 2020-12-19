@@ -1,8 +1,8 @@
 package shibafu.yukari.twitter.entity
 
-import android.util.Log
 import org.eclipse.collections.api.list.primitive.LongList
 import org.eclipse.collections.impl.factory.primitive.LongLists
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
@@ -11,8 +11,6 @@ import shibafu.yukari.entity.User
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.TwitterVideo
-import shibafu.yukari.database.AuthUserRecord
-import shibafu.yukari.twitter.statusimpl.PreformedStatus
 import shibafu.yukari.util.MorseCodec
 import twitter4j.MediaEntity
 import java.util.*
@@ -117,15 +115,6 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
         get() = if (this.isRetweet) this.retweetedStatus else this
 
     init {
-        // PreformedStatusではこの先の処理のように加工した値が取れてしまうため、ラップされている内部のStatusを参照する。
-        // 互換性が不要であればinit内では単に this#status を参照して良い。
-        val status = if (status is PreformedStatus) {
-            Log.w("TwitterStatus", "PreformedStatus wrapped. Should use TwitterStatus directly.", Throwable())
-            status.baseStatus
-        } else {
-            status
-        }
-
         if (isRepost) {
             text = originStatus.text
             media = originStatus.media

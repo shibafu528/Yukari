@@ -27,7 +27,6 @@ import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.DonStatusView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -91,14 +90,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         findViewById(android.R.id.content).setOnClickListener(v -> finish());
 
         Intent args = getIntent();
-        Object anyStatus = args.getSerializableExtra(EXTRA_STATUS);
-        if (anyStatus instanceof Status) {
-            status = (Status) anyStatus;
-        } else if (anyStatus instanceof PreformedStatus) {
-            status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
-        } else {
-            throw new ClassCastException(anyStatus.getClass().getName());
-        }
+        status = (Status) args.getSerializableExtra(EXTRA_STATUS);
         if (savedInstanceState != null) {
             user = (AuthUserRecord) savedInstanceState.getSerializable(EXTRA_USER);
         } else {

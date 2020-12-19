@@ -16,7 +16,6 @@ import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
 import shibafu.yukari.media2.impl.TwitterVideo;
 import shibafu.yukari.twitter.entity.TwitterStatus;
-import shibafu.yukari.twitter.statusimpl.PreformedStatus;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
 
@@ -93,8 +92,6 @@ public class MoviePreviewActivity extends AppCompatActivity {
         Object anyStatus = getIntent().getSerializableExtra(EXTRA_STATUS);
         if (anyStatus instanceof TwitterStatus) {
             status = (TwitterStatus) anyStatus;
-        } else if (anyStatus instanceof PreformedStatus) {
-            status = new TwitterStatus((PreformedStatus) anyStatus, ((PreformedStatus) anyStatus).getRepresentUser());
         } else {
             status = null;
         }
