@@ -27,10 +27,10 @@ class TwitterUser(val user: twitter4j.User) : User {
         get() = user.isProtected
 
     override val profileImageUrl: String
-        get() = user.profileImageURLHttps
+        get() = user.profileImageURLHttps ?: ""
 
     override val biggerProfileImageUrl: String
-        get() = user.biggerProfileImageURLHttps
+        get() = user.biggerProfileImageURLHttps ?: ""
 
     override fun isMentionedTo(userRecord: AuthUserRecord): Boolean {
         if (userRecord.Provider.apiType != Provider.API_TWITTER) {
