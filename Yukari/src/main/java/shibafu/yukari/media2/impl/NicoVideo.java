@@ -51,8 +51,17 @@ public class NicoVideo extends MemoizeMedia {
 
         if (conn.getResponseCode() == HttpURLConnection.HTTP_OK && conn.getContentType().contains("application/json")) {
             NicoVideoResponseRoot response = new Gson().fromJson(sb.toString(), NicoVideoResponseRoot.class);
-            if ("ok".equals(response.nicovideoVideoResponse.status)) {
-                return response.nicovideoVideoResponse.video.thumbnailUrl;
+            NicoVideoVideoResponse innerObject;
+            if (response.niconicoResponse != null) {
+                innerObject = response.niconicoResponse;
+            } else if (response.nicovideoVideoResponse != null) {
+                innerObject = response.nicovideoVideoResponse;
+            } else {
+                throw new IOException("Invalid Response (missing field) : " + getBrowseUrl());
+            }
+
+            if ("ok".equals(innerObject.status)) {
+                return innerObject.video.thumbnailUrl;
             }
         }
         throw new IOException("Invalid Response : " + getBrowseUrl());
@@ -65,7 +74,10 @@ public class NicoVideo extends MemoizeMedia {
 
     private static class NicoVideoResponseRoot {
         @SerializedName("nicovideo_video_response")
+        @Deprecated
         public NicoVideoVideoResponse nicovideoVideoResponse;
+        @SerializedName("niconico_response")
+        public NicoVideoVideoResponse niconicoResponse;
     }
 
     private static class NicoVideoVideoResponse {
