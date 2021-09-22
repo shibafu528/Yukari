@@ -10,9 +10,6 @@ repositories {
     maven {
         url "http://twitter4j.org/maven2"
     }
-    maven {
-        url "https://dl.bintray.com/shibafu528/maven"
-    }
 }
 
 class GitUtil {
@@ -41,7 +38,7 @@ ext {
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
-    exvoiceVersion = '20200915.230759'
+    exvoiceVersion = '20210923.011845'
 
     y4aVersionMajor = 3
     y4aVersionMinor = 0
