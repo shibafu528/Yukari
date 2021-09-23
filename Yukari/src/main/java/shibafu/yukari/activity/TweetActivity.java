@@ -40,6 +40,7 @@ import android.text.TextWatcher;
 import android.text.style.CharacterStyle;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -666,16 +667,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
         //投稿ボタンの設定
         btnPost = (Button) findViewById(R.id.btnTweet);
-        btnPost.setOnClickListener(v -> {
-            if (sp.getBoolean("pref_dialog_post", false)) {
-                SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                        REQUEST_DIALOG_POST, "確認", "ツイートしますか？", "OK", "キャンセル"
-                );
-                dialogFragment.show(getSupportFragmentManager(), "dialog");
-            } else {
-                postTweet();
-            }
-        });
+        btnPost.setOnClickListener(v -> onClickPost());
         btnPost.setOnLongClickListener(v -> {
             SimpleAlertDialogFragment dialogFragment = new SimpleAlertDialogFragment.Builder(REQUEST_DIALOG_YUKARIN)
                     .setMessage("ゆっかりーん？")
@@ -980,6 +972,15 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (event.isCtrlPressed() && keyCode == KeyEvent.KEYCODE_ENTER) {
+            onClickPost();
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
     @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
     void openGallery() {
         //添付上限判定
@@ -1138,6 +1139,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 })
                 .create();
         currentDialog.show();
+    }
+
+    private void onClickPost() {
+        if (sp.getBoolean("pref_dialog_post", false)) {
+            SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
+                    REQUEST_DIALOG_POST, "確認", "ツイートしますか？", "OK", "キャンセル"
+            );
+            dialogFragment.show(getSupportFragmentManager(), "dialog");
+        } else {
+            postTweet();
+        }
     }
 
     private void postTweet() {
