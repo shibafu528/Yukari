@@ -33,6 +33,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -43,6 +52,7 @@ import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.TriangleView;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.filter.FilterQuery;
@@ -61,19 +71,10 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-
-import java.io.File;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends ActionBarYukariBase implements SearchDialogFragment.SearchDialogCallback, QuickPostFragment.OnCloseQuickPostListener {
 
@@ -166,23 +167,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         });
         flStreamState.setOnLongClickListener(view -> {
             if (enableQuickPost) {
-                llQuickTweet.setVisibility(View.VISIBLE);
-
-                QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
-                if (quickPostFragment != null) {
-                    if (currentPage instanceof TimelineFragment) {
-                        StringBuilder defaultText = new StringBuilder();
-                        FilterQuery query = ((TimelineFragment) currentPage).getQuery();
-                        for (FilterSource source : query.getSources()) {
-                            if (source instanceof Search) {
-                                defaultText.append(" ").append(((Search) source).getQuery());
-                            }
-                        }
-                        quickPostFragment.setDefaultText(defaultText.toString());
-                    } else {
-                        quickPostFragment.setDefaultText("");
-                    }
-                }
+                showQuickPost();
                 return true;
             } else return false;
         });
@@ -534,6 +519,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         return super.dispatchKeyEvent(event);
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_T && !llQuickTweet.hasFocus()) {
+            startTweetActivity();
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
     public boolean isKeepScreenOn() {
         return keepScreenOn;
     }
@@ -819,6 +813,26 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
         else {
             viewPager.setCurrentItem(existId);
+        }
+    }
+
+    private void showQuickPost() {
+        llQuickTweet.setVisibility(View.VISIBLE);
+
+        QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
+        if (quickPostFragment != null) {
+            if (currentPage instanceof TimelineFragment) {
+                StringBuilder defaultText = new StringBuilder();
+                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                for (FilterSource source : query.getSources()) {
+                    if (source instanceof Search) {
+                        defaultText.append(" ").append(((Search) source).getQuery());
+                    }
+                }
+                quickPostFragment.setDefaultText(defaultText.toString());
+            } else {
+                quickPostFragment.setDefaultText("");
+            }
         }
     }
 
