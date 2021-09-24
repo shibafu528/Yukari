@@ -24,7 +24,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -262,9 +261,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             MenuDialogFragment menuDialogFragment = new MenuDialogFragment();
             menuDialogFragment.show(getSupportFragmentManager(), "menu");
         });
-        if (!sharedPreferences.getBoolean("pref_show_menubutton", false) && ViewConfiguration.get(this).hasPermanentMenuKey()) {
-            ibMenu.setVisibility(View.GONE);
-        }
 
         ibClose.setOnLongClickListener(view -> {
             int current = viewPager.getCurrentItem();

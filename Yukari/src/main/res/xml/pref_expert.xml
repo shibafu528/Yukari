@@ -44,10 +44,6 @@
             android:key="pref_repair_notification_channel"
             android:title="通知チャンネルの修復"
             android:summary="システムの通知設定の項目を修復します。システム設定で通知音をカスタマイズしている場合、その情報は失われます。\n(※Android 8.0以上のみ有効)"/>
-        <CheckBoxPreference
-            android:key="pref_show_menubutton"
-            android:title="メニューボタンを表示"
-            android:summary="メニューを開くボタンを機種に関係なく表示します(※Android 4.0以上のみ有効、特定機種トラブル対策)"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="実験中の機能 (上級者向け)">
         <CheckBoxPreference
