@@ -451,6 +451,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             }
         }
         etInput.setText((defaultText != null) ? defaultText : sp.getString("pref_tweet_footer", ""));
+        // デフォルト公開範囲を適用
+        try {
+            setVisibility(Integer.parseInt(sp.getString("pref_toot_visibility_default", "0")));
+        } catch (NumberFormatException ignored) {}
         switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
             case MODE_REPLY:
                 etInput.setSelection(etInput.getText().length() - restoredTagsLength);
@@ -544,9 +548,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         // 可視性の設定
-        try {
-            setVisibility(Integer.parseInt(sp.getString("pref_toot_visibility_default", "0")));
-        } catch (NumberFormatException ignored) {}
         if (args.hasExtra(EXTRA_VISIBILITY)) {
             setVisibility(args.getIntExtra(EXTRA_VISIBILITY, StatusDraft.Visibility.PUBLIC.ordinal()));
         }
