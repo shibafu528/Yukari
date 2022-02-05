@@ -10,6 +10,26 @@ repositories {
     maven {
         url "http://twitter4j.org/maven2"
     }
+    // https://github.com/settings/tokens/new?scopes=read:packages から
+    // `read:packages` 権限の付いたPersonal access tokenを発行して、
+    // local.propertiesに下記の通りに追記する。
+    // ----
+    // gpr.user=GitHubユーザー名
+    // gpr.key=発行したアクセストークン
+    maven {
+        url = uri("https://maven.pkg.github.com/shibafu528/yukari-exvoice")
+        credentials {
+            try {
+                def properties = new Properties()
+                properties.load(project.rootProject.file('local.properties').newDataInputStream())
+                username = properties.getProperty("gpr.user") ?: System.getenv("GITHUB_USERNAME")
+                password = properties.getProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            } catch (FileNotFoundException) {
+                username = System.getenv("GITHUB_USERNAME")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
 
 class GitUtil {
@@ -38,7 +58,7 @@ ext {
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
-    exvoiceVersion = '20210923.011845'
+    exvoiceVersion = '20211121.073240'
 
     y4aVersionMajor = 3
     y4aVersionMinor = 0
