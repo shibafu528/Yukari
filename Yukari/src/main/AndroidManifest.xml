@@ -11,6 +11,29 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
+    <queries>
+        <!-- Yukari URL accelerator plugin -->
+        <intent>
+            <action android:name="shibafu.yukari.ACTION_LINK_ACCEL" />
+        </intent>
+        <!-- twicca plugin -->
+        <intent>
+            <action android:name="jp.r246.twicca.ACTION_EDIT_TWEET" />
+        </intent>
+        <intent>
+            <action android:name="jp.r246.twicca.ACTION_SHOW_TWEET" />
+        </intent>
+        <intent>
+            <action android:name="jp.r246.twicca.ACTION_SHOW_USER" />
+        </intent>
+        <!-- Simeji mushroom (たぶん使ってない気がするけど一応) -->
+        <intent>
+            <action android:name="com.adamrocker.android.simeji.ACTION_INTERCEPT"/>
+        </intent>
+        <!-- これ聴いてるんだからねっ！ (@solata2009) https://play.google.com/store/apps/details?id=biz.Fairysoft.KoreKiiteru -->
+        <package android:name="biz.Fairysoft.KoreKiiteru" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
