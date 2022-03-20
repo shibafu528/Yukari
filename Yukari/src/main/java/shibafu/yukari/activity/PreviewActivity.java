@@ -1,12 +1,15 @@
 package shibafu.yukari.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,17 +20,17 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.util.DisplayMetrics;
-import android.view.MotionEvent;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
+
+import com.davemorrissey.labs.subscaleview.ImageSource;
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.MultiFormatReader;
@@ -35,6 +38,17 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
@@ -44,10 +58,10 @@ import permissions.dispatcher.RuntimePermissions;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
-import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
@@ -55,14 +69,6 @@ import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Locale;
 
 /**
  * Created by Shibafu on 13/09/22.
@@ -77,22 +83,24 @@ public class PreviewActivity extends ActionBarYukariBase {
     public static final String EXTRA_STATUS = "status";
     public static final String EXTRA_USER = "user";
 
+    private static final int[] ORIENTATIONS = {
+            SubsamplingScaleImageView.ORIENTATION_0,
+            SubsamplingScaleImageView.ORIENTATION_90,
+            SubsamplingScaleImageView.ORIENTATION_180,
+            SubsamplingScaleImageView.ORIENTATION_270,
+    };
+
     private Media media;
-    private Bitmap image;
-    private Matrix matrix;
-    private float minScale = 1.0f;
 
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
-    @BindView(R.id.ivPreviewImage) ImageView imageView;
+    @BindView(R.id.ivPreviewImage) SubsamplingScaleImageView imageView;
     @BindView(R.id.twvPreviewStatus) TweetView tweetView;
     private Status status;
     private AuthUserRecord user;
 
     private Animation animFadeIn, animFadeOut;
     private boolean isShowPanel = true;
-    private int displayWidth;
-    private int displayHeight;
 
     @BindView(R.id.ibPreviewSave) ImageButton ibSave;
 
@@ -102,6 +110,7 @@ public class PreviewActivity extends ActionBarYukariBase {
     @BindView(R.id.llQrText) LinearLayout llQrText;
     @BindView(R.id.tvQrText) TextView tvQrText;
 
+    @SuppressLint("MissingSuperCall")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState, true);
@@ -129,118 +138,34 @@ public class PreviewActivity extends ActionBarYukariBase {
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
-        imageView.setOnTouchListener(new View.OnTouchListener() {
-            private static final int TOUCH_NONE = 0;
-            private static final int TOUCH_DRAG = 1;
-            private static final int TOUCH_ZOOM = 2;
-            private int touchMode = TOUCH_NONE;
-
-            private static final int DRAG_THRESHOLD = 30;
-            private float dragStartX, dragStartY, dragPrevX, dragPrevY;
-            private boolean begunDrag = false;
-
-            private double pinchPrevDistance;
-
+        imageView.setMinimumDpi(80);
+        imageView.setOnClickListener(view -> {
+            if (isShowPanel) {
+                llControlPanel.startAnimation(animFadeOut);
+                llControlPanel.setVisibility(View.INVISIBLE);
+            } else {
+                llControlPanel.startAnimation(animFadeIn);
+                llControlPanel.setVisibility(View.VISIBLE);
+            }
+            isShowPanel ^= true;
+        });
+        imageView.setOnStateChangedListener(new SubsamplingScaleImageView.OnStateChangedListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (image == null) return false;
-                //ピンチの処理
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_POINTER_DOWN:
-                        if (event.getPointerCount() >= 2) {
-                            pinchPrevDistance = getDistance(event);
-                            if (pinchPrevDistance > 50f) {
-                                touchMode = TOUCH_ZOOM;
-                            }
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if (touchMode == TOUCH_ZOOM && event.getPointerCount() >= 2) {
-                            if (isShowPanel) {
-                                llControlPanel.startAnimation(animFadeOut);
-                                llControlPanel.setVisibility(View.INVISIBLE);
-                                isShowPanel = false;
-                            }
-
-                            double distance = getDistance(event);
-                            double scale = (distance - pinchPrevDistance) / Math.sqrt(displayWidth * displayWidth + displayHeight * displayHeight);
-                            pinchPrevDistance = distance;
-                            scale += 1;
-                            scale = scale * scale;
-
-                            float[] matrixValues = new float[9];
-                            matrix.getValues(matrixValues);
-                            float nowScale = matrixValues[Matrix.MSCALE_X];
-                            if (nowScale * scale > minScale) {
-                                matrix.postScale((float) scale, (float) scale);
-                                matrix.postTranslate((float) -(displayWidth * scale - displayWidth) / 2,
-                                        (float) -(displayHeight * scale - displayHeight) / 2);
-                                matrix.postTranslate((float) (-(displayWidth/2 - displayWidth/2) * scale), 0);
-                                matrix.postTranslate(0, (float) (-(displayHeight/2 - displayHeight/2) * scale));
-                                updateMatrix();
-                            }
-                        }
-                        break;
-                    case MotionEvent.ACTION_UP:
-                    case MotionEvent.ACTION_POINTER_UP:
-                        if (touchMode == TOUCH_ZOOM) {
-                            touchMode = TOUCH_NONE;
-                        }
-                        break;
+            public void onScaleChanged(float newScale, int origin) {
+                if (isShowPanel) {
+                    llControlPanel.startAnimation(animFadeOut);
+                    llControlPanel.setVisibility(View.INVISIBLE);
+                    isShowPanel = false;
                 }
-
-                //ドラッグの処理
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_DOWN:
-                        if (touchMode == TOUCH_NONE && event.getPointerCount() == 1) {
-                            touchMode = TOUCH_DRAG;
-                            dragPrevX = dragStartX = event.getX();
-                            dragPrevY = dragStartY = event.getY();
-                            begunDrag = false;
-                        }
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        if (touchMode == TOUCH_DRAG) {
-                            int moveX = (int) (event.getX() - dragStartX);
-                            int moveY = (int) (event.getY() - dragStartY);
-                            if (begunDrag || Math.max(Math.abs(moveX), Math.abs(moveY)) > DRAG_THRESHOLD) {
-                                if (isShowPanel) {
-                                    llControlPanel.startAnimation(animFadeOut);
-                                    llControlPanel.setVisibility(View.INVISIBLE);
-                                    isShowPanel = false;
-                                }
-                                matrix.postTranslate(-(dragPrevX - event.getX()), -(dragPrevY - event.getY()));
-                                updateMatrix();
-                                begunDrag = true;
-                            }
-                            dragPrevX = event.getX();
-                            dragPrevY = event.getY();
-                        }
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        if (touchMode == TOUCH_DRAG) {
-                            touchMode = TOUCH_NONE;
-                            if (!begunDrag) {
-                                if (isShowPanel) {
-                                    llControlPanel.startAnimation(animFadeOut);
-                                    llControlPanel.setVisibility(View.INVISIBLE);
-                                }
-                                else {
-                                    llControlPanel.startAnimation(animFadeIn);
-                                    llControlPanel.setVisibility(View.VISIBLE);
-                                }
-                                isShowPanel ^= true;
-                            }
-                        }
-                        break;
-                }
-                return true;
             }
 
-            private double getDistance(MotionEvent event) {
-                float x = event.getX(0) - event.getX(1);
-                float y = event.getY(0) - event.getY(1);
-                return Math.sqrt(x * x + y * y);
+            @Override
+            public void onCenterChanged(PointF newCenter, int origin) {
+                if (isShowPanel) {
+                    llControlPanel.startAnimation(animFadeOut);
+                    llControlPanel.setVisibility(View.INVISIBLE);
+                    isShowPanel = false;
+                }
             }
         });
 
@@ -439,28 +364,10 @@ public class PreviewActivity extends ActionBarYukariBase {
                     finish();
                     return;
                 }
-                image = bitmap;
-                imageView.setImageBitmap(bitmap);
-                //画面解像度を取得して初期サイズ設定
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                displayWidth = displayMetrics.widthPixels;
-                displayHeight = displayMetrics.heightPixels;
-                float scale = 1.0f;
-                if (bitmap.getWidth() > bitmap.getHeight() && displayWidth < bitmap.getWidth()) {
-                    scale = (float) displayWidth / bitmap.getWidth();
-                }
-                else if (displayHeight < bitmap.getHeight()) {
-                    scale = (float) displayHeight / bitmap.getHeight();
-                }
-                minScale = scale;
-
-                matrix = new Matrix();
-                matrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                matrix.postScale(scale, scale);
-                matrix.postTranslate(displayWidth / 2, displayHeight / 2);
-                updateMatrix();
+                // 本当はBitmapではなくキャッシュファイルパスを渡したほうがライブラリのポテンシャルを引き出せる
+                imageView.setImage(ImageSource.bitmap(bitmap));
                 //QR解析
-                processZxing();
+                processZxing(bitmap);
             }
         };
         loaderTask.executeParallel(mediaUrl);
@@ -475,27 +382,29 @@ public class PreviewActivity extends ActionBarYukariBase {
             status = status.getOriginStatus();
         }
 
-        ImageButton ibRotateLeft = (ImageButton) findViewById(R.id.ibPreviewRotateLeft);
+        ImageButton ibRotateLeft = findViewById(R.id.ibPreviewRotateLeft);
         ibRotateLeft.setOnClickListener(v -> {
-            if (image != null) {
-                Matrix rotateMatrix = new Matrix();
-                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                rotateMatrix.postRotate(-90f);
-                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                matrix.preConcat(rotateMatrix);
-                updateMatrix();
+            int orientation = imageView.getAppliedOrientation();
+            for (int i = ORIENTATIONS.length - 1; i >= 0; i--) {
+                if (ORIENTATIONS[i] < orientation) {
+                    imageView.setOrientation(ORIENTATIONS[i]);
+                    return;
+                }
             }
+            // if orientation <= 0
+            imageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_270);
         });
-        ImageButton ibRotateRight = (ImageButton) findViewById(R.id.ibPreviewRotateRight);
+        ImageButton ibRotateRight = findViewById(R.id.ibPreviewRotateRight);
         ibRotateRight.setOnClickListener(v -> {
-            if (image != null) {
-                Matrix rotateMatrix = new Matrix();
-                rotateMatrix.setTranslate(-(image.getWidth() / 2), -(image.getHeight() / 2));
-                rotateMatrix.postRotate(90f);
-                rotateMatrix.postTranslate((image.getWidth() / 2), (image.getHeight() / 2));
-                matrix.preConcat(rotateMatrix);
-                updateMatrix();
+            int orientation = imageView.getAppliedOrientation();
+            for (int i = 0; i < ORIENTATIONS.length; i++) {
+                if (ORIENTATIONS[i] > orientation) {
+                    imageView.setOrientation(ORIENTATIONS[i]);
+                    return;
+                }
             }
+            // if orientation >= 270
+            imageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_0);
         });
 
         ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
@@ -522,35 +431,7 @@ public class PreviewActivity extends ActionBarYukariBase {
 
     @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     void onClickSave() {
-        new ParallelAsyncTask<Void, Void, String>() {
-
-            @Override
-            protected String doInBackground(Void... voids) {
-                try {
-                    DownloadManager dlm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                    DownloadManager.Request request = media.getDownloadRequest();
-                    if (request == null) {
-                        return "保存できない種類の画像です。";
-                    }
-                    request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                    File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    pathExternalPublicDir.mkdirs();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    dlm.enqueue(request);
-                    return "";
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return "保存に失敗しました。";
-            }
-
-            @Override
-            protected void onPostExecute(String str) {
-                if (!TextUtils.isEmpty(str)) {
-                    Toast.makeText(getApplicationContext(), str, Toast.LENGTH_SHORT).show();
-                }
-            }
-        }.executeParallel();
+        new SaveAsyncTask(getApplicationContext()).doInBackground(media);
     }
 
     @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -588,7 +469,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                 .show();
     }
 
-    private void processZxing() {
+    private void processZxing(Bitmap image) {
         try {
             int[] pixels = new int[image.getWidth() * image.getHeight()];
             image.getPixels(pixels, 0, image.getWidth(), 0, 0, image.getWidth(), image.getHeight());
@@ -619,12 +500,7 @@ public class PreviewActivity extends ActionBarYukariBase {
             loaderTask.cancel(true);
         }
         if (imageView != null) {
-            imageView.setImageDrawable(null);
-            imageView = null;
-        }
-        if (image != null && !image.isRecycled()) {
-            image.recycle();
-            System.gc();
+            imageView.recycle();
         }
     }
 
@@ -634,14 +510,44 @@ public class PreviewActivity extends ActionBarYukariBase {
         PreviewActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
-    private void updateMatrix() {
-        imageView.setImageMatrix(matrix);
-        imageView.invalidate();
-    }
-
     @Override
     public void onServiceConnected() {}
 
     @Override
     public void onServiceDisconnected() {}
+
+    private static class SaveAsyncTask extends ParallelAsyncTask<Media, Void, String> {
+        private final Context context;
+
+        SaveAsyncTask(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected String doInBackground(Media... media) {
+            try {
+                DownloadManager dlm = (DownloadManager) context.getSystemService(DOWNLOAD_SERVICE);
+                DownloadManager.Request request = media[0].getDownloadRequest();
+                if (request == null) {
+                    return "保存できない種類の画像です。";
+                }
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                pathExternalPublicDir.mkdirs();
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                dlm.enqueue(request);
+                return "";
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "保存に失敗しました。";
+        }
+
+        @Override
+        protected void onPostExecute(String str) {
+            if (!TextUtils.isEmpty(str)) {
+                Toast.makeText(context, str, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
