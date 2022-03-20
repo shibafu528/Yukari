@@ -33,20 +33,22 @@ repositories {
 }
 
 class GitUtil {
-    static def getRevHash() {
-        def proc = ["git", "rev-parse", "HEAD"].execute()
+    def directory
+
+    def getRevHash() {
+        def proc = ["git", "rev-parse", "HEAD"].execute(null, directory)
         proc.waitFor()
         return proc.inputStream.readLines().first()
     }
 
-    static def getRevCount() {
-        def proc = ["git", "rev-list", "--count", "HEAD"].execute()
+    def getRevCount() {
+        def proc = ["git", "rev-list", "--count", "HEAD"].execute(null, directory)
         proc.waitFor()
         return proc.inputStream.readLines().first()
     }
 
-    static def isDirty() {
-        def proc = ["git", "status", "--porcelain"].execute()
+    def isDirty() {
+        def proc = ["git", "status", "--porcelain"].execute(null, directory)
         proc.waitFor()
         return proc.inputStream.readLines().size() > 0
     }
@@ -66,12 +68,13 @@ ext {
     y4aVersionSuffix = ''
     y4aCodeName = 'linkage'
 
-    y4aRevision = GitUtil.revHash.substring(0, 7)
-    if (GitUtil.isDirty()) {
+    git = new GitUtil(directory: rootProject.projectDir)
+    y4aRevision = git.revHash.substring(0, 7)
+    if (git.isDirty()) {
         y4aRevision += "*"
     }
     y4aBuildDate = new Date().format("yyMMdd")
-    y4aVersionString = [y4aVersionMajor, y4aVersionMinor, y4aVersionPatch, GitUtil.revCount].join(".") + y4aVersionSuffix
+    y4aVersionString = [y4aVersionMajor, y4aVersionMinor, y4aVersionPatch, git.revCount].join(".") + y4aVersionSuffix
     y4aVersionCode = y4aVersionMajor * 1000000 + y4aVersionMinor * 1000 + y4aVersionPatch
     y4aVersionName = "${y4aVersionString} (${y4aCodeName} ${y4aBuildDate} ${y4aRevision})"
 }
