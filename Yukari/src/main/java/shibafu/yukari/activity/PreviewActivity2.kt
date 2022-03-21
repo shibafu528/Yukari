@@ -398,7 +398,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                 if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS) {
                     val input: InputStream
                     val beginTime: Long
-                    var contentLength: Int = 0
+                    var contentLength: Int = -1
                     var resolveInfo: Media.ResolveInfo? = null
 
                     // Open
