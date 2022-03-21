@@ -40,7 +40,7 @@ import org.threeten.bp.temporal.ChronoUnit
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.R
-import shibafu.yukari.activity.PreviewActivity
+import shibafu.yukari.activity.PreviewActivity2
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
@@ -124,7 +124,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         ivIcon.setOnClickListener {
             val user = targetUser ?: return@setOnClickListener
 
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(user.biggerProfileImageUrl), requireContext(), PreviewActivity::class.java))
+            startActivity(PreviewActivity2.newIntent(requireContext(), Uri.parse(user.biggerProfileImageUrl)))
         }
 
         ivHeader = v.findViewById(R.id.ivProfileHeader)
@@ -135,7 +135,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
                 return@setOnClickListener
             }
 
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(account.header), requireContext(), PreviewActivity::class.java))
+            startActivity(PreviewActivity2.newIntent(requireContext(), Uri.parse(account.header)))
         }
 
         ivProtected = v.findViewById(R.id.ivProfileProtected)

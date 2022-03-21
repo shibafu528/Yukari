@@ -23,11 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
-import shibafu.yukari.activity.MainActivity
-import shibafu.yukari.activity.PreviewActivity
-import shibafu.yukari.activity.ProfileActivity
-import shibafu.yukari.activity.StatusActivity
-import shibafu.yukari.activity.TweetActivity
+import shibafu.yukari.activity.*
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.common.async.ThrowableAsyncTask
@@ -581,12 +577,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 startActivity(intent)
                             }
                             is Media -> {
-                                val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(chose.browseUrl),
-                                        requireActivity().applicationContext,
-                                        PreviewActivity::class.java)
-                                intent.putExtra(PreviewActivity.EXTRA_USER, status.representUser)
+                                val intent = PreviewActivity2.newIntent(requireContext(), Uri.parse(chose.browseUrl), user = status.representUser)
                                 startActivity(intent)
                             }
                             is String -> {

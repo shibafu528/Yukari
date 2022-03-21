@@ -15,10 +15,16 @@ public abstract class ActionBarYukariBase extends AppCompatActivity implements T
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ThemeUtil.setActivityTheme(this);
+        if (allowAutoTheme()) {
+            ThemeUtil.setActivityTheme(this);
+        }
         super.onCreate(savedInstanceState);
     }
 
+    /**
+     * @deprecated Override {@link #allowAutoTheme()} and return false.
+     */
+    @Deprecated
     protected void onCreate(Bundle savedInstanceState, boolean ignoreAutoTheme) {
         super.onCreate(savedInstanceState);
     }
@@ -43,5 +49,9 @@ public abstract class ActionBarYukariBase extends AppCompatActivity implements T
     @Override
     public TwitterService getTwitterService() {
         return servicesConnection.getTwitterService();
+    }
+
+    protected boolean allowAutoTheme() {
+        return true;
     }
 }

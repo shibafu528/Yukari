@@ -45,7 +45,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.MuteActivity;
-import shibafu.yukari.activity.PreviewActivity;
+import shibafu.yukari.activity.PreviewActivity2;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.activity.ProfileEditActivity;
 import shibafu.yukari.activity.TweetActivity;
@@ -153,11 +153,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
         ivProfileIcon = (ImageView)v.findViewById(R.id.ivProfileIcon);
         ivProfileIcon.setOnClickListener(v1 -> {
             if (loadHolder != null && loadHolder.targetUser != null) {
-                startActivity(new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(loadHolder.targetUser.getOriginalProfileImageURLHttps()),
-                        getActivity(),
-                        PreviewActivity.class));
+                startActivity(PreviewActivity2.newIntent(requireContext(), Uri.parse(loadHolder.targetUser.getOriginalProfileImageURLHttps())));
             }
         });
         ivHeader = (ImageView) v.findViewById(R.id.ivProfileHeader);
@@ -165,11 +161,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             if (loadHolder != null
                     && loadHolder.targetUser != null
                     && loadHolder.targetUser.getProfileBannerRetinaURL() != null) {
-                startActivity(new Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL()),
-                        getActivity(),
-                        PreviewActivity.class));
+                startActivity(PreviewActivity2.newIntent(requireContext(), Uri.parse(loadHolder.targetUser.getProfileBannerRetinaURL())));
             }
         });
         ivProtected = (ImageView) v.findViewById(R.id.ivProfileProtected);

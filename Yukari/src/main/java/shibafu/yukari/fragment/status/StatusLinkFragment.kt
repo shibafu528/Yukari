@@ -19,11 +19,7 @@ import android.widget.ListView
 import android.widget.PopupMenu
 import android.widget.TextView
 import shibafu.yukari.R
-import shibafu.yukari.activity.MainActivity
-import shibafu.yukari.activity.PreviewActivity
-import shibafu.yukari.activity.ProfileActivity
-import shibafu.yukari.activity.TraceActivity
-import shibafu.yukari.activity.TweetActivity
+import shibafu.yukari.activity.*
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.BitmapCache
@@ -93,7 +89,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                 return@forEach
             }
 
-            list += MediaRow(media)
+            list += MediaRow(media, originStatus.media)
             existsUrl += media.browseUrl
         }
 
@@ -209,14 +205,13 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         fun onLongClick(): Boolean = false
     }
 
-    private inner class MediaRow(val media: Media) : Row {
+    private inner class MediaRow(val media: Media, val collection: List<Media>) : Row {
         override val icon: Drawable? = null
         override val label: String = media.browseUrl
 
         override fun onClick() {
             if (media.canPreview()) {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl), activity, PreviewActivity::class.java)
-                intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
+                val intent = PreviewActivity2.newIntent(requireContext(), Uri.parse(media.browseUrl), status, collection = collection.map { Uri.parse(it.browseUrl) })
                 startActivity(intent)
             } else {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl))

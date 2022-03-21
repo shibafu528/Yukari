@@ -1582,7 +1582,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             pic.height = size[1];
             pic.imageView = createAttachThumb(bmp);
             pic.imageView.setOnLongClickListener(v -> {
-                startActivity(new Intent(Intent.ACTION_VIEW, pic.uri, getApplicationContext(), PreviewActivity.class));
+                startActivity(PreviewActivity2.newIntent(getApplicationContext(), pic.uri));
                 return true;
             });
         } catch (IOException | NullPointerException e) {

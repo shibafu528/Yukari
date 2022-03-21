@@ -26,7 +26,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import shibafu.yukari.R
-import shibafu.yukari.activity.PreviewActivity
+import shibafu.yukari.activity.PreviewActivity2
 import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
@@ -452,12 +452,7 @@ abstract class StatusView : RelativeLayout {
 
                         if (mode and Mode.DETAIL == Mode.DETAIL && media.canPreview() || pref.getBoolean("pref_extended_touch_event", false)) {
                             iv.setOnClickListener { _ ->
-                                val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(media.browseUrl),
-                                        context,
-                                        PreviewActivity::class.java)
-                                intent.putExtra(PreviewActivity.EXTRA_STATUS, status)
+                                val intent = PreviewActivity2.newIntent(context, Uri.parse(media.browseUrl), status, collection = mediaList.map { Uri.parse(it.browseUrl) })
                                 context.startActivity(intent)
                             }
                         }
