@@ -2,6 +2,7 @@ package shibafu.yukari.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.ContextCompat;
@@ -107,7 +108,10 @@ public class IntentActivity extends ActionBarYukariBase {
             }
         }
         if (matchedWork == null) {
-            Toast.makeText(getApplicationContext(), "非対応URLです.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Yukariでは開けないURLです", Toast.LENGTH_SHORT).show();
+            Intent copy = new Intent(getIntent());
+            copy.setComponent(null);
+            startActivity(Intent.createChooser(copy, null));
             finish();
         }
     }
