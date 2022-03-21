@@ -43,6 +43,8 @@ class TwitterMessage(val message: DirectMessage,
 
     override val links: List<String>
 
+    override val tags: List<String> = message.hashtagEntities.map { it.text }
+
     override var favoritesCount: Int = 0
 
     override var repostsCount: Int = 0

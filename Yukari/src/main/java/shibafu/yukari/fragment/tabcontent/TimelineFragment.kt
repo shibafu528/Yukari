@@ -288,11 +288,11 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 clickedElement.mentions.map { "@" + it.screenName } +
                                         clickedElement.media.map { it.browseUrl } +
                                         clickedElement.links +
-                                        clickedElement.tags
+                                        clickedElement.tags.map { "#$it" }
                             } else {
                                 clickedElement.media.map { it.browseUrl } +
                                         clickedElement.links +
-                                        clickedElement.tags
+                                        clickedElement.tags.map { "#$it" }
                             }
                             val bundle = Bundle()
                             bundle.putSerializable(EXTRA_STATUS, clickedElement)
@@ -586,8 +586,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                     startActivity(intent)
                                 } else {
+                                    // maybe hashtag
                                     val intent = Intent(activity, MainActivity::class.java)
-                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, chose)
+                                    intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, "#$chose")
                                     startActivity(intent)
                                 }
                             }
