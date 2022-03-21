@@ -298,8 +298,8 @@ public class MenuDialogFragment extends DialogFragment {
         }
         plugins[index] = plugin;
         View v = pluginViews.get(index);
-        TextView label = (TextView) v.findViewById(R.id.tvMenuPlugin);
-        ImageView icon = (ImageView) v.findViewById(R.id.ivMenuPlugin);
+        TextView label = v.findViewWithTag("menu:label");
+        ImageView icon = v.findViewWithTag("menu:icon");
         if (plugin == null) {
             label.setText("");
             icon.setImageDrawable(null);

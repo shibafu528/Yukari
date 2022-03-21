@@ -109,22 +109,22 @@
             android:id="@+id/llMenuTwilog">
 
             <ImageView
-                android:id="@+id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
                 android:src="?attr/menuTwilogDrawable"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:icon" />
 
             <TextView
-                android:id="@+id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
                 android:text="twilog"
                 android:textSize="@dimen/menudialog_textsize"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:label" />
         </LinearLayout>
 
         <LinearLayout
@@ -139,21 +139,21 @@
             android:id="@+id/llMenuFavstar">
 
             <ImageView
-                android:id="@id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:icon" />
 
             <TextView
-                android:id="@id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
                 android:text=""
                 android:textSize="@dimen/menudialog_textsize"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:label" />
         </LinearLayout>
 
         <LinearLayout
@@ -167,21 +167,21 @@
             android:id="@+id/llMenuAclog">
 
             <ImageView
-                android:id="@id/ivMenuPlugin"
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:icon" />
 
             <TextView
-                android:id="@id/tvMenuPlugin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
                 android:text=""
                 android:textSize="@dimen/menudialog_textsize"
-                android:layout_gravity="center_horizontal" />
+                android:layout_gravity="center_horizontal"
+                android:tag="menu:label" />
         </LinearLayout>
     </LinearLayout>
 
