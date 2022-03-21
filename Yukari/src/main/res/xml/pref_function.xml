@@ -74,4 +74,10 @@
             android:entryValues="@array/pref_quote_values"
             android:defaultValue="-1"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="画像プレビュー">
+        <CheckBoxPreference
+            android:key="pref_prefer_legacy_image_preview"
+            android:title="古い画像プレビュー画面を使用"
+            android:summary="Yukari v3.0.7まで使われていた古い画像プレビュー画面を呼び出します\n新しい画像プレビュー画面に不具合があった場合や、一部の廃止機能を使いたい場合に選択してください" />
+    </PreferenceCategory>
 </PreferenceScreen>

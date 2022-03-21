@@ -7,6 +7,7 @@ import android.graphics.PointF
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.preference.PreferenceManager
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
@@ -21,6 +22,7 @@ import android.widget.*
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+import com.github.machinarius.preferencefragment.PreferenceManagerCompat
 import kotlinx.coroutines.*
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
@@ -515,6 +517,14 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         @JvmStatic
         @JvmOverloads
         fun newIntent(context: Context, uri: Uri, status: Status? = null, user: AuthUserRecord? = null, collection: List<Uri> = emptyList()): Intent {
+            if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_prefer_legacy_image_preview", false)) {
+                return Intent(context, PreviewActivity::class.java).apply {
+                    data = uri
+                    putExtra(PreviewActivity.EXTRA_STATUS, status)
+                    putExtra(PreviewActivity.EXTRA_USER, user)
+                }
+            }
+
             return Intent(context, PreviewActivity2::class.java).apply {
                 data = uri
                 putExtra(EXTRA_COLLECTION, collection.toTypedArray())
