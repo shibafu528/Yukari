@@ -4,10 +4,7 @@ import org.eclipse.collections.api.list.primitive.LongList
 import org.eclipse.collections.impl.factory.primitive.LongLists
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
-import shibafu.yukari.entity.Mention
-import shibafu.yukari.entity.Status
-import shibafu.yukari.entity.StatusPreforms
-import shibafu.yukari.entity.User
+import shibafu.yukari.entity.*
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.TwitterVideo
@@ -17,7 +14,7 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.LinkedHashSet
 
-class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status {
+class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status, PluginApplicable {
 
     override val id: Long = status.id
 
@@ -67,6 +64,9 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
     override var representOverrode: Boolean = false
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+
+    override val isApplicablePlugin: Boolean
+        get() = !user.isProtected
 
     val quoteEntities: LongList
 

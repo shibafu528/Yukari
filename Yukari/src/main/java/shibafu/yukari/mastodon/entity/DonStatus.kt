@@ -11,16 +11,13 @@ import org.threeten.bp.ZonedDateTime
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
-import shibafu.yukari.entity.InReplyToId
-import shibafu.yukari.entity.Mention
-import shibafu.yukari.entity.StatusPreforms
-import shibafu.yukari.entity.User
 import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.media2.impl.DonPicture
 import shibafu.yukari.media2.impl.DonVideo
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.entity.*
 import shibafu.yukari.util.MorseCodec
 import shibafu.yukari.util.readBooleanCompat
 import shibafu.yukari.util.writeBooleanCompat
@@ -31,7 +28,7 @@ import shibafu.yukari.entity.Status as IStatus
 
 class DonStatus(val status: Status,
                 override var representUser: AuthUserRecord,
-                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable {
+                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable, PluginApplicable {
     override val id: Long
         get() = status.id
 
@@ -75,6 +72,12 @@ class DonStatus(val status: Status,
     override var representOverrode: Boolean = false
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+
+    override val isApplicablePlugin: Boolean
+        get() = when (status.visibility) {
+            Status.Visibility.Public.value, Status.Visibility.Unlisted.value -> true
+            else -> false
+        }
 
     val isLocal: Boolean = user.host == representUser.Provider.host
 

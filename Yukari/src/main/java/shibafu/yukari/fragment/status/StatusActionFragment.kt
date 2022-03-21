@@ -33,6 +33,7 @@ import shibafu.yukari.fragment.ListRegisterDialogFragment
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.entity.PluginApplicable
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
@@ -133,15 +134,16 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        val status = status.originStatus
         val plugins: List<TwiccaPluginAction> =
-                if (status.originStatus.user.isProtected) {
-                    emptyList()
-                } else {
+                if (status is PluginApplicable && status.isApplicablePlugin) {
                     val query = Intent("jp.r246.twicca.ACTION_SHOW_TWEET").addCategory(Intent.CATEGORY_DEFAULT)
 
                     requireActivity().packageManager.queryIntentActivities(query, PackageManager.MATCH_DEFAULT_ONLY)
-                        .sortedWith(ResolveInfo.DisplayNameComparator(requireActivity().packageManager))
-                        .map { TwiccaPluginAction(it) }
+                            .sortedWith(ResolveInfo.DisplayNameComparator(requireActivity().packageManager))
+                            .map { TwiccaPluginAction(it) }
+                } else {
+                    emptyList()
                 }
 
         itemList = itemTemplates.filter { it.second() }.map { it.first } + plugins
@@ -202,12 +204,12 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
     override fun onServiceConnected() {
         // Pluggaloidアクションのロード
         if (!isLoadedPluggaloid) {
+            val status = status.originStatus
+            val mRuby = twitterService?.getmRuby()
             val pluggaloidActions: List<PluggaloidPluginAction> =
-                    if (status.originStatus.user.isProtected || twitterService == null || twitterService.getmRuby() == null) {
-                        emptyList()
-                    } else {
+                    if (status is PluginApplicable && status.isApplicablePlugin && mRuby != null) {
                         val plugins = try {
-                            Plugin.filtering(twitterService.getmRuby(), "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
+                            Plugin.filtering(mRuby, "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
                         } catch (e: MRubyException) {
                             e.printStackTrace()
                             showToast("プラグインの呼び出し中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
@@ -224,6 +226,8 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                         } else {
                             emptyList()
                         }
+                    } else {
+                        emptyList()
                     }
             itemList += pluggaloidActions
             listAdapter = ArrayAdapter<StatusAction>(activity, android.R.layout.simple_list_item_1, itemList)
