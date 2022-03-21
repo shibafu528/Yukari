@@ -450,8 +450,8 @@ abstract class StatusView : RelativeLayout {
                                 BitmapCache.IMAGE_CACHE,
                                 hidden && pref.getBoolean("pref_prev_mosaic", false))
 
-                        if ((mode and Mode.DETAIL == Mode.DETAIL || pref.getBoolean("pref_extended_touch_event", false)) && media.canPreview()) {
-                            iv.setOnClickListener { _ ->
+                        iv.setOnClickListener {
+                            if ((mode and Mode.DETAIL == Mode.DETAIL || pref.getBoolean("pref_extended_touch_event", false)) && media.canPreview()) {
                                 val intent = PreviewActivity2.newIntent(context, Uri.parse(media.browseUrl), status,
                                         collection = mediaList.filter { it.canPreview() }.map { Uri.parse(it.browseUrl) })
                                 context.startActivity(intent)
