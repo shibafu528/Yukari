@@ -84,12 +84,13 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         val existsUserId = mutableSetOf<Long>()
 
         // 添付画像
+        val previewable = originStatus.media.filter { it.canPreview() }
         originStatus.media.forEach { media ->
             if (existsUrl.contains(media.browseUrl)) {
                 return@forEach
             }
 
-            list += MediaRow(media, originStatus.media)
+            list += MediaRow(media, previewable)
             existsUrl += media.browseUrl
         }
 

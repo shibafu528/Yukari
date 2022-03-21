@@ -452,7 +452,8 @@ abstract class StatusView : RelativeLayout {
 
                         if (mode and Mode.DETAIL == Mode.DETAIL && media.canPreview() || pref.getBoolean("pref_extended_touch_event", false)) {
                             iv.setOnClickListener { _ ->
-                                val intent = PreviewActivity2.newIntent(context, Uri.parse(media.browseUrl), status, collection = mediaList.map { Uri.parse(it.browseUrl) })
+                                val intent = PreviewActivity2.newIntent(context, Uri.parse(media.browseUrl), status,
+                                        collection = mediaList.filter { it.canPreview() }.map { Uri.parse(it.browseUrl) })
                                 context.startActivity(intent)
                             }
                         }
