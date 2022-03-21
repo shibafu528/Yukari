@@ -1,5 +1,7 @@
 package shibafu.yukari.activity
 
+import android.Manifest
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
@@ -8,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.preference.PreferenceManager
+import android.provider.Settings
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentStatePagerAdapter
@@ -22,8 +25,8 @@ import android.widget.*
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-import com.github.machinarius.preferencefragment.PreferenceManagerCompat
 import kotlinx.coroutines.*
+import permissions.dispatcher.*
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.database.AuthUserRecord
@@ -44,6 +47,7 @@ import java.io.*
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
+@RuntimePermissions
 class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
     // Collection
     private lateinit var collection: Array<Uri>
@@ -135,7 +139,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         }
 
         ibSave.setOnClickListener {
-            doSave(collection[viewPager.currentItem])
+            onClickSaveWithPermissionCheck()
         }
 
         // HTTP(S)ではない、あるいはDM添付画像の場合はブラウザ表示とダウンロードをサポートしない
@@ -170,6 +174,46 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        onRequestPermissionsResult(requestCode, grantResults)
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun onClickSave() {
+        doSave(collection[viewPager.currentItem])
+    }
+
+    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun onDeniedReadExternalStorage() {
+        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(this, "ストレージにアクセスする権限がありません。", Toast.LENGTH_SHORT).show()
+        } else {
+            AlertDialog.Builder(this)
+                    .setTitle("許可が必要")
+                    .setMessage("画像を保存するには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
+                    .setPositiveButton("設定画面へ") { _, _ ->
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        intent.data = Uri.fromParts("package", packageName, null)
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("キャンセル") { _, _ -> }
+                    .create()
+                    .show()
+        }
+    }
+
+    @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    fun showRationaleForReadExternalStorage(request: PermissionRequest) {
+        AlertDialog.Builder(this)
+                .setTitle("許可が必要")
+                .setMessage("画像を保存するためには、ストレージへのアクセス許可が必要です。")
+                .setPositiveButton("許可") { _, _ -> request.proceed() }
+                .setNegativeButton("許可しない") { _, _ -> request.cancel() }
+                .create()
+                .show()
     }
 
     private fun initializeField() {
