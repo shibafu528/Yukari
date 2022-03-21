@@ -1,12 +1,17 @@
 package shibafu.yukari.twitter.entity
 
+import org.eclipse.collections.impl.factory.primitive.LongLists
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.media2.Media
+import shibafu.yukari.media2.MediaFactory
+import shibafu.yukari.media2.impl.TwitterVideo
 import twitter4j.DirectMessage
+import twitter4j.MediaEntity
 import java.util.*
 
 class TwitterMessage(val message: DirectMessage,
@@ -34,6 +39,10 @@ class TwitterMessage(val message: DirectMessage,
 
     override val mentions: List<Mention> = listOf(TwitterMention(recipient.id, recipient.screenName))
 
+    override val media: List<Media>
+
+    override val links: List<String>
+
     override var favoritesCount: Int = 0
 
     override var repostsCount: Int = 0
@@ -47,6 +56,61 @@ class TwitterMessage(val message: DirectMessage,
     override var representOverrode: Boolean = false
 
     override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+
+    init {
+        val media = LinkedHashSet<Media>()
+        val links = LinkedHashSet<String>()
+        message.urlEntities.forEach { entity ->
+            if (entity.expandedURL.contains("twitter.com/messages/media/")) {
+                return@forEach
+            }
+
+            val m = MediaFactory.newInstance(entity.expandedURL)
+            if (m != null) {
+                media += m
+            } else {
+                links += entity.expandedURL
+            }
+        }
+
+        message.mediaEntities.forEach { entity ->
+            when (entity.type) {
+                "video", "animated_gif" -> {
+                    if (entity.videoVariants.isNotEmpty()) {
+                        var removedExistsUrl = false
+
+                        var largest: MediaEntity.Variant? = null
+                        for (variant in entity.videoVariants) {
+                            if (!variant.contentType.startsWith("video/")) continue
+
+                            if (largest == null || largest.bitrate < variant.bitrate) {
+                                largest = variant
+                            }
+                            if (!removedExistsUrl) {
+                                val iterator = media.iterator()
+                                while (iterator.hasNext()) {
+                                    if (iterator.next().browseUrl == entity.mediaURLHttps) {
+                                        iterator.remove()
+                                    }
+                                }
+
+                                removedExistsUrl = true
+                            }
+                        }
+                        if (largest != null) {
+                            media += TwitterVideo(largest.url, entity.mediaURLHttps)
+                        }
+                    }
+                }
+                else -> {
+                    media += MediaFactory.newInstance(entity.mediaURLHttps)
+                }
+            }
+        }
+
+        this.media = media.toList()
+        this.links = links.toList()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
