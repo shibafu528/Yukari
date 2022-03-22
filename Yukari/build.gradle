@@ -105,10 +105,9 @@ android {
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避
     // http://stackoverflow.com/questions/20673888/duplicate-files-copied-android-studio-0-4-0
     packagingOptions {
-        exclude 'LICENSE-EDL-1.0.txt'
-        exclude 'LICENSE-EPL-1.0.txt'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        resources {
+            excludes += ['LICENSE-EDL-1.0.txt', 'LICENSE-EPL-1.0.txt', 'META-INF/LICENSE.txt', 'META-INF/services/javax.annotation.processing.Processor']
+        }
     }
 
     lintOptions {
@@ -269,7 +268,7 @@ dependencies {
 
 // Kotlin
 buildscript {
-    ext.kotlin_version = '1.3.10'
+    ext.kotlin_version = '1.3.20'
     ext.kotlin_coroutines_version = '1.0.1'
     repositories {
         mavenCentral()
