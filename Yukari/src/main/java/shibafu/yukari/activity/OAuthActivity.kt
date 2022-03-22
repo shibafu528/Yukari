@@ -196,6 +196,7 @@ class OAuthActivity : ActionBarYukariBase() {
                             .addToBackStack(null)
                             .commit()
                 }
+                null -> {}
             }
         }
 
