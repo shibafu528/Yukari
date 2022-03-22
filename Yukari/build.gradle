@@ -268,8 +268,8 @@ dependencies {
 
 // Kotlin
 buildscript {
-    ext.kotlin_version = '1.3.72'
-    ext.kotlin_coroutines_version = '1.3.8'
+    ext.kotlin_version = '1.6.10'
+    ext.kotlin_coroutines_version = '1.6.0'
     repositories {
         mavenCentral()
     }
