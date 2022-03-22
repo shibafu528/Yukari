@@ -275,19 +275,6 @@
         </activity>
 
         <activity
-            android:name=".activity.TwpfActivity"
-            android:label="@string/title_activity_twpf">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-
-                <data android:scheme="http" android:host="twpf.jp"/>
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".activity.IntentChooserActivity"
             android:theme="@style/ColorsTheme.Dark.Dialog"/>
 

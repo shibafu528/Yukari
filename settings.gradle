@@ -3,7 +3,6 @@ if (getProperty("yukari.exvoice.build").toBoolean()) {
     include ':yukari-exvoice'
 }
 include ':GalleryMultiPicker:library'
-include ':twpfparser'
 include ':yukari-processor-runtime'
 include ':yukari-processor'
 include ':gl-helpers'

@@ -213,7 +213,6 @@ dependencies {
         exclude group: 'com.beust', module: 'jcommander'
     }
     implementation 'com.twitter:twitter-text:1.13.0'
-    implementation project(':twpfparser')
 
     // 通信
     implementation 'com.squareup.retrofit2:retrofit:2.2.0'
