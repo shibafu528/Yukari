@@ -103,7 +103,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
         val args = arguments ?: Bundle.EMPTY
         currentUser = args.getSerializable(EXTRA_USER) as AuthUserRecord
-        targetUrl = args.getParcelable(EXTRA_TARGET_URL) as Uri
+        targetUrl = args.getParcelable(EXTRA_TARGET_URL)!!
 
         if (savedInstanceState != null) {
             targetUser = savedInstanceState.getParcelable(STATE_TARGET_USER)

@@ -240,7 +240,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                 return@setOnClickListener
             }
 
-            val defaultQuote = defaultSharedPreferences.getString("pref_default_quote_2_0_1", "-1").toInt()
+            val defaultQuote = defaultSharedPreferences.getString("pref_default_quote_2_0_1", "-1")!!.toInt()
             if (defaultQuote < 0) {
                 openQuoteStyleSelector()
                 return@setOnClickListener

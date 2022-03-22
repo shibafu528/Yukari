@@ -113,7 +113,7 @@ abstract class StatusView : RelativeLayout {
      */
     open fun updateView() {
         var fontSizeStr = pref.getString("pref_font_timeline", "11")
-        if (fontSizeStr == "") {
+        if (fontSizeStr == null || fontSizeStr == "") {
             fontSizeStr = "11"
         }
         val fontSize = fontSizeStr.toFloat()
@@ -332,7 +332,7 @@ abstract class StatusView : RelativeLayout {
      */
     protected open fun decorateText(text: String): String {
         val status = status ?: return text
-        val multilineMode = pref.getString("pref_mode_multiline", "0").toInt()
+        val multilineMode = pref.getString("pref_mode_multiline", "0")!!.toInt()
         val shortenRepeatText = pref.getBoolean("pref_shorten_repeat_text", false)
 
         var decoratedText = text

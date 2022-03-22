@@ -28,7 +28,7 @@ internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
     fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
         val unreadNotifier = unreadNotifierView
         if (unreadNotifier != null) {
-            if (PreferenceManager.getDefaultSharedPreferences(parent.activity).getString("pref_theme", "light").endsWith("dark")) {
+            if (PreferenceManager.getDefaultSharedPreferences(parent.activity).getString("pref_theme", "light")!!.endsWith("dark")) {
                 unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_dark)
             } else {
                 unreadNotifier.setBackgroundResource(R.drawable.dialog_full_material_light)

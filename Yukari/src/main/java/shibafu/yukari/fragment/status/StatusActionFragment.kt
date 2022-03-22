@@ -62,7 +62,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
 
             Action("パーマリンクをコピー") {
                 val cm = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                cm.primaryClip = ClipData.newPlainText("", status.originStatus.url)
+                cm.setPrimaryClip(ClipData.newPlainText("", status.originStatus.url))
                 showToast("リンクをコピーしました")
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
@@ -124,7 +124,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (defaultSharedPreferences.getString("pref_theme", "light").endsWith("dark")) {
+        if (defaultSharedPreferences.getString("pref_theme", "light")!!.endsWith("dark")) {
             view.setBackgroundResource(R.drawable.dialog_full_material_dark)
         } else {
             view.setBackgroundResource(R.drawable.dialog_full_material_light)
@@ -148,7 +148,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
 
         itemList = itemTemplates.filter { it.second() }.map { it.first } + plugins
 
-        listAdapter = ArrayAdapter<StatusAction>(activity, android.R.layout.simple_list_item_1, itemList)
+        listAdapter = ArrayAdapter<StatusAction>(requireActivity(), android.R.layout.simple_list_item_1, itemList)
         listView.onItemClickListener = this
         listView.isStackFromBottom = defaultSharedPreferences.getBoolean("pref_bottom_stack", false)
     }
@@ -230,7 +230,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                         emptyList()
                     }
             itemList += pluggaloidActions
-            listAdapter = ArrayAdapter<StatusAction>(activity, android.R.layout.simple_list_item_1, itemList)
+            listAdapter = ArrayAdapter<StatusAction>(requireActivity(), android.R.layout.simple_list_item_1, itemList)
             isLoadedPluggaloid = true
         }
     }

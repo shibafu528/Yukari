@@ -59,20 +59,21 @@ class OAuthActivity : ActionBarYukariBase() {
         super.onNewIntent(intent)
 
         val currentFragment = supportFragmentManager.findFragmentById(R.id.frame)
+        val data = intent?.data ?: return
         when (currentFragment) {
             is TwitterOAuthFragment -> {
                 //コールバック以外のintentが流れ込んで来たらエラー
-                if (intent == null || intent.data == null || !intent.data.toString().startsWith(TWITTER_CALLBACK_URL))
+                if (!data.toString().startsWith(TWITTER_CALLBACK_URL))
                     return
 
-                currentFragment.verifier = intent.data.getQueryParameter("oauth_verifier")
+                currentFragment.verifier = data.getQueryParameter("oauth_verifier")
             }
             is MastodonOAuthFragment -> {
                 //コールバック以外のintentが流れ込んで来たらエラー
-                if (intent == null || intent.data == null || !intent.data.toString().startsWith(MASTODON_CALLBACK_URL))
+                if (!data.toString().startsWith(MASTODON_CALLBACK_URL))
                     return
 
-                currentFragment.authorizeCode = intent.data.getQueryParameter("code")
+                currentFragment.authorizeCode = data.getQueryParameter("code")
             }
         }
     }
@@ -171,7 +172,7 @@ class OAuthActivity : ActionBarYukariBase() {
         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
             super.onViewCreated(view, savedInstanceState)
 
-            adapter = ArrayAdapter(activity, android.R.layout.simple_list_item_1)
+            adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1)
 
             adapter.add(Option.TWITTER)
             adapter.add(Option.MASTODON)

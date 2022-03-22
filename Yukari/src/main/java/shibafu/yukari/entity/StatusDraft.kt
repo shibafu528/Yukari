@@ -145,11 +145,11 @@ data class StatusDraft(
             override fun createFromParcel(source: Parcel): StatusDraft {
                 return StatusDraft(
                         source.readArrayList(this.javaClass.classLoader) as ArrayList<AuthUserRecord>,
-                        source.readString(),
+                        source.readString()!!,
                         source.readLong(),
                         source.readParcelable(InReplyToId::class.java.classLoader),
                         source.readByte() == 1.toByte(),
-                        source.createTypedArrayList(Uri.CREATOR),
+                        source.createTypedArrayList(Uri.CREATOR)!!,
                         source.readByte() == 1.toByte(),
                         source.readDouble(),
                         source.readDouble(),

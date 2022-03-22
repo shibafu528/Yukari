@@ -501,7 +501,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         private inner class BackupOptionListAdapter(context: Context, objects: Array<String>) : ArrayAdapter<String>(context, 0, objects) {
             private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = convertView ?: inflater.inflate(R.layout.row_check, null)
                 val viewHolder = view.tag as? ViewHolder ?: ViewHolder(view).apply {
                     view.tag = this

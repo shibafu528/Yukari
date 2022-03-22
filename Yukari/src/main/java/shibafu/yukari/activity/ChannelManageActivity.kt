@@ -108,7 +108,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
         private class ChannelListAdapter(context: Context, list: List<StreamChannel>) : ArrayAdapter<StreamChannel>(context, 0, list) {
             val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 lateinit var view: View
                 lateinit var viewHolder: ChannelViewHolder
                 if (convertView == null) {

@@ -115,7 +115,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
     private var lockedTarget: Status? = null
     private var lockedYPosition = 0
     private val scrollUnlockHandler = object : Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message?) {
+        override fun handleMessage(msg: Message) {
             lockedTarget = null
         }
     }

@@ -64,7 +64,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        if (defaultSharedPreferences.getString("pref_theme", "light").endsWith("dark")) {
+        if (defaultSharedPreferences.getString("pref_theme", "light")!!.endsWith("dark")) {
             view.setBackgroundResource(R.drawable.dialog_full_material_dark)
         } else {
             view.setBackgroundResource(R.drawable.dialog_full_material_light)
@@ -162,7 +162,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     private inner class RowAdapter(context: Context, objects: List<Row>) : ArrayAdapter<Row>(context, 0, objects) {
         private val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val view = convertView ?: inflater.inflate(R.layout.row_statuslink, parent, false)
 
             val row = getItem(position)
@@ -270,7 +270,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
             }
 
             val uri = Uri.parse(url)
-            if (uri.host.contains("www.google")) {
+            if (uri.host?.contains("www.google") == true) {
                 val lastPathSegment = uri.lastPathSegment
                 if (lastPathSegment != null && lastPathSegment == "search") {
                     val query = uri.getQueryParameter("q")

@@ -260,7 +260,7 @@ class DonStatus(val status: Status,
                 source!!
                 val status = Gson().fromJson(source.readString(), Status::class.java)
                 val representUser = source.readSerializable() as AuthUserRecord
-                val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)
+                val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)!!
                 val donStatus = DonStatus(status, representUser, metadata)
                 donStatus.favoritesCount = source.readInt()
                 donStatus.repostsCount = source.readInt()
