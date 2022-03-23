@@ -227,8 +227,8 @@ dependencies {
     }
 
     // Annotation Processor
-    implementation 'com.jakewharton:butterknife:8.8.0'
-    kapt 'com.jakewharton:butterknife-compiler:8.8.0'
+    implementation 'com.jakewharton:butterknife:9.0.0'
+    kapt 'com.jakewharton:butterknife-compiler:9.0.0'
     implementation "com.github.hotchemi:permissionsdispatcher:3.3.1", {
         exclude group: 'com.android.support', module: 'support-v13'
     }

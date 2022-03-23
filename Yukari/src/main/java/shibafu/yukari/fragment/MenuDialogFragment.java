@@ -28,10 +28,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import butterknife.Action;
 import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
-import com.google.gson.Gson;
+import butterknife.ViewCollections;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ChannelManageActivity;
@@ -43,18 +52,13 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.AttrUtil;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Shibafu on 13/12/16.
@@ -147,7 +151,8 @@ public class MenuDialogFragment extends DialogFragment {
                 while (!activity.isTwitterServiceBound()) {
                     try {
                         Thread.sleep(50);
-                    } catch (InterruptedException ignored) {}
+                    } catch (InterruptedException ignored) {
+                    }
                 }
 
                 final ProviderStream[] streams = activity.getTwitterService().getProviderStreams();
@@ -209,7 +214,7 @@ public class MenuDialogFragment extends DialogFragment {
         View exitMenu = v.findViewById(R.id.llMenuExit);
         exitMenu.setOnClickListener(v1 -> {
             dismiss();
-            ((MainActivity)getActivity()).showExitDialog();
+            ((MainActivity) getActivity()).showExitDialog();
         });
 
         keepScreenOnImage = (ImageView) v.findViewById(R.id.ivMenuSleepIcon);
@@ -254,11 +259,11 @@ public class MenuDialogFragment extends DialogFragment {
             Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
             dismiss();
             AsyncReconnectTask task = new AsyncReconnectTask();
-            task.executeParallel(((TwitterServiceDelegate)getActivity()).getTwitterService());
+            task.executeParallel(((TwitterServiceDelegate) getActivity()).getTwitterService());
         });
 
         unbinder = ButterKnife.bind(this, v);
-        ButterKnife.apply(pluginViews, (ButterKnife.Action<? super View>) (view, index) -> {
+        ViewCollections.run(pluginViews, (Action<? super View>) (view, index) -> {
             view.setOnClickListener(v1 -> {
                 if (plugins[index] == null) {
                     return;
@@ -323,8 +328,7 @@ public class MenuDialogFragment extends DialogFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) switch (requestCode) {
-            case REQUEST_PROFILE:
-            {
+            case REQUEST_PROFILE: {
                 dismiss();
                 AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                 Intent intent = ProfileActivity.newIntent(getActivity(),
