@@ -175,6 +175,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:cardview-v7:$supportLibVersion"
     implementation "com.android.support:recyclerview-v7:$supportLibVersion"
+    implementation "com.android.support:preference-v7:$supportLibVersion"
     implementation "com.android.support:palette-v7:$supportLibVersion"
     implementation "com.android.support:support-v4:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
@@ -184,9 +185,6 @@ dependencies {
 
     // Play Services
     implementation "com.google.android.gms:play-services-base:${playServicesVersion}"
-
-    // UI互換
-    implementation 'com.github.machinarius:preferencefragment:0.1.1'
 
     // UI追加
     implementation 'com.larswerkman:HoloColorPicker:1.4'
@@ -251,6 +249,7 @@ dependencies {
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
     implementation 'org.eclipse.collections:eclipse-collections:7.1.0'
     implementation 'com.jakewharton.threetenabp:threetenabp:1.2.0'
+    implementation 'com.takisoft.fix:preference-v7:28.0.0.0'
     implementation fileTree(dir: './libs', includes: ['*.jar'])
 
     // Kotlin

@@ -10,12 +10,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.Preference;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RawRes;
+import android.support.v7.preference.Preference;
 import android.widget.Toast;
-import com.github.machinarius.preferencefragment.PreferenceFragment;
+
+import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
+
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
@@ -54,7 +57,7 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
     public void onServiceDisconnected() {}
 
     @RuntimePermissions
-    public static class InnerFragment extends PreferenceFragment {
+    public static class InnerFragment extends PreferenceFragmentCompat {
         private final File mediaDir = new File(Environment.getExternalStorageDirectory(), "Android/media/shibafu.yukari/Notifications");
         private final Resource[] exportResources = {
                 new Resource(R.raw.y_reply, new File(mediaDir, "Yukari - Yukari Reply.ogg")),
@@ -74,8 +77,7 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
         };
 
         @Override
-        public void onCreate(Bundle paramBundle) {
-            super.onCreate(paramBundle);
+        public void onCreatePreferencesFix(@Nullable Bundle savedInstanceState, String rootKey) {
             addPreferencesFromResource(R.xml.commands);
 
             findPreference("pref_sound_theme").setEnabled(Build.VERSION.SDK_INT < Build.VERSION_CODES.O);

@@ -10,15 +10,17 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v7.preference.Preference;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-import com.github.machinarius.preferencefragment.PreferenceFragment;
+
+import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
+
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
@@ -56,7 +58,7 @@ public class ConfigActivity extends ActionBarYukariBase {
     @Override
     public void onServiceDisconnected() {}
 
-    public static class InnerFragment extends PreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener {
+    public static class InnerFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         public static InnerFragment newInstance(String category) {
             InnerFragment fragment = new InnerFragment();
             Bundle args = new Bundle();
@@ -66,8 +68,7 @@ public class ConfigActivity extends ActionBarYukariBase {
         }
 
         @Override
-        public void onCreate(Bundle paramBundle) {
-            super.onCreate(paramBundle);
+        public void onCreatePreferencesFix(Bundle bundle, String s) {
             Bundle args = getArguments();
             String category = args.getString("category");
             if (TextUtils.isEmpty(category)) {

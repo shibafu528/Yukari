@@ -5,27 +5,27 @@
         android:summary="ほとんどの通知はMastodonアカウントでのみ機能します。Twitterアカウントではご利用いただけません。"
         android:selectable="false"/>
     <PreferenceCategory android:title="通知のカスタマイズ">
-        <shibafu.yukari.common.NotificationPreference
+        <shibafu.yukari.preference.NotificationPreference
             android:key="pref_notif_mention"
             android:title="メンション通知"
             android:summary="返信(@ツイート)を受信した際に通知します"
             android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
+        <shibafu.yukari.preference.NotificationPreference
             android:key="pref_notif_rt"
             android:title="リツイート通知"
             android:summary="リツイートされた際に通知します"
             android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
+        <shibafu.yukari.preference.NotificationPreference
             android:key="pref_notif_fav"
             android:title="お気に入り通知"
             android:summary="ツイートがお気に入りに追加された際に通知します"
             android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
+        <shibafu.yukari.preference.NotificationPreference
             android:key="pref_notif_dm"
             android:title="メッセージ通知"
             android:summary="ダイレクトメッセージを受信した際に通知します"
             android:defaultValue="5"/>
-        <shibafu.yukari.common.NotificationPreference
+        <shibafu.yukari.preference.NotificationPreference
             android:key="pref_notif_respond"
             android:title="RTレスポンス通知"
             android:summary="RTに対する反応を受信した際に通知します"
