@@ -100,9 +100,5 @@
             android:key="pref_sound_theme_export"
             android:title="サウンドテーマをエクスポート"
             android:summary="システムの通知設定で使える通知音をストレージにエクスポートします。\n(※ Android 8.0以上のみ有効)"/>
-        <CheckBoxPreference
-            android:key="j_yukari_joke_voices"
-            android:title="ゆかりさんをいじる"
-            android:summary="そういうネタが好きじゃない人はオンにしないでください。不快感を覚える可能性があります。\nYukari 1.3まで隠しボイスが有効な場合にツイートに反応して再生していたボイスを有効化します。"/>
     </PreferenceCategory>
 </PreferenceScreen>
