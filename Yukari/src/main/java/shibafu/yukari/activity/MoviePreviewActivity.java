@@ -49,7 +49,7 @@ public class MoviePreviewActivity extends AppCompatActivity {
         });
         videoView.setOnCompletionListener(mp -> {
             // エラーした場合、onErrorListenerをセットしていないのでonCompletionListenerが呼ばれる
-            if (mp.getCurrentPosition() != mp.getDuration()) {
+            if (mp.getDuration() <= 0 || mp.getCurrentPosition() != mp.getDuration()) {
                 // そして死ね
                 finish();
                 return;
