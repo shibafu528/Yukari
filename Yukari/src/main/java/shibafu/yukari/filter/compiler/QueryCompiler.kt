@@ -28,12 +28,10 @@ import shibafu.yukari.database.AuthUserRecord
  *
  * Created by shibafu on 15/06/07.
  */
-class QueryCompiler {
-    private constructor()
+class QueryCompiler private constructor() {
 
     companion object {
         const val DEFAULT_QUERY: String = "from all"
-        private val LOG_TAG = QueryCompiler::class.java.simpleName
 
         /**
          * クエリ文字列を解釈し、ソースリストと式オブジェクトにコンパイルします。
@@ -44,11 +42,8 @@ class QueryCompiler {
         @JvmStatic
         @Throws(FilterCompilerException::class, TokenizeException::class)
         fun compile(userRecords: List<AuthUserRecord>, query: String): FilterQuery {
-            //コンパイル開始時間の記録
-            val compileTime = System.currentTimeMillis()
-
             //query: null or empty -> 全抽出のクエリということにする
-            val query = if (query.isEmpty()) DEFAULT_QUERY else query
+            val query = query.ifEmpty { DEFAULT_QUERY }
 
             //from句とwhere句の開始位置と存在チェック
             val beginFrom = query.indexOf("from")
@@ -65,9 +60,6 @@ class QueryCompiler {
                 beginWhere < 0 -> ValueNode(true) //where句が存在しない -> where trueと同義とする
                 else -> parseExpression(query.substring(beginWhere).replaceFirst("where", "").trim(), userRecords)
             }
-
-            //コンパイル終了時間のログ出力
-//            Log.d(LOG_TAG, "Compile finished. (${System.currentTimeMillis() - compileTime} ms): $query")
 
             //コンパイル結果を格納
             return FilterQuery(sources, rootNode)
@@ -101,7 +93,7 @@ class QueryCompiler {
 
                 /** [args]をアカウント指定文字列として解釈し、指定したソースで各アカウントの抽出ソースのインスタンスを作成します。 */
                 private fun createFiltersWithAuthArguments(typeValue: String, requiredArgs: Boolean = false): List<FilterSource> {
-                    val screenNames = if (args.isEmpty()) {
+                    val screenNames = args.ifEmpty {
                         if (requiredArgs) {
                             throw FilterCompilerException("アカウントが指定されていません。", type)
                         }
@@ -112,8 +104,6 @@ class QueryCompiler {
                                 null
                             }
                         }
-                    } else {
-                        args
                     }
 
                     return screenNames.map { p ->
@@ -236,13 +226,13 @@ class QueryCompiler {
                 }
             }
 
-            var filters = emptyList<FilterSource>()
-            var temp = TempParams()
+            val filters = mutableListOf<FilterSource>()
+            val temp = TempParams()
             var needNextToken: Array<TokenType>? = null
 
             for (token in Tokenizer(fromQuery)) {
                 //fromが入り込んでいたら飛ばす
-                if (token.type == TokenType.LITERAL && "from".equals(token.value)) continue
+                if (token.type == TokenType.LITERAL && "from" == token.value) continue
 
                 //フィルタの変化
                 if (temp.type != null && token.type == TokenType.LITERAL) {
@@ -313,7 +303,7 @@ class QueryCompiler {
                 val funcToken = tokenizer.next()
                 if (funcToken.type == TokenType.RIGHT_PARENTHESIS) return ValueNode(false)
 
-                var paramList = emptyList<SNode>()
+                val paramList = mutableListOf<SNode>()
                 for (token in tokenizer) {
                     if (token.type == TokenType.RIGHT_PARENTHESIS) {
                         if (paramList.isEmpty()) return tokenToNode(funcToken)
