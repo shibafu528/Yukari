@@ -60,7 +60,7 @@ ext {
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '1.6.0'
     leakCanaryVersion = '1.5.4'
-    exvoiceVersion = '20211121.073240'
+    exvoiceVersion = '20220503.124509'
 
     y4aVersionMajor = 3
     y4aVersionMinor = 1
