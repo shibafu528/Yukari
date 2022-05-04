@@ -517,9 +517,18 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_T && !llQuickTweet.hasFocus()) {
-            startTweetActivity();
-            return true;
+        if (!llQuickTweet.hasFocus()) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_M:
+                    new MenuDialogFragment().show(getSupportFragmentManager(), "menu");
+                    return true;
+                case KeyEvent.KEYCODE_T:
+                    startTweetActivity();
+                    return true;
+                case KeyEvent.KEYCODE_S:
+                    (findViewById(R.id.ibSearch)).performClick();
+                    return true;
+            }
         }
         return super.onKeyUp(keyCode, event);
     }
