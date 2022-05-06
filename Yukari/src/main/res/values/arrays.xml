@@ -112,6 +112,8 @@
         <item>64MB</item>
         <item>128MB</item>
         <item>256MB</item>
+        <item>512MB</item>
+        <item>1024MB</item>
     </string-array>
 
     <string-array name="pref_cache_size_values">
@@ -123,6 +125,8 @@
         <item>64</item>
         <item>128</item>
         <item>256</item>
+        <item>512</item>
+        <item>1024</item>
     </string-array>
 
     <string-array name="mute_expr">
