@@ -58,22 +58,21 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
 
     @RuntimePermissions
     public static class InnerFragment extends PreferenceFragmentCompat {
-        private final File mediaDir = new File(Environment.getExternalStorageDirectory(), "Android/media/shibafu.yukari/Notifications");
         private final Resource[] exportResources = {
-                new Resource(R.raw.y_reply, new File(mediaDir, "Yukari - Yukari Reply.ogg")),
-                new Resource(R.raw.y_fav, new File(mediaDir, "Yukari - Yukari Favorite.ogg")),
-                new Resource(R.raw.y_like, new File(mediaDir, "Yukari - Yukari Like.ogg")),
-                new Resource(R.raw.y_love, new File(mediaDir, "Yukari - Yukari Love.ogg")),
-                new Resource(R.raw.y_rt, new File(mediaDir, "Yukari - Yukari Retweet.ogg")),
-                new Resource(R.raw.akari_reply, new File(mediaDir, "Yukari - Akari Reply.ogg")),
-                new Resource(R.raw.akari_fav, new File(mediaDir, "Yukari - Akari Favorite.ogg")),
-                new Resource(R.raw.akari_like, new File(mediaDir, "Yukari - Akari Like.ogg")),
-                new Resource(R.raw.akari_love, new File(mediaDir, "Yukari - Akari Love.ogg")),
-                new Resource(R.raw.akari_retweet, new File(mediaDir, "Yukari - Akari Retweet.ogg")),
-                new Resource(R.raw.kiri_reply, new File(mediaDir, "Yukari - Kiri Reply.ogg")),
-                new Resource(R.raw.kiri_like, new File(mediaDir, "Yukari - Kiri Like.ogg")),
-                new Resource(R.raw.kiri_suki, new File(mediaDir, "Yukari - Kiri Love.ogg")),
-                new Resource(R.raw.kiri_retweet, new File(mediaDir, "Yukari - Kiri Retweet.ogg")),
+                new Resource(R.raw.y_reply, "Yukari - Yukari Reply.ogg"),
+                new Resource(R.raw.y_fav, "Yukari - Yukari Favorite.ogg"),
+                new Resource(R.raw.y_like, "Yukari - Yukari Like.ogg"),
+                new Resource(R.raw.y_love, "Yukari - Yukari Love.ogg"),
+                new Resource(R.raw.y_rt, "Yukari - Yukari Retweet.ogg"),
+                new Resource(R.raw.akari_reply, "Yukari - Akari Reply.ogg"),
+                new Resource(R.raw.akari_fav, "Yukari - Akari Favorite.ogg"),
+                new Resource(R.raw.akari_like, "Yukari - Akari Like.ogg"),
+                new Resource(R.raw.akari_love, "Yukari - Akari Love.ogg"),
+                new Resource(R.raw.akari_retweet, "Yukari - Akari Retweet.ogg"),
+                new Resource(R.raw.kiri_reply, "Yukari - Kiri Reply.ogg"),
+                new Resource(R.raw.kiri_like, "Yukari - Kiri Like.ogg"),
+                new Resource(R.raw.kiri_suki, "Yukari - Kiri Love.ogg"),
+                new Resource(R.raw.kiri_retweet, "Yukari - Kiri Retweet.ogg"),
         };
 
         @Override
@@ -102,12 +101,14 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
             Resources res = getResources();
 
             try {
+                File mediaDir = new File(Environment.getExternalStorageDirectory(), "Android/media/" + requireContext().getPackageName() + "/Notifications");
                 mediaDir.mkdirs();
 
                 List<String> resourceAbsolutePaths = new ArrayList<>();
                 for (Resource resource : exportResources) {
+                    File file = resource.getFile(mediaDir);
                     try (InputStream input = res.openRawResource(resource.resId);
-                         OutputStream output = new FileOutputStream(resource.file)) {
+                         OutputStream output = new FileOutputStream(file)) {
                         byte[] buf = new byte[4096];
                         int length;
                         while ((length = input.read(buf)) != -1) {
@@ -115,7 +116,7 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
                         }
                     }
 
-                    resourceAbsolutePaths.add(resource.file.getAbsolutePath());
+                    resourceAbsolutePaths.add(file.getAbsolutePath());
                 }
 
                 MediaScannerConnection.scanFile(getActivity(),
@@ -165,11 +166,15 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
 
         private static class Resource {
             int resId;
-            File file;
+            String file;
 
-            Resource(@RawRes int resId, File file) {
+            Resource(@RawRes int resId, String file) {
                 this.resId = resId;
                 this.file = file;
+            }
+
+            File getFile(File parent) {
+                return new File(parent, this.file);
             }
         }
     }
