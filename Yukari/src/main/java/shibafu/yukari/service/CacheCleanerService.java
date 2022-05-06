@@ -54,9 +54,9 @@ public class CacheCleanerService extends JobIntentService {
                 BitmapCache.IMAGE_CACHE,
                 "preview"};
         int[] limits = {
-                getIntPref(sp, "pref_icon_cache_size", 4),
-                getIntPref(sp, "pref_picture_cache_size", 8),
-                getIntPref(sp, "pref_preview_cache_size", 16)
+                getIntPref(sp, "pref_icon_cache_size", 32),
+                getIntPref(sp, "pref_picture_cache_size", 32),
+                getIntPref(sp, "pref_preview_cache_size", 32)
         };
         List<File> expirations = new ArrayList<>();
         for (int i = 0; i < categories.length; ++i) {
