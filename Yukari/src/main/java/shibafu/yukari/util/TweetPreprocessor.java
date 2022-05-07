@@ -147,6 +147,10 @@ public class TweetPreprocessor {
         COMMANDS.put("::meu", (depends, input) -> "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)");
         COMMANDS.put("::dice", (depends, input) -> {
             if (TextUtils.isEmpty(input)) {
+                final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
+                Random r = new Random();
+                return dice[r.nextInt(6)];
+            } else {
                 Pattern pattern = Pattern.compile("(\\d+).(\\d+)");
                 Matcher m = pattern.matcher(input);
                 if (m.find() && m.groupCount() == 2) {
@@ -166,10 +170,6 @@ public class TweetPreprocessor {
                     Toast.makeText(depends.getActivity().getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
                     return null;
                 }
-            } else {
-                final String[] dice = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
-                Random r = new Random();
-                return dice[r.nextInt(6)];
             }
         });
         COMMANDS.put("::yk", (depends, input) -> {
