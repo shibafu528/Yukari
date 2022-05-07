@@ -6,7 +6,7 @@ import androidx.annotation.Nullable;
 import androidx.preference.DialogPreference;
 import android.util.AttributeSet;
 
-import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
+import com.takisoft.preferencex.PreferenceFragmentCompat;
 
 import java.util.Locale;
 
