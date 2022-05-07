@@ -1,6 +1,6 @@
 package shibafu.yukari.fragment.tabcontent;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import shibafu.yukari.entity.Status;
 
 import java.util.Collection;

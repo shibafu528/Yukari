@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import android.support.v4.util.LongSparseArray
+import androidx.collection.LongSparseArray
 import android.util.Log
 import android.widget.Toast
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException

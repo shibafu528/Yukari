@@ -1,6 +1,6 @@
 package shibafu.yukari.media2.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import shibafu.yukari.media2.MemoizeMedia;
 
 import java.io.IOException;

@@ -4,8 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
-import android.support.annotation.StringDef;
-import android.support.v4.util.LruCache;
+import androidx.annotation.StringDef;
+import androidx.collection.LruCache;
 import android.util.Log;
 import shibafu.yukari.util.StringUtil;
 

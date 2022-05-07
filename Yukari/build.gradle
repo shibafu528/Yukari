@@ -55,7 +55,6 @@ class GitUtil {
 }
 
 ext {
-    supportLibVersion = '28.0.0'
     playServicesVersion = '11.4.0'
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '43b77f366515641a4569c2cfffef57301259c5a0'
@@ -172,15 +171,15 @@ android {
 
 dependencies {
     // Support Library
-    implementation "com.android.support:appcompat-v7:$supportLibVersion"
-    implementation "com.android.support:cardview-v7:$supportLibVersion"
-    implementation "com.android.support:recyclerview-v7:$supportLibVersion"
-    implementation "com.android.support:preference-v7:$supportLibVersion"
-    implementation "com.android.support:palette-v7:$supportLibVersion"
-    implementation "com.android.support:support-v4:$supportLibVersion"
-    implementation "com.android.support:design:$supportLibVersion"
-    implementation "com.android.support:exifinterface:$supportLibVersion"
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.preference:preference:1.0.0'
+    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.exifinterface:exifinterface:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
     // Play Services
     implementation "com.google.android.gms:play-services-base:${playServicesVersion}"
@@ -220,8 +219,8 @@ dependencies {
     }
 
     // Annotation Processor
-    implementation 'com.jakewharton:butterknife:9.0.0'
-    kapt 'com.jakewharton:butterknife-compiler:9.0.0'
+    implementation 'com.jakewharton:butterknife:10.0.0'
+    kapt 'com.jakewharton:butterknife-compiler:10.0.0'
     implementation "com.github.hotchemi:permissionsdispatcher:3.3.1", {
         exclude group: 'com.android.support', module: 'support-v13'
     }

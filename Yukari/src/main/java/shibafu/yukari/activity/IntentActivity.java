@@ -2,10 +2,9 @@ package shibafu.yukari.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Pair;
 import android.widget.Toast;
 import shibafu.yukari.R;

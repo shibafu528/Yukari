@@ -3,7 +3,7 @@ package shibafu.yukari.twitter
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
-import android.support.v4.util.LongSparseArray
+import androidx.collection.LongSparseArray
 import android.widget.Toast
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

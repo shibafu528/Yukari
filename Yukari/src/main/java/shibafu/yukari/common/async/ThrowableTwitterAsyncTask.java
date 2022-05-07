@@ -1,6 +1,6 @@
 package shibafu.yukari.common.async;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;

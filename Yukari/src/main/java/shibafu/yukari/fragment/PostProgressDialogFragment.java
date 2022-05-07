@@ -3,7 +3,7 @@ package shibafu.yukari.fragment;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 
 /**
 * Created by shibafu on 14/08/05.

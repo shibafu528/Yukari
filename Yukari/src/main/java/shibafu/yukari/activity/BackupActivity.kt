@@ -15,9 +15,9 @@ import android.os.Environment
 import android.os.Process
 import android.preference.PreferenceManager
 import android.provider.Settings
-import android.support.v4.app.ListFragment
-import android.support.v4.provider.DocumentFile
-import android.support.v4.util.SparseArrayCompat
+import androidx.fragment.app.ListFragment
+import androidx.documentfile.provider.DocumentFile
+import androidx.collection.SparseArrayCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View

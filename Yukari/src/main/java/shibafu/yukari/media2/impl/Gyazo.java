@@ -1,6 +1,6 @@
 package shibafu.yukari.media2.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import shibafu.yukari.media2.MemoizeMedia;

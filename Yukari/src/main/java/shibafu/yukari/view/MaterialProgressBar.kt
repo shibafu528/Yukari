@@ -2,8 +2,8 @@ package shibafu.yukari.view
 
 import android.content.Context
 import android.os.Build
-import android.support.v4.content.res.ResourcesCompat
-import android.support.v4.widget.CircularProgressDrawable
+import androidx.core.content.res.ResourcesCompat
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import android.util.AttributeSet
 import android.widget.ProgressBar
 import shibafu.yukari.R

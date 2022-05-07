@@ -2,7 +2,7 @@ package shibafu.yukari.twitter;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import shibafu.yukari.R;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;

@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
 import android.preference.PreferenceManager
-import android.support.v4.util.LongSparseArray
-import android.support.v4.util.LruCache
+import androidx.collection.LongSparseArray
+import androidx.collection.LruCache
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

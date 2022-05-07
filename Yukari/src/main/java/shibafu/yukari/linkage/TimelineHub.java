@@ -1,6 +1,6 @@
 package shibafu.yukari.linkage;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import info.shibafu528.yukari.processor.messagequeue.MessageQueue;
 import info.shibafu528.yukari.processor.messagequeue.PassThrough;
 import shibafu.yukari.database.AutoMuteConfig;

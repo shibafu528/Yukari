@@ -1,8 +1,8 @@
 package shibafu.yukari.util;
 
 import android.content.res.Resources;
-import android.support.annotation.AnyRes;
-import android.support.annotation.AttrRes;
+import androidx.annotation.AnyRes;
+import androidx.annotation.AttrRes;
 import android.util.TypedValue;
 
 /**

@@ -4,8 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Parcel
 import android.preference.PreferenceManager
-import android.support.v4.app.Fragment
-import android.support.v4.util.SparseArrayCompat
+import androidx.fragment.app.Fragment
+import androidx.collection.SparseArrayCompat
 import android.util.Log
 import android.widget.Toast
 

@@ -2,8 +2,8 @@ package shibafu.yukari.preference;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.support.annotation.Nullable;
-import android.support.v7.preference.DialogPreference;
+import androidx.annotation.Nullable;
+import androidx.preference.DialogPreference;
 import android.util.AttributeSet;
 
 import com.takisoft.fix.support.v7.preference.PreferenceFragmentCompat;
