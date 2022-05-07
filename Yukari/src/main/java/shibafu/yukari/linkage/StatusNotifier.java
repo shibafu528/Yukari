@@ -267,7 +267,7 @@ public class StatusNotifier {
                         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                         intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
                         PendingIntent pendingIntent = PendingIntent.getActivity(
-                                context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                context.getApplicationContext(), R.integer.notification_replied, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                         builder.setContentIntent(pendingIntent);
 
                         {
@@ -278,7 +278,7 @@ public class StatusNotifier {
                             replyIntent.putExtra(TweetActivity.EXTRA_TEXT, "@" +
                                     status.getOriginStatus().getUser().getScreenName() + " ");
                             builder.addAction(R.drawable.ic_stat_reply, "返信", PendingIntent.getActivity(
-                                            context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                                            context.getApplicationContext(), R.integer.notification_replied, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
                             );
                         }
                         {
@@ -293,7 +293,7 @@ public class StatusNotifier {
                                     PendingIntent.getService(context.getApplicationContext(),
                                             R.integer.notification_replied,
                                             voiceReplyIntent,
-                                            PendingIntent.FLAG_UPDATE_CURRENT))
+                                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE))
                                     .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                     .build();
                             builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));
@@ -305,7 +305,7 @@ public class StatusNotifier {
                         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                         intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_MENTION);
                         PendingIntent pendingIntent = PendingIntent.getActivity(
-                                context.getApplicationContext(), R.integer.notification_respond, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                context.getApplicationContext(), R.integer.notification_respond, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                         builder.setContentIntent(pendingIntent);
                         break;
                     }
@@ -314,7 +314,7 @@ public class StatusNotifier {
                         Intent intent = new Intent(context.getApplicationContext(), MainActivity.class);
                         intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_DM);
                         PendingIntent pendingIntent = PendingIntent.getActivity(
-                                context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                                context.getApplicationContext(), R.integer.notification_message, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                         builder.setContentIntent(pendingIntent);
 
                         {
@@ -324,7 +324,7 @@ public class StatusNotifier {
                             replyIntent.putExtra(TweetActivity.EXTRA_IN_REPLY_TO, TwitterUtil.getUrlFromUserId(status.getUser().getId()));
                             replyIntent.putExtra(TweetActivity.EXTRA_DM_TARGET_SN, status.getUser().getScreenName());
                             builder.addAction(R.drawable.ic_stat_message, "返信", PendingIntent.getActivity(
-                                            context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                                            context.getApplicationContext(), R.integer.notification_message, replyIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE)
                             );
                         }
                         {
@@ -338,7 +338,7 @@ public class StatusNotifier {
                                     PendingIntent.getService(context.getApplicationContext(),
                                             R.integer.notification_replied,
                                             voiceReplyIntent,
-                                            PendingIntent.FLAG_UPDATE_CURRENT))
+                                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE))
                                     .addRemoteInput(new RemoteInput.Builder(PostService.EXTRA_REMOTE_INPUT).setLabel("返信").build())
                                     .build();
                             builder.extend(new NotificationCompat.WearableExtender().addAction(voiceReply));

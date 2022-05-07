@@ -199,7 +199,7 @@ public class TwitterService extends Service{
                 .setOngoing(true)
                 .setLocalOnly(true)
                 .setColor(ResourcesCompat.getColor(getResources(), R.color.key_color, null))
-                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT));
+                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
         startForeground(R.string.app_name, builder.build());
         return START_STICKY;
     }
@@ -317,7 +317,7 @@ public class TwitterService extends Service{
                                 .setAutoCancel(true)
                                 .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
                                         new Intent(Intent.ACTION_VIEW, Uri.parse("http://mikutter.hachune.net/download")),
-                                        PendingIntent.FLAG_CANCEL_CURRENT));
+                                        PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE));
                         NotificationManagerCompat.from(getApplicationContext()).notify(R.string.app_name, builder.build());
                     } else {
                         Log.d("mikutter-version", "null");

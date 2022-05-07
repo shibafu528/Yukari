@@ -15,6 +15,6 @@ public class CompatUtil {
      * @return 空のPengingIntent
      */
     public static PendingIntent getEmptyPendingIntent(Context context) {
-        return PendingIntent.getActivity(context, 0, new Intent(), 0);
+        return PendingIntent.getActivity(context, 0, new Intent(), PendingIntent.FLAG_IMMUTABLE);
     }
 }

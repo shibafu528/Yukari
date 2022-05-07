@@ -228,16 +228,11 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
     override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             DIALOG_IMPORT_FINISHED -> {
-                val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                val setAlarm: AlarmManager.(Int, Long, PendingIntent) -> Unit
-                        = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                            AlarmManager::set
-                        } else {
-                            AlarmManager::setExact
-                        }
-                alarmManager.setAlarm(AlarmManager.RTC_WAKEUP,
-                        System.currentTimeMillis() + 1000,
-                        PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), 0))
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                    val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    val pintent = PendingIntent.getActivity(applicationContext, 0, Intent(applicationContext, MainActivity::class.java), PendingIntent.FLAG_MUTABLE)
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, pintent)
+                }
                 moveTaskToBack(true)
                 Process.killProcess(Process.myPid())
             }

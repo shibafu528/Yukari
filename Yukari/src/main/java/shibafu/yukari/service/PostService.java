@@ -322,7 +322,7 @@ public class PostService extends IntentService{
         }
         if (draft != null) {
             Intent intent = draft.getTweetIntent(this);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
             builder.setContentIntent(pendingIntent);
             //下書きを保存
             draft.setFailedDelivery(true);
