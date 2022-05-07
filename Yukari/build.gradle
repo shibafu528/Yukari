@@ -8,7 +8,7 @@ repositories {
         url "https://jitpack.io"
     }
     maven {
-        url "http://twitter4j.org/maven2"
+        url "https://twitter4j.org/maven2"
     }
     // https://github.com/settings/tokens/new?scopes=read:packages から
     // `read:packages` 権限の付いたPersonal access tokenを発行して、
@@ -109,9 +109,9 @@ android {
         }
     }
 
-    lintOptions {
-        checkReleaseBuilds false
+    lint {
         abortOnError false
+        checkReleaseBuilds false
         ignore 'MissingTranslation'
     }
 
