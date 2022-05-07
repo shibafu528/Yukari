@@ -46,7 +46,8 @@
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
             android:configChanges="orientation|screenSize"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -60,7 +61,8 @@
         <activity
             android:name="shibafu.yukari.activity.OAuthActivity"
             android:label="@string/title_activity_oauth"
-            android:launchMode="singleTask" >
+            android:launchMode="singleTask"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -94,7 +96,8 @@
             android:name="shibafu.yukari.activity.TweetActivity"
             android:label="@string/title_activity_tweet"
             android:theme="@style/VertAnimationTheme"
-            android:taskAffinity=".tweet">
+            android:taskAffinity=".tweet"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -109,7 +112,8 @@
             android:name=".activity.TweetShortcutActivity"
             android:label="@string/title_activity_tweet"
             android:icon="@drawable/ic_launcher_tweet"
-            android:theme="@style/AppThemeTranslucent">
+            android:theme="@style/AppThemeTranslucent"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT"/>
             </intent-filter>
@@ -125,7 +129,8 @@
 
         <activity
             android:name=".activity.IntentActivity"
-            android:theme="@style/ColorsTheme.Light.Translucent.FullTransparent" >
+            android:theme="@style/ColorsTheme.Light.Translucent.FullTransparent"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <action android:name="android.nfc.action.NDEF_DISCOVERED" />
