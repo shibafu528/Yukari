@@ -170,7 +170,8 @@
             android:name=".plugin.MorseInputActivity"
             android:icon="@drawable/ic_launcher_morse"
             android:label="@string/title_morse_input"
-            android:theme="@style/AppThemeTranslucent" >
+            android:theme="@style/AppThemeTranslucent"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.adamrocker.android.simeji.ACTION_INTERCEPT" />
 
@@ -251,7 +252,8 @@
             android:name=".plugin.OpenTwilogActivity"
             android:targetActivity=".plugin.UserPluginActivity"
             android:label="@string/title_activity_open_twilog"
-            android:icon="@drawable/ic_twilog">
+            android:icon="@drawable/ic_twilog"
+            android:exported="true">
             <meta-data android:name="shibafu.yukari.PLUGIN_SHORT_LABEL" android:value="twilog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_LIGHT_ICON" android:resource="@drawable/ic_twilog"/>
             <meta-data android:name="shibafu.yukari.PLUGIN_DARK_ICON" android:resource="@drawable/ic_twilog_d"/>
