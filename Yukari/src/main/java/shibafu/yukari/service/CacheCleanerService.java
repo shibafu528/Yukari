@@ -10,8 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 import android.text.format.DateUtils;
 import android.util.Log;
-import com.annimon.stream.Collectors;
-import com.annimon.stream.Stream;
 import shibafu.yukari.common.JobSchedulerId;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
@@ -22,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by shibafu on 14/03/04.
@@ -130,8 +129,9 @@ public class CacheCleanerService extends JobIntentService {
         List<String> usingUris = new ArrayList<>();
         CentralDatabase db = new CentralDatabase(getApplicationContext()).open();
         try {
-            usingUris = Stream.of(db.getDrafts())
-                    .flatMap(draft -> Stream.of(draft.getAttachPictures()))
+            usingUris = db.getDrafts()
+                    .stream()
+                    .flatMap(draft -> draft.getAttachPictures().stream())
                     .map(Uri::toString)
                     .distinct()
                     .filter(uri -> uri.contains(attachesDirUri))

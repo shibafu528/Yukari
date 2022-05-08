@@ -56,8 +56,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.annimon.stream.Optional;
-import com.annimon.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility;
@@ -120,6 +118,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -938,7 +937,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         cameraTemp = state.getParcelable("cameraTemp");
         initialDraft = state.getParcelable("initialDraft");
 
-        Stream.of(state.<Uri>getParcelableArrayList("attachPictureUris")).forEach(this::attachPicture);
+        state.<Uri>getParcelableArrayList("attachPictureUris").stream().forEach(this::attachPicture);
 
         updateWritersView();
         setVisibility(state.getInt("visibility"));
@@ -1744,7 +1743,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
             Object[] result = Plugin.filtering(getTwitterService().getmRuby(), "twicca_action_edit_tweet", new HashMap());
             if (result != null && result[0] instanceof Map) {
-                Stream.of(((Map) result[0]).values()).filter(o -> o instanceof Map).forEach(o -> {
+                ((Map) result[0]).values().stream().filter(o -> o instanceof Map).forEach(o -> {
                     Map entry = (Map) o;
                     final String slug = Optional.ofNullable((String) entry.get("slug")).orElse("missing_slug");
                     final String label = Optional.ofNullable((String) entry.get("label")).orElse(slug);
