@@ -91,6 +91,10 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
         Intent args = getIntent();
         status = (Status) args.getSerializableExtra(EXTRA_STATUS);
+        if (status instanceof DonStatus) {
+            ((DonStatus) status).checkProviderHostMismatching();
+        }
+
         if (savedInstanceState != null) {
             user = (AuthUserRecord) savedInstanceState.getSerializable(EXTRA_USER);
         } else {
