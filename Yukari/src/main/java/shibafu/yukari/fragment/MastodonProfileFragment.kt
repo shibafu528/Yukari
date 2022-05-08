@@ -34,9 +34,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.threeten.bp.ZonedDateTime
-import org.threeten.bp.format.DateTimeFormatter
-import org.threeten.bp.temporal.ChronoUnit
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.R
@@ -56,6 +53,9 @@ import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import shibafu.yukari.view.ProfileButton
 import java.io.StringReader
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 

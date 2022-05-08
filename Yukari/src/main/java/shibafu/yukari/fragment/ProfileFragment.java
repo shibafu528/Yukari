@@ -39,8 +39,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.annimon.stream.Optional;
-import com.annimon.stream.Stream;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.MainActivity;
@@ -81,6 +79,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -763,7 +762,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 Runnable task = () -> {
                     List<UserExtras> userExtras = getTwitterService().getUserExtras();
                     String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
-                    Optional<UserExtras> userExtra = Stream.of(userExtras).filter(ue -> url.equals(ue.getId())).findFirst();
+                    Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
                     AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
                     if (priorityAccount != null) {
                         menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");

@@ -6,8 +6,6 @@ import android.util.Xml
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
 import org.eclipse.collections.impl.map.mutable.primitive.ObjectLongHashMap
-import org.threeten.bp.DateTimeUtils
-import org.threeten.bp.ZonedDateTime
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
@@ -22,6 +20,7 @@ import shibafu.yukari.util.MorseCodec
 import shibafu.yukari.util.readBooleanCompat
 import shibafu.yukari.util.writeBooleanCompat
 import java.io.StringReader
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.collections.LinkedHashSet
 import shibafu.yukari.entity.Status as IStatus
@@ -41,7 +40,7 @@ class DonStatus(val status: Status,
     override val recipientScreenName: String
         get() = representUser.ScreenName
 
-    override val createdAt: Date = DateTimeUtils.toDate(ZonedDateTime.parse(status.createdAt).toInstant())
+    override val createdAt: Date = Date.from(ZonedDateTime.parse(status.createdAt).toInstant())
 
     override val source: String
         get() = status.application?.name ?: ""

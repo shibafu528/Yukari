@@ -97,6 +97,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -170,6 +171,9 @@ android {
 }
 
 dependencies {
+    // Core library desugaring
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+
     // Support Library
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'androidx.cardview:cardview:1.0.0'
@@ -238,11 +242,9 @@ dependencies {
 
     // いろいろ
     implementation project(':gl-helpers')
-    implementation 'com.annimon:stream:1.0.8'
     implementation 'com.google.guava:guava:22.0-android'
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
     implementation 'org.eclipse.collections:eclipse-collections:7.1.0'
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.0'
     implementation 'com.takisoft.preferencex:preferencex:1.0.0'
     implementation fileTree(dir: './libs', includes: ['*.jar'])
 
