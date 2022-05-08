@@ -4,7 +4,6 @@ import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.Pageable
 import com.sys1yagi.mastodon4j.api.method.Accounts
 import info.shibafu528.yukari.processor.filter.Source
-import org.threeten.bp.ZonedDateTime
 import shibafu.yukari.database.Provider
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.ContainsNode
@@ -17,6 +16,7 @@ import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.RestQueryException
 import shibafu.yukari.mastodon.MastodonRestQuery
 import shibafu.yukari.database.AuthUserRecord
+import java.time.ZonedDateTime
 
 /**
  * User Timeline
