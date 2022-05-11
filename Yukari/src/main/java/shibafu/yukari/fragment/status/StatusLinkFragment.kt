@@ -149,8 +149,8 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         listView.isStackFromBottom = defaultSharedPreferences.getBoolean("pref_bottom_stack", false)
     }
 
-    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
-        val row = l?.getItemAtPosition(position) as? Row
+    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+        val row = l.getItemAtPosition(position) as? Row
         row?.onClick()
     }
 

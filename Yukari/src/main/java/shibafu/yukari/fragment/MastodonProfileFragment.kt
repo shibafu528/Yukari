@@ -320,7 +320,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
         val progressDialog = SimpleProgressDialogFragment.Builder(DIALOG_REQUEST_LOAD).build()
         progressDialog.setTargetFragment(this@MastodonProfileFragment, DIALOG_REQUEST_LOAD)
-        progressDialog.show(fragmentManager, FRAGMENT_TAG_LOAD)
+        progressDialog.show(parentFragmentManager, FRAGMENT_TAG_LOAD)
 
         val result = async(Dispatchers.IO) {
             try {
@@ -361,7 +361,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
                     .setNegative("キャンセル")
                     .build()
             dialog.setTargetFragment(this@MastodonProfileFragment, DIALOG_REQUEST_LOAD_FAILED)
-            dialog.show(fragmentManager, FRAGMENT_TAG_LOAD_FAILED)
+            dialog.show(parentFragmentManager, FRAGMENT_TAG_LOAD_FAILED)
         } else {
             val (user, pinnedCount) = result
 

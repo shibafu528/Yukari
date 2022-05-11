@@ -169,7 +169,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                         .setNegative("キャンセル")
                         .build()
                 dialog.setTargetFragment(this, DIALOG_REPOST_CONFIRM)
-                dialog.show(fragmentManager, "dialog_repost_confirm")
+                dialog.show(parentFragmentManager, "dialog_repost_confirm")
             } else {
                 val userRecord = userRecord ?: return@setOnClickListener
 
@@ -206,7 +206,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                         .setNegative("キャンセル")
                         .build()
                 dialog.setTargetFragment(this, DIALOG_FAV_AND_REPOST_CONFIRM)
-                dialog.show(fragmentManager, "dialog_fav_and_repost_confirm")
+                dialog.show(parentFragmentManager, "dialog_fav_and_repost_confirm")
             } else {
                 val userRecord = userRecord ?: return@setOnClickListener
 
@@ -503,7 +503,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                         .setExtras(Bundle().apply { putBoolean("withQuotes", withQuotes) })
                         .build()
                 dialog.setTargetFragment(this, DIALOG_FAVORITE_CONFIRM)
-                dialog.show(fragmentManager, "dialog_favorite_confirm")
+                dialog.show(parentFragmentManager, "dialog_favorite_confirm")
                 return
             }
         }
@@ -555,7 +555,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                 null, "キャンセル",
                 *quoteStyles)
         dialog.setTargetFragment(this, DIALOG_QUOTE_SELECT)
-        dialog.show(fragmentManager, "dialog_quote_select")
+        dialog.show(parentFragmentManager, "dialog_quote_select")
     }
 
     private fun quoteStatus(style: Int): Boolean {

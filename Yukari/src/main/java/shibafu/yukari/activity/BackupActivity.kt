@@ -481,7 +481,8 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
             checkedStates.forEach { i, b -> outState.putBoolean(i.toString(), b) }
         }
 
-        override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+        override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+            val listAdapter = listAdapter as BackupOptionListAdapter
             if (position == 0) {
                 val newState = !checkedStates.get(0, false)
                 for (i in 0..listAdapter.count - 1) {
@@ -490,7 +491,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
             } else {
                 checkedStates[position] = !checkedStates.get(position, false)
             }
-            (listAdapter as BackupOptionListAdapter).notifyDataSetChanged()
+            listAdapter.notifyDataSetChanged()
         }
 
         private inner class BackupOptionListAdapter(context: Context, objects: Array<String>) : ArrayAdapter<String>(context, 0, objects) {

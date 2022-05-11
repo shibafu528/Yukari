@@ -94,7 +94,7 @@ internal enum class TimelineItemClickAction {
                         .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
                         .build()
                 dialog.setTargetFragment(this, TimelineFragment.DIALOG_REQUEST_ACTION_FAVORITE)
-                dialog.show(fragmentManager, "dialog_favorite_confirm")
+                dialog.show(parentFragmentManager, "dialog_favorite_confirm")
             } else {
                 val activity = requireActivity()
                 val intent = AsyncCommandService.createFavorite(activity, clickedElement, clickedElement.representUser)
@@ -126,7 +126,7 @@ internal enum class TimelineItemClickAction {
                         .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
                         .build()
                 dialog.setTargetFragment(this, TimelineFragment.DIALOG_REQUEST_ACTION_REPOST)
-                dialog.show(fragmentManager, "dialog_repost_confirm")
+                dialog.show(parentFragmentManager, "dialog_repost_confirm")
             } else {
                 val activity = requireActivity()
                 val intent = AsyncCommandService.createRepost(activity, clickedElement, clickedElement.representUser)
@@ -163,7 +163,7 @@ internal enum class TimelineItemClickAction {
                         .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
                         .build()
                 dialog.setTargetFragment(this, TimelineFragment.DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
-                dialog.show(fragmentManager, "dialog_fav_repost_confirm")
+                dialog.show(parentFragmentManager, "dialog_fav_repost_confirm")
             } else {
                 val activity = requireActivity()
                 val intent = AsyncCommandService.createFavAndRepost(activity, clickedElement, clickedElement.representUser)

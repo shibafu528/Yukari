@@ -59,7 +59,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
     class ChannelListFragment : ListFragment(), TwitterServiceConnection.ServiceConnectionCallback {
         private lateinit var serviceDelegate: TwitterServiceDelegate
 
-        override fun onAttach(context: Context?) {
+        override fun onAttach(context: Context) {
             super.onAttach(context)
             serviceDelegate = context as TwitterServiceDelegate
         }
@@ -70,8 +70,8 @@ class ChannelManageActivity : ActionBarYukariBase() {
 
         override fun onServiceDisconnected() {}
 
-        override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
-            val channel = listAdapter.getItem(position) as StreamChannel
+        override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+            val channel = listAdapter!!.getItem(position) as StreamChannel
             val userRecord = serviceDelegate.twitterService.users.first { it == channel.userRecord }
             val state = serviceDelegate.twitterService.database.getRecords(StreamChannelState::class.java,
                     CentralDatabase.COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " = ? AND " + CentralDatabase.COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " = ?",

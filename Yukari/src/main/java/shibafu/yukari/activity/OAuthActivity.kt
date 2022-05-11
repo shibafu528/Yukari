@@ -180,7 +180,7 @@ class OAuthActivity : ActionBarYukariBase() {
             listAdapter = adapter
         }
 
-        override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+        override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
             val option = adapter.getItem(position)
             val activity = activity as OAuthActivity
             when (option) {
@@ -280,7 +280,7 @@ class OAuthActivity : ActionBarYukariBase() {
                         override fun onPreExecute() {
                             super.onPreExecute()
                             dialog = LoadDialogFragment.newInstance()
-                            dialog?.show(fragmentManager, "")
+                            dialog?.show(parentFragmentManager, "")
                         }
 
                         override fun onPostExecute(accessToken: AccessToken?) {
@@ -391,7 +391,7 @@ class OAuthActivity : ActionBarYukariBase() {
                 override fun onPreExecute() {
                     super.onPreExecute()
                     dialog = LoadDialogFragment.newInstance()
-                    dialog?.show(fragmentManager, "")
+                    dialog?.show(parentFragmentManager, "")
                 }
 
                 override fun onPostExecute(result: AppRegistration?) {
@@ -438,7 +438,7 @@ class OAuthActivity : ActionBarYukariBase() {
                 override fun onPreExecute() {
                     super.onPreExecute()
                     dialog = LoadDialogFragment.newInstance()
-                    dialog?.show(fragmentManager, "")
+                    dialog?.show(parentFragmentManager, "")
                 }
 
                 override fun onPostExecute(result: String?) {
@@ -490,7 +490,7 @@ class OAuthActivity : ActionBarYukariBase() {
                 override fun onPreExecute() {
                     super.onPreExecute()
                     dialog = LoadDialogFragment.newInstance()
-                    dialog?.show(fragmentManager, "")
+                    dialog?.show(parentFragmentManager, "")
                 }
 
                 override fun onPostExecute(pair: Pair<MastodonAccessToken, Account>?) {

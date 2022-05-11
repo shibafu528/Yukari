@@ -61,17 +61,15 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
         registerForContextMenu(listView)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
-        if (menu != null) {
-            addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "新規作成")
-                    .setIcon(R.drawable.ic_action_add)
-                    .setVisible(false)
-            addMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        }
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "新規作成")
+                .setIcon(R.drawable.ic_action_add)
+                .setVisible(false)
+        addMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.action_add -> {
                 val fragment = UserListEditDialogFragment.newInstance(currentUser, DIALOG_REQUEST_CREATE)
                 fragment.setTargetFragment(this, DIALOG_REQUEST_CREATE)
@@ -82,10 +80,8 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
-
-        if (menu == null) return
 
         val adapterMenuInfo = menuInfo as? AdapterView.AdapterContextMenuInfo ?: return
         val listView = v as? ListView ?: return
@@ -103,9 +99,7 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
         }
     }
 
-    override fun onContextItemSelected(item: MenuItem?): Boolean {
-        if (item == null) return super.onContextItemSelected(item)
-
+    override fun onContextItemSelected(item: MenuItem): Boolean {
         val adapterMenuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
         val userList = listView.getItemAtPosition(adapterMenuInfo.position) as UserList
 

@@ -74,12 +74,12 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             Action("リストへ追加/削除") {
                 ListRegisterDialogFragment.newInstance((status.originStatus.user as TwitterUser).user).let {
                     it.setTargetFragment(this, 0)
-                    it.show(fragmentManager, "register")
+                    it.show(parentFragmentManager, "register")
                 }
             } visibleWhen { status is TwitterStatus },
 
             Action("ミュートする") {
-                MuteMenuDialogFragment.newInstance(status, this).show(fragmentManager, "mute")
+                MuteMenuDialogFragment.newInstance(status, this).show(parentFragmentManager, "mute")
             } visibleWhen { true },
 
             Action("ツイートを削除") {
@@ -90,7 +90,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 }
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", message, "OK", "キャンセル")
                 dialog.setTargetFragment(this, REQUEST_DELETE)
-                dialog.show(fragmentManager, "delete")
+                dialog.show(parentFragmentManager, "delete")
             } visibleWhen {
                 val status = status
                 status.user.id == userRecord?.NumericId || status is Bookmark

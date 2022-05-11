@@ -64,7 +64,7 @@ class SimpleAlertDialogFragment : DialogFragment(), DialogInterface.OnClickListe
         }
     }
 
-    override fun onCancel(dialog: DialogInterface?) {
+    override fun onCancel(dialog: DialogInterface) {
         onClick(dialog, DialogInterface.BUTTON_NEGATIVE)
     }
 

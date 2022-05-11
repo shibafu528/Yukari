@@ -34,7 +34,7 @@ class SimpleProgressDialogFragment : DialogFragment() {
         }
     }
 
-    override fun onCancel(dialog: DialogInterface?) {
+    override fun onCancel(dialog: DialogInterface) {
         super.onCancel(dialog)
 
         val targetFragment = targetFragment

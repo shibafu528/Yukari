@@ -123,7 +123,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
     // ListView Xタッチ座標 (画面幅に対する割合)
     private var listViewXTouchPercent: Float = 0f
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         if (context is MainActivity) {
@@ -238,7 +238,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
     }
 
-    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
         if (blockingDoubleClick) {
             return
         }
@@ -302,7 +302,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                     null, null, null,
                                     items, bundle)
                             dialog.setTargetFragment(this, 0)
-                            dialog.show(fragmentManager, "twitter_message_menu")
+                            dialog.show(parentFragmentManager, "twitter_message_menu")
                             true
                         }
                         is NotifyHistory -> {
@@ -313,7 +313,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                     listOf("@${clickedElement.user.screenName}", "詳細を開く"),
                                     bundle)
                             dialog.setTargetFragment(this, 0)
-                            dialog.show(fragmentManager, "history_menu")
+                            dialog.show(parentFragmentManager, "history_menu")
                             true
                         }
                         else -> false
@@ -556,7 +556,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 .setExtras(extras)
                                 .build()
                         dialog.setTargetFragment(this, 0)
-                        dialog.show(fragmentManager, "twitter_message_delete")
+                        dialog.show(parentFragmentManager, "twitter_message_delete")
                     }
                     // 送信者
                     2 -> {

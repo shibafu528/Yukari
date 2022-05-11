@@ -90,7 +90,7 @@ abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.
         job.cancel()
     }
 
-    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
+    override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
         if (position < elements.size) {
             // プロフィールを開く
             val user = elements[position]
