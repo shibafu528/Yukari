@@ -19,23 +19,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
 import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.MuteMatch;
+import shibafu.yukari.databinding.DialogMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.util.StringUtil;
@@ -238,16 +231,7 @@ public class MuteActivity extends ActionBarYukariBase{
         private final SimpleDateFormat dfTime = new SimpleDateFormat("HH:mm");
         private long expirationTimeMillis = -1;
 
-        @BindView(R.id.etMuteTarget) EditText query;
-        @BindView(R.id.spMuteTarget) Spinner spTarget;
-        @BindView(R.id.spMuteMatch) Spinner spMatch;
-        @BindView(R.id.spMuteErase) Spinner spErase;
-        @BindView(R.id.btnMuteExpr) ImageButton btnExpire;
-        @BindView(R.id.llMuteExprNever) LinearLayout llExprNever;
-        @BindView(R.id.llMuteExprConfig) LinearLayout llExprConfig;
-        @BindView(R.id.etMuteExprDate) EditText exprDate;
-        @BindView(R.id.etMuteExprTime) EditText exprTime;
-        private Unbinder unbinder;
+        private DialogMuteBinding binding;
 
         public static MuteConfigDialogFragment newInstance(MuteConfig config, Fragment target) {
             MuteConfigDialogFragment dialogFragment = new MuteConfigDialogFragment();
@@ -260,22 +244,24 @@ public class MuteActivity extends ActionBarYukariBase{
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_mute, null);
-            unbinder = ButterKnife.bind(this, v);
+            binding = DialogMuteBinding.inflate(getLayoutInflater());
+            binding.btnMuteExpr.setOnClickListener(this::onClickExpireMenu);
+            binding.etMuteExprDate.setOnClickListener(this::onClickDate);
+            binding.etMuteExprTime.setOnClickListener(this::onClickTime);
 
             MuteConfig config = (MuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
             if (config != null) {
                 expirationTimeMillis = config.getExpirationTimeMillis();
 
-                query.setText(config.getQuery());
+                binding.etMuteTarget.setText(config.getQuery());
 
-                spTarget.setSelection(config.getScope());
-                spMatch.setSelection(config.getMatch());
-                spErase.setSelection(config.getMute());
+                binding.spMuteTarget.setSelection(config.getScope());
+                binding.spMuteMatch.setSelection(config.getMatch());
+                binding.spMuteErase.setSelection(config.getMute());
                 if (config.isTimeLimited()) {
-                    llExprConfig.setVisibility(View.VISIBLE);
-                    llExprNever.setVisibility(View.GONE);
+                    binding.llMuteExprConfig.setVisibility(View.VISIBLE);
+                    binding.llMuteExprNever.setVisibility(View.GONE);
                 }
                 updateExpire();
 
@@ -284,8 +270,10 @@ public class MuteActivity extends ActionBarYukariBase{
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle(title)
-                    .setView(v)
+                    .setView(binding.getRoot())
                     .setPositiveButton("OK", (dialog1, which) -> {
+                        DialogMuteBinding binding = this.binding;
+
                         dismiss();
                         InnerFragment innerFragment = (InnerFragment) getTargetFragment();
                         if (innerFragment == null) {
@@ -293,16 +281,16 @@ public class MuteActivity extends ActionBarYukariBase{
                         }
                         MuteConfig config1 = (MuteConfig) getArguments().getSerializable("config");
                         if (config1 == null) {
-                            config1 = new MuteConfig(spTarget.getSelectedItemPosition(),
-                                    spMatch.getSelectedItemPosition(),
-                                    spErase.getSelectedItemPosition(),
-                                    query.getText().toString(),
+                            config1 = new MuteConfig(binding.spMuteTarget.getSelectedItemPosition(),
+                                    binding.spMuteMatch.getSelectedItemPosition(),
+                                    binding.spMuteErase.getSelectedItemPosition(),
+                                    binding.etMuteTarget.getText().toString(),
                                     expirationTimeMillis);
                         } else {
-                            config1.setScope(spTarget.getSelectedItemPosition());
-                            config1.setMatch(spMatch.getSelectedItemPosition());
-                            config1.setMute(spErase.getSelectedItemPosition());
-                            config1.setQuery(query.getText().toString());
+                            config1.setScope(binding.spMuteTarget.getSelectedItemPosition());
+                            config1.setMatch(binding.spMuteMatch.getSelectedItemPosition());
+                            config1.setMute(binding.spMuteErase.getSelectedItemPosition());
+                            config1.setQuery(binding.etMuteTarget.getText().toString());
                             config1.setExpirationTimeMillis(expirationTimeMillis);
                         }
                         innerFragment.updateMuteConfig(config1);
@@ -316,17 +304,16 @@ public class MuteActivity extends ActionBarYukariBase{
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
-            unbinder.unbind();
+            binding = null;
         }
 
         private void updateExpire() {
             Date date = new Date(expirationTimeMillis);
-            exprDate.setText(dfDate.format(date));
-            exprTime.setText(dfTime.format(date));
+            binding.etMuteExprDate.setText(dfDate.format(date));
+            binding.etMuteExprTime.setText(dfTime.format(date));
         }
 
-        @OnClick(R.id.btnMuteExpr)
-        void onClickExpireMenu() {
+        void onClickExpireMenu(View v) {
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setItems(R.array.mute_expr, (dialog1, which) -> {
                         Calendar c = Calendar.getInstance();
@@ -354,20 +341,19 @@ public class MuteActivity extends ActionBarYukariBase{
                         expirationTimeMillis = c.getTimeInMillis();
                         updateExpire();
                         if (expirationTimeMillis > 0) {
-                            llExprConfig.setVisibility(View.VISIBLE);
-                            llExprNever.setVisibility(View.GONE);
+                            binding.llMuteExprConfig.setVisibility(View.VISIBLE);
+                            binding.llMuteExprNever.setVisibility(View.GONE);
                         } else {
-                            llExprConfig.setVisibility(View.GONE);
-                            llExprNever.setVisibility(View.VISIBLE);
+                            binding.llMuteExprConfig.setVisibility(View.GONE);
+                            binding.llMuteExprNever.setVisibility(View.VISIBLE);
                         }
                     })
                     .create();
             dialog.show();
         }
 
-        @OnClick(R.id.etMuteExprDate)
-        void onClickDate() {
-            exprDate.clearFocus();
+        void onClickDate(View v) {
+            binding.etMuteExprDate.clearFocus();
 
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
@@ -386,9 +372,8 @@ public class MuteActivity extends ActionBarYukariBase{
             dialog.show(getFragmentManager(), null);
         }
 
-        @OnClick(R.id.etMuteExprTime)
-        void onClickTime() {
-            exprTime.clearFocus();
+        void onClickTime(View v) {
+            binding.etMuteExprTime.clearFocus();
 
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
