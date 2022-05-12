@@ -20,13 +20,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
@@ -34,6 +28,8 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.databinding.FragmentDbmtBinding;
+import shibafu.yukari.databinding.RowApiBinding;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
@@ -138,30 +134,27 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
     }
 
     public static class DBMaintenanceFragment extends Fragment implements ServiceConnectable{
-
-        @BindView(R.id.tvYdbName) TextView title;
-        @BindView(R.id.tvYdbSize) TextView size;
-        @BindView(R.id.tvYdbUserEnt) TextView usersCount;
-        private Unbinder unbinder;
+        private FragmentDbmtBinding binding;
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View v = inflater.inflate(R.layout.fragment_dbmt, container, false);
-            unbinder = ButterKnife.bind(this, v);
+            binding = FragmentDbmtBinding.inflate(inflater, container, false);
 
-            title.setText(String.format("%s, version %d", CentralDatabase.DB_FILENAME, CentralDatabase.DB_VER));
-            size.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
-            return v;
+            binding.tvYdbName.setText(String.format("%s, version %d", CentralDatabase.DB_FILENAME, CentralDatabase.DB_VER));
+            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+            binding.btnYdbWipe.setOnClickListener(this::onClickWipe);
+            binding.btnYdbVacuum.setOnClickListener(this::onClickVacuum);
+
+            return binding.getRoot();
         }
 
         @Override
         public void onDestroyView() {
             super.onDestroyView();
-            unbinder.unbind();
+            binding = null;
         }
 
-        @OnClick(R.id.btnYdbWipe)
-        public void onClickWipe() {
+        public void onClickWipe(View v) {
             new SimpleAsyncTask() {
 
                 private SimpleProgressDialogFragment fragment;
@@ -190,8 +183,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
             }.executeParallel();
         }
 
-        @OnClick(R.id.btnYdbVacuum)
-        public void onClickVacuum() {
+        public void onClickVacuum(View v) {
             new SimpleAsyncTask() {
 
                 private SimpleProgressDialogFragment fragment;
@@ -230,8 +222,8 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
         @Override
         public void onServiceConnected() {
-            usersCount.setText(String.format("%d entries", getService().getDatabase().getUsersCursor().getCount()));
-            size.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+            binding.tvYdbUserEnt.setText(String.format("%d entries", getService().getDatabase().getUsersCursor().getCount()));
+            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
         }
 
         @Override
@@ -389,33 +381,22 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                ViewHolder vh;
+                RowApiBinding vh;
                 if (convertView == null) {
-                    convertView = inflater.inflate(R.layout.row_api, null);
-                    vh = new ViewHolder(convertView);
+                    vh = RowApiBinding.inflate(inflater);
+                    convertView = vh.getRoot();
                     convertView.setTag(vh);
                 } else {
-                    vh = (ViewHolder) convertView.getTag();
+                    vh = (RowApiBinding) convertView.getTag();
                 }
                 RateLimitStatus status = getItem(position);
                 if (status != null) {
-                    vh.apiEndPoint.setText(keys[position]);
-                    vh.apiLimit.setText(String.format("Limit: %d/%d", status.getRemaining(), status.getLimit()));
-                    vh.apiReset.setText("Reset: " + sdf.format(new Date((long)status.getResetTimeInSeconds() * 1000)));
+                    vh.tvApiEndpoint.setText(keys[position]);
+                    vh.tvApiLimit.setText(String.format("Limit: %d/%d", status.getRemaining(), status.getLimit()));
+                    vh.tvApiReset.setText("Reset: " + sdf.format(new Date((long)status.getResetTimeInSeconds() * 1000)));
                     vh.progressBar.setProgress(status.getRemaining() * 100 / status.getLimit());
                 }
                 return convertView;
-            }
-
-            class ViewHolder {
-                @BindView(R.id.tvApiEndpoint) TextView apiEndPoint;
-                @BindView(R.id.tvApiLimit) TextView apiLimit;
-                @BindView(R.id.tvApiReset) TextView apiReset;
-                @BindView(R.id.progressBar) ProgressBar progressBar;
-
-                ViewHolder(View v) {
-                    ButterKnife.bind(this, v);
-                }
             }
         }
     }
