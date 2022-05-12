@@ -2,17 +2,13 @@ package shibafu.yukari.activity;
 
 import android.database.Cursor;
 import android.os.Bundle;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.databinding.ActivityAssetBinding;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -24,18 +20,16 @@ import java.util.List;
  * Created by shibafu on 15/03/31.
  */
 public class BookmarkRepairActivity extends ActionBarYukariBase {
-    @BindView(R.id.textView)      TextView    textView;
-    @BindView(R.id.tvProgress)    TextView    progressLabel;
-    @BindView(R.id.progressBar)   ProgressBar progressBar;
+    private ActivityAssetBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_asset);
-        ButterKnife.bind(this);
-        textView.setText("破損したブックマークを修復しています...");
-        progressLabel.setText("0 破損していたブックマーク\n0 修復成功\n0 エラー");
-        progressBar.setIndeterminate(true);
+        binding = ActivityAssetBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        binding.textView.setText("破損したブックマークを修復しています...");
+        binding.tvProgress.setText("0 破損していたブックマーク\n0 修復成功\n0 エラー");
+        binding.progressBar.setIndeterminate(true);
     }
 
     @Override
@@ -47,7 +41,7 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
             @Override
             protected void onProgressUpdate(Integer... values) {
                 super.onProgressUpdate(values);
-                progressLabel.setText(String.format("%d 破損していたブックマーク\n%d 修復成功\n%d エラー", values[0], values[1], values[2]));
+                binding.tvProgress.setText(String.format("%d 破損していたブックマーク\n%d 修復成功\n%d エラー", values[0], values[1], values[2]));
             }
 
             @Override
