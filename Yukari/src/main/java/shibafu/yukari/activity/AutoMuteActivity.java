@@ -17,17 +17,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.AutoMuteConfig;
+import shibafu.yukari.databinding.DialogAutoMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.service.TwitterService;
 
@@ -198,9 +194,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
     }
 
     public static class AutoMuteConfigDialogFragment extends DialogFragment {
-        @BindView(R.id.etMuteTarget) EditText query;
-        @BindView(R.id.spMuteMatch) Spinner spMatch;
-        private Unbinder unbinder;
+        private DialogAutoMuteBinding binding;
 
         public static AutoMuteConfigDialogFragment newInstance(AutoMuteConfig config, Fragment target) {
             AutoMuteConfigDialogFragment dialogFragment = new AutoMuteConfigDialogFragment();
@@ -213,21 +207,23 @@ public class AutoMuteActivity extends ActionBarYukariBase{
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_auto_mute, null);
-            unbinder = ButterKnife.bind(this, v);
+            binding = DialogAutoMuteBinding.inflate(getLayoutInflater());
 
             AutoMuteConfig config = (AutoMuteConfig) getArguments().getSerializable("config");
             String title = "新規追加";
             if (config != null) {
-                query.setText(config.getQuery());
-                spMatch.setSelection(config.getMatch());
+                binding.etMuteTarget.setText(config.getQuery());
+                binding.spMuteMatch.setSelection(config.getMatch());
                 title = "編集";
             }
 
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
                     .setTitle(title)
-                    .setView(v)
+                    .setView(binding.getRoot())
                     .setPositiveButton("OK", (dialog1, which) -> {
+                        // onDismissでnull代入してるから保持しないとNPEで死ぬ
+                        DialogAutoMuteBinding binding = this.binding;
+
                         dismiss();
                         InnerFragment innerFragment = (InnerFragment) getTargetFragment();
                         if (innerFragment == null) {
@@ -236,12 +232,12 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                         AutoMuteConfig config1 = (AutoMuteConfig) getArguments().getSerializable("config");
                         if (config1 == null) {
                             config1 = new AutoMuteConfig(
-                                    spMatch.getSelectedItemPosition(),
-                                    query.getText().toString()
+                                    binding.spMuteMatch.getSelectedItemPosition(),
+                                    binding.etMuteTarget.getText().toString()
                             );
                         } else {
-                            config1.setMatch(spMatch.getSelectedItemPosition());
-                            config1.setQuery(query.getText().toString());
+                            config1.setMatch(binding.spMuteMatch.getSelectedItemPosition());
+                            config1.setQuery(binding.etMuteTarget.getText().toString());
                         }
                         innerFragment.updateAutoMuteConfig(config1);
                     })
@@ -254,7 +250,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
         @Override
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
-            unbinder.unbind();
+            binding = null;
         }
     }
 
