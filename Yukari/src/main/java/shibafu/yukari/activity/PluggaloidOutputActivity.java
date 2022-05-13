@@ -3,11 +3,8 @@ package shibafu.yukari.activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MenuItem;
-import android.widget.EditText;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.databinding.ActivityPluggaloidOutputBinding;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -19,16 +16,14 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
     private Handler handler = new Handler();
     private Timer timer;
 
-    @BindView(R.id.editText)
-    EditText logView;
+    private ActivityPluggaloidOutputBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_pluggaloid_output);
+        binding = ActivityPluggaloidOutputBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        ButterKnife.bind(this);
     }
 
     @Override
@@ -52,9 +47,9 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
                 if (isTwitterServiceBound() && getTwitterService() != null) {
                     handler.post(() -> {
                         String s = getTwitterService().getmRubyStdOut().toString();
-                        if (logView.getText().length() != s.length()) {
-                            logView.setText(s);
-                            logView.scrollTo(65536, 0);
+                        if (binding.editText.getText().length() != s.length()) {
+                            binding.editText.setText(s);
+                            binding.editText.scrollTo(65536, 0);
                         }
                     });
                 }

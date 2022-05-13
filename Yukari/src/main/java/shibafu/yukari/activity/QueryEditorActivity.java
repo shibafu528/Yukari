@@ -5,14 +5,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.widget.EditText;
-import android.widget.TextView;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import android.view.View;
+
 import info.shibafu528.yukari.exvoice.MRuby;
-import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.databinding.ActivityQueryBinding;
 import shibafu.yukari.entity.MockStatus;
 import shibafu.yukari.filter.FilterQuery;
 import shibafu.yukari.filter.compiler.FilterCompilerException;
@@ -28,26 +25,20 @@ import java.util.List;
  * Created by shibafu on 2015/08/18.
  */
 public class QueryEditorActivity extends ActionBarYukariBase {
-
-    @BindView(R.id.etQuery)
-    EditText query;
-
-    @BindView(R.id.tvStatus)
-    TextView compileStatus;
-
+    private ActivityQueryBinding binding;
     private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_query);
-        ButterKnife.bind(this);
+        binding = ActivityQueryBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         if (getIntent().hasExtra(Intent.EXTRA_TEXT)) {
-            query.setText(getIntent().getStringExtra(Intent.EXTRA_TEXT));
+            binding.etQuery.setText(getIntent().getStringExtra(Intent.EXTRA_TEXT));
         }
 
-        query.addTextChangedListener(new TextWatcher() {
+        binding.etQuery.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -67,9 +58,9 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                             mrb.loadString(s.toString());
                             mrb.close();
 
-                            compileStatus.setText("output => \n" + sb.toString());
+                            binding.tvStatus.setText("output => \n" + sb.toString());
                         } catch (Exception e) {
-                            compileStatus.setText(e.toString());
+                            binding.tvStatus.setText(e.toString());
                         }
                     } else {
                         try {
@@ -83,39 +74,40 @@ public class QueryEditorActivity extends ActionBarYukariBase {
 
                             FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
                             boolean result = q.evaluate(new MockStatus(0, userRecords.get(0)), new ArrayList<>(), new HashMap<>());
-                            compileStatus.setText("OK. => " + result);
+                            binding.tvStatus.setText("OK. => " + result);
                         } catch (FilterCompilerException | TokenizeException e) {
-                            compileStatus.setText(e.toString());
+                            binding.tvStatus.setText(e.toString());
                         }
                     }
                 }, 1500);
             }
         });
+
+        binding.btnDone.setOnClickListener(this::onClickDone);
+        binding.btnLeftParen.setOnClickListener(this::onClickLeftParen);
+        binding.btnRightParen.setOnClickListener(this::onClickRightParen);
     }
 
-    @OnClick(R.id.btnDone)
-    void onClickDone() {
+    void onClickDone(View v) {
         Intent data = new Intent();
         data.putExtras(getIntent());
-        data.putExtra(Intent.EXTRA_TEXT, query.getText().toString());
+        data.putExtra(Intent.EXTRA_TEXT, binding.etQuery.getText().toString());
         setResult(RESULT_OK, data);
         finish();
     }
 
-    @OnClick(R.id.btnLeftParen)
-    void onClickLeftParen() {
+    void onClickLeftParen(View v) {
         appendTextInto("(");
     }
 
-    @OnClick(R.id.btnRightParen)
-    void onClickRightParen() {
+    void onClickRightParen(View v) {
         appendTextInto(")");
     }
 
     private void appendTextInto(String text) {
-        int start = query.getSelectionStart();
-        int end = query.getSelectionEnd();
-        query.getText().replace(Math.min(start, end), Math.max(start, end), text);
+        int start = binding.etQuery.getSelectionStart();
+        int end = binding.etQuery.getSelectionEnd();
+        binding.etQuery.getText().replace(Math.min(start, end), Math.max(start, end), text);
     }
 
     @Override

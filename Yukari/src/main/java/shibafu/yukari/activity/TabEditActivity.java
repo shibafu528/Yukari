@@ -22,17 +22,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.databinding.RowTabeditBinding;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.database.AuthUserRecord;
@@ -349,17 +347,17 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                ViewHolder viewHolder;
+                RowTabeditBinding viewHolder;
                 if (convertView == null) {
-                    convertView = inflater.inflate(R.layout.row_tabedit, null);
-                    viewHolder = new ViewHolder(convertView);
+                    viewHolder = RowTabeditBinding.inflate(inflater);
+                    convertView = viewHolder.getRoot();
                     convertView.setTag(viewHolder);
                 } else {
-                    viewHolder = (ViewHolder) convertView.getTag();
+                    viewHolder = (RowTabeditBinding) convertView.getTag();
                 }
                 final TabInfo item = getItem(position);
                 if (item != null) {
-                    viewHolder.text.setText(item.getTitle());
+                    viewHolder.text1.setText(item.getTitle());
                     viewHolder.handle.setOnTouchListener((v, event) -> {
                         if (event.getAction() == MotionEvent.ACTION_DOWN) {
                             startDrag(item);
@@ -367,9 +365,9 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                         }
                         return false;
                     });
-                    viewHolder.radioButton.setOnCheckedChangeListener(null);
-                    viewHolder.radioButton.setChecked(item.isStartup());
-                    viewHolder.radioButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    viewHolder.radio.setOnCheckedChangeListener(null);
+                    viewHolder.radio.setChecked(item.isStartup());
+                    viewHolder.radio.setOnCheckedChangeListener((buttonView, isChecked) -> {
                         if (isChecked) {
                             for (TabInfo tab : tabs) {
                                 tab.setStartup(tab.getId() == item.getId());
@@ -386,16 +384,6 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     }
                 }
                 return convertView;
-            }
-        }
-
-        static class ViewHolder {
-            @BindView(android.R.id.text1) TextView text;
-            @BindView(R.id.handle) View handle;
-            @BindView(R.id.radio) RadioButton radioButton;
-
-            ViewHolder(View v) {
-                ButterKnife.bind(this, v);
             }
         }
     }

@@ -23,9 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,11 +34,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import butterknife.Action;
-import butterknife.BindViews;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-import butterknife.ViewCollections;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ChannelManageActivity;
@@ -53,6 +46,7 @@ import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.databinding.DialogMenuBinding;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.plugin.UserPluginActivity;
@@ -72,8 +66,8 @@ public class MenuDialogFragment extends DialogFragment {
 
     private static final int ACCOUNT_ICON_DIP = 32;
 
-    @BindViews({R.id.llMenuTwilog, R.id.llMenuFavstar, R.id.llMenuAclog})
-    List<View> pluginViews;
+    private DialogMenuBinding binding;
+    private List<View> pluginViews;
 
     private MenuPlugin[] plugins = new MenuPlugin[3];
     private static final String[] DEFAULT_PLUGINS = {
@@ -82,11 +76,7 @@ public class MenuDialogFragment extends DialogFragment {
             null
     };
 
-    private LinearLayout llActiveAccounts;
     private ArrayList<AuthUserRecord> activeAccounts;
-
-    private ImageView keepScreenOnImage;
-    private Unbinder unbinder;
 
     @Override
     public void onAttach(Context context) {
@@ -138,7 +128,7 @@ public class MenuDialogFragment extends DialogFragment {
         super.onResume();
         MainActivity activity = (MainActivity) getActivity();
         if (activity.isKeepScreenOn()) {
-            keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
+            binding.ivMenuSleepIcon.setImageResource(R.drawable.ic_always_light_on);
         }
 
         class AccountsLoader extends SimpleAsyncTask {
@@ -184,53 +174,47 @@ public class MenuDialogFragment extends DialogFragment {
     }
 
     private void createAccountIconView() {
-        llActiveAccounts.removeAllViewsInLayout();
+        binding.llMenuAccounts.removeAllViewsInLayout();
         final int iconSize = (int) (getResources().getDisplayMetrics().density * ACCOUNT_ICON_DIP);
         for (AuthUserRecord user : activeAccounts) {
             ImageView iv = new ImageView(getActivity());
             iv.setFocusable(false);
             iv.setClickable(false);
             ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), iv, user.ProfileImageUrl);
-            llActiveAccounts.addView(iv, iconSize, iconSize);
+            binding.llMenuAccounts.addView(iv, iconSize, iconSize);
         }
     }
 
     private View inflateView(LayoutInflater inflater) {
-        View v = inflater.inflate(R.layout.dialog_menu, null);
+        binding = DialogMenuBinding.inflate(inflater);
 
-        llActiveAccounts = (LinearLayout) v.findViewById(R.id.llMenuAccounts);
-        v.findViewById(R.id.llMenuAccountParent).setOnClickListener(v1 -> {
+        binding.llMenuAccountParent.setOnClickListener(v1 -> {
             dismiss();
             Intent intent = new Intent(getActivity(), ChannelManageActivity.class);
             startActivity(intent);
         });
 
-        View profileMenu = v.findViewById(R.id.llMenuProfile);
-        profileMenu.setOnClickListener(v1 -> {
+        binding.llMenuProfile.setOnClickListener(v1 -> {
             Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
             startActivityForResult(intent, REQUEST_PROFILE);
         });
 
-        View exitMenu = v.findViewById(R.id.llMenuExit);
-        exitMenu.setOnClickListener(v1 -> {
+        binding.llMenuExit.setOnClickListener(v1 -> {
             dismiss();
             ((MainActivity) getActivity()).showExitDialog();
         });
 
-        keepScreenOnImage = (ImageView) v.findViewById(R.id.ivMenuSleepIcon);
-
-        View keepScreenOnMenu = v.findViewById(R.id.llMenuSleep);
-        keepScreenOnMenu.setOnClickListener(v1 -> {
+        binding.llMenuSleep.setOnClickListener(v1 -> {
             MainActivity activity = ((MainActivity) getActivity());
             if (activity.isKeepScreenOn()) {
                 activity.setKeepScreenOn(false);
-                keepScreenOnImage.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
+                binding.ivMenuSleepIcon.setImageResource(AttrUtil.resolveAttribute(getDialog().getContext().getTheme(), R.attr.menuBacklightDrawable));
             } else {
                 activity.setKeepScreenOn(true);
-                keepScreenOnImage.setImageResource(R.drawable.ic_always_light_on);
+                binding.ivMenuSleepIcon.setImageResource(R.drawable.ic_always_light_on);
             }
         });
-        keepScreenOnMenu.setOnLongClickListener(v1 -> {
+        binding.llMenuSleep.setOnLongClickListener(v1 -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 MainActivity activity = ((MainActivity) getActivity());
                 activity.setImmersive(!activity.isImmersive());
@@ -240,30 +224,33 @@ public class MenuDialogFragment extends DialogFragment {
             return false;
         });
 
-        View bookmarkMenu = v.findViewById(R.id.llMenuBookmark);
-        bookmarkMenu.setOnClickListener(view -> {
+        binding.llMenuBookmark.setOnClickListener(view -> {
             dismiss();
             Intent intent = new Intent(getActivity(), MainActivity.class);
             intent.putExtra(MainActivity.EXTRA_SHOW_TAB, TabType.TABTYPE_BOOKMARK);
             startActivity(intent);
         });
 
-        View configMenu = v.findViewById(R.id.llMenuConfig);
-        configMenu.setOnClickListener(v1 -> {
+        binding.llMenuConfig.setOnClickListener(v1 -> {
             dismiss();
             startActivity(new Intent(getActivity(), ConfigActivity.class));
         });
 
-        ImageButton ibReconnect = (ImageButton) v.findViewById(R.id.ibMenuReconnect);
-        ibReconnect.setOnClickListener(v1 -> {
+        binding.ibMenuReconnect.setOnClickListener(v1 -> {
             Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
             dismiss();
             AsyncReconnectTask task = new AsyncReconnectTask();
             task.executeParallel(((TwitterServiceDelegate) getActivity()).getTwitterService());
         });
 
-        unbinder = ButterKnife.bind(this, v);
-        ViewCollections.run(pluginViews, (Action<? super View>) (view, index) -> {
+        pluginViews = new ArrayList<>(3);
+        pluginViews.add(binding.llMenuTwilog);
+        pluginViews.add(binding.llMenuFavstar);
+        pluginViews.add(binding.llMenuAclog);
+
+        for (int i = 0; i < pluginViews.size(); i++) {
+            final int index = i;
+            View view = pluginViews.get(i);
             view.setOnClickListener(v1 -> {
                 if (plugins[index] == null) {
                     return;
@@ -279,19 +266,19 @@ public class MenuDialogFragment extends DialogFragment {
                 startActivityForResult(chooser, REQUEST_PLUGIN_CHOOSE.get(index));
                 return true;
             });
-        });
+        }
 
         updatePlugin(0, plugins[0]);
         updatePlugin(1, plugins[1]);
         updatePlugin(2, plugins[2]);
 
-        return v;
+        return binding.getRoot();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        unbinder.unbind();
+        binding = null;
     }
 
     private void updatePlugin(int index, MenuPlugin plugin) {

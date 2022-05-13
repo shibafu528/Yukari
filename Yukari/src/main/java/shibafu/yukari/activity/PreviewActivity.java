@@ -24,7 +24,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.davemorrissey.labs.subscaleview.ImageSource;
@@ -45,8 +44,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
@@ -57,6 +54,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.databinding.ActivityImagepreviewBinding;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.media2.Media;
 import shibafu.yukari.media2.MediaFactory;
@@ -64,7 +62,6 @@ import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.view.StatusView;
-import shibafu.yukari.view.TweetView;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -88,31 +85,24 @@ public class PreviewActivity extends ActionBarYukariBase {
             SubsamplingScaleImageView.ORIENTATION_270,
     };
 
+    private ActivityImagepreviewBinding binding;
+
     private Media media;
 
     private ParallelAsyncTask<String, Object, Bitmap> loaderTask = null;
 
-    @BindView(R.id.ivPreviewImage) SubsamplingScaleImageView imageView;
-    @BindView(R.id.twvPreviewStatus) TweetView tweetView;
     private Status status;
     private AuthUserRecord user;
 
     private Animation animFadeIn, animFadeOut;
     private boolean isShowPanel = true;
 
-    @BindView(R.id.ibPreviewSave) ImageButton ibSave;
-
-    @BindView(R.id.tvPreviewProgress) TextView loadProgressText;
-    @BindView(R.id.tvPreviewProgress2) TextView loadProgressText2;
-
-    @BindView(R.id.llQrText) LinearLayout llQrText;
-    @BindView(R.id.tvQrText) TextView tvQrText;
-
     @SuppressLint("MissingSuperCall")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState, true);
-        setContentView(R.layout.activity_imagepreview);
+        binding = ActivityImagepreviewBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         final Uri data = getIntent().getData();
         if (data == null) {
@@ -130,14 +120,12 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         user = (AuthUserRecord) getIntent().getSerializableExtra(EXTRA_USER);
 
-        ButterKnife.bind(this);
-
         animFadeIn = AnimationUtils.loadAnimation(this, R.anim.anim_fadein);
         animFadeOut = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout);
 
         final LinearLayout llControlPanel = (LinearLayout) findViewById(R.id.llPreviewPanel);
-        imageView.setMinimumDpi(80);
-        imageView.setOnClickListener(view -> {
+        binding.ivPreviewImage.setMinimumDpi(80);
+        binding.ivPreviewImage.setOnClickListener(view -> {
             if (isShowPanel) {
                 llControlPanel.startAnimation(animFadeOut);
                 llControlPanel.setVisibility(View.INVISIBLE);
@@ -147,7 +135,7 @@ public class PreviewActivity extends ActionBarYukariBase {
             }
             isShowPanel ^= true;
         });
-        imageView.setOnStateChangedListener(new SubsamplingScaleImageView.OnStateChangedListener() {
+        binding.ivPreviewImage.setOnStateChangedListener(new SubsamplingScaleImageView.OnStateChangedListener() {
             @Override
             public void onScaleChanged(float newScale, int origin) {
                 if (isShowPanel) {
@@ -190,8 +178,8 @@ public class PreviewActivity extends ActionBarYukariBase {
 
                 // 保存ボタンの有効化
                 handler.post(() -> {
-                    if (ibSave != null) {
-                        ibSave.setEnabled(true);
+                    if (binding.ibPreviewSave != null) {
+                        binding.ibPreviewSave.setEnabled(true);
                     }
                 });
 
@@ -335,13 +323,13 @@ public class PreviewActivity extends ActionBarYukariBase {
                     elapsed = 1;
                 }
                 if (callback.contentLength < 1) {
-                    loadProgressText.setText("");
-                    loadProgressText2.setText(String.format(Locale.US, "%d KB\n%dKB/s",
+                    binding.tvPreviewProgress.setText("");
+                    binding.tvPreviewProgress2.setText(String.format(Locale.US, "%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.received / 1024) / elapsed));
                 } else {
-                    loadProgressText.setText(String.format(Locale.US, "%d%%", progress));
-                    loadProgressText2.setText(String.format(Locale.US, "%d/%d KB\n%dKB/s",
+                    binding.tvPreviewProgress.setText(String.format(Locale.US, "%d%%", progress));
+                    binding.tvPreviewProgress2.setText(String.format(Locale.US, "%d/%d KB\n%dKB/s",
                             (callback.received / 1024),
                             (callback.contentLength / 1024),
                             (callback.received / 1024) / elapsed));
@@ -351,8 +339,8 @@ public class PreviewActivity extends ActionBarYukariBase {
             @Override
             protected void onPostExecute(Bitmap bitmap) {
                 findViewById(R.id.progressBar).setVisibility(View.GONE);
-                loadProgressText.setVisibility(View.GONE);
-                loadProgressText2.setVisibility(View.GONE);
+                binding.tvPreviewProgress.setVisibility(View.GONE);
+                binding.tvPreviewProgress2.setVisibility(View.GONE);
 
                 if (isCancelled()) {
                     return;
@@ -363,7 +351,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                     return;
                 }
                 // 本当はBitmapではなくキャッシュファイルパスを渡したほうがライブラリのポテンシャルを引き出せる
-                imageView.setImage(ImageSource.bitmap(bitmap));
+                binding.ivPreviewImage.setImage(ImageSource.bitmap(bitmap));
                 //QR解析
                 processZxing(bitmap);
             }
@@ -382,48 +370,48 @@ public class PreviewActivity extends ActionBarYukariBase {
 
         ImageButton ibRotateLeft = findViewById(R.id.ibPreviewRotateLeft);
         ibRotateLeft.setOnClickListener(v -> {
-            int orientation = imageView.getAppliedOrientation();
+            int orientation = binding.ivPreviewImage.getAppliedOrientation();
             for (int i = ORIENTATIONS.length - 1; i >= 0; i--) {
                 if (ORIENTATIONS[i] < orientation) {
-                    imageView.setOrientation(ORIENTATIONS[i]);
+                    binding.ivPreviewImage.setOrientation(ORIENTATIONS[i]);
                     return;
                 }
             }
             // if orientation <= 0
-            imageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_270);
+            binding.ivPreviewImage.setOrientation(SubsamplingScaleImageView.ORIENTATION_270);
         });
         ImageButton ibRotateRight = findViewById(R.id.ibPreviewRotateRight);
         ibRotateRight.setOnClickListener(v -> {
-            int orientation = imageView.getAppliedOrientation();
+            int orientation = binding.ivPreviewImage.getAppliedOrientation();
             for (int i = 0; i < ORIENTATIONS.length; i++) {
                 if (ORIENTATIONS[i] > orientation) {
-                    imageView.setOrientation(ORIENTATIONS[i]);
+                    binding.ivPreviewImage.setOrientation(ORIENTATIONS[i]);
                     return;
                 }
             }
             // if orientation >= 270
-            imageView.setOrientation(SubsamplingScaleImageView.ORIENTATION_0);
+            binding.ivPreviewImage.setOrientation(SubsamplingScaleImageView.ORIENTATION_0);
         });
 
         ImageButton ibBrowser = (ImageButton) findViewById(R.id.ibPreviewBrowser);
         ibBrowser.setOnClickListener(v -> startActivity(Intent.createChooser(new Intent(Intent.ACTION_VIEW, data), null)));
 
-        ibSave.setEnabled(false); // 実体解決完了まで無効化
-        ibSave.setOnClickListener(v -> {
+        binding.ibPreviewSave.setEnabled(false); // 実体解決完了まで無効化
+        binding.ibPreviewSave.setOnClickListener(v -> {
             PreviewActivityPermissionsDispatcher.onClickSaveWithPermissionCheck(PreviewActivity.this);
         });
 
         if (!mediaUrl.startsWith("http") || isDMImage(mediaUrl)) {
             ibBrowser.setEnabled(false);
             ibBrowser.setVisibility(View.GONE);
-            ibSave.setVisibility(View.GONE);
+            binding.ibPreviewSave.setVisibility(View.GONE);
         }
 
         if (status != null) {
-            tweetView.setMode(StatusView.Mode.PREVIEW);
-            tweetView.setStatus(status);
+            binding.twvPreviewStatus.setMode(StatusView.Mode.PREVIEW);
+            binding.twvPreviewStatus.setStatus(status);
         } else {
-            tweetView.setVisibility(View.GONE);
+            binding.twvPreviewStatus.setVisibility(View.GONE);
         }
     }
 
@@ -475,15 +463,15 @@ public class PreviewActivity extends ActionBarYukariBase {
             BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
                 Result result = new MultiFormatReader().decode(binaryBitmap);
-                llQrText.setVisibility(View.VISIBLE);
-                tvQrText.setText(result.getText());
+                binding.llQrText.setVisibility(View.VISIBLE);
+                binding.tvQrText.setText(result.getText());
             } catch (NotFoundException e) {
-                llQrText.setVisibility(View.GONE);
+                binding.llQrText.setVisibility(View.GONE);
             }
         } catch (OutOfMemoryError e) {
             // そんなこともある
             System.gc();
-            llQrText.setVisibility(View.GONE);
+            binding.llQrText.setVisibility(View.GONE);
         }
     }
 
@@ -497,9 +485,7 @@ public class PreviewActivity extends ActionBarYukariBase {
         if (loaderTask != null) {
             loaderTask.cancel(true);
         }
-        if (imageView != null) {
-            imageView.recycle();
-        }
+        binding.ivPreviewImage.recycle();
     }
 
     @Override

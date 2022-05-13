@@ -7,14 +7,9 @@ import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.Unbinder;
-import shibafu.yukari.R;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
+import shibafu.yukari.databinding.DialogListeditBinding;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
@@ -30,15 +25,12 @@ public class UserListEditDialogFragment extends DialogFragment {
     private static final String ARG_USER = "user";
     private static final String ARG_TARGETLIST = "list";
 
-    @BindView(R.id.etName) EditText etName;
-    @BindView(R.id.etDescription) EditText etDesctiption;
-    @BindView(R.id.checkBox) CheckBox cbPrivate;
+    private DialogListeditBinding binding;
 
     private boolean createNewList;
     private AuthUserRecord userRecord;
     private UserList targetList;
     private int requestCode;
-    private Unbinder unbinder;
 
     public static UserListEditDialogFragment newInstance(AuthUserRecord userRecord, int requestCode) {
         UserListEditDialogFragment fragment = new UserListEditDialogFragment();
@@ -61,8 +53,7 @@ public class UserListEditDialogFragment extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_listedit, null);
-        unbinder = ButterKnife.bind(this, v);
+        binding = DialogListeditBinding.inflate(getLayoutInflater());
 
         String title;
         Bundle args = getArguments();
@@ -71,9 +62,9 @@ public class UserListEditDialogFragment extends DialogFragment {
         requestCode = args.getInt(ARG_REQUEST_CODE);
         if (targetList != null) {
             title = "編集";
-            etName.setText(targetList.getName());
-            etDesctiption.setText(targetList.getDescription());
-            cbPrivate.setChecked(!targetList.isPublic());
+            binding.etName.setText(targetList.getName());
+            binding.etDescription.setText(targetList.getDescription());
+            binding.checkBox.setChecked(!targetList.isPublic());
         } else {
             title = "新規作成";
             createNewList = true;
@@ -81,7 +72,7 @@ public class UserListEditDialogFragment extends DialogFragment {
 
         AlertDialog dialog = new AlertDialog.Builder(getActivity())
                 .setTitle(title)
-                .setView(v)
+                .setView(binding.getRoot())
                 .setPositiveButton("OK", null)
                 .setNegativeButton("キャンセル", null)
                 .create();
@@ -92,7 +83,7 @@ public class UserListEditDialogFragment extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        unbinder.unbind();
+        binding = null;
     }
 
     @Override
@@ -113,7 +104,7 @@ public class UserListEditDialogFragment extends DialogFragment {
                     }
                 }
 
-                String listTitle = etName.getText().toString();
+                String listTitle = binding.etName.getText().toString();
                 if (TextUtils.isEmpty(listTitle)) {
                     Toast.makeText(getActivity(), "リスト名が入力されていません", Toast.LENGTH_SHORT).show();
                     return;
@@ -180,8 +171,8 @@ public class UserListEditDialogFragment extends DialogFragment {
                     }
                 }.executeParallel(new Params(
                         listTitle,
-                        etDesctiption.getText().toString(),
-                        cbPrivate.isChecked()));
+                        binding.etDescription.getText().toString(),
+                        binding.checkBox.isChecked()));
             }
         });
     }
