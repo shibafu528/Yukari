@@ -224,8 +224,6 @@ dependencies {
     }
 
     // Annotation Processor
-    implementation 'com.jakewharton:butterknife:10.0.0'
-    kapt 'com.jakewharton:butterknife-compiler:10.0.0'
     implementation 'com.github.permissions-dispatcher:permissionsdispatcher:4.9.2'
     kapt 'com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2'
     implementation project(':yukari-processor-runtime')
