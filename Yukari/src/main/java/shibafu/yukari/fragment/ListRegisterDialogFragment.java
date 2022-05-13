@@ -15,23 +15,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import butterknife.BindView;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
-import butterknife.OnItemClick;
-import butterknife.Unbinder;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.databinding.DialogListBinding;
+import shibafu.yukari.databinding.RowCheckBinding;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.PagableResponseList;
@@ -51,10 +44,7 @@ import java.util.Map;
  * Created by shibafu on 14/07/22.
  */
 public class ListRegisterDialogFragment extends DialogFragment {
-    @BindView(R.id.tvMenuTitle) TextView menuTitle;
-    @BindView(R.id.ivMenuAccountIcon) ImageView accountIcon;
-    @BindView(R.id.listView) ListView listView;
-    @BindView(R.id.progressBar) ProgressBar progressBar;
+    DialogListBinding binding;
 
     private static final int REQUEST_CHOOSE = 1 << 8;
     private static final String ARG_TARGET_USER = "target";
@@ -70,7 +60,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
     private ListLoadTask currentListLoadTask;
     private Map<ListUpdateTask, UserList> updateTasks = new HashMap<>();
     private UserListAdapter adapter;
-    private Unbinder unbinder;
 
     public static ListRegisterDialogFragment newInstance(User targetUser) {
         ListRegisterDialogFragment fragment = new ListRegisterDialogFragment();
@@ -108,13 +97,14 @@ public class ListRegisterDialogFragment extends DialogFragment {
             dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_full_material_light);
         }
 
-        View v = getActivity().getLayoutInflater().inflate(R.layout.dialog_list, null);
-        unbinder = ButterKnife.bind(this, v);
+        binding = DialogListBinding.inflate(getLayoutInflater());
+        binding.llMenuAccountParent.setOnClickListener(this::onClickTitle);
+        binding.listView.setOnItemClickListener(this::onItemClick);
 
-        menuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
-        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), accountIcon, currentUser.ProfileImageUrl);
+        binding.tvMenuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
+        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), binding.ivMenuAccountIcon, currentUser.ProfileImageUrl);
 
-        dialog.setContentView(v);
+        dialog.setContentView(binding.getRoot());
 
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         int dialogWidth = (int) (0.9f * metrics.widthPixels);
@@ -128,7 +118,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        unbinder.unbind();
+        binding = null;
     }
 
     @Override
@@ -158,8 +148,8 @@ public class ListRegisterDialogFragment extends DialogFragment {
                         currentUser = newUser;
                         if (userLists != null) userLists.clear();
                         if (adapter != null) adapter.notifyDataSetChanged();
-                        menuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
-                        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), accountIcon, currentUser.ProfileImageUrl);
+                        binding.tvMenuTitle.setText(String.format("@%s のリスト", currentUser.ScreenName));
+                        ImageLoaderTask.loadProfileIcon(getActivity().getApplicationContext(), binding.ivMenuAccountIcon, currentUser.ProfileImageUrl);
                         loadList();
                     }
                 }
@@ -185,15 +175,13 @@ public class ListRegisterDialogFragment extends DialogFragment {
         currentListLoadTask.executeParallel(currentUser);
     }
 
-    @OnClick(R.id.llMenuAccountParent)
-    void onClickTitle() {
+    void onClickTitle(View v) {
         Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
         intent.putExtra(AccountChooserActivity.EXTRA_FILTER_PROVIDER_API_TYPE, Provider.API_TWITTER);
         startActivityForResult(intent, REQUEST_CHOOSE);
     }
 
-    @OnItemClick(R.id.listView)
-    void onItemClick(int position) {
+    void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         UserList userList = userLists.get(position);
         if (!updateTasks.containsValue(userList)) {
             ListUpdateTask task = new ListUpdateTask();
@@ -215,13 +203,13 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder vh;
+            RowCheckBinding vh;
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.row_check, null);
-                vh = new ViewHolder(convertView);
+                vh = RowCheckBinding.inflate(inflater);
+                convertView = vh.getRoot();
                 convertView.setTag(vh);
             } else {
-                vh = (ViewHolder) convertView.getTag();
+                vh = (RowCheckBinding) convertView.getTag();
             }
 
             final UserList list = getItem(position);
@@ -239,15 +227,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
             }
 
             return convertView;
-        }
-
-        class ViewHolder {
-            @BindView(R.id.checkBox) CheckBox checkBox;
-            @BindView(R.id.progressBar) ProgressBar progressBar;
-
-            public ViewHolder(View v) {
-                ButterKnife.bind(this, v);
-            }
         }
     }
 
@@ -291,7 +270,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
+            binding.progressBar.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -301,12 +280,12 @@ public class ListRegisterDialogFragment extends DialogFragment {
             if (!ListRegisterDialogFragment.this.isResumed()) {
                 return;
             }
-            progressBar.setVisibility(View.GONE);
+            binding.progressBar.setVisibility(View.GONE);
             if (!result.isException()) {
                 userLists = result.getResult().first;
                 membership = result.getResult().second;
                 adapter = new UserListAdapter(getActivity(), userLists);
-                listView.setAdapter(adapter);
+                binding.listView.setAdapter(adapter);
             }
         }
     }
