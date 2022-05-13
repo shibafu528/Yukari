@@ -69,7 +69,7 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
                             long receiverId = cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_BOOKMARKS_RECEIVER_ID));
                             AuthUserRecord userRecord = null;
                             for (AuthUserRecord record : userRecords) {
-                                if (record.NumericId == receiverId) {
+                                if (record.InternalId == receiverId) {
                                     userRecord = record;
                                 }
                             }
