@@ -12,12 +12,20 @@ import java.util.*
 
 @DBTable(CentralDatabase.TABLE_BOOKMARKS)
 class Bookmark private constructor(val twitterStatus: TwitterStatus, private val saveDate: Date) : Status by twitterStatus, DBRecord {
+    var idInDatabase: Long? = null
+
     constructor(status: TwitterStatus) : this(status, Date())
 
     constructor(cursor: Cursor) : this(
             byteArrayToStatus(cursor.getBlob(cursor.getColumnIndex(CentralDatabase.COL_BOOKMARKS_BLOB)), AuthUserRecord(cursor)),
             Date(cursor.getLong(cursor.getColumnIndex(CentralDatabase.COL_BOOKMARKS_SAVE_DATE)))
-    )
+    ) {
+        var idColumn = cursor.getColumnIndex("_id_b")
+        if (idColumn == -1) {
+            idColumn = cursor.getColumnIndexOrThrow(CentralDatabase.COL_BOOKMARKS_ID)
+        }
+        idInDatabase = cursor.getLong(idColumn)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
