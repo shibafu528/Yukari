@@ -145,15 +145,12 @@ class DonStatus(val status: Status,
         if (status is DonStatus) {
             if (!this.isLocal && status.isLocal) {
                 status.perProviderId.putAll(perProviderId)
-                status.checkProviderHostMismatching()
                 return status
             } else {
                 perProviderId.putAll(status.perProviderId)
-                checkProviderHostMismatching()
                 return this
             }
         } else {
-            checkProviderHostMismatching()
             return this
         }
     }
@@ -304,5 +301,5 @@ class DonStatus(val status: Status,
     }
     //</editor-fold>
 
-    class ProviderHostMismatchedException(expected: String, actual: String) : RuntimeException("provider host mismatched!! expected = $expected, actual = $actual")
+    class ProviderHostMismatchedException(expected: String, actual: String) : RuntimeException("[BUG] provider host mismatched!! expected = $expected, actual = $actual")
 }
