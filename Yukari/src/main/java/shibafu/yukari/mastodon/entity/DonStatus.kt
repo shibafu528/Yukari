@@ -83,6 +83,11 @@ class DonStatus(val status: Status,
     var perProviderId: ObjectLongHashMap<String> = ObjectLongHashMap.newWithKeysValues(representUser.Provider.host, status.id)
         private set
 
+    /**
+     * この [DonStatus] オブジェクトを作成した時点の受信アカウント。
+     */
+    private val firstReceiverUser = representUser
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is DonStatus) return false
@@ -249,6 +254,7 @@ class DonStatus(val status: Status,
     override fun writeToParcel(dest: Parcel?, flags: Int) {
         dest?.let {
             it.writeString(Gson().toJson(status))
+            it.writeSerializable(firstReceiverUser)
             it.writeSerializable(representUser)
             it.writeParcelable(metadata, 0)
             it.writeInt(favoritesCount)
@@ -269,9 +275,11 @@ class DonStatus(val status: Status,
             override fun createFromParcel(source: Parcel?): DonStatus {
                 source!!
                 val status = Gson().fromJson(source.readString(), Status::class.java)
+                val firstReceiverUser = source.readSerializable() as AuthUserRecord
                 val representUser = source.readSerializable() as AuthUserRecord
                 val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)!!
-                val donStatus = DonStatus(status, representUser, metadata)
+                val donStatus = DonStatus(status, firstReceiverUser, metadata)
+                donStatus.representUser = representUser
                 donStatus.favoritesCount = source.readInt()
                 donStatus.repostsCount = source.readInt()
                 donStatus.representOverrode = source.readBooleanCompat()
