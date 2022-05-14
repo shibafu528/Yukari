@@ -232,6 +232,7 @@ class MastodonApi : ProviderApi {
      */
     @Throws(Mastodon4jRequestException::class)
     private fun resolveLocalId(userRecord: AuthUserRecord, status: DonStatus): Long? {
+        status.checkProviderHostMismatching()
         if (status.providerHost == userRecord.Provider.host) {
             return status.id
         }
