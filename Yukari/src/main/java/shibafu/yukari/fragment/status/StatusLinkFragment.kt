@@ -151,7 +151,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
 
     override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
         val row = l.getItemAtPosition(position) as? Row
-        row?.onClick()
+        row?.onClick(v)
     }
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
@@ -203,7 +203,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         val actions: List<ExtraAction>
             get() = emptyList()
 
-        fun onClick()
+        fun onClick(v: View)
         fun onLongClick(): Boolean = false
     }
 
@@ -211,7 +211,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         override val icon: Drawable? = null
         override val label: String = media.browseUrl
 
-        override fun onClick() {
+        override fun onClick(v: View) {
             if (media.canPreview()) {
                 val intent = PreviewActivity2.newIntent(requireContext(), Uri.parse(media.browseUrl), status, collection = collection.map { Uri.parse(it.browseUrl) })
                 startActivity(intent)
@@ -263,7 +263,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
             }
         }()
 
-        override fun onClick() {
+        override fun onClick(v: View) {
             fun startBrowser(uri: Uri) {
                 val intent = Intent(Intent.ACTION_VIEW, uri)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -309,27 +309,31 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         override val icon: Drawable? = null
         override val label: String = tag
 
-        override fun onClick() {
-            val ad = AlertDialog.Builder(activity)
-                    .setTitle(tag)
-                    .setPositiveButton("つぶやく", { dialog, _ ->
-                        dialog.dismiss()
-
+        override fun onClick(v: View) {
+            val menu = PopupMenu(requireContext(), v)
+            menu.menu.apply {
+                add(Menu.NONE, 0, Menu.NONE, "つぶやく")
+                add(Menu.NONE, 1, Menu.NONE, "検索する")
+            }
+            menu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    0 -> {
                         val intent = Intent(activity, TweetActivity::class.java)
                         intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
                         intent.putExtra(TweetActivity.EXTRA_TEXT, " " + tag)
                         startActivity(intent)
-                    })
-                    .setNegativeButton("検索する", { dialog, _ ->
-                        dialog.dismiss()
-
+                        true
+                    }
+                    1 -> {
                         val intent = Intent(activity, MainActivity::class.java)
                         intent.putExtra(MainActivity.EXTRA_SEARCH_WORD, tag)
                         startActivity(intent)
-                    })
-                    .setNeutralButton("キャンセル", { dialog, _ -> dialog.dismiss() })
-                    .create()
-            ad.show()
+                        true
+                    }
+                    else -> false
+                }
+            }
+            menu.show()
         }
     }
 
@@ -337,7 +341,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         override val icon: Drawable? = null
         override val label: String = "位置情報: ${geo.latitude}, ${geo.longitude}"
 
-        override fun onClick() {
+        override fun onClick(v: View) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=${geo.latitude},${geo.longitude}"))
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
@@ -348,7 +352,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         override val icon: Drawable? = null
         override val label: String = "会話をたどる"
 
-        override fun onClick() {
+        override fun onClick(v: View) {
             status.let { status ->
                 val intent = Intent(activity, TraceActivity::class.java)
                 intent.putExtra(TimelineFragment.EXTRA_USER, userRecord)
@@ -395,7 +399,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
             }
         }
 
-        override fun onClick() {
+        override fun onClick(v: View) {
             val intent = ProfileActivity.newIntent(requireActivity(), userRecord, Uri.parse(user.url))
             startActivity(intent)
         }
