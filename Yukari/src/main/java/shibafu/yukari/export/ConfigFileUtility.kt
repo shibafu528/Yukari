@@ -1,6 +1,8 @@
 package shibafu.yukari.export
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.ToNumberPolicy
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonWriter
 import shibafu.yukari.common.TabInfo
@@ -156,7 +158,7 @@ object ConfigFileUtility {
         @Suppress("UNCHECKED_CAST")
         val filter = filters[clazz] as? ConfigFileMigrator<T> ?: throw IllegalArgumentException("invalid argument 'clazz' : $clazz")
 
-        val decodedJson = Gson().fromJson(json, Map::class.java)
+        val decodedJson = newGson().fromJson(json, Map::class.java)
         if (!decodedJson.containsKey("version")) {
             throw InvalidJsonException("invalid json : not contains key 'version'")
         }
@@ -181,6 +183,11 @@ object ConfigFileUtility {
 
         throw InvalidJsonException("invalid json : invalid format key '$className'")
     }
+
+    private fun newGson(): Gson = GsonBuilder()
+            .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .setNumberToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+            .create()
 }
 
 /**

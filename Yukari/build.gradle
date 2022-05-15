@@ -206,7 +206,7 @@ dependencies {
     implementation "com.github.shibafu528.mastodon4j:mastodon4j:43b77f366515641a4569c2cfffef57301259c5a0"
 
     // パーサ
-    implementation 'com.google.code.gson:gson:2.8.1'
+    implementation 'com.google.code.gson:gson:2.8.9'
     implementation 'org.jsoup:jsoup:1.8.3'
     implementation 'com.google.zxing:javase:3.2.1', {
         exclude group: 'com.beust', module: 'jcommander'

@@ -1214,13 +1214,13 @@ public class CentralDatabase {
                 } else if (entry.getValue() instanceof String) {
                     values.put(entry.getKey(), (String) entry.getValue());
                 } else if (entry.getValue() instanceof List) {
-                    // ここではbyte[]になりそこねたList<Double>が来ることのみを想定している
+                    // ここではbyte[]になりそこねたList<Long>が来ることのみを想定している
 
                     List byteList = (List) entry.getValue();
                     byte[] buf = new byte[byteList.size()];
 
                     for (int i = 0; i < buf.length; i++) {
-                        double v = (double) byteList.get(i);
+                        long v = (long) byteList.get(i);
                         buf[i] = (byte) v;
                     }
 
