@@ -43,7 +43,7 @@ class TabInfoMigrator : ConfigFileMigrator<TabInfo> {
         // Version 2
         migrateTo(2) { config, db ->
             // BindAccountIdをTwitter IDからInternal Account IDに変換
-            findInternalAccountId(db, (config["BindAccountId"] as Double).toLong())?.let {
+            findInternalAccountId(db, (config["BindAccountId"] as Long))?.let {
                 config["BindAccountId"] = it
             }
         }
@@ -72,7 +72,7 @@ class UserExtrasMigrator : ConfigFileMigrator<UserExtras> {
             config["_id"] = "https://twitter.com/intent/user?user_id=${config["_id"]}"
 
             // PriorityAccountIdをTwitter IDからInternal Account IDに変換
-            findInternalAccountId(db, (config["PriorityAccountId"] as Double).toLong())?.let {
+            findInternalAccountId(db, (config["PriorityAccountId"] as Long))?.let {
                 config["PriorityAccountId"] = it
             }
         }
@@ -86,7 +86,7 @@ class BookmarkMigrator : ConfigFileMigrator<Bookmark.SerializeEntity> {
         // Version 2
         migrateTo(2) { config, db ->
             // ReceiverIdをTwitter IDからInternal Account IDに変換
-            findInternalAccountId(db, (config["ReceiverId"] as Double).toLong())?.let {
+            findInternalAccountId(db, (config["ReceiverId"] as Long).toLong())?.let {
                 config["ReceiverId"] = it
             }
         }
@@ -102,12 +102,12 @@ class StatusDraftMigrator : ConfigFileMigrator<StatusDraft> {
         // Version 2
         migrateTo(2) { config, db ->
             // WriterIdをTwitter IDからInternal Account IDに変換
-            findInternalAccountId(db, (config["WriterId"] as Double).toLong())?.let {
+            findInternalAccountId(db, config["WriterId"] as Long)?.let {
                 config["WriterId"] = it
             }
 
             val isDirectMessage = (config["IsDirectMessage"] ?: "0").toString()
-            val inReplyToId = (config["InReplyTo"] as Double).toLong()
+            val inReplyToId = config["InReplyTo"] as Long
 
             // InReplyToをURLに変換
             if (inReplyToId <= 0) {
