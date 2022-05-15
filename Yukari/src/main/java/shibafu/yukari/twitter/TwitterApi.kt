@@ -22,7 +22,6 @@ import shibafu.yukari.util.putDebugLog
 import twitter4j.CursorSupport
 import twitter4j.StatusUpdate
 import twitter4j.Twitter
-import twitter4j.TwitterAPIConfiguration
 import twitter4j.TwitterException
 import twitter4j.TwitterFactory
 import twitter4j.UploadedMedia
@@ -30,9 +29,6 @@ import java.io.File
 import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
-    var apiConfiguration: TwitterAPIConfiguration? = null
-        private set
-
     private lateinit var service: TwitterService
     private lateinit var twitterFactory: TwitterFactory
 
@@ -43,17 +39,6 @@ class TwitterApi : ProviderApi {
         this.twitterFactory = TwitterUtil.getTwitterFactory(service)
 
         GlobalScope.launch {
-            // API Configurationの取得
-            val primaryAccount = service.users.firstOrNull { it.isPrimary && it.Provider.apiType == Provider.API_TWITTER }
-                    ?: service.users.firstOrNull { it.Provider.apiType == Provider.API_TWITTER }
-            if (primaryAccount != null) {
-                try {
-                    apiConfiguration = (getApiClient(primaryAccount) as Twitter).apiConfiguration
-                } catch (e: TwitterException) {
-                    e.printStackTrace()
-                }
-            }
-
             // Blocks, Mutes, No-Retweetsの取得
             val twitterAccounts = service.users.filter { it.Provider.apiType == Provider.API_TWITTER }
             val suppressor = service.suppressor

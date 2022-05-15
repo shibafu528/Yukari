@@ -209,11 +209,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     private SharedPreferences sp;
 
-    //短縮URLの文字数
-    private int shortUrlLength = 23;
-
     //最大添付数
-    private int maxMediaPerUpload = 4;
+    private static final int maxMediaPerUpload = 4;
 
     //撮影用の一時変数
     @NeedSaveState private Uri cameraTemp;
@@ -1731,13 +1728,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             initialDraft.setWriters(writers);
         }
         updatePostValidator();
-
-        TwitterAPIConfiguration apiConfiguration = ((TwitterApi) getTwitterService().getProviderApi(Provider.API_TWITTER)).getApiConfiguration();
-        if (apiConfiguration != null) {
-            maxMediaPerUpload = 4;//apiConfiguration.getMaxMediaPerUpload();
-            ((TextView) findViewById(R.id.tvTweetAttach)).setText("Attach (max:" + maxMediaPerUpload + ")");
-            shortUrlLength = apiConfiguration.getShortURLLength();
-        }
 
         //Pluggaloidプラグインのバインド
         if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
