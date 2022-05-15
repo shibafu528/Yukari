@@ -1,6 +1,3 @@
-[submodule "GalleryMultiPicker"]
-	path = GalleryMultiPicker
-	url = https://github.com/shibafu528/GalleryMultiPicker.git
 [submodule "yukari-exvoice"]
 	path = yukari-exvoice
 	url = https://github.com/shibafu528/yukari-exvoice.git
