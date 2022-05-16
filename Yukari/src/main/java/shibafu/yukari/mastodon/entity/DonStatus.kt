@@ -190,8 +190,10 @@ class DonStatus(val status: Status,
 
             val textContent = StringBuilder()
 
+            var insertLineBreakBeforeNewParagraph = false
             if (status.spoilerText.isNotEmpty()) {
                 textContent.append(status.spoilerText)
+                insertLineBreakBeforeNewParagraph = true
             }
 
             val xppFactory = XmlPullParserFactory.newInstance().apply {
@@ -210,7 +212,7 @@ class DonStatus(val status: Status,
                             "p" -> {
                                 // spoilerの直後、または2つ目以降の段落開始前。空行を差し込む。
                                 if (textContent.isNotEmpty()) {
-                                    textContent.append("\n\n")
+                                    insertLineBreakBeforeNewParagraph = true
                                 }
                             }
                             "a" -> {
@@ -230,7 +232,13 @@ class DonStatus(val status: Status,
                             }
                         }
                     }
-                    XmlPullParser.TEXT -> textContent.append(xpp.text)
+                    XmlPullParser.TEXT -> {
+                        if (insertLineBreakBeforeNewParagraph) {
+                            textContent.append("\n\n")
+                            insertLineBreakBeforeNewParagraph = false
+                        }
+                        textContent.append(xpp.text)
+                    }
                 }
 
                 eventType = xpp.next()
