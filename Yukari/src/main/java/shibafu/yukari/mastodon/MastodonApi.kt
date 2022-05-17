@@ -11,10 +11,7 @@ import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Media
 import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
-import okhttp3.MediaType
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
+import okhttp3.*
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.ShadowUser
 import shibafu.yukari.entity.Status
@@ -25,6 +22,7 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.util.defaultSharedPreferences
 import java.io.File
 import java.io.IOException
 
@@ -48,10 +46,11 @@ class MastodonApi : ProviderApi {
     }
 
     fun getApiClient(instanceName: String, accessToken: String?): MastodonClient {
-        var builder = MastodonClient.Builder(
-                instanceName,
-                OkHttpClient.Builder().addInterceptor(service.userAgentInterceptor),
-                Gson())
+        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(service.userAgentInterceptor)
+        if (service.defaultSharedPreferences.getBoolean("pref_force_http1", false)) {
+            okHttpBuilder.protocols(listOf(Protocol.HTTP_1_1))
+        }
+        var builder = MastodonClient.Builder(instanceName, okHttpBuilder, Gson())
         if (accessToken != null && accessToken.isNotEmpty()) {
             builder = builder.accessToken(accessToken).useStreamingApi()
         }
