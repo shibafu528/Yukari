@@ -36,7 +36,6 @@ class StatusLoader(private val context: Context,
                          userRecord: AuthUserRecord,
                          query: RestQuery,
                          params: RestQuery.Params): Long {
-        val isNarrowMode = sp.getBoolean("pref_narrow", false)
         val taskKey = System.currentTimeMillis()
         val task = object : ParallelAsyncTask<Void?, Void?, Void?>() {
             private var exception: RestQueryException? = null
@@ -47,7 +46,7 @@ class StatusLoader(private val context: Context,
                 val api = apiClientFactory(userRecord) ?: return null
 
                 try {
-                    params.limitCount = if (isNarrowMode) REQUEST_COUNT_NARROW else REQUEST_COUNT_NORMAL
+                    params.limitCount = REQUEST_COUNT_NORMAL
 
                     val responseList = query.getRestResponses(userRecord, api, params)
 

@@ -3,7 +3,6 @@ package shibafu.yukari.view
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Typeface
@@ -222,13 +221,8 @@ abstract class StatusView : RelativeLayout {
         val status = status ?: return
         val user = status.originStatus.user
 
-        val imageUrl = if (pref.getBoolean("pref_narrow", false))
-                           user.profileImageUrl
-                       else
-                           user.biggerProfileImageUrl
-
-        if (ivIcon.tag == null || ivIcon.tag != imageUrl) {
-            ImageLoaderTask.loadProfileIcon(context, ivIcon, imageUrl)
+        if (ivIcon.tag == null || ivIcon.tag != user.biggerProfileImageUrl) {
+            ImageLoaderTask.loadProfileIcon(context, ivIcon, user.biggerProfileImageUrl)
         }
 
         val onTouchProfileImageIconListener = onTouchProfileImageIconListener

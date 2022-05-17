@@ -52,11 +52,6 @@
             android:summary="ツイートを受信したアカウントを表示します"
             android:defaultValue="false" />
         <CheckBoxPreference
-            android:key="pref_narrow"
-            android:title="ナローモード(仮)"
-            android:summary="TLのアイコン品質とREST APIでの受信件数を落とします"
-            android:defaultValue="false" />
-        <CheckBoxPreference
             android:key="pref_limited_timeline"
             android:title="Limited TL"
             android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします"
