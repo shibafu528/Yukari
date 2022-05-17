@@ -7,6 +7,10 @@
             android:summary="フッターバーの余白部分をタップした時にTLの一番上へ移動します"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="タイムライン">
+        <CheckBoxPreference
+            android:key="pref_extended_touch_event"
+            android:title="サムネイルをタップしてプレビュー"
+            android:summary="TL上のサムネイルをタップした時にプレビュー画面を表示します"/>
         <ListPreference
             android:key="pref_timeline_click_action_left"
             android:title="左側をタップした時の動作"
