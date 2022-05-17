@@ -71,8 +71,6 @@ import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.util.StringUtil;
-import twitter4j.DirectMessage;
-import twitter4j.Status;
 import twitter4j.Twitter;
 
 import java.io.File;
@@ -808,37 +806,6 @@ public class TwitterService extends Service{
     public void updateAutoMuteConfig() {
         List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="ツイート所有判定 (Legacy)">
-    public AuthUserRecord isMyTweet(Status status) {
-        return isMyTweet(status, false);
-    }
-
-    public AuthUserRecord isMyTweet(Status status, boolean checkOriginUser) {
-        if (users == null) return null;
-        if (checkOriginUser) {
-            status = status.isRetweet() ? status.getRetweetedStatus() : status;
-        }
-        for (int i = 0; i < users.size(); ++i) {
-            AuthUserRecord aur = users.get(i);
-            if (aur.Provider.getApiType() == Provider.API_TWITTER && status.getUser().getId() == aur.NumericId) {
-                return aur;
-            }
-        }
-        return null;
-    }
-
-    public AuthUserRecord isMyTweet(DirectMessage message) {
-        if (users == null) return null;
-        for (int i = 0; i < users.size(); ++i) {
-            AuthUserRecord aur = users.get(i);
-            if (aur.Provider.getApiType() == Provider.API_TWITTER && message.getSenderId() == aur.NumericId) {
-                return aur;
-            }
-        }
-        return null;
     }
     //</editor-fold>
 
