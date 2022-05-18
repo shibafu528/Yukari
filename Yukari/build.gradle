@@ -211,10 +211,6 @@ dependencies {
     }
     implementation 'com.twitter:twitter-text:1.13.0'
 
-    // 通信
-    implementation 'com.squareup.retrofit2:retrofit:2.2.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.2.0'
-
     // プラグインシステム
     if (getProperty("yukari.exvoice.build").toBoolean()) {
         implementation project(':yukari-exvoice')

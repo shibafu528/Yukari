@@ -16,7 +16,6 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -24,9 +23,7 @@ import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.annotation.WorkerThread;
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.collection.ArrayMap;
 import androidx.collection.LongSparseArray;
@@ -37,17 +34,11 @@ import info.shibafu528.yukari.exvoice.miquire.Miquire;
 import info.shibafu528.yukari.exvoice.miquire.MiquireResult;
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
-import shibafu.yukari.api.MikutterApi;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.ApiType;
 import shibafu.yukari.database.AutoMuteConfig;
@@ -74,14 +65,12 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -295,35 +284,6 @@ public class TwitterService extends Service{
                 }
             }
             Plugin.call(mRuby, "boot");
-        }
-
-        //mikutter更新通知
-        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("mikutter_stable_notify", false)) {
-            new SimpleAsyncTask() {
-
-                @Override
-                protected Void doInBackground(Void... params) {
-                    String versionString = getLatestMikutterVersion("stable");
-                    if (versionString != null) {
-                        Log.d("mikutter-version", versionString);
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_general))
-                                .setSmallIcon(R.drawable.ic_stat_favorite)
-                                .setContentTitle("mikutter " + versionString)
-                                .setContentText("mikutter " + versionString + " がリリースされています。")
-                                .setTicker("mikutter " + versionString)
-                                .setPriority(NotificationCompat.PRIORITY_MAX)
-                                .setAutoCancel(true)
-                                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0,
-                                        new Intent(Intent.ACTION_VIEW, Uri.parse("http://mikutter.hachune.net/download")),
-                                        PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-                        NotificationManagerCompat.from(getApplicationContext()).notify(R.string.app_name, builder.build());
-                    } else {
-                        Log.d("mikutter-version", "null");
-                    }
-                    return null;
-                }
-
-            }.executeParallel();
         }
 
         Log.d(LOG_TAG, "onCreate completed.");
@@ -808,43 +768,6 @@ public class TwitterService extends Service{
         timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
-
-    /**
-     * mikutterの最新バージョン情報を取得します。
-     * @param channel リリースの区分。nullにした場合は "stable" 扱いにします。
-     * @return 最新バージョン(基本的にはx.y.z alpha版などそれ以外のケースも有る)
-     */
-    @WorkerThread
-    @Nullable
-    private String getLatestMikutterVersion(@Nullable String channel) {
-        if (channel == null) {
-            channel = "stable";
-        }
-        try {
-            Debug.waitForDebugger();
-
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .readTimeout(10000, TimeUnit.MILLISECONDS)
-                    .addInterceptor(getUserAgentInterceptor())
-                    .build();
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl("https://mikutter.hachune.net")
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(client)
-                    .build();
-            MikutterApi api = retrofit.create(MikutterApi.class);
-
-            Response<List<MikutterApi.VersionInfo>> response = api.download(channel).execute();
-            if (response.isSuccessful()) {
-                List<MikutterApi.VersionInfo> info = response.body();
-
-                if (!info.isEmpty()) {
-                    return info.get(0).versionString;
-                }
-            }
-        } catch (IOException ignore) {}
-        return null;
-    }
 
     public MRuby getmRuby() {
         return mRuby;

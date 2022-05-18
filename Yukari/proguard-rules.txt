@@ -19,12 +19,6 @@
 # 難読化しない
 -dontobfuscate
 
-# Retrofit
--dontnote retrofit2.Platform
--dontwarn retrofit2.Platform$Java8
--keepattributes Signature
--keepattributes Exceptions
-
 # OkHttp
 -dontwarn okhttp3.**
 
