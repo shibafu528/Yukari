@@ -13,13 +13,11 @@ import shibafu.yukari.media2.impl.Pixiv;
 import shibafu.yukari.media2.impl.RouterCake;
 import shibafu.yukari.media2.impl.SimplePicture;
 import shibafu.yukari.media2.impl.SixHundredEUR;
-import shibafu.yukari.media2.impl.Sunoho;
 import shibafu.yukari.media2.impl.Twimg;
 import shibafu.yukari.media2.impl.Twipple;
 import shibafu.yukari.media2.impl.Twitpic;
 import shibafu.yukari.media2.impl.TwitterVideo;
 import shibafu.yukari.media2.impl.Vine;
-import shibafu.yukari.media2.impl.XVideos;
 import shibafu.yukari.media2.impl.YouTube;
 
 import java.util.Collections;
@@ -71,16 +69,12 @@ public class MediaFactory {
                 media = new RouterCake(browseUrl);
             } else if (browseUrl.contains("600eur.gochiusa.net")) {
                 media = new SixHundredEUR(browseUrl);
-            } else if (browseUrl.contains("sunoho.com/p/i") || browseUrl.contains("gyazo.sunoho.com/i")) {
-                media = new Sunoho(browseUrl);
             } else if (browseUrl.contains("p.twipple.jp")) {
                 media = new Twipple(browseUrl);
             } else if (browseUrl.contains("twitpic.com")) {
                 media = new Twitpic(browseUrl);
             } else if (browseUrl.contains("/vine.co/v/")) {
                 media = new Vine(browseUrl);
-            } else if (browseUrl.contains("xvideos.com")) {
-                media = new XVideos(browseUrl);
             } else if (browseUrl.contains("www.youtube.com/watch?") || browseUrl.contains("youtu.be/")) {
                 media = new YouTube(browseUrl);
             } else if (Irasutoya.URL_PATTERN.matcher(browseUrl).find()) {
