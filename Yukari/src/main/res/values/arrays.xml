@@ -280,6 +280,7 @@
     </string-array>
 
     <string-array name="pref_toot_visibility_default_entries">
+        <item>@string/mastodon_status_visibility_prefer_server_preference</item>
         <item>@string/mastodon_status_visibility_public</item>
         <item>@string/mastodon_status_visibility_unlisted</item>
         <item>@string/mastodon_status_visibility_private</item>
@@ -287,6 +288,7 @@
     </string-array>
 
     <string-array name="pref_toot_visibility_default_values">
+        <item>-1</item>
         <item>0</item>
         <item>1</item>
         <item>2</item>

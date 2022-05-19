@@ -85,6 +85,7 @@ import shibafu.yukari.fragment.SimpleListDialogFragment;
 import shibafu.yukari.linkage.PostValidator;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderApiException;
+import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
@@ -250,6 +251,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     //Spoiler (Content Warning)
     private ImageButton ibSpoiler;
     private EditText etSpoiler;
+
+    // デフォルト公開範囲設定待ちフラグ
+    private boolean waitingSetDefaultVisibility;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -449,7 +453,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         etInput.setText((defaultText != null) ? defaultText : sp.getString("pref_tweet_footer", ""));
         // デフォルト公開範囲を適用
         try {
-            setVisibility(Integer.parseInt(sp.getString("pref_toot_visibility_default", "0")));
+            int visibility = Integer.parseInt(sp.getString("pref_toot_visibility_default", "-1"));
+            if (visibility == -1) {
+                waitingSetDefaultVisibility = true;
+            } else {
+                setVisibility(visibility);
+            }
         } catch (NumberFormatException ignored) {}
         switch (args.getIntExtra(EXTRA_MODE, MODE_TWEET)) {
             case MODE_REPLY:
@@ -1726,6 +1735,35 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             writers = getTwitterService().getWriterUsers();
             updateWritersView();
             initialDraft.setWriters(writers);
+        }
+        if (waitingSetDefaultVisibility) {
+            if (writers.isEmpty()) {
+                setVisibility(StatusDraft.Visibility.PUBLIC.ordinal());
+                initialDraft.setVisibility(StatusDraft.Visibility.PUBLIC);
+            } else {
+                DefaultVisibilityCache visibilityCache = getTwitterService().getDefaultVisibilityCache();
+                String acct = null;
+                for (AuthUserRecord writer : writers) {
+                    if (writer.Provider.getApiType() == Provider.API_MASTODON) {
+                        if (writer.isPrimary) {
+                            acct = writer.ScreenName;
+                            break;
+                        } else if (acct == null) {
+                            acct = writer.ScreenName;
+                        }
+                    }
+                }
+
+                StatusDraft.Visibility visibility;
+                if (acct == null) {
+                    visibility = StatusDraft.Visibility.PUBLIC;
+                } else {
+                    visibility = visibilityCache.get(acct);
+                }
+                setVisibility(visibility.ordinal());
+                initialDraft.setVisibility(visibility);
+            }
+            waitingSetDefaultVisibility = false;
         }
         updatePostValidator();
 

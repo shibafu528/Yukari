@@ -34,7 +34,7 @@
             android:summary="投稿画面を開いた時の公開範囲のデフォルトを設定します"
             android:entries="@array/pref_toot_visibility_default_entries"
             android:entryValues="@array/pref_toot_visibility_default_values"
-            android:defaultValue="0"/>
+            android:defaultValue="-1"/>
         <EditTextPreference
             android:key="pref_toot_cw_default_text"
             android:title="CWの既定値"

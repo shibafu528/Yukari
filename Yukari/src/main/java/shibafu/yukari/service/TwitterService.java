@@ -1,5 +1,6 @@
 package shibafu.yukari.service;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
@@ -29,16 +30,23 @@ import androidx.collection.ArrayMap;
 import androidx.collection.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.sys1yagi.mastodon4j.MastodonClient;
+
 import info.shibafu528.yukari.exvoice.MRuby;
 import info.shibafu528.yukari.exvoice.miquire.Miquire;
 import info.shibafu528.yukari.exvoice.miquire.MiquireResult;
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import okhttp3.Interceptor;
+import okhttp3.Response;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
+import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.ApiType;
 import shibafu.yukari.database.AutoMuteConfig;
@@ -46,6 +54,7 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
@@ -53,6 +62,7 @@ import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubImpl;
 import shibafu.yukari.linkage.TimelineHubQueue;
+import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
@@ -71,6 +81,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by Shibafu on 13/08/01.
@@ -100,6 +111,7 @@ public class TwitterService extends Service{
 
     //キャッシュ
     private HashCache hashCache;
+    private DefaultVisibilityCache defaultVisibilityCache;
 
     //ミュート判定
     private Suppressor suppressor;
@@ -203,6 +215,7 @@ public class TwitterService extends Service{
 
         //キャッシュの読み込み
         hashCache = new HashCache(this);
+        defaultVisibilityCache = new DefaultVisibilityCache(this);
 
         //Timeline Pub/Subのセットアップ
         TimelineHub hubImpl = new TimelineHubImpl(this, hashCache);
@@ -322,6 +335,9 @@ public class TwitterService extends Service{
         hashCache.save(this);
         hashCache = null;
 
+        defaultVisibilityCache.save(this);
+        defaultVisibilityCache = null;
+
         database.close();
         database = null;
 
@@ -357,6 +373,10 @@ public class TwitterService extends Service{
 
     public HashCache getHashCache() {
         return hashCache;
+    }
+
+    public DefaultVisibilityCache getDefaultVisibilityCache() {
+        return defaultVisibilityCache;
     }
 
     //<editor-fold desc="ユーザ情報管理">
@@ -423,6 +443,40 @@ public class TwitterService extends Service{
                     if (stream != null) {
                         stream.addUser(aur);
                     }
+                }
+                if (aur.Provider.getApiType() == Provider.API_MASTODON) {
+                    @SuppressLint("StaticFieldLeak")
+                    SimpleAsyncTask task = new SimpleAsyncTask() {
+                        @Override
+                        protected Void doInBackground(Void... voids) {
+                            MastodonClient client = (MastodonClient) getApiClient(aur);
+                            try {
+                                Response response = client.get("preferences", null, "v1");
+                                if (response.isSuccessful()) {
+                                    String body = response.body().string();
+                                    Map<String, Object> prefs = new Gson().fromJson(body, new TypeToken<Map<String, Object>>() {}.getType());
+                                    Object maybeVisibility = prefs.get("posting:default:visibility");
+                                    if (maybeVisibility instanceof String) {
+                                        switch ((String) maybeVisibility) {
+                                            case "public":
+                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PUBLIC);
+                                                break;
+                                            case "unlisted":
+                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.UNLISTED);
+                                                break;
+                                            case "private":
+                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PRIVATE);
+                                                break;
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            return null;
+                        }
+                    };
+                    handler.post(task::executeParallel);
                 }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             } else {
