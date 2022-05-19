@@ -7,6 +7,8 @@ import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.core.view.MenuItemCompat;
 import androidx.cursoradapter.widget.CursorAdapter;
@@ -32,6 +34,7 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.TwitterUserListFragment;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.service.TwitterService;
 
 /**
  * Created by shibafu on 14/06/01.
@@ -82,19 +85,10 @@ public class UserSearchActivity extends ActionBarYukariBase {
                     }
                 }
 
-                AuthUserRecord user = getTwitterService().getPrimaryUser();
-                if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
-                    for (AuthUserRecord userRecord : getTwitterService().getUsers()) {
-                        if (userRecord.Provider.getApiType() == Provider.API_TWITTER) {
-                            user = userRecord;
-                            break;
-                        }
-                    }
-
-                    if (user == null) {
-                        Toast.makeText(UserSearchActivity.this, "使用可能なTwitterアカウントが無いため、ユーザー検索を利用できません。", Toast.LENGTH_SHORT).show();
-                        return true;
-                    }
+                AuthUserRecord user = getPreferredUser();
+                if (user == null) {
+                    Toast.makeText(UserSearchActivity.this, "使用可能なTwitterアカウントが無いため、ユーザー検索を利用できません。", Toast.LENGTH_SHORT).show();
+                    return true;
                 }
 
                 TwitterUserListFragment fragment = TwitterUserListFragment.newSearchInstance(user, "Search: " + s, s);
@@ -141,7 +135,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
                 imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
 
                 Intent intent = ProfileActivity.newIntent(UserSearchActivity.this,
-                        isTwitterServiceBound() ? getTwitterService().getPrimaryUser() : null,
+                        getPreferredUser(),
                         Uri.parse("http://twitter.com/" + screenName));
                 startActivity(intent);
                 return true;
@@ -171,6 +165,25 @@ public class UserSearchActivity extends ActionBarYukariBase {
     @Override
     public void onServiceDisconnected() {
 
+    }
+
+    @Nullable
+    private AuthUserRecord getPreferredUser() {
+        TwitterService service = getTwitterService();
+        if (service == null) {
+            return null;
+        }
+
+        AuthUserRecord user = service.getPrimaryUser();
+        if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
+            for (AuthUserRecord userRecord : service.getUsers()) {
+                if (userRecord.Provider.getApiType() == Provider.API_TWITTER) {
+                    user = userRecord;
+                    break;
+                }
+            }
+        }
+        return user;
     }
 
     private class UserSuggestionAdapter extends CursorAdapter {
