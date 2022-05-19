@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -7,12 +8,6 @@ import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.core.view.MenuItemCompat;
-import androidx.cursoradapter.widget.CursorAdapter;
-import androidx.appcompat.widget.SearchView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,18 +17,25 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
+import androidx.cursoradapter.widget.CursorAdapter;
+import androidx.fragment.app.FragmentTransaction;
+
+import java.util.Objects;
+
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
+import shibafu.yukari.databinding.RowUserBinding;
 import shibafu.yukari.fragment.TwitterUserListFragment;
-import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.service.TwitterService;
 
 /**
@@ -48,7 +50,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_search);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         tipsLayout = (LinearLayout) findViewById(R.id.llFrameTitle);
         inAnim = AnimationUtils.loadAnimation(this, R.anim.activity_tweet_open_enter);
@@ -59,7 +61,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.user_search, menu);
         MenuItem search = menu.findItem(R.id.action_search);
-        MenuItemCompat.setOnActionExpandListener(search, new MenuItemCompat.OnActionExpandListener() {
+        search.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 return true;
@@ -72,7 +74,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
             }
         });
 
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(search);
+        final SearchView searchView = (SearchView) search.getActionView();
         searchView.setQueryHint("ユーザーを検索");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -124,7 +126,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
                 CursorAdapter adapter = searchView.getSuggestionsAdapter();
                 Cursor c = (Cursor) adapter.getItem(i);
                 String screenName;
-                if (c.getLong(c.getColumnIndex("_id")) > -1) {
+                if (c.getLong(c.getColumnIndexOrThrow("_id")) > -1) {
                     DBUser user = new DBUser(c);
                     screenName = user.getScreenName();
                 }
@@ -142,17 +144,16 @@ public class UserSearchActivity extends ActionBarYukariBase {
             }
         });
         searchView.setSuggestionsAdapter(new UserSuggestionAdapter(this));
-        MenuItemCompat.expandActionView(search);
+        search.expandActionView();
 
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                finish();
-                return true;
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -187,7 +188,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
     }
 
     private class UserSuggestionAdapter extends CursorAdapter {
-        private LayoutInflater inflater;
+        private final LayoutInflater inflater;
 
         public UserSuggestionAdapter(Context context) {
             super(context, null, false);
@@ -196,32 +197,29 @@ public class UserSearchActivity extends ActionBarYukariBase {
 
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View v = inflater.inflate(R.layout.row_user, parent, false);
+            RowUserBinding binding = RowUserBinding.inflate(inflater, parent, false);
+            View v = binding.getRoot();
             v.setBackgroundResource(R.drawable.selector_key_light_background);
-            ViewHolder vh = new ViewHolder();
-            vh.ivIcon = (ImageView) v.findViewById(R.id.user_icon);
-            vh.tvName = (TextView) v.findViewById(R.id.user_name);
-            vh.tvName.setTextColor(Color.WHITE);
-            vh.tvScreenName = (TextView) v.findViewById(R.id.user_sn);
-            vh.tvScreenName.setTextColor(Color.WHITE);
-            v.setTag(vh);
+            binding.userName.setTextColor(Color.WHITE);
+            binding.userSn.setTextColor(Color.WHITE);
+            v.setTag(binding);
             bindView(v, context, cursor);
             return v;
         }
 
+        @SuppressLint("SetTextI18n")
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
-            ViewHolder vh = (ViewHolder) view.getTag();
-            if (cursor.getLong(cursor.getColumnIndex("_id")) > -1) {
+            RowUserBinding binding = (RowUserBinding) view.getTag();
+            if (cursor.getLong(cursor.getColumnIndexOrThrow("_id")) > -1) {
                 DBUser user = new DBUser(cursor);
-                vh.tvName.setText(user.getName());
-                vh.tvScreenName.setText("@" + user.getScreenName());
-                ImageLoaderTask.loadProfileIcon(getApplicationContext(), vh.ivIcon, user.getProfileImageURLHttps());
-            }
-            else {
-                vh.ivIcon.setImageResource(R.drawable.ic_profile);
-                vh.tvName.setText("プロフィールを表示");
-                vh.tvScreenName.setText(cursor.getString(1));
+                binding.userName.setText(user.getName());
+                binding.userSn.setText("@" + user.getScreenName());
+                ImageLoaderTask.loadProfileIcon(getApplicationContext(), binding.userIcon, user.getProfileImageURLHttps());
+            } else {
+                binding.userIcon.setImageResource(R.drawable.ic_profile);
+                binding.userName.setText("プロフィールを表示");
+                binding.userSn.setText(cursor.getString(1));
             }
         }
 
@@ -239,12 +237,6 @@ public class UserSearchActivity extends ActionBarYukariBase {
                         new String[]{st, st});
             }
             return super.runQueryOnBackgroundThread(constraint);
-        }
-
-        private class ViewHolder {
-            ImageView ivIcon;
-            TextView tvScreenName;
-            TextView tvName;
         }
     }
 }
