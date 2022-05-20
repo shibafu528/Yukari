@@ -22,4 +22,6 @@
 
     <dimen name="tweet_plugin_button_width">52dp</dimen>
     <dimen name="tweet_plugin_button_height">48dp</dimen>
+
+    <dimen name="menu_dialog_horizontal_inset">0dp</dimen>
 </resources>
