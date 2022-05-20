@@ -36,6 +36,13 @@
             android:maxLength="2"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="メイン画面">
+        <Preference
+            android:title="タブの編集"
+            android:summary="表示するタイムラインの種類や並び順を編集します">
+            <intent
+                android:targetPackage="@string/applicationId"
+                android:targetClass="shibafu.yukari.activity.TabEditActivity"/>
+        </Preference>
         <CheckBoxPreference
             android:key="pref_boot_screenon"
             android:title="デフォルトでスリープ防止"
