@@ -7,6 +7,12 @@
             android:targetClass="shibafu.yukari.activity.AccountManageActivity"/>
     </Preference>
 
+    <Preference android:title="ストリーミング接続管理">
+        <intent
+            android:targetPackage="@string/applicationId"
+            android:targetClass="shibafu.yukari.activity.ChannelManageActivity"/>
+    </Preference>
+
     <Preference android:title="表示設定">
         <intent
             android:targetPackage="@string/applicationId"
