@@ -999,6 +999,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
         intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
         intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
+        intent.putExtra(MultiPickerActivity.EXTRA_CAMERA_DEST_DIR, getPackageName());
         startActivityForResult(intent, REQUEST_GALLERY);
         overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
     }
