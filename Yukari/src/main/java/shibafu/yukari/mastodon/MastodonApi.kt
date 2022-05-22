@@ -1,5 +1,6 @@
 package shibafu.yukari.mastodon
 
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -22,6 +23,7 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.entity.InReplyToId
 import shibafu.yukari.util.defaultSharedPreferences
 import java.io.File
 import java.io.IOException
@@ -128,12 +130,7 @@ class MastodonApi : ProviderApi {
 
             // 返信先が設定されている場合、対象のインスタンスローカルなIDが埋め込まれていればそのIDを使用する
             // インスタンスローカルなIDが未知の場合は、サーバからの取得を試みる
-            val inReplyTo = draft.inReplyTo
-            val inReplyToId = if (inReplyTo != null) {
-                inReplyTo[Provider.API_MASTODON, userRecord.Provider.host]?.toLong() ?: showStatus(userRecord, inReplyTo.url).id
-            } else {
-                null
-            }
+            val inReplyToId = resolveInReplyToId(userRecord, draft.inReplyTo)
 
             val statuses = Statuses(client)
             val result = statuses.postStatus(
@@ -246,5 +243,31 @@ class MastodonApi : ProviderApi {
         val searchResult = public.getSearch(status.url, true).execute()
         val localStatus = searchResult.statuses.firstOrNull() ?: return -1
         return localStatus.id
+    }
+
+    /**
+     * 返信先StatusのインスタンスローカルなIDを取得します。
+     * @param userRecord 操作アカウント
+     * @param inReplyTo 下書きのInReplyTo情報
+     * @return インスタンスローカルな返信先のStatus ID、取得に失敗した場合はnull
+     */
+    private fun resolveInReplyToId(userRecord: AuthUserRecord, inReplyTo: InReplyToId?): Long? {
+        if (inReplyTo == null) {
+            return null
+        }
+
+        // 有効な既知のIDがあれば使う
+        inReplyTo[Provider.API_MASTODON, userRecord.Provider.host]?.toLong()?.let {
+            return it
+        }
+
+        // TwitterのURLの場合、どうやっても解決できないので無かったことにする
+        val host = Uri.parse(inReplyTo.url).host
+        if (host != null && host.endsWith("twitter.com")) {
+            return null
+        }
+
+        // サーバに問い合わせる
+        return showStatus(userRecord, inReplyTo.url).id
     }
 }
