@@ -39,16 +39,16 @@
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <CheckBox
+        android:id="@+id/user_check"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/user_check"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="4dp"
+        android:layout_alignParentTop="true"
         android:layout_marginLeft="2dp"
-        android:focusable="false"
-        android:clickable="false" />
+        android:layout_marginTop="4dp"
+        android:layout_marginRight="8dp"
+        android:clickable="false"
+        android:focusable="false" />
 
     <ImageView
         android:layout_width="wrap_content"

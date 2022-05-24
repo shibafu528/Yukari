@@ -41,6 +41,7 @@
     <string name="title_activity_backup_import">設定のインポート</string>
     <string name="title_activity_backup_export">設定のエクスポート</string>
     <string name="title_activity_channel_manage">ストリーミング接続管理</string>
+    <string name="title_activity_mastodon_report">通報</string>
 
     <string name="drive_error_connect">Driveとの接続に失敗しました</string>
     <string name="drive_importing">インポート中…</string>
@@ -72,4 +73,8 @@
     <string name="mastodon_status_visibility_unlisted">未収載</string>
     <string name="mastodon_status_visibility_private">フォロワー限定</string>
     <string name="mastodon_status_visibility_direct">ダイレクト</string>
+
+    <string name="mastodon_report_category_spam">スパム投稿である</string>
+    <string name="mastodon_report_category_violation">サーバーのルールに違反している</string>
+    <string name="mastodon_report_category_other">その他の理由</string>
 </resources>

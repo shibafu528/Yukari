@@ -6,14 +6,19 @@ import android.os.Looper
 import android.widget.Toast
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.MastodonClient
+import com.sys1yagi.mastodon4j.MastodonRequest
+import com.sys1yagi.mastodon4j.Parameter
 import com.sys1yagi.mastodon4j.api.entity.Attachment
+import com.sys1yagi.mastodon4j.api.entity.Report
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Media
 import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
 import okhttp3.*
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
+import shibafu.yukari.entity.InReplyToId
 import shibafu.yukari.entity.ShadowUser
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
@@ -22,8 +27,6 @@ import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.database.AuthUserRecord
-import shibafu.yukari.entity.InReplyToId
 import shibafu.yukari.util.defaultSharedPreferences
 import java.io.File
 import java.io.IOException
@@ -202,6 +205,44 @@ class MastodonApi : ProviderApi {
             val searchResult = public.getSearch(url, true).execute()
             val status = searchResult.statuses.firstOrNull() ?: throw ProviderApiException("Status not found. $url")
             return DonStatus(status, userRecord)
+        } catch (e: Mastodon4jRequestException) {
+            throw ProviderApiException(cause = e)
+        }
+    }
+
+    fun reportStatus(userRecord: AuthUserRecord, status: DonStatus, comment: String?, forward: Boolean, category: String? = null, ruleIds: List<String>? = null) {
+        val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
+        try {
+            status.checkProviderHostMismatching()
+            val status = if (status.providerHost == userRecord.Provider.host) {
+                status
+            } else {
+                showStatus(userRecord, status.url)
+            }
+            val params = Parameter().apply {
+                append("account_id", status.user.id)
+                append("status_ids[]", status.id)
+                if (!comment.isNullOrEmpty()) {
+                    append("comment", comment)
+                }
+                if (forward) {
+                    append("forward", "true")
+                }
+                if (category != null) {
+                    append("category", category)
+                }
+                if (!ruleIds.isNullOrEmpty()) {
+                    append("rule_ids", ruleIds)
+                }
+            }.build()
+            MastodonRequest<Report>(
+                    {
+                        client.post("reports", RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=utf-8"), params))
+                    },
+                    {
+                        client.getSerializer().fromJson(it, Report::class.java)
+                    }
+            ).execute()
         } catch (e: Mastodon4jRequestException) {
             throw ProviderApiException(cause = e)
         }

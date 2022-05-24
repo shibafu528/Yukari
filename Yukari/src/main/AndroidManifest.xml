@@ -310,6 +310,10 @@
         <activity
             android:name=".activity.ChannelManageActivity"
             android:label="@string/title_activity_channel_manage"/>
+
+        <activity
+            android:name=".activity.MastodonReportActivity"
+            android:label="@string/title_activity_mastodon_report" />
    </application>
 
 </manifest>
