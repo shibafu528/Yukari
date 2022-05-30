@@ -36,6 +36,7 @@ import shibafu.yukari.databinding.RowCheckBinding
 import shibafu.yukari.fragment.PostProgressDialogFragment
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.mastodon.MastodonApi
+import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.util.AttrUtil
@@ -383,8 +384,8 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 lifecycleScope.launchWhenStarted {
                     val currentUser = model.currentUser.value!!
                     val status = model.status.value!!
-                    val category = model.category.value?.id
-                    val ruleIds = if (category == "violation") {
+                    val category = model.category.value?.let { ReportsEx.Category.of(it.id) }
+                    val ruleIds = if (category == ReportsEx.Category.VIOLATION) {
                         model.selectedRules.value?.map { it.id }
                     } else {
                         null

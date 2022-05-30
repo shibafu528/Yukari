@@ -25,6 +25,7 @@ import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
+import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.util.defaultSharedPreferences
@@ -210,7 +211,7 @@ class MastodonApi : ProviderApi {
         }
     }
 
-    fun reportStatus(userRecord: AuthUserRecord, status: DonStatus, comment: String?, forward: Boolean, category: String? = null, ruleIds: List<String>? = null) {
+    fun reportStatus(userRecord: AuthUserRecord, status: DonStatus, comment: String?, forward: Boolean, category: ReportsEx.Category? = null, ruleIds: List<String>? = null) {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             status.checkProviderHostMismatching()
@@ -219,30 +220,7 @@ class MastodonApi : ProviderApi {
             } else {
                 showStatus(userRecord, status.url)
             }
-            val params = Parameter().apply {
-                append("account_id", status.user.id)
-                append("status_ids[]", status.id)
-                if (!comment.isNullOrEmpty()) {
-                    append("comment", comment)
-                }
-                if (forward) {
-                    append("forward", "true")
-                }
-                if (category != null) {
-                    append("category", category)
-                }
-                if (!ruleIds.isNullOrEmpty()) {
-                    append("rule_ids", ruleIds)
-                }
-            }.build()
-            MastodonRequest<Report>(
-                    {
-                        client.post("reports", RequestBody.create(MediaType.parse("application/x-www-form-urlencoded; charset=utf-8"), params))
-                    },
-                    {
-                        client.getSerializer().fromJson(it, Report::class.java)
-                    }
-            ).execute()
+            ReportsEx(client).portReports(status.user.id, listOf(status.id), comment, forward, category, ruleIds).execute()
         } catch (e: Mastodon4jRequestException) {
             throw ProviderApiException(cause = e)
         }
