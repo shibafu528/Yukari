@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.collection.SparseArrayCompat
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.StringRes
 
 /**
  * Created by shibafu on 2015/07/27.
@@ -23,7 +24,15 @@ public fun Context.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this.applicationContext, text, duration).show()
 }
 
+fun Context.showToast(@StringRes text: Int, duration: Int = Toast.LENGTH_SHORT) {
+    Toast.makeText(this.applicationContext, text, duration).show()
+}
+
 public fun Fragment.showToast(text: String, duration: Int = Toast.LENGTH_SHORT) {
+    this.requireContext().applicationContext.showToast(text, duration)
+}
+
+fun Fragment.showToast(@StringRes text: Int, duration: Int = Toast.LENGTH_SHORT) {
     this.requireContext().applicationContext.showToast(text, duration)
 }
 

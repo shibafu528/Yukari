@@ -11,6 +11,9 @@
 
     <string name="activity_animation_duration">300</string>
 
+    <string name="button_next">次へ</string>
+    <string name="button_send">送信</string>
+
     <string name="title_activity_oauth">アカウントを追加</string>
     <string name="title_activity_tweet">ツイート</string>
     <string name="title_activity_status">ツイート詳細</string>
@@ -77,4 +80,16 @@
     <string name="mastodon_report_category_spam">スパム投稿である</string>
     <string name="mastodon_report_category_violation">サーバーのルールに違反している</string>
     <string name="mastodon_report_category_other">その他の理由</string>
+
+    <string name="mastodon_report_activity_failed_to_load_rules">サーバールールの確認中にエラーが発生しました</string>
+    <string name="mastodon_report_category_fragment_title">通報の理由を教えてください</string>
+    <string name="mastodon_report_category_fragment_report_from">以下のアカウントから通報します</string>
+    <string name="mastodon_report_category_fragment_loading_message">サーバーのルールを確認しています…</string>
+    <string name="mastodon_report_select_rule_fragment_title">どのルールに違反していますか？</string>
+    <string name="mastodon_report_comment_fragment_title">他に伝えたい情報はありますか？</string>
+    <string name="mastodon_report_comment_fragment_comment_hint">追加コメント</string>
+    <string name="mastodon_report_comment_fragment_forward">このユーザーは別のサーバーに所属しています。通報内容を匿名で転送しますか？</string>
+    <string name="mastodon_report_comment_fragment_forward_checkbox">転送する</string>
+    <string name="mastodon_report_comment_fragment_success_report">通報しました</string>
+    <string name="mastodon_report_comment_fragment_failure_report">通報中にエラーが発生しました</string>
 </resources>

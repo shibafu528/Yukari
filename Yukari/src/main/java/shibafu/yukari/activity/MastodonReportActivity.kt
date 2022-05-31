@@ -113,7 +113,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 model.rules.value = rules
             } catch (e: Mastodon4jRequestException) {
                 e.printStackTrace()
-                showToast("サーバールールの確認中にエラーが発生しました")
+                showToast(R.string.mastodon_report_activity_failed_to_load_rules)
 
                 model.categories.value = Category.defaultsForNoRuleServer(this@MastodonReportActivity)
             } finally {
@@ -403,11 +403,11 @@ class MastodonReportActivity : ActionBarYukariBase() {
                             api.reportStatus(currentUser, status, comment, forward, category = category, ruleIds = ruleIds)
                         }
 
-                        showToast("通報しました")
+                        showToast(R.string.mastodon_report_comment_fragment_success_report)
                         activity?.finish()
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        showToast("通報中にエラーが発生しました")
+                        showToast(R.string.mastodon_report_comment_fragment_failure_report)
                     } finally {
                         progressDialog.dismiss()
                     }
