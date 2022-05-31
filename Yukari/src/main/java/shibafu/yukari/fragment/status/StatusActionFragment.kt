@@ -21,6 +21,7 @@ import info.shibafu528.yukari.exvoice.MRubyException
 import info.shibafu528.yukari.exvoice.ProcWrapper
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.R
+import shibafu.yukari.activity.MastodonReportActivity
 import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
@@ -34,6 +35,7 @@ import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.PluginApplicable
+import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
@@ -94,7 +96,12 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             } visibleWhen {
                 val status = status
                 status.user.id == userRecord?.NumericId || status is Bookmark
-            }
+            },
+
+            Action("通報する") {
+                val userRecord = userRecord ?: return@Action
+                startActivity(MastodonReportActivity.newIntent(requireContext(), userRecord, status as DonStatus))
+            } visibleWhen { status is DonStatus }
     )
 
     private val status: Status
