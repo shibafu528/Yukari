@@ -183,7 +183,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
         }
     }
 
-    class ReportViewModel(private val state: SavedStateHandle) : ViewModel() {
+    class ReportViewModel(state: SavedStateHandle) : ViewModel() {
         val currentUser = state.getLiveData<AuthUserRecord>("currentUser")
         val status = state.getLiveData<DonStatus>("status")
         val category = state.getLiveData<Category>("category")
@@ -200,7 +200,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
 
         private val model: ReportViewModel by activityViewModels()
 
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
             _binding = FragmentReportCategoryBinding.inflate(inflater, container, false)
 
             binding.listView.onItemClickListener = this
@@ -283,7 +283,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
 
         private val model: ReportViewModel by activityViewModels()
 
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
             _binding = FragmentReportSelectRuleBinding.inflate(inflater, container, false)
             binding.listView.onItemClickListener = this
             binding.btnNext.setOnClickListener {
@@ -301,7 +301,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 binding.listView.adapter = RuleCheckListAdapter(requireActivity(), rules)
             }
             model.selectedRules.observe(viewLifecycleOwner) { rules ->
-                binding.btnNext.isEnabled = !rules.isEmpty()
+                binding.btnNext.isEnabled = rules.isNotEmpty()
                 (binding.listView.adapter as? RuleCheckListAdapter)?.notifyDataSetChanged()
             }
         }
@@ -354,7 +354,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
 
         private val model: ReportViewModel by activityViewModels()
 
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
             _binding = FragmentReportCommentBinding.inflate(inflater, container, false)
 
             val currentUser = model.currentUser.value
