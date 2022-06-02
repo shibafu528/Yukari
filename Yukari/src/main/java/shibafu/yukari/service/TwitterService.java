@@ -27,6 +27,7 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.core.YukariApplication;
 import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.AccountManagerImpl;
 import shibafu.yukari.database.AutoMuteConfig;
@@ -196,7 +197,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         handler = new Handler();
 
         //データベースのオープン
-        database = new CentralDatabase(this).open();
+        database = ((YukariApplication) getApplicationContext()).getDatabase();
 
         //キャッシュの読み込み
         hashCache = new HashCache(this);
@@ -294,9 +295,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         defaultVisibilityCache.save(this);
         defaultVisibilityCache = null;
 
-        database.close();
-        database = null;
-
         if (pluggaloid != null) {
             pluggaloid.close();
         }
@@ -318,8 +316,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return timelineHub;
     }
 
+    /**
+     * @deprecated Use {@link YukariApplication#getDatabase()} instead.
+     */
+    @Deprecated
     public CentralDatabase getDatabase() {
-        return database;
+        return ((YukariApplication) getApplicationContext()).getDatabase();
     }
 
     public Suppressor getSuppressor() {

@@ -16,12 +16,15 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import shibafu.yukari.R
 import shibafu.yukari.common.NotificationChannelPrefix
+import shibafu.yukari.database.CentralDatabase
 import twitter4j.AlternativeHttpClientImpl
 
 /**
  * Created by shibafu on 2015/08/29.
  */
 class YukariApplication : Application() {
+    val database: CentralDatabase by lazy { CentralDatabase(this).open() }
+
     override fun onCreate() {
         super.onCreate()
 
