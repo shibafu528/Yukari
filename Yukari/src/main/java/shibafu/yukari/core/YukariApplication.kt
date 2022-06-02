@@ -26,44 +26,13 @@ class YukariApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        try {
-            ProviderInstaller.installIfNeeded(this)
-        } catch (ignore: GooglePlayServicesRepairableException) {
-        } catch (ignore: GooglePlayServicesNotAvailableException) {
-        }
-
-        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_disable_ipv6", false)) {
-            System.setProperty("java.net.preferIPv4Stack", "true")
-            System.setProperty("java.net.preferIPv6Addresses", "false")
-        }
-        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_force_http1", false)) {
-            AlternativeHttpClientImpl.sPreferHttp2 = false
-            AlternativeHttpClientImpl.sPreferSpdy = false
-        }
+        installSecurityProvider()
+        applyNetworkPreferences()
 
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            val generalChannel = NotificationChannel(
-                    getString(R.string.notification_channel_id_general),
-                    "その他の通知",
-                    NotificationManager.IMPORTANCE_DEFAULT)
-            nm.createNotificationChannel(generalChannel)
-            val errorChannel = NotificationChannel(
-                    getString(R.string.notification_channel_id_error),
-                    "エラーの通知",
-                    NotificationManager.IMPORTANCE_DEFAULT)
-            nm.createNotificationChannel(errorChannel)
-            val coreServiceChannel = NotificationChannel(
-                    getString(R.string.notification_channel_id_core_service),
-                    "常駐サービス",
-                    NotificationManager.IMPORTANCE_MIN)
-            nm.createNotificationChannel(coreServiceChannel)
-            val asyncActionChannel = NotificationChannel(
-                    getString(R.string.notification_channel_id_async_action),
-                    "バックグラウンド処理",
-                    NotificationManager.IMPORTANCE_LOW)
-            nm.createNotificationChannel(asyncActionChannel)
+            createCommonNotificationChannels(nm)
             createAllAccountNotificationChannels(nm)
         }
 
@@ -73,6 +42,53 @@ class YukariApplication : Application() {
             return
         }
         LeakCanary.install(this)
+    }
+
+    private fun installSecurityProvider() {
+        try {
+            ProviderInstaller.installIfNeeded(this)
+        } catch (ignore: GooglePlayServicesRepairableException) {
+        } catch (ignore: GooglePlayServicesNotAvailableException) {
+        }
+    }
+
+    private fun applyNetworkPreferences() {
+        val sp = PreferenceManager.getDefaultSharedPreferences(this)
+        if (sp.getBoolean("pref_disable_ipv6", false)) {
+            System.setProperty("java.net.preferIPv4Stack", "true")
+            System.setProperty("java.net.preferIPv6Addresses", "false")
+        }
+        if (sp.getBoolean("pref_force_http1", false)) {
+            AlternativeHttpClientImpl.sPreferHttp2 = false
+            AlternativeHttpClientImpl.sPreferSpdy = false
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createCommonNotificationChannels(nm: NotificationManager) {
+        val generalChannel = NotificationChannel(
+                getString(R.string.notification_channel_id_general),
+                "その他の通知",
+                NotificationManager.IMPORTANCE_DEFAULT)
+        nm.createNotificationChannel(generalChannel)
+
+        val errorChannel = NotificationChannel(
+                getString(R.string.notification_channel_id_error),
+                "エラーの通知",
+                NotificationManager.IMPORTANCE_DEFAULT)
+        nm.createNotificationChannel(errorChannel)
+
+        val coreServiceChannel = NotificationChannel(
+                getString(R.string.notification_channel_id_core_service),
+                "常駐サービス",
+                NotificationManager.IMPORTANCE_MIN)
+        nm.createNotificationChannel(coreServiceChannel)
+
+        val asyncActionChannel = NotificationChannel(
+                getString(R.string.notification_channel_id_async_action),
+                "バックグラウンド処理",
+                NotificationManager.IMPORTANCE_LOW)
+        nm.createNotificationChannel(asyncActionChannel)
     }
 
     /**
