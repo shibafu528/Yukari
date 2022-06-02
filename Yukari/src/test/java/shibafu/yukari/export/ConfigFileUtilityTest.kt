@@ -33,8 +33,8 @@ class ConfigFileUtilityTest {
         val records = ConfigFileUtility.importFromJson(ConfigTestEntity::class.java, json, CentralDatabase(RuntimeEnvironment.application))
         assertEquals(1, records.size)
         assertEquals("abcde", records.first()["str"])
-        assertEquals(114514.0, records.first()["num"])
-        assertEquals(1919810.0, records.first()["num2"])
+        assertEquals(114514L, records.first()["num"])
+        assertEquals(1919810L, records.first()["num2"])
         assertEquals("114514", records.first()["numstr"])
     }
 
@@ -43,8 +43,8 @@ class ConfigFileUtilityTest {
         val records = ConfigFileUtility.importFromJson(ConfigTestEntity::class.java, json, CentralDatabase(RuntimeEnvironment.application))
         assertEquals(1, records.size)
         assertEquals("abcde", records.first()["str"])
-        assertEquals(114514.0, records.first()["num"])
-        assertEquals(114514.0, records.first()["num2"])
+        assertEquals(114514L, records.first()["num"])
+        assertEquals(114514L, records.first()["num2"])
         assertEquals("114514", records.first()["numstr"])
     }
 
