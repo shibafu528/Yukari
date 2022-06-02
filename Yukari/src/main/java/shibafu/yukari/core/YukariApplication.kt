@@ -14,7 +14,6 @@ import androidx.core.content.edit
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
-import com.squareup.leakcanary.LeakCanary
 import shibafu.yukari.R
 import shibafu.yukari.common.NotificationChannelPrefix
 import twitter4j.AlternativeHttpClientImpl
@@ -37,11 +36,6 @@ class YukariApplication : Application() {
         }
 
         migratePreference()
-
-        if (LeakCanary.isInAnalyzerProcess(this)) {
-            return
-        }
-        LeakCanary.install(this)
     }
 
     private fun installSecurityProvider() {

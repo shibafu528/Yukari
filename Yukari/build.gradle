@@ -58,7 +58,6 @@ ext {
     playServicesVersion = '17.6.0'
     twitter4jVersion = '4.0.7'
     mastodon4jVersion = '43b77f366515641a4569c2cfffef57301259c5a0'
-    leakCanaryVersion = '1.5.4'
     exvoiceVersion = '20220503.124509'
 
     y4aVersionMajor = 3
@@ -231,11 +230,6 @@ dependencies {
     kapt 'com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2'
     implementation project(':yukari-processor-runtime')
     kapt project(':yukari-processor')
-
-    // デバッグ用
-    debugImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
-    releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
-    testImplementation "com.squareup.leakcanary:leakcanary-android-no-op:$leakCanaryVersion"
 
     // Deploygate SDK
     alphaImplementation 'com.deploygate:sdk:4.1.0'
