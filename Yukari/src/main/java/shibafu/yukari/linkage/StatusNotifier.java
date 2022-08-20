@@ -32,6 +32,7 @@ import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.CompatUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -360,9 +361,15 @@ public class StatusNotifier {
             }
             else {
                 if (notificationType.isUseSound() && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && sound != null) {
-                    MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
-                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
-                    mediaPlayer.start();
+                    try {
+                        MediaPlayer mediaPlayer = new MediaPlayer();
+                        mediaPlayer.setDataSource(context, sound);
+                        mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                    } catch (IllegalStateException | IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 if (notificationType.isUseVibration()) {
                     switch (audioManager.getRingerMode()) {
