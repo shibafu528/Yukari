@@ -23,7 +23,9 @@
             android:layout_weight="1"
             android:hint="検索"
             android:singleLine="true"
-            android:imeOptions="actionSearch"/>
+            android:imeOptions="actionSearch">
+            <requestFocus />
+        </EditText>
 
         <ImageButton
             android:layout_width="42dp"
