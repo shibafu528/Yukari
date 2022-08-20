@@ -9,6 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import androidx.core.content.res.ResourcesCompat;
+
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -71,7 +73,7 @@ public class AboutActivity extends ActionBarYukariBase {
             textView.setTypeface(typeface);
         }
 
-        mpDefault = MediaPlayer.create(this, R.raw.se_reply);
+        mpDefault = MediaPlayer.create(this, Settings.System.DEFAULT_NOTIFICATION_URI);
         mpYukari = MediaPlayer.create(this, R.raw.y_apply);
 
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());

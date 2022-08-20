@@ -21,6 +21,7 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.NotificationChannelPrefix;
+import shibafu.yukari.common.NotificationPreferenceSoundUri;
 import shibafu.yukari.common.NotificationType;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
@@ -65,11 +66,6 @@ public class StatusNotifier {
     private boolean useUserFileOnFavorite = false;
     
     static {
-        SE_URIS.put("default", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/se_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/se_fav");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/se_rt");
-        }});
         SE_URIS.put("yukari_fav", new SoundEffects() {{
             reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
             favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_fav");
@@ -141,14 +137,28 @@ public class StatusNotifier {
         boolean useYukariVoice = sharedPreferences.getBoolean("j_yukari_voice", false);
         switch (category) {
             case R.integer.notification_replied:
+                if (useUserFileOnReply) {
+                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
+                } else if (useYukariVoice) {
+                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
+                } else {
+                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_mention_sound_uri", null));
+                }
             case R.integer.notification_message:
+                if (useUserFileOnReply) {
+                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
+                } else if (useYukariVoice) {
+                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
+                } else {
+                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_dm_sound_uri", null));
+                }
             case R.integer.notification_respond:
                 if (useUserFileOnReply) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
                 } else if (useYukariVoice) {
                     return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
                 } else {
-                    return SE_URIS.get("default").reply;
+                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_respond_sound_uri", null));
                 }
             case R.integer.notification_retweeted:
                 if (useUserFileOnRetweet) {
@@ -156,7 +166,7 @@ public class StatusNotifier {
                 } else if (useYukariVoice) {
                     return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).retweet;
                 } else {
-                    return SE_URIS.get("default").retweet;
+                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_rt_sound_uri", null));
                 }
             case R.integer.notification_faved:
                 if (useUserFileOnFavorite) {
@@ -164,7 +174,7 @@ public class StatusNotifier {
                 } else if (useYukariVoice) {
                     return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).favorite;
                 } else {
-                    return SE_URIS.get("default").favorite;
+                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_fav_sound_uri", null));
                 }
             default:
                 return null;
@@ -349,7 +359,7 @@ public class StatusNotifier {
                 notificationManager.notify(category, builder.build());
             }
             else {
-                if (notificationType.isUseSound() && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+                if (notificationType.isUseSound() && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && sound != null) {
                     MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
                     mediaPlayer.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
                     mediaPlayer.start();
