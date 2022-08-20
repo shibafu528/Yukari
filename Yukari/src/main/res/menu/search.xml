@@ -4,14 +4,10 @@
     <item android:id="@+id/action_save_search"
         android:visible="false"
         android:title="検索ワードを保存"/>
-    <item android:title="Twitter検索">
-        <menu>
-            <item android:id="@+id/action_search_tweets"
-                android:title="ツイート検索"/>
-            <item android:id="@+id/action_search_users"
-                android:title="ユーザー検索"/>
-        </menu>
-    </item>
+    <item android:id="@+id/action_search_tweets"
+        android:title="ツイート検索"/>
+    <item android:id="@+id/action_search_users"
+        android:title="ユーザー検索"/>
     <item android:id="@+id/action_query"
           android:title="クエリを実行"/>
 </menu>

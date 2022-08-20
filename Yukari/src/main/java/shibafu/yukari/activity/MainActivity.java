@@ -22,6 +22,7 @@ import androidx.appcompat.widget.PopupMenu;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -202,6 +203,15 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ibSearch.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
             popupMenu.inflate(R.menu.search);
+            TwitterService service = getTwitterService();
+            if (service != null) {
+                // Mastodonアカウントを持っている場合、紛らわしいメニュー項目にprefixを付ける
+                boolean hasMastodonAccount = service.getUsers().stream().anyMatch(userRecord -> userRecord.Provider.getApiType() == Provider.API_MASTODON);
+                if (hasMastodonAccount) {
+                    MenuItem searchUsers = popupMenu.getMenu().findItem(R.id.action_search_users);
+                    searchUsers.setTitle("Twitter " + searchUsers.getTitle());
+                }
+            }
             if (currentPage instanceof TimelineFragment) {
                 FilterQuery query = ((TimelineFragment) currentPage).getQuery();
                 for (FilterSource source : query.getSources()) {
