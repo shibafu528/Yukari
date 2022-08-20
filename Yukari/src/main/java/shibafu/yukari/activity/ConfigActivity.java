@@ -207,6 +207,27 @@ public class ConfigActivity extends ActionBarYukariBase {
                         break;
 
                     case "notify":
+                        findPreference("pref_notif_mention").setOnPreferenceClickListener(preference -> {
+                            startActivity(NotificationPreferenceActivity.newIntent(requireActivity(), NotificationPreferenceActivity.NOTIFICATION_MENTION));
+                            return false;
+                        });
+                        findPreference("pref_notif_rt").setOnPreferenceClickListener(preference -> {
+                            startActivity(NotificationPreferenceActivity.newIntent(requireActivity(), NotificationPreferenceActivity.NOTIFICATION_RETWEET));
+                            return false;
+                        });
+                        findPreference("pref_notif_fav").setOnPreferenceClickListener(preference -> {
+                            startActivity(NotificationPreferenceActivity.newIntent(requireActivity(), NotificationPreferenceActivity.NOTIFICATION_FAVORITE));
+                            return false;
+                        });
+                        findPreference("pref_notif_dm").setOnPreferenceClickListener(preference -> {
+                            startActivity(NotificationPreferenceActivity.newIntent(requireActivity(), NotificationPreferenceActivity.NOTIFICATION_DIRECT_MESSAGE));
+                            return false;
+                        });
+                        findPreference("pref_notif_respond").setOnPreferenceClickListener(preference -> {
+                            startActivity(NotificationPreferenceActivity.newIntent(requireActivity(), NotificationPreferenceActivity.NOTIFICATION_RT_RESPOND));
+                            return false;
+                        });
+
                         Preference prefNotifSystemConfig = findPreference("pref_notif_system_config");
                         prefNotifSystemConfig.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
                         prefNotifSystemConfig.setOnPreferenceClickListener(preference -> {

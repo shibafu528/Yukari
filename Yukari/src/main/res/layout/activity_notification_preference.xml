@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/swEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp"
+            android:textSize="16sp"
+            android:text="通知を表示" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="16dp"
+            android:textColor="?attr/colorAccent"
+            android:text="表示方法" />
+
+        <RadioGroup
+            android:id="@+id/rgNotifyMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp">
+
+            <RadioButton
+                android:id="@+id/rbNotifyStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="14dp"
+                android:text="ステータス通知" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="32dp"
+                android:text="システムの通知機能を使用して、画面上部に通知を表示します。" />
+
+            <RadioButton
+                android:id="@+id/rbNotifyToast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="14dp"
+                android:text="ポップアップ通知" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="32dp"
+                android:text="短時間、画面下部にポップアップで通知を表示します。システムの通知ドロワーに履歴が残りません。" />
+        </RadioGroup>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="14dp"
+            android:paddingHorizontal="16dp"
+            android:textColor="?attr/colorAccent"
+            android:text="音とバイブレーション" />
+
+        <!-- if Android 8.0+ && status notification -->
+        <LinearLayout
+            android:id="@+id/llNotifyPostOreo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/selector_key_light_background">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceListItem"
+                android:text="システムの通知設定を開く" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Android 8.0以降ではシステムの通知設定からカスタマイズできます。" />
+        </LinearLayout>
+
+        <!-- if Android 7.x || toast notification -->
+        <LinearLayout
+            android:id="@+id/llNotifyPreOreo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/swEnableNotifySound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="16dp"
+                android:text="通知音を再生" />
+            <TextView
+                android:id="@+id/tvNotifySound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="14dp"
+                android:paddingHorizontal="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/selector_key_light_background"
+                android:textAppearance="?attr/textAppearanceListItemSecondary"
+                android:text="通知音を選択" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/swEnableNotifyVibration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="16dp"
+                android:paddingHorizontal="16dp"
+                android:text="バイブレーション" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

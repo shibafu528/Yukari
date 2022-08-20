@@ -315,6 +315,10 @@
             android:name=".activity.MastodonReportActivity"
             android:label="@string/title_activity_mastodon_report"
             android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".activity.NotificationPreferenceActivity"
+            android:label="通知設定" />
    </application>
 
 </manifest>
