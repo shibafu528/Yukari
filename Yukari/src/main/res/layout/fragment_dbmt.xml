@@ -93,4 +93,23 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="4dp" />
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:id="@+id/imageView3"
+        android:src="#aaa"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="6dp"
+        android:layout_below="@+id/btnYdbVacuum" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView3"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:paddingTop="8dp"
+        android:text="Twitter API レートリミットステータスは設定画面に移動しました。" />
+
 </RelativeLayout>

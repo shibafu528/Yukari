@@ -1,139 +1,46 @@
 package shibafu.yukari.activity;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.fragment.app.ListFragment;
-import androidx.core.view.MenuItemCompat;
-import androidx.appcompat.app.ActionBar;
 import android.text.format.Formatter;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Toast;
+
+import androidx.fragment.app.DialogFragment;
+
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
-import shibafu.yukari.common.bitmapcache.BitmapCache;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.databinding.FragmentDbmtBinding;
-import shibafu.yukari.databinding.RowApiBinding;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
-import shibafu.yukari.database.AuthUserRecord;
-import twitter4j.RateLimitStatus;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
+import shibafu.yukari.fragment.base.YukariBaseFragment;
 
 /**
  * Created by shibafu on 14/07/05.
  */
-public class MaintenanceActivity extends ActionBarYukariBase implements TwitterServiceDelegate{
+public class MaintenanceActivity extends ActionBarYukariBase {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        actionBar.addTab(actionBar.newTab()
-                .setText("API Status")
-                .setTabListener(new TabListener<>(this, "api", ApiMaintenanceFragment.class)));
-        actionBar.addTab(actionBar.newTab()
-                .setText("Database")
-                .setTabListener(new TabListener<>(this, "db", DBMaintenanceFragment.class))
-        );
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    public void onServiceConnected() {
-        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
-            if (fragment.isResumed()) {
-                ((ServiceConnectable) fragment).onServiceConnected();
-            }
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.frame, new DBMaintenanceFragment())
+                    .commit();
         }
     }
+
+    @Override
+    public void onServiceConnected() {}
 
     @Override
     public void onServiceDisconnected() {}
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt("selected", getSupportActionBar().getSelectedNavigationIndex());
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("selected", 0));
-    }
-
-    private class TabListener<T extends Fragment> implements ActionBar.TabListener {
-        private Fragment fragment;
-        private Activity activity;
-        private String tag;
-        private Class<T> cls;
-
-        private TabListener(Activity activity, String tag, Class<T> cls) {
-            this.activity = activity;
-            this.tag = tag;
-            this.cls = cls;
-            this.fragment = getSupportFragmentManager().findFragmentByTag(tag);
-        }
-
-        @Override
-        public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-            if (fragment == null) {
-                fragment = Fragment.instantiate(activity, cls.getName());
-                fragmentTransaction.add(R.id.frame, fragment, tag);
-            } else if (fragment.isDetached()) {
-                fragmentTransaction.attach(fragment);
-            }
-        }
-
-        @Override
-        public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-            if (fragment != null) {
-                fragmentTransaction.detach(fragment);
-            }
-        }
-
-        @Override
-        public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-
-        }
-    }
-
-    private interface ServiceConnectable {
-        void onServiceConnected();
-        TwitterService getService();
-        boolean serviceBound();
-    }
-
-    public static class DBMaintenanceFragment extends Fragment implements ServiceConnectable{
+    public static class DBMaintenanceFragment extends YukariBaseFragment {
         private FragmentDbmtBinding binding;
 
         @Override
@@ -161,7 +68,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    getService().getDatabase().wipeUsers();
+                    getTwitterService().getDatabase().wipeUsers();
                     return null;
                 }
 
@@ -190,7 +97,7 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    getService().getDatabase().vacuum();
+                    getTwitterService().getDatabase().vacuum();
                     return null;
                 }
 
@@ -215,190 +122,19 @@ public class MaintenanceActivity extends ActionBarYukariBase implements TwitterS
         @Override
         public void onResume() {
             super.onResume();
-            if (serviceBound()) {
+            if (isTwitterServiceBound()) {
                 onServiceConnected();
             }
         }
 
         @Override
         public void onServiceConnected() {
-            binding.tvYdbUserEnt.setText(String.format("%d entries", getService().getDatabase().getUsersCursor().getCount()));
+            binding.tvYdbUserEnt.setText(String.format("%d entries", getTwitterService().getDatabase().getUsersCursor().getCount()));
             binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
         }
 
         @Override
-        public TwitterService getService() {
-            return ((MaintenanceActivity)getActivity()).getTwitterService();
-        }
-
-        @Override
-        public boolean serviceBound() {
-            return ((TwitterServiceDelegate)getActivity()).isTwitterServiceBound();
-        }
-    }
-
-    public static class ApiMaintenanceFragment extends ListFragment implements ServiceConnectable {
-
-        private static final int REQUEST_CHOOSE = 1;
-        private MenuItem accountMenu;
-        private AuthUserRecord currentUser;
-
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setHasOptionsMenu(true);
-        }
-
-        @Override
-        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-            accountMenu = menu.add(Menu.NONE, 0, Menu.NONE, "Account").setIcon(R.drawable.yukatterload);
-            MenuItemCompat.setShowAsAction(accountMenu, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
-            reload();
-        }
-
-        @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            switch (item.getItemId()) {
-                case 0:
-                    startActivityForResult(new Intent(getActivity(), AccountChooserActivity.class), REQUEST_CHOOSE);
-                    return true;
-            }
-            return super.onOptionsItemSelected(item);
-        }
-
-        @Override
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            super.onActivityResult(requestCode, resultCode, data);
-            if (resultCode == RESULT_OK) {
-                switch (requestCode) {
-                    case REQUEST_CHOOSE:
-                        currentUser = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                        reload();
-                        break;
-                }
-            }
-        }
-
-        private void reload() {
-            if (currentUser != null && accountMenu != null) {
-                ImageLoaderTask.loadDrawable(
-                        getActivity(),
-                        currentUser.ProfileImageUrl,
-                        BitmapCache.PROFILE_ICON_CACHE,
-                        accountMenu::setIcon
-                );
-                ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>> task
-                        = new ThrowableTwitterAsyncTask<AuthUserRecord, Map<String, RateLimitStatus>>() {
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    protected ThrowableResult<Map<String, RateLimitStatus>> doInBackground(AuthUserRecord... params) {
-                        try {
-                            Twitter twitter = getService().getTwitterOrThrow(params[0]);
-                            return new ThrowableResult<>(twitter.getRateLimitStatus());
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        setListShown(false);
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Map<String, RateLimitStatus>> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException() && result.getResult() != null && isAdded()) {
-                            ApiAdapter apiAdapter = new ApiAdapter(getActivity(), result.getResult());
-                            setListAdapter(apiAdapter);
-                            setListShown(true);
-                        }
-                    }
-                };
-                task.executeParallel(currentUser);
-            }
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            if (serviceBound()) {
-                if (currentUser == null) {
-                    currentUser = getService().getPrimaryUser();
-                }
-                reload();
-            }
-        }
-
-        @Override
-        public void onServiceConnected() {
-            currentUser = getService().getPrimaryUser();
-            reload();
-        }
-
-        @Override
-        public TwitterService getService() {
-            return ((MaintenanceActivity)getActivity()).getTwitterService();
-        }
-
-        @Override
-        public boolean serviceBound() {
-            return ((TwitterServiceDelegate)getActivity()).isTwitterServiceBound();
-        }
-
-        class ApiAdapter extends BaseAdapter {
-            private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-            private LayoutInflater inflater;
-            private String[] keys;
-            private RateLimitStatus[] rateLimitStatuses;
-
-            ApiAdapter(Context context, Map<String, RateLimitStatus> rateLimitStatus) {
-                keys = rateLimitStatus.keySet().toArray(new String[rateLimitStatus.size()]);
-                rateLimitStatuses = rateLimitStatus.values().toArray(new RateLimitStatus[rateLimitStatus.size()]);
-                this.inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-            }
-
-            @Override
-            public int getCount() {
-                return rateLimitStatuses.length;
-            }
-
-            @Override
-            public RateLimitStatus getItem(int position) {
-                return rateLimitStatuses[position];
-            }
-
-            @Override
-            public long getItemId(int position) {
-                return position;
-            }
-
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                RowApiBinding vh;
-                if (convertView == null) {
-                    vh = RowApiBinding.inflate(inflater);
-                    convertView = vh.getRoot();
-                    convertView.setTag(vh);
-                } else {
-                    vh = (RowApiBinding) convertView.getTag();
-                }
-                RateLimitStatus status = getItem(position);
-                if (status != null) {
-                    vh.tvApiEndpoint.setText(keys[position]);
-                    vh.tvApiLimit.setText(String.format("Limit: %d/%d", status.getRemaining(), status.getLimit()));
-                    vh.tvApiReset.setText("Reset: " + sdf.format(new Date((long)status.getResetTimeInSeconds() * 1000)));
-                    vh.progressBar.setProgress(status.getRemaining() * 100 / status.getLimit());
-                }
-                return convertView;
-            }
-        }
+        public void onServiceDisconnected() {}
     }
 
     public static class SimpleProgressDialogFragment extends DialogFragment {

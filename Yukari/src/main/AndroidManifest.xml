@@ -319,6 +319,10 @@
         <activity
             android:name=".activity.NotificationPreferenceActivity"
             android:label="通知設定" />
+
+        <activity
+            android:name=".activity.TwitterRateLimitStatusActivity"
+            android:label="Twitter API レートリミットステータス" />
    </application>
 
 </manifest>
