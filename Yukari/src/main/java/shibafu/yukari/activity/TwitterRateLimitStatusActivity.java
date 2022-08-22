@@ -13,8 +13,12 @@ import android.widget.BaseAdapter;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
@@ -174,23 +178,21 @@ public class TwitterRateLimitStatusActivity extends ActionBarYukariBase {
         private static class ApiAdapter extends BaseAdapter {
             private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
             private final LayoutInflater inflater;
-            private final String[] keys;
-            private final RateLimitStatus[] rateLimitStatuses;
+            private final List<Map.Entry<String, RateLimitStatus>> items;
 
             ApiAdapter(Context context, Map<String, RateLimitStatus> rateLimitStatus) {
-                keys = rateLimitStatus.keySet().toArray(new String[rateLimitStatus.size()]);
-                rateLimitStatuses = rateLimitStatus.values().toArray(new RateLimitStatus[rateLimitStatus.size()]);
+                items = rateLimitStatus.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
                 this.inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
             }
 
             @Override
             public int getCount() {
-                return rateLimitStatuses.length;
+                return items.size();
             }
 
             @Override
-            public RateLimitStatus getItem(int position) {
-                return rateLimitStatuses[position];
+            public Map.Entry<String, RateLimitStatus> getItem(int position) {
+                return items.get(position);
             }
 
             @Override
@@ -208,9 +210,10 @@ public class TwitterRateLimitStatusActivity extends ActionBarYukariBase {
                 } else {
                     vh = (RowApiBinding) convertView.getTag();
                 }
-                RateLimitStatus status = getItem(position);
-                if (status != null) {
-                    vh.tvApiEndpoint.setText(keys[position]);
+                Map.Entry<String, RateLimitStatus> entry = getItem(position);
+                if (entry != null) {
+                    RateLimitStatus status = entry.getValue();
+                    vh.tvApiEndpoint.setText(entry.getKey());
                     vh.tvApiLimit.setText(String.format("Limit: %d/%d", status.getRemaining(), status.getLimit()));
                     vh.tvApiReset.setText("Reset: " + sdf.format(new Date((long)status.getResetTimeInSeconds() * 1000)));
                     vh.progressBar.setProgress(status.getRemaining() * 100 / status.getLimit());
