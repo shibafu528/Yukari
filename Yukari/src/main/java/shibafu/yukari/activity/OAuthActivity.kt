@@ -545,14 +545,13 @@ class OAuthActivity : ActionBarYukariBase() {
     }
 
     companion object {
+        /**
+         * (Boolean) 認証成功後、MainActivityに遷移させる
+         */
         const val EXTRA_REBOOT = "reboot"
 
-        private val REQUEST_TWITTER = 1
-        private val TWITTER_AUTH_ACTIVITY = ComponentName("com.twitter.android", "com.twitter.android.AuthorizeAppActivity")
-
-        private val TWITTER_CALLBACK_URL = "yukari://twitter"
-        private val TWITTER_CALLBACK_LANDING_URL = "https://yukari.shibafu528.info/callback.html"
-        private val MASTODON_CALLBACK_URL = "yukari://mastodon"
-
+        private const val TWITTER_CALLBACK_URL = "yukari://twitter"
+        private const val TWITTER_CALLBACK_LANDING_URL = "https://yukari.shibafu528.info/callback.html"
+        private const val MASTODON_CALLBACK_URL = "yukari://mastodon"
     }
 }
