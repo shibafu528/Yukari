@@ -3,7 +3,6 @@ package shibafu.yukari.activity
 import android.app.Activity
 import android.app.Dialog
 import android.app.ProgressDialog
-import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.AsyncTask
@@ -425,13 +424,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     }
 
                     val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
-                    val apps = Apps(client)
-                    try {
-                        return apps.getOAuthUrl(provider.consumerKey, Scope(Scope.Name.ALL), MASTODON_CALLBACK_URL)
-                    } catch (e: Mastodon4jRequestException) {
-                        e.printStackTrace()
-                    }
-                    return null
+                    return Apps(client).getOAuthUrl(provider.consumerKey, Scope(Scope.Name.ALL), MASTODON_CALLBACK_URL)
                 }
 
                 override fun onPreExecute() {
@@ -444,13 +437,9 @@ class OAuthActivity : ActionBarYukariBase() {
                     super.onPostExecute(result)
                     dialog?.dismiss()
 
-                    if (result != null) {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(result))
-                        startActivity(intent)
-                    } else {
-                        Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
-                        activity.supportFragmentManager.popBackStack()
-                    }
+                    assert(result != null)
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(result))
+                    startActivity(intent)
                 }
             }.executeParallel()
         }
