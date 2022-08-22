@@ -12,8 +12,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Toast;
 
-import androidx.core.view.MenuItemCompat;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -65,11 +63,12 @@ public class TwitterRateLimitStatusActivity extends ActionBarYukariBase {
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             accountMenu = menu.add(Menu.NONE, 0, Menu.NONE, "Account").setIcon(R.drawable.yukatterload);
-            MenuItemCompat.setShowAsAction(accountMenu, MenuItemCompat.SHOW_AS_ACTION_ALWAYS);
+            accountMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
             reload();
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public boolean onOptionsItemSelected(MenuItem item) {
             switch (item.getItemId()) {
                 case 0:
@@ -80,6 +79,7 @@ public class TwitterRateLimitStatusActivity extends ActionBarYukariBase {
         }
 
         @Override
+        @SuppressWarnings("deprecation")
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
             super.onActivityResult(requestCode, resultCode, data);
             if (resultCode == RESULT_OK) {

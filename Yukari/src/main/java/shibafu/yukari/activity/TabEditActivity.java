@@ -6,12 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.fragment.app.ListFragment;
-import androidx.core.view.MenuItemCompat;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,23 +18,30 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.fragment.app.ListFragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
+import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.databinding.RowTabeditBinding;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.UserList;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by shibafu on 14/02/28.
@@ -207,7 +208,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         @Override
         public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
             MenuItem addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "タブの追加").setIcon(R.drawable.ic_action_add);
-            MenuItemCompat.setShowAsAction(addMenu, MenuItemCompat.SHOW_AS_ACTION_IF_ROOM);
+            addMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
 
         @Override
