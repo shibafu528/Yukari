@@ -8,33 +8,31 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
-import androidx.core.content.res.ResourcesCompat
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.ImageButton
-import android.widget.ListView
-import android.widget.PopupMenu
-import android.widget.TextView
+import android.widget.*
+import androidx.core.content.res.ResourcesCompat
 import shibafu.yukari.R
 import shibafu.yukari.activity.*
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.media2.Media
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
+import java.util.regex.Pattern
 
 class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     private val status: Status
@@ -269,9 +267,15 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
             }
+            val hasTwitterAccount = twitterService?.users?.any { it.Provider.apiType == Provider.API_TWITTER } ?: false
 
             val uri = Uri.parse(url)
-            if (uri.host?.contains("www.google") == true) {
+            if (hasTwitterAccount && (PATTERN_TWITTER_STATUS.matcher(url).find() || PATTERN_TWITTER_USER.matcher(url).find())) {
+                // TwitterのツイートまたはユーザーのURLの場合 (IntentActivityで処理できるURLの場合)、明示的Intentで起動する。
+                // 暗黙的Intentの場合、App LinksでIntentを奪われてしまう。
+                // see: https://github.com/shibafu528/Yukari/issues/292
+                startActivity(Intent(Intent.ACTION_VIEW, uri, requireContext(), IntentActivity::class.java))
+            } else if (uri.host?.contains("www.google") == true) {
                 val lastPathSegment = uri.lastPathSegment
                 if (lastPathSegment != null && lastPathSegment == "search") {
                     val query = uri.getQueryParameter("q")
@@ -402,5 +406,8 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
 
     companion object {
         private const val ACTION_LINK_ACCEL = "shibafu.yukari.ACTION_LINK_ACCEL"
+
+        private val PATTERN_TWITTER_STATUS = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/status(?:es)?/([0-9]+)/?(?:\\?.+)?$")
+        private val PATTERN_TWITTER_USER = Pattern.compile("^https?://(?:www\\.)?(?:mobile\\.)?twitter\\.com/(?:#!/)?[0-9a-zA-Z_]{1,15}/?(?:\\?.+)?$")
     }
 }
