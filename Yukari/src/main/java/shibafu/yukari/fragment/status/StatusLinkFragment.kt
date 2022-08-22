@@ -285,17 +285,6 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                             .setNegativeButton("キャンセル") { dialog, _ -> dialog.dismiss() }
                             .create()
                     ad.show()
-                } else if (url.contains("matome.naver.jp/odai/2133899121334612301") || url.contains("matome.naver.jp/odai/2138315187918614201")) {
-                    val ad = AlertDialog.Builder(activity)
-                            .setTitle("確認")
-                            .setMessage("このURLは飯テロ系まとめです。\nブラウザで開きますか？")
-                            .setPositiveButton("続行") { dialog, _ ->
-                                dialog.dismiss()
-                                startBrowser(uri)
-                            }
-                            .setNegativeButton("キャンセル") { dialog, _ -> dialog.dismiss() }
-                            .create()
-                    ad.show()
                 } else {
                     startBrowser(uri)
                 }
