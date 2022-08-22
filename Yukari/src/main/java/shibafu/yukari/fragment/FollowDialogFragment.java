@@ -88,12 +88,8 @@ public class FollowDialogFragment extends DialogFragment {
         }
 
         if (args.getBoolean(ARGUMENT_ALL_R4S, false)) {
-            if ("toshi_a".equals(targetUser.getScreenName())) {
-                Toast.makeText(getActivity(), "ｱｱｱｯwwwwミクッター作者に全垢r4sかまそうとしてるｩwwwwwwwwwwwww\n\n(toshi_a proof を発動しました)", Toast.LENGTH_LONG).show();
-            } else {
-                for (ListEntry e : entryList) {
-                    e.afterRelation = RELATION_PRE_R4S;
-                }
+            for (ListEntry e : entryList) {
+                e.afterRelation = RELATION_PRE_R4S;
             }
         }
 
