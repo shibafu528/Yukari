@@ -14,6 +14,7 @@ import androidx.annotation.StringDef
 import androidx.core.content.edit
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
+import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.NotificationPreferenceSoundUri
 import shibafu.yukari.databinding.ActivityNotificationPreferenceBinding
 import shibafu.yukari.util.defaultSharedPreferences
@@ -56,20 +57,29 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         }
 
         binding.llNotifyPostOreo.setOnClickListener {
-            // TODO: 個別の通知チャンネルの設定を呼び出す (Settings.EXTRA_CHANNEL_ID)
-            //       https://developer.android.com/training/notify-user/channels?hl=ja#UpdateChannel
+            // TODO: pref_notif_per_account_channel が有効な場合、アカウントを選択させる
+            val channelId = when (notificationType) {
+                NOTIFICATION_MENTION -> NotificationChannelPrefix.CHANNEL_MENTION + "all"
+                NOTIFICATION_RETWEET -> NotificationChannelPrefix.CHANNEL_REPOST + "all"
+                NOTIFICATION_FAVORITE -> NotificationChannelPrefix.CHANNEL_FAVORITE + "all"
+                NOTIFICATION_DIRECT_MESSAGE -> NotificationChannelPrefix.CHANNEL_MESSAGE + "all"
+                NOTIFICATION_RT_RESPOND -> NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + "all"
+                else -> throw RuntimeException("invalid notification type")
+            }
             try {
                 // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
                 // ベンダーオリジナルのActivityが起動されることがある。
                 // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
                 val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                intent.setClassName("com.android.settings", "com.android.settings.Settings\$AppNotificationSettingsActivity")
+                intent.setClassName("com.android.settings", "com.android.settings.Settings\$ChannelNotificationSettingsActivity")
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
                 startActivity(intent)
             } catch (e: ActivityNotFoundException) {
                 // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
                 val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
                 startActivity(intent)
             }
         }
