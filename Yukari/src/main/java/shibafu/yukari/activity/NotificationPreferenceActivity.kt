@@ -10,11 +10,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringDef
 import androidx.core.content.edit
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
+import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.NotificationPreferenceSoundUri
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.databinding.ActivityNotificationPreferenceBinding
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.common.NotificationType as ParsedNotificationPreference
@@ -24,6 +27,22 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
 
     private val notificationType: String?
         get() = intent.getStringExtra(EXTRA_NOTIFICATION_TYPE)
+
+    private val notificationSoundPicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            defaultSharedPreferences.edit {
+                putString("pref_notif_${notificationType}_sound_uri", NotificationPreferenceSoundUri.toString(uri))
+            }
+        }
+    }
+
+    private val accountChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val userRecord = result.data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return@registerForActivityResult
+            startSystemNotificationActivity(userRecord.Url)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,21 +75,10 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         }
 
         binding.llNotifyPostOreo.setOnClickListener {
-            // TODO: 個別の通知チャンネルの設定を呼び出す (Settings.EXTRA_CHANNEL_ID)
-            //       https://developer.android.com/training/notify-user/channels?hl=ja#UpdateChannel
-            try {
-                // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
-                // ベンダーオリジナルのActivityが起動されることがある。
-                // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
-                val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                intent.setClassName("com.android.settings", "com.android.settings.Settings\$AppNotificationSettingsActivity")
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
-                val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                startActivity(intent)
+            if (defaultSharedPreferences.getBoolean("pref_notif_per_account_channel", false)) {
+                accountChooser.launch(Intent(this@NotificationPreferenceActivity, AccountChooserActivity::class.java))
+            } else {
+                startSystemNotificationActivity()
             }
         }
 
@@ -94,7 +102,7 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
             }
-            startActivityForResult(intent, REQUEST_PICK_NOTIFICATION_SOUND)
+            notificationSoundPicker.launch(intent)
         }
     }
 
@@ -107,16 +115,6 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
     override fun onPause() {
         super.onPause()
         defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_PICK_NOTIFICATION_SOUND && resultCode == RESULT_OK) {
-            val uri = data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
-            defaultSharedPreferences.edit {
-                putString("pref_notif_${notificationType}_sound_uri", NotificationPreferenceSoundUri.toString(uri))
-            }
-        }
     }
 
     override fun onServiceConnected() {}
@@ -166,6 +164,33 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         }
     }
 
+    private fun startSystemNotificationActivity(channelSuffix: String = "all") {
+        val channelId = when (notificationType) {
+            NOTIFICATION_MENTION -> NotificationChannelPrefix.CHANNEL_MENTION + channelSuffix
+            NOTIFICATION_RETWEET -> NotificationChannelPrefix.CHANNEL_REPOST + channelSuffix
+            NOTIFICATION_FAVORITE -> NotificationChannelPrefix.CHANNEL_FAVORITE + channelSuffix
+            NOTIFICATION_DIRECT_MESSAGE -> NotificationChannelPrefix.CHANNEL_MESSAGE + channelSuffix
+            NOTIFICATION_RT_RESPOND -> NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + channelSuffix
+            else -> throw RuntimeException("invalid notification type")
+        }
+        try {
+            // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
+            // ベンダーオリジナルのActivityが起動されることがある。
+            // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
+            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            intent.setClassName("com.android.settings", "com.android.settings.Settings\$ChannelNotificationSettingsActivity")
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
+            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            startActivity(intent)
+        }
+    }
+
     @StringDef(
             NOTIFICATION_MENTION,
             NOTIFICATION_RETWEET,
@@ -183,8 +208,6 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         const val NOTIFICATION_RT_RESPOND = "respond"
 
         private const val EXTRA_NOTIFICATION_TYPE = "notificationType"
-
-        private const val REQUEST_PICK_NOTIFICATION_SOUND = 1
 
         @JvmStatic
         fun newIntent(context: Context, @NotificationType notificationType: String): Intent {
