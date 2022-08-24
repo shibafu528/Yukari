@@ -28,6 +28,15 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
     private val notificationType: String?
         get() = intent.getStringExtra(EXTRA_NOTIFICATION_TYPE)
 
+    private val notificationSoundPicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uri = result.data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            defaultSharedPreferences.edit {
+                putString("pref_notif_${notificationType}_sound_uri", NotificationPreferenceSoundUri.toString(uri))
+            }
+        }
+    }
+
     private val accountChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val userRecord = result.data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return@registerForActivityResult
@@ -93,7 +102,7 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
                 putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
             }
-            startActivityForResult(intent, REQUEST_PICK_NOTIFICATION_SOUND)
+            notificationSoundPicker.launch(intent)
         }
     }
 
@@ -106,16 +115,6 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
     override fun onPause() {
         super.onPause()
         defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_PICK_NOTIFICATION_SOUND && resultCode == RESULT_OK) {
-            val uri = data?.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
-            defaultSharedPreferences.edit {
-                putString("pref_notif_${notificationType}_sound_uri", NotificationPreferenceSoundUri.toString(uri))
-            }
-        }
     }
 
     override fun onServiceConnected() {}
@@ -209,8 +208,6 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         const val NOTIFICATION_RT_RESPOND = "respond"
 
         private const val EXTRA_NOTIFICATION_TYPE = "notificationType"
-
-        private const val REQUEST_PICK_NOTIFICATION_SOUND = 1
 
         @JvmStatic
         fun newIntent(context: Context, @NotificationType notificationType: String): Intent {
