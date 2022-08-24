@@ -54,7 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="14dp"
-                android:text="ポップアップ通知" />
+                android:text="@string/notification_preference_activity_notify_toast" />
 
             <TextView
                 android:layout_width="match_parent"

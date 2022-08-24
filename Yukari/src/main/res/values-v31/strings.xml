@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_preference_activity_notify_toast">ポップアップ通知 (Android 12以降非推奨)</string>
+</resources>

@@ -98,4 +98,6 @@
     <string name="oauth_success_fragment_open_channel_manage">ストリーミング接続管理を開く</string>
     <string name="oauth_success_fragment_finish">OK</string>
     <string name="oauth_success_fragment_finish_first">タイムラインを開く</string>
+
+    <string name="notification_preference_activity_notify_toast">ポップアップ通知</string>
 </resources>
