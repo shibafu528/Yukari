@@ -10,12 +10,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringDef
 import androidx.core.content.edit
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.NotificationPreferenceSoundUri
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.databinding.ActivityNotificationPreferenceBinding
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.common.NotificationType as ParsedNotificationPreference
@@ -25,6 +27,13 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
 
     private val notificationType: String?
         get() = intent.getStringExtra(EXTRA_NOTIFICATION_TYPE)
+
+    private val accountChooser = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val userRecord = result.data?.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD) as? AuthUserRecord ?: return@registerForActivityResult
+            startSystemNotificationActivity(userRecord.Url)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,30 +66,10 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         }
 
         binding.llNotifyPostOreo.setOnClickListener {
-            // TODO: pref_notif_per_account_channel が有効な場合、アカウントを選択させる
-            val channelId = when (notificationType) {
-                NOTIFICATION_MENTION -> NotificationChannelPrefix.CHANNEL_MENTION + "all"
-                NOTIFICATION_RETWEET -> NotificationChannelPrefix.CHANNEL_REPOST + "all"
-                NOTIFICATION_FAVORITE -> NotificationChannelPrefix.CHANNEL_FAVORITE + "all"
-                NOTIFICATION_DIRECT_MESSAGE -> NotificationChannelPrefix.CHANNEL_MESSAGE + "all"
-                NOTIFICATION_RT_RESPOND -> NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + "all"
-                else -> throw RuntimeException("invalid notification type")
-            }
-            try {
-                // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
-                // ベンダーオリジナルのActivityが起動されることがある。
-                // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
-                val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                intent.setClassName("com.android.settings", "com.android.settings.Settings\$ChannelNotificationSettingsActivity")
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
-                startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
-                val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
-                startActivity(intent)
+            if (defaultSharedPreferences.getBoolean("pref_notif_per_account_channel", false)) {
+                accountChooser.launch(Intent(this@NotificationPreferenceActivity, AccountChooserActivity::class.java))
+            } else {
+                startSystemNotificationActivity()
             }
         }
 
@@ -173,6 +162,33 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
     private fun updatePreference(preference: ParsedNotificationPreference) {
         defaultSharedPreferences.edit {
             putInt("pref_notif_${notificationType}", preference.toInteger())
+        }
+    }
+
+    private fun startSystemNotificationActivity(channelSuffix: String = "all") {
+        val channelId = when (notificationType) {
+            NOTIFICATION_MENTION -> NotificationChannelPrefix.CHANNEL_MENTION + channelSuffix
+            NOTIFICATION_RETWEET -> NotificationChannelPrefix.CHANNEL_REPOST + channelSuffix
+            NOTIFICATION_FAVORITE -> NotificationChannelPrefix.CHANNEL_FAVORITE + channelSuffix
+            NOTIFICATION_DIRECT_MESSAGE -> NotificationChannelPrefix.CHANNEL_MESSAGE + channelSuffix
+            NOTIFICATION_RT_RESPOND -> NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + channelSuffix
+            else -> throw RuntimeException("invalid notification type")
+        }
+        try {
+            // EMUI 8.xなど、正攻法で呼び出すと通知音のカスタマイズが行えない
+            // ベンダーオリジナルのActivityが起動されることがある。
+            // そういうのは嫌なので、素のAndroidの設定画面を指名して呼び出す。
+            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            intent.setClassName("com.android.settings", "com.android.settings.Settings\$ChannelNotificationSettingsActivity")
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // このブロックをわざわざ用意する意味はないかもしれない、とりあえず正攻法での呼出を書いただけ
+            val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            intent.putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+            startActivity(intent)
         }
     }
 
