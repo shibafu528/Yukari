@@ -278,7 +278,8 @@ public class TwitterService extends Service{
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                 File pluginDir = new File(getExternalFilesDir(null), "plugin");
                 if (pluginDir.exists() && !pluginDir.isDirectory()) {
-                    showToast("[Yukari exvoice]\nプラグインディレクトリのあるべき場所にファイルがあります。どかしていただけますか？");
+                    mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": plugin directory was not found, but found a regular file named `plugin`.\n");
+                    showToast("exvoice プラグインの読み込みでエラーが発生しました");
                 } else {
                     // プラグインディレクトリがなければ作っておく
                     if (!pluginDir.exists()) {
@@ -287,12 +288,16 @@ public class TwitterService extends Service{
                     Miquire.appendLoadPath(mRuby, pluginDir.getAbsolutePath());
                     MiquireResult result = Miquire.loadAll(mRuby);
                     if (result.getFailure().length > 0) {
-                        StringBuilder sb = new StringBuilder("プラグインの読み込みに失敗しました:");
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(mRubyStdOutFormat.format(new Date()));
+                        sb.append(": プラグインの読み込みに失敗しました");
                         for (String slug : result.getFailure()) {
                             sb.append("\n");
                             sb.append(slug);
                         }
-                        showToast(sb.toString());
+                        sb.append("\n");
+                        mRubyStdOut.append(sb);
+                        showToast("exvoice プラグインの読み込みでエラーが発生しました");
                     }
                 }
             }
