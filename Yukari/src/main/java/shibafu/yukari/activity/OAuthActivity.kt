@@ -7,10 +7,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
-import com.google.android.material.textfield.TextInputLayout
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.ListFragment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +15,11 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.ListFragment
+import androidx.fragment.app.commit
+import com.google.android.material.textfield.TextInputLayout
 import com.sys1yagi.mastodon4j.api.Scope
 import com.sys1yagi.mastodon4j.api.entity.Account
 import com.sys1yagi.mastodon4j.api.entity.auth.AppRegistration
@@ -28,9 +29,10 @@ import com.sys1yagi.mastodon4j.api.method.Apps
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
-import shibafu.yukari.database.Provider
-import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.database.Provider
+import shibafu.yukari.databinding.FragmentOauthSuccessBinding
+import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.TwitterUtil
 import twitter4j.TwitterException
 import twitter4j.auth.AccessToken
@@ -78,7 +80,14 @@ class OAuthActivity : ActionBarYukariBase() {
     }
 
     override fun onBackPressed() {
-        if (supportFragmentManager.backStackEntryCount == 0) {
+        if (supportFragmentManager.findFragmentById(R.id.frame) is FinishFragment) {
+            setResult(Activity.RESULT_OK)
+            if (intent.getBooleanExtra(EXTRA_REBOOT, false)) {
+                startActivity(Intent(this, MainActivity::class.java))
+            }
+            finish()
+            return
+        } else if (supportFragmentManager.backStackEntryCount == 0) {
             setResult(Activity.RESULT_CANCELED)
             finish()
             return
@@ -139,12 +148,10 @@ class OAuthActivity : ActionBarYukariBase() {
             override fun onPostExecute(aBoolean: Boolean) {
                 dialog?.dismiss()
                 if (aBoolean) {
-                    Toast.makeText(this@OAuthActivity, "認証成功！\nメニューの「Active Accounts」からTL自動取得の設定ができます。", Toast.LENGTH_LONG).show()
-                    setResult(Activity.RESULT_OK)
-                    if (intent.getBooleanExtra(EXTRA_REBOOT, false)) {
-                        startActivity(Intent(this@OAuthActivity, MainActivity::class.java))
+                    supportFragmentManager.popBackStackImmediate()
+                    supportFragmentManager.commit {
+                        replace(R.id.frame, FinishFragment())
                     }
-                    finish()
                 } else {
                     Toast.makeText(this@OAuthActivity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
                     setResult(Activity.RESULT_CANCELED)
@@ -499,18 +506,44 @@ class OAuthActivity : ActionBarYukariBase() {
                         service.database.addAccount(userRecord)
                         service.reloadUsers()
 
-                        Toast.makeText(activity, "認証成功！\nメニューの「Active Accounts」からストリーミングの設定ができます。", Toast.LENGTH_LONG).show()
-                        activity.setResult(Activity.RESULT_OK)
-                        if (activity.intent.getBooleanExtra(EXTRA_REBOOT, false)) {
-                            startActivity(Intent(activity, MainActivity::class.java))
+                        activity.supportFragmentManager.popBackStackImmediate()
+                        activity.supportFragmentManager.commit {
+                            replace(R.id.frame, FinishFragment())
                         }
-                        activity.finish()
                     } else {
                         Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
                         activity.supportFragmentManager.popBackStack()
                     }
                 }
             }.executeParallel()
+        }
+    }
+
+    class FinishFragment : Fragment() {
+        private var _binding: FragmentOauthSuccessBinding? = null
+        private val binding get() = _binding!!
+
+        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+            _binding = FragmentOauthSuccessBinding.inflate(inflater, container, false)
+
+            if (requireActivity().intent.getBooleanExtra(EXTRA_REBOOT, false)) {
+                binding.btnDone.setText(R.string.oauth_success_fragment_finish_first)
+            }
+
+            binding.btnDone.setOnClickListener {
+                val activity = requireActivity()
+                activity.setResult(Activity.RESULT_OK)
+                if (activity.intent.getBooleanExtra(EXTRA_REBOOT, false)) {
+                    startActivity(Intent(activity, MainActivity::class.java))
+                }
+                activity.finish()
+            }
+
+            binding.btnChannelManage.setOnClickListener {
+                startActivity(Intent(requireContext(), ChannelManageActivity::class.java))
+            }
+
+            return binding.root
         }
     }
 

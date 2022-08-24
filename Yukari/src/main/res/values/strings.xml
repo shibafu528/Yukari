@@ -92,4 +92,10 @@
     <string name="mastodon_report_comment_fragment_forward_checkbox">転送する</string>
     <string name="mastodon_report_comment_fragment_success_report">通報しました</string>
     <string name="mastodon_report_comment_fragment_failure_report">通報中にエラーが発生しました</string>
+
+    <string name="oauth_success_fragment_title">認証が完了しました</string>
+    <string name="oauth_success_fragment_channel_manage_notice">ストリーミング接続管理画面から、タイムライン自動取得の設定ができます。\n(設定画面からいつでも開けます)</string>
+    <string name="oauth_success_fragment_open_channel_manage">ストリーミング接続管理を開く</string>
+    <string name="oauth_success_fragment_finish">OK</string>
+    <string name="oauth_success_fragment_finish_first">タイムラインを開く</string>
 </resources>
