@@ -88,6 +88,7 @@ import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
+import shibafu.yukari.plugin.PluggaloidLogger;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
@@ -1770,6 +1771,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
         //Pluggaloidプラグインのバインド
         if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
+            PluggaloidLogger logger = getTwitterService().getPluggaloidLogger();
             Object[] result = Plugin.filtering(getTwitterService().getmRuby(), "twicca_action_edit_tweet", new HashMap());
             if (result != null && result[0] instanceof Map) {
                 ((Map) result[0]).values().stream().filter(o -> o instanceof Map).forEach(o -> {
@@ -1821,14 +1823,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                     }
                                 } catch (MRubyException e) {
                                     e.printStackTrace();
-                                    Toast.makeText(getApplicationContext(),
-                                            String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
-                                            Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(), "Procの実行中にMRuby上で例外が発生しました (詳細は標準出力ビューア)", Toast.LENGTH_LONG).show();
+                                    logger.log(String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()));
                                 }
                             } else {
-                                Toast.makeText(getApplicationContext(),
-                                        String.format("Procの実行に失敗しました\ntwicca_action :%s の宣言で適切なブロックを渡していますか？", slug),
-                                        Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Procの実行に失敗しました (詳細は標準出力ビューア)", Toast.LENGTH_LONG).show();
+                                logger.log(String.format("Procの実行に失敗しました。twicca_action :%s の宣言で適切なブロックを渡していますか？", slug));
                             }
                         });
                         imageButton.setOnLongClickListener(v -> {
