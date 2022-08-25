@@ -45,7 +45,8 @@ class AndroidCompatPlugin(mRuby: MRuby) : Plugin(mRuby, "android_compat") {
             }
             else -> {
                 onMainThread {
-                    Toast.makeText(context, "未実装ですヽ('ω')ﾉ三ヽ('ω')ﾉ\nもうしわけねぇもうしわけねぇ\n\n呼び出し情報 =>\n" + options.inspect(), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "未実装ですヽ('ω')ﾉ三ヽ('ω')ﾉ\nもうしわけねぇもうしわけねぇ", Toast.LENGTH_SHORT).show()
+                    mRuby.printStringCallback("Event :intent が呼び出されましたが、指定されたactivityの呼び出しは未実装でした。\n呼び出し情報 =>\n${options.inspect()}")
                 }
                 return
             }
