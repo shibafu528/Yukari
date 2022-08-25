@@ -66,6 +66,7 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.AndroidCompatPlugin;
+import shibafu.yukari.plugin.PluggaloidLogger;
 import shibafu.yukari.plugin.VirtualWorldPlugin;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
@@ -118,8 +119,7 @@ public class TwitterService extends Service{
 
     //MRuby VM
     private MRuby mRuby;
-    private StringBuffer mRubyStdOut = new StringBuffer();
-    private SimpleDateFormat mRubyStdOutFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.JAPAN);
+    private final PluggaloidLogger pluggaloidLogger = new PluggaloidLogger();
 
     //ネットワーク管理
     private LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
@@ -265,7 +265,7 @@ public class TwitterService extends Service{
                     return;
                 }
                 Log.d("ExVoice (TS)", value);
-                mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": ").append(value).append("\n");
+                pluggaloidLogger.log(value);
             });
             // ブートストラップの実行およびバンドルRubyプラグインのロード
             mRuby.requireAssets("bootstrap.rb");
@@ -278,7 +278,7 @@ public class TwitterService extends Service{
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                 File pluginDir = new File(getExternalFilesDir(null), "plugin");
                 if (pluginDir.exists() && !pluginDir.isDirectory()) {
-                    mRubyStdOut.append(mRubyStdOutFormat.format(new Date())).append(": plugin directory was not found, but found a regular file named `plugin`.\n");
+                    pluggaloidLogger.log("plugin directory was not found, but found a regular file named `plugin`.");
                     showToast("exvoice プラグインの読み込みでエラーが発生しました");
                 } else {
                     // プラグインディレクトリがなければ作っておく
@@ -288,15 +288,12 @@ public class TwitterService extends Service{
                     Miquire.appendLoadPath(mRuby, pluginDir.getAbsolutePath());
                     MiquireResult result = Miquire.loadAll(mRuby);
                     if (result.getFailure().length > 0) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(mRubyStdOutFormat.format(new Date()));
-                        sb.append(": プラグインの読み込みに失敗しました");
+                        StringBuilder sb = new StringBuilder("プラグインの読み込みに失敗しました");
                         for (String slug : result.getFailure()) {
                             sb.append("\n");
                             sb.append(slug);
                         }
-                        sb.append("\n");
-                        mRubyStdOut.append(sb);
+                        pluggaloidLogger.log(sb);
                         showToast("exvoice プラグインの読み込みでエラーが発生しました");
                     }
                 }
@@ -832,8 +829,8 @@ public class TwitterService extends Service{
         return mRuby;
     }
 
-    public StringBuffer getmRubyStdOut() {
-        return mRubyStdOut;
+    public PluggaloidLogger getPluggaloidLogger() {
+        return pluggaloidLogger;
     }
 
     public Interceptor getUserAgentInterceptor() {

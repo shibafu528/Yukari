@@ -46,7 +46,7 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
             public void run() {
                 if (isTwitterServiceBound() && getTwitterService() != null) {
                     handler.post(() -> {
-                        String s = getTwitterService().getmRubyStdOut().toString();
+                        String s = getTwitterService().getPluggaloidLogger().toString();
                         if (binding.editText.getText().length() != s.length()) {
                             binding.editText.setText(s);
                             binding.editText.scrollTo(65536, 0);
