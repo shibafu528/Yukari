@@ -1,14 +1,17 @@
 package shibafu.yukari.activity;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.widget.VideoView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.entity.Status;
@@ -82,10 +85,12 @@ public class MoviePreviewActivity extends AppCompatActivity {
                 }
 
                 // if error...
-                Toast.makeText(getApplicationContext(),
-                        "このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。",
-                        Toast.LENGTH_LONG).show();
-                finish();
+                new AlertDialog.Builder(MoviePreviewActivity.this)
+                        .setTitle("エラー")
+                        .setMessage("このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。")
+                        .setPositiveButton("OK", (dialog, which) -> finish())
+                        .create()
+                        .show();
             }
         }.executeParallel(data.toString());
 
