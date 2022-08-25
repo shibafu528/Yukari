@@ -1390,21 +1390,15 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         } else if (resultCode == RESULT_CANCELED) {
             switch (requestCode) {
                 case REQUEST_CAMERA: {
-                    try {
-                        ContentResolver resolver = getContentResolver();
-                        Cursor c = resolver.query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
-                        if (c != null) {
-                            if (c.moveToFirst()) {
-                                resolver.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                        MediaStore.Images.Media.DATA + "=?",
-                                        new String[]{c.getString(0)});
-                            }
-                            c.close();
+                    ContentResolver resolver = getContentResolver();
+                    Cursor c = resolver.query(cameraTemp, new String[]{MediaStore.Images.Media.DATA}, null, null, null);
+                    if (c != null) {
+                        if (c.moveToFirst()) {
+                            resolver.delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    MediaStore.Images.Media.DATA + "=?",
+                                    new String[]{c.getString(0)});
                         }
-                    } catch (NullPointerException e) {
-                        Toast.makeText(getApplicationContext(),
-                                "カメラとの連携をキャンセルする際、一時ファイルの削除に失敗しました。\nもしギャラリーにゴミが増えていたら始末をお願いします。",
-                                Toast.LENGTH_SHORT).show();
+                        c.close();
                     }
                     break;
                 }
