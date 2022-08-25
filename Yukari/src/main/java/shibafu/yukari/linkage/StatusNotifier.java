@@ -260,7 +260,7 @@ public class StatusNotifier {
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(context.getApplicationContext(), channelId);
                 builder.setSmallIcon(icon);
                 builder.setContentTitle(titleHeader + actionBy.getScreenName());
-                builder.setContentText(status.getOriginStatus().getText());
+                builder.setContentText(status.getOriginStatus().getTextWithoutMentions());
                 builder.setContentIntent(CompatUtil.getEmptyPendingIntent(context));
                 builder.setTicker(tickerHeader + actionBy.getScreenName());
                 builder.setColor(color);
@@ -379,7 +379,7 @@ public class StatusNotifier {
                             break;
                     }
                 }
-                final String text = tickerHeader + actionBy.getScreenName() + "\n" + status.getOriginStatus().getText();
+                final String text = tickerHeader + actionBy.getScreenName() + "\n" + status.getOriginStatus().getTextWithoutMentions();
                 handler.post(() -> Toast.makeText(context.getApplicationContext(),
                         text,
                         Toast.LENGTH_LONG)

@@ -293,6 +293,14 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
         return s
     }
 
+    fun getTextWithoutMentions(): String {
+        var text = this.text
+        mentions.forEach { mention ->
+            text = text.replace("@${mention.screenName}", "")
+        }
+        return text.trim()
+    }
+
     companion object {
         /** Relation: 無関係 */
         const val RELATION_NONE = 0
