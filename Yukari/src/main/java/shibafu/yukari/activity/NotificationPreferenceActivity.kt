@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringDef
@@ -48,6 +49,7 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         super.onCreate(savedInstanceState)
         binding = ActivityNotificationPreferenceBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         title = when (notificationType) {
             NOTIFICATION_MENTION -> "メンション通知"
@@ -115,6 +117,14 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
     override fun onPause() {
         super.onPause()
         defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onServiceConnected() {}
