@@ -1352,7 +1352,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         cameraTemp = data.getData();
                     }
                     if (cameraTemp == null) {
-                        Toast.makeText(TweetActivity.this, "カメラとの連携に失敗しました。\n使用したカメラアプリとの相性かもしれません。", Toast.LENGTH_LONG).show();
+                        Toast.makeText(TweetActivity.this, "カメラとの連携に失敗しました。カメラアプリとの相性かもしれません。", Toast.LENGTH_LONG).show();
                         return;
                     }
                     //添付に追加する
