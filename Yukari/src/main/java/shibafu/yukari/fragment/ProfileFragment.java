@@ -79,6 +79,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.regex.Matcher;
@@ -1099,7 +1100,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             }
 
             if (e != null) {
-                Toast.makeText(getActivity(), "ユーザー情報の取得に失敗しました\n\n" + e.getErrorMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), String.format(Locale.US, "[%d:%d] %s", e.getStatusCode(), e.getErrorCode(), e.getErrorMessage()), Toast.LENGTH_LONG).show();
                 getActivity().finish();
             }
             else {
