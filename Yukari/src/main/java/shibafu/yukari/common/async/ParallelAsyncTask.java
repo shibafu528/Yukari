@@ -19,6 +19,10 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
         }
     }
 
+    /**
+     * @deprecated Use Kotlin Coroutines.
+     */
+    @Deprecated
     public static void executeParallel(Runnable runnable) {
         new ParallelAsyncTask<Void, Void, Void>() {
             @Override
@@ -29,6 +33,10 @@ public abstract class ParallelAsyncTask<Params, Progress, Result>
         }.executeParallel();
     }
 
+    /**
+     * @deprecated Use Kotlin Coroutines.
+     */
+    @Deprecated
     public static void execute(@NotNull Runnable runnable) {
         new ParallelAsyncTask<Void, Void, Void>() {
             @Override
