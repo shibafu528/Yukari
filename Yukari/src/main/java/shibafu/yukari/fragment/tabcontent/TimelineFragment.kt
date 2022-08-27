@@ -153,9 +153,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
         swipeRefreshLayout?.setColorSchemeResources(AttrUtil.resolveAttribute(requireContext().theme, R.attr.colorPrimary))
         swipeRefreshLayout?.setOnRefreshListener(this)
 
-        val swipeActionStatusView = v.findViewById<View>(R.id.swipeActionStatusFrame)
-        swipeActionStatusView?.visibility = View.INVISIBLE
-
         unreadNotifierBehavior.onCreateView(v)
 
         return v
