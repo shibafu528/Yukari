@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import shibafu.yukari.R;
@@ -676,7 +677,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         binding.pager.setCurrentItem(tabInfo.getOrder());
 
                         time = System.currentTimeMillis() - time;
-                        Toast.makeText(getApplicationContext(), String.format("クエリ実行完了\n%s\n処理時間: %d ms\n抽出件数: %d 件", rawQuery, time, resultElements.size()), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), String.format(Locale.US, "クエリ実行完了 (%d ms)\n抽出件数: %d 件", time, resultElements.size()), Toast.LENGTH_LONG).show();
                     } catch (FilterCompilerException | TokenizeException e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(), e.toString(), Toast.LENGTH_LONG).show();
