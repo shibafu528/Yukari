@@ -4,7 +4,14 @@ import android.annotation.SuppressLint;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.Toast;
+import android.view.View;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.database.AuthUserRecord;
@@ -14,13 +21,6 @@ import shibafu.yukari.databinding.ActivityAssetBinding;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Created by shibafu on 15/03/31.
@@ -36,6 +36,7 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
         binding.textView.setText("破損したブックマークを修復しています...");
         binding.tvProgress.setText("0 破損していたブックマーク\n0 修復成功\n0 エラー");
         binding.progressBar.setIndeterminate(true);
+        binding.btnDone.setOnClickListener(v -> finish());
     }
 
     @Override
@@ -60,7 +61,7 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            activity.binding.tvProgress.setText(String.format("%d 破損していたブックマーク\n%d 修復成功\n%d エラー", values[0], values[1], values[2]));
+            activity.binding.tvProgress.setText(String.format(Locale.US, "%d 破損していたブックマーク\n%d 修復成功\n%d エラー", values[0], values[1], values[2]));
         }
 
         @Override
@@ -140,11 +141,12 @@ public class BookmarkRepairActivity extends ActionBarYukariBase {
         @Override
         protected void onPostExecute(Integer[] values) {
             super.onPostExecute(values);
-            Toast.makeText(activity.getApplicationContext(),
-                    String.format("修復が終了しました\n========\n%d 破損していたブックマーク\n%d 修復成功\n%d エラー",
-                            values[0], values[1], values[2]),
-                    Toast.LENGTH_LONG).show();
-            activity.finish();
+            activity.binding.btnDone.setVisibility(View.VISIBLE);
+            activity.binding.progressBar.setIndeterminate(false);
+            activity.binding.progressBar.setMax(1);
+            activity.binding.progressBar.setProgress(1);
+            activity.binding.textView.setText("修復が終了しました");
+            activity.binding.tvProgress.setText(String.format(Locale.US, "%d 破損していたブックマーク\n%d 修復成功\n%d エラー", values[0], values[1], values[2]));
         }
     }
 }
