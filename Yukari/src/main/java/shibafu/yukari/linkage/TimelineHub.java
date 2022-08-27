@@ -22,7 +22,8 @@ public interface TimelineHub {
 
     void onStatus(@NonNull String timelineId, @NonNull Status status, boolean passive);
     void onDirectMessage(@NonNull String timelineId, @NonNull TwitterMessage status, boolean passive);
-    void onRestRequestCompleted(@NonNull String timelineId, long taskKey);
+    void onRestRequestSuccess(@NonNull String timelineId, long taskKey);
+    void onRestRequestFailure(@NonNull String timelineId, long taskKey, @NonNull RestQueryException exception);
     void onRestRequestCancelled(@NonNull String timelineId, long taskKey);
     void onNotify(@NotifyKind int kind, @NonNull User eventBy, @NonNull Status status);
     void onFavorite(@NonNull User from, @NonNull Status status);

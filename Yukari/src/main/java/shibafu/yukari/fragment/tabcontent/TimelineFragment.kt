@@ -679,7 +679,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     handler.post { insertElement(status.clone(), !event.passive && useScrollLock && status !is LoadMarker) }
                 }
             }
-            is TimelineEvent.RestRequestCompleted -> {
+            is TimelineEvent.RestRequestSuccess -> {
                 if (event.timelineId == timelineId) {
                     if (USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
 

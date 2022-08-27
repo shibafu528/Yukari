@@ -62,7 +62,7 @@ class StatusLoader(private val context: Context,
                     e.printStackTrace()
                     exception = e
                 } finally {
-                    timelineHub.onRestRequestCompleted(timelineId, taskKey)
+                    timelineHub.onRestRequestSuccess(timelineId, taskKey)
                 }
 
                 return null
@@ -71,6 +71,11 @@ class StatusLoader(private val context: Context,
             override fun onPostExecute(result: Void?) {
                 workingRequests.delete(taskKey)
 
+                this.exception?.let {
+                    timelineHub.onRestRequestFailure(timelineId, taskKey, it)
+                }
+
+                // TODO: 移植して消す
                 val exception = this.exception?.cause ?: return
                 when (exception) {
                     is TwitterException -> {
