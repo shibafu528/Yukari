@@ -69,7 +69,7 @@ class StatusLoader(private val context: Context,
             }
 
             override fun onPostExecute(result: Void?) {
-                workingRequests.delete(taskKey)
+                workingRequests.remove(taskKey)
 
                 this.exception?.let {
                     timelineHub.onRestRequestFailure(timelineId, taskKey, it)
@@ -128,7 +128,7 @@ class StatusLoader(private val context: Context,
             }
 
             override fun onCancelled() {
-                workingRequests.delete(taskKey)
+                workingRequests.remove(taskKey)
                 timelineHub.onRestRequestCancelled(timelineId, taskKey)
             }
         }
