@@ -1,16 +1,21 @@
 package shibafu.yukari.twitter.streaming
 
+import android.app.NotificationManager
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
 import org.eclipse.collections.api.set.primitive.MutableLongSet
 import org.eclipse.collections.impl.factory.primitive.LongSets
+import shibafu.yukari.R
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterUtil
+import shibafu.yukari.util.CompatUtil
 import twitter4j.RateLimitStatus
 import twitter4j.TwitterException
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * こんなものストリーミングじゃない！ただの鬼ポーリングよ！
@@ -19,6 +24,7 @@ class AutoReloadStream(private val context: Context,
                        private val user: AuthUserRecord) : Stream(context, user) {
     private var workerThread: Thread? = null
     private val receivedIds: MutableLongSet = LongSets.mutable.empty()
+    private val notificationId = notificationIdGenerator.getAndIncrement()
 
     override fun getStreamType(): String = "AutoReload"
 
@@ -91,21 +97,19 @@ class AutoReloadStream(private val context: Context,
 
                         when (e.statusCode) {
                             429 -> {
-                                showToast(String.format("[AutoReload:@%s]\nレートリミット超過\n次回リセット: %d分%d秒後",
-                                                user.ScreenName,
-                                                e.rateLimitStatus.secondsUntilReset / 60,
-                                                e.rateLimitStatus.secondsUntilReset % 60))
+                                notifyError(String.format("レートリミット超過\n次回リセット: %d分%d秒後",
+                                        e.rateLimitStatus.secondsUntilReset / 60,
+                                        e.rateLimitStatus.secondsUntilReset % 60))
 
                                 val waitSeconds = maxOf(e.rateLimitStatus.secondsUntilReset, 60)
                                 Log.d(LOG_TAG, "Next after $waitSeconds secs. user: @${user.ScreenName}")
                                 Thread.sleep(waitSeconds * 1000L)
                             }
                             else -> {
-                                showToast(String.format("[AutoReload:@%s]\n通信エラー: %d:%d\n%s",
-                                                user.ScreenName,
-                                                e.statusCode,
-                                                e.errorCode,
-                                                e.errorMessage))
+                                notifyError(String.format("通信エラー: %d:%d\n%s",
+                                        e.statusCode,
+                                        e.errorCode,
+                                        e.errorMessage))
 
                                 Log.d(LOG_TAG, "Next after 60 secs. user: @${user.ScreenName}")
                                 Thread.sleep(60000L)
@@ -116,9 +120,7 @@ class AutoReloadStream(private val context: Context,
                     } catch (e: Exception) {
                         e.printStackTrace()
 
-                        showToast(String.format("[AutoReload:@%s]\nエラーが発生しました\n%s",
-                                user.ScreenName,
-                                e.javaClass.simpleName))
+                        notifyError("エラーが発生しました\n${e.javaClass.simpleName}")
 
                         Log.d(LOG_TAG, "Next after 60 secs. user: @${user.ScreenName}")
                         Thread.sleep(60000L)
@@ -137,14 +139,24 @@ class AutoReloadStream(private val context: Context,
             }
         }
 
-        private fun showToast(text: String) {
-            handler.post {
-                Toast.makeText(context.applicationContext, text, Toast.LENGTH_SHORT).show()
-            }
+        private fun notifyError(text: String) {
+            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notification = NotificationCompat.Builder(context, context.getString(R.string.notification_channel_id_error))
+                    .setSmallIcon(android.R.drawable.stat_notify_error)
+                    .setTicker("自動リロードエラー @${user.ScreenName}")
+                    .setContentTitle("自動リロードエラー @${user.ScreenName}")
+                    .setContentText(text)
+                    .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setContentIntent(CompatUtil.getEmptyPendingIntent(context))
+                    .setWhen(System.currentTimeMillis())
+                    .build()
+            nm.notify("shibafu.yukari.twitter.streaming.AUTO_RELOAD_ERROR", notificationId, notification)
         }
     }
 
     companion object {
         private const val LOG_TAG = "AutoReloadStream"
+        private val notificationIdGenerator = AtomicInteger()
     }
 }
