@@ -43,7 +43,7 @@ data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String
 
                 return responses.map { TwitterStatus(it, userRecord) }
             } catch (e: TwitterException) {
-                throw RestQueryException(e)
+                throw RestQueryException(userRecord, e)
             }
         }
     }

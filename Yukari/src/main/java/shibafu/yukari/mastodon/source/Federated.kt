@@ -57,7 +57,7 @@ data class AnonymousFederated(override val sourceAccount: AuthUserRecord, val in
                 val response = request.execute()
                 return response.part.map { DonStatus(it, sourceAccount) }
             } catch (e: Mastodon4jRequestException) {
-                throw RestQueryException(e)
+                throw RestQueryException(userRecord, e)
             }
         }
     }

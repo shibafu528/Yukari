@@ -54,6 +54,7 @@ import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putWarnLog
+import shibafu.yukari.view.TimelineErrorView
 import twitter4j.DirectMessage
 import twitter4j.TwitterException
 
@@ -123,6 +124,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
     // ListView Xタッチ座標 (画面幅に対する割合)
     private var listViewXTouchPercent: Float = 0f
 
+    // REST APIエラー表示
+    private val timelineErrorBehavior = TimelineErrorBehavior(this)
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
@@ -154,6 +158,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         swipeRefreshLayout?.setOnRefreshListener(this)
 
         unreadNotifierBehavior.onCreateView(v)
+        timelineErrorBehavior.onCreateView(v)
 
         return v
     }
@@ -177,6 +182,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
         enableDoubleClickBlocker = defaultSharedPreferences.getBoolean("pref_block_doubleclock", false)
         blockingDoubleClick = false
+        timelineErrorBehavior.onResume()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -679,13 +685,18 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     handler.post { insertElement(status.clone(), !event.passive && useScrollLock && status !is LoadMarker) }
                 }
             }
-            is TimelineEvent.RestRequestCompleted -> {
+            is TimelineEvent.RestRequestSuccess -> {
                 if (event.timelineId == timelineId) {
                     if (USE_INSERT_LOG) putDebugLog("onUpdatedStatus : Rest Completed ... taskKey=${event.taskKey} , left loadingTaskKeys.size=${loadingTaskKeys.size}")
 
                     handler.post {
                         finishRestRequest(event.taskKey)
                     }
+                }
+            }
+            is TimelineEvent.RestRequestFailure -> {
+                if (event.timelineId == timelineId) {
+                    timelineErrorBehavior.onRestRequestFailure(event)
                 }
             }
             is TimelineEvent.RestRequestCancelled -> {

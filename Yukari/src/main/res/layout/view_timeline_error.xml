@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorPrimary">
+    <shibafu.yukari.common.SelectorView
+        android:layout_width="38dp"
+        android:layout_height="match_parent"
+        android:paddingEnd="4dp"
+        app:on_pressed="?attr/colorPrimaryDark"
+        app:on_focused="?attr/colorPrimaryDark">
+        <ImageButton
+            android:id="@+id/ibCloseError"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_close_d" />
+    </shibafu.yukari.common.SelectorView>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/tvErrorTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ccc"
+            android:textStyle="bold"
+            tools:text="Error!" />
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#ccc"
+            tools:text="Error message" />
+    </LinearLayout>
+</LinearLayout>

@@ -303,12 +303,23 @@ class TimelineHubImpl(private val service: TwitterService,
     }
 
     /**
-     * [StatusLoader.requestRestQuery] の処理完了通知の受信
+     * [StatusLoader.requestRestQuery] の処理成功通知の受信
      * @param timelineId 配信先識別子
      * @param taskKey [StatusLoader.requestRestQuery] の戻り値
      */
-    override fun onRestRequestCompleted(timelineId: String, taskKey: Long) {
-        pushEventQueue(TimelineEvent.RestRequestCompleted(timelineId, taskKey))
+    override fun onRestRequestSuccess(timelineId: String, taskKey: Long) {
+        pushEventQueue(TimelineEvent.RestRequestSuccess(timelineId, taskKey))
+    }
+
+
+    /**
+     * [StatusLoader.requestRestQuery] のエラー通知の受信
+     * @param timelineId 配信先識別子
+     * @param taskKey [StatusLoader.requestRestQuery] の戻り値
+     * @param exception 発生した例外
+     */
+    override fun onRestRequestFailure(timelineId: String, taskKey: Long, exception: RestQueryException) {
+        pushEventQueue(TimelineEvent.RestRequestFailure(timelineId, taskKey, exception))
     }
 
     /**
@@ -463,10 +474,17 @@ sealed class TimelineEvent(val timelineId: String) {
     class Received(timelineId: String, val status: Status, val muted: Boolean, val passive: Boolean) : TimelineEvent(timelineId)
 
     /**
-     * [StatusLoader.requestRestQuery] の処理完了
+     * [StatusLoader.requestRestQuery] の処理成功
      * @property taskKey [StatusLoader.requestRestQuery] の戻り値
      */
-    class RestRequestCompleted(timelineId: String, val taskKey: Long) : TimelineEvent(timelineId)
+    class RestRequestSuccess(timelineId: String, val taskKey: Long) : TimelineEvent(timelineId)
+
+    /**
+     * [StatusLoader.requestRestQuery] のエラー
+     * @property taskKey [StatusLoader.requestRestQuery] の戻り値
+     * @property exception 発生した例外
+     */
+    class RestRequestFailure(timelineId: String, val taskKey: Long, val exception: RestQueryException) : TimelineEvent(timelineId)
 
     /**
      * [StatusLoader.requestRestQuery] の処理中断
