@@ -1,13 +1,21 @@
 package shibafu.yukari.fragment.tabcontent
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.preference.PreferenceManager
 import android.view.View
 import android.widget.AbsListView
 import android.widget.TextView
+import androidx.core.view.updatePaddingRelative
 import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
 import shibafu.yukari.entity.Status
+import shibafu.yukari.linkage.TimelineEvent
+import shibafu.yukari.util.defaultSharedPreferences
+import shibafu.yukari.view.TimelineErrorView
+import kotlin.math.roundToInt
 
 /**
  * 未読ビューの振る舞い制御
@@ -93,5 +101,55 @@ internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
             ++i
         }
         updateUnreadNotifier()
+    }
+}
+
+/**
+ * REST APIエラー表示の制御
+ */
+internal class TimelineErrorBehavior(private val parent: TimelineFragment) : TimelineErrorView.OnCloseListener {
+    private val handler = Handler(Looper.getMainLooper()) { msg ->
+        when (msg.what) {
+            MSG_AUTO_CLOSE -> {
+                errorView?.visibility = View.INVISIBLE
+                true
+            }
+            else -> false
+        }
+    }
+    private var errorView: TimelineErrorView? = null
+
+    fun onCreateView(parentView: View) {
+        errorView = parentView.findViewById(R.id.llErrorView)
+        errorView!!.setOnCloseListener(this)
+    }
+
+    fun onResume() {
+        val sharedPreferences = parent.requireContext().defaultSharedPreferences
+        if (sharedPreferences.getBoolean("pref_show_tweetbutton", false)) {
+            errorView?.updatePaddingRelative(end = (parent.resources.displayMetrics.density * 44).roundToInt())
+        } else {
+            errorView?.updatePaddingRelative(end = 0)
+        }
+    }
+
+    fun onRestRequestFailure(event: TimelineEvent.RestRequestFailure) {
+        handler.post {
+            errorView?.let { ev ->
+                ev.visibility = View.VISIBLE
+                ev.setException(event.exception)
+                handler.removeMessages(MSG_AUTO_CLOSE)
+                handler.sendEmptyMessageDelayed(MSG_AUTO_CLOSE, 10000)
+            }
+        }
+    }
+
+    override fun onCloseTimelineError(v: TimelineErrorView) {
+        handler.removeMessages(MSG_AUTO_CLOSE)
+        v.visibility = View.INVISIBLE
+    }
+
+    companion object {
+        private const val MSG_AUTO_CLOSE = 1
     }
 }

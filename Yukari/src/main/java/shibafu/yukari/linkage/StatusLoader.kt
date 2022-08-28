@@ -4,13 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import androidx.collection.LongSparseArray
 import android.util.Log
-import android.widget.Toast
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
+import androidx.collection.LongSparseArray
 import shibafu.yukari.common.async.ParallelAsyncTask
 import shibafu.yukari.database.AuthUserRecord
-import twitter4j.TwitterException
 
 /**
  * 非同期RESTリクエストの受付とAPI呼出の一元管理
@@ -70,60 +67,8 @@ class StatusLoader(private val context: Context,
 
             override fun onPostExecute(result: Void?) {
                 workingRequests.remove(taskKey)
-
                 this.exception?.let {
                     timelineHub.onRestRequestFailure(timelineId, taskKey, it)
-                }
-
-                // TODO: 移植して消す
-                val exception = this.exception?.cause ?: return
-                when (exception) {
-                    is TwitterException -> {
-                        when (exception.statusCode) {
-                            429 -> Toast.makeText(context,
-                                    String.format("[@%s]\nレートリミット超過\n次回リセット: %d分%d秒後\n時間を空けて再度操作してください",
-                                            userRecord.ScreenName,
-                                            exception.rateLimitStatus.secondsUntilReset / 60,
-                                            exception.rateLimitStatus.secondsUntilReset % 60),
-                                    Toast.LENGTH_SHORT).show()
-                            403 -> {
-                                if (exception.errorCode == 93) {
-                                    Toast.makeText(context,
-                                            String.format("[@%s]\nアクセス権エラー: %d:%d\n" +
-                                                    "DMへのアクセスが制限されています。\n" +
-                                                    "一度アプリ連携を切って認証を再発行してみてください。",
-                                                    userRecord.ScreenName,
-                                                    exception.errorCode,
-                                                    exception.errorMessage),
-                                            Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context,
-                                            String.format("[@%s]\nアクセス権エラー: %d:%d\n%s",
-                                                    userRecord.ScreenName,
-                                                    exception.statusCode,
-                                                    exception.errorCode,
-                                                    exception.errorMessage),
-                                            Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            else -> {
-                                val template: String
-                                if (exception.isCausedByNetworkIssue) {
-                                    template = "[@%s]\n通信エラー: %d:%d\n%s"
-                                } else {
-                                    template = "[@%s]\nエラー: %d:%d\n%s"
-                                }
-                                Toast.makeText(context,
-                                        String.format(template,
-                                                userRecord.ScreenName,
-                                                exception.statusCode,
-                                                exception.errorCode,
-                                                exception.errorMessage),
-                                        Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                    is Mastodon4jRequestException -> {}
                 }
             }
 
