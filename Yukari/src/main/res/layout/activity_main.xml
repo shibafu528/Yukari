@@ -242,12 +242,6 @@
                 android:padding="@dimen/mainfooter_tweet_button"
                 android:src="@drawable/ic_prof_tweets_d" />
         </shibafu.yukari.common.SelectorView>
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_gravity="center_horizontal|bottom"
-            android:src="@color/key_color" />
     </FrameLayout>
 
 </RelativeLayout>
