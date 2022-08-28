@@ -66,7 +66,7 @@ data class DirectMessage(override val sourceAccount: AuthUserRecord) : FilterSou
 
                 return responseList
             } catch (e: TwitterException) {
-                throw RestQueryException(e)
+                throw RestQueryException(userRecord, e)
             }
         }
     }

@@ -37,7 +37,7 @@ class MastodonRestQuery(private val resolver: (MastodonClient, Range) -> Pageabl
 
             return list
         } catch (e: Mastodon4jRequestException) {
-            throw RestQueryException(e)
+            throw RestQueryException(userRecord, e)
         }
     }
 }

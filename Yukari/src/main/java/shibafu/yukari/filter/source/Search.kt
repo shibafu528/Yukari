@@ -61,7 +61,7 @@ data class Search(override val sourceAccount: AuthUserRecord, val query: String)
 
                 return responseList
             } catch (e: TwitterException) {
-                throw RestQueryException(e)
+                throw RestQueryException(userRecord, e)
             }
         }
     }

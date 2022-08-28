@@ -38,7 +38,7 @@ class TwitterRestQuery(private val resolver: (Twitter, Paging) -> ResponseList<t
 
             return responseList
         } catch (e: TwitterException) {
-            throw RestQueryException(e)
+            throw RestQueryException(userRecord, e)
         }
     }
 }

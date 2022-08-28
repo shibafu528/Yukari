@@ -29,7 +29,7 @@ data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String
 
             try {
                 val statuses = Statuses(api)
-                val originId = origin.split("/").lastOrNull()?.toLongOrNull() ?: throw RestQueryException(RuntimeException("起点の指定フォーマットが不正です: $origin"))
+                val originId = origin.split("/").lastOrNull()?.toLongOrNull() ?: throw RestQueryException(userRecord, RuntimeException("起点の指定フォーマットが不正です: $origin"))
 
                 val originStatus = statuses.getStatus(originId).execute()
                 val contexts = statuses.getContext(originId).execute()
@@ -37,7 +37,7 @@ data class Trace(override val sourceAccount: AuthUserRecord?, val origin: String
                 return (contexts.descendants.reversed() + listOf(originStatus) + contexts.ancestors.reversed())
                         .map { DonStatus(it, userRecord) }
             } catch (e: Mastodon4jRequestException) {
-                throw RestQueryException(e)
+                throw RestQueryException(userRecord, e)
             }
         }
     }

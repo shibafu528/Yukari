@@ -28,7 +28,7 @@ open class User(override val sourceAccount: AuthUserRecord, val target: String) 
 
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         if (missingAccount) {
-            throw RestQueryException(UserNotFoundException(target))
+            throw RestQueryException(sourceAccount, UserNotFoundException(target))
         }
 
         val targetId = targetId ?: findTargetId(client)
@@ -54,7 +54,7 @@ open class User(override val sourceAccount: AuthUserRecord, val target: String) 
             return accountSearch.first().id.also { this.targetId = it }
         } else {
             missingAccount = true
-            throw RestQueryException(UserNotFoundException(target))
+            throw RestQueryException(sourceAccount, UserNotFoundException(target))
         }
     }
 
@@ -65,7 +65,7 @@ open class User(override val sourceAccount: AuthUserRecord, val target: String) 
 class DonUserPinned(sourceAccount: AuthUserRecord, target: String) : User(sourceAccount, target) {
     override fun getRestQuery(): RestQuery? = MastodonRestQuery { client, range ->
         if (missingAccount) {
-            throw RestQueryException(UserNotFoundException(target))
+            throw RestQueryException(sourceAccount, UserNotFoundException(target))
         }
 
         val targetId = targetId ?: findTargetId(client)
