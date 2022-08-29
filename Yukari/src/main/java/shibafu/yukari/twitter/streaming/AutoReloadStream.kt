@@ -106,10 +106,10 @@ class AutoReloadStream(private val context: Context,
                                 Thread.sleep(waitSeconds * 1000L)
                             }
                             else -> {
-                                notifyError(String.format("通信エラー: %d:%d\n%s",
+                                notifyError(String.format("%d:%d 通信エラー\n%s",
                                         e.statusCode,
                                         e.errorCode,
-                                        e.errorMessage))
+                                        e.errorMessage ?: e.cause?.toString() ?: e.toString()))
 
                                 Log.d(LOG_TAG, "Next after 60 secs. user: @${user.ScreenName}")
                                 Thread.sleep(60000L)
@@ -150,6 +150,7 @@ class AutoReloadStream(private val context: Context,
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setContentIntent(CompatUtil.getEmptyPendingIntent(context))
                     .setWhen(System.currentTimeMillis())
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(text))
                     .build()
             nm.notify("shibafu.yukari.twitter.streaming.AUTO_RELOAD_ERROR", notificationId, notification)
         }

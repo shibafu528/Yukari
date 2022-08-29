@@ -56,11 +56,24 @@ class TimelineErrorView @JvmOverloads constructor(context: Context?, attrs: Attr
                     else -> {
                         val kind = if (cause.isCausedByNetworkIssue) { "通信エラー" } else { "エラー" }
                         title = "${cause.statusCode}:${cause.errorCode} $kind | @${exception.userRecord.ScreenName}"
-                        message = cause.errorMessage
+                        message = cause.errorMessage ?: "TLの取得中にエラーが発生しました\n${(cause.cause ?: cause)}"
                     }
                 }
             }
-            is Mastodon4jRequestException -> {}
+            is Mastodon4jRequestException -> {
+                val response = cause.response
+                if (response != null) {
+                    title = "${response.code()} エラー | @${exception.userRecord.ScreenName}"
+                    message = response.message()
+                } else {
+                    title = "エラー | @${exception.userRecord.ScreenName}"
+                    message = "TLの取得中にエラーが発生しました\n${(cause.cause ?: cause)}"
+                }
+            }
+            else -> {
+                title = "エラー | @${exception.userRecord.ScreenName}"
+                message = "TLの取得中にエラーが発生しました\n${cause}"
+            }
         }
     }
 
