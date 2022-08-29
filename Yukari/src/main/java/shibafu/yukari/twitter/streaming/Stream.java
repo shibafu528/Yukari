@@ -38,7 +38,7 @@ public abstract class Stream {
             @Override
             public void onDisconnect() {
                 Log.d("Stream", "Disconnect stream @" + Stream.this.userRecord.ScreenName);
-                Stream.this.context.sendBroadcast(createBroadcast(TwitterService.ACTION_STREAM_CONNECTED));
+                Stream.this.context.sendBroadcast(createBroadcast(TwitterService.ACTION_STREAM_DISCONNECTED));
             }
 
             @Override
