@@ -1,6 +1,5 @@
 package shibafu.yukari.activity
 
-import android.Manifest
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.NotificationManager
@@ -11,69 +10,40 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.os.Process
 import android.preference.PreferenceManager
 import android.provider.Settings
-import androidx.fragment.app.ListFragment
-import androidx.documentfile.provider.DocumentFile
-import androidx.collection.SparseArrayCompat
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.ListView
-import android.widget.Spinner
+import android.widget.*
+import androidx.collection.SparseArrayCompat
+import androidx.documentfile.provider.DocumentFile
+import androidx.fragment.app.ListFragment
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import permissions.dispatcher.NeedsPermission
-import permissions.dispatcher.OnPermissionDenied
-import permissions.dispatcher.PermissionUtils
-import permissions.dispatcher.RuntimePermissions
+import kotlinx.coroutines.*
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.TabInfo
 import shibafu.yukari.common.UsedHashes
-import shibafu.yukari.database.AutoMuteConfig
-import shibafu.yukari.database.Bookmark
-import shibafu.yukari.database.CentralDatabase
-import shibafu.yukari.database.DBRecord
-import shibafu.yukari.database.MuteConfig
-import shibafu.yukari.database.Provider
-import shibafu.yukari.database.SearchHistory
-import shibafu.yukari.database.StreamChannelState
-import shibafu.yukari.database.UserExtras
+import shibafu.yukari.database.*
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.LOG_TAG
 import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set
 import shibafu.yukari.util.showToast
 import twitter4j.auth.AccessToken
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.IOException
-import java.lang.Exception
+import java.io.*
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by shibafu on 2016/03/13.
  */
-@RuntimePermissions
 class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener, CoroutineScope {
     companion object {
         const val EXTRA_MODE = "mode"
@@ -123,50 +93,11 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         spLocation = findViewById(R.id.spinner)
 
         val btnExecute = findViewById<Button>(R.id.btnExecute)
-        btnExecute.setOnClickListener { onClickExecuteWithPermissionCheck() }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            btnExecute.text = "フォルダを選択して実行"
-        }
+        btnExecute.setOnClickListener { onClickExecute() }
     }
 
-    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    fun onClickExecute() {
-        val driver = when (spLocation.selectedItemPosition) {
-            0 -> {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                    if (Environment.getExternalStorageState() != Environment.MEDIA_MOUNTED || Environment.getExternalStorageDirectory() == null) {
-                        showToast("SDカードが挿入されていないか、ストレージ領域を正しく認識できていません。")
-                        return
-                    }
-                } else {
-                    startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_OPEN_DOCUMENT_TREE)
-                    return
-                }
-                FileDriver(File(Environment.getExternalStorageDirectory(), "Yukari4a"))
-            }
-            else -> throw RuntimeException("invalid location choose")
-        }
-
-        executeInternal(driver)
-    }
-
-    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    fun onDeniedWriteExternalStorage() {
-        if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            showToast("ストレージにアクセスする権限がありません。")
-        } else {
-            SimpleAlertDialogFragment.newInstance(DIALOG_PERMISSION_DENIED,
-                    "許可が必要",
-                    "この操作を実行するためには、手動で設定画面からストレージへのアクセスを許可する必要があります。",
-                    "設定画面へ",
-                    "キャンセル")
-                    .show(supportFragmentManager, "permission_denied")
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        onRequestPermissionsResult(requestCode, grantResults)
+    private fun onClickExecute() {
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_OPEN_DOCUMENT_TREE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -542,39 +473,6 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                 if (output == null) {
                     throw IOException("Can't create file : $fileName")
                 }
-                output.writer().use { writer ->
-                    writer.write(data)
-                    writer.flush()
-                }
-            }
-        }
-    }
-
-    /**
-     * Filesystem driver for pre Android 5.0
-     */
-    private class FileDriver(private val directory: File) : BackupDriver {
-        init {
-            if (!directory.exists()) {
-                directory.mkdirs()
-            }
-        }
-
-        override fun readFile(fileName: String): String {
-            val file = File(directory, fileName)
-            if (!file.exists()) {
-                throw FileNotFoundException("not found : $fileName")
-            }
-            FileInputStream(file).use { input ->
-                input.reader().use { reader ->
-                    return reader.readText()
-                }
-            }
-        }
-
-        override fun writeFile(fileName: String, data: String) {
-            val file = File(directory, fileName)
-            FileOutputStream(file).use { output ->
                 output.writer().use { writer ->
                     writer.write(data)
                     writer.flush()

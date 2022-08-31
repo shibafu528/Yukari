@@ -38,7 +38,7 @@
     <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="実行"
+            android:text="フォルダを選択して実行"
             android:id="@+id/btnExecute"
             android:layout_gravity="center_horizontal"
             />
