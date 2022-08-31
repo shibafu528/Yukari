@@ -93,11 +93,9 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         spLocation = findViewById(R.id.spinner)
 
         val btnExecute = findViewById<Button>(R.id.btnExecute)
-        btnExecute.setOnClickListener { onClickExecute() }
-    }
-
-    private fun onClickExecute() {
-        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_OPEN_DOCUMENT_TREE)
+        btnExecute.setOnClickListener {
+            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_OPEN_DOCUMENT_TREE)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
