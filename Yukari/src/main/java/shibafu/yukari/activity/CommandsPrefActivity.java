@@ -1,32 +1,18 @@
 package shibafu.yukari.activity;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.Intent;
+import android.content.Context;
 import android.content.res.Resources;
 import android.media.MediaScannerConnection;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
-import androidx.annotation.NonNull;
+import android.util.Log;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RawRes;
 import androidx.preference.Preference;
-import android.widget.Toast;
 
 import com.takisoft.preferencex.PreferenceFragmentCompat;
-
-import permissions.dispatcher.NeedsPermission;
-import permissions.dispatcher.OnPermissionDenied;
-import permissions.dispatcher.OnShowRationale;
-import permissions.dispatcher.PermissionRequest;
-import permissions.dispatcher.PermissionUtils;
-import permissions.dispatcher.RuntimePermissions;
-import shibafu.yukari.R;
-import shibafu.yukari.activity.base.ActionBarYukariBase;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,10 +22,14 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import shibafu.yukari.R;
+import shibafu.yukari.activity.base.ActionBarYukariBase;
+
 /**
  * Created by shibafu on 14/04/03.
  */
 public class CommandsPrefActivity extends ActionBarYukariBase {
+    private static final String LOG_TAG = "CommandsPrefActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +46,6 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
     @Override
     public void onServiceDisconnected() {}
 
-    @RuntimePermissions
     public static class InnerFragment extends PreferenceFragmentCompat {
         private final Resource[] exportResources = {
                 new Resource(R.raw.y_reply, "Yukari - Yukari Reply.ogg"),
@@ -84,24 +73,23 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
             Preference prefSoundThemeExport = findPreference("pref_sound_theme_export");
             prefSoundThemeExport.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
             prefSoundThemeExport.setOnPreferenceClickListener(preference -> {
-                InnerFragmentPermissionsDispatcher.exportResourcesWithPermissionCheck(this);
+                exportResources();
                 return true;
             });
         }
 
-        @SuppressLint("NeedOnRequestPermissionsResult")
-        @Override
-        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-            InnerFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
-        }
-
-        @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         void exportResources() {
-            Resources res = getResources();
+            Context context = requireContext();
+            File[] mediaDirs = context.getExternalMediaDirs();
+            if (mediaDirs.length == 0) {
+                Log.e(LOG_TAG, "Couldn't find external media directories.");
+                Toast.makeText(getActivity(), "エクスポート中にエラーが発生しました。", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
+            Resources res = getResources();
             try {
-                File mediaDir = new File(Environment.getExternalStorageDirectory(), "Android/media/" + requireContext().getPackageName() + "/Notifications");
+                File mediaDir = new File(mediaDirs[0], "Notifications");
                 mediaDir.mkdirs();
 
                 List<String> resourceAbsolutePaths = new ArrayList<>();
@@ -128,40 +116,6 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
                 e.printStackTrace();
                 Toast.makeText(getActivity(), "エクスポート中にエラーが発生しました。", Toast.LENGTH_SHORT).show();
             }
-        }
-
-        @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        void onDeniedWriteExternalStorage() {
-            if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                Toast.makeText(getActivity(), "ストレージにアクセスする権限がありません。", Toast.LENGTH_SHORT).show();
-            } else {
-                new AlertDialog.Builder(getActivity())
-                        .setTitle("許可が必要")
-                        .setMessage("この操作を実行するためには、手動で設定画面からストレージへのアクセスを許可する必要があります。")
-                        .setPositiveButton("設定画面へ", (dialog, which) -> {
-                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                            intent.setData(Uri.fromParts("package", getActivity().getPackageName(), null));
-                            startActivity(intent);
-                        })
-                        .setNegativeButton("今はしない", (dialog, which) -> {})
-                        .create()
-                        .show();
-            }
-        }
-
-        @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        void showRationaleForWriteExternalStorage(final PermissionRequest request) {
-            new AlertDialog.Builder(getActivity())
-                    .setTitle("許可が必要")
-                    .setMessage("この操作を実行するためには、ストレージへのアクセス許可が必要です。")
-                    .setPositiveButton("許可", (dialog, which) -> {
-                        request.proceed();
-                    })
-                    .setNegativeButton("許可しない", (dialog, which) -> {
-                        request.cancel();
-                    })
-                    .create()
-                    .show();
         }
 
         private static class Resource {
