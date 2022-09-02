@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PointF
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.preference.PreferenceManager
@@ -181,7 +182,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         onRequestPermissionsResult(requestCode, grantResults)
     }
 
-    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, maxSdkVersion = Build.VERSION_CODES.P)
     fun onClickSave() {
         doSave(collection[viewPager.currentItem])
     }
@@ -257,10 +258,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                 val request = media.downloadRequest ?: return@async "保存できない種類の画像です。"
                 request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE or DownloadManager.Request.NETWORK_WIFI)
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-
-                val pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                pathExternalPublicDir.mkdirs()
-
                 dlm.enqueue(request)
             } catch (e: IOException) {
                 e.printStackTrace()

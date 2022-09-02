@@ -415,7 +415,7 @@ public class PreviewActivity extends ActionBarYukariBase {
         }
     }
 
-    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    @NeedsPermission(value = Manifest.permission.WRITE_EXTERNAL_STORAGE, maxSdkVersion = Build.VERSION_CODES.P)
     void onClickSave() {
         new SaveAsyncTask(getApplicationContext()).doInBackground(media);
     }
@@ -516,8 +516,6 @@ public class PreviewActivity extends ActionBarYukariBase {
                     return "保存できない種類の画像です。";
                 }
                 request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
-                File pathExternalPublicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                pathExternalPublicDir.mkdirs();
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 dlm.enqueue(request);
                 return "";
