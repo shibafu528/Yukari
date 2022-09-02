@@ -1,6 +1,5 @@
 package shibafu.yukari.service;
 
-import android.Manifest;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -9,27 +8,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.util.Log;
+
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.RemoteInput;
-import androidx.core.content.ContextCompat;
-import android.util.Log;
-import shibafu.yukari.R;
-import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.bitmapcache.BitmapCache;
-import shibafu.yukari.entity.InReplyToId;
-import shibafu.yukari.entity.Status;
-import shibafu.yukari.entity.StatusDraft;
-import shibafu.yukari.linkage.ProviderApi;
-import shibafu.yukari.linkage.ProviderApiException;
-import shibafu.yukari.database.AuthUserRecord;
-import shibafu.yukari.util.BitmapUtil;
-import shibafu.yukari.util.CompatUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,6 +26,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import shibafu.yukari.R;
+import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.entity.InReplyToId;
+import shibafu.yukari.entity.Status;
+import shibafu.yukari.entity.StatusDraft;
+import shibafu.yukari.linkage.ProviderApi;
+import shibafu.yukari.linkage.ProviderApiException;
+import shibafu.yukari.util.BitmapUtil;
+import shibafu.yukari.util.CompatUtil;
 
 /**
  * Created by shibafu on 14/03/26.
@@ -131,14 +130,14 @@ public class PostService extends IntentService{
         }
 
         //添付メディアのアップロード準備
-        if (!draft.getAttachPictures().isEmpty() && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            nm.cancel(0);
-            showErrorMessage(1, draft, "ストレージへのアクセス許可がありません");
-            return;
-        }
         List<File> uploadMediaList;
         try {
             uploadMediaList = prepareUploadMedia(draft.getAttachPictures(), imageResizeLength);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            nm.cancel(0);
+            showErrorMessage(1, draft, "添付画像を読み込めませんでした。ストレージへのアクセス許可の権限を確認してください。");
+            return;
         } catch (IOException e) {
             nm.cancel(0);
             showErrorMessage(1, draft, "添付画像の処理エラー");
@@ -266,7 +265,7 @@ public class PostService extends IntentService{
                 }
             }
             return uploadMedia;
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             for (File file : uploadMedia) {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
@@ -315,7 +314,8 @@ public class PostService extends IntentService{
                 .setContentIntent(CompatUtil.getEmptyPendingIntent(getApplicationContext()))
                 .setAutoCancel(true)
                 .setSmallIcon(android.R.drawable.stat_notify_error)
-                .setWhen(System.currentTimeMillis());
+                .setWhen(System.currentTimeMillis())
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(reason));
         if (icon != null) {
             builder.setLargeIcon(icon);
         }
