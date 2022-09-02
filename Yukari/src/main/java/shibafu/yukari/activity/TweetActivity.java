@@ -1060,7 +1060,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         currentDialog.show();
     }
 
-    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    @NeedsPermission(value = Manifest.permission.WRITE_EXTERNAL_STORAGE, maxSdkVersion = Build.VERSION_CODES.P)
     void launchCamera() {
         //添付上限判定
         if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
