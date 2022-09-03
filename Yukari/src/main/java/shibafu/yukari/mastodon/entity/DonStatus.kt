@@ -256,22 +256,20 @@ class DonStatus(val status: Status,
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.let {
-            it.writeString(Gson().toJson(status))
-            it.writeSerializable(firstReceiverUser)
-            it.writeSerializable(representUser)
-            it.writeParcelable(metadata, 0)
-            it.writeInt(favoritesCount)
-            it.writeInt(repostsCount)
-            it.writeBooleanCompat(representOverrode)
-            it.writeList(receivedUsers.toList())
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(Gson().toJson(status))
+        dest.writeSerializable(firstReceiverUser)
+        dest.writeSerializable(representUser)
+        dest.writeParcelable(metadata, 0)
+        dest.writeInt(favoritesCount)
+        dest.writeInt(repostsCount)
+        dest.writeBooleanCompat(representOverrode)
+        dest.writeList(receivedUsers.toList())
 
-            it.writeInt(perProviderId.size())
-            perProviderId.forEachKeyValue { key, value ->
-                it.writeString(key)
-                it.writeLong(value)
-            }
+        dest.writeInt(perProviderId.size())
+        perProviderId.forEachKeyValue { key, value ->
+            dest.writeString(key)
+            dest.writeLong(value)
         }
     }
 

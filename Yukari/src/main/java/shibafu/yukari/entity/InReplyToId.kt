@@ -21,11 +21,7 @@ class InReplyToId(val url: String) : Parcelable {
         }
     }
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        if (dest == null) {
-            return
-        }
-
+    override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(url)
         dest.writeInt(perProviderId.size)
         perProviderId.forEach { kv ->

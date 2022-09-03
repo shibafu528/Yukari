@@ -93,14 +93,12 @@ import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
-import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
 import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
-import twitter4j.TwitterAPIConfiguration;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -109,6 +107,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.ref.WeakReference;
 import java.text.BreakIterator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -168,6 +167,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     // PermissionsDispatcherが若いリクエスト番号を使うので、自前実装は大きめの番号から。
     private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA = 0x1000;
     private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM = 0x1001;
+    private static final int PERMISSION_REQUEST_OPEN_GALLERY = 0x1002;
+    private static final int PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE = 0x1003;
 
     private static final int TITLE_AREA_MAX_LINES = 3;
 
@@ -534,22 +535,18 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            if (hasReadImagesPermission()) {
                 attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
             } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM);
+                requestReadImagesPermission(PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM);
             }
         } else if (mediaUri != null) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            if (hasReadImagesPermission()) {
                 for (String s : mediaUri) {
                     attachPicture(Uri.parse(s));
                 }
             } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA);
+                requestReadImagesPermission(PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA);
             }
         }
 
@@ -705,10 +702,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         // ギャラリーボタン
         ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
         ibAttach.setOnClickListener(v -> {
-            TweetActivityPermissionsDispatcher.openGalleryWithPermissionCheck(this);
+            openGalleryWithPermissionCheck();
         });
         ibAttach.setOnLongClickListener(view -> {
-            TweetActivityPermissionsDispatcher.pickLatestGalleryPictureWithPermissionCheck(this);
+            pickLatestGalleryPictureWithPermissionCheck();
             return true;
         });
 
@@ -988,8 +985,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         return super.onKeyUp(keyCode, event);
     }
 
-    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-    void openGallery() {
+    private void openGalleryWithPermissionCheck() {
+        if (hasReadImagesPermission()) {
+            openGallery();
+        } else if (shouldShowRequestReadImagesPermissionRationale()) {
+            showRationaleForReadExternalStorage(new PermissionRequestForReadImages(this, PERMISSION_REQUEST_OPEN_GALLERY));
+        } else {
+            requestReadImagesPermission(PERMISSION_REQUEST_OPEN_GALLERY);
+        }
+    }
+
+    private void openGallery() {
         //添付上限判定
         if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
             Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
@@ -1005,8 +1011,17 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
     }
 
-    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-    void pickLatestGalleryPicture() {
+    private void pickLatestGalleryPictureWithPermissionCheck() {
+        if (hasReadImagesPermission()) {
+            pickLatestGalleryPicture();
+        } else if (shouldShowRequestReadImagesPermissionRationale()) {
+            showRationaleForReadExternalStorage(new PermissionRequestForReadImages(this, PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE));
+        } else {
+            requestReadImagesPermission(PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE);
+        }
+    }
+
+    private void pickLatestGalleryPicture() {
         if (attachPictures.size() == 1 || (attachPictures.size() < maxMediaPerUpload)) {
             Cursor c = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
             if (c != null) {
@@ -1020,8 +1035,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
-    @OnPermissionDenied(Manifest.permission.READ_EXTERNAL_STORAGE)
-    void onDeniedReadExternalStorage() {
+    private void onDeniedReadExternalStorage() {
         if (PermissionUtils.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
             Toast.makeText(TweetActivity.this, "ギャラリーにアクセスできません。", Toast.LENGTH_SHORT).show();
         } else {
@@ -1043,8 +1057,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
-    @OnShowRationale(Manifest.permission.READ_EXTERNAL_STORAGE)
-    void showRationaleForReadExternalStorage(final PermissionRequest request) {
+    private void showRationaleForReadExternalStorage(final PermissionRequest request) {
         currentDialog = new AlertDialog.Builder(this)
                 .setTitle("許可が必要")
                 .setMessage("画像を添付するためには、ストレージへのアクセス許可が必要です。")
@@ -1425,6 +1438,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     initialDraft = getTweetDraft().copyForJava();
                 } else {
                     Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case PERMISSION_REQUEST_OPEN_GALLERY:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    openGallery();
+                } else {
+                    onDeniedReadExternalStorage();
+                }
+                break;
+            case PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    pickLatestGalleryPicture();
+                } else {
+                    onDeniedReadExternalStorage();
                 }
                 break;
         }
@@ -1931,6 +1958,35 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
     }
 
+    /**
+     * {@link Manifest.permission#READ_MEDIA_IMAGES} が付与されていることを確認する。
+     * Android 12以下の場合は代わりに {@link Manifest.permission#READ_EXTERNAL_STORAGE} を確認する。
+     * @return 必要な権限が付与されていれば true
+     */
+    private boolean hasReadImagesPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        } else {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestReadImagesPermission(int requestCode) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, requestCode);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, requestCode);
+        }
+    }
+
+    private boolean shouldShowRequestReadImagesPermissionRationale() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE);
+        } else {
+            return shouldShowRequestPermissionRationale(Manifest.permission.READ_MEDIA_IMAGES);
+        }
+    }
+
     private static class AttachPicture {
         public Uri uri = null;
         public int width = -1;
@@ -1981,4 +2037,32 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
      */
     @Retention(RetentionPolicy.SOURCE)
     private @interface NeedSaveState {}
+
+    private static final class PermissionRequestForReadImages implements PermissionRequest {
+        private final WeakReference<TweetActivity> weakActivity;
+        private final int requestCode;
+
+        PermissionRequestForReadImages(TweetActivity activity, int requestCode) {
+            this.weakActivity = new WeakReference<>(activity);
+            this.requestCode = requestCode;
+        }
+
+        @Override
+        public void proceed() {
+            TweetActivity activity = weakActivity.get();
+            if (activity == null) {
+                return;
+            }
+            activity.requestReadImagesPermission(requestCode);
+        }
+
+        @Override
+        public void cancel() {
+            TweetActivity activity = weakActivity.get();
+            if (activity == null) {
+                return;
+            }
+            activity.onDeniedReadExternalStorage();
+        }
+    }
 }

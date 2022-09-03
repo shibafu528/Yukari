@@ -78,13 +78,13 @@ ext {
 }
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion '30.0.3'
+    compileSdkVersion 33
+    buildToolsVersion '33.0.0'
 
     defaultConfig {
         applicationId "shibafu.yukari"
         minSdkVersion 23
-        targetSdkVersion 31
+        targetSdkVersion 33
         versionCode y4aVersionCode
         versionName y4aVersionName
 

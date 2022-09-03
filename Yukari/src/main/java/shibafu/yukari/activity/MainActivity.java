@@ -1,8 +1,10 @@
 package shibafu.yukari.activity;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
@@ -75,6 +78,8 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private static final int REQUEST_OAUTH = 1;
     private static final int REQUEST_SAVE_SEARCH_CHOOSE_ACCOUNT = 4;
     private static final int REQUEST_QUERY = 8;
+
+    private static final int PERMISSION_REQUEST_POST_NOTIFICATIONS = 1001;
 
     public static final String EXTRA_SEARCH_WORD = "searchWord";
     public static final String EXTRA_SHOW_TAB = "showTab";
@@ -911,26 +916,32 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
             startActivityForResult(intent, REQUEST_OAUTH);
             finish();
+            return;
         }
-        else {
-            initTabs(pageList.isEmpty());
 
-            QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
-            if (quickPostFragment != null && quickPostFragment.getSelectedAccount() == null) {
-                AuthUserRecord primary = getTwitterService().getPrimaryUser();
-                if (primary == null) {
-                    Toast.makeText(getApplicationContext(), "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
-                    enableQuickPost = false;
-                } else {
-                    quickPostFragment.setSelectedAccount(primary);
-                    enableQuickPost = true;
-                }
+        initTabs(pageList.isEmpty());
+
+        QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
+        if (quickPostFragment != null && quickPostFragment.getSelectedAccount() == null) {
+            AuthUserRecord primary = getTwitterService().getPrimaryUser();
+            if (primary == null) {
+                Toast.makeText(getApplicationContext(), "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
+                enableQuickPost = false;
+            } else {
+                quickPostFragment.setSelectedAccount(primary);
+                enableQuickPost = true;
             }
+        }
 
-            //UserStreamを開始する
-            getTwitterService().startStreamChannels();
+        //UserStreamを開始する
+        getTwitterService().startStreamChannels();
 
-            onNewIntent(getIntent());
+        onNewIntent(getIntent());
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, PERMISSION_REQUEST_POST_NOTIFICATIONS);
+            }
         }
     }
 

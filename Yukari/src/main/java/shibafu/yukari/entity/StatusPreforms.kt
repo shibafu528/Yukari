@@ -41,17 +41,15 @@ class StatusPreforms : Serializable, Parcelable {
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.let {
-            if (isCensoredThumbs) {
-                it.writeByte(1)
-            } else {
-                it.writeByte(0)
-            }
-            it.writeSerializable(repostRespondTo)
-            it.writeSerializable(favoritedUsers as Serializable)
-            it.writeString(repeatedSequence)
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        if (isCensoredThumbs) {
+            dest.writeByte(1)
+        } else {
+            dest.writeByte(0)
         }
+        dest.writeSerializable(repostRespondTo)
+        dest.writeSerializable(favoritedUsers as Serializable)
+        dest.writeString(repeatedSequence)
     }
 
     companion object {

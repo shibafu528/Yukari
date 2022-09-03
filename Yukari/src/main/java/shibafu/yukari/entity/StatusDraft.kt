@@ -111,24 +111,22 @@ data class StatusDraft(
 
     override fun describeContents(): Int = 0
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.let {
-            dest.writeList(writers.toList())
-            dest.writeString(text)
-            dest.writeLong(dateTime)
-            dest.writeParcelable(inReplyTo, flags)
-            dest.writeByte(if (isQuoted) 1 else 0)
-            dest.writeTypedList(attachPictures)
-            dest.writeByte(if (useGeoLocation) 1 else 0)
-            dest.writeDouble(geoLatitude)
-            dest.writeDouble(geoLongitude)
-            dest.writeByte(if (isPossiblySensitive) 1 else 0)
-            dest.writeByte(if (isDirectMessage) 1 else 0)
-            dest.writeByte(if (isFailedDelivery) 1 else 0)
-            dest.writeString(messageTarget)
-            dest.writeInt(visibility.ordinal)
-            dest.writeString(spoilerText)
-        }
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeList(writers.toList())
+        dest.writeString(text)
+        dest.writeLong(dateTime)
+        dest.writeParcelable(inReplyTo, flags)
+        dest.writeByte(if (isQuoted) 1 else 0)
+        dest.writeTypedList(attachPictures)
+        dest.writeByte(if (useGeoLocation) 1 else 0)
+        dest.writeDouble(geoLatitude)
+        dest.writeDouble(geoLongitude)
+        dest.writeByte(if (isPossiblySensitive) 1 else 0)
+        dest.writeByte(if (isDirectMessage) 1 else 0)
+        dest.writeByte(if (isFailedDelivery) 1 else 0)
+        dest.writeString(messageTarget)
+        dest.writeInt(visibility.ordinal)
+        dest.writeString(spoilerText)
     }
 
     fun copyForJava() = this.copy()
