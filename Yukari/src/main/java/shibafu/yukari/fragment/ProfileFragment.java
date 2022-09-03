@@ -486,15 +486,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             appBarLayout.setBackgroundColor(backgroundColor);
             headerLayout.setBackgroundColor(backgroundColor);
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().setBackgroundDrawable(new ColorDrawable(backgroundColor));
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setBackgroundDrawable(new ColorDrawable(backgroundColor));
 
-                int statusBackgroundColor = Color.rgb(
-                        (int) (Color.red(backgroundColor) * 0.8),
-                        (int) (Color.green(backgroundColor) * 0.8),
-                        (int) (Color.blue(backgroundColor) * 0.8));
-                getActivity().getWindow().setStatusBarColor(statusBackgroundColor);
-            }
+            int statusBackgroundColor = Color.rgb(
+                    (int) (Color.red(backgroundColor) * 0.8),
+                    (int) (Color.green(backgroundColor) * 0.8),
+                    (int) (Color.blue(backgroundColor) * 0.8));
+            getActivity().getWindow().setStatusBarColor(statusBackgroundColor);
         }
 
         updateMenuItems();

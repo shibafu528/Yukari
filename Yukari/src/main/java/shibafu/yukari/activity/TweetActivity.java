@@ -1228,12 +1228,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             setResult(RESULT_OK);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // 投稿後に投稿画面をタスクに残さない
-            finishAndRemoveTask();
-        } else {
-            finish();
-        }
+        // 投稿後に投稿画面をタスクに残さない
+        finishAndRemoveTask();
     }
 
     private void updateWritersView() {

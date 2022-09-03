@@ -96,13 +96,7 @@ abstract class StatusView : RelativeLayout {
     }
 
     @JvmOverloads
-    constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr) {
-        singleLine = false
-        initializeView(context, attrs, defStyleAttr)
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(context, attrs, defStyleAttr, defStyleRes) {
+    constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0, defStyleRes: Int = 0) : super(context, attrs, defStyleAttr, defStyleRes) {
         singleLine = false
         initializeView(context, attrs, defStyleAttr)
     }

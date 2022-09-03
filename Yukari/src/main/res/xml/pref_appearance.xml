@@ -50,7 +50,7 @@
         <CheckBoxPreference
             android:key="pref_boot_immersive"
             android:title="デフォルトで表示域拡張"
-            android:summary="アプリ起動時に表示域拡張をオンにします(※Android 4.4以上でのみ有効)"/>
+            android:summary="アプリ起動時に表示域拡張をオンにします"/>
         <CheckBoxPreference
             android:key="pref_show_tweetbutton"
             android:title="投稿ボタンを表示"

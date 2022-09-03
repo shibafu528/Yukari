@@ -122,7 +122,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         findViews();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && new File(getExternalFilesDir(null), "wallpaper").exists()) {
+        if (new File(getExternalFilesDir(null), "wallpaper").exists()) {
             Drawable wallpaper = Drawable.createFromPath(new File(getExternalFilesDir(null), "wallpaper").getAbsolutePath());
             wallpaper.setAlpha(72);
             binding.pager.setBackground(wallpaper);
@@ -560,17 +560,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     public void setImmersive(boolean immersive, boolean transientState) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            if (!transientState) {
-                this.immersive = immersive;
-            }
-            if (immersive) {
-                decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-            } else {
-                decorView.setSystemUiVisibility(0);
-            }
+        if (!transientState) {
+            this.immersive = immersive;
+        }
+        if (immersive) {
+            decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         } else {
-            this.immersive = false;
+            decorView.setSystemUiVisibility(0);
         }
     }
 

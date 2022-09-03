@@ -176,8 +176,6 @@ public class ConfigActivity extends ActionBarYukariBase {
             } else {
                 switch (category) {
                     case "appearance":
-                        findPreference("pref_boot_immersive").setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT);
-
                         findPreference("pref_prev_time").setOnPreferenceClickListener(preference -> {
                             final SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
                             int selectedFlags = sp.getInt("pref_prev_time", 0);

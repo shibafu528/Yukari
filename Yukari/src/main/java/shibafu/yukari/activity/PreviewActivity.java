@@ -285,11 +285,7 @@ public class PreviewActivity extends ActionBarYukariBase {
                     //実際の読み込みを行う
                     fis = new FileInputStream(cacheFile);
                     options.inJustDecodeBounds = false;
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && Math.max(options.outWidth, options.outHeight) > 1500) {
-                        int scaleW = options.outWidth / 1500;
-                        int scaleH = options.outHeight / 1500;
-                        options.inSampleSize = Math.max(scaleW, scaleH);
-                    } else if (Math.max(options.outWidth, options.outHeight) > 2048) {
+                    if (Math.max(options.outWidth, options.outHeight) > 2048) {
                         int scaleW = options.outWidth / 2048;
                         int scaleH = options.outHeight / 2048;
                         options.inSampleSize = Math.max(scaleW, scaleH);

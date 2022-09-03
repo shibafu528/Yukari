@@ -215,13 +215,10 @@ public class MenuDialogFragment extends DialogFragment {
             }
         });
         binding.llMenuSleep.setOnLongClickListener(v1 -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                MainActivity activity = ((MainActivity) getActivity());
-                activity.setImmersive(!activity.isImmersive());
-                Toast.makeText(getActivity(), "表示域拡張を" + ((activity.isImmersive()) ? "有効" : "無効") + "にしました", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            return false;
+            MainActivity activity = ((MainActivity) getActivity());
+            activity.setImmersive(!activity.isImmersive());
+            Toast.makeText(getActivity(), "表示域拡張を" + ((activity.isImmersive()) ? "有効" : "無効") + "にしました", Toast.LENGTH_SHORT).show();
+            return true;
         });
 
         binding.llMenuBookmark.setOnClickListener(view -> {
