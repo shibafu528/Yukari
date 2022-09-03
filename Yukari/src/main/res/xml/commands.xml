@@ -42,9 +42,6 @@
             android:title="::mh"
             android:summary="もひょ"/>
         <Preference
-            android:title="::ma"
-            android:summary="http://wiki.famitsu.com/kairi/ を開く"/>
-        <Preference
             android:title="::meu"
             android:summary="胸もはんこもぺったんだめう"/>
         <Preference

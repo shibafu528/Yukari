@@ -3,7 +3,6 @@ package shibafu.yukari.util;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
@@ -138,10 +137,7 @@ public class TweetPreprocessor {
             return MOHYO[new Random().nextInt(MOHYO.length)];
         });
         COMMANDS.put("::ma", (depends, input) -> {
-            depends.getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://wiki.famitsu.com/kairi/"))
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            depends.getActivity().setResult(Activity.RESULT_OK);
-            depends.getActivity().finish();
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::ma は廃止されました", Toast.LENGTH_SHORT).show();
             return null;
         });
         COMMANDS.put("::meu", (depends, input) -> "めめめめめめめ めうめうーっ！(」*ﾟﾛﾟ)」めめめ めうめうーっ！(」*ﾟﾛﾟ)」*ﾟﾛﾟ)」 ぺーったんぺったんぺったんぺったん 大好き～っ☆⌒ヽ(*'､＾*)");
