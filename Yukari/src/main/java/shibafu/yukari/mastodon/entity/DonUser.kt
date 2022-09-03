@@ -31,8 +31,8 @@ class DonUser(val account: Account?) : User, Parcelable {
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
 
-    override fun writeToParcel(dest: Parcel?, flags: Int) {
-        dest?.writeString(Gson().toJson(account))
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(Gson().toJson(account))
     }
 
     companion object {
