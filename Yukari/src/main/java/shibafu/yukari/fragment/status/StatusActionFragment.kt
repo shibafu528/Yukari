@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import android.view.View
@@ -65,7 +66,9 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             Action("パーマリンクをコピー") {
                 val cm = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("", status.originStatus.url))
-                showToast("リンクをコピーしました")
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    showToast("リンクをコピーしました")
+                }
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("ブックマークに追加") {
