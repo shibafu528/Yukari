@@ -478,6 +478,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         this.visibility = StatusDraft.Visibility.DIRECT;
                     }
                     setVisibility(this.visibility.ordinal());
+                    waitingSetDefaultVisibility = false;
                 }
                 /* fall through */
             case MODE_QUOTE: {
