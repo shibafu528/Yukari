@@ -3,5 +3,6 @@ if (getProperty("yukari.exvoice.build").toBoolean()) {
     include ':yukari-exvoice'
 }
 include ':yukari-processor-annotation'
+include ':yukari-processor-runtime'
 include ':yukari-processor'
 include ':gl-helpers'

@@ -228,7 +228,7 @@ dependencies {
     // Annotation Processor
     implementation 'com.github.permissions-dispatcher:permissionsdispatcher:4.9.2'
     kapt 'com.github.permissions-dispatcher:permissionsdispatcher-processor:4.9.2'
-    implementation project(':yukari-processor-annotation')
+    implementation project(':yukari-processor-runtime')
     kapt project(':yukari-processor')
 
     // Deploygate SDK
