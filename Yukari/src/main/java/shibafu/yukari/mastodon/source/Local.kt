@@ -44,6 +44,10 @@ data class Local(override val sourceAccount: AuthUserRecord) : FilterSource {
             UrlHostEqualPredicate(
                     VariableNode("url"),
                     ValueNode(sourceAccount.Provider.host)
+            ),
+            EqualsNode(
+                    VariableNode("status.visibility"),
+                    ValueNode(com.sys1yagi.mastodon4j.api.entity.Status.Visibility.Public.value)
             )
     )
 }
@@ -75,6 +79,10 @@ data class AnonymousLocal(override val sourceAccount: AuthUserRecord, val instan
             UrlHostEqualPredicate(
                     VariableNode("url"),
                     ValueNode(instance)
+            ),
+            EqualsNode(
+                   VariableNode("status.visibility"),
+                   ValueNode(com.sys1yagi.mastodon4j.api.entity.Status.Visibility.Public.value)
             )
     )
 }
