@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.os.Binder;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -22,9 +21,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import info.shibafu528.yukari.exvoice.MRuby;
-import info.shibafu528.yukari.exvoice.miquire.Miquire;
-import info.shibafu528.yukari.exvoice.miquire.MiquireResult;
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import okhttp3.Interceptor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
@@ -50,9 +46,8 @@ import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
-import shibafu.yukari.plugin.AndroidCompatPlugin;
+import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.plugin.PluggaloidLogger;
-import shibafu.yukari.plugin.VirtualWorldPlugin;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
@@ -60,7 +55,6 @@ import shibafu.yukari.twitter.TwitterStream;
 import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,9 +91,8 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //ミュート判定
     private Suppressor suppressor;
 
-    //MRuby VM
-    private MRuby mRuby;
-    private final PluggaloidLogger pluggaloidLogger = new PluggaloidLogger();
+    //Pluggaloid
+    private Pluggaloid pluggaloid;
 
     //ネットワーク管理
     private LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
@@ -235,48 +228,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
-            // MRuby VMの初期化
-            mRuby = new MRuby(getApplicationContext());
-            // 標準出力をLogcatとStringBufferにリダイレクト
-            mRuby.setPrintCallback(value -> {
-                if (value == null || value.length() == 0 || "\n".equals(value)) {
-                    return;
-                }
-                Log.d("ExVoice (TS)", value);
-                pluggaloidLogger.log(value);
-            });
-            // ブートストラップの実行およびバンドルRubyプラグインのロード
-            mRuby.requireAssets("bootstrap.rb");
-            Miquire.loadAll(mRuby);
-            // Javaプラグインのロード
-            mRuby.registerPlugin(AndroidCompatPlugin.class);
-            mRuby.registerPlugin(VirtualWorldPlugin.class);
-            // ユーザプラグインのロード
-            // TODO: ホワイトリストが必要だよねー
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                File pluginDir = new File(getExternalFilesDir(null), "plugin");
-                if (pluginDir.exists() && !pluginDir.isDirectory()) {
-                    pluggaloidLogger.log("plugin directory was not found, but found a regular file named `plugin`.");
-                    showToast("exvoice プラグインの読み込みでエラーが発生しました");
-                } else {
-                    // プラグインディレクトリがなければ作っておく
-                    if (!pluginDir.exists()) {
-                        pluginDir.mkdirs();
-                    }
-                    Miquire.appendLoadPath(mRuby, pluginDir.getAbsolutePath());
-                    MiquireResult result = Miquire.loadAll(mRuby);
-                    if (result.getFailure().length > 0) {
-                        StringBuilder sb = new StringBuilder("プラグインの読み込みに失敗しました");
-                        for (String slug : result.getFailure()) {
-                            sb.append("\n");
-                            sb.append(slug);
-                        }
-                        pluggaloidLogger.log(sb);
-                        showToast("exvoice プラグインの読み込みでエラーが発生しました");
-                    }
-                }
-            }
-            Plugin.call(mRuby, "boot");
+            pluggaloid = new Pluggaloid(getApplicationContext());
         }
 
         Log.d(LOG_TAG, "onCreate completed.");
@@ -319,9 +271,8 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         database.close();
         database = null;
 
-        if (mRuby != null) {
-            mRuby.close();
-            mRuby = null;
+        if (pluggaloid != null) {
+            pluggaloid.close();
         }
 
         stopForeground(true);
@@ -363,6 +314,11 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     public UserExtrasManager getUserExtrasManager() {
         return userExtrasManager;
+    }
+
+    @Nullable
+    public Pluggaloid getPluggaloid() {
+        return pluggaloid;
     }
 
     //<editor-fold desc="AccountManager delegates">
@@ -613,11 +569,17 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //</editor-fold>
 
     public MRuby getmRuby() {
-        return mRuby;
+        if (pluggaloid == null) {
+            return null;
+        }
+        return pluggaloid.getmRuby();
     }
 
     public PluggaloidLogger getPluggaloidLogger() {
-        return pluggaloidLogger;
+        if (pluggaloid == null) {
+            return null;
+        }
+        return pluggaloid.getLogger();
     }
 
     public Interceptor getUserAgentInterceptor() {
