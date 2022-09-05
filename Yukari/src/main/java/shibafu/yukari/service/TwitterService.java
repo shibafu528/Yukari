@@ -1,29 +1,19 @@
 package shibafu.yukari.service;
 
-import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationChannelGroup;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.graphics.BitmapFactory;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.collection.ArrayMap;
@@ -31,30 +21,23 @@ import androidx.collection.LongSparseArray;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.sys1yagi.mastodon4j.MastodonClient;
-
 import info.shibafu528.yukari.exvoice.MRuby;
 import info.shibafu528.yukari.exvoice.miquire.Miquire;
 import info.shibafu528.yukari.exvoice.miquire.MiquireResult;
 import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import okhttp3.Interceptor;
-import okhttp3.Response;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
-import shibafu.yukari.common.NotificationChannelPrefix;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
-import shibafu.yukari.database.ApiType;
+import shibafu.yukari.database.AccountManager;
+import shibafu.yukari.database.AccountManagerImpl;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
-import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
@@ -76,18 +59,13 @@ import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TwitterService extends Service{
+public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager {
     private static final String LOG_TAG = "TwitterService";
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
     public static final String EXTRA_RELOAD_REMOVED = "removed";
@@ -129,8 +107,7 @@ public class TwitterService extends Service{
     private TimelineHub timelineHub;
 
     //ユーザ情報
-    private List<AuthUserRecord> users = new ArrayList<>();
-    private List<UserExtras> userExtras = new ArrayList<>();
+    private AccountManager accountManager;
 
     //API
     private ProviderApi[] providerApis = {
@@ -223,10 +200,7 @@ public class TwitterService extends Service{
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
 
         //ユーザデータのロード
-        reloadUsers(true);
-
-        //ユーザー設定の読み込み
-        userExtras = database.getRecords(UserExtras.class, new Class[]{Collection.class}, users);
+        accountManager = new AccountManagerImpl(getApplicationContext(), database, this, this, defaultVisibilityCache);
 
         //ミュート設定の読み込み
         suppressor = new Suppressor();
@@ -329,8 +303,6 @@ public class TwitterService extends Service{
         }
 
         storeUsers();
-        users = new ArrayList<>();
-        userExtras = new ArrayList<>();
 
         BitmapCache.dispose();
 
@@ -381,283 +353,83 @@ public class TwitterService extends Service{
         return defaultVisibilityCache;
     }
 
-    //<editor-fold desc="ユーザ情報管理">
+    public AccountManager getAccountManager() {
+        return accountManager;
+    }
+
+    //<editor-fold desc="AccountManager delegates">
+    @Override
     public void reloadUsers() {
-        reloadUsers(false);
+        accountManager.reloadUsers();
     }
 
-    public void reloadUsers(boolean inInitialize) {
-        NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        Cursor cursor = database.getAccounts();
-        List<AuthUserRecord> dbList = AuthUserRecord.getAccountsList(cursor);
-        cursor.close();
-        //アカウント別通知チャンネルの設定をチェック
-        boolean enabledPerAccountChannel = PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_notif_per_account_channel", false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !enabledPerAccountChannel) {
-            //アカウント別通知チャンネルを削除
-            for (NotificationChannel channel : nm.getNotificationChannels()) {
-                String groupId = channel.getGroup();
-                if (groupId != null && groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
-                    nm.deleteNotificationChannel(channel.getId());
-                }
-            }
-            for (NotificationChannelGroup group : nm.getNotificationChannelGroups()) {
-                String groupId = group.getId();
-                if (groupId.startsWith(NotificationChannelPrefix.GROUP_ACCOUNT) && !groupId.replace(NotificationChannelPrefix.GROUP_ACCOUNT, "").equals("all")) {
-                    nm.deleteNotificationChannelGroup(groupId);
-                }
-            }
-        }
-        //消えたレコードの削除処理
-        ArrayList<AuthUserRecord> removeList = new ArrayList<>();
-        for (AuthUserRecord aur : users) {
-            if (!dbList.contains(aur)) {
-                if (!inInitialize) {
-                    ProviderStream stream = getProviderStream(aur);
-                    if (stream != null) {
-                        stream.removeUser(aur);
-                    }
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + aur.Url;
-
-                    for (NotificationChannel channel : nm.getNotificationChannels()) {
-                        if (groupId.equals(channel.getGroup())) {
-                            nm.deleteNotificationChannel(channel.getId());
-                        }
-                    }
-
-                    nm.deleteNotificationChannelGroup(groupId);
-                }
-                removeList.add(aur);
-                Log.d(LOG_TAG, "Remove user: @" + aur.ScreenName);
-            }
-        }
-        users.removeAll(removeList);
-        //新しいレコードの登録
-        ArrayList<AuthUserRecord> addedList = new ArrayList<>();
-        for (AuthUserRecord aur : dbList) {
-            if (!users.contains(aur)) {
-                addedList.add(aur);
-                users.add(aur);
-                if (!inInitialize) {
-                    ProviderStream stream = getProviderStream(aur);
-                    if (stream != null) {
-                        stream.addUser(aur);
-                    }
-                }
-                if (aur.Provider.getApiType() == Provider.API_MASTODON) {
-                    @SuppressLint("StaticFieldLeak")
-                    SimpleAsyncTask task = new SimpleAsyncTask() {
-                        @Override
-                        protected Void doInBackground(Void... voids) {
-                            MastodonClient client = (MastodonClient) getApiClient(aur);
-                            try {
-                                Response response = client.get("preferences", null, "v1");
-                                if (response.isSuccessful()) {
-                                    String body = response.body().string();
-                                    Map<String, Object> prefs = new Gson().fromJson(body, new TypeToken<Map<String, Object>>() {}.getType());
-                                    Object maybeVisibility = prefs.get("posting:default:visibility");
-                                    if (maybeVisibility instanceof String) {
-                                        switch ((String) maybeVisibility) {
-                                            case "public":
-                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PUBLIC);
-                                                break;
-                                            case "unlisted":
-                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.UNLISTED);
-                                                break;
-                                            case "private":
-                                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PRIVATE);
-                                                break;
-                                        }
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            return null;
-                        }
-                    };
-                    handler.post(task::executeParallel);
-                }
-                Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
-            } else {
-                AuthUserRecord existRecord = users.get(users.indexOf(aur));
-                existRecord.update(aur);
-                Log.d(LOG_TAG, "Update user: @" + aur.ScreenName);
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && enabledPerAccountChannel) {
-                createAccountNotificationChannels(nm, aur, false);
-            }
-        }
-        Intent broadcastIntent = new Intent(RELOADED_USERS);
-        broadcastIntent.putExtra(EXTRA_RELOAD_REMOVED, removeList);
-        broadcastIntent.putExtra(EXTRA_RELOAD_ADDED, addedList);
-        sendBroadcast(broadcastIntent);
-        Log.d(LOG_TAG, "Reloaded users. User=" + users.size());
-    }
-
+    @Override
     @NonNull
     public List<AuthUserRecord> getUsers() {
-        return users != null ? users : new ArrayList<>();
+        return accountManager.getUsers();
     }
 
+    @Override
     @Nullable
     public AuthUserRecord getPrimaryUser() {
-        // アカウントが1つも無いなら無理
-        if (users == null || users.isEmpty()) {
-            return null;
-        }
-
-        // プライマリアカウントを探して返す
-        for (AuthUserRecord userRecord : users) {
-            if (userRecord.isPrimary) {
-                return userRecord;
-            }
-        }
-
-        // プライマリアカウントが無いなら、とりあえず最初のレコードを返す
-        return users.get(0);
+        return accountManager.getPrimaryUser();
     }
 
+    @Override
     public void setPrimaryUser(long id) {
-        for (AuthUserRecord userRecord : users) {
-            userRecord.isPrimary = userRecord.InternalId == id;
-        }
-        storeUsers();
-        reloadUsers();
+        accountManager.setPrimaryUser(id);
     }
 
+    @Override
     public ArrayList<AuthUserRecord> getWriterUsers() {
-        ArrayList<AuthUserRecord> writers = new ArrayList<>();
-        for (AuthUserRecord userRecord : users) {
-            if (userRecord.isWriter) {
-                writers.add(userRecord);
-            }
-        }
-        return writers;
+        return accountManager.getWriterUsers();
     }
 
+    @Override
     public void setWriterUsers(List<AuthUserRecord> writers) {
-        for (AuthUserRecord userRecord : users) {
-            userRecord.isWriter = writers.contains(userRecord);
-        }
-        storeUsers();
+        accountManager.setWriterUsers(writers);
     }
 
+    @Override
     public void setUserColor(long id, int color) {
-        for (AuthUserRecord user : users) {
-            if (user.InternalId == id) {
-                user.AccountColor = color;
-                break;
-            }
-        }
-        storeUsers();
+        accountManager.setUserColor(id, color);
     }
 
+    @Override
     public void storeUsers() {
-        database.beginTransaction();
-        try {
-            for (AuthUserRecord aur : users) {
-                database.updateRecord(aur);
-            }
-            database.setTransactionSuccessful();
-        } finally {
-            database.endTransaction();
-        }
+        accountManager.storeUsers();
     }
 
+    @Override
     public void deleteUser(long id) {
-        //Primaryの委譲が必要か確認する
-        boolean delegatePrimary = false;
-        for (AuthUserRecord aur : users) {
-            if (aur.InternalId == id) {
-                delegatePrimary = aur.isPrimary;
-            }
-        }
-        if (users.size() > 0 && delegatePrimary) {
-            users.get(0).isPrimary = true;
-        }
-        //削除以外のこれまでの変更を保存しておく
-        storeUsers();
-        //実際の削除を行う
-        database.deleteRecord(AuthUserRecord.class, id);
-        //データベースからアカウントをリロードする
-        reloadUsers();
+        accountManager.deleteUser(id);
     }
 
-    /**
-     * 指定のAPI形式を扱える認証情報を検索します。プライマリフラグが設定されていれば、それを優先します。
-     * @param apiType API形式。{@link Provider} 内の定数を参照。
-     * @return 適合する認証情報。見つからない場合は null
-     */
+    @Override
     @Nullable
-    public AuthUserRecord findPreferredUser(@ApiType int apiType) {
-        AuthUserRecord found = null;
-
-        for (AuthUserRecord user : users) {
-            if (user.Provider.getApiType() == apiType) {
-                if (user.isPrimary) {
-                    return user;
-                }
-
-                if (found == null) {
-                    found = user;
-                }
-            }
-        }
-
-        return found;
+    public AuthUserRecord findPreferredUser(int apiType) {
+        return accountManager.findPreferredUser(apiType);
     }
-    //</editor-fold>
 
-    //<editor-fold desc="UserExtras">
+    @Override
     public void setColor(String url, int color) {
-        UserExtras extras = null;
-        for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId().equals(url)) {
-                userExtra.setColor(color);
-                extras = userExtra;
-                break;
-            }
-        }
-        if (extras == null) {
-            extras = new UserExtras(url);
-            extras.setColor(color);
-            userExtras.add(extras);
-        }
-        database.updateRecord(extras);
+        accountManager.setColor(url, color);
     }
 
+    @Override
     public void setPriority(String url, AuthUserRecord userRecord) {
-        UserExtras extras = null;
-        for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId().equals(url)) {
-                userExtra.setPriorityAccount(userRecord);
-                extras = userExtra;
-                break;
-            }
-        }
-        if (extras == null) {
-            extras = new UserExtras(url);
-            extras.setPriorityAccount(userRecord);
-            userExtras.add(extras);
-        }
-        database.updateRecord(extras);
+        accountManager.setPriority(url, userRecord);
     }
 
+    @Override
     @Nullable
     public AuthUserRecord getPriority(String url) {
-        for (UserExtras userExtra : userExtras) {
-            if (userExtra.getId().equals(url)) {
-                return userExtra.getPriorityAccount();
-            }
-        }
-        return null;
+        return accountManager.getPriority(url);
     }
 
+    @Override
     public List<UserExtras> getUserExtras() {
-        return userExtras;
+        return accountManager.getUserExtras();
     }
     //</editor-fold>
 
@@ -723,6 +495,7 @@ public class TwitterService extends Service{
      * @param userRecord 認証情報。
      * @return APIインスタンス。アカウントが所属するサービスに対応したものが返されます。
      */
+    @Override
     @Nullable
     public ProviderApi getProviderApi(@NonNull AuthUserRecord userRecord) {
         int apiType = userRecord.Provider.getApiType();
@@ -739,6 +512,7 @@ public class TwitterService extends Service{
      * @return APIインスタンス。
      * @throws UnsupportedOperationException 対応するAPIインスタンスが定義されていない場合にスロー
      */
+    @Override
     @NonNull
     public ProviderApi getProviderApi(int apiType) {
         if (0 <= apiType && apiType < providerApis.length) {
@@ -754,6 +528,7 @@ public class TwitterService extends Service{
      * @param userRecord 認証情報。
      * @return ストリーミングAPIインスタンス。アカウントが所属するサービスに対応したものが返されます。
      */
+    @Override
     @Nullable
     public ProviderStream getProviderStream(@NonNull AuthUserRecord userRecord) {
         int apiType = userRecord.Provider.getApiType();
@@ -770,6 +545,7 @@ public class TwitterService extends Service{
      * @return ストリーミングAPIインスタンス。
      * @throws UnsupportedOperationException 対応するAPIインスタンスが定義されていない場合にスロー
      */
+    @Override
     @NonNull
     public ProviderStream getProviderStream(int apiType) {
         if (0 <= apiType && apiType < providerStreams.length) {
@@ -782,6 +558,7 @@ public class TwitterService extends Service{
      * 全てのストリーミングAPIインスタンスを取得します。
      * @return ストリーミングAPIインスタンス。
      */
+    @Override
     public ProviderStream[] getProviderStreams() {
         return providerStreams;
     }
@@ -842,78 +619,5 @@ public class TwitterService extends Service{
 
     private void showToast(final String text) {
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());
-    }
-
-    /**
-     * アカウントに対応する通知チャンネルを生成します。
-     * @param nm NotificationManager
-     * @param userRecord アカウント情報
-     * @param forceReplace 既に存在する場合に作り直すか？
-     */
-    @RequiresApi(Build.VERSION_CODES.O)
-    public void createAccountNotificationChannels(@NonNull NotificationManager nm, @NonNull AuthUserRecord userRecord, boolean forceReplace) {
-        List<NotificationChannel> channels = new ArrayList<>();
-        final AudioAttributes audioAttributes = new AudioAttributes.Builder().setLegacyStreamType(AudioManager.STREAM_NOTIFICATION).build();
-        final String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + userRecord.Url;
-
-        NotificationChannelGroup group = new NotificationChannelGroup(groupId, userRecord.ScreenName);
-        nm.createNotificationChannelGroup(group);
-
-        // Mention
-        NotificationChannel mentionChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
-        if (mentionChannel == null) {
-            mentionChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url, "メンション通知", NotificationManager.IMPORTANCE_HIGH);
-        } else if (forceReplace) {
-            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MENTION + userRecord.Url);
-        }
-        mentionChannel.setGroup(groupId);
-        mentionChannel.setDescription("@付き投稿の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
-        channels.add(mentionChannel);
-
-        // Repost (RT, Boost)
-        NotificationChannel repostChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
-        if (repostChannel == null) {
-            repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url, "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
-        } else if (forceReplace) {
-            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
-        }
-        repostChannel.setGroup(groupId);
-        repostChannel.setDescription("あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
-        channels.add(repostChannel);
-
-        // Favorite
-        NotificationChannel favoriteChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
-        if (favoriteChannel == null) {
-            favoriteChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url, "お気に入り通知", NotificationManager.IMPORTANCE_HIGH);
-        } else if (forceReplace) {
-            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_FAVORITE + userRecord.Url);
-        }
-        favoriteChannel.setGroup(groupId);
-        favoriteChannel.setDescription("あなたの投稿がお気に入り登録された時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
-        channels.add(favoriteChannel);
-
-        // Message
-        NotificationChannel messageChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
-        if (messageChannel == null) {
-            messageChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url, "メッセージ通知", NotificationManager.IMPORTANCE_HIGH);
-        } else if (forceReplace) {
-            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_MESSAGE + userRecord.Url);
-        }
-        messageChannel.setGroup(groupId);
-        messageChannel.setDescription("あなた宛のメッセージを受信した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
-        channels.add(messageChannel);
-
-        // Repost Respond (RT-Respond)
-        NotificationChannel repostRespondChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND);
-        if (repostRespondChannel == null) {
-            repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url, "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
-        } else if (forceReplace) {
-            nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url);
-        }
-        repostRespondChannel.setGroup(groupId);
-        repostRespondChannel.setDescription("あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
-        channels.add(repostRespondChannel);
-
-        nm.createNotificationChannels(channels);
     }
 }
