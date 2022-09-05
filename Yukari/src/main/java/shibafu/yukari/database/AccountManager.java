@@ -40,17 +40,6 @@ public interface AccountManager {
     @Nullable
     AuthUserRecord findPreferredUser(@ApiType int apiType);
 
-    //<editor-fold desc="UserExtras">
-    void setColor(String url, int color);
-
-    void setPriority(String url, AuthUserRecord userRecord);
-
-    @Nullable
-    AuthUserRecord getPriority(String url);
-
-    List<UserExtras> getUserExtras();
-    //</editor-fold>
-
     /**
      * アカウントに対応する通知チャンネルを生成します。
      * @param nm NotificationManager

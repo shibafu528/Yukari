@@ -38,6 +38,8 @@ import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
+import shibafu.yukari.database.UserExtrasManager;
+import shibafu.yukari.database.UserExtrasManagerImpl;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
@@ -65,7 +67,7 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager {
+public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager {
     private static final String LOG_TAG = "TwitterService";
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
     public static final String EXTRA_RELOAD_REMOVED = "removed";
@@ -108,6 +110,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     //ユーザ情報
     private AccountManager accountManager;
+    private UserExtrasManager userExtrasManager;
 
     //API
     private ProviderApi[] providerApis = {
@@ -201,6 +204,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         //ユーザデータのロード
         accountManager = new AccountManagerImpl(getApplicationContext(), database, this, this, defaultVisibilityCache);
+        userExtrasManager = new UserExtrasManagerImpl(database, accountManager.getUsers());
 
         //ミュート設定の読み込み
         suppressor = new Suppressor();
@@ -357,6 +361,10 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return accountManager;
     }
 
+    public UserExtrasManager getUserExtrasManager() {
+        return userExtrasManager;
+    }
+
     //<editor-fold desc="AccountManager delegates">
     @Override
     public void reloadUsers() {
@@ -410,26 +418,28 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     public AuthUserRecord findPreferredUser(int apiType) {
         return accountManager.findPreferredUser(apiType);
     }
+    //</editor-fold>
 
+    //<editor-fold desc="UserExtrasManager delegates">
     @Override
     public void setColor(String url, int color) {
-        accountManager.setColor(url, color);
+        userExtrasManager.setColor(url, color);
     }
 
     @Override
     public void setPriority(String url, AuthUserRecord userRecord) {
-        accountManager.setPriority(url, userRecord);
+        userExtrasManager.setPriority(url, userRecord);
     }
 
     @Override
     @Nullable
     public AuthUserRecord getPriority(String url) {
-        return accountManager.getPriority(url);
+        return userExtrasManager.getPriority(url);
     }
 
     @Override
     public List<UserExtras> getUserExtras() {
-        return accountManager.getUserExtras();
+        return userExtrasManager.getUserExtras();
     }
     //</editor-fold>
 
