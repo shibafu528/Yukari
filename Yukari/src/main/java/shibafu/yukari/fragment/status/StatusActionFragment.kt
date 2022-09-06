@@ -215,7 +215,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
         // Pluggaloidアクションのロード
         if (!isLoadedPluggaloid) {
             val status = status.originStatus
-            val mRuby = twitterService?.getmRuby()
+            val mRuby = twitterService?.pluggaloid?.getmRuby()
             val pluggaloidActions: List<PluggaloidPluginAction> =
                     if (status is PluginApplicable && status.isApplicablePlugin && mRuby != null) {
                         val plugins = try {

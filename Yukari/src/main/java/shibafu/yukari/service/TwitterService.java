@@ -17,10 +17,10 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.collection.ArrayMap;
 import androidx.collection.LongSparseArray;
+
 import android.util.Log;
 import android.widget.Toast;
 
-import info.shibafu528.yukari.exvoice.MRuby;
 import okhttp3.Interceptor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
@@ -47,7 +47,6 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.Pluggaloid;
-import shibafu.yukari.plugin.PluggaloidLogger;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
@@ -567,20 +566,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
-
-    public MRuby getmRuby() {
-        if (pluggaloid == null) {
-            return null;
-        }
-        return pluggaloid.getmRuby();
-    }
-
-    public PluggaloidLogger getPluggaloidLogger() {
-        if (pluggaloid == null) {
-            return null;
-        }
-        return pluggaloid.getLogger();
-    }
 
     public Interceptor getUserAgentInterceptor() {
         return chain -> chain.proceed(chain.request()

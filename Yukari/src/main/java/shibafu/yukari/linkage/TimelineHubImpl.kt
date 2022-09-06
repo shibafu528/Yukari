@@ -239,7 +239,7 @@ class TimelineHubImpl(private val service: TwitterService,
 
             // mruby連携
             if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
-                val mRuby = service.getmRuby()
+                val mRuby = service.pluggaloid?.getmRuby()
                 if (mRuby != null) {
                     val message = StatusConverter.toMessage(mRuby, status.status)
                     try {

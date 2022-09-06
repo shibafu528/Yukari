@@ -88,6 +88,7 @@ import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
+import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.plugin.PluggaloidLogger;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
@@ -1789,9 +1790,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         updatePostValidator();
 
         //Pluggaloidプラグインのバインド
-        if (getTwitterService().getmRuby() != null && !isLoadedPluggaloid) {
-            PluggaloidLogger logger = getTwitterService().getPluggaloidLogger();
-            Object[] result = Plugin.filtering(getTwitterService().getmRuby(), "twicca_action_edit_tweet", new HashMap());
+        Pluggaloid pluggaloid = getTwitterService().getPluggaloid();
+        if (pluggaloid != null && !isLoadedPluggaloid) {
+            PluggaloidLogger logger = pluggaloid.getLogger();
+            Object[] result = Plugin.filtering(pluggaloid.getmRuby(), "twicca_action_edit_tweet", new HashMap());
             if (result != null && result[0] instanceof Map) {
                 ((Map) result[0]).values().stream().filter(o -> o instanceof Map).forEach(o -> {
                     Map entry = (Map) o;
