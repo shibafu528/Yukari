@@ -20,7 +20,6 @@ import com.google.gson.reflect.TypeToken;
 import com.sys1yagi.mastodon4j.MastodonClient;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +29,8 @@ import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
-import shibafu.yukari.service.ApiCollectionProvider;
-import shibafu.yukari.service.StreamCollectionProvider;
+import shibafu.yukari.linkage.ApiCollectionProvider;
+import shibafu.yukari.linkage.StreamCollectionProvider;
 import shibafu.yukari.service.TwitterService;
 
 public class AccountManagerImpl implements AccountManager {

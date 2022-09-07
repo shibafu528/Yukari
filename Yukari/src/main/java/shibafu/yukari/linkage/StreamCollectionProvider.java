@@ -1,4 +1,4 @@
-package shibafu.yukari.service;
+package shibafu.yukari.linkage;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
