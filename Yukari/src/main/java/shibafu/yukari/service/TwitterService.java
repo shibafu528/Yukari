@@ -42,7 +42,6 @@ import shibafu.yukari.linkage.ApiCollectionProvider;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
-import shibafu.yukari.linkage.StreamChannel;
 import shibafu.yukari.linkage.StreamCollectionProvider;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubImpl;
@@ -548,33 +547,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     @Override
     public ProviderStream[] getProviderStreams() {
         return providerStreams;
-    }
-
-    /**
-     * ユーザによって有効化されているストリーミングチャンネルを全て起動します。
-     */
-    public void startStreamChannels() {
-        for (ProviderStream stream : providerStreams) {
-            if (stream != null) {
-                stream.onStart();
-            }
-        }
-    }
-
-    /**
-     * 現在接続されているストリーミングチャンネルを一度切断し、接続しなおします。
-     */
-    public void reconnectStreamChannels() {
-        for (ProviderStream stream : providerStreams) {
-            if (stream != null) {
-                for (StreamChannel channel : stream.getChannels()) {
-                    if (channel.isRunning()) {
-                        channel.stop();
-                        channel.start();
-                    }
-                }
-            }
-        }
     }
     //</editor-fold>
 

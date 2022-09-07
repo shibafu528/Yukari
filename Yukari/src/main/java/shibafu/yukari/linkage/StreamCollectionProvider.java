@@ -5,7 +5,6 @@ import androidx.annotation.Nullable;
 
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.Provider;
-import shibafu.yukari.linkage.ProviderStream;
 
 public interface StreamCollectionProvider {
     /**
@@ -34,4 +33,31 @@ public interface StreamCollectionProvider {
      * @return ストリーミングAPIインスタンス。
      */
     ProviderStream[] getProviderStreams();
+
+    /**
+     * ユーザによって有効化されているストリーミングチャンネルを全て起動します。
+     */
+    default void startStreamChannels() {
+        for (ProviderStream stream : getProviderStreams()) {
+            if (stream != null) {
+                stream.onStart();
+            }
+        }
+    }
+
+    /**
+     * 現在接続されているストリーミングチャンネルを一度切断し、接続しなおします。
+     */
+    default void reconnectStreamChannels() {
+        for (ProviderStream stream : getProviderStreams()) {
+            if (stream != null) {
+                for (StreamChannel channel : stream.getChannels()) {
+                    if (channel.isRunning()) {
+                        channel.stop();
+                        channel.start();
+                    }
+                }
+            }
+        }
+    }
 }
