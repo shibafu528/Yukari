@@ -19,6 +19,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
 import shibafu.yukari.database.Bookmark;
+import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
@@ -166,10 +167,11 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
     @Override
     public void onServiceConnected() {
-        tweetView.setUserExtras(getTwitterService().getUserExtras());
+        UserExtrasManager userExtrasManager = getUserExtrasManager();
+        tweetView.setUserExtras(userExtrasManager.getUserExtras());
         tweetView.updateView();
 
-        AuthUserRecord priorityUser = getTwitterService().getPriority(status.getOriginStatus().getUser().getIdenticalUrl());
+        AuthUserRecord priorityUser = userExtrasManager.getPriority(status.getOriginStatus().getUser().getIdenticalUrl());
         if (priorityUser != null) {
             setUserRecord(priorityUser);
         }

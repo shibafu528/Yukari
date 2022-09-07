@@ -338,10 +338,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return accountManager;
     }
 
-    public UserExtrasManager getUserExtrasManager() {
-        return userExtrasManager;
-    }
-
     @Nullable
     public Pluggaloid getPluggaloid() {
         return pluggaloid;

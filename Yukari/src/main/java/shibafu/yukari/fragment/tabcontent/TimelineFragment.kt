@@ -447,7 +447,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         statusCapacity = users.size * CAPACITY_INITIAL_FACTOR
 
         if (statusAdapter != null) {
-            statusAdapter?.setUserExtras(twitterService.userExtras)
+            statusAdapter?.setUserExtras(userExtrasManager.userExtras)
             statusAdapter?.setStatusLoader(twitterService.statusLoader)
         }
 
@@ -754,7 +754,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         // 自身の所有するStatusの場合、書き換えてはいけない
         if (!status.isOwnedStatus()) {
             // 優先アカウント設定が存在するか？
-            val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
+            val userExtras = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
             if (userExtras != null && userExtras.priorityAccount != null) {
                 status.representUser = userExtras.priorityAccount
                 status.representOverrode = true
