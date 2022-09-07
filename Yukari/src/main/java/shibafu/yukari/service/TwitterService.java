@@ -203,7 +203,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         defaultVisibilityCache = new DefaultVisibilityCache(this);
 
         //Timeline Pub/Subのセットアップ
-        TimelineHub hubImpl = new TimelineHubImpl(this, hashCache);
+        TimelineHub hubImpl = new TimelineHubImpl(getApplicationContext(), this, this, hashCache);
         timelineHub = new TimelineHubQueue(hubImpl);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, userRecord -> {
             final ProviderApi api = getProviderApi(userRecord);
@@ -332,10 +332,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     public DefaultVisibilityCache getDefaultVisibilityCache() {
         return defaultVisibilityCache;
-    }
-
-    public AccountManager getAccountManager() {
-        return accountManager;
     }
 
     @Nullable

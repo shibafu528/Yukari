@@ -75,6 +75,7 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
@@ -1476,8 +1477,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     @Override
     protected void onStop() {
-        if (useStoredWriters && isTwitterServiceBound() && getTwitterService() != null) {
-            getTwitterService().setWriterUsers(writers);
+        AccountManager accountManager = getAccountManager();
+        if (useStoredWriters && accountManager != null) {
+            accountManager.setWriterUsers(writers);
         }
         if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("pref_save_tags", false)) {
             List<String> strings = EXTRACTOR.extractHashtags(etInput.getText().toString());
@@ -1754,7 +1756,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     @Override
     public void onServiceConnected() {
         if (useStoredWriters && writers.size() == 0) {
-            writers = getTwitterService().getWriterUsers();
+            writers = getAccountManager().getWriterUsers();
             updateWritersView();
             initialDraft.setWriters(writers);
         }

@@ -808,7 +808,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         if (!exist) {
-            AuthUserRecord userRecord = getTwitterService().findPreferredUser(Provider.API_TWITTER);
+            AuthUserRecord userRecord = getAccountManager().findPreferredUser(Provider.API_TWITTER);
             if (userRecord == null) {
                 Toast.makeText(getApplicationContext(), "Twitterアカウントが認証されていないため、検索を実行できません。", Toast.LENGTH_SHORT).show();
                 return;
