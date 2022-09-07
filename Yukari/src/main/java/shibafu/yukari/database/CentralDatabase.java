@@ -8,6 +8,9 @@ import android.database.sqlite.SQLiteCursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.StatusDraft;
@@ -163,6 +166,7 @@ public class CentralDatabase {
     private CentralDBHelper helper;
     private SQLiteDatabase db;
 
+    private final LocalBroadcastManager broadcastManager;
 
     private static class CentralDBHelper extends SQLiteOpenHelper {
 
@@ -634,6 +638,7 @@ public class CentralDatabase {
 
     public CentralDatabase(Context context) {
         helper = new CentralDBHelper(context);
+        broadcastManager = LocalBroadcastManager.getInstance(context);
     }
 
     public CentralDatabase open() {
@@ -1056,6 +1061,7 @@ public class CentralDatabase {
             throw new RuntimeException(clz.getName() + " is not annotated DBTable.");
         }
         db.replace(annotation.value(), null, record.getContentValues());
+        broadcastManager.sendBroadcast(DatabaseEvent.updateTable(clz));
     }
 
     public <T extends DBRecord> void updateRecord(List<T> records) {
@@ -1073,6 +1079,7 @@ public class CentralDatabase {
                 db.replace(annotation.value(), null, record.getContentValues());
             }
             setTransactionSuccessful();
+            broadcastManager.sendBroadcast(DatabaseEvent.updateTable(clz));
         } finally {
             endTransaction();
         }
@@ -1093,6 +1100,7 @@ public class CentralDatabase {
                 db.replace(annotation.value(), null, record.getContentValues());
             }
             setTransactionSuccessful();
+            broadcastManager.sendBroadcast(DatabaseEvent.updateTable(clz));
         } finally {
             endTransaction();
         }
@@ -1131,6 +1139,7 @@ public class CentralDatabase {
             if (affected == 0) {
                 Log.w(CentralDatabase.class.getSimpleName(), "Record was not deleted!! Table = " + annotation.value() + ", ID = " + id);
             }
+            broadcastManager.sendBroadcast(DatabaseEvent.updateTable(clz));
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

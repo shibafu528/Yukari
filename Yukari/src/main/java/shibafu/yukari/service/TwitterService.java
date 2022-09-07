@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.collection.ArrayMap;
 import androidx.collection.LongSparseArray;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.util.Log;
 import android.widget.Toast;
@@ -31,6 +32,7 @@ import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.AccountManagerImpl;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
+import shibafu.yukari.database.DatabaseEvent;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
@@ -153,6 +155,17 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             timelineHub.onWipe();
         }
     };
+    private final BroadcastReceiver databaseUpdateListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String className = intent.getStringExtra(DatabaseEvent.EXTRA_CLASS);
+            if (MuteConfig.class.getName().equals(className)) {
+                updateMuteConfig();
+            } else if (AutoMuteConfig.class.getName().equals(className)) {
+                updateAutoMuteConfig();
+            }
+        }
+    };
 
     private Handler handler;
 
@@ -232,6 +245,10 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             pluggaloid = new Pluggaloid(getApplicationContext());
         }
 
+        // イベント購読
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        broadcastManager.registerReceiver(databaseUpdateListener, new IntentFilter(DatabaseEvent.ACTION_UPDATE));
+
         Log.d(LOG_TAG, "onCreate completed.");
     }
 
@@ -245,6 +262,9 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
                 stream.onDestroy();
             }
         }
+
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
+        broadcastManager.unregisterReceiver(databaseUpdateListener);
 
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
@@ -559,11 +579,13 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //</editor-fold>
 
     //<editor-fold desc="MuteConfig Reload">
-    public void updateMuteConfig() {
+    private void updateMuteConfig() {
+        Log.d(LOG_TAG, "Update MuteConfig");
         suppressor.setConfigs(database.getRecords(MuteConfig.class));
     }
 
-    public void updateAutoMuteConfig() {
+    private void updateAutoMuteConfig() {
+        Log.d(LOG_TAG, "Update AutoMuteConfig");
         List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
     }

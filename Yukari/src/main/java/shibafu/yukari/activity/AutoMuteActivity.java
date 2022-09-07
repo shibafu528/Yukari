@@ -134,7 +134,6 @@ public class AutoMuteActivity extends ActionBarYukariBase{
         public void updateAutoMuteConfig(AutoMuteConfig config) {
             TwitterService twitterService = ((AutoMuteActivity) getActivity()).getTwitterService();
             twitterService.getDatabase().updateRecord(config);
-            twitterService.updateAutoMuteConfig();
 
             reloadList();
         }
@@ -152,7 +151,6 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                         if (deleteReserve != null) {
                             TwitterService twitterService = ((AutoMuteActivity) getActivity()).getTwitterService();
                             twitterService.getDatabase().deleteRecord(deleteReserve);
-                            twitterService.updateAutoMuteConfig();
                             reloadList();
                             Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
                         }

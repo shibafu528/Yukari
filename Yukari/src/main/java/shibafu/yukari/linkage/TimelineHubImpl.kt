@@ -196,7 +196,6 @@ class TimelineHubImpl(private val service: TwitterService,
 
                     // TODO: サービスに関係なく消えてしまうので、ミュート設定にProvider指定を入れることがあるならここで設定しても良いかも
                     service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
-                    service.updateMuteConfig()
                     return@forEach
                 }
             }
