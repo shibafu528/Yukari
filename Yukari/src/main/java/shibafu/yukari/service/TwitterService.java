@@ -22,7 +22,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import okhttp3.Interceptor;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
@@ -54,7 +53,6 @@ import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterStream;
-import shibafu.yukari.util.StringUtil;
 import twitter4j.Twitter;
 
 import java.util.ArrayList;
@@ -562,13 +560,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
-
-    public Interceptor getUserAgentInterceptor() {
-        return chain -> chain.proceed(chain.request()
-                .newBuilder()
-                .header("User-Agent", StringUtil.getVersionInfo(TwitterService.this.getApplicationContext()))
-                .build());
-    }
 
     private void showToast(final String text) {
         handler.post(() -> Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show());

@@ -6,16 +6,14 @@ import android.os.Looper
 import android.widget.Toast
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.MastodonClient
-import com.sys1yagi.mastodon4j.MastodonRequest
-import com.sys1yagi.mastodon4j.Parameter
 import com.sys1yagi.mastodon4j.api.entity.Attachment
-import com.sys1yagi.mastodon4j.api.entity.Report
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Media
 import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
 import okhttp3.*
+import shibafu.yukari.common.okhttp.UserAgentInterceptor
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.InReplyToId
@@ -52,7 +50,7 @@ class MastodonApi : ProviderApi {
     }
 
     fun getApiClient(instanceName: String, accessToken: String?): MastodonClient {
-        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(service.userAgentInterceptor)
+        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext))
         if (service.defaultSharedPreferences.getBoolean("pref_force_http1", false)) {
             okHttpBuilder.protocols(listOf(Protocol.HTTP_1_1))
         }
