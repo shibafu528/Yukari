@@ -204,7 +204,14 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         //Timeline Pub/Subのセットアップ
         TimelineHub hubImpl = new TimelineHubImpl(this, hashCache);
         timelineHub = new TimelineHubQueue(hubImpl);
-        statusLoader = new StatusLoader(getApplicationContext(), timelineHub, this::getApiClient);
+        statusLoader = new StatusLoader(getApplicationContext(), timelineHub, userRecord -> {
+            final ProviderApi api = getProviderApi(userRecord);
+            if (api == null) {
+                throw new RuntimeException("Invalid API Type : " + userRecord);
+            }
+
+            return api.getApiClient(userRecord);
+        });
 
         //ユーザデータのロード
         accountManager = new AccountManagerImpl(getApplicationContext(), database, this, this, defaultVisibilityCache);
@@ -418,20 +425,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //</editor-fold>
 
     //<editor-fold desc="通信クライアントインスタンスの取得 (Legacy)">
-    /**
-     * 指定のアカウントに対応したAPIアクセスクライアントのインスタンスを取得します。
-     * @param userRecord 認証情報。
-     * @return APIアクセスクライアント。アカウントが所属するサービスに対応したものが返されます。
-     */
-    private Object getApiClient(@NonNull AuthUserRecord userRecord) {
-        final ProviderApi api = getProviderApi(userRecord);
-        if (api == null) {
-            throw new RuntimeException("Invalid API Type : " + userRecord);
-        }
-
-        return api.getApiClient(userRecord);
-    }
-
     /**
      * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。結果はアカウントID毎にキャッシュされます。
      * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
