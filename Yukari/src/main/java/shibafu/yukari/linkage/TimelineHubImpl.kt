@@ -44,7 +44,7 @@ class TimelineHubImpl(private val service: TwitterService,
     private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    private val notifier: StatusNotifier = StatusNotifier(service)
+    private val notifier: StatusNotifier = StatusNotifier(context)
 
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()

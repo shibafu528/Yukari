@@ -27,7 +27,6 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.User;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.CompatUtil;
 
@@ -54,7 +53,6 @@ public class StatusNotifier {
     private static final String USER_SE_RETWEET = "se_retweet.wav";
     private static final String USER_SE_FAVORITE = "se_favorite.wav";
 
-    private TwitterService service;
     private Context context;
     private Handler handler;
     private SharedPreferences sharedPreferences;
@@ -109,9 +107,8 @@ public class StatusNotifier {
         }});
     }
 
-    public StatusNotifier(TwitterService service) {
-        this.service = service;
-        this.context = service.getApplicationContext();
+    public StatusNotifier(Context context) {
+        this.context = context.getApplicationContext();
 
         this.handler = new Handler();
 
