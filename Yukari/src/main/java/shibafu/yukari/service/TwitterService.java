@@ -52,6 +52,7 @@ import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterApi;
+import shibafu.yukari.twitter.TwitterProvider;
 import shibafu.yukari.twitter.TwitterStream;
 import twitter4j.Twitter;
 
@@ -61,7 +62,7 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager {
+public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager, TwitterProvider {
     private static final String LOG_TAG = "TwitterService";
     public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
     public static final String EXTRA_RELOAD_REMOVED = "removed";
@@ -430,6 +431,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
      */
+    @Override
     @Nullable
     public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
         return (Twitter) getProviderApi(Provider.API_TWITTER).getApiClient(userRecord);
@@ -441,6 +443,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      * @param userRecord 認証情報。ここに null を指定すると、プライマリユーザのインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。
      */
+    @Override
     @Nullable
     public Twitter getTwitterOrPrimary(@Nullable AuthUserRecord userRecord) {
         if (userRecord == null) {
@@ -456,6 +459,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
      * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
      */
+    @Override
     @NonNull
     public Twitter getTwitterOrThrow(@Nullable AuthUserRecord userRecord) throws MissingTwitterInstanceException {
         Twitter twitter = getTwitter(userRecord);
