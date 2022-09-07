@@ -55,6 +55,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.span.HashTagSpan;
 import shibafu.yukari.common.span.UserProfileSpan;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
@@ -1059,7 +1060,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             try {
                 TwitterService service = getTwitterService();
                 User user = null;
-                Twitter twitter = service.getTwitterOrPrimary(ProfileFragment.this.user);
+                Twitter twitter = service.getTwitter(getCurrentUserOrPrimary());
                 if (twitter != null) {
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -1113,6 +1114,14 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             }
 
             profileLoadTask = null;
+        }
+
+        private AuthUserRecord getCurrentUserOrPrimary() {
+            AuthUserRecord user = ProfileFragment.this.user;
+            if (user != null) {
+                return user;
+            }
+            return getAccountManager().getPrimaryUser();
         }
     }
 
