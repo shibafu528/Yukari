@@ -108,9 +108,9 @@ class OAuthActivity : ActionBarYukariBase() {
                         } catch (ignored: InterruptedException) {}
                     }
 
-                    val twitter = twitterService.getTwitterOrThrow(null)
+                    val twitter = twitterProvider.getTwitterOrThrow(null)
                     twitter.oAuthAccessToken = accessToken
-                    val existsUsers = twitterService.users
+                    val existsUsers = accountManager.users
 
                     val userRecord = AuthUserRecord(accessToken)
                     if (existsUsers != null) {
@@ -131,7 +131,7 @@ class OAuthActivity : ActionBarYukariBase() {
                     database.updateAccountProfile(Provider.TWITTER.id, accessToken.userId, user.screenName,
                             user.name, user.originalProfileImageURLHttps)
 
-                    twitterService.reloadUsers()
+                    accountManager.reloadUsers()
                     return true
                 } catch (e: TwitterException) {
                     e.printStackTrace()
@@ -493,18 +493,19 @@ class OAuthActivity : ActionBarYukariBase() {
 
                     if (pair != null) {
                         val (accessToken, account) = pair
-                        val service = activity.twitterService
+                        val database = activity.twitterService.database
+                        val accountManager = activity.accountManager
 
                         // ユーザ情報を保存
                         val userRecord = AuthUserRecord(accessToken, account, provider)
-                        val existsPrimary = service.users.any {
+                        val existsPrimary = accountManager.users.any {
                             it.isPrimary && it.Provider != userRecord.Provider || it.NumericId != userRecord.NumericId
                         }
                         userRecord.isPrimary = !existsPrimary
                         userRecord.Name = account.displayName
                         userRecord.ProfileImageUrl = account.avatar
-                        service.database.addAccount(userRecord)
-                        service.reloadUsers()
+                        database.addAccount(userRecord)
+                        accountManager.reloadUsers()
 
                         activity.supportFragmentManager.popBackStackImmediate()
                         activity.supportFragmentManager.commit {

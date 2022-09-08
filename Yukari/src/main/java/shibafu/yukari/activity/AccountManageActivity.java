@@ -1,5 +1,6 @@
 package shibafu.yukari.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -26,12 +27,14 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.database.AccountManager;
+import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.ColorPickerDialogFragment;
+import shibafu.yukari.linkage.ApiCollectionProvider;
 import shibafu.yukari.mastodon.MastodonUtil;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterProvider;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -87,24 +90,32 @@ public class AccountManageActivity extends ActionBarYukariBase {
     public void onServiceDisconnected() {}
 
     public static class AccountListFragment extends ListFragment implements ColorPickerDialogFragment.ColorPickerCallback{
-        private TwitterServiceDelegate delegate;
+        private CentralDatabase database;
+        private AccountManager accountManager;
+        private ApiCollectionProvider apiCollectionProvider;
+        private TwitterProvider twitterProvider;
         private Adapter adapter;
         private List<AuthUserRecord> dataList = new ArrayList<>();
 
         @Override
         public void onAttach(Context context) {
             super.onAttach(context);
-            delegate = (TwitterServiceDelegate) context;
+            AccountManageActivity activity = (AccountManageActivity) context;
+            database = activity.getTwitterService().getDatabase();
+            accountManager = activity.getAccountManager();
+            apiCollectionProvider = activity.getApiCollectionProvider();
+            twitterProvider = activity.getTwitterProvider();
         }
 
         public void createList() {
             dataList.clear();
-            dataList.addAll(delegate.getTwitterService().getUsers());
+            dataList.addAll(accountManager.getUsers());
             adapter = new Adapter(getActivity(), dataList);
             setListAdapter(adapter);
         }
 
         @Override
+        @SuppressLint("StaticFieldLeak")
         public void onListItemClick(ListView l, View v, final int position, long id) {
             super.onListItemClick(l, v, position, id);
 
@@ -113,7 +124,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                     .setItems(new String[]{"プライマリに設定", "アカウントカラーを設定", "名前とアイコンの再取得", "認証情報を削除"}, (dialog, which) -> {
                         switch (which) {
                             case 0:
-                                delegate.getTwitterService().setPrimaryUser(dataList.get(position).InternalId);
+                                accountManager.setPrimaryUser(dataList.get(position).InternalId);
                                 createList();
                                 break;
                             case 1:
@@ -127,7 +138,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                             case 2:
                                 switch (dataList.get(position).Provider.getApiType()) {
                                     case Provider.API_TWITTER:
-                                        new ThrowableTwitterAsyncTask<AuthUserRecord, twitter4j.User>(delegate) {
+                                        new ThrowableTwitterAsyncTask<AuthUserRecord, twitter4j.User>(twitterProvider) {
 
                                             @Override
                                             protected ThrowableResult<User> doInBackground(AuthUserRecord... authUserRecords) {
@@ -146,11 +157,10 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                                 super.onPostExecute(result);
                                                 User user = result.getResult();
                                                 if (user != null) {
-                                                    TwitterService service = delegate.getTwitterService();
-                                                    service.getDatabase().updateAccountProfile(
+                                                    database.updateAccountProfile(
                                                             Provider.TWITTER.getId(), user.getId(), user.getScreenName(), user.getName(), user.getOriginalProfileImageURLHttps()
                                                     );
-                                                    service.reloadUsers();
+                                                    accountManager.reloadUsers();
                                                     createList();
                                                     Toast.makeText(getActivity(), "更新しました。", Toast.LENGTH_SHORT).show();
                                                 }
@@ -172,7 +182,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                             protected Account doInBackground(AuthUserRecord... authUserRecords) {
                                                 userRecord = authUserRecords[0];
                                                 try {
-                                                    MastodonClient api = (MastodonClient) delegate.getTwitterService().getProviderApi(authUserRecords[0]).getApiClient(authUserRecords[0]);
+                                                    MastodonClient api = (MastodonClient) apiCollectionProvider.getProviderApi(authUserRecords[0]).getApiClient(authUserRecords[0]);
                                                     Accounts accounts = new Accounts(api);
                                                     Account result = accounts.getAccount(authUserRecords[0].NumericId).execute();
                                                     return result;
@@ -190,14 +200,13 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                                     return;
                                                 }
 
-                                                TwitterService service = delegate.getTwitterService();
-                                                service.getDatabase().updateAccountProfile(
+                                                database.updateAccountProfile(
                                                         userRecord.Provider.getId(), account.getId(),
                                                         MastodonUtil.INSTANCE.expandFullScreenName(account.getAcct(), account.getUrl()),
                                                         TextUtils.isEmpty(account.getDisplayName()) ? account.getUserName() : account.getDisplayName(),
                                                         account.getAvatar()
                                                 );
-                                                service.reloadUsers();
+                                                accountManager.reloadUsers();
                                                 createList();
                                                 Toast.makeText(getActivity(), "更新しました。", Toast.LENGTH_SHORT).show();
                                             }
@@ -214,7 +223,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                                         .setIcon(android.R.drawable.ic_dialog_alert)
                                         .setMessage("認証情報を削除してもよろしいですか?")
                                         .setPositiveButton("OK", (dialog1, which1) -> {
-                                            delegate.getTwitterService().deleteUser(dataList.get(position).InternalId);
+                                            accountManager.deleteUser(dataList.get(position).InternalId);
                                             createList();
                                         })
                                         .setNegativeButton("キャンセル", (dialog1, which1) -> {
@@ -230,7 +239,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
         @Override
         public void onColorPicked(int color, String tag) {
             long id = Long.valueOf(tag);
-            delegate.getTwitterService().setUserColor(id, color);
+            accountManager.setUserColor(id, color);
             createList();
         }
 

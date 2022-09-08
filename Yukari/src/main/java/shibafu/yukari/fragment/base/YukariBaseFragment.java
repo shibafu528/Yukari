@@ -4,9 +4,11 @@ import androidx.fragment.app.Fragment;
 
 import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.UserExtrasManager;
+import shibafu.yukari.linkage.ApiCollectionProvider;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
+import shibafu.yukari.twitter.TwitterProvider;
 
 /**
  * Created by shibafu on 14/07/12.
@@ -41,6 +43,14 @@ public abstract class YukariBaseFragment extends Fragment implements TwitterServ
     }
 
     public UserExtrasManager getUserExtrasManager() {
+        return getTwitterService();
+    }
+
+    public ApiCollectionProvider getApiCollectionProvider() {
+        return getTwitterService();
+    }
+
+    public TwitterProvider getTwitterProvider() {
         return getTwitterService();
     }
 }
