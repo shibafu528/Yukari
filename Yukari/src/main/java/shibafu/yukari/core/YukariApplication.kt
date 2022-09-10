@@ -6,7 +6,6 @@ import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
 import androidx.annotation.RequiresApi
@@ -16,7 +15,11 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import shibafu.yukari.R
 import shibafu.yukari.common.NotificationChannelPrefix
+import shibafu.yukari.database.AccountManager
+import shibafu.yukari.database.AccountManagerImpl
 import shibafu.yukari.database.CentralDatabase
+import shibafu.yukari.database.UserExtrasManager
+import shibafu.yukari.database.UserExtrasManagerImpl
 import twitter4j.AlternativeHttpClientImpl
 
 /**
@@ -24,6 +27,8 @@ import twitter4j.AlternativeHttpClientImpl
  */
 class YukariApplication : Application() {
     val database: CentralDatabase by lazy { CentralDatabase(this).open() }
+    val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
+    val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
 
     override fun onCreate() {
         super.onCreate()

@@ -29,7 +29,6 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.core.YukariApplication;
 import shibafu.yukari.database.AccountManager;
-import shibafu.yukari.database.AccountManagerImpl;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DatabaseEvent;
@@ -37,7 +36,6 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.database.UserExtrasManager;
-import shibafu.yukari.database.UserExtrasManagerImpl;
 import shibafu.yukari.linkage.ApiCollectionProvider;
 import shibafu.yukari.linkage.ProviderApi;
 import shibafu.yukari.linkage.ProviderStream;
@@ -100,10 +98,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //Timeline Pub/Sub
     private StatusLoader statusLoader;
     private TimelineHub timelineHub;
-
-    //ユーザ情報
-    private AccountManager accountManager;
-    private UserExtrasManager userExtrasManager;
 
     //API
     private ProviderApi[] providerApis = {
@@ -240,8 +234,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         });
 
         //ユーザデータのロード
-        accountManager = new AccountManagerImpl(getApplicationContext(), database);
-        userExtrasManager = new UserExtrasManagerImpl(database, accountManager.getUsers());
+        getAccountManager(); // TODO: 消したい
 
         //ミュート設定の読み込み
         suppressor = new Suppressor();
@@ -319,7 +312,8 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             }
         }
 
-        storeUsers();
+        // TODO: 消したい
+        getAccountManager().storeUsers();
 
         BitmapCache.dispose();
 
@@ -370,8 +364,20 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return defaultVisibilityCache;
     }
 
+    /**
+     * @deprecated Use {@link YukariApplication#getAccountManager()} instead.
+     */
+    @Deprecated
     public AccountManager getAccountManager() {
-        return accountManager;
+        return ((YukariApplication) getApplicationContext()).getAccountManager();
+    }
+
+    /**
+     * @deprecated Use {@link YukariApplication#getUserExtrasManager()} instead.
+     */
+    @Deprecated
+    public UserExtrasManager getUserExtrasManager() {
+        return ((YukariApplication) getApplicationContext()).getUserExtrasManager();
     }
 
     @Nullable
@@ -382,78 +388,78 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //<editor-fold desc="AccountManager delegates">
     @Override
     public void reloadUsers() {
-        accountManager.reloadUsers();
+        getAccountManager().reloadUsers();
     }
 
     @Override
     @NonNull
     public List<AuthUserRecord> getUsers() {
-        return accountManager.getUsers();
+        return getAccountManager().getUsers();
     }
 
     @Override
     @Nullable
     public AuthUserRecord getPrimaryUser() {
-        return accountManager.getPrimaryUser();
+        return getAccountManager().getPrimaryUser();
     }
 
     @Override
     public void setPrimaryUser(long id) {
-        accountManager.setPrimaryUser(id);
+        getAccountManager().setPrimaryUser(id);
     }
 
     @Override
     public ArrayList<AuthUserRecord> getWriterUsers() {
-        return accountManager.getWriterUsers();
+        return getAccountManager().getWriterUsers();
     }
 
     @Override
     public void setWriterUsers(List<AuthUserRecord> writers) {
-        accountManager.setWriterUsers(writers);
+        getAccountManager().setWriterUsers(writers);
     }
 
     @Override
     public void setUserColor(long id, int color) {
-        accountManager.setUserColor(id, color);
+        getAccountManager().setUserColor(id, color);
     }
 
     @Override
     public void storeUsers() {
-        accountManager.storeUsers();
+        getAccountManager().storeUsers();
     }
 
     @Override
     public void deleteUser(long id) {
-        accountManager.deleteUser(id);
+        getAccountManager().deleteUser(id);
     }
 
     @Override
     @Nullable
     public AuthUserRecord findPreferredUser(int apiType) {
-        return accountManager.findPreferredUser(apiType);
+        return getAccountManager().findPreferredUser(apiType);
     }
     //</editor-fold>
 
     //<editor-fold desc="UserExtrasManager delegates">
     @Override
     public void setColor(String url, int color) {
-        userExtrasManager.setColor(url, color);
+        getUserExtrasManager().setColor(url, color);
     }
 
     @Override
     public void setPriority(String url, AuthUserRecord userRecord) {
-        userExtrasManager.setPriority(url, userRecord);
+        getUserExtrasManager().setPriority(url, userRecord);
     }
 
     @Override
     @Nullable
     public AuthUserRecord getPriority(String url) {
-        return userExtrasManager.getPriority(url);
+        return getUserExtrasManager().getPriority(url);
     }
 
     @Override
     public List<UserExtras> getUserExtras() {
-        return userExtrasManager.getUserExtras();
+        return getUserExtrasManager().getUserExtras();
     }
     //</editor-fold>
 
