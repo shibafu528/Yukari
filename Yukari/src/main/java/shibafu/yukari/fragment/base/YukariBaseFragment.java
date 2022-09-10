@@ -2,7 +2,6 @@ package shibafu.yukari.fragment.base;
 
 import androidx.fragment.app.Fragment;
 
-import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
@@ -34,10 +33,6 @@ public abstract class YukariBaseFragment extends Fragment implements TwitterServ
     @Override
     public TwitterService getTwitterService() {
         return servicesConnection.getTwitterService();
-    }
-
-    public AccountManager getAccountManager() {
-        return getTwitterService();
     }
 
     public UserExtrasManager getUserExtrasManager() {

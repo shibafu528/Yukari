@@ -3,7 +3,6 @@ package shibafu.yukari.activity.base;
 import android.app.ListActivity;
 import android.os.Bundle;
 
-import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -45,9 +44,5 @@ public abstract class ListYukariBase extends ListActivity implements TwitterServ
     @Override
     public TwitterService getTwitterService() {
         return servicesConnection.getTwitterService();
-    }
-
-    public AccountManager getAccountManager() {
-        return getTwitterService();
     }
 }

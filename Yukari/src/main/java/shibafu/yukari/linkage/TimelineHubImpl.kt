@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationType
-import shibafu.yukari.database.AccountManager
 import shibafu.yukari.database.AutoMuteConfig
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.Provider
@@ -38,12 +37,11 @@ import java.util.regex.PatternSyntaxException
 /**
  * [Status] の配信管理
  */
-class TimelineHubImpl(private val context: Context,
-                      private val service: TwitterService,
-                      private val accountManager: AccountManager,
+class TimelineHubImpl(private val service: TwitterService,
                       private val hashCache: HashCache) : TimelineHub {
     private val startupTime: Long = System.currentTimeMillis()
 
+    private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     private val notifier: StatusNotifier = StatusNotifier(context)
@@ -137,7 +135,7 @@ class TimelineHubImpl(private val context: Context,
         val plc = getProviderLocalCache(status.representUser.Provider.id)
 
         // 代表アカウントの上書き
-        status.setRepresentIfOwned(accountManager.users)
+        status.setRepresentIfOwned(service.users)
 
         // ミュート判定
         val muteFlags = service.suppressor.decision(status)
@@ -205,7 +203,7 @@ class TimelineHubImpl(private val context: Context,
             // RT通知 & メンション通知判定
             if (status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_RT] &&
                     status.originStatus.user.id == status.representUser.NumericId &&
-                    status.getStatusRelation(accountManager.users) != Status.RELATION_OWNED) {
+                    status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
                 onNotify(NotifyHistory.KIND_RETWEETED, status.user, status)
 
                 // RTレスポンス待機
@@ -266,7 +264,7 @@ class TimelineHubImpl(private val context: Context,
             val userRecord = if (status is TwitterStatus) {
                 status.representUser
             } else {
-                accountManager.findPreferredUser(Provider.API_TWITTER) ?: return@forEach
+                service.findPreferredUser(Provider.API_TWITTER) ?: return@forEach
             }
 
             GlobalScope.launch(Dispatchers.IO) {
@@ -298,7 +296,7 @@ class TimelineHubImpl(private val context: Context,
 
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
-        if (passive && status.getStatusRelation(accountManager.users) != Status.RELATION_OWNED) {
+        if (passive && status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
             notifier.showNotification(R.integer.notification_message, status, status.user)
         }
     }
