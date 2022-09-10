@@ -1,5 +1,6 @@
 package shibafu.yukari.twitter
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.preference.PreferenceManager
@@ -7,6 +8,9 @@ import androidx.collection.LongSparseArray
 import android.widget.Toast
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import shibafu.yukari.common.Suppressor
+import shibafu.yukari.core.App
+import shibafu.yukari.database.AccountManager
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.ShadowUser
@@ -15,6 +19,7 @@ import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
+import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
@@ -29,21 +34,29 @@ import java.io.File
 import java.util.regex.Pattern
 
 class TwitterApi : ProviderApi {
-    private lateinit var service: TwitterService
+    private lateinit var context: Context
+    private lateinit var accountManager: AccountManager
+    private lateinit var suppressor: Suppressor
+    private lateinit var timelineHub: TimelineHub
+    private lateinit var twitterProvider: TwitterProvider
     private lateinit var twitterFactory: TwitterFactory
 
     private val twitterInstances = LongSparseArray<Twitter>()
 
     override fun onCreate(service: TwitterService) {
-        this.service = service
-        this.twitterFactory = TwitterUtil.getTwitterFactory(service)
+        val app = App.getInstance(service)
+        this.context = app
+        this.accountManager = app.accountManager
+        this.suppressor = app.suppressor
+        this.timelineHub = service.timelineHub
+        this.twitterProvider = service
+        this.twitterFactory = TwitterUtil.getTwitterFactory(app)
 
         GlobalScope.launch {
             // Blocks, Mutes, No-Retweetsの取得
-            val twitterAccounts = service.users.filter { it.Provider.apiType == Provider.API_TWITTER }
-            val suppressor = service.suppressor
-            val sp = PreferenceManager.getDefaultSharedPreferences(service)
-            if (sp.getBoolean("pref_filter_official", true) && suppressor != null) {
+            val twitterAccounts = accountManager.users.filter { it.Provider.apiType == Provider.API_TWITTER }
+            val sp = PreferenceManager.getDefaultSharedPreferences(app)
+            if (sp.getBoolean("pref_filter_official", true)) {
                 twitterAccounts.forEach { userRecord ->
                     val twitter = getApiClient(userRecord) as? Twitter ?: return@forEach
 
@@ -99,67 +112,67 @@ class TwitterApi : ProviderApi {
 
     // 互換用
     fun createFavorite(userRecord: AuthUserRecord, id: Long): Boolean {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             val status = twitter.createFavorite(id)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onFavorite(ShadowUser(userRecord), TwitterStatus(status, userRecord))
+            timelineHub.onFavorite(ShadowUser(userRecord), TwitterStatus(status, userRecord))
 
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
     }
 
     override fun createFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             val favoritedStatus = twitter.createFavorite(status.id)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onFavorite(ShadowUser(userRecord), TwitterStatus(favoritedStatus, userRecord))
+            timelineHub.onFavorite(ShadowUser(userRecord), TwitterStatus(favoritedStatus, userRecord))
 
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
     }
 
     override fun destroyFavorite(userRecord: AuthUserRecord, status: Status): Boolean {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             val unfavoriteStatus = twitter.destroyFavorite(status.id)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), TwitterStatus(unfavoriteStatus, userRecord))
+            timelineHub.onUnfavorite(ShadowUser(userRecord), TwitterStatus(unfavoriteStatus, userRecord))
 
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
     }
 
     override fun postStatus(userRecord: AuthUserRecord, draft: StatusDraft, mediaList: List<File>): Status {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             if (draft.isDirectMessage) {
                 val inReplyTo = draft.inReplyTo?.url?.let { TwitterUtil.getUserIdFromUrl(it) } ?: -1
@@ -218,7 +231,7 @@ class TwitterApi : ProviderApi {
                 val result = twitter.updateStatus(update)
                 val status = TwitterStatus(result, userRecord)
 
-                service.timelineHub?.onStatus("Twitter.PostStatus", status, true)
+                timelineHub.onStatus("Twitter.PostStatus", status, true)
 
                 return status
             }
@@ -228,44 +241,44 @@ class TwitterApi : ProviderApi {
     }
 
     override fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             twitter.retweetStatus(status.id)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "RTしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "RTしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "RTに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "RTに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
     }
 
     override fun destroyStatus(userRecord: AuthUserRecord, status: Status): Boolean {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             twitter.destroyStatus(status.id)
 
-            service.timelineHub?.onDelete(Provider.TWITTER.host, status.id)
+            timelineHub.onDelete(Provider.TWITTER.host, status.id)
 
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ツイートを削除しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ツイートを削除しました", Toast.LENGTH_SHORT).show()
             }
             return true
         } catch (e: TwitterException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ツイート削除に失敗しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ツイート削除に失敗しました", Toast.LENGTH_SHORT).show()
             }
         }
         return false
     }
 
     override fun showStatus(userRecord: AuthUserRecord, url: String): Status {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         try {
             val id = url.toLongOrNull()
             if (id != null) {
@@ -286,7 +299,7 @@ class TwitterApi : ProviderApi {
     }
 
     private fun uploadMedia(userRecord: AuthUserRecord, file: File): UploadedMedia {
-        val twitter = service.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
+        val twitter = twitterProvider.getTwitter(userRecord) ?: throw IllegalStateException("Twitterとの通信の準備に失敗しました")
         return twitter.uploadMedia(file)
     }
 
