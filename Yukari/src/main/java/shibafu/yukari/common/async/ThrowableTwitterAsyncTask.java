@@ -3,7 +3,6 @@ package shibafu.yukari.common.async;
 import androidx.annotation.Nullable;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterProvider;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -13,20 +12,11 @@ import twitter4j.TwitterException;
 public abstract class ThrowableTwitterAsyncTask<Params, Result> extends ThrowableAsyncTask<Params, Void, Result>{
     private boolean isErrored;
     private TwitterServiceDelegate delegate;
-    private TwitterProvider twitterProvider;
 
     public ThrowableTwitterAsyncTask() {}
 
-    /**
-     * @deprecated Use {@link #ThrowableTwitterAsyncTask(TwitterProvider)} instead.
-     */
-    @Deprecated
     public ThrowableTwitterAsyncTask(TwitterServiceDelegate delegate) {
         this.delegate = delegate;
-    }
-
-    public ThrowableTwitterAsyncTask(TwitterProvider twitterProvider) {
-        this.twitterProvider = twitterProvider;
     }
 
     @Override
@@ -61,11 +51,7 @@ public abstract class ThrowableTwitterAsyncTask<Params, Result> extends Throwabl
 
     @Nullable
     protected Twitter getTwitterInstance(AuthUserRecord userRecord) {
-        if (delegate != null) {
-            return delegate.getTwitterService().getTwitter(userRecord);
-        } else {
-            return twitterProvider.getTwitter(userRecord);
-        }
+        return delegate.getTwitterService().getTwitter(userRecord);
     }
 
     public final boolean isErrored() {

@@ -281,9 +281,9 @@ public class ConfigActivity extends ActionBarYukariBase {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             if ("pref_notif_per_account_channel".equals(key)) {
-                AccountManager accountManager = ((ConfigActivity) getActivity()).getAccountManager();
-                if (accountManager != null) {
-                    accountManager.reloadUsers();
+                TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
+                if (service != null) {
+                    service.reloadUsers();
                 }
             }
         }

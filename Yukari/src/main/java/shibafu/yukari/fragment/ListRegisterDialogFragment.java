@@ -20,16 +20,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
-import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.databinding.DialogListBinding;
 import shibafu.yukari.databinding.RowCheckBinding;
-import shibafu.yukari.fragment.base.YukariBaseFragment;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterProvider;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
@@ -54,8 +51,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     private User targetUser;
 
-    private AccountManager accountManager;
-    private TwitterProvider twitterProvider;
+    private TwitterServiceDelegate delegate;
     private AuthUserRecord currentUser;
 
     private ResponseList<UserList> userLists;
@@ -76,18 +72,14 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (getTargetFragment() != null && getTargetFragment() instanceof YukariBaseFragment) {
-            YukariBaseFragment fragment = (YukariBaseFragment) getTargetFragment();
-            accountManager = fragment.getAccountManager();
-            twitterProvider = fragment.getTwitterProvider();
-        } else if (context instanceof ActionBarYukariBase) {
-            ActionBarYukariBase activity = (ActionBarYukariBase) context;
-            accountManager = activity.getAccountManager();
-            twitterProvider = activity.getTwitterProvider();
+        if (getTargetFragment() != null && getTargetFragment() instanceof TwitterServiceDelegate) {
+            delegate = (TwitterServiceDelegate) getTargetFragment();
+        } else if (context instanceof TwitterServiceDelegate) {
+            delegate = (TwitterServiceDelegate) context;
         } else {
             throw new RuntimeException("TwitterServiceDelegate cannot find.");
         }
-        currentUser = accountManager.findPreferredUser(Provider.API_TWITTER);
+        currentUser = delegate.getTwitterService().findPreferredUser(Provider.API_TWITTER);
 
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(ARG_TARGET_USER);
@@ -253,7 +245,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Pair<ResponseList<UserList>, List<Long>>> doInBackground(AuthUserRecord... params) {
             try {
-                Twitter twitter = twitterProvider.getTwitterOrThrow(params[0]);
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0]);
                 ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
                 for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
                     UserList list = iterator.next();
@@ -373,7 +365,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Params> doInBackground(Params... params) {
             try {
-                Twitter twitter = twitterProvider.getTwitterOrThrow(params[0].userRecord);
+                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0].userRecord);
                 switch (params[0].mode) {
                     case ADD:
                         twitter.createUserListMember(params[0].list.getId(), targetUser.getId());
