@@ -290,12 +290,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         statusLoader = null;
         timelineHub = null;
 
-        for (ProviderApi api : providerApis) {
-            if (api != null) {
-                api.onDestroy();
-            }
-        }
-
         // TODO: 消したい
         getAccountManager().storeUsers();
 

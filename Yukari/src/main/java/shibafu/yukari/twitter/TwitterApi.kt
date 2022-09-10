@@ -67,12 +67,6 @@ class TwitterApi : ProviderApi {
         }
     }
 
-    override fun onDestroy() {
-        synchronized(twitterInstances) {
-            twitterInstances.clear()
-        }
-    }
-
     override fun getApiClient(userRecord: AuthUserRecord?): Any? {
         if (userRecord == null) {
             return twitterFactory.instance

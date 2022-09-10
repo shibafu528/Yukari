@@ -11,7 +11,6 @@ import java.io.File
  */
 interface ProviderApi {
     fun onCreate(service: TwitterService)
-    fun onDestroy()
 
     fun getApiClient(userRecord: AuthUserRecord?): Any?
     fun getPostValidator(userRecord: AuthUserRecord): PostValidator

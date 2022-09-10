@@ -1,5 +1,6 @@
 package shibafu.yukari.mastodon
 
+import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -23,6 +24,7 @@ import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
+import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.service.TwitterService
@@ -31,14 +33,12 @@ import java.io.File
 import java.io.IOException
 
 class MastodonApi : ProviderApi {
-    private lateinit var service: TwitterService
+    private lateinit var context: Context
+    private lateinit var timelineHub: TimelineHub
 
     override fun onCreate(service: TwitterService) {
-        this.service = service
-    }
-
-    override fun onDestroy() {
-
+        this.context = service.applicationContext
+        this.timelineHub = service.timelineHub
     }
 
     override fun getApiClient(userRecord: AuthUserRecord?): Any? {
@@ -50,8 +50,8 @@ class MastodonApi : ProviderApi {
     }
 
     fun getApiClient(instanceName: String, accessToken: String?): MastodonClient {
-        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext))
-        if (service.defaultSharedPreferences.getBoolean("pref_force_http1", false)) {
+        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(context))
+        if (context.defaultSharedPreferences.getBoolean("pref_force_http1", false)) {
             okHttpBuilder.protocols(listOf(Protocol.HTTP_1_1))
         }
         var builder = MastodonClient.Builder(instanceName, okHttpBuilder, Gson())
@@ -77,16 +77,16 @@ class MastodonApi : ProviderApi {
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
             val favoritedStatus = statuses.postFavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onFavorite(ShadowUser(userRecord), DonStatus(favoritedStatus, userRecord))
+            timelineHub.onFavorite(ShadowUser(userRecord), DonStatus(favoritedStatus, userRecord))
 
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ふぁぼれませんでした (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
@@ -99,16 +99,16 @@ class MastodonApi : ProviderApi {
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
             val unfavoritedStatus = statuses.postUnfavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
 
-            service.timelineHub?.onUnfavorite(ShadowUser(userRecord), DonStatus(unfavoritedStatus, userRecord))
+            timelineHub.onUnfavorite(ShadowUser(userRecord), DonStatus(unfavoritedStatus, userRecord))
 
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "あんふぁぼに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
@@ -166,13 +166,13 @@ class MastodonApi : ProviderApi {
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
             statuses.postReblog(localId).execute()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "ブーストに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "ブーストに失敗しました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
             }
         }
         return false
@@ -185,13 +185,13 @@ class MastodonApi : ProviderApi {
             val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
             statuses.deleteStatus(localId)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "トゥートを削除しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "トゥートを削除しました", Toast.LENGTH_SHORT).show()
             }
             return true
         } catch (e: Mastodon4jRequestException) {
             e.printStackTrace()
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(service.applicationContext, "トゥート削除に失敗しました", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "トゥート削除に失敗しました", Toast.LENGTH_SHORT).show()
             }
         }
         return false
