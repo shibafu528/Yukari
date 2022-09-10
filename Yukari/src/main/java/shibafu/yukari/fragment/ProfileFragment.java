@@ -1121,7 +1121,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             if (user != null) {
                 return user;
             }
-            return getAccountManager().getPrimaryUser();
+            return getTwitterService().getPrimaryUser();
         }
     }
 
