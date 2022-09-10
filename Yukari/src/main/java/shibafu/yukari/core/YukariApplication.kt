@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.os.Build
@@ -161,5 +162,10 @@ class YukariApplication : Application() {
             }
             putBoolean("pref_font_input__migrate_3_0_0", true)
         }
+    }
+
+    companion object {
+        @JvmStatic
+        fun getInstance(context: Context) = context.applicationContext as YukariApplication
     }
 }

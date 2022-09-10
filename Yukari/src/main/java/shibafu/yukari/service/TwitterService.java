@@ -79,9 +79,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         }
     }
 
-    //メインデータベース
-    private CentralDatabase database;
-
     //キャッシュ
     private HashCache hashCache;
     private DefaultVisibilityCache defaultVisibilityCache;
@@ -213,9 +210,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         Log.d(LOG_TAG, "onCreate");
 
         handler = new Handler();
-
-        //データベースのオープン
-        database = ((YukariApplication) getApplicationContext()).getDatabase();
 
         //キャッシュの読み込み
         hashCache = new HashCache(this);
@@ -570,12 +564,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //<editor-fold desc="MuteConfig Reload">
     private void updateMuteConfig() {
         Log.d(LOG_TAG, "Update MuteConfig");
-        suppressor.setConfigs(database.getRecords(MuteConfig.class));
+        suppressor.setConfigs(YukariApplication.getInstance(this).getDatabase().getRecords(MuteConfig.class));
     }
 
     private void updateAutoMuteConfig() {
         Log.d(LOG_TAG, "Update AutoMuteConfig");
-        List<AutoMuteConfig> records = database.getRecords(AutoMuteConfig.class);
+        List<AutoMuteConfig> records = YukariApplication.getInstance(this).getDatabase().getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
