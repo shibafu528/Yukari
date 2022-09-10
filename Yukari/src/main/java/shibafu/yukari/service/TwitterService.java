@@ -227,9 +227,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             return api.getApiClient(userRecord);
         });
 
-        //ユーザデータのロード
-        getAccountManager(); // TODO: 消したい
-
         //ミュート設定の読み込み
         suppressor = new Suppressor();
         updateMuteConfig();
@@ -268,7 +265,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
 
         // Mastodon: default visibilityの取得
-        for (AuthUserRecord user : getUsers()) {
+        for (AuthUserRecord user : YukariApplication.getInstance(this).getAccountManager().getUsers()) {
             if (user.Provider.getApiType() == Provider.API_MASTODON) {
                 FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(this, defaultVisibilityCache, user);
                 handler.post(task::executeParallel);
@@ -343,7 +340,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      */
     @Deprecated
     public CentralDatabase getDatabase() {
-        return ((YukariApplication) getApplicationContext()).getDatabase();
+        return YukariApplication.getInstance(this).getDatabase();
     }
 
     public Suppressor getSuppressor() {
@@ -362,16 +359,16 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      * @deprecated Use {@link YukariApplication#getAccountManager()} instead.
      */
     @Deprecated
-    public AccountManager getAccountManager() {
-        return ((YukariApplication) getApplicationContext()).getAccountManager();
+    private AccountManager getAccountManager() {
+        return YukariApplication.getInstance(this).getAccountManager();
     }
 
     /**
      * @deprecated Use {@link YukariApplication#getUserExtrasManager()} instead.
      */
     @Deprecated
-    public UserExtrasManager getUserExtrasManager() {
-        return ((YukariApplication) getApplicationContext()).getUserExtrasManager();
+    private UserExtrasManager getUserExtrasManager() {
+        return YukariApplication.getInstance(this).getUserExtrasManager();
     }
 
     @Nullable
@@ -381,54 +378,64 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     //<editor-fold desc="AccountManager delegates">
     @Override
+    @Deprecated
     public void reloadUsers() {
         getAccountManager().reloadUsers();
     }
 
     @Override
     @NonNull
+    @Deprecated
     public List<AuthUserRecord> getUsers() {
         return getAccountManager().getUsers();
     }
 
     @Override
     @Nullable
+    @Deprecated
     public AuthUserRecord getPrimaryUser() {
         return getAccountManager().getPrimaryUser();
     }
 
     @Override
+    @Deprecated
     public void setPrimaryUser(long id) {
         getAccountManager().setPrimaryUser(id);
     }
 
     @Override
+    @Deprecated
     public ArrayList<AuthUserRecord> getWriterUsers() {
         return getAccountManager().getWriterUsers();
     }
 
     @Override
+    @Deprecated
     public void setWriterUsers(List<AuthUserRecord> writers) {
         getAccountManager().setWriterUsers(writers);
     }
 
     @Override
+    @Deprecated
     public void setUserColor(long id, int color) {
         getAccountManager().setUserColor(id, color);
     }
 
     @Override
+    @Deprecated
     public void storeUsers() {
         getAccountManager().storeUsers();
     }
 
     @Override
+    @Deprecated
     public void deleteUser(long id) {
         getAccountManager().deleteUser(id);
     }
 
     @Override
     @Nullable
+    @Deprecated
     public AuthUserRecord findPreferredUser(int apiType) {
         return getAccountManager().findPreferredUser(apiType);
     }
@@ -436,22 +443,26 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     //<editor-fold desc="UserExtrasManager delegates">
     @Override
+    @Deprecated
     public void setColor(String url, int color) {
         getUserExtrasManager().setColor(url, color);
     }
 
     @Override
+    @Deprecated
     public void setPriority(String url, AuthUserRecord userRecord) {
         getUserExtrasManager().setPriority(url, userRecord);
     }
 
     @Override
     @Nullable
+    @Deprecated
     public AuthUserRecord getPriority(String url) {
         return getUserExtrasManager().getPriority(url);
     }
 
     @Override
+    @Deprecated
     public List<UserExtras> getUserExtras() {
         return getUserExtrasManager().getUserExtras();
     }
