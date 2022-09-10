@@ -14,52 +14,37 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.sys1yagi.mastodon4j.MastodonClient;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import okhttp3.Response;
 import shibafu.yukari.common.NotificationChannelPrefix;
-import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.linkage.ApiCollectionProvider;
 import shibafu.yukari.linkage.StreamCollectionProvider;
-import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.mastodon.FetchDefaultVisibilityTask;
 
 public class AccountManagerImpl implements AccountManager {
     private static final String LOG_TAG = "AccountManager";
 
     private final Context context;
+    private final LocalBroadcastManager localBroadcastManager;
     private final CentralDatabase database;
-    private final ApiCollectionProvider apiCollectionProvider;
-    private final StreamCollectionProvider streamCollectionProvider;
-    private final DefaultVisibilityCache defaultVisibilityCache;
 
     private final List<AuthUserRecord> users = new ArrayList<>();
 
-    public AccountManagerImpl(Context context, CentralDatabase database, ApiCollectionProvider apiCollectionProvider, StreamCollectionProvider streamCollectionProvider, DefaultVisibilityCache defaultVisibilityCache) {
+    public AccountManagerImpl(Context context, CentralDatabase database) {
         this.context = context;
+        this.localBroadcastManager = LocalBroadcastManager.getInstance(context);
         this.database = database;
-        this.apiCollectionProvider = apiCollectionProvider;
-        this.streamCollectionProvider = streamCollectionProvider;
-        this.defaultVisibilityCache = defaultVisibilityCache;
 
-        reloadUsers(true);
+        reloadUsers();
     }
 
     @Override
     public void reloadUsers() {
-        reloadUsers(false);
-    }
-
-    private void reloadUsers(boolean inInitialize) {
         List<AuthUserRecord> dbList;
         try (Cursor cursor = database.getAccounts()) {
             dbList = AuthUserRecord.getAccountsList(cursor);
@@ -88,12 +73,6 @@ public class AccountManagerImpl implements AccountManager {
         ArrayList<AuthUserRecord> removeList = new ArrayList<>();
         for (AuthUserRecord aur : users) {
             if (!dbList.contains(aur)) {
-                if (!inInitialize) {
-                    ProviderStream stream = streamCollectionProvider.getProviderStream(aur);
-                    if (stream != null) {
-                        stream.removeUser(aur);
-                    }
-                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     String groupId = NotificationChannelPrefix.GROUP_ACCOUNT + aur.Url;
 
@@ -112,22 +91,11 @@ public class AccountManagerImpl implements AccountManager {
         users.removeAll(removeList);
 
         //新しいレコードの登録
-        Handler handler = new Handler(Looper.getMainLooper());
         ArrayList<AuthUserRecord> addedList = new ArrayList<>();
         for (AuthUserRecord aur : dbList) {
             if (!users.contains(aur)) {
                 addedList.add(aur);
                 users.add(aur);
-                if (!inInitialize) {
-                    ProviderStream stream = streamCollectionProvider.getProviderStream(aur);
-                    if (stream != null) {
-                        stream.addUser(aur);
-                    }
-                }
-                if (aur.Provider.getApiType() == Provider.API_MASTODON) {
-                    FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(apiCollectionProvider, defaultVisibilityCache, aur);
-                    handler.post(task::executeParallel);
-                }
                 Log.d(LOG_TAG, "Add user: @" + aur.ScreenName);
             } else {
                 AuthUserRecord existRecord = users.get(users.indexOf(aur));
@@ -138,10 +106,10 @@ public class AccountManagerImpl implements AccountManager {
                 AccountManager.createAccountNotificationChannels(nm, aur, false);
             }
         }
-        Intent broadcastIntent = new Intent(TwitterService.RELOADED_USERS);
-        broadcastIntent.putExtra(TwitterService.EXTRA_RELOAD_REMOVED, removeList);
-        broadcastIntent.putExtra(TwitterService.EXTRA_RELOAD_ADDED, addedList);
-        context.sendBroadcast(broadcastIntent);
+        Intent broadcastIntent = new Intent(AccountManager.ACTION_RELOADED_USERS);
+        broadcastIntent.putExtra(AccountManager.EXTRA_RELOAD_REMOVED, removeList);
+        broadcastIntent.putExtra(AccountManager.EXTRA_RELOAD_ADDED, addedList);
+        localBroadcastManager.sendBroadcast(broadcastIntent);
         Log.d(LOG_TAG, "Reloaded users. User=" + users.size());
     }
 
@@ -265,46 +233,5 @@ public class AccountManagerImpl implements AccountManager {
         }
 
         return found;
-    }
-
-    private static class FetchDefaultVisibilityTask extends SimpleAsyncTask {
-        private final ApiCollectionProvider apiCollectionProvider;
-        private final DefaultVisibilityCache defaultVisibilityCache;
-        private final AuthUserRecord aur;
-
-        private FetchDefaultVisibilityTask(ApiCollectionProvider apiCollectionProvider, DefaultVisibilityCache defaultVisibilityCache, AuthUserRecord aur) {
-            this.apiCollectionProvider = apiCollectionProvider;
-            this.defaultVisibilityCache = defaultVisibilityCache;
-            this.aur = aur;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            MastodonClient client = (MastodonClient) apiCollectionProvider.getProviderApi(Provider.API_MASTODON).getApiClient(aur);
-            try {
-                Response response = client.get("preferences", null, "v1");
-                if (response.isSuccessful()) {
-                    String body = response.body().string();
-                    Map<String, Object> prefs = new Gson().fromJson(body, new TypeToken<Map<String, Object>>() {}.getType());
-                    Object maybeVisibility = prefs.get("posting:default:visibility");
-                    if (maybeVisibility instanceof String) {
-                        switch ((String) maybeVisibility) {
-                            case "public":
-                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PUBLIC);
-                                break;
-                            case "unlisted":
-                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.UNLISTED);
-                                break;
-                            case "private":
-                                defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PRIVATE);
-                                break;
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
     }
 }

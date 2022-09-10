@@ -17,6 +17,10 @@ import java.util.List;
 import shibafu.yukari.common.NotificationChannelPrefix;
 
 public interface AccountManager {
+    String ACTION_RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
+    String EXTRA_RELOAD_REMOVED = "removed";
+    String EXTRA_RELOAD_ADDED = "added";
+
     void reloadUsers();
 
     @NonNull

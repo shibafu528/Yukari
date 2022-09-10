@@ -47,6 +47,7 @@ import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubImpl;
 import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
+import shibafu.yukari.mastodon.FetchDefaultVisibilityTask;
 import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.Pluggaloid;
@@ -65,9 +66,6 @@ import java.util.List;
  */
 public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager, TwitterProvider {
     private static final String LOG_TAG = "TwitterService";
-    public static final String RELOADED_USERS = "shibafu.yukari.RELOADED_USERS";
-    public static final String EXTRA_RELOAD_REMOVED = "removed";
-    public static final String EXTRA_RELOAD_ADDED = "added";
     public static final String ACTION_STREAM_CONNECTED = "shibafu.yukari.STREAM_CONNECTED";
     public static final String ACTION_STREAM_DISCONNECTED = "shibafu.yukari.STREAM_DISCONNECTED";
     public static final String EXTRA_USER = "user";
@@ -165,6 +163,32 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             }
         }
     };
+    private final BroadcastReceiver userReloadListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<AuthUserRecord> addedUsers = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_ADDED);
+            ArrayList<AuthUserRecord> removedUsers = (ArrayList<AuthUserRecord>) intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_REMOVED);
+
+            for (AuthUserRecord user : removedUsers) {
+                ProviderStream stream = getProviderStream(user);
+                if (stream != null) {
+                    stream.removeUser(user);
+                }
+            }
+
+            for (AuthUserRecord user : addedUsers) {
+                ProviderStream stream = getProviderStream(user);
+                if (stream != null) {
+                    stream.addUser(user);
+                }
+
+                if (user.Provider.getApiType() == Provider.API_MASTODON) {
+                    FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(TwitterService.this, defaultVisibilityCache, user);
+                    handler.post(task::executeParallel);
+                }
+            }
+        }
+    };
 
     private Handler handler;
 
@@ -216,7 +240,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         });
 
         //ユーザデータのロード
-        accountManager = new AccountManagerImpl(getApplicationContext(), database, this, this, defaultVisibilityCache);
+        accountManager = new AccountManagerImpl(getApplicationContext(), database);
         userExtrasManager = new UserExtrasManagerImpl(database, accountManager.getUsers());
 
         //ミュート設定の読み込み
@@ -254,6 +278,15 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         // イベント購読
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(databaseUpdateListener, new IntentFilter(DatabaseEvent.ACTION_UPDATE));
+        broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
+
+        // Mastodon: default visibilityの取得
+        for (AuthUserRecord user : getUsers()) {
+            if (user.Provider.getApiType() == Provider.API_MASTODON) {
+                FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(this, defaultVisibilityCache, user);
+                handler.post(task::executeParallel);
+            }
+        }
 
         Log.d(LOG_TAG, "onCreate completed.");
     }
@@ -271,6 +304,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.unregisterReceiver(databaseUpdateListener);
+        broadcastManager.unregisterReceiver(userReloadListener);
 
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
