@@ -32,7 +32,6 @@ import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DatabaseEvent;
-import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.database.UserExtrasManager;
@@ -82,9 +81,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //キャッシュ
     private HashCache hashCache;
     private DefaultVisibilityCache defaultVisibilityCache;
-
-    //ミュート判定
-    private Suppressor suppressor;
 
     //Pluggaloid
     private Pluggaloid pluggaloid;
@@ -147,9 +143,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         @Override
         public void onReceive(Context context, Intent intent) {
             String className = intent.getStringExtra(DatabaseEvent.EXTRA_CLASS);
-            if (MuteConfig.class.getName().equals(className)) {
-                updateMuteConfig();
-            } else if (AutoMuteConfig.class.getName().equals(className)) {
+            if (AutoMuteConfig.class.getName().equals(className)) {
                 updateAutoMuteConfig();
             }
         }
@@ -228,8 +222,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         });
 
         //ミュート設定の読み込み
-        suppressor = new Suppressor();
-        updateMuteConfig();
+        getSuppressor(); // TODO: 消したい、たぶん消せる
 
         //オートミュート設定の読み込み
         updateAutoMuteConfig();
@@ -343,8 +336,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return App.getInstance(this).getDatabase();
     }
 
+    /**
+     * @deprecated Use {@link App#getSuppressor()} instead.
+     */
+    @Deprecated
     public Suppressor getSuppressor() {
-        return suppressor;
+        return App.getInstance(this).getSuppressor();
     }
 
     public HashCache getHashCache() {
@@ -573,11 +570,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //</editor-fold>
 
     //<editor-fold desc="MuteConfig Reload">
-    private void updateMuteConfig() {
-        Log.d(LOG_TAG, "Update MuteConfig");
-        suppressor.setConfigs(App.getInstance(this).getDatabase().getRecords(MuteConfig.class));
-    }
-
     private void updateAutoMuteConfig() {
         Log.d(LOG_TAG, "Update AutoMuteConfig");
         List<AutoMuteConfig> records = App.getInstance(this).getDatabase().getRecords(AutoMuteConfig.class);

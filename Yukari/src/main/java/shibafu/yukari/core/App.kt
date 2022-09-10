@@ -4,23 +4,25 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.os.Build
 import android.preference.PreferenceManager
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.edit
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import shibafu.yukari.R
 import shibafu.yukari.common.NotificationChannelPrefix
-import shibafu.yukari.database.AccountManager
-import shibafu.yukari.database.AccountManagerImpl
-import shibafu.yukari.database.CentralDatabase
-import shibafu.yukari.database.UserExtrasManager
-import shibafu.yukari.database.UserExtrasManagerImpl
+import shibafu.yukari.common.Suppressor
+import shibafu.yukari.database.*
 import twitter4j.AlternativeHttpClientImpl
 
 /**
@@ -30,6 +32,17 @@ class App : Application() {
     val database: CentralDatabase by lazy { CentralDatabase(this).open() }
     val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
+    val suppressor: Suppressor by lazy { Suppressor().apply { configs = database.getRecords(MuteConfig::class.java) } }
+
+    private val databaseUpdateListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val className = intent?.getStringExtra(DatabaseEvent.EXTRA_CLASS)
+            if (MuteConfig::class.java.name == className) {
+                Log.d(LOG_TAG, "Update MuteConfig")
+                suppressor.configs = database.getRecords(MuteConfig::class.java)
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -45,6 +58,9 @@ class App : Application() {
         }
 
         migratePreference()
+
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
     }
 
     private fun installSecurityProvider() {
@@ -165,6 +181,8 @@ class App : Application() {
     }
 
     companion object {
+        private const val LOG_TAG = "AppContext"
+
         @JvmStatic
         fun getInstance(context: Context) = context.applicationContext as App
     }
