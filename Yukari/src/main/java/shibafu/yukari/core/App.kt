@@ -26,7 +26,7 @@ import twitter4j.AlternativeHttpClientImpl
 /**
  * Created by shibafu on 2015/08/29.
  */
-class YukariApplication : Application() {
+class App : Application() {
     val database: CentralDatabase by lazy { CentralDatabase(this).open() }
     val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
@@ -166,6 +166,6 @@ class YukariApplication : Application() {
 
     companion object {
         @JvmStatic
-        fun getInstance(context: Context) = context.applicationContext as YukariApplication
+        fun getInstance(context: Context) = context.applicationContext as App
     }
 }

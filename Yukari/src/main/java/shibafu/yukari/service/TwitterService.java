@@ -27,7 +27,7 @@ import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
-import shibafu.yukari.core.YukariApplication;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
@@ -265,7 +265,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
 
         // Mastodon: default visibilityの取得
-        for (AuthUserRecord user : YukariApplication.getInstance(this).getAccountManager().getUsers()) {
+        for (AuthUserRecord user : App.getInstance(this).getAccountManager().getUsers()) {
             if (user.Provider.getApiType() == Provider.API_MASTODON) {
                 FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(this, defaultVisibilityCache, user);
                 handler.post(task::executeParallel);
@@ -336,11 +336,11 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     }
 
     /**
-     * @deprecated Use {@link YukariApplication#getDatabase()} instead.
+     * @deprecated Use {@link App#getDatabase()} instead.
      */
     @Deprecated
     public CentralDatabase getDatabase() {
-        return YukariApplication.getInstance(this).getDatabase();
+        return App.getInstance(this).getDatabase();
     }
 
     public Suppressor getSuppressor() {
@@ -356,19 +356,19 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     }
 
     /**
-     * @deprecated Use {@link YukariApplication#getAccountManager()} instead.
+     * @deprecated Use {@link App#getAccountManager()} instead.
      */
     @Deprecated
     private AccountManager getAccountManager() {
-        return YukariApplication.getInstance(this).getAccountManager();
+        return App.getInstance(this).getAccountManager();
     }
 
     /**
-     * @deprecated Use {@link YukariApplication#getUserExtrasManager()} instead.
+     * @deprecated Use {@link App#getUserExtrasManager()} instead.
      */
     @Deprecated
     private UserExtrasManager getUserExtrasManager() {
-        return YukariApplication.getInstance(this).getUserExtrasManager();
+        return App.getInstance(this).getUserExtrasManager();
     }
 
     @Nullable
@@ -575,12 +575,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     //<editor-fold desc="MuteConfig Reload">
     private void updateMuteConfig() {
         Log.d(LOG_TAG, "Update MuteConfig");
-        suppressor.setConfigs(YukariApplication.getInstance(this).getDatabase().getRecords(MuteConfig.class));
+        suppressor.setConfigs(App.getInstance(this).getDatabase().getRecords(MuteConfig.class));
     }
 
     private void updateAutoMuteConfig() {
         Log.d(LOG_TAG, "Update AutoMuteConfig");
-        List<AutoMuteConfig> records = YukariApplication.getInstance(this).getDatabase().getRecords(AutoMuteConfig.class);
+        List<AutoMuteConfig> records = App.getInstance(this).getDatabase().getRecords(AutoMuteConfig.class);
         timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
