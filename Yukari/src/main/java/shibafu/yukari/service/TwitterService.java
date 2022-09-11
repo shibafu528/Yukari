@@ -77,15 +77,15 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     private Pluggaloid pluggaloid;
 
     //ネットワーク管理
-    private LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
+    private final LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
 
     //StreamAPI
-    private ProviderStream[] providerStreams = {
+    private final ProviderStream[] providerStreams = {
             new TwitterStream(),
             new MastodonStream()
     };
 
-    private BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
+    private final BroadcastReceiver streamConnectivityListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_notif_connectivity", true)) {
@@ -113,7 +113,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             }
         }
     };
-    private BroadcastReceiver balusListener = new BroadcastReceiver() {
+    private final BroadcastReceiver balusListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
