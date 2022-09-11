@@ -7,6 +7,7 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.entity.NotifyKind;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.User;
+import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 
 import java.util.List;
@@ -19,6 +20,10 @@ public interface TimelineHub {
     void addObserver(@NonNull TimelineObserver observer);
     @PassThrough
     void removeObserver(@NonNull TimelineObserver observer);
+    @PassThrough
+    void attachPluggaloid(@NonNull Pluggaloid pluggaloid);
+    @PassThrough
+    void detachPluggaloid(@NonNull Pluggaloid pluggaloid);
 
     void onStatus(@NonNull String timelineId, @NonNull Status status, boolean passive);
     void onDirectMessage(@NonNull String timelineId, @NonNull TwitterMessage status, boolean passive);

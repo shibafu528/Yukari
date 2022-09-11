@@ -23,7 +23,7 @@ import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
-import shibafu.yukari.service.TwitterService
+import shibafu.yukari.plugin.Pluggaloid
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
@@ -40,7 +40,8 @@ import java.util.regex.PatternSyntaxException
 /**
  * [Status] の配信管理
  */
-class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
+class TimelineHubImpl(context: Context,
+                      private val timelineHubProvider: TimelineHubProvider,
                       private val accountManager: AccountManager,
                       private val database: CentralDatabase,
                       private val suppressor: Suppressor,
@@ -48,7 +49,6 @@ class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
                       private val hashCache: HashCache) : TimelineHub {
     private val startupTime: Long = System.currentTimeMillis()
 
-    private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     private val notifier: StatusNotifier = StatusNotifier(context)
@@ -59,6 +59,8 @@ class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
 
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
     private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
+
+    private var pluggaloid: Pluggaloid? = null
 
     /**
      * オートミュート設定のインポート
@@ -123,6 +125,18 @@ class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
                     eventQueues[observer.timelineId] = LinkedBlockingQueue<TimelineEvent>()
                 }
             }
+        }
+    }
+
+    override fun attachPluggaloid(pluggaloid: Pluggaloid) {
+        if (this.pluggaloid == null) {
+            this.pluggaloid = pluggaloid
+        }
+    }
+
+    override fun detachPluggaloid(pluggaloid: Pluggaloid) {
+        if (this.pluggaloid == pluggaloid) {
+            this.pluggaloid = null
         }
     }
 
@@ -245,7 +259,7 @@ class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
 
             // mruby連携
             if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
-                val mRuby = service.pluggaloid?.getmRuby()
+                val mRuby = pluggaloid?.getmRuby()
                 if (mRuby != null) {
                     val message = StatusConverter.toMessage(mRuby, status.status)
                     try {
@@ -285,7 +299,7 @@ class TimelineHubImpl(@Deprecated("") private val service: TwitterService,
                     e.printStackTrace()
                 }
 
-                service.timelineHub?.onForceUpdateUI()
+                timelineHubProvider.timelineHub?.onForceUpdateUI()
             }
         }
     }

@@ -42,6 +42,7 @@ import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.StreamCollectionProvider;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubImpl;
+import shibafu.yukari.linkage.TimelineHubProvider;
 import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask;
@@ -61,7 +62,7 @@ import java.util.List;
 /**
  * Created by Shibafu on 13/08/01.
  */
-public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager, TwitterProvider {
+public class TwitterService extends Service implements ApiCollectionProvider, StreamCollectionProvider, AccountManager, UserExtrasManager, TwitterProvider, TimelineHubProvider {
     private static final String LOG_TAG = "TwitterService";
     public static final String ACTION_STREAM_CONNECTED = "shibafu.yukari.STREAM_CONNECTED";
     public static final String ACTION_STREAM_DISCONNECTED = "shibafu.yukari.STREAM_DISCONNECTED";
@@ -203,7 +204,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         handler = new Handler();
 
         //Timeline Pub/Subのセットアップ
-        TimelineHub hubImpl = new TimelineHubImpl(this, getAccountManager(), getDatabase(), getSuppressor(), this, getHashCache());
+        TimelineHub hubImpl = new TimelineHubImpl(getApplicationContext(), this, getAccountManager(), getDatabase(), getSuppressor(), this, getHashCache());
         timelineHub = new TimelineHubQueue(hubImpl);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, userRecord -> {
             final ProviderApi api = getProviderApi(userRecord);
@@ -243,6 +244,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
             pluggaloid = new Pluggaloid(getApplicationContext());
+            timelineHub.attachPluggaloid(pluggaloid);
         }
 
         // イベント購読
@@ -280,6 +282,11 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
 
+        if (pluggaloid != null) {
+            timelineHub.detachPluggaloid(pluggaloid);
+            pluggaloid.close();
+        }
+
         statusLoader.cancelAll();
         statusLoader = null;
         timelineHub = null;
@@ -288,10 +295,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         getAccountManager().storeUsers();
 
         BitmapCache.dispose();
-
-        if (pluggaloid != null) {
-            pluggaloid.close();
-        }
 
         stopForeground(true);
 
