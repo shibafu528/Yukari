@@ -58,7 +58,7 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         }
     }
 
-    private val providerApis = listOf(TwitterApi(), MastodonApi())
+    private val providerApis = arrayOf(TwitterApi(), MastodonApi())
 
     private val databaseUpdateListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
