@@ -122,15 +122,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         throw UnsupportedOperationException("API Type $apiType not implemented.")
     }
 
-    override fun getTwitter(userRecord: AuthUserRecord?): Twitter? {
-        return getProviderApi(Provider.API_TWITTER).getApiClient(userRecord) as? Twitter
-    }
-
-    @Throws(MissingTwitterInstanceException::class)
-    override fun getTwitterOrThrow(userRecord: AuthUserRecord?): Twitter {
-        return getTwitter(userRecord) ?: throw MissingTwitterInstanceException("Twitter インスタンスの取得エラー")
-    }
-
     private fun installSecurityProvider() {
         try {
             ProviderInstaller.installIfNeeded(this)
