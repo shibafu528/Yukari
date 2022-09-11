@@ -171,9 +171,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         handler = new Handler();
 
-        //ミュート設定の読み込み
-        getSuppressor(); // TODO: 消したい、たぶん消せる
-
         //APIインスタンスの生成
         for (ProviderStream stream : providerStreams) {
             if (stream != null) {
