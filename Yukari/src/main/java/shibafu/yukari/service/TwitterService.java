@@ -79,7 +79,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     }
 
     //キャッシュ
-    private HashCache hashCache;
     private DefaultVisibilityCache defaultVisibilityCache;
 
     //Pluggaloid
@@ -206,11 +205,10 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         handler = new Handler();
 
         //キャッシュの読み込み
-        hashCache = new HashCache(this);
         defaultVisibilityCache = new DefaultVisibilityCache(this);
 
         //Timeline Pub/Subのセットアップ
-        TimelineHub hubImpl = new TimelineHubImpl(this, getAccountManager(), getDatabase(), getSuppressor(), this, hashCache);
+        TimelineHub hubImpl = new TimelineHubImpl(this, getAccountManager(), getDatabase(), getSuppressor(), this, getHashCache());
         timelineHub = new TimelineHubQueue(hubImpl);
         statusLoader = new StatusLoader(getApplicationContext(), timelineHub, userRecord -> {
             final ProviderApi api = getProviderApi(userRecord);
@@ -295,9 +293,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         BitmapCache.dispose();
 
-        hashCache.save(this);
-        hashCache = null;
-
         defaultVisibilityCache.save(this);
         defaultVisibilityCache = null;
 
@@ -338,8 +333,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return App.getInstance(this).getSuppressor();
     }
 
+    /**
+     * @deprecated Use {@link App#getHashCache()} instead.
+     */
+    @Deprecated
     public HashCache getHashCache() {
-        return hashCache;
+        return App.getInstance(this).getHashCache();
     }
 
     public DefaultVisibilityCache getDefaultVisibilityCache() {

@@ -20,6 +20,7 @@ import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import shibafu.yukari.R
+import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.Suppressor
 import shibafu.yukari.database.*
@@ -33,6 +34,7 @@ class App : Application() {
     val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
     val suppressor: Suppressor by lazy { Suppressor().apply { configs = database.getRecords(MuteConfig::class.java) } }
+    val hashCache: HashCache by lazy { HashCache(this) }
 
     private val databaseUpdateListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
