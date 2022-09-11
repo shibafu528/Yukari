@@ -29,9 +29,7 @@ import shibafu.yukari.common.Suppressor;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.core.App;
 import shibafu.yukari.database.AccountManager;
-import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.database.CentralDatabase;
-import shibafu.yukari.database.DatabaseEvent;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.database.UserExtrasManager;
@@ -41,17 +39,13 @@ import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.linkage.StreamCollectionProvider;
 import shibafu.yukari.linkage.TimelineHub;
-import shibafu.yukari.linkage.TimelineHubImpl;
 import shibafu.yukari.linkage.TimelineHubProvider;
-import shibafu.yukari.linkage.TimelineHubQueue;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask;
-import shibafu.yukari.mastodon.MastodonApi;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
-import shibafu.yukari.twitter.TwitterApi;
 import shibafu.yukari.twitter.TwitterProvider;
 import shibafu.yukari.twitter.TwitterStream;
 import twitter4j.Twitter;
@@ -84,16 +78,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
     //ネットワーク管理
     private LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
-
-    //Timeline Pub/Sub
-    private StatusLoader statusLoader;
-    private TimelineHub timelineHub;
-
-    //API
-    private ProviderApi[] providerApis = {
-            new TwitterApi(),
-            new MastodonApi()
-    };
 
     //StreamAPI
     private ProviderStream[] providerStreams = {
@@ -133,16 +117,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
-            timelineHub.onWipe();
-        }
-    };
-    private final BroadcastReceiver databaseUpdateListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String className = intent.getStringExtra(DatabaseEvent.EXTRA_CLASS);
-            if (AutoMuteConfig.class.getName().equals(className)) {
-                updateAutoMuteConfig();
-            }
+            getTimelineHub().onWipe();
         }
     };
     private final BroadcastReceiver userReloadListener = new BroadcastReceiver() {
@@ -203,30 +178,10 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         handler = new Handler();
 
-        //Timeline Pub/Subのセットアップ
-        TimelineHub hubImpl = new TimelineHubImpl(getApplicationContext(), this, getAccountManager(), getDatabase(), getSuppressor(), this, getHashCache());
-        timelineHub = new TimelineHubQueue(hubImpl);
-        statusLoader = new StatusLoader(getApplicationContext(), timelineHub, userRecord -> {
-            final ProviderApi api = getProviderApi(userRecord);
-            if (api == null) {
-                throw new RuntimeException("Invalid API Type : " + userRecord);
-            }
-
-            return api.getApiClient(userRecord);
-        });
-
         //ミュート設定の読み込み
         getSuppressor(); // TODO: 消したい、たぶん消せる
 
-        //オートミュート設定の読み込み
-        updateAutoMuteConfig();
-
         //APIインスタンスの生成
-        for (ProviderApi api : providerApis) {
-            if (api != null) {
-                api.onCreate(this);
-            }
-        }
         for (ProviderStream stream : providerStreams) {
             if (stream != null) {
                 stream.onCreate(this);
@@ -244,12 +199,11 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
             pluggaloid = new Pluggaloid(getApplicationContext());
-            timelineHub.attachPluggaloid(pluggaloid);
+            getTimelineHub().attachPluggaloid(pluggaloid);
         }
 
         // イベント購読
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-        broadcastManager.registerReceiver(databaseUpdateListener, new IntentFilter(DatabaseEvent.ACTION_UPDATE));
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
 
         // Mastodon: default visibilityの取得
@@ -276,20 +230,18 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         }
 
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-        broadcastManager.unregisterReceiver(databaseUpdateListener);
         broadcastManager.unregisterReceiver(userReloadListener);
 
         unregisterReceiver(streamConnectivityListener);
         unregisterReceiver(balusListener);
 
         if (pluggaloid != null) {
-            timelineHub.detachPluggaloid(pluggaloid);
+            getTimelineHub().detachPluggaloid(pluggaloid);
             pluggaloid.close();
         }
 
-        statusLoader.cancelAll();
-        statusLoader = null;
-        timelineHub = null;
+        // TODO: 消したい。たぶんいらない気がする。
+        getStatusLoader().cancelAll();
 
         // TODO: 消したい
         getAccountManager().storeUsers();
@@ -305,12 +257,20 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         Log.d(LOG_TAG, "onDestroy completed.");
     }
 
+    /**
+     * @deprecated Use {@link App#getStatusLoader()} instead.
+     */
+    @Deprecated
     public StatusLoader getStatusLoader() {
-        return statusLoader;
+        return App.getInstance(this).getStatusLoader();
     }
 
+    /**
+     * @deprecated Use {@link App#getTimelineHub()} instead.
+     */
+    @Deprecated
     public TimelineHub getTimelineHub() {
-        return timelineHub;
+        return App.getInstance(this).getTimelineHub();
     }
 
     /**
@@ -466,6 +426,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      */
     @Override
     @Nullable
+    @Deprecated
     public Twitter getTwitter(@Nullable AuthUserRecord userRecord) {
         return (Twitter) getProviderApi(Provider.API_TWITTER).getApiClient(userRecord);
     }
@@ -478,6 +439,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      */
     @Override
     @NonNull
+    @Deprecated
     public Twitter getTwitterOrThrow(@Nullable AuthUserRecord userRecord) throws MissingTwitterInstanceException {
         Twitter twitter = getTwitter(userRecord);
         if (twitter == null) {
@@ -495,12 +457,9 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      */
     @Override
     @Nullable
+    @Deprecated
     public ProviderApi getProviderApi(@NonNull AuthUserRecord userRecord) {
-        int apiType = userRecord.Provider.getApiType();
-        if (0 <= apiType && apiType < providerApis.length) {
-            return providerApis[apiType];
-        }
-        return null;
+        return App.getInstance(this).getProviderApi(userRecord);
     }
 
     /**
@@ -512,11 +471,9 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
      */
     @Override
     @NonNull
+    @Deprecated
     public ProviderApi getProviderApi(int apiType) {
-        if (0 <= apiType && apiType < providerApis.length) {
-            return providerApis[apiType];
-        }
-        throw new UnsupportedOperationException("API Type " + apiType + " not implemented.");
+        return App.getInstance(this).getProviderApi(apiType);
     }
     //</editor-fold>
 
@@ -559,14 +516,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     @Override
     public ProviderStream[] getProviderStreams() {
         return providerStreams;
-    }
-    //</editor-fold>
-
-    //<editor-fold desc="MuteConfig Reload">
-    private void updateAutoMuteConfig() {
-        Log.d(LOG_TAG, "Update AutoMuteConfig");
-        List<AutoMuteConfig> records = App.getInstance(this).getDatabase().getRecords(AutoMuteConfig.class);
-        timelineHub.setAutoMuteConfigs(records);
     }
     //</editor-fold>
 

@@ -20,7 +20,6 @@ import shibafu.yukari.linkage.PostValidator
 import shibafu.yukari.linkage.ProviderApi
 import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.linkage.TimelineHub
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.putDebugLog
@@ -43,13 +42,13 @@ class TwitterApi : ProviderApi {
 
     private val twitterInstances = LongSparseArray<Twitter>()
 
-    override fun onCreate(service: TwitterService) {
-        val app = App.getInstance(service)
+    override fun onCreate(context: Context) {
+        val app = App.getInstance(context)
         this.context = app
         this.accountManager = app.accountManager
         this.suppressor = app.suppressor
-        this.timelineHub = service.timelineHub
-        this.twitterProvider = service
+        this.timelineHub = app.timelineHub
+        this.twitterProvider = app
         this.twitterFactory = TwitterUtil.getTwitterFactory(app)
 
         GlobalScope.launch {

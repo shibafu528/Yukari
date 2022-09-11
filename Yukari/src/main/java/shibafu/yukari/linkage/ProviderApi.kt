@@ -1,8 +1,8 @@
 package shibafu.yukari.linkage
 
+import android.content.Context
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
 import java.io.File
 
@@ -10,7 +10,7 @@ import java.io.File
  * [shibafu.yukari.database.Provider] ごとの内部実装を持った一般的な手続きの実装。
  */
 interface ProviderApi {
-    fun onCreate(service: TwitterService)
+    fun onCreate(context: Context)
 
     fun getApiClient(userRecord: AuthUserRecord?): Any?
     fun getPostValidator(userRecord: AuthUserRecord): PostValidator

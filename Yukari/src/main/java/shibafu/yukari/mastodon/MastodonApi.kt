@@ -15,6 +15,7 @@ import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
 import okhttp3.*
 import shibafu.yukari.common.okhttp.UserAgentInterceptor
+import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.InReplyToId
@@ -27,7 +28,6 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.util.defaultSharedPreferences
 import java.io.File
 import java.io.IOException
@@ -36,9 +36,9 @@ class MastodonApi : ProviderApi {
     private lateinit var context: Context
     private lateinit var timelineHub: TimelineHub
 
-    override fun onCreate(service: TwitterService) {
-        this.context = service.applicationContext
-        this.timelineHub = service.timelineHub
+    override fun onCreate(context: Context) {
+        this.context = context
+        this.timelineHub = App.getInstance(context).timelineHub
     }
 
     override fun getApiClient(userRecord: AuthUserRecord?): Any? {

@@ -24,13 +24,19 @@ import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.Suppressor
 import shibafu.yukari.database.*
+import shibafu.yukari.linkage.*
 import shibafu.yukari.mastodon.DefaultVisibilityCache
+import shibafu.yukari.mastodon.MastodonApi
+import shibafu.yukari.twitter.MissingTwitterInstanceException
+import shibafu.yukari.twitter.TwitterApi
+import shibafu.yukari.twitter.TwitterProvider
 import twitter4j.AlternativeHttpClientImpl
+import twitter4j.Twitter
 
 /**
  * Created by shibafu on 2015/08/29.
  */
-class App : Application() {
+class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterProvider {
     val database: CentralDatabase by lazy { CentralDatabase(this).open() }
     val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
@@ -38,12 +44,32 @@ class App : Application() {
     val hashCache: HashCache by lazy { HashCache(this) }
     val defaultVisibilityCache: DefaultVisibilityCache by lazy { DefaultVisibilityCache(this) }
 
+    override val timelineHub: TimelineHub by lazy {
+        TimelineHubQueue(TimelineHubImpl(this, this, accountManager, database, suppressor, this, hashCache)).apply {
+            setAutoMuteConfigs(database.getRecords(AutoMuteConfig::class.java))
+        }
+    }
+
+    val statusLoader: StatusLoader by lazy {
+        StatusLoader(this, timelineHub) { userRecord ->
+            val api = getProviderApi(userRecord) ?: throw RuntimeException("Invalid API Type : $userRecord")
+            api.getApiClient(userRecord)
+        }
+    }
+
+    private val providerApis = listOf(TwitterApi(), MastodonApi())
+
     private val databaseUpdateListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val className = intent?.getStringExtra(DatabaseEvent.EXTRA_CLASS)
-            if (MuteConfig::class.java.name == className) {
-                Log.d(LOG_TAG, "Update MuteConfig")
-                suppressor.configs = database.getRecords(MuteConfig::class.java)
+            when (intent?.getStringExtra(DatabaseEvent.EXTRA_CLASS)) {
+                MuteConfig::class.java.name -> {
+                    Log.d(LOG_TAG, "Update MuteConfig")
+                    suppressor.configs = database.getRecords(MuteConfig::class.java)
+                }
+                AutoMuteConfig::class.java.name -> {
+                    Log.d(LOG_TAG, "Update AutoMuteConfig")
+                    timelineHub.setAutoMuteConfigs(database.getRecords(AutoMuteConfig::class.java))
+                }
             }
         }
     }
@@ -65,6 +91,34 @@ class App : Application() {
 
         val localBroadcastManager = LocalBroadcastManager.getInstance(this)
         localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
+
+        providerApis.forEach { api ->
+            api.onCreate(this)
+        }
+    }
+
+    override fun getProviderApi(userRecord: AuthUserRecord): ProviderApi? {
+        val apiType = userRecord.Provider.apiType
+        if (apiType in 0..providerApis.size) {
+            return providerApis[apiType]
+        }
+        return null
+    }
+
+    override fun getProviderApi(apiType: Int): ProviderApi {
+        if (apiType in 0..providerApis.size) {
+            return providerApis[apiType]
+        }
+        throw UnsupportedOperationException("API Type $apiType not implemented.")
+    }
+
+    override fun getTwitter(userRecord: AuthUserRecord?): Twitter? {
+        return getProviderApi(Provider.API_TWITTER).getApiClient(userRecord) as? Twitter
+    }
+
+    @Throws(MissingTwitterInstanceException::class)
+    override fun getTwitterOrThrow(userRecord: AuthUserRecord?): Twitter {
+        return getTwitter(userRecord) ?: throw MissingTwitterInstanceException("Twitter インスタンスの取得エラー")
     }
 
     private fun installSecurityProvider() {
