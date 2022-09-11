@@ -24,15 +24,14 @@ import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.Suppressor
+import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.database.*
 import shibafu.yukari.linkage.*
 import shibafu.yukari.mastodon.DefaultVisibilityCache
 import shibafu.yukari.mastodon.MastodonApi
-import shibafu.yukari.twitter.MissingTwitterInstanceException
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
 import twitter4j.AlternativeHttpClientImpl
-import twitter4j.Twitter
 
 /**
  * Created by shibafu on 2015/08/29.
@@ -95,15 +94,26 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
             createAllAccountNotificationChannels(nm)
         }
 
+        // 設定のマイグレーション
         migratePreference()
 
+        // BroadcastReceiverの登録
         registerReceiver(balusListener, IntentFilter("shibafu.yukari.BALUS"))
+        LocalBroadcastManager.getInstance(this).registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
 
-        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
-        localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
-
+        // API Providerの初期化
         providerApis.forEach { api ->
             api.onCreate(this)
+        }
+
+        // 画像キャッシュの初期化
+        BitmapCache.initialize(this)
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_UI_HIDDEN) {
+            BitmapCache.release()
         }
     }
 

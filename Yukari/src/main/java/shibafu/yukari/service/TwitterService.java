@@ -178,9 +178,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             }
         }
 
-        //画像キャッシュの初期化
-        BitmapCache.initialize(getApplicationContext());
-
         //ネットワーク状態の監視
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_CONNECTED));
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_DISCONNECTED));
@@ -233,8 +230,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
 
         // TODO: 消したい
         getAccountManager().storeUsers();
-
-        BitmapCache.dispose();
 
         stopForeground(true);
 

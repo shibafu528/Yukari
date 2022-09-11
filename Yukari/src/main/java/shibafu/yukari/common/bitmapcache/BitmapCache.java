@@ -60,6 +60,13 @@ public class BitmapCache {
         Log.d("BitmapCache", "Initialized cache map");
     }
 
+    public static void release() {
+        for (Map.Entry<String, BitmapLruCache> entry : cacheMap.entrySet()) {
+            entry.getValue().evictAll();
+        }
+        Log.d("BitmapCache", "Released in-memory cache");
+    }
+
     public static void dispose() {
         for (Map.Entry<String, BitmapLruCache> entry : cacheMap.entrySet()) {
             entry.getValue().evictAll();
