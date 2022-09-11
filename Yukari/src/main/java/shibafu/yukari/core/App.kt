@@ -13,6 +13,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.preference.PreferenceManager
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.edit
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -74,6 +75,13 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         }
     }
 
+    private val balusListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Toast.makeText(applicationContext, "バルス！！！！！！！", Toast.LENGTH_SHORT).show()
+            timelineHub.onWipe()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -88,6 +96,8 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         }
 
         migratePreference()
+
+        registerReceiver(balusListener, IntentFilter("shibafu.yukari.BALUS"))
 
         val localBroadcastManager = LocalBroadcastManager.getInstance(this)
         localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))

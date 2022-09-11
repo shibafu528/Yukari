@@ -113,13 +113,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             }
         }
     };
-    private final BroadcastReceiver balusListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(getApplicationContext(), "バルス！！！！！！！", Toast.LENGTH_SHORT).show();
-            getTimelineHub().onWipe();
-        }
-    };
     private final BroadcastReceiver userReloadListener = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -194,7 +187,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         //ネットワーク状態の監視
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_CONNECTED));
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_DISCONNECTED));
-        registerReceiver(balusListener, new IntentFilter("shibafu.yukari.BALUS"));
 
         // MRuby
         if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
@@ -233,7 +225,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         broadcastManager.unregisterReceiver(userReloadListener);
 
         unregisterReceiver(streamConnectivityListener);
-        unregisterReceiver(balusListener);
 
         if (pluggaloid != null) {
             getTimelineHub().detachPluggaloid(pluggaloid);
