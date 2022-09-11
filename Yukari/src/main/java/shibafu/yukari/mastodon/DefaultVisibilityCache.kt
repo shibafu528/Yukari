@@ -1,6 +1,7 @@
 package shibafu.yukari.mastodon
 
 import android.content.Context
+import shibafu.yukari.common.BufferedTrigger
 import shibafu.yukari.entity.StatusDraft
 import java.io.File
 import java.io.IOException
@@ -8,8 +9,15 @@ import java.io.IOException
 /**
  * Mastodonサーバから取得したデフォルト公開範囲のローカルキャッシュ
  */
-class DefaultVisibilityCache(context: Context) {
+class DefaultVisibilityCache(_context: Context) {
+    private val context = _context.applicationContext
     private val visibilityByAcct = mutableMapOf<String, StatusDraft.Visibility>()
+
+    private val saveTrigger = object : BufferedTrigger(1000) {
+        override fun doProcess() {
+            save(context)
+        }
+    }
 
     init {
         val file = File(context.cacheDir, FILE_NAME)
@@ -49,6 +57,7 @@ class DefaultVisibilityCache(context: Context) {
 
     fun set(acct: String, visibility: StatusDraft.Visibility) {
         visibilityByAcct[acct] = visibility
+        saveTrigger.trigger()
     }
 
     companion object {

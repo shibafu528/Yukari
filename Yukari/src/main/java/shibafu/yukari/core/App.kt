@@ -24,6 +24,7 @@ import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.Suppressor
 import shibafu.yukari.database.*
+import shibafu.yukari.mastodon.DefaultVisibilityCache
 import twitter4j.AlternativeHttpClientImpl
 
 /**
@@ -35,6 +36,7 @@ class App : Application() {
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
     val suppressor: Suppressor by lazy { Suppressor().apply { configs = database.getRecords(MuteConfig::class.java) } }
     val hashCache: HashCache by lazy { HashCache(this) }
+    val defaultVisibilityCache: DefaultVisibilityCache by lazy { DefaultVisibilityCache(this) }
 
     private val databaseUpdateListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {

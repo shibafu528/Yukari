@@ -78,9 +78,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         }
     }
 
-    //キャッシュ
-    private DefaultVisibilityCache defaultVisibilityCache;
-
     //Pluggaloid
     private Pluggaloid pluggaloid;
 
@@ -160,6 +157,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
                 }
             }
 
+            DefaultVisibilityCache defaultVisibilityCache = App.getInstance(getApplicationContext()).getDefaultVisibilityCache();
             for (AuthUserRecord user : addedUsers) {
                 ProviderStream stream = getProviderStream(user);
                 if (stream != null) {
@@ -203,9 +201,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         Log.d(LOG_TAG, "onCreate");
 
         handler = new Handler();
-
-        //キャッシュの読み込み
-        defaultVisibilityCache = new DefaultVisibilityCache(this);
 
         //Timeline Pub/Subのセットアップ
         TimelineHub hubImpl = new TimelineHubImpl(this, getAccountManager(), getDatabase(), getSuppressor(), this, getHashCache());
@@ -256,6 +251,7 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
 
         // Mastodon: default visibilityの取得
+        DefaultVisibilityCache defaultVisibilityCache = App.getInstance(this).getDefaultVisibilityCache();
         for (AuthUserRecord user : App.getInstance(this).getAccountManager().getUsers()) {
             if (user.Provider.getApiType() == Provider.API_MASTODON) {
                 FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(this, defaultVisibilityCache, user);
@@ -292,9 +288,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         getAccountManager().storeUsers();
 
         BitmapCache.dispose();
-
-        defaultVisibilityCache.save(this);
-        defaultVisibilityCache = null;
 
         if (pluggaloid != null) {
             pluggaloid.close();
@@ -341,8 +334,12 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         return App.getInstance(this).getHashCache();
     }
 
+    /**
+     * @deprecated Use {@link App#getDefaultVisibilityCache()}
+     */
+    @Deprecated
     public DefaultVisibilityCache getDefaultVisibilityCache() {
-        return defaultVisibilityCache;
+        return App.getInstance(this).getDefaultVisibilityCache();
     }
 
     /**
