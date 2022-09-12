@@ -26,7 +26,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.common.HashCache;
 import shibafu.yukari.common.Suppressor;
-import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.core.App;
 import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.CentralDatabase;
@@ -191,15 +190,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         // イベント購読
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
-
-        // Mastodon: default visibilityの取得
-        DefaultVisibilityCache defaultVisibilityCache = App.getInstance(this).getDefaultVisibilityCache();
-        for (AuthUserRecord user : App.getInstance(this).getAccountManager().getUsers()) {
-            if (user.Provider.getApiType() == Provider.API_MASTODON) {
-                FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(this, defaultVisibilityCache, user);
-                handler.post(task::executeParallel);
-            }
-        }
 
         Log.d(LOG_TAG, "onCreate completed.");
     }

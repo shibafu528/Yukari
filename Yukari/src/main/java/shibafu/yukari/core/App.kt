@@ -28,6 +28,7 @@ import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.database.*
 import shibafu.yukari.linkage.*
 import shibafu.yukari.mastodon.DefaultVisibilityCache
+import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
@@ -108,6 +109,15 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
 
         // 画像キャッシュの初期化
         BitmapCache.initialize(this)
+
+        if (getProcessName() == packageName) {
+            // Mastodon: default visibilityの取得
+            for (user in accountManager.users) {
+                if (user.Provider.apiType == Provider.API_MASTODON) {
+                    FetchDefaultVisibilityTask(this, defaultVisibilityCache, user).executeParallel()
+                }
+            }
+        }
     }
 
     override fun onTrimMemory(level: Int) {
