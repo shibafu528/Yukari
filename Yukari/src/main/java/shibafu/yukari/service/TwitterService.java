@@ -211,9 +211,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         // TODO: 消したい。たぶんいらない気がする。
         getStatusLoader().cancelAll();
 
-        // TODO: 消したい
-        getAccountManager().storeUsers();
-
         stopForeground(true);
 
         CacheCleanerService.enqueueWork(this);
