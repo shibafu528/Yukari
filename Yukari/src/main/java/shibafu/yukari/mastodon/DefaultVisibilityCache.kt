@@ -1,6 +1,7 @@
 package shibafu.yukari.mastodon
 
 import android.content.Context
+import android.util.Log
 import shibafu.yukari.common.BufferedTrigger
 import shibafu.yukari.entity.StatusDraft
 import java.io.File
@@ -51,6 +52,7 @@ class DefaultVisibilityCache(_context: Context) {
                 writer.newLine()
             }
         }
+        Log.d("DefaultVisibilityCache", "saved $FILE_NAME")
     }
 
     fun get(acct: String): StatusDraft.Visibility = visibilityByAcct[acct] ?: StatusDraft.Visibility.PUBLIC

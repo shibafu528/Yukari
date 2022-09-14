@@ -40,7 +40,6 @@ import shibafu.yukari.linkage.StreamCollectionProvider;
 import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubProvider;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
-import shibafu.yukari.mastodon.FetchDefaultVisibilityTask;
 import shibafu.yukari.mastodon.MastodonStream;
 import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.database.AuthUserRecord;
@@ -125,16 +124,10 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
                 }
             }
 
-            DefaultVisibilityCache defaultVisibilityCache = App.getInstance(getApplicationContext()).getDefaultVisibilityCache();
             for (AuthUserRecord user : addedUsers) {
                 ProviderStream stream = getProviderStream(user);
                 if (stream != null) {
                     stream.addUser(user);
-                }
-
-                if (user.Provider.getApiType() == Provider.API_MASTODON) {
-                    FetchDefaultVisibilityTask task = new FetchDefaultVisibilityTask(TwitterService.this, defaultVisibilityCache, user);
-                    handler.post(task::executeParallel);
                 }
             }
         }

@@ -75,6 +75,16 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         }
     }
 
+    private val userReloadListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent == null) return
+            val addedUsers = intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_ADDED) as java.util.ArrayList<AuthUserRecord>
+            addedUsers.filter { it.Provider.apiType == Provider.API_MASTODON }.forEach { userRecord ->
+                FetchDefaultVisibilityTask(this@App, defaultVisibilityCache, userRecord).executeParallel()
+            }
+        }
+    }
+
     private val balusListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             Toast.makeText(applicationContext, "バルス！！！！！！！", Toast.LENGTH_SHORT).show()
@@ -100,7 +110,9 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
 
         // BroadcastReceiverの登録
         registerReceiver(balusListener, IntentFilter("shibafu.yukari.BALUS"))
-        LocalBroadcastManager.getInstance(this).registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
+        localBroadcastManager.registerReceiver(userReloadListener, IntentFilter(AccountManager.ACTION_RELOADED_USERS))
 
         // API Providerの初期化
         providerApis.forEach { api ->
