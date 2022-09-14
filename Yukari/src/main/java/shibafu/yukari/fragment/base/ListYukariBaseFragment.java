@@ -2,6 +2,7 @@ package shibafu.yukari.fragment.base;
 
 import androidx.fragment.app.ListFragment;
 
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
@@ -36,6 +37,6 @@ public abstract class ListYukariBaseFragment extends ListFragment implements Twi
     }
 
     public UserExtrasManager getUserExtrasManager() {
-        return getTwitterService();
+        return App.getInstance(requireContext()).getUserExtrasManager();
     }
 }
