@@ -185,6 +185,7 @@ public class AccountManagerImpl implements AccountManager {
                 database.updateRecord(aur);
             }
             database.setTransactionSuccessful();
+            Log.d(LOG_TAG, "Stored users to database.");
         } finally {
             database.endTransaction();
         }
