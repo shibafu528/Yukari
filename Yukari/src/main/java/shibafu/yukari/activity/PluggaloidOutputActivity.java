@@ -5,6 +5,8 @@ import android.os.Handler;
 import android.view.MenuItem;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.databinding.ActivityPluggaloidOutputBinding;
+import shibafu.yukari.plugin.Pluggaloid;
+import shibafu.yukari.service.TwitterService;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,9 +46,14 @@ public class PluggaloidOutputActivity extends ActionBarYukariBase {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (isTwitterServiceBound() && getTwitterService() != null) {
+                TwitterService twitterService = getTwitterService();
+                if (isTwitterServiceBound() && twitterService != null) {
                     handler.post(() -> {
-                        String s = getTwitterService().getPluggaloidLogger().toString();
+                        Pluggaloid pluggaloid = twitterService.getPluggaloid();
+                        if (pluggaloid == null) {
+                            return;
+                        }
+                        String s = pluggaloid.getLogger().toString();
                         if (binding.editText.getText().length() != s.length()) {
                             binding.editText.setText(s);
                             binding.editText.scrollTo(65536, 0);

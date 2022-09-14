@@ -62,7 +62,7 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
             status.setRepresentIfOwned(twitterService.users)
             if (!status.isOwnedStatus()) {
                 // 優先アカウント設定が存在するか？
-                val userExtras = twitterService.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
+                val userExtras = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
                 if (userExtras != null && userExtras.priorityAccount != null) {
                     status.representUser = userExtras.priorityAccount
                     status.representOverrode = true

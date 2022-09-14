@@ -2,7 +2,6 @@ package shibafu.yukari.activity;
 
 import android.app.AlertDialog;
 import android.app.NotificationManager;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,7 +10,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
+
 import androidx.annotation.Nullable;
 import androidx.preference.Preference;
 import android.text.TextUtils;
@@ -24,6 +23,7 @@ import com.takisoft.preferencex.PreferenceFragmentCompat;
 import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 
@@ -247,7 +247,7 @@ public class ConfigActivity extends ActionBarYukariBase {
                                 TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
                                 NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
                                 for (AuthUserRecord user : service.getUsers()) {
-                                    service.createAccountNotificationChannels(nm, user, true);
+                                    AccountManager.createAccountNotificationChannels(nm, user, true);
                                 }
                                 Toast.makeText(getActivity(), "修復しました。", Toast.LENGTH_SHORT).show();
                             }

@@ -43,7 +43,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         android:largeHeap="true"
-        android:name=".core.YukariApplication"
+        android:name=".core.App"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".activity.MainActivity"

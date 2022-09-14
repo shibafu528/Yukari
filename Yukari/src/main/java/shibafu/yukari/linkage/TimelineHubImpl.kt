@@ -13,14 +13,17 @@ import kotlinx.coroutines.launch
 import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationType
+import shibafu.yukari.common.Suppressor
+import shibafu.yukari.database.AccountManager
 import shibafu.yukari.database.AutoMuteConfig
+import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
-import shibafu.yukari.service.TwitterService
+import shibafu.yukari.plugin.Pluggaloid
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
@@ -37,14 +40,18 @@ import java.util.regex.PatternSyntaxException
 /**
  * [Status] の配信管理
  */
-class TimelineHubImpl(private val service: TwitterService,
+class TimelineHubImpl(context: Context,
+                      private val timelineHubProvider: TimelineHubProvider,
+                      private val accountManager: AccountManager,
+                      private val database: CentralDatabase,
+                      private val suppressor: Suppressor,
+                      private val apiCollectionProvider: ApiCollectionProvider,
                       private val hashCache: HashCache) : TimelineHub {
     private val startupTime: Long = System.currentTimeMillis()
 
-    private val context: Context = service.applicationContext
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-    private val notifier: StatusNotifier = StatusNotifier(service)
+    private val notifier: StatusNotifier = StatusNotifier(context)
 
     // TLオブザーバとキュー (TODO: こいつら同期処理が必要だったはずだけど、うまいことやれないか？)
     private val observers: MutableList<TimelineObserver> = arrayListOf()
@@ -52,6 +59,8 @@ class TimelineHubImpl(private val service: TwitterService,
 
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
     private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
+
+    private var pluggaloid: Pluggaloid? = null
 
     /**
      * オートミュート設定のインポート
@@ -119,6 +128,18 @@ class TimelineHubImpl(private val service: TwitterService,
         }
     }
 
+    override fun attachPluggaloid(pluggaloid: Pluggaloid) {
+        if (this.pluggaloid == null) {
+            this.pluggaloid = pluggaloid
+        }
+    }
+
+    override fun detachPluggaloid(pluggaloid: Pluggaloid) {
+        if (this.pluggaloid == pluggaloid) {
+            this.pluggaloid = null
+        }
+    }
+
     /**
      * [Status] の受信
      * @param timelineId 配信先識別子
@@ -135,10 +156,10 @@ class TimelineHubImpl(private val service: TwitterService,
         val plc = getProviderLocalCache(status.representUser.Provider.id)
 
         // 代表アカウントの上書き
-        status.setRepresentIfOwned(service.users)
+        status.setRepresentIfOwned(accountManager.users)
 
         // ミュート判定
-        val muteFlags = service.suppressor.decision(status)
+        val muteFlags = suppressor.decision(status)
         if (muteFlags[MuteConfig.MUTE_IMAGE_THUMB]) {
             status.metadata.isCensoredThumbs = true
         }
@@ -195,8 +216,7 @@ class TimelineHubImpl(private val service: TwitterService,
                     putDebugLog("[$timelineId] AutoMute! : @${status.user.screenName}")
 
                     // TODO: サービスに関係なく消えてしまうので、ミュート設定にProvider指定を入れることがあるならここで設定しても良いかも
-                    service.database?.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
-                    service.updateMuteConfig()
+                    database.updateRecord(config.getMuteConfig(status.user.screenName, System.currentTimeMillis() + 3600000))
                     return@forEach
                 }
             }
@@ -204,7 +224,7 @@ class TimelineHubImpl(private val service: TwitterService,
             // RT通知 & メンション通知判定
             if (status.isRepost && !muteFlags[MuteConfig.MUTE_NOTIF_RT] &&
                     status.originStatus.user.id == status.representUser.NumericId &&
-                    status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
+                    status.getStatusRelation(accountManager.users) != Status.RELATION_OWNED) {
                 onNotify(NotifyHistory.KIND_RETWEETED, status.user, status)
 
                 // RTレスポンス待機
@@ -239,7 +259,7 @@ class TimelineHubImpl(private val service: TwitterService,
 
             // mruby連携
             if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
-                val mRuby = service.getmRuby()
+                val mRuby = pluggaloid?.getmRuby()
                 if (mRuby != null) {
                     val message = StatusConverter.toMessage(mRuby, status.status)
                     try {
@@ -265,11 +285,11 @@ class TimelineHubImpl(private val service: TwitterService,
             val userRecord = if (status is TwitterStatus) {
                 status.representUser
             } else {
-                service.findPreferredUser(Provider.API_TWITTER) ?: return@forEach
+                accountManager.findPreferredUser(Provider.API_TWITTER) ?: return@forEach
             }
 
             GlobalScope.launch(Dispatchers.IO) {
-                val api = service.getProviderApi(Provider.API_TWITTER)
+                val api = apiCollectionProvider.getProviderApi(Provider.API_TWITTER)
                 val twitter = api.getApiClient(userRecord) as Twitter
 
                 try {
@@ -279,7 +299,7 @@ class TimelineHubImpl(private val service: TwitterService,
                     e.printStackTrace()
                 }
 
-                service.timelineHub?.onForceUpdateUI()
+                timelineHubProvider.timelineHub?.onForceUpdateUI()
             }
         }
     }
@@ -297,7 +317,7 @@ class TimelineHubImpl(private val service: TwitterService,
 
         pushEventQueue(TimelineEvent.Received(timelineId, status, false, passive), passive)
 
-        if (passive && status.getStatusRelation(service.users) != Status.RELATION_OWNED) {
+        if (passive && status.getStatusRelation(accountManager.users) != Status.RELATION_OWNED) {
             notifier.showNotification(R.integer.notification_message, status, status.user)
         }
     }
@@ -357,8 +377,8 @@ class TimelineHubImpl(private val service: TwitterService,
 
         // 自分以外によるアクションであれば通知判定を行う
         if (from.id != status.representUser.NumericId) {
-            val muteFlags = service.suppressor.decision(status)
-            val userMuteFlags = service.suppressor.decisionUser(from)
+            val muteFlags = suppressor.decision(status)
+            val userMuteFlags = suppressor.decisionUser(from)
             if (!(muteFlags[MuteConfig.MUTE_NOTIF_FAV] || userMuteFlags[MuteConfig.MUTE_NOTIF_FAV])) {
                 onNotify(NotifyHistory.KIND_FAVED, from, status)
             }

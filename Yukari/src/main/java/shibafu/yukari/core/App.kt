@@ -4,24 +4,94 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.net.Uri
 import android.os.Build
 import android.preference.PreferenceManager
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.edit
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import shibafu.yukari.R
+import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
+import shibafu.yukari.common.Suppressor
+import shibafu.yukari.common.bitmapcache.BitmapCache
+import shibafu.yukari.database.*
+import shibafu.yukari.linkage.*
+import shibafu.yukari.mastodon.DefaultVisibilityCache
+import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
+import shibafu.yukari.mastodon.MastodonApi
+import shibafu.yukari.twitter.TwitterApi
+import shibafu.yukari.twitter.TwitterProvider
 import twitter4j.AlternativeHttpClientImpl
 
 /**
  * Created by shibafu on 2015/08/29.
  */
-class YukariApplication : Application() {
+class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterProvider {
+    val database: CentralDatabase by lazy { CentralDatabase(this).open() }
+    val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
+    val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
+    val suppressor: Suppressor by lazy { Suppressor().apply { configs = database.getRecords(MuteConfig::class.java) } }
+    val hashCache: HashCache by lazy { HashCache(this) }
+    val defaultVisibilityCache: DefaultVisibilityCache by lazy { DefaultVisibilityCache(this) }
+
+    override val timelineHub: TimelineHub by lazy {
+        TimelineHubQueue(TimelineHubImpl(this, this, accountManager, database, suppressor, this, hashCache)).apply {
+            setAutoMuteConfigs(database.getRecords(AutoMuteConfig::class.java))
+        }
+    }
+
+    val statusLoader: StatusLoader by lazy {
+        StatusLoader(this, timelineHub) { userRecord ->
+            val api = getProviderApi(userRecord) ?: throw RuntimeException("Invalid API Type : $userRecord")
+            api.getApiClient(userRecord)
+        }
+    }
+
+    private val providerApis = arrayOf(TwitterApi(), MastodonApi())
+
+    private val databaseUpdateListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.getStringExtra(DatabaseEvent.EXTRA_CLASS)) {
+                MuteConfig::class.java.name -> {
+                    Log.d(LOG_TAG, "Update MuteConfig")
+                    suppressor.configs = database.getRecords(MuteConfig::class.java)
+                }
+                AutoMuteConfig::class.java.name -> {
+                    Log.d(LOG_TAG, "Update AutoMuteConfig")
+                    timelineHub.setAutoMuteConfigs(database.getRecords(AutoMuteConfig::class.java))
+                }
+            }
+        }
+    }
+
+    private val userReloadListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent == null) return
+            val addedUsers = intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_ADDED) as java.util.ArrayList<AuthUserRecord>
+            addedUsers.filter { it.Provider.apiType == Provider.API_MASTODON }.forEach { userRecord ->
+                FetchDefaultVisibilityTask(this@App, defaultVisibilityCache, userRecord).executeParallel()
+            }
+        }
+    }
+
+    private val balusListener = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Toast.makeText(applicationContext, "バルス！！！！！！！", Toast.LENGTH_SHORT).show()
+            timelineHub.onWipe()
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
 
@@ -35,7 +105,53 @@ class YukariApplication : Application() {
             createAllAccountNotificationChannels(nm)
         }
 
+        // 設定のマイグレーション
         migratePreference()
+
+        // BroadcastReceiverの登録
+        registerReceiver(balusListener, IntentFilter("shibafu.yukari.BALUS"))
+        val localBroadcastManager = LocalBroadcastManager.getInstance(this)
+        localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
+        localBroadcastManager.registerReceiver(userReloadListener, IntentFilter(AccountManager.ACTION_RELOADED_USERS))
+
+        // API Providerの初期化
+        providerApis.forEach { api ->
+            api.onCreate(this)
+        }
+
+        // 画像キャッシュの初期化
+        BitmapCache.initialize(this)
+
+        if (getProcessName() == packageName) {
+            // Mastodon: default visibilityの取得
+            for (user in accountManager.users) {
+                if (user.Provider.apiType == Provider.API_MASTODON) {
+                    FetchDefaultVisibilityTask(this, defaultVisibilityCache, user).executeParallel()
+                }
+            }
+        }
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_UI_HIDDEN) {
+            BitmapCache.release()
+        }
+    }
+
+    override fun getProviderApi(userRecord: AuthUserRecord): ProviderApi? {
+        val apiType = userRecord.Provider.apiType
+        if (apiType in 0..providerApis.size) {
+            return providerApis[apiType]
+        }
+        return null
+    }
+
+    override fun getProviderApi(apiType: Int): ProviderApi {
+        if (apiType in 0..providerApis.size) {
+            return providerApis[apiType]
+        }
+        throw UnsupportedOperationException("API Type $apiType not implemented.")
     }
 
     private fun installSecurityProvider() {
@@ -153,5 +269,12 @@ class YukariApplication : Application() {
             }
             putBoolean("pref_font_input__migrate_3_0_0", true)
         }
+    }
+
+    companion object {
+        private const val LOG_TAG = "AppContext"
+
+        @JvmStatic
+        fun getInstance(context: Context) = context.applicationContext as App
     }
 }

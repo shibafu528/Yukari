@@ -1,6 +1,7 @@
 package shibafu.yukari.common;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,9 +18,19 @@ import java.util.List;
 public class HashCache {
     private static final int LIMIT = 16;
     public static final String FILE_NAME = "hashtag.txt";
-    private LinkedList<String> cache = new LinkedList<>();
+
+    private final Context context;
+    private final LinkedList<String> cache = new LinkedList<>();
+
+    private final BufferedTrigger saveTrigger = new BufferedTrigger(1000) {
+        @Override
+        public void doProcess() {
+            save(context);
+        }
+    };
 
     public HashCache(Context context) {
+        this.context = context.getApplicationContext();
         //既存データのロードを試みる
         File cacheFile = new File(context.getCacheDir(), FILE_NAME);
         if (cacheFile.exists()) {
@@ -52,6 +63,7 @@ public class HashCache {
             }
             bw.close();
             fw.close();
+            Log.d("HashCache", "saved " + FILE_NAME);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -68,6 +80,8 @@ public class HashCache {
         if (cache.size() > LIMIT) {
             cache.removeLast();
         }
+        // バックグラウンドで永続化
+        saveTrigger.trigger();
     }
 
     public List<String> getAll() {

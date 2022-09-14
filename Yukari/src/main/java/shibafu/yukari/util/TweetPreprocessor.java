@@ -232,10 +232,10 @@ public class TweetPreprocessor {
             // プラグインからマッチング
             if (depends.getActivity().isTwitterServiceBound()) {
                 TwitterService service = depends.getActivity().getTwitterService();
-                if (service != null && service.getmRuby() != null) {
+                if (service != null && service.getPluggaloid() != null) {
                     // プラグインからコマンドを取得
                     try {
-                        Object[] result = Plugin.filtering(service.getmRuby(), "post_command", new LinkedHashMap());
+                        Object[] result = Plugin.filtering(service.getPluggaloid().getmRuby(), "post_command", new LinkedHashMap());
                         if (result != null && result[0] instanceof Map) {
                             Map commands = (Map) result[0];
 

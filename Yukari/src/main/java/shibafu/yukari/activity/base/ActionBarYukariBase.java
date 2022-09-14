@@ -2,6 +2,8 @@ package shibafu.yukari.activity.base;
 
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+
+import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceConnection;
 import shibafu.yukari.service.TwitterServiceDelegate;
@@ -49,6 +51,10 @@ public abstract class ActionBarYukariBase extends AppCompatActivity implements T
     @Override
     public TwitterService getTwitterService() {
         return servicesConnection.getTwitterService();
+    }
+
+    public UserExtrasManager getUserExtrasManager() {
+        return getTwitterService();
     }
 
     protected boolean allowAutoTheme() {
