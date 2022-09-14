@@ -62,7 +62,7 @@ class MastodonStream : ProviderStream {
     override fun onDestroy() {
         Log.d(LOG_TAG, "onDestroy")
 
-        channels.forEach(StreamChannel::stop)
+        channels.parallelStream().forEach(StreamChannel::stop)
         channels = emptyList()
     }
 
