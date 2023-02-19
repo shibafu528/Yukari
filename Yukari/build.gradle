@@ -57,7 +57,7 @@ class GitUtil {
 ext {
     playServicesVersion = '17.6.0'
     twitter4jVersion = '4.0.7'
-    mastodon4jVersion = '43b77f366515641a4569c2cfffef57301259c5a0'
+    mastodon4jVersion = '087b09001e99942c3423bfd6f4641c8a3a5560ce'
     exvoiceVersion = '20220503.124509'
 
     y4aVersionMajor = 3
