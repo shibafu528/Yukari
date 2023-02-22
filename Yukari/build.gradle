@@ -256,18 +256,6 @@ dependencies {
     testImplementation "org.robolectric:robolectric:4.9.2"
 }
 
-// Kotlin
-buildscript {
-    ext.kotlin_version = '1.6.10'
-    ext.kotlin_coroutines_version = '1.6.0'
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
-}
-
 task showVersion {
     println "VersionCode: " + y4aVersionCode
     println "VersionName: " + y4aVersionName
