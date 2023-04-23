@@ -24,6 +24,7 @@ internal class AutoReconnectWebSocket(private val okHttpClient: OkHttpClient,
     private var connection = okHttpClient.newWebSocket(request, this)
     private var previousTimeToSleep = NOT_RETRIED_YET
     private var retryingFuture: ScheduledFuture<*>? = null
+    private var isCancelled = false
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         listener.onOpen(webSocket, response)
@@ -52,6 +53,9 @@ internal class AutoReconnectWebSocket(private val okHttpClient: OkHttpClient,
         listener.onFailure(webSocket, t, response)
 
         // try reconnect
+        if (isCancelled) {
+            return
+        }
         val timeToSleep = if (previousTimeToSleep == NOT_RETRIED_YET) {
             INITIAL_RECONNECT_TIME_TO_SLEEP
         } else {
@@ -73,9 +77,17 @@ internal class AutoReconnectWebSocket(private val okHttpClient: OkHttpClient,
 
     override fun send(bytes: ByteString): Boolean = connection?.send(bytes) ?: false
 
-    override fun close(code: Int, reason: String?): Boolean = connection?.close(code, reason) ?: false
+    override fun close(code: Int, reason: String?): Boolean {
+        if (connection == null || !connection.close(code, reason)) {
+            return false
+        }
+        retryingFuture?.cancel(false)
+        retryingFuture = null
+        return true
+    }
 
     override fun cancel() {
+        isCancelled = true
         connection?.cancel()
         retryingFuture?.cancel(false)
         retryingFuture = null

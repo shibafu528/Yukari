@@ -78,7 +78,7 @@ class StreamClient private constructor(private val serverUrl: String,
      * 全ての購読を解除し、サーバとの通信を切断します。このメソッドの呼び出し以降、このインスタンスを再利用することはできません。
      */
     fun disconnect() {
-        muxConnection.cancel()
+        muxConnection.close(1000, null)
     }
 
     internal fun onOpen(webSocket: WebSocket, response: Response) {
