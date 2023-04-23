@@ -57,11 +57,18 @@ class StreamClient private constructor(private val serverUrl: String,
     private val muxConnection = AutoReconnectWebSocket(okHttpClient, Request.Builder().url(makeEndpointUrl()).build(), muxListener)
 
     /**
+     * 次にWebSocketコネクションを確立した時に購読を再送する必要があるかどうか。購読を試みた時に接続が確立できていなかった場合や、一時的に切断されてしまった場合に使う。
+     */
+    private var needResubscribeOnOpen = false
+
+    /**
      * 指定されたストリームの購読を開始します。
      * @param subscription 購読に使用するパラメータ。
      */
     fun subscribe(subscription: Subscription) {
-        muxConnection.send(subscription.toMessage("subscribe"))
+        if (!muxConnection.send(subscription.toMessage("subscribe"))) {
+            needResubscribeOnOpen = true
+        }
         subscriptions.add(subscription)
     }
 
@@ -83,11 +90,19 @@ class StreamClient private constructor(private val serverUrl: String,
 
     internal fun onOpen(webSocket: WebSocket, response: Response) {
         System.err.println("StreamClient.onOpen: Connected.")
+        // 再購読
+        if (needResubscribeOnOpen) {
+            subscriptions.forEach { subscription ->
+                System.err.println("StreamClient.onOpen: subscribe ${subscription.stream}")
+                muxConnection.send(subscription.toMessage("subscribe"))
+            }
+        }
     }
 
     internal fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         System.err.println("StreamClient.onFailure: Disconnected.")
         t.printStackTrace()
+        needResubscribeOnOpen = true
     }
 
     internal inline fun forEachSubscriptionsByStream(stream: List<String>, action: (Subscription) -> Unit) {
