@@ -10,6 +10,9 @@ internal class MuxListener(private val client: StreamClient) : WebSocketListener
     override fun onOpen(webSocket: WebSocket, response: Response) {
         System.err.println("MuxListener.onOpen: Connected.")
         client.onOpen(webSocket, response)
+        client.subscriptions.forEach {
+            it.listener.onOpen()
+        }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {

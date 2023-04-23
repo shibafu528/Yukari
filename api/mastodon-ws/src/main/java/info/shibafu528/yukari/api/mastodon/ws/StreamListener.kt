@@ -13,6 +13,11 @@ interface StreamListener {
     fun onDelete(id: Long)
 
     /**
+     * 接続が確立された時に呼び出されます。
+     */
+    fun onOpen()
+
+    /**
      * 通信が正常に終了し、切断された時に呼び出されます。[onFailure] とは排他的な関係にあり、切断時にはどちらか一方が呼び出されます。
      */
     fun onClosed()
