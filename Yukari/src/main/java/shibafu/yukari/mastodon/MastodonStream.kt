@@ -12,6 +12,7 @@ import info.shibafu528.yukari.api.mastodon.ws.Subscription
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import shibafu.yukari.common.okhttp.UserAgentInterceptor
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.CentralDatabase
@@ -305,7 +306,18 @@ private class Listener(private val timelineId: String,
 
     override fun onClosed() {
         val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
-        putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected.")
+        putDebugLog("$timelineId@${userRecord.ScreenName}: Stream closed.")
+        context.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_DISCONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
+    }
+
+    override fun onFailure(t: Throwable, response: Response?) {
+        val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
+        putDebugLog("$timelineId@${userRecord.ScreenName}: Stream disconnected with error.")
         context.sendBroadcast(Intent().apply {
             action = TwitterService.ACTION_STREAM_DISCONNECTED
             putExtra(TwitterService.EXTRA_USER, userRecord)
