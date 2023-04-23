@@ -111,9 +111,7 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                 BitmapCache.putImage(param.url, image, context, param.cacheKey);
             }
             if (image != null && param.mosaic) {
-                Bitmap mosaicBitmap = BitmapUtil.createMosaic(image);
-                image.recycle();
-                image = mosaicBitmap;
+                image = BitmapUtil.createMosaic(image);
             }
             return image;
         } catch (IOException e) {
