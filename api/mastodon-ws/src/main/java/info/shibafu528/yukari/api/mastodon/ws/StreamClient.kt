@@ -16,7 +16,7 @@ class StreamClient private constructor(private val serverUrl: String,
     /**
      * カスタマイズされた [StreamClient] を作成するためのビルダークラスです。
      *
-     * @property serverUrl 接続先サーバーのWebSocket URL。
+     * @property serverUrl 接続先サーバのWebSocket URL。
      *                     通常はMastodonサーバのURLスキームをws/wssに変更したもの (例: wss://example.com) ですが、カスタマイズされている場合もあります。
      *                     決め打ちせずに `GET /api/v1/instance` で確認することが推奨されます。
      */
