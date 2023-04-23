@@ -8,6 +8,7 @@ import okhttp3.WebSocketListener
 
 internal class MuxListener(private val client: StreamClient) : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
+        System.err.println("MuxListener.onOpen: Connected.")
         client.onOpen(webSocket, response)
     }
 
@@ -28,15 +29,18 @@ internal class MuxListener(private val client: StreamClient) : WebSocketListener
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+        System.err.println("MuxListener.onClosing: Closing...")
     }
 
     override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+        System.err.println("MuxListener.onClosed: Closed. code = $code, reason = $reason")
         client.subscriptions.forEach {
             it.listener.onClosed()
         }
     }
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+        System.err.println("MuxListener.onFailure: Disconnected. code = ${response?.code()}")
         client.onFailure(webSocket, t, response)
     }
 
