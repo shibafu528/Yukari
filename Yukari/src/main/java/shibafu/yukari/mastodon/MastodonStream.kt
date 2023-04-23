@@ -267,6 +267,8 @@ private class Listener(private val timelineId: String,
                        private val database: CentralDatabase,
                        private val hub: TimelineHub,
                        private val userRecord: AuthUserRecord) : StreamListener {
+    private val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
+
     override fun onUpdate(status: Status) {
         hub.onStatus(timelineId, DonStatus(status, userRecord), true)
 
@@ -304,8 +306,17 @@ private class Listener(private val timelineId: String,
         hub.onDelete(userRecord.Provider.host, id)
     }
 
+    override fun onOpen() {
+        putDebugLog("$timelineId@${userRecord.ScreenName}: Stream connected.")
+        context.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_CONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
+    }
+
     override fun onClosed() {
-        val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
         putDebugLog("$timelineId@${userRecord.ScreenName}: Stream closed.")
         context.sendBroadcast(Intent().apply {
             action = TwitterService.ACTION_STREAM_DISCONNECTED
@@ -316,7 +327,6 @@ private class Listener(private val timelineId: String,
     }
 
     override fun onFailure(t: Throwable, response: Response?) {
-        val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
         putDebugLog("$timelineId@${userRecord.ScreenName}: Stream disconnected with error.")
         context.sendBroadcast(Intent().apply {
             action = TwitterService.ACTION_STREAM_DISCONNECTED
