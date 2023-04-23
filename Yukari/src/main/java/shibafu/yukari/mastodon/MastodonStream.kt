@@ -1,19 +1,20 @@
 package shibafu.yukari.mastodon
 
+import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
-import com.sys1yagi.mastodon4j.MastodonClient
-import com.sys1yagi.mastodon4j.api.Handler
-import com.sys1yagi.mastodon4j.api.Retryable
-import com.sys1yagi.mastodon4j.api.Shutdownable
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.entity.Status
-import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
-import com.sys1yagi.mastodon4j.api.method.Streaming
+import info.shibafu528.yukari.api.mastodon.ws.StreamListener
+import info.shibafu528.yukari.api.mastodon.ws.Subscription
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
+import shibafu.yukari.common.okhttp.UserAgentInterceptor
+import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.entity.NotifyHistory
@@ -22,21 +23,22 @@ import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.entity.DonUser
+import shibafu.yukari.mastodon.streaming.StreamClientManager
 import shibafu.yukari.service.TwitterService
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.putDebugLog
-import java.util.concurrent.RejectedExecutionException
 
 class MastodonStream : ProviderStream {
     override var channels: List<StreamChannel> = emptyList()
         private set
 
     private lateinit var service: TwitterService
+    private lateinit var streamClientManager: StreamClientManager
 
     override fun onCreate(service: TwitterService) {
         Log.d(LOG_TAG, "onCreate")
 
         this.service = service
+        this.streamClientManager = StreamClientManager(OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext)))
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_MASTODON) {
@@ -75,9 +77,9 @@ class MastodonStream : ProviderStream {
         }
 
         val ch = listOf(
-                UserStreamChannel(service, userRecord),
-                LocalStreamChannel(service, userRecord),
-                PublicStreamChannel(service, userRecord)
+                UserStreamChannel(service, userRecord, streamClientManager),
+                LocalStreamChannel(service, userRecord, streamClientManager),
+                PublicStreamChannel(service, userRecord, streamClientManager)
         )
         channels += ch
         return ch
@@ -100,7 +102,7 @@ class MastodonStream : ProviderStream {
             return
         }
 
-        val ch = HashTagStreamChannel(service, userRecord, tag, scope)
+        val ch = HashTagStreamChannel(service, userRecord, streamClientManager, tag, scope)
         ch.start()
         channels += ch
 
@@ -134,92 +136,96 @@ class MastodonStream : ProviderStream {
     }
 }
 
-private class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+private class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/user"
     override val channelName: String = "ホームTLと通知 (/user)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.USER_STREAM_ID, channelId, service, userRecord)
-    private var shutdownable: Shutdownable? = null
+    private var clientRef: StreamClientManager.Ref? = null
+    private val listener: StreamListener = Listener(MastodonStream.USER_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
+    private val subscription = Subscription("user", listener)
 
     override fun start() {
         GlobalScope.launch {
-            Log.d(UserStreamChannel::class.java.simpleName, "${MastodonStream.USER_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
-
-            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
-            val streaming = Streaming(client)
-            shutdownable = retryUntilConnect("${MastodonStream.USER_STREAM_ID}@${userRecord.ScreenName}") { streaming.user(handler) }
+            Log.d(UserStreamChannel::class.java.simpleName, "${MastodonStream.USER_STREAM_ID}@${userRecord.ScreenName}: Start subscribe.")
+            clientRef = streamClientManager.take(userRecord).also { ref ->
+                ref.client.subscribe(subscription)
+            }
         }
         isRunning = true
     }
 
     override fun stop() {
-        shutdownable?.shutdown()
-        shutdownable = null
         isRunning = false
+        val ref = clientRef ?: return
+        ref.client.unsubscribe(subscription)
+        streamClientManager.release(ref)
     }
 }
 
-private class PublicStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+private class PublicStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/public"
     override val channelName: String = "連合TL (/public)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.PUBLIC_STREAM_ID, channelId, service, userRecord)
-    private var shutdownable: Shutdownable? = null
+    private var clientRef: StreamClientManager.Ref? = null
+    private val listener: StreamListener = Listener(MastodonStream.PUBLIC_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
+    private val subscription = Subscription("public", listener)
 
     override fun start() {
         GlobalScope.launch {
-            Log.d(PublicStreamChannel::class.java.simpleName, "${MastodonStream.PUBLIC_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
-
-            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
-            val streaming = Streaming(client)
-            shutdownable = retryUntilConnect("${MastodonStream.PUBLIC_STREAM_ID}@${userRecord.ScreenName}") { streaming.federatedPublic(handler) }
+            Log.d(PublicStreamChannel::class.java.simpleName, "${MastodonStream.PUBLIC_STREAM_ID}@${userRecord.ScreenName}: Start subscribe.")
+            clientRef = streamClientManager.take(userRecord).also { ref ->
+                ref.client.subscribe(subscription)
+            }
         }
         isRunning = true
     }
 
     override fun stop() {
-        shutdownable?.shutdown()
-        shutdownable = null
         isRunning = false
+        val ref = clientRef ?: return
+        ref.client.unsubscribe(subscription)
+        streamClientManager.release(ref)
     }
 }
 
-private class LocalStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord) : StreamChannel {
+private class LocalStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/public/local"
     override val channelName: String = "ローカルTL (/public/local)"
     override val allowUserControl: Boolean = true
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.LOCAL_STREAM_ID, channelId, service, userRecord)
-    private var shutdownable: Shutdownable? = null
+    private var clientRef: StreamClientManager.Ref? = null
+    private val listener: StreamListener = Listener(MastodonStream.LOCAL_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
+    private val subscription = Subscription("public:local", listener)
 
     override fun start() {
         GlobalScope.launch {
-            Log.d(LocalStreamChannel::class.java.simpleName, "${MastodonStream.LOCAL_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
-
-            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
-            val streaming = Streaming(client)
-            shutdownable = retryUntilConnect("${MastodonStream.LOCAL_STREAM_ID}@${userRecord.ScreenName}") { streaming.localPublic(handler) }
+            Log.d(LocalStreamChannel::class.java.simpleName, "${MastodonStream.LOCAL_STREAM_ID}@${userRecord.ScreenName}: Start subscribe.")
+            clientRef = streamClientManager.take(userRecord).also { ref ->
+                ref.client.subscribe(subscription)
+            }
         }
         isRunning = true
     }
 
     override fun stop() {
-        shutdownable?.shutdown()
-        shutdownable = null
         isRunning = false
+        val ref = clientRef ?: return
+        ref.client.unsubscribe(subscription)
+        streamClientManager.release(ref)
     }
 }
 
 private class HashTagStreamChannel(private val service: TwitterService,
                                    override val userRecord: AuthUserRecord,
+                                   private val streamClientManager: StreamClientManager,
                                    val tag: String,
                                    val scope: MastodonStream.Scope) : StreamChannel {
     override val channelId: String = "${scope.channelId}tag=$tag"
@@ -228,40 +234,50 @@ private class HashTagStreamChannel(private val service: TwitterService,
     override var isRunning: Boolean = false
         private set
 
-    private val handler: Handler = StreamHandler(MastodonStream.HASHTAG_STREAM_ID, channelId, service, userRecord)
-    private var shutdownable: Shutdownable? = null
+    private var clientRef: StreamClientManager.Ref? = null
+    private val listener: StreamListener = Listener(MastodonStream.HASHTAG_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
+    private val subscription = when (scope) {
+        MastodonStream.Scope.FEDERATED -> Subscription("hashtag", listener, tag = tag)
+        MastodonStream.Scope.LOCAL -> Subscription("hashtag:local", listener, tag = tag)
+    }
 
     override fun start() {
         GlobalScope.launch {
-            Log.d(HashTagStreamChannel::class.java.simpleName, "${MastodonStream.HASHTAG_STREAM_ID}@${userRecord.ScreenName}: Open connection.")
+            Log.d(HashTagStreamChannel::class.java.simpleName, "${MastodonStream.HASHTAG_STREAM_ID}@${userRecord.ScreenName}: Start subscribe.")
 
-            val client = service.getProviderApi(Provider.API_MASTODON).getApiClient(userRecord) as MastodonClient
-            val streaming = Streaming(client)
-            shutdownable = retryUntilConnect("${MastodonStream.HASHTAG_STREAM_ID}@${userRecord.ScreenName}") {
-                when (scope) {
-                    MastodonStream.Scope.FEDERATED -> streaming.federatedHashtag(tag, handler)
-                    MastodonStream.Scope.LOCAL -> streaming.localHashtag(tag, handler)
-                }
+            clientRef = streamClientManager.take(userRecord).also { ref ->
+                ref.client.subscribe(subscription)
             }
         }
         isRunning = true
     }
 
     override fun stop() {
-        shutdownable?.shutdown()
-        shutdownable = null
         isRunning = false
+        val ref = clientRef ?: return
+        ref.client.unsubscribe(subscription)
+        streamClientManager.release(ref)
     }
 }
 
-private class StreamHandler(private val timelineId: String,
-                            private val channelId: String,
-                            private val service: TwitterService,
-                            private val userRecord: AuthUserRecord) : Handler {
-    private val hub: TimelineHub = service.timelineHub
+private class Listener(private val timelineId: String,
+                       private val channelId: String,
+                       private val context: Context,
+                       private val database: CentralDatabase,
+                       private val hub: TimelineHub,
+                       private val userRecord: AuthUserRecord) : StreamListener {
+    override fun onUpdate(status: Status) {
+        hub.onStatus(timelineId, DonStatus(status, userRecord), true)
 
-    override fun onDelete(id: Long) {
-        hub.onDelete(userRecord.Provider.host, id)
+        val account = status.account
+        if (account != null && account.url == userRecord.Url) {
+            // プロフィール情報の更新
+            database.updateAccountProfile(userRecord.Provider.id,
+                account.id,
+                MastodonUtil.expandFullScreenName(account.acct, account.url),
+                account.displayName.takeIf { !it.isEmpty() } ?: account.userName,
+                account.avatar)
+        }
     }
 
     override fun onNotification(notification: Notification) {
@@ -283,91 +299,18 @@ private class StreamHandler(private val timelineId: String,
         }
     }
 
-    override fun onStatus(status: Status) {
-        hub.onStatus(timelineId, DonStatus(status, userRecord), true)
-
-        val account = status.account
-        if (account != null && account.url == userRecord.Url) {
-            // プロフィール情報の更新
-            service.database?.updateAccountProfile(userRecord.Provider.id,
-                    account.id,
-                    MastodonUtil.expandFullScreenName(account.acct, account.url),
-                    account.displayName.takeIf { !it.isEmpty() } ?: account.userName,
-                    account.avatar)
-        }
+    override fun onDelete(id: Long) {
+        hub.onDelete(userRecord.Provider.host, id)
     }
 
-    override fun onDisconnected(retryable: Retryable) {
+    override fun onClosed() {
         val displayTimelineId = timelineId.replace("MastodonStream.", "").replace("Channel", "")
-        var timeToSleep = 10000L
-
         putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected.")
-        service.sendBroadcast(Intent().apply {
+        context.sendBroadcast(Intent().apply {
             action = TwitterService.ACTION_STREAM_DISCONNECTED
             putExtra(TwitterService.EXTRA_USER, userRecord)
             putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
             putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
         })
-
-        while (true) {
-            putDebugLog("$timelineId@${userRecord.ScreenName}: Waiting for $timeToSleep milliseconds.")
-            try {
-                Thread.sleep(timeToSleep)
-
-                // 再接続に失敗した時は例外が出る
-                retryable.retry()
-                putDebugLog("$timelineId@${userRecord.ScreenName}: Reconnected.")
-
-                service.sendBroadcast(Intent().apply {
-                    action = TwitterService.ACTION_STREAM_CONNECTED
-                    putExtra(TwitterService.EXTRA_USER, userRecord)
-                    putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
-                    putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
-                })
-
-                break
-            } catch (e: InterruptedException) {
-                putDebugLog("$timelineId@${userRecord.ScreenName}: Interrupted!")
-                break
-            } catch (e: Mastodon4jRequestException) {
-                e.printStackTrace()
-            } catch (e: RejectedExecutionException) {
-                // mastodon4jで使われているExecutorがShutdown状態か調べる手段は存在しない
-                // この例外が出るのはだいたいShutdown後にリトライを試みて弾かれた時なので、諦める
-                putDebugLog("$timelineId@${userRecord.ScreenName}: Rejected!")
-                break
-            }
-
-            timeToSleep = minOf(timeToSleep * 2, 60000)
-        }
-    }
-
-    override fun onClose() {
-        putDebugLog("$timelineId@${userRecord.ScreenName}: Disconnected. Connection close.")
-    }
-}
-
-/**
- * Mastodonのストリーミング接続用ヘルパーメソッド。接続に成功するまで時間を置いてリトライします。
- * @param tag ログ識別用のタグ
- * @param connector Streaming APIへの接続処理。単に [Streaming.user] などの呼出。
- */
-private inline fun retryUntilConnect(tag: String, connector: () -> Shutdownable): Shutdownable {
-    var timeToSleep = 10000L
-
-    while (true) {
-        try {
-            return connector()
-        } catch (e: Mastodon4jRequestException) {
-            e.printStackTrace()
-            val res = e.response
-            if (res != null) {
-                Log.d("MastodonStream", "$tag: Response dump ->\n$res")
-            }
-        }
-
-        Log.d("MastodonStream", "$tag: Failed to connect to stream api. Waiting for $timeToSleep milliseconds.")
-        Thread.sleep(timeToSleep)
-        timeToSleep = minOf(timeToSleep * 2, 60000L)
     }
 }
