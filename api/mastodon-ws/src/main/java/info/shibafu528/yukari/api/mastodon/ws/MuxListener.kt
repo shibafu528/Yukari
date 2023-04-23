@@ -42,6 +42,9 @@ internal class MuxListener(private val client: StreamClient) : WebSocketListener
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         System.err.println("MuxListener.onFailure: Disconnected. code = ${response?.code()}")
         client.onFailure(webSocket, t, response)
+        client.subscriptions.forEach {
+            it.listener.onFailure(t, response)
+        }
     }
 
     private fun onUpdate(event: Event) {
