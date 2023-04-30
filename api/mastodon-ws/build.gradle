@@ -1,0 +1,26 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://jitpack.io"
+    }
+}
+
+dependencies {
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0' // TODO: 3.14.9でもいいかも。3.11.0はtwitter4jの依存バージョン。
+    implementation 'com.google.code.gson:gson:2.9.0'
+
+    implementation "com.github.shibafu528.mastodon4j:mastodon4j:087b09001e99942c3423bfd6f4641c8a3a5560ce"
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+}

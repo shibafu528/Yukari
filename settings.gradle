@@ -5,3 +5,4 @@ if (getProperty("yukari.exvoice.build").toBoolean()) {
 include ':yukari-processor-annotation'
 include ':yukari-processor'
 include ':gl-helpers'
+include ':api:mastodon-ws'
