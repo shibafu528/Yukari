@@ -2,10 +2,7 @@ package info.shibafu528.yukari.api.mastodon.ws
 
 import com.google.gson.Gson
 import okhttp3.*
-import java.net.URLEncoder
 import java.util.concurrent.CopyOnWriteArrayList
-
-// TODO: サーバがMux非対応 (Mastodon < 3.3.0) の場合のフォールバック処理 (stream単位でws接続し、コネクションを管理し続ける必要がある)
 
 /**
  * WebSocketでMastodonのstreamingサーバに接続し、各種イベントを購読することができます。
@@ -28,7 +25,7 @@ class MuxStreamClient internal constructor(private val serverUrl: String,
     /**
      * 多重化セッション用のWebSocketコネクション。サーバが対応している場合、このコネクションのみを使用して購読する。
      */
-    private val muxConnection = AutoReconnectWebSocket(okHttpClient, Request.Builder().url(makeEndpointUrl()).build(), muxListener)
+    private val muxConnection = AutoReconnectWebSocket(okHttpClient, Request.Builder().url(UrlUtil.makeEndpointUrl(serverUrl, accessToken)).build(), muxListener)
 
     /**
      * 次にWebSocketコネクションを確立した時に購読を再送する必要があるかどうか。購読を試みた時に接続が確立できていなかった場合や、一時的に切断されてしまった場合に使う。
@@ -83,37 +80,6 @@ class MuxStreamClient internal constructor(private val serverUrl: String,
         subscriptions.forEach { subscription ->
             if (stream.contains(subscription.stream)) {
                 action(subscription)
-            }
-        }
-    }
-
-    /**
-     * 接続に使用するURLを生成します。
-     *
-     * [API Document](https://docs.joinmastodon.org/methods/streaming/#websocket)
-     * @param stream 購読するストリームの名前。省略した場合は多重化セッションのためのURLを生成。
-     */
-    private fun makeEndpointUrl(stream: String? = null): String {
-        return buildString {
-            append("$serverUrl/api/v1/streaming")
-
-            val parameters = arrayListOf<Pair<String, String>>()
-            if (accessToken != null) {
-                parameters.add("access_token" to accessToken)
-            }
-            if (stream != null) {
-                parameters.add("stream" to stream)
-            }
-            if (parameters.isNotEmpty()) {
-                append("?")
-                parameters.forEachIndexed { index, (key, value) ->
-                    if (index != 0) {
-                        append("&")
-                    }
-                    append(URLEncoder.encode(key, "UTF-8"))
-                    append("=")
-                    append(URLEncoder.encode(value, "UTF-8"))
-                }
             }
         }
     }

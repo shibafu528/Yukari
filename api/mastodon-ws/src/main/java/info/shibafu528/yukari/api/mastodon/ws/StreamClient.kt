@@ -13,6 +13,7 @@ interface StreamClient {
     class Builder(private val serverUrl: String,
                   private val okHttpClientBuilder: OkHttpClient.Builder) {
         private var accessToken: String? = null
+        private var enforceLegacy = false
 
         /**
          * 接続時に使用するアクセストークンを設定します。認証が必要なストリームを購読する場合には必須です。
@@ -22,10 +23,21 @@ interface StreamClient {
         }
 
         /**
+         * Mastodon 3.3未満のstreamingサーバ向けの互換プログラムを使用します。
+         */
+        fun enforceLegacy(enforceLegacy: Boolean) = apply {
+            this.enforceLegacy = enforceLegacy
+        }
+
+        /**
          * 与えられたオプションで [MuxStreamClient] のインスタンスを生成します。
          */
         fun build(): StreamClient {
-            return MuxStreamClient(serverUrl, accessToken, okHttpClientBuilder.build())
+            return if (enforceLegacy) {
+                LegacyStreamClient(serverUrl, accessToken, okHttpClientBuilder.build())
+            } else {
+                MuxStreamClient(serverUrl, accessToken, okHttpClientBuilder.build())
+            }
         }
     }
 
