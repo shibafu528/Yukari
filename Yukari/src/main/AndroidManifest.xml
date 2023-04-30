@@ -194,9 +194,6 @@
             android:label="Trace" />
 
         <activity
-            android:name=".activity.PreviewActivity"
-            android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
-        <activity
             android:name=".activity.PreviewActivity2"
             android:theme="@style/ColorsTheme.Light.Translucent.NoTitle"/>
         <activity

@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.preference.PreferenceManager
 import android.provider.Settings
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -65,10 +64,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
     private lateinit var ibSave: ImageButton
     private lateinit var ibRotateLeft: ImageButton
     private lateinit var ibRotateRight: ImageButton
-
-    // QR code view
-//    private lateinit var llQrText: LinearLayout
-//    private lateinit var tvQrText: TextView
 
     // Animation
     private lateinit var fadeInAnimation: Animation
@@ -227,8 +222,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         ibSave = findViewById(R.id.ibPreviewSave)
         ibRotateLeft = findViewById(R.id.ibPreviewRotateLeft)
         ibRotateRight = findViewById(R.id.ibPreviewRotateRight)
-//        llQrText = findViewById(R.id.llQrText)
-//        tvQrText = findViewById(R.id.tvQrText)
 
         fadeInAnimation = AnimationUtils.loadAnimation(this, R.anim.anim_fadein)
         fadeOutAnimation = AnimationUtils.loadAnimation(this, R.anim.anim_fadeout)
@@ -558,14 +551,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         @JvmStatic
         @JvmOverloads
         fun newIntent(context: Context, uri: Uri, status: Status? = null, user: AuthUserRecord? = null, collection: List<Uri> = emptyList()): Intent {
-            if (PreferenceManager.getDefaultSharedPreferences(context).getBoolean("pref_prefer_legacy_image_preview", false)) {
-                return Intent(context, PreviewActivity::class.java).apply {
-                    data = uri
-                    putExtra(PreviewActivity.EXTRA_STATUS, status)
-                    putExtra(PreviewActivity.EXTRA_USER, user)
-                }
-            }
-
             return Intent(context, PreviewActivity2::class.java).apply {
                 data = uri
                 putExtra(EXTRA_COLLECTION, collection.toTypedArray())
