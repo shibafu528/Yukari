@@ -463,11 +463,15 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
     override fun onServiceDisconnected() {}
 
     private fun replyToSender() {
+        val userRecord = userRecord
+
         val intent = Intent(activity, TweetActivity::class.java)
         intent.putExtra(TweetActivity.EXTRA_USER, userRecord)
         intent.putExtra(TweetActivity.EXTRA_STATUS, status.originStatus)
         intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
-        intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.originStatus.user.screenName + " ")
+        if (userRecord != null && status.originStatus.user.screenName != userRecord.ScreenName) {
+            intent.putExtra(TweetActivity.EXTRA_TEXT, "@" + status.originStatus.user.screenName + " ")
+        }
         startActivityForResult(intent, REQUEST_REPLY)
     }
 
@@ -479,7 +483,9 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
         intent.putExtra(TweetActivity.EXTRA_STATUS, status.originStatus)
         intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_REPLY)
         intent.putExtra(TweetActivity.EXTRA_TEXT, StringBuilder().apply {
-            append("@").append(status.originStatus.user.screenName).append(" ")
+            if (status.originStatus.user.screenName != userRecord.ScreenName) {
+                append("@").append(status.originStatus.user.screenName).append(" ")
+            }
             status.mentions.forEach { mention ->
                 if (!this.toString().contains("@" + mention.screenName) && mention.screenName != userRecord.ScreenName) {
                     append("@").append(mention.screenName).append(" ")
