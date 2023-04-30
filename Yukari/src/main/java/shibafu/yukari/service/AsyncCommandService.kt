@@ -1,26 +1,20 @@
 package shibafu.yukari.service
 
 import android.app.IntentService
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
-import android.os.IBinder
 import shibafu.yukari.BuildConfig
+import shibafu.yukari.core.App
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.TwitterApi
-import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putErrorLog
 
 /**
  * Created by shibafu on 2015/09/15.
  */
 class AsyncCommandService : IntentService("AsyncCommandService") {
-    private var service: TwitterService? = null
-    private var serviceBound: Boolean = false
-
     override fun onHandleIntent(intent: Intent?) {
         if (intent == null) {
             putErrorLog("Intentがぬるぬるしてる \n" + intent.toString())
@@ -40,19 +34,10 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
             return
         }
 
-        //サービスバインドまで待機
-        while (!serviceBound) {
-            try {
-                Thread.sleep(100)
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-        }
-
         //処理を実行
-        val service = service!!
+        val app = App.getInstance(applicationContext)
         if (targetStatus != null) {
-            val api = service.getProviderApi(user)
+            val api = app.getProviderApi(user)
             if (api == null) {
                 putErrorLog("ProviderApiがぬるぬるしてる \n" + intent.toString())
                 if (BuildConfig.DEBUG) throw IllegalArgumentException("apiType: ${user.Provider.apiType}; user: $user")
@@ -75,7 +60,7 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                 return
             }
 
-            val api = service.getProviderApi(user) as TwitterApi
+            val api = app.getProviderApi(user) as TwitterApi
             when (action) {
                 ACTION_FAVORITE -> api.createFavorite(user, id)
             }
@@ -127,29 +112,4 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
                     putExtra(EXTRA_USER, user)
                 }
     }
-
-    //<editor-fold desc="Service Binder">
-    override fun onCreate() {
-        super.onCreate()
-        putDebugLog("onCreate AsyncCommandService")
-        bindService(Intent(this, TwitterService::class.java), connection, Context.BIND_AUTO_CREATE)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        putDebugLog("onDestroy AsyncCommandService")
-        unbindService(connection)
-    }
-
-    private val connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
-            putDebugLog("onServiceConnected")
-            service = (binder as TwitterService.TweetReceiverBinder).service
-            serviceBound = true
-        }
-
-        override fun onServiceDisconnected(name: ComponentName) {
-        }
-    }
-    //</editor-fold>
 }
