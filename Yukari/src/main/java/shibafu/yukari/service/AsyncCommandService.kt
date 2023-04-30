@@ -68,14 +68,14 @@ class AsyncCommandService : IntentService("AsyncCommandService") {
     }
 
     companion object {
-        private val ACTION_FAVORITE = "FAVORITE"
-        private val ACTION_UNFAVORITE = "UNFAVORITE"
-        private val ACTION_RETWEET = "RETWEET"
-        private val ACTION_FAVRT = "FAVRT"
+        private const val ACTION_FAVORITE = "FAVORITE"
+        private const val ACTION_UNFAVORITE = "UNFAVORITE"
+        private const val ACTION_RETWEET = "RETWEET"
+        private const val ACTION_FAVRT = "FAVRT"
 
-        private val EXTRA_ID = "id"
-        private val EXTRA_USER = "user"
-        private val EXTRA_TARGET_STATUS = "targetStatus"
+        private const val EXTRA_ID = "id"
+        private const val EXTRA_USER = "user"
+        private const val EXTRA_TARGET_STATUS = "targetStatus"
 
         @JvmStatic fun createFavorite(context: Context, id: Long, user: AuthUserRecord): Intent =
                 Intent(context, AsyncCommandService::class.java).apply {
