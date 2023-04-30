@@ -6,7 +6,7 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 
-internal class MuxListener(private val client: StreamClient) : WebSocketListener() {
+internal class MuxListener(private val client: MuxStreamClient) : WebSocketListener() {
     override fun onOpen(webSocket: WebSocket, response: Response) {
         System.err.println("MuxListener.onOpen: Connected.")
         client.onOpen(webSocket, response)
