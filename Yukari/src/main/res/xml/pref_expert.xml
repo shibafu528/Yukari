@@ -45,6 +45,13 @@
             android:title="通知チャンネルの修復"
             android:summary="システムの通知設定の項目を修復します。システム設定で通知音をカスタマイズしている場合、その情報は失われます。\n(※Android 8.0以上のみ有効)"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="トラブルシューティング (Mastodon)">
+        <CheckBoxPreference
+            android:key="pref_mastodon_enforce_legacy_stream_client"
+            android:title="チャンネル単位でストリーミングに接続"
+            android:summary="Mastodon 3.3未満のサーバーと互換性のある方式でストリーミング通信を行います。\nバージョンの古いサーバーでストリーミングの受信が上手く行かない場合に使用してください。\n(※要再起動)"
+            android:defaultValue="false" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="実験中の機能 (上級者向け)">
         <CheckBoxPreference
             android:key="pref_show_received"

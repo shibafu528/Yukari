@@ -26,6 +26,7 @@ import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.mastodon.streaming.StreamClientManager
 import shibafu.yukari.service.TwitterService
+import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 
 class MastodonStream : ProviderStream {
@@ -39,7 +40,9 @@ class MastodonStream : ProviderStream {
         Log.d(LOG_TAG, "onCreate")
 
         this.service = service
-        this.streamClientManager = StreamClientManager(OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext)))
+
+        val enforceLegacy = service.defaultSharedPreferences.getBoolean("pref_mastodon_enforce_legacy_stream_client", false)
+        this.streamClientManager = StreamClientManager(OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext)), enforceLegacy)
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_MASTODON) {

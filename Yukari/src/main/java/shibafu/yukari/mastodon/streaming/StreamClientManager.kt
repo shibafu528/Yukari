@@ -5,7 +5,7 @@ import info.shibafu528.yukari.api.mastodon.ws.StreamClient
 import okhttp3.OkHttpClient
 import shibafu.yukari.database.AuthUserRecord
 
-class StreamClientManager(private val okHttpBuilder: OkHttpClient.Builder) {
+class StreamClientManager(private val okHttpBuilder: OkHttpClient.Builder, private val enforceLegacy: Boolean) {
     data class Ref(val client: StreamClient, internal val userRecord: AuthUserRecord)
     data class References(val client: StreamClient,
                           val refs: MutableList<Ref> = arrayListOf())
@@ -18,6 +18,7 @@ class StreamClientManager(private val okHttpBuilder: OkHttpClient.Builder) {
 
             val client = StreamClient.Builder("wss://${userRecord.Provider.host}", okHttpBuilder)
                 .accessToken(userRecord.AccessToken)
+                .enforceLegacy(enforceLegacy)
                 .build()
             References(client).also { references[userRecord] = it }
         }
