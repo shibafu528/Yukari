@@ -3,15 +3,12 @@ package shibafu.yukari.service;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -30,6 +27,7 @@ import java.util.List;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.TweetActivity;
 import shibafu.yukari.common.bitmapcache.BitmapCache;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
@@ -52,9 +50,6 @@ public class PostService extends IntentService{
 
     private NotificationManager nm;
     private Bitmap icon;
-
-    private TwitterService service;
-    private boolean serviceBound;
 
     public PostService() {
         super("PostService");
@@ -120,15 +115,6 @@ public class PostService extends IntentService{
         }
         startForeground(R.integer.notification_tweet, builder.build());
 
-        //サービスバインドまで待機
-        while (!serviceBound) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
         //添付メディアのアップロード準備
         List<File> uploadMediaList;
         try {
@@ -150,7 +136,7 @@ public class PostService extends IntentService{
             for (int i = 0; i < writers.size(); ++i) {
                 AuthUserRecord userRecord = writers.get(i);
                 try {
-                    ProviderApi api = service.getProviderApi(userRecord);
+                    ProviderApi api = getAppContext().getProviderApi(userRecord);
                     if (api == null) {
                         throw new RuntimeException("Critical Error : ProviderAPI not found.");
                     }
@@ -205,7 +191,7 @@ public class PostService extends IntentService{
             builder.setContentTitle("ツイートに成功しました");
             builder.setContentText("");
             nm.notify(R.integer.notification_tweet, builder.build());
-            service.getDatabase().deleteDraft(draft);
+            getAppContext().getDatabase().deleteDraft(draft);
         }
 
         stopForeground(true);
@@ -325,35 +311,12 @@ public class PostService extends IntentService{
             builder.setContentIntent(pendingIntent);
             //下書きを保存
             draft.setFailedDelivery(true);
-            service.getDatabase().updateDraft(draft);
+            getAppContext().getDatabase().updateDraft(draft);
         }
         nm.notify(id, builder.build());
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d("PostService", "onCreate PostService");
-        bindService(new Intent(this, TwitterService.class), connection, BIND_AUTO_CREATE);
+    private App getAppContext() {
+        return App.getInstance(this);
     }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d("PostService", "onDestory PostService");
-        unbindService(connection);
-    }
-
-    private ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d("PostService", "onServiceConnected");
-            TwitterService.TweetReceiverBinder binder = (TwitterService.TweetReceiverBinder) service;
-            PostService.this.service = binder.getService();
-            serviceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {}
-    };
 }
