@@ -15,11 +15,8 @@ import shibafu.yukari.activity.CommandsPrefActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
-import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,46 +48,7 @@ public class TweetPreprocessor {
         COMMANDS.put("::jb", (depends, input) -> "Javaビームﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞﾋﾞwwwwwwwwww");
         COMMANDS.put("::bb", (depends, input) -> "@la0c bbop " + input);
         COMMANDS.put("::cn", (depends, input) -> {
-            if (TextUtils.isEmpty(input)) {
-                Toast.makeText(depends.getActivity().getApplicationContext(), "Invalid Input", Toast.LENGTH_SHORT).show();
-            } else {
-                new ThrowableTwitterAsyncTask<String, Void>() {
-                    @Override
-                    protected ThrowableResult<Void> doInBackground(String... params) {
-                        try {
-                            for (AuthUserRecord user : depends.getWriters()) {
-                                Twitter twitter = depends.getActivity().getTwitterService().getTwitterOrThrow(user);
-                                twitter.updateProfile(params[0], null, null, null);
-                            }
-                            return new ThrowableResult<>((Void) null);
-                        } catch (TwitterException e) {
-                            e.printStackTrace();
-                            return new ThrowableResult<>(e);
-                        }
-                    }
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        showToast("Updating your name...");
-                    }
-
-                    @Override
-                    protected void onPostExecute(ThrowableResult<Void> result) {
-                        super.onPostExecute(result);
-                        if (!result.isException()) {
-                            showToast("Updated your name!");
-                        }
-                    }
-
-                    @Override
-                    protected void showToast(String message) {
-                        Toast.makeText(depends.getActivity().getApplicationContext(), message, Toast.LENGTH_LONG).show();
-                    }
-                }.execute(input);
-                depends.getActivity().setResult(Activity.RESULT_OK);
-                depends.getActivity().finish();
-            }
+            Toast.makeText(depends.getActivity().getApplicationContext(), "::cn は廃止されました", Toast.LENGTH_SHORT).show();
             return null;
         });
         COMMANDS.put("::d250g2", (depends, input) -> {
