@@ -32,6 +32,7 @@ import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
+import shibafu.yukari.util.CompatUtil
 import twitter4j.AlternativeHttpClientImpl
 
 /**
@@ -122,7 +123,7 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         // 画像キャッシュの初期化
         BitmapCache.initialize(this)
 
-        if (getProcessName() == packageName) {
+        if (CompatUtil.getProcessName() == packageName) {
             // Mastodon: default visibilityの取得
             for (user in accountManager.users) {
                 if (user.Provider.apiType == Provider.API_MASTODON) {
