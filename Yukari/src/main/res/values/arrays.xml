@@ -94,8 +94,8 @@
     </string-array>
 
     <string-array name="mute_erase_values">
-        <item>ツイート</item>
-        <item>ツイート(RTされたものを含む)</item>
+        <item>投稿</item>
+        <item>投稿(RTされたものを含む)</item>
         <item>リツイート</item>
         <item>お気に入り通知</item>
         <item>RT通知</item>

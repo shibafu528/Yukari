@@ -8,7 +8,7 @@
         <Preference
             android:key="pref_notif_mention"
             android:title="メンション通知"
-            android:summary="返信(@ツイート)を受信した際に通知します" />
+            android:summary="返信を受け取った際に通知します" />
         <Preference
             android:key="pref_notif_rt"
             android:title="リツイート通知"
@@ -16,7 +16,7 @@
         <Preference
             android:key="pref_notif_fav"
             android:title="お気に入り通知"
-            android:summary="ツイートがお気に入りに追加された際に通知します" />
+            android:summary="投稿がお気に入りに追加された際に通知します" />
         <Preference
             android:key="pref_notif_dm"
             android:title="メッセージ通知"

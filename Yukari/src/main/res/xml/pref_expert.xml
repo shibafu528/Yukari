@@ -56,12 +56,12 @@
         <CheckBoxPreference
             android:key="pref_show_received"
             android:title="受信アカウントの表示"
-            android:summary="ツイートを受信したアカウントを表示します"
+            android:summary="投稿を受信したアカウントを表示します"
             android:defaultValue="false" />
         <CheckBoxPreference
             android:key="pref_limited_timeline"
             android:title="Limited TL"
-            android:summary="TLのツイート数が一定を超えた場合、古いものを画面から破棄するようにします"
+            android:summary="TLの投稿数が一定を超えた場合、古いものを画面から破棄するようにします"
             android:defaultValue="true"/>
         <CheckBoxPreference
             android:key="pref_remove_screenshot_subject"
@@ -71,7 +71,7 @@
         <CheckBoxPreference
             android:key="pref_block_doubleclock"
             android:title="TLダブルクリックの防止"
-            android:summary="ツイートクリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
+            android:summary="投稿行クリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
         <CheckBoxPreference
             android:key="pref_force_http1"
             android:title="http1.1を優先使用"

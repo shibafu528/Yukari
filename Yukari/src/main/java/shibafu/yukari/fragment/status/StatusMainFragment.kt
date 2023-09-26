@@ -581,14 +581,14 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             when (style) {
                 3 -> {
                     if (!ibRetweet.isEnabled) {
-                        Toast.makeText(activity, "RTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, "RTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
                         return false
                     }
                     request = REQUEST_RT_QUOTE
                 }
                 4 -> {
                     if (!ibFavRt.isEnabled) {
-                        Toast.makeText(activity, "FavRTできないツイートです。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, "FavRTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
                         return false
                     }
                     request = REQUEST_FRT_QUOTE

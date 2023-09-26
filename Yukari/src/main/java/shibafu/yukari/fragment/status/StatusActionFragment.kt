@@ -87,11 +87,11 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 MuteMenuDialogFragment.newInstance(status, this).show(parentFragmentManager, "mute")
             } visibleWhen { true },
 
-            Action("ツイートを削除") {
+            Action("投稿を削除") {
                 val message = if (defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
                     "失った信頼はもう戻ってきませんが、本当にこのつぶやきを削除しますか？"
                 } else {
-                    "ツイートを削除しますか？"
+                    "投稿を削除しますか？"
                 }
                 val dialog = SimpleAlertDialogFragment.newInstance(REQUEST_DELETE, "確認", message, "OK", "キャンセル")
                 dialog.setTargetFragment(this, REQUEST_DELETE)

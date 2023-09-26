@@ -103,7 +103,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         }
 
         if (status == null) {
-            Toast.makeText(this, "なんですかこのツイートは、読めないのですけど...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "なんですかこの投稿は、読めないのですけど...", Toast.LENGTH_SHORT).show();
             finish();
         }
 
