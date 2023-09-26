@@ -50,7 +50,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Yukariの使用を開始するには、\nTwitterかMastodonのアカウントが必要です。\nお持ちのアカウントでログインしてください。"
+            android:text="Yukariの使用を開始するには、\nMastodonのアカウントが必要です。\nお持ちのアカウントでログインしてください。"
             android:id="@+id/textView9"
             android:layout_gravity="center_horizontal"
             android:lineSpacingMultiplier="1.1"
