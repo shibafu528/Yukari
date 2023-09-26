@@ -83,7 +83,7 @@ public class MediaFactory {
                 String lastSegment = Uri.parse(browseUrl).getLastPathSegment();
                 if (lastSegment != null) {
                     String lc = lastSegment.toLowerCase();
-                    if (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png") || lc.endsWith(".gif")) {
+                    if (lc.endsWith(".jpg") || lc.endsWith(".jpeg") || lc.endsWith(".png") || lc.endsWith(".gif") || lc.endsWith(".webp")) {
                         media = new SimplePicture(browseUrl);
                     }
                 }
