@@ -11,8 +11,8 @@
             android:summary="返信を受け取った際に通知します" />
         <Preference
             android:key="pref_notif_rt"
-            android:title="リツイート通知"
-            android:summary="リツイートされた際に通知します" />
+            android:title="ブースト通知"
+            android:summary="ブーストされた際に通知します" />
         <Preference
             android:key="pref_notif_fav"
             android:title="お気に入り通知"
@@ -23,8 +23,8 @@
             android:summary="ダイレクトメッセージを受信した際に通知します" />
         <Preference
             android:key="pref_notif_respond"
-            android:title="RTレスポンス通知"
-            android:summary="RTに対する反応を受信した際に通知します" />
+            android:title="BTレスポンス通知"
+            android:summary="BTに対する反応を受信した際に通知します" />
         <CheckBoxPreference
             android:key="pref_notif_connectivity"
             android:title="ストリーミング通信状態通知"

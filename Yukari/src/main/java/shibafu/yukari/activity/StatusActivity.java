@@ -143,7 +143,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         TextView tvCounter = (TextView) findViewById(R.id.tv_state_counter);
         final int retweeted = status.getRepostsCount();
         final int faved = status.getFavoritesCount();
-        String countRT = retweeted + "RT";
+        String countRT = retweeted + "BT";
         String countFav = faved + "Fav";
         if (retweeted > 0 && faved > 0) {
             tvCounter.setText(countRT + " " + countFav);

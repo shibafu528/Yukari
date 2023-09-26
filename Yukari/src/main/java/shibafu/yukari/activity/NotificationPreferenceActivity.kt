@@ -53,10 +53,10 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
 
         title = when (notificationType) {
             NOTIFICATION_MENTION -> "メンション通知"
-            NOTIFICATION_RETWEET -> "リツイート通知"
+            NOTIFICATION_RETWEET -> "ブースト通知"
             NOTIFICATION_FAVORITE -> "お気に入り通知"
             NOTIFICATION_DIRECT_MESSAGE -> "メッセージ通知"
-            NOTIFICATION_RT_RESPOND -> "RTレスポンス通知"
+            NOTIFICATION_RT_RESPOND -> "BTレスポンス通知"
             else -> throw RuntimeException("invalid notification type")
         }
 

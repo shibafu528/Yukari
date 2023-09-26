@@ -174,7 +174,7 @@ abstract class StatusView : RelativeLayout {
         tvTimestamp.textSize = fontSize * 0.8f
         tvTimestamp.text = buildString {
             if (mode != Mode.PREVIEW && status.isRepost) {
-                append("RT by @")
+                append("BT by @")
                 append(status.user.screenName)
                 append("\n")
             }

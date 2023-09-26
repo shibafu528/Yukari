@@ -160,7 +160,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
                 val message = if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
                     "過去の栄光にすがりますか？"
                 } else {
-                    "リツイートしますか？"
+                    "ブーストしますか？"
                 }
                 val dialog = SimpleAlertDialogFragment.Builder(DIALOG_REPOST_CONFIRM)
                         .setTitle("確認")
@@ -201,7 +201,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             if (defaultSharedPreferences.getBoolean("pref_dialog_favrt", true)) {
                 val dialog = SimpleAlertDialogFragment.Builder(DIALOG_FAV_AND_REPOST_CONFIRM)
                         .setTitle("確認")
-                        .setMessage("お気に入りに登録してRTしますか？")
+                        .setMessage("お気に入りに登録してBTしますか？")
                         .setPositive("OK")
                         .setNegative("キャンセル")
                         .build()
@@ -581,14 +581,14 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             when (style) {
                 3 -> {
                     if (!ibRetweet.isEnabled) {
-                        Toast.makeText(activity, "RTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, "BTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
                         return false
                     }
                     request = REQUEST_RT_QUOTE
                 }
                 4 -> {
                     if (!ibFavRt.isEnabled) {
-                        Toast.makeText(activity, "FavRTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(activity, "FavBTできない投稿です。\nこの操作を行うことができません。", Toast.LENGTH_SHORT).show()
                         return false
                     }
                     request = REQUEST_FRT_QUOTE
@@ -596,7 +596,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             }
             if (request > -1) {
                 intent.putExtra(TweetActivity.EXTRA_MODE, TweetActivity.MODE_COMPOSE)
-                intent.putExtra(TweetActivity.EXTRA_TEXT, defaultSharedPreferences.getString("pref_quote_comment_footer", " ＞RT"))
+                intent.putExtra(TweetActivity.EXTRA_TEXT, defaultSharedPreferences.getString("pref_quote_comment_footer", " ＞BT"))
                 startActivityForResult(intent, request)
             }
         }

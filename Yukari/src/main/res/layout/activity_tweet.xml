@@ -301,7 +301,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
-            android:text="RT \uff20screen_name: Tweet" />
+            android:text="BT \uff20screen_name: Status" />
 
     </LinearLayout>
 

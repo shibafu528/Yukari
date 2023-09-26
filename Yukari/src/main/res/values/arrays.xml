@@ -95,10 +95,10 @@
 
     <string-array name="mute_erase_values">
         <item>投稿</item>
-        <item>投稿(RTされたものを含む)</item>
-        <item>リツイート</item>
+        <item>投稿(BTされたものを含む)</item>
+        <item>ブースト</item>
         <item>お気に入り通知</item>
-        <item>RT通知</item>
+        <item>BT通知</item>
         <item>リプライ通知</item>
         <item>画像サムネイル</item>
     </string-array>
@@ -174,8 +174,8 @@
         <item>非公式RT ( RT \@id: ... )</item>
         <item>QT ( QT \@id: ... )</item>
         <item>URLで引用 ( http://... )</item>
-        <item>RTしてから言及する ( ...＞RT )</item>
-        <item>FavRTしてから言及する ( ...＞RT )</item>
+        <item>BTしてから言及する ( ...＞BT )</item>
+        <item>FavBTしてから言及する ( ...＞BT )</item>
     </string-array>
 
     <string-array name="pref_quote_values">
@@ -261,8 +261,8 @@
         <item>返信</item>
         <item>全員に返信</item>
         <item>お気に入りに追加</item>
-        <item>リツイート</item>
-        <item>Fav+RT</item>
+        <item>ブースト</item>
+        <item>Fav+BT</item>
         <item>プロフィールを表示</item>
         <item>会話を表示</item>
     </string-array>

@@ -67,8 +67,8 @@
             android:summary="引用されている投稿がある場合、まとめてお気に入り登録するオプションを表示します"/>
         <CheckBoxPreference
             android:key="pref_close_after_fav"
-            android:title="Fav/RT後にメニューを閉じる"
-            android:summary="お気に入り登録やRTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
+            android:title="Fav/BT後にメニューを閉じる"
+            android:summary="お気に入り登録やBTをした後、自動でメニューを閉じます\n(リプライ・引用系機能は設定の対象外)"
             android:defaultValue="true"/>
         <ListPreference
             android:key="pref_default_quote_2_0_1"

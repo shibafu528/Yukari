@@ -74,7 +74,7 @@ class HistoryView : StatusView {
         get() =
             when (kind) {
                 NotifyHistory.KIND_FAVED -> "お気に入り登録"
-                NotifyHistory.KIND_RETWEETED -> "リツイート"
+                NotifyHistory.KIND_RETWEETED -> "ブースト"
                 else -> "反応"
             }
 }

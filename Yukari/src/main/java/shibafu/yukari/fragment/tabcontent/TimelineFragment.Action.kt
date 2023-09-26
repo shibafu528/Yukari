@@ -120,7 +120,7 @@ internal enum class TimelineItemClickAction {
             if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_rt", false)) {
                 val dialog = SimpleAlertDialogFragment.Builder(TimelineFragment.DIALOG_REQUEST_ACTION_REPOST)
                         .setTitle("確認")
-                        .setMessage("リツイートしますか？")
+                        .setMessage("ブーストしますか？")
                         .setPositive("OK")
                         .setNegative("キャンセル")
                         .setExtras(Bundle().apply { putSerializable("status", clickedElement) })
@@ -157,7 +157,7 @@ internal enum class TimelineItemClickAction {
             if (defaultSharedPreferences.getBoolean("pref_dialog_swipe", false) && defaultSharedPreferences.getBoolean("pref_dialog_favrt", false)) {
                 val dialog = SimpleAlertDialogFragment.Builder(TimelineFragment.DIALOG_REQUEST_ACTION_FAV_AND_REPOST)
                         .setTitle("確認")
-                        .setMessage("お気に入りに登録してRTしますか？")
+                        .setMessage("お気に入りに登録してBTしますか？")
                         .setPositive("OK")
                         .setNegative("キャンセル")
                         .setExtras(Bundle().apply { putSerializable("status", clickedElement) })

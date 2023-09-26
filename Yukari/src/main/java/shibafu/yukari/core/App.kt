@@ -222,9 +222,9 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         channels.add(mentionChannel)
 
         // Repost (RT, Boost)
-        val repostChannel = NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + "all", "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH)
+        val repostChannel = NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + "all", "ブースト通知", NotificationManager.IMPORTANCE_HIGH)
         repostChannel.group = groupId
-        repostChannel.description = "あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！"
+        repostChannel.description = "あなたの投稿がブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！"
         channels.add(repostChannel)
 
         // Favorite
@@ -240,9 +240,9 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         channels.add(messageChannel)
 
         // Repost Respond (RT-Respond)
-        val repostRespondChannel = NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + "all", "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH)
+        val repostRespondChannel = NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + "all", "BTレスポンス通知", NotificationManager.IMPORTANCE_HIGH)
         repostRespondChannel.group = groupId
-        repostRespondChannel.description = "あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！"
+        repostRespondChannel.description = "あなたの投稿がブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！"
         channels.add(repostRespondChannel)
 
         nm.createNotificationChannels(channels)
