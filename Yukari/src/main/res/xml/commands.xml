@@ -31,7 +31,7 @@
             android:summary="あの地平線輝くのは どこかに君を隠しているから"/>
         <Preference
             android:title="::batt"
-            android:summary="バッテリー残量ツイート"/>
+            android:summary="バッテリー残量を投稿"/>
         <Preference
             android:title="::ay"
             android:summary="あひる焼き"/>

@@ -178,7 +178,7 @@ public class DraftDialogFragment extends DialogFragment {
                     info += "DM to " + (dbUser!=null? "@" + dbUser.getScreenName() : "(Unknown User)") + "\n";
                 }
                 if (d.isFailedDelivery()) {
-                    info += "送信に失敗したツイート\n";
+                    info += "送信に失敗した投稿\n";
                 }
                 if (!d.getAttachPictures().isEmpty()) {
                     info += "添付画像あり\n";

@@ -182,7 +182,7 @@ public class IntentActivity extends ActionBarYukariBase {
                 startActivity(intent);
             }
             else if (!isCancelled()) {
-                Toast.makeText(IntentActivity.this, "ツイートの受信に失敗しました", Toast.LENGTH_SHORT).show();
+                Toast.makeText(IntentActivity.this, "投稿の取得に失敗しました", Toast.LENGTH_SHORT).show();
             }
             finish();
         }

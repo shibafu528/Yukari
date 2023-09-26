@@ -20,12 +20,12 @@
         <EditTextPreference
             android:key="pref_tweet_footer"
             android:title="フッター設定"
-            android:summary="ツイート末尾に自動挿入する文字列を設定します"/>
+            android:summary="投稿の末尾に自動挿入する文字列を設定します"/>
         <EditTextPreference
             android:key="pref_quote_comment_footer"
-            android:title="RTしてから言及のフッター"
-            android:summary="「RTしてから言及」使用時に入力欄に自動挿入する文字列を設定します"
-            android:defaultValue=" ＞RT"/>
+            android:title="BTしてから言及のフッター"
+            android:summary="「BTしてから言及」使用時に入力欄に自動挿入する文字列を設定します"
+            android:defaultValue=" ＞BT"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Mastodon">
         <ListPreference

@@ -87,7 +87,7 @@ public class MoviePreviewActivity extends AppCompatActivity {
                 // if error...
                 new AlertDialog.Builder(MoviePreviewActivity.this)
                         .setTitle("エラー")
-                        .setMessage("このメディアを開くことが出来ません。\n元ツイートのパーマリンクを添えて作者に連絡してみるといいかもしれません。")
+                        .setMessage("このメディアを開くことが出来ません。\n添付元の投稿のリンクを添えて作者に連絡してみるといいかもしれません。")
                         .setPositiveButton("OK", (dialog, which) -> finish())
                         .create()
                         .show();

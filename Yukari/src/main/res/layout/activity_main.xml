@@ -203,7 +203,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
                 android:layout_marginTop="2dp"
-                android:text="紫のバーを上に向かってスライドするとツイート画面が開きます。"
+                android:text="紫のバーを上に向かってスライドすると投稿画面が開きます。"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="#000" />
 
@@ -212,7 +212,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="(一度でもツイートするとこの案内は消えます)"
+                android:text="(一度でも投稿するとこの案内は消えます)"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
         </LinearLayout>
     </LinearLayout>

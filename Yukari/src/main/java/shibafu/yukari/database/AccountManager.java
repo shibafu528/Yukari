@@ -73,12 +73,12 @@ public interface AccountManager {
         // Repost (RT, Boost)
         NotificationChannel repostChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
         if (repostChannel == null) {
-            repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url, "リツイート・ブースト通知", NotificationManager.IMPORTANCE_HIGH);
+            repostChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url, "ブースト通知", NotificationManager.IMPORTANCE_HIGH);
         } else if (forceReplace) {
             nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST + userRecord.Url);
         }
         repostChannel.setGroup(groupId);
-        repostChannel.setDescription("あなたの投稿がリツイート・ブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        repostChannel.setDescription("あなたの投稿がブーストされた時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(repostChannel);
 
         // Favorite
@@ -106,12 +106,12 @@ public interface AccountManager {
         // Repost Respond (RT-Respond)
         NotificationChannel repostRespondChannel = nm.getNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND);
         if (repostRespondChannel == null) {
-            repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url, "RTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
+            repostRespondChannel = new NotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url, "BTレスポンス通知", NotificationManager.IMPORTANCE_HIGH);
         } else if (forceReplace) {
             nm.deleteNotificationChannel(NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + userRecord.Url);
         }
         repostRespondChannel.setGroup(groupId);
-        repostRespondChannel.setDescription("あなたの投稿がリツイート・ブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
+        repostRespondChannel.setDescription("あなたの投稿がブーストされ、その直後に感想文らしき投稿を発見した時の通知\n注意: ここで有効にしていても、アプリ内の通知設定を有効にしていないと機能しません！");
         channels.add(repostRespondChannel);
 
         nm.createNotificationChannels(channels);

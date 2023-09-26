@@ -95,8 +95,8 @@ public class PostService extends IntentService{
         }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_async_action))
-                .setTicker("ツイートを送信中")
-                .setContentTitle("ツイートを送信中")
+                .setTicker("投稿中")
+                .setContentTitle("投稿を送信中です")
                 .setContentText(draft.getText())
                 .setContentIntent(CompatUtil.getEmptyPendingIntent(getApplicationContext()))
                 .setWhen(System.currentTimeMillis())
@@ -180,15 +180,15 @@ public class PostService extends IntentService{
         builder.setOngoing(false);
         if (error > 0 && error < writers.size()) {
             builder.setSmallIcon(android.R.drawable.stat_notify_error);
-            builder.setTicker("一部ツイートに失敗しました");
-            builder.setContentTitle("一部ツイートに失敗しました");
+            builder.setTicker("一部投稿に失敗しました");
+            builder.setContentTitle("一部投稿に失敗しました");
             builder.setContentText("一部アカウントで投稿中にエラーが発生しました");
             nm.notify(R.integer.notification_tweet, builder.build());
         }
         else if (error == 0) {
             builder.setSmallIcon(android.R.drawable.stat_sys_upload_done);
-            builder.setTicker("ツイートに成功しました");
-            builder.setContentTitle("ツイートに成功しました");
+            builder.setTicker("投稿しました");
+            builder.setContentTitle("投稿しました");
             builder.setContentText("");
             nm.notify(R.integer.notification_tweet, builder.build());
             getAppContext().getDatabase().deleteDraft(draft);
@@ -294,8 +294,8 @@ public class PostService extends IntentService{
 
     private void showErrorMessage(int id, StatusDraft draft, String reason) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_error))
-                .setTicker("ツイートに失敗しました")
-                .setContentTitle("ツイートに失敗しました")
+                .setTicker("投稿に失敗しました")
+                .setContentTitle("投稿に失敗しました")
                 .setContentText(reason)
                 .setContentIntent(CompatUtil.getEmptyPendingIntent(getApplicationContext()))
                 .setAutoCancel(true)

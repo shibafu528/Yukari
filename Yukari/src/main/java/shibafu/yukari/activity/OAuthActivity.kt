@@ -180,7 +180,6 @@ class OAuthActivity : ActionBarYukariBase() {
 
             adapter = ArrayAdapter(requireActivity(), android.R.layout.simple_list_item_1)
 
-            adapter.add(Option.TWITTER)
             adapter.add(Option.MASTODON)
 
             listAdapter = adapter

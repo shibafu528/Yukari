@@ -49,7 +49,7 @@
         android:layout_below="@+id/llTweetInput"
         android:layout_marginLeft="16dp"
         android:layout_toRightOf="@+id/tlTweetAction"
-        android:text="Tweet" />
+        android:text="Post" />
 
     <TextView
         android:id="@+id/tvTweetCount"
@@ -212,7 +212,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="Tweet"
+        android:text="New post"
         android:ellipsize="end"/>
 
     <ImageView
@@ -301,7 +301,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="4dp"
             android:layout_marginTop="8dp"
-            android:text="RT \uff20screen_name: Tweet" />
+            android:text="BT \uff20screen_name: Status" />
 
     </LinearLayout>
 

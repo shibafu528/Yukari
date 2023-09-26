@@ -857,7 +857,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         ibVoice.setOnClickListener(v -> {
             Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "ツイートする内容をお話しください");
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "投稿する内容をお話しください");
             try {
                 startActivityForResult(intent, REQUEST_VOICE);
             } catch (ActivityNotFoundException e) {
@@ -1168,7 +1168,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private void onClickPost() {
         if (sp.getBoolean("pref_dialog_post", false)) {
             SimpleAlertDialogFragment dialogFragment = SimpleAlertDialogFragment.newInstance(
-                    REQUEST_DIALOG_POST, "確認", "ツイートしますか？", "OK", "キャンセル"
+                    REQUEST_DIALOG_POST, "確認", "投稿しますか？", "OK", "キャンセル"
             );
             dialogFragment.show(getSupportFragmentManager(), "dialog");
         } else {
@@ -1181,7 +1181,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
             return;
         } else if (!isValidInputLength()) {
-            Toast.makeText(TweetActivity.this, "ツイート上限文字数を超えています", Toast.LENGTH_SHORT).show();
+            Toast.makeText(TweetActivity.this, "本文の上限文字数を超えています", Toast.LENGTH_SHORT).show();
             return;
         }
         if (writers.size() < 1) {

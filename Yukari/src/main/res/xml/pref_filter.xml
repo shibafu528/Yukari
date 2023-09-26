@@ -3,7 +3,7 @@
     <Preference
         android:key="pref_mute"
         android:title="ミュート設定"
-        android:summary="条件を指定してツイートや通知などを非表示にします">
+        android:summary="条件を指定して投稿や通知などを非表示にします">
         <intent
             android:targetPackage="@string/applicationId"
             android:targetClass="shibafu.yukari.activity.MuteActivity"/>

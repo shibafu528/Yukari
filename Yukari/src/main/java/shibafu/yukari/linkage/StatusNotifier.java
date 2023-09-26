@@ -222,8 +222,8 @@ public class StatusNotifier {
                     break;
                 case R.integer.notification_retweeted:
                     icon = R.drawable.ic_stat_retweet;
-                    titleHeader = "Retweeted by @";
-                    tickerHeader = "RTされました : @";
+                    titleHeader = "Boosted by @";
+                    tickerHeader = "BTされました : @";
                     pattern = VIB_RETWEET;
                     color = Color.rgb(0, 128, 0);
                     channelId = NotificationChannelPrefix.CHANNEL_REPOST + channelIdSuffix;
@@ -245,8 +245,8 @@ public class StatusNotifier {
                     break;
                 case R.integer.notification_respond:
                     icon = R.drawable.ic_stat_reply;
-                    titleHeader = "RT-Respond from @";
-                    tickerHeader = "RTレスポンス : @";
+                    titleHeader = "BT-Respond from @";
+                    tickerHeader = "BTレスポンス : @";
                     pattern = VIB_REPLY;
                     channelId = NotificationChannelPrefix.CHANNEL_REPOST_RESPOND + channelIdSuffix;
                     break;
