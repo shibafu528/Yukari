@@ -305,7 +305,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
         override fun onClick(v: View) {
             val menu = PopupMenu(requireContext(), v)
             menu.menu.apply {
-                add(Menu.NONE, 0, Menu.NONE, "つぶやく")
+                add(Menu.NONE, 0, Menu.NONE, "このタグで投稿")
                 add(Menu.NONE, 1, Menu.NONE, "検索する")
             }
             menu.setOnMenuItemClickListener { item ->
