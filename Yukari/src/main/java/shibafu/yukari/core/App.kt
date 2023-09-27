@@ -96,7 +96,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         super.onCreate()
 
         installSecurityProvider()
-        applyNetworkPreferences()
 
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -159,14 +158,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
             ProviderInstaller.installIfNeeded(this)
         } catch (ignore: GooglePlayServicesRepairableException) {
         } catch (ignore: GooglePlayServicesNotAvailableException) {
-        }
-    }
-
-    private fun applyNetworkPreferences() {
-        val sp = PreferenceManager.getDefaultSharedPreferences(this)
-        if (sp.getBoolean("pref_disable_ipv6", false)) {
-            System.setProperty("java.net.preferIPv4Stack", "true")
-            System.setProperty("java.net.preferIPv6Addresses", "false")
         }
     }
 
