@@ -73,14 +73,6 @@
             android:title="TLダブルクリックの防止"
             android:summary="投稿行クリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
         <CheckBoxPreference
-            android:key="pref_force_http1"
-            android:title="http1.1を優先使用"
-            android:summary="高速なプロトコルを使用せず、旧来のプロトコルで通信が行われるようにします(※要再起動)"/>
-        <CheckBoxPreference
-            android:key="pref_disable_ipv6"
-            android:title="IPv6を無効化"
-            android:summary="IPv6通信を無効化し、IPv4通信が優先されるようにします(※要再起動)"/>
-        <CheckBoxPreference
             android:key="pref_enable_service"
             android:title="Serviceの常駐"
             android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定します"/>
