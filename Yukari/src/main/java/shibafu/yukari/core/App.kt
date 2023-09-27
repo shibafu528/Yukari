@@ -33,7 +33,6 @@ import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
 import shibafu.yukari.util.CompatUtil
-import twitter4j.AlternativeHttpClientImpl
 
 /**
  * Created by shibafu on 2015/08/29.
@@ -168,10 +167,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         if (sp.getBoolean("pref_disable_ipv6", false)) {
             System.setProperty("java.net.preferIPv4Stack", "true")
             System.setProperty("java.net.preferIPv6Addresses", "false")
-        }
-        if (sp.getBoolean("pref_force_http1", false)) {
-            AlternativeHttpClientImpl.sPreferHttp2 = false
-            AlternativeHttpClientImpl.sPreferSpdy = false
         }
     }
 

@@ -28,7 +28,6 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.util.defaultSharedPreferences
 import java.io.File
 import java.io.IOException
 
@@ -51,9 +50,6 @@ class MastodonApi : ProviderApi {
 
     fun getApiClient(instanceName: String, accessToken: String?): MastodonClient {
         val okHttpBuilder = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(context))
-        if (context.defaultSharedPreferences.getBoolean("pref_force_http1", false)) {
-            okHttpBuilder.protocols(listOf(Protocol.HTTP_1_1))
-        }
         var builder = MastodonClient.Builder(instanceName, okHttpBuilder, Gson())
         if (accessToken != null && accessToken.isNotEmpty()) {
             builder = builder.accessToken(accessToken).useStreamingApi()
