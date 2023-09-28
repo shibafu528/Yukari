@@ -104,15 +104,12 @@
             android:layout_weight="1"
             android:layout_marginRight="2dp"
             android:background="@drawable/selector_key_light_background"
-            android:clickable="true"
-            android:focusable="true"
             android:id="@+id/llMenuTwilog">
 
             <ImageView
                 android:layout_width="64dp"
                 android:layout_height="64dp"
                 android:padding="6dp"
-                android:src="?attr/menuTwilogDrawable"
                 android:layout_gravity="center_horizontal"
                 android:tag="menu:icon" />
 
@@ -121,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingBottom="4dp"
-                android:text="twilog"
+                android:text=""
                 android:textSize="@dimen/menudialog_textsize"
                 android:layout_gravity="center_horizontal"
                 android:tag="menu:label" />
@@ -134,8 +131,6 @@
             android:layout_weight="1"
             android:layout_marginRight="2dp"
             android:background="@drawable/selector_key_light_background"
-            android:clickable="true"
-            android:focusable="true"
             android:id="@+id/llMenuFavstar">
 
             <ImageView
@@ -162,8 +157,6 @@
             android:layout_height="fill_parent"
             android:layout_weight="1"
             android:background="@drawable/selector_key_light_background"
-            android:clickable="true"
-            android:focusable="true"
             android:id="@+id/llMenuAclog">
 
             <ImageView

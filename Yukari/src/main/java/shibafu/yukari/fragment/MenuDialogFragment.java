@@ -2,43 +2,26 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.fragment.app.DialogFragment;
-import androidx.core.content.res.ResourcesCompat;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
+import androidx.fragment.app.DialogFragment;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.activity.ChannelManageActivity;
 import shibafu.yukari.activity.ConfigActivity;
-import shibafu.yukari.activity.IntentChooserActivity;
 import shibafu.yukari.activity.MainActivity;
 import shibafu.yukari.activity.ProfileActivity;
 import shibafu.yukari.common.TabType;
@@ -49,7 +32,6 @@ import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.databinding.DialogMenuBinding;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StreamChannel;
-import shibafu.yukari.plugin.UserPluginActivity;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.AttrUtil;
@@ -61,44 +43,11 @@ public class MenuDialogFragment extends DialogFragment {
 
     private static final int REQUEST_PROFILE = 1;
 
-    private static final List<Integer> REQUEST_PLUGIN_CHOOSE = Collections.unmodifiableList(Arrays.asList(16, 17, 18));
-    private static final List<Integer> REQUEST_PLUGIN_EXEC = Collections.unmodifiableList(Arrays.asList(32, 33, 34));
-
     private static final int ACCOUNT_ICON_DIP = 32;
 
     private DialogMenuBinding binding;
-    private List<View> pluginViews;
-
-    private MenuPlugin[] plugins = new MenuPlugin[3];
-    private static final String[] DEFAULT_PLUGINS = {
-            UserPluginActivity.TO_TWILOG,
-            null,
-            null
-    };
 
     private ArrayList<AuthUserRecord> activeAccounts;
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        for (int i = 0; i < 3; ++i) {
-            String json = sp.getString("menu_plugin_" + i, "");
-            if (TextUtils.isEmpty(json)) {
-                if (DEFAULT_PLUGINS[i] == null) continue;
-
-                try {
-                    ActivityInfo info = context.getPackageManager()
-                            .getActivityInfo(new ComponentName(context, DEFAULT_PLUGINS[i]), 0);
-                    plugins[i] = new MenuPlugin(context, info);
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                plugins[i] = new Gson().fromJson(json, MenuPlugin.class);
-            }
-        }
-    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -240,35 +189,6 @@ public class MenuDialogFragment extends DialogFragment {
             task.executeParallel(((TwitterServiceDelegate) getActivity()).getTwitterService());
         });
 
-        pluginViews = new ArrayList<>(3);
-        pluginViews.add(binding.llMenuTwilog);
-        pluginViews.add(binding.llMenuFavstar);
-        pluginViews.add(binding.llMenuAclog);
-
-        for (int i = 0; i < pluginViews.size(); i++) {
-            final int index = i;
-            View view = pluginViews.get(i);
-            view.setOnClickListener(v1 -> {
-                if (plugins[index] == null) {
-                    return;
-                }
-                Intent intent = new Intent(getActivity(), AccountChooserActivity.class);
-                startActivityForResult(intent, REQUEST_PLUGIN_EXEC.get(index));
-            });
-            view.setOnLongClickListener(v1 -> {
-                Intent filter = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
-                filter.addCategory("jp.r246.twicca.category.OWNER");
-                Intent chooser = new Intent(getActivity(), IntentChooserActivity.class);
-                chooser.putExtra(IntentChooserActivity.EXTRA_FILTER, filter);
-                startActivityForResult(chooser, REQUEST_PLUGIN_CHOOSE.get(index));
-                return true;
-            });
-        }
-
-        updatePlugin(0, plugins[0]);
-        updatePlugin(1, plugins[1]);
-        updatePlugin(2, plugins[2]);
-
         return binding.getRoot();
     }
 
@@ -276,37 +196,6 @@ public class MenuDialogFragment extends DialogFragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
-    }
-
-    private void updatePlugin(int index, MenuPlugin plugin) {
-        if (plugins[index] != plugin) {
-            String json = new Gson().toJson(plugin);
-            PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
-                    .putString("menu_plugin_" + index, json)
-                    .apply();
-        }
-        plugins[index] = plugin;
-        View v = pluginViews.get(index);
-        TextView label = v.findViewWithTag("menu:label");
-        ImageView icon = v.findViewWithTag("menu:icon");
-        if (plugin == null) {
-            label.setText("");
-            icon.setImageDrawable(null);
-        } else {
-            label.setText(plugin.getShortLabel());
-            try {
-                Resources res = getActivity().getPackageManager().getResourcesForActivity(plugin.getComponentName());
-                if (PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("pref_theme", "light").endsWith("dark")) {
-                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getDarkIconId(), null));
-                } else {
-                    icon.setImageDrawable(ResourcesCompat.getDrawable(res, plugin.getLightIconId(), null));
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            } catch (Resources.NotFoundException e) {
-                icon.setImageResource(R.drawable.ic_favorite_m);
-            }
-        }
     }
 
     @Override
@@ -321,97 +210,6 @@ public class MenuDialogFragment extends DialogFragment {
                 startActivity(intent);
                 break;
             }
-            default:
-                if (REQUEST_PLUGIN_CHOOSE.contains(requestCode)) {
-                    ResolveInfo info = data.getParcelableExtra(IntentChooserActivity.EXTRA_SELECT);
-                    try {
-                        MenuPlugin plugin = new MenuPlugin(getActivity(), info.activityInfo);
-                        updatePlugin(REQUEST_PLUGIN_CHOOSE.indexOf(requestCode), plugin);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        e.printStackTrace();
-                        Toast.makeText(getActivity(), "プラグインの解決に失敗しました", Toast.LENGTH_SHORT).show();
-                    }
-                } else if (REQUEST_PLUGIN_EXEC.contains(requestCode)) {
-                    dismiss();
-                    AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
-                    Intent intent = new Intent("jp.r246.twicca.ACTION_SHOW_USER");
-                    intent.addCategory("jp.r246.twicca.category.OWNER");
-                    intent.setComponent(plugins[REQUEST_PLUGIN_EXEC.indexOf(requestCode)].getComponentName());
-                    intent.putExtra(Intent.EXTRA_TEXT, userRecord.ScreenName);
-                    intent.putExtra("name", userRecord.Name);
-                    intent.putExtra("id", String.valueOf(userRecord.NumericId));
-                    intent.putExtra("profile_image_url", userRecord.ProfileImageUrl);
-                    intent.putExtra("profile_image_url_mini", userRecord.ProfileImageUrl);
-                    intent.putExtra("profile_image_url_normal", userRecord.ProfileImageUrl);
-                    intent.putExtra("profile_image_url_bigger", userRecord.ProfileImageUrl);
-                    intent.putExtra("owner_screen_name", userRecord.ScreenName);
-                    intent.putExtra("owner_name", userRecord.Name);
-                    intent.putExtra("owner_id", String.valueOf(userRecord.NumericId));
-                    intent.putExtra("owner_profile_image_url", userRecord.ProfileImageUrl);
-                    intent.putExtra("owner_profile_image_url_mini", userRecord.ProfileImageUrl);
-                    intent.putExtra("owner_profile_image_url_normal", userRecord.ProfileImageUrl);
-                    intent.putExtra("owner_profile_image_url_bigger", userRecord.ProfileImageUrl);
-                    try {
-                        startActivity(intent);
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(getActivity().getApplicationContext(), "プラグインの起動に失敗しました\nアプリが削除されましたか？", Toast.LENGTH_SHORT).show();
-                    }
-                }
-                break;
-        }
-    }
-
-    static class MenuPlugin {
-        private String packageName;
-        private String name;
-        private String label;
-        private String shortLabel;
-        private int iconId;
-        private int lightIconId;
-        private int darkIconId;
-
-        public MenuPlugin(Context context, ActivityInfo info) throws PackageManager.NameNotFoundException {
-            PackageManager packageManager = context.getPackageManager();
-            ComponentName componentName = new ComponentName(info.applicationInfo.packageName, info.name);
-            ActivityInfo metaInfo = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA);
-
-            packageName = info.applicationInfo.packageName;
-            name = info.name;
-            label = String.valueOf(info.loadLabel(packageManager));
-            iconId = info.getIconResource();
-            if (metaInfo.metaData != null) {
-                shortLabel = metaInfo.metaData.getString("shibafu.yukari.PLUGIN_SHORT_LABEL");
-                lightIconId = metaInfo.metaData.getInt("shibafu.yukari.PLUGIN_LIGHT_ICON");
-                darkIconId = metaInfo.metaData.getInt("shibafu.yukari.PLUGIN_DARK_ICON");
-            }
-        }
-
-        public String getPackageName() {
-            return packageName;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public ComponentName getComponentName() {
-            return new ComponentName(packageName, name);
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getShortLabel() {
-            return TextUtils.isEmpty(shortLabel) ? label : shortLabel;
-        }
-
-        public int getLightIconId() {
-            return lightIconId == 0 ? iconId : lightIconId;
-        }
-
-        public int getDarkIconId() {
-            return darkIconId == 0 ? iconId : darkIconId;
         }
     }
 

@@ -39,15 +39,6 @@ public class TwitterUtil {
         return "https://twitter.com/" + screenName;
     }
 
-    //<editor-fold desc="外部サービスURL生成">
-    public static String getTwilogURL(String screenName) {
-        if (screenName.startsWith("@")) {
-            screenName = screenName.substring(1);
-        }
-        return "http://twilog.org/" + screenName;
-    }
-    //</editor-fold>
-
     /**
      * TwitterのStatus URLをパースし、IDを取得します。
      * @param url Status URL
