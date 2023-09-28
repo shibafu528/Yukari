@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>アプリについて</title>
     <style>
         body {
@@ -22,18 +23,24 @@
         .content {
             margin: 8px;
         }
+        .license {
+            overflow-x: scroll;
+        }
     </style>
 </head>
 <body>
 <header>
     <h1>Yukari for Android</h1>
-    <p>Developed by <a href="https://twitter.com/shibafu528">@shibafu528</a>
+    <p>Developed by <a href="https://twitter.com/shibafu528">@shibafu528</a></p>
 </header>
-<div class="content">
-<p>Yukari はMastodonのマルチアカウント利用に対応したSNSクライアントアプリです。
-<p>バグや質問等のお問い合わせは<a href="https://ertona.net/@yukari4a">@yukari4a@ertona.net (Mastodon)</a>で受け付けています。
-<p>このアプリは <a href="#apache">Apache License, Version 2.0</a> でライセンスされたオープンソースソフトウェアです。
+<main class="content">
+<div class="about">
+<p>Yukari はMastodonのマルチアカウント利用に対応したSNSクライアントアプリです。</p>
+<p>バグや質問等のお問い合わせは<a href="https://ertona.net/@yukari4a">@yukari4a@ertona.net (Mastodon)</a>で受け付けています。</p>
+<p>このアプリは <a href="#apache">Apache License, Version 2.0</a> でライセンスされたオープンソースソフトウェアです。</p>
+</div>
 <hr>
+<div class="license">
 <h1>Open Source Licenses</h1>
 <ul>
     <li>Twitter4J</li>
@@ -276,5 +283,6 @@
    limitations under the License.
 </pre>
 </div>
+</main>
 </body>
 </html>
