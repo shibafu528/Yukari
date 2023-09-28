@@ -130,13 +130,14 @@ public class BitmapCache {
         return image;
     }
 
-    public static void putImage(String key, Bitmap image, Context context, @CacheKey String cacheKey) {
+    public static void putImage(String key, Bitmap image, Context context, @CacheKey String cacheKey, boolean toMemory, boolean toDisk) {
         if (key == null || image == null) return;
 
         key = StringUtil.generateKey(key);
-        //メモリ上のキャッシュと、ファイルに書き込む
-        cacheMap.get(cacheKey).put(key, image);
-        if (context != null) {
+        if (toMemory) {
+            cacheMap.get(cacheKey).put(key, image);
+        }
+        if (toDisk && context != null) {
             File cacheDir = getCacheDir(context, cacheKey);
             if (!cacheDir.exists()) {
                 cacheDir.mkdirs();

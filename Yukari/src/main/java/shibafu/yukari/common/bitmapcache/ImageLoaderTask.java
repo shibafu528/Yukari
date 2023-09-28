@@ -108,10 +108,11 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                     }
                 }
                 //キャッシュに保存
-                BitmapCache.putImage(param.url, image, context, param.cacheKey);
+                BitmapCache.putImage(param.url, image, context, param.cacheKey, !param.mosaic, true);
             }
             if (image != null && param.mosaic) {
                 image = BitmapUtil.createMosaic(image);
+                BitmapCache.putImage(generateCacheUrlForMosaic(param.url), image, context, param.cacheKey, true, false);
             }
             return image;
         } catch (IOException e) {
@@ -167,7 +168,12 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
         }
 
         imageView.setTag(media.getBrowseUrl());
-        Bitmap cache = BitmapCache.getImageFromMemory(media.getBrowseUrl(), cacheKey);
+        Bitmap cache;
+        if (mosaic) {
+            cache = BitmapCache.getImageFromMemory(generateCacheUrlForMosaic(media.getBrowseUrl()), cacheKey);
+        } else {
+            cache = BitmapCache.getImageFromMemory(media.getBrowseUrl(), cacheKey);
+        }
         if (cache != null && !cache.isRecycled()) {
             imageView.setImageBitmap(cache);
         } else {
@@ -186,7 +192,12 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
         }
 
         imageView.setTag(uri);
-        Bitmap cache = BitmapCache.getImageFromMemory(uri, cacheKey);
+        Bitmap cache;
+        if (mosaic) {
+            cache = BitmapCache.getImageFromMemory(generateCacheUrlForMosaic(uri), cacheKey);
+        } else {
+            cache = BitmapCache.getImageFromMemory(uri, cacheKey);
+        }
         if (cache != null && !cache.isRecycled()) {
             imageView.setImageBitmap(cache);
         } else {
@@ -211,6 +222,10 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
                     BitmapCache.IMAGE_CACHE.equals(mode) ? IMAGE_EXECUTOR : PROFILE_ICON_EXECUTOR,
                     new Params(RESOLVE_MEDIA, mode, false, uri));
         }
+    }
+
+    private static String generateCacheUrlForMosaic(String url) {
+        return "[mosaic]" + url;
     }
 
     public interface DrawableLoaderCallback {
