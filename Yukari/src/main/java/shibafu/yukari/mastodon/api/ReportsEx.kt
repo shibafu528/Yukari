@@ -15,7 +15,7 @@ class ReportsEx(private val client: MastodonClient) {
      * [Document](https://docs.joinmastodon.org/methods/accounts/reports/)
      */
     @Throws(Mastodon4jRequestException::class)
-    fun portReports(accountId: Long,
+    fun postReports(accountId: Long,
                     statusIds: List<Long>? = emptyList(),
                     comment: String? = null,
                     forward: Boolean = false,

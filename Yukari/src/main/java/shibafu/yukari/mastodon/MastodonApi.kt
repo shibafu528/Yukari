@@ -214,7 +214,7 @@ class MastodonApi : ProviderApi {
             } else {
                 showStatus(userRecord, status.url)
             }
-            ReportsEx(client).portReports(status.user.id, listOf(status.id), comment, forward, category, ruleIds).execute()
+            ReportsEx(client).postReports(status.user.id, listOf(status.id), comment, forward, category, ruleIds).execute()
         } catch (e: Mastodon4jRequestException) {
             throw ProviderApiException(cause = e)
         }
