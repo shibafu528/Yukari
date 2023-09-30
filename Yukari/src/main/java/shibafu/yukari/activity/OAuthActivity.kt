@@ -5,7 +5,6 @@ import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Intent
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -33,10 +32,6 @@ import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.databinding.FragmentOauthSuccessBinding
 import shibafu.yukari.mastodon.MastodonApi
-import shibafu.yukari.twitter.TwitterUtil
-import twitter4j.TwitterException
-import twitter4j.auth.AccessToken
-import twitter4j.auth.RequestToken
 import com.sys1yagi.mastodon4j.api.entity.auth.AccessToken as MastodonAccessToken
 
 /**
@@ -62,13 +57,6 @@ class OAuthActivity : ActionBarYukariBase() {
         val currentFragment = supportFragmentManager.findFragmentById(R.id.frame)
         val data = intent?.data ?: return
         when (currentFragment) {
-            is TwitterOAuthFragment -> {
-                //コールバック以外のintentが流れ込んで来たらエラー
-                if (!data.toString().startsWith(TWITTER_CALLBACK_URL))
-                    return
-
-                currentFragment.verifier = data.getQueryParameter("oauth_verifier")
-            }
             is MastodonOAuthFragment -> {
                 //コールバック以外のintentが流れ込んで来たらエラー
                 if (!data.toString().startsWith(MASTODON_CALLBACK_URL))
@@ -94,72 +82,6 @@ class OAuthActivity : ActionBarYukariBase() {
         }
 
         super.onBackPressed()
-    }
-
-    private fun saveAccessToken(accessToken: AccessToken) {
-        val task = object : AsyncTask<AccessToken, Void, Boolean>() {
-            var dialog: LoadDialogFragment? = null
-
-            override fun doInBackground(vararg params: AccessToken): Boolean {
-                try {
-                    while (!isTwitterServiceBound || twitterService.database == null) {
-                        try {
-                            Thread.sleep(100)
-                        } catch (ignored: InterruptedException) {}
-                    }
-
-                    val twitter = twitterService.getTwitterOrThrow(null)
-                    twitter.oAuthAccessToken = accessToken
-                    val existsUsers = twitterService.users
-
-                    val userRecord = AuthUserRecord(accessToken)
-                    if (existsUsers != null) {
-                        var foundPrimary = false
-                        for (user in existsUsers) {
-                            if (user.isPrimary && user.NumericId != accessToken.userId) {
-                                foundPrimary = true
-                            }
-                        }
-                        if (!foundPrimary) {
-                            userRecord.isPrimary = true
-                        }
-                    }
-
-                    val database = twitterService.database
-                    database.addAccount(userRecord)
-                    val user = twitter.showUser(accessToken.userId)
-                    database.updateAccountProfile(Provider.TWITTER.id, accessToken.userId, user.screenName,
-                            user.name, user.originalProfileImageURLHttps)
-
-                    twitterService.reloadUsers()
-                    return true
-                } catch (e: TwitterException) {
-                    e.printStackTrace()
-                }
-
-                return false
-            }
-
-            override fun onPreExecute() {
-                dialog = LoadDialogFragment.newInstance()
-                dialog?.show(supportFragmentManager, "")
-            }
-
-            override fun onPostExecute(aBoolean: Boolean) {
-                dialog?.dismiss()
-                if (aBoolean) {
-                    supportFragmentManager.popBackStackImmediate()
-                    supportFragmentManager.commit {
-                        replace(R.id.frame, FinishFragment())
-                    }
-                } else {
-                    Toast.makeText(this@OAuthActivity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
-                    setResult(Activity.RESULT_CANCELED)
-                    finish()
-                }
-            }
-        }
-        task.execute(accessToken)
     }
 
     override fun onServiceConnected() {
@@ -189,12 +111,6 @@ class OAuthActivity : ActionBarYukariBase() {
             val option = adapter.getItem(position)
             val activity = activity as OAuthActivity
             when (option) {
-                Option.TWITTER -> {
-                    activity.supportFragmentManager.beginTransaction()
-                            .replace(R.id.frame, TwitterOAuthFragment())
-                            .addToBackStack(null)
-                            .commit()
-                }
                 Option.MASTODON -> {
                     activity.supportFragmentManager.beginTransaction()
                             .replace(R.id.frame, MastodonOAuthFragment())
@@ -206,103 +122,9 @@ class OAuthActivity : ActionBarYukariBase() {
         }
 
         private enum class Option(val label: String) {
-            TWITTER("Twitter"),
             MASTODON("Mastodon");
 
             override fun toString(): String = label
-        }
-    }
-
-    class TwitterOAuthFragment : Fragment() {
-        var requestToken: RequestToken? = null
-        var verifier: String? = null
-
-        override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-            return inflater.inflate(R.layout.activity_parent, container, false)
-        }
-
-        override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-            super.onViewCreated(view, savedInstanceState)
-
-            if (savedInstanceState == null) {
-                val task = object : AsyncTask<Void, Void, String>() {
-                    override fun doInBackground(vararg params: Void): String? {
-                        try {
-                            val twitter = TwitterUtil.getTwitterFactory(activity).instance
-                            val token = twitter.getOAuthRequestToken(TWITTER_CALLBACK_LANDING_URL)
-                            requestToken = token
-                            return token.authorizationURL
-                        } catch (e: TwitterException) {
-                            e.printStackTrace()
-                        }
-
-                        return null
-                    }
-
-                    override fun onPostExecute(s: String?) {
-                        if (s != null) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(s))
-                            startActivity(intent)
-                        } else {
-                            Toast.makeText(activity, "認証の準備プロセスでエラーが発生しました", Toast.LENGTH_SHORT).show()
-                            requireActivity().supportFragmentManager.popBackStack()
-                        }
-                    }
-                }
-                task.execute()
-            } else {
-                requestToken = savedInstanceState.getSerializable("requestToken") as? RequestToken
-            }
-        }
-
-        override fun onSaveInstanceState(outState: Bundle) {
-            super.onSaveInstanceState(outState)
-            outState.putSerializable("requestToken", requestToken)
-        }
-
-        override fun onResume() {
-            super.onResume()
-
-            if (requestToken != null) {
-                if (verifier == null) {
-                    Toast.makeText(activity, "認証が中断されました", Toast.LENGTH_SHORT).show()
-                    requireActivity().supportFragmentManager.popBackStack()
-                } else {
-                    val task = object : AsyncTask<Void, Void, AccessToken>() {
-                        var dialog: LoadDialogFragment? = null
-
-                        override fun doInBackground(vararg params: Void): AccessToken? {
-                            try {
-                                val twitter = TwitterUtil.getTwitterFactory(activity).instance
-                                return twitter.getOAuthAccessToken(requestToken, verifier)
-                            } catch (e: TwitterException) {
-                                e.printStackTrace()
-                            }
-
-                            return null
-                        }
-
-                        override fun onPreExecute() {
-                            super.onPreExecute()
-                            dialog = LoadDialogFragment.newInstance()
-                            dialog?.show(parentFragmentManager, "")
-                        }
-
-                        override fun onPostExecute(accessToken: AccessToken?) {
-                            dialog?.dismiss()
-
-                            val activity = activity as OAuthActivity
-                            if (accessToken != null) {
-                                activity.saveAccessToken(accessToken)
-                            } else {
-                                Toast.makeText(activity, "認証に失敗しました", Toast.LENGTH_SHORT).show()
-                                activity.supportFragmentManager.popBackStack()
-                            }
-                        }
-                    }
-                    task.execute()
-                }
-            }
         }
     }
 
@@ -570,8 +392,6 @@ class OAuthActivity : ActionBarYukariBase() {
          */
         const val EXTRA_REBOOT = "reboot"
 
-        private const val TWITTER_CALLBACK_URL = "yukari://twitter"
-        private const val TWITTER_CALLBACK_LANDING_URL = "https://yukari.shibafu528.info/callback.html"
         private const val MASTODON_CALLBACK_URL = "yukari://mastodon"
     }
 }
