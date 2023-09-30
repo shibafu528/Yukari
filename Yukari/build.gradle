@@ -212,7 +212,7 @@ dependencies {
 
     // パーサ
     implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'org.jsoup:jsoup:1.8.3'
+    implementation 'org.jsoup:jsoup:1.16.1'
     implementation 'com.twitter:twitter-text:1.13.0'
 
     // プラグインシステム
