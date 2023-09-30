@@ -233,7 +233,7 @@ dependencies {
 
     // いろいろ
     implementation project(':gl-helpers')
-    implementation 'com.squareup.okhttp3:okhttp:3.11.0' // TODO: 3.14.9でもいいかも。3.11.0はtwitter4jの依存バージョン。
+    implementation 'com.squareup.okhttp3:okhttp:3.14.9'
     implementation 'com.google.guava:guava:22.0-android'
     implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava' // TODO: com.google.guava:guava:27.0-android 以上に更新したら削除する
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
