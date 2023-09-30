@@ -129,6 +129,23 @@ public class StringUtil {
         return sb.toString();
     }
 
+    public static String getShortVersionInfo(Context context) {
+        StringBuilder sb = new StringBuilder(context.getString(R.string.app_name));
+        PackageManager pm = context.getPackageManager();
+        try {
+            PackageInfo packageInfo = pm.getPackageInfo(context.getPackageName(), 0);
+            String[] ver = packageInfo.versionName.split(" ", 2);
+            sb.append("/");
+            sb.append(ver[0]);
+        } catch (PackageManager.NameNotFoundException ignore) {}
+        sb.append(" (Android ");
+        sb.append(Build.VERSION.RELEASE);
+        sb.append("; ");
+        sb.append(Build.MODEL);
+        sb.append(")");
+        return sb.toString();
+    }
+
     @Nullable
     public static String compressText(String text) {
         String repeatedSequence = "";

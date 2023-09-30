@@ -10,7 +10,7 @@ class UserAgentInterceptor(private val context: Context) : Interceptor {
         return chain.proceed(
             chain.request()
                 .newBuilder()
-                .header("User-Agent", StringUtil.getVersionInfo(context))
+                .header("User-Agent", StringUtil.getShortVersionInfo(context))
                 .build()
         )
     }
