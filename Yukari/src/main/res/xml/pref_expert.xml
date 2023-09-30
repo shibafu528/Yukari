@@ -33,19 +33,9 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="トラブルシューティング">
         <Preference
-            android:key="pref_repair_bookmark"
-            android:title="ブックマークの修復"
-            android:summary="表示できなくなったブックマークの修復を試みます\nTwitterからの再受信によって修復を試みるため、元ツイートが消えているブックマークは修復できません">
-            <intent
-                android:targetPackage="@string/applicationId"
-                android:targetClass="shibafu.yukari.activity.BookmarkRepairActivity"/>
-        </Preference>
-        <Preference
             android:key="pref_repair_notification_channel"
             android:title="通知チャンネルの修復"
             android:summary="システムの通知設定の項目を修復します。システム設定で通知音をカスタマイズしている場合、その情報は失われます。\n(※Android 8.0以上のみ有効)"/>
-    </PreferenceCategory>
-    <PreferenceCategory android:title="トラブルシューティング (Mastodon)">
         <CheckBoxPreference
             android:key="pref_mastodon_enforce_legacy_stream_client"
             android:title="チャンネル単位でストリーミングに接続"

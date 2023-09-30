@@ -265,8 +265,6 @@
             android:name=".activity.IntentChooserActivity"
             android:theme="@style/ColorsTheme.Dark.Dialog"/>
 
-        <activity android:name=".activity.BookmarkRepairActivity"/>
-
         <activity
             android:name=".activity.AboutActivity"
             android:theme="@style/YukariAboutTheme"
