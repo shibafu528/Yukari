@@ -103,12 +103,6 @@
         </intent>
     </Preference>
 
-    <Preference android:title="Twitter API レートリミットステータス">
-        <intent
-            android:targetPackage="@string/applicationId"
-            android:targetClass="shibafu.yukari.activity.TwitterRateLimitStatusActivity" />
-    </Preference>
-
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="@string/app_long_name">
             <intent
