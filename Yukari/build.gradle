@@ -205,7 +205,6 @@ dependencies {
     // Twitter4J
     implementation "org.twitter4j:twitter4j-core:${twitter4jVersion}"
     implementation "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
-    implementation "org.twitter4j:twitter4j-http2-support:${twitter4jVersion}"
 
     // Mastodon
     implementation "com.github.shibafu528.mastodon4j:mastodon4j:${mastodon4jVersion}"
@@ -234,6 +233,7 @@ dependencies {
 
     // いろいろ
     implementation project(':gl-helpers')
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0' // TODO: 3.14.9でもいいかも。3.11.0はtwitter4jの依存バージョン。
     implementation 'com.google.guava:guava:22.0-android'
     implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava' // TODO: com.google.guava:guava:27.0-android 以上に更新したら削除する
     implementation 'org.eclipse.collections:eclipse-collections-api:7.1.0'
