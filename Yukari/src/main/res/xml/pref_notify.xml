@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <Preference
-        android:title="⚠️ 通知機能に関する注意"
-        android:summary="ほとんどの通知はMastodonアカウントでのみ機能します。Twitterアカウントではご利用いただけません。"
-        android:selectable="false"/>
     <PreferenceCategory android:title="通知のカスタマイズ">
         <Preference
             android:key="pref_notif_mention"
