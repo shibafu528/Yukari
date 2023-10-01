@@ -50,10 +50,6 @@ class TweetView : StatusView {
         } else {
             ivProtected.visibility = View.GONE
         }
-
-        // ユーザーカラーラベルの設定
-        val color = userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.color ?: Color.TRANSPARENT
-        ivUserColor.setBackgroundColor(color)
     }
 
     @SuppressLint("SetTextI18n")

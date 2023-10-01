@@ -5,10 +5,6 @@ import android.content.Intent
 import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import com.google.android.material.appbar.AppBarLayout
-import androidx.core.content.res.ResourcesCompat
-import androidx.cardview.widget.CardView
-import androidx.appcompat.widget.Toolbar
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.method.LinkMovementMethod
@@ -25,6 +21,10 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
+import androidx.cardview.widget.CardView
+import androidx.core.content.res.ResourcesCompat
+import com.google.android.material.appbar.AppBarLayout
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Accounts
@@ -43,11 +43,12 @@ import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.TabType
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.common.span.UserProfileSpan
+import shibafu.yukari.core.App
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
-import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
@@ -59,12 +60,13 @@ import java.time.temporal.ChronoUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 
-class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener {
+class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener, ColorPickerDialogFragment.ColorPickerCallback {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var ivIcon: ImageView
     private lateinit var ivHeader: ImageView
     private lateinit var ivProtected: ImageView
+    private lateinit var ivProfileUserColor: ImageView
     private lateinit var tvName: TextView
     private lateinit var tvScreenName: TextView
     private lateinit var tvBiography: TextView
@@ -139,6 +141,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         }
 
         ivProtected = v.findViewById(R.id.ivProfileProtected)
+        ivProfileUserColor = v.findViewById(R.id.ivProfileUserColor)
         tvName = v.findViewById(R.id.tvProfileName)
         tvScreenName = v.findViewById(R.id.tvProfileScreenName)
         tvBiography = v.findViewById(R.id.tvProfileBio)
@@ -305,9 +308,26 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
                 startActivity(intent)
                 return true
             }
+            R.id.action_set_color_label -> {
+                val dialogFragment = ColorPickerDialogFragment.newInstance(getTargetUserColor(), FRAGMENT_TAG_SET_COLOR_LABEL)
+                dialogFragment.setTargetFragment(this, DIALOG_REQUEST_SET_COLOR_LABEL)
+                dialogFragment.show(parentFragmentManager, FRAGMENT_TAG_SET_COLOR_LABEL)
+                return true
+            }
         }
 
         return false
+    }
+
+    override fun onColorPicked(color: Int, tag: String?) {
+        val user = targetUser
+        if (user == null) {
+            Toast.makeText(context, "カラーラベル設定に失敗しました\"", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        App.getInstance(requireContext()).userExtrasManager.setColor(user.identicalUrl, color)
+        showProfile(user)
     }
 
     private fun loadProfile() = launch {
@@ -393,6 +413,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
         tvName.text = user.name
         tvScreenName.text = "@" + user.screenName
+        ivProfileUserColor.setBackgroundColor(getTargetUserColor())
 
         if (user.isProtected) {
             ivProtected.visibility = View.VISIBLE
@@ -541,6 +562,11 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         return ssb
     }
 
+    private fun getTargetUserColor(): Int {
+        val user = targetUser ?: return 0
+        return App.getInstance(requireContext()).userExtrasManager.userExtras.find { user.identicalUrl == it.id }?.color ?: 0
+    }
+
     private sealed class LinkMarker(val start: Int) {
         class Standard(start: Int, val href: String) : LinkMarker(start)
         class Mention(start: Int, val href: String) : LinkMarker(start)
@@ -556,9 +582,11 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
         private const val FRAGMENT_TAG_LOAD = "loadProgress"
         private const val FRAGMENT_TAG_LOAD_FAILED = "loadFailedAlert"
+        private const val FRAGMENT_TAG_SET_COLOR_LABEL = "setColorLabel"
 
         private const val DIALOG_REQUEST_LOAD = 0
         private const val DIALOG_REQUEST_LOAD_FAILED = 1
+        private const val DIALOG_REQUEST_SET_COLOR_LABEL = 2
 
         fun newInstance(user: AuthUserRecord, targetUrl: Uri): MastodonProfileFragment {
             return MastodonProfileFragment().apply {
