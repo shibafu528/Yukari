@@ -322,7 +322,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
     override fun onColorPicked(color: Int, tag: String?) {
         val user = targetUser
         if (user == null) {
-            Toast.makeText(context, "カラーラベル設定に失敗しました\"", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "カラーラベル設定に失敗しました", Toast.LENGTH_SHORT).show()
             return
         }
 
