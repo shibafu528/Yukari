@@ -30,7 +30,7 @@ class ChannelManageActivity : ActionBarYukariBase() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         findViewById<LinearLayout>(R.id.llFrameTitle).visibility = View.VISIBLE
-        findViewById<TextView>(R.id.tvFrameTitle).text = "ストリーミング通信(または自動取得)を有効にしたいチャンネルにチェックを入れてください。\nチャンネルは各アカウントごとに受信する内容(または自動取得の方式)で分かれています。"
+        findViewById<TextView>(R.id.tvFrameTitle).text = "ストリーミング通信を有効にしたいチャンネルにチェックを入れてください。\nチャンネルは各アカウントごとに受信する内容で分かれています。"
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
