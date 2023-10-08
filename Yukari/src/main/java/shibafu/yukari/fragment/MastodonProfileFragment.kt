@@ -24,6 +24,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
 import androidx.core.content.res.ResourcesCompat
+import androidx.fragment.app.Fragment
 import com.google.android.material.appbar.AppBarLayout
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
@@ -45,12 +46,10 @@ import shibafu.yukari.common.bitmapcache.ImageLoaderTask
 import shibafu.yukari.common.span.UserProfileSpan
 import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
-import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.util.AttrUtil
-import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import shibafu.yukari.view.ProfileButton
 import java.io.StringReader
@@ -60,7 +59,7 @@ import java.time.temporal.ChronoUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.roundToInt
 
-class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener, ColorPickerDialogFragment.ColorPickerCallback {
+class MastodonProfileFragment : Fragment(), CoroutineScope, SimpleAlertDialogFragment.OnDialogChoseListener, SimpleProgressDialogFragment.OnCancelListener, Toolbar.OnMenuItemClickListener, ColorPickerDialogFragment.ColorPickerCallback {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var ivIcon: ImageView
@@ -261,10 +260,6 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
         job.cancel()
     }
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             DIALOG_REQUEST_LOAD_FAILED -> {
@@ -344,9 +339,7 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
 
         val result = async(Dispatchers.IO) {
             try {
-                val service = getTwitterServiceAwait() ?: return@async null
-
-                val api = service.getProviderApi(currentUser) ?: return@async null
+                val api = App.getInstance(requireContext()).getProviderApi(currentUser) ?: return@async null
                 val client = api.getApiClient(currentUser) as? MastodonClient ?: return@async null
 
                 val result = Public(client).getSearch(targetUrl.toString(), true).execute()
@@ -397,11 +390,9 @@ class MastodonProfileFragment : YukariBaseFragment(), CoroutineScope, SimpleAler
     private fun showProfile(user: DonUser) {
         val account = user.account!!
 
-        val service = twitterService
-        if (service != null) {
-            // 表示ユーザーが自分のアカウントであれば操作ユーザー上書き
-            currentUser = service.users.firstOrNull { it.ScreenName == user.screenName } ?: currentUser
-        }
+        val app = App.getInstance(requireContext())
+        // 表示ユーザーが自分のアカウントであれば操作ユーザー上書き
+        currentUser = app.accountManager.users.firstOrNull { it.ScreenName == user.screenName } ?: currentUser
 
         progressBar.visibility = View.INVISIBLE
 
