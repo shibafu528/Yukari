@@ -50,33 +50,6 @@ class TwitterApi : ProviderApi {
         this.timelineHub = app.timelineHub
         this.twitterProvider = app
         this.twitterFactory = TwitterUtil.getTwitterFactory(app)
-
-        GlobalScope.launch {
-            // Blocks, Mutes, No-Retweetsの取得
-            val twitterAccounts = accountManager.users.filter { it.Provider.apiType == Provider.API_TWITTER }
-            val sp = PreferenceManager.getDefaultSharedPreferences(app)
-            if (sp.getBoolean("pref_filter_official", true)) {
-                twitterAccounts.forEach { userRecord ->
-                    val twitter = getApiClient(userRecord) as? Twitter ?: return@forEach
-
-                    try {
-                        forEachCursor(twitter::getBlocksIDs) {
-                            suppressor.addBlockedIDs(it.iDs)
-                        }
-                    } catch (ignored: TwitterException) {}
-
-                    try {
-                        forEachCursor(twitter::getMutesIDs) {
-                            suppressor.addMutedIDs(it.iDs)
-                        }
-                    } catch (ignored: TwitterException) {}
-
-                    try {
-                        suppressor.addNoRetweetIDs(twitter.noRetweetsFriendships.iDs)
-                    } catch (ignored: TwitterException) {}
-                }
-            }
-        }
     }
 
     override fun getApiClient(userRecord: AuthUserRecord?): Any? {
