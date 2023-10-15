@@ -21,10 +21,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sys1yagi.mastodon4j.MastodonClient
 import com.sys1yagi.mastodon4j.api.entity.Relationship
+import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Accounts
 import com.sys1yagi.mastodon4j.api.method.Public
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
@@ -85,6 +87,7 @@ class MastodonFollowActivity : ActionBarYukariBase() {
         }
         data class Loaded(override val userRecord: AuthUserRecord, val relationship: Relationship) : RelationState() {
             fun claim(claim: RelationClaim) = Updating(userRecord, relationship, claim)
+            fun update(newRelationship: Relationship) = Loaded(userRecord, newRelationship)
         }
         data class Updating(override val userRecord: AuthUserRecord, val relationship: Relationship, val claim: RelationClaim) : RelationState() {
             fun success(newRelationship: Relationship) = Loaded(userRecord, newRelationship)
@@ -150,11 +153,11 @@ class MastodonFollowActivity : ActionBarYukariBase() {
         fun postClaim(claimState: RelationState.Updating) = viewModelScope.launch {
             relations.value = relations.value!!.map { if (it.userRecord == claimState.userRecord) claimState else it }
 
-            val result = async(Dispatchers.IO) {
-                val api = app.getProviderApi(Provider.API_MASTODON)
-                val client = api.getApiClient(claimState.userRecord) as MastodonClient
-                val targetAccountId = claimState.relationship.id
+            val api = app.getProviderApi(Provider.API_MASTODON)
+            val client = api.getApiClient(claimState.userRecord) as MastodonClient
+            val targetAccountId = claimState.relationship.id
 
+            val result = async(Dispatchers.IO) {
                 runCatching {
                     when (claimState.claim) {
                         RelationClaim.UNFOLLOW -> Accounts(client).postUnFollow(targetAccountId).execute()
@@ -193,6 +196,31 @@ class MastodonFollowActivity : ActionBarYukariBase() {
             })
 
             relations.value = relations.value!!.map { if (it.userRecord == newStatus.userRecord) newStatus else it }
+
+            // フォローリクエスト中になった場合、自動承認機能ですぐにフォロー中に更新されるかもしれないので、しばらくの間ポーリングする
+            if (newStatus.relationship.isRequested) {
+                launch(Dispatchers.IO) polling@{
+                    var waitMilliSeconds = 1000L
+                    while (waitMilliSeconds <= 32000L) {
+                        delay(waitMilliSeconds)
+
+                        try {
+                            val newRelationship = Accounts(client).getRelationships(listOf(targetAccountId)).execute().first()
+                            if (!newRelationship.isRequested) {
+                                val refreshedStatus = newStatus.update(newRelationship)
+                                launch(Dispatchers.Main) {
+                                    relations.value = relations.value!!.map { if (it.userRecord == refreshedStatus.userRecord) refreshedStatus else it }
+                                }
+                                return@polling
+                            }
+                        } catch (e: Mastodon4jRequestException) {
+                            e.printStackTrace()
+                        }
+
+                        waitMilliSeconds *= 2
+                    }
+                }
+            }
         }
     }
 
