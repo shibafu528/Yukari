@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.R
+import shibafu.yukari.activity.MastodonFollowActivity
 import shibafu.yukari.activity.PreviewActivity2
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.activity.TweetActivity
@@ -50,7 +51,6 @@ import shibafu.yukari.fragment.tabcontent.TimelineFragment
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.util.AttrUtil
-import shibafu.yukari.util.showToast
 import shibafu.yukari.view.ProfileButton
 import java.io.StringReader
 import java.time.ZonedDateTime
@@ -83,6 +83,7 @@ class MastodonProfileFragment : Fragment(), CoroutineScope, SimpleAlertDialogFra
     private lateinit var tvMovedScreenName: TextView
     private lateinit var cvFields: CardView
     private lateinit var llFields: LinearLayout
+    private lateinit var btnFollowManage: Button
 
     private lateinit var currentUser: AuthUserRecord
     private lateinit var targetUrl: Uri
@@ -227,9 +228,10 @@ class MastodonProfileFragment : Fragment(), CoroutineScope, SimpleAlertDialogFra
         cvFields = v.findViewById(R.id.cvProfileFields)
         llFields = v.findViewById(R.id.llProfileFields)
 
-        val btnFollowManage = v.findViewById<Button>(R.id.btnProfileFollow)
+        btnFollowManage = v.findViewById<Button>(R.id.btnProfileFollow)
         btnFollowManage.setOnClickListener {
-            showToast("まだ未対応です")
+            val user = targetUser ?: return@setOnClickListener
+            startActivity(MastodonFollowActivity.newIntent(requireContext(), user))
         }
 
         val appBarLayout = v.findViewById<AppBarLayout>(R.id.appBarLayout)

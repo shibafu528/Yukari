@@ -57,6 +57,12 @@ public abstract class ActionBarYukariBase extends AppCompatActivity implements T
         return getTwitterService();
     }
 
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
+
     protected boolean allowAutoTheme() {
         return true;
     }
