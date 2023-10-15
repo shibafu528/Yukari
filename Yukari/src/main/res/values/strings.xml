@@ -11,6 +11,8 @@
 
     <string name="activity_animation_duration">300</string>
 
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">キャンセル</string>
     <string name="button_next">次へ</string>
     <string name="button_send">送信</string>
 
@@ -124,4 +126,8 @@
     <string name="follow_control_unblock_failed">ブロック解除に失敗しました (\@%1$s)</string>
     <string name="follow_control_remove_from_followers_succeed">フォロワーから削除しました (\@%1$s)</string>
     <string name="follow_control_remove_from_followers_failed">フォロワーからの削除に失敗しました (\@%1$s)</string>
+    <string name="follow_control_unfollow_confirm">\@%1$s から \@%2$s へのフォローを解除してもよろしいですか？</string>
+    <string name="follow_control_block_confirm">\@%1$s から \@%2$s をブロックしてもよろしいですか？</string>
+    <string name="follow_control_unblock_confirm">\@%1$s から \@%2$s へのブロックを解除してもよろしいですか？</string>
+    <string name="follow_control_remove_from_followers_confirm">\@%1$s を \@%2$s のフォロワーから削除してもよろしいですか？</string>
 </resources>

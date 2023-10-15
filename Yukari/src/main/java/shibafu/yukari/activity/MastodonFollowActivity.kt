@@ -2,6 +2,7 @@ package shibafu.yukari.activity
 
 import android.app.Application
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
@@ -36,10 +37,11 @@ import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.databinding.ActivityMastodonFollowBinding
 import shibafu.yukari.databinding.RowFollowBinding
+import shibafu.yukari.fragment.SimpleAlertDialogFragment
 import shibafu.yukari.mastodon.api.AccountsEx
 import shibafu.yukari.mastodon.entity.DonUser
 
-class MastodonFollowActivity : ActionBarYukariBase() {
+class MastodonFollowActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialogChoseListener {
     private lateinit var binding: ActivityMastodonFollowBinding
 
     private val model: FollowViewModel by viewModels()
@@ -56,7 +58,31 @@ class MastodonFollowActivity : ActionBarYukariBase() {
 
         val adapter = object : RelationStatusAdapter(model.targetUser) {
             override fun onRelationClaim(claim: RelationState.Updating) {
-                model.postClaim(claim)
+                // フォローは特に確認せず即時実行
+                if (claim.claim == RelationClaim.FOLLOW) {
+                    model.postClaim(claim)
+                    return
+                }
+
+                // それ以外はダイアログで確認してから実行
+                val message = when (claim.claim) {
+                    RelationClaim.UNFOLLOW -> getString(R.string.follow_control_unfollow_confirm, claim.userRecord.ScreenName, model.targetUser.screenName)
+                    RelationClaim.BLOCK -> getString(R.string.follow_control_block_confirm, claim.userRecord.ScreenName, model.targetUser.screenName)
+                    RelationClaim.UNBLOCK -> getString(R.string.follow_control_unblock_confirm, claim.userRecord.ScreenName, model.targetUser.screenName)
+                    RelationClaim.REMOVE -> getString(R.string.follow_control_remove_from_followers_confirm, model.targetUser.screenName, claim.userRecord.ScreenName)
+                    else -> throw RuntimeException("invalid claim code")
+                }
+                val extras = Bundle().apply {
+                    putLong("userRecord.InternalId", claim.userRecord.InternalId)
+                    putString("claim", claim.claim.name)
+                }
+                val dialogFragment = SimpleAlertDialogFragment.Builder(REQUEST_DIALOG_CLAIM)
+                    .setMessage(message)
+                    .setPositive(getString(R.string.button_ok))
+                    .setNegative(getString(R.string.button_cancel))
+                    .setExtras(extras)
+                    .build()
+                dialogFragment.show(supportFragmentManager, FRAGMENT_TAG_DIALOG_CLAIM)
             }
         }
         binding.recyclerView.adapter = adapter
@@ -75,6 +101,17 @@ class MastodonFollowActivity : ActionBarYukariBase() {
             return true
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
+        if (requestCode == REQUEST_DIALOG_CLAIM && which == DialogInterface.BUTTON_POSITIVE) {
+            val extras = extras ?: return
+            val userRecordInternalId = extras.getLong("userRecord.InternalId")
+            val claim = RelationClaim.valueOf(extras.getString("claim")!!)
+
+            val relation = model.relations.value!!.find { it.userRecord.InternalId == userRecordInternalId } as? RelationState.Loaded ?: return
+            model.postClaim(relation.claim(claim))
+        }
     }
 
     sealed class RelationState {
@@ -381,6 +418,10 @@ class MastodonFollowActivity : ActionBarYukariBase() {
 
     companion object {
         private const val EXTRA_TARGET_USER = "targetUser"
+
+        private const val REQUEST_DIALOG_CLAIM = 1
+
+        private const val FRAGMENT_TAG_DIALOG_CLAIM = "claim"
 
         fun newIntent(context: Context, targetUser: DonUser): Intent {
             return Intent(context, MastodonFollowActivity::class.java).apply {
