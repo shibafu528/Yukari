@@ -11,6 +11,8 @@
 
     <string name="activity_animation_duration">300</string>
 
+    <string name="button_ok">OK</string>
+    <string name="button_cancel">キャンセル</string>
     <string name="button_next">次へ</string>
     <string name="button_send">送信</string>
 
@@ -44,6 +46,7 @@
     <string name="title_activity_backup_export">設定のエクスポート</string>
     <string name="title_activity_channel_manage">ストリーミング接続管理</string>
     <string name="title_activity_mastodon_report">通報</string>
+    <string name="title_activity_mastodon_follow">フォロー状態</string>
 
     <string name="drive_error_connect">Driveとの接続に失敗しました</string>
     <string name="drive_importing">インポート中…</string>
@@ -99,4 +102,32 @@
     <string name="oauth_success_fragment_finish_first">タイムラインを開く</string>
 
     <string name="notification_preference_activity_notify_toast">ポップアップ通知</string>
+
+    <string name="follow_control_loading">読み込み中…</string>
+    <string name="follow_control_load_failed">読み込みエラー</string>
+    <string name="follow_control_follow">フォローする</string>
+    <string name="follow_control_unfollow">フォロー解除</string>
+    <string name="follow_control_block">ブロックする</string>
+    <string name="follow_control_unblock">ブロック解除</string>
+    <string name="follow_control_remove_from_followers">フォロワーから削除</string>
+    <string name="follow_control_requested">フォローリクエスト中</string>
+    <string name="follow_control_follow_processing">フォロー中…</string>
+    <string name="follow_control_unfollow_processing">フォロー解除中…</string>
+    <string name="follow_control_block_processing">ブロック中…</string>
+    <string name="follow_control_unblock_processing">ブロック解除中…</string>
+    <string name="follow_control_remove_from_followers_processing">削除中…</string>
+    <string name="follow_control_follow_succeed">フォローしました (\@%1$s)</string>
+    <string name="follow_control_follow_failed">フォローに失敗しました (\@%1$s)</string>
+    <string name="follow_control_unfollow_succeed">フォローを解除しました (\@%1$s)</string>
+    <string name="follow_control_unfollow_failed">フォロー解除に失敗しました (\@%1$s)</string>
+    <string name="follow_control_block_succeed">ブロックしました (\@%1$s)</string>
+    <string name="follow_control_block_failed">ブロックに失敗しました (\@%1$s)</string>
+    <string name="follow_control_unblock_succeed">ブロックを解除しました (\@%1$s)</string>
+    <string name="follow_control_unblock_failed">ブロック解除に失敗しました (\@%1$s)</string>
+    <string name="follow_control_remove_from_followers_succeed">フォロワーから削除しました (\@%1$s)</string>
+    <string name="follow_control_remove_from_followers_failed">フォロワーからの削除に失敗しました (\@%1$s)</string>
+    <string name="follow_control_unfollow_confirm">\@%1$s から \@%2$s へのフォローを解除してもよろしいですか？</string>
+    <string name="follow_control_block_confirm">\@%1$s から \@%2$s をブロックしてもよろしいですか？</string>
+    <string name="follow_control_unblock_confirm">\@%1$s から \@%2$s へのブロックを解除してもよろしいですか？</string>
+    <string name="follow_control_remove_from_followers_confirm">\@%1$s を \@%2$s のフォロワーから削除してもよろしいですか？</string>
 </resources>

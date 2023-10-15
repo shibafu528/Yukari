@@ -285,6 +285,10 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".activity.MastodonFollowActivity"
+            android:label="@string/title_activity_mastodon_follow" />
+
+        <activity
             android:name=".activity.NotificationPreferenceActivity"
             android:label="通知設定" />
    </application>
