@@ -1,6 +1,7 @@
 package shibafu.yukari.common.bitmapcache;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -10,6 +11,8 @@ import android.os.Build;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
+
 import android.widget.ImageView;
 import shibafu.yukari.R;
 import shibafu.yukari.common.bitmapcache.BitmapCache.CacheKey;
@@ -41,11 +44,13 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
     private static final Executor PROFILE_ICON_EXECUTOR = Executors.newFixedThreadPool(4);
 
     private Context context;
+    private final SharedPreferences sharedPreferences;
     private WeakReference<ImageView> imageViewRef;
     private String tag;
 
     private ImageLoaderTask(Context context, ImageView imageView) {
         this.context = context;
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         imageViewRef = new WeakReference<>(imageView);
         if (imageView != null) {
             tag = imageView.getTag().toString();
@@ -60,6 +65,10 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             Bitmap image = BitmapCache.getImageFromDisk(param.url, param.cacheKey, context);
             //無かったらWebから取得だ！
             if (image == null) {
+                if (sharedPreferences.getBoolean("pref_indicate_loading_from_remote", false)) {
+                    publishProgress();
+                }
+
                 Media.ResolveInfo resolveInfo = null;
                 InputStream inputStream;
                 if (param.media == null) {
@@ -129,6 +138,14 @@ public class ImageLoaderTask extends AsyncTask<ImageLoaderTask.Params, Void, Bit
             }
         }
         return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+        ImageView imageView = getImageViewInstance();
+        if (imageView != null) {
+            imageView.setImageResource(R.drawable.loading_from_remote);
+        }
     }
 
     @Override

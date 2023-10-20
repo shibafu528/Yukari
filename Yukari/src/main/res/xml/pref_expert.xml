@@ -81,5 +81,9 @@
             android:key="pref_lock_scroll_after_reload"
             android:title="フィルタTL再読込後スクロール位置を保持"
             android:summary="再読み込みを行った後、TLの一番上へ移動しないようにします"/>
+        <CheckBoxPreference
+            android:key="pref_indicate_loading_from_remote"
+            android:title="画像キャッシュミスの可視化"
+            android:summary="キャッシュが存在しなかった場合に、Loading画像の枠の色を変えてダウンロード中であることを示すようにします" />
     </PreferenceCategory>
 </PreferenceScreen>

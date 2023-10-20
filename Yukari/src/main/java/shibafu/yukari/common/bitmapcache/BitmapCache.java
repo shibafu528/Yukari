@@ -38,7 +38,9 @@ public class BitmapCache {
 
     public static void initialize(final Context context) {
         class Initializer {
-            Initializer init(@CacheKey String key) {
+            Initializer init(@CacheKey String key, int quotaSize) {
+                cacheMap.put(key, new BitmapLruCache(quotaSize));
+
                 Map<String, File> fileMap;
                 File[] files = getCacheDir(context, key).listFiles();
                 if (files != null) {
@@ -55,8 +57,9 @@ public class BitmapCache {
                 return this;
             }
         }
-        new Initializer().init(PROFILE_ICON_CACHE)
-                         .init(IMAGE_CACHE);
+        int quota = MemoryCalculator.calculateCacheSize(context);
+        new Initializer().init(PROFILE_ICON_CACHE, Math.max(quota, PROFILE_ICON_CACHE_SIZE))
+                         .init(IMAGE_CACHE, Math.max(quota, IMAGE_CACHE_SIZE));
         Log.d("BitmapCache", "Initialized cache map");
     }
 
@@ -190,7 +193,7 @@ public class BitmapCache {
 
         @Override
         protected int sizeOf(String key, Bitmap value) {
-            return value.getRowBytes() * value.getHeight();
+            return value.getAllocationByteCount();
         }
     }
 }
