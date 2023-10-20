@@ -6,6 +6,12 @@ import com.sys1yagi.mastodon4j.api.method.Notifications
 import info.shibafu528.yukari.processor.filter.Source
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
+import shibafu.yukari.filter.sexp.AndNode
+import shibafu.yukari.filter.sexp.ContainsNode
+import shibafu.yukari.filter.sexp.EqualsNode
+import shibafu.yukari.filter.sexp.SNode
+import shibafu.yukari.filter.sexp.ValueNode
+import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.mastodon.AbstractMastodonRestQuery
@@ -21,4 +27,15 @@ data class Notification(override val sourceAccount: AuthUserRecord) : FilterSour
     }
 
     override fun getRestQuery(): RestQuery = query
+
+    override fun getStreamFilter() = AndNode(
+        ContainsNode(
+            VariableNode("receivedUsers"),
+            ValueNode(sourceAccount)
+        ),
+        EqualsNode(
+            VariableNode("class.name"),
+            ValueNode(DonNotification::class.qualifiedName)
+        )
+    )
 }
