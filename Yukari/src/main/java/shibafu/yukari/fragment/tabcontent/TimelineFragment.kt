@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.os.Parcelable
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
 import androidx.collection.LongSparseArray
@@ -45,6 +46,7 @@ import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
+import shibafu.yukari.mastodon.entity.DonNotification
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.TwitterUtil
@@ -247,6 +249,12 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
 
         if (position < statuses.size) {
+            fun timelineClickAction() = when {
+                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_click_action_left", "open_detail")
+                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_click_action_right", "open_detail")
+                else -> defaultSharedPreferences.getString("pref_timeline_click_action_center", "open_detail")
+            }.orEmpty()
+
             val result =
                     when (val clickedElement = statuses[position]) {
                         is LoadMarker -> {
@@ -278,13 +286,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                             false // ダブルクリックブロックの対象外
                         }
                         is TwitterStatus, is DonStatus, is Bookmark -> {
-                            val action = when {
-                                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_click_action_left", "open_detail")
-                                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_click_action_right", "open_detail")
-                                else -> defaultSharedPreferences.getString("pref_timeline_click_action_center", "open_detail")
-                            }
-
-                            onGeneralItemClick(position, clickedElement, action.orEmpty())
+                            onGeneralItemClick(position, clickedElement, timelineClickAction())
                         }
                         is TwitterMessage -> {
                             val links = if (clickedElement.user.id != clickedElement.mentions.first().id) {
@@ -319,6 +321,24 @@ open class TimelineFragment : ListYukariBaseFragment(),
                             dialog.show(parentFragmentManager, "history_menu")
                             true
                         }
+                        is DonNotification -> {
+                            when (clickedElement.notification.type) {
+                                "mention", "status" -> {
+                                    onGeneralItemClick(position, clickedElement.status!!, timelineClickAction())
+                                }
+                                else -> {
+                                    val bundle = Bundle()
+                                    bundle.putParcelable(EXTRA_STATUS, clickedElement)
+                                    val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_DON_NOTIFICATION_MENU,
+                                        "メニュー", null, null, null,
+                                        listOf("@${clickedElement.user.screenName}", "詳細を開く"),
+                                        bundle)
+                                    dialog.setTargetFragment(this, 0)
+                                    dialog.show(parentFragmentManager, "don_notification_menu")
+                                    true
+                                }
+                            }
+                        }
                         else -> false
                     }
             // コマンド実行成功後、次回onResumeまでクリックイベントを無視する
@@ -334,16 +354,22 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
 
         if (position < statuses.size) {
+            fun timelineClickAction() = when {
+                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_left", "")
+                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_right", "")
+                else -> defaultSharedPreferences.getString("pref_timeline_long_click_action_center", "")
+            }.orEmpty()
+
             val result =
                     when (val clickedElement = statuses[position]) {
                         is TwitterStatus, is DonStatus, is Bookmark -> {
-                            val action = when {
-                                listViewXTouchPercent <= 25f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_left", "")
-                                listViewXTouchPercent >= 75f -> defaultSharedPreferences.getString("pref_timeline_long_click_action_right", "")
-                                else -> defaultSharedPreferences.getString("pref_timeline_long_click_action_center", "")
+                            onGeneralItemClick(position, clickedElement, timelineClickAction())
+                        }
+                        is DonNotification -> {
+                            when (clickedElement.notification.type) {
+                                "mention", "status" -> onGeneralItemClick(position, clickedElement, timelineClickAction())
+                                else -> false
                             }
-
-                            onGeneralItemClick(position, clickedElement, action.orEmpty())
                         }
                         else -> false
                     }
@@ -596,6 +622,26 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 }
                             }
                         }
+                    }
+                }
+            }
+            DIALOG_REQUEST_DON_NOTIFICATION_MENU -> {
+                blockingDoubleClick = false
+                if (extras == null) return
+                val status = extras.getParcelable<DonNotification>(EXTRA_STATUS) ?: return
+
+                when (which) {
+                    // プロフィール
+                    0 -> {
+                        val intent = ProfileActivity.newIntent(requireActivity().applicationContext, status.representUser, Uri.parse(status.user.url))
+                        startActivity(intent)
+                    }
+                    // 詳細を開く
+                    1 -> {
+                        val intent = Intent(requireActivity().applicationContext, StatusActivity::class.java)
+                        intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)
+                        intent.putExtra(StatusActivity.EXTRA_STATUS, status.status as Parcelable)
+                        startActivity(intent)
                     }
                 }
             }
@@ -1029,6 +1075,8 @@ open class TimelineFragment : ListYukariBaseFragment(),
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_MENU = 2
         /** ダイアログID : TwitterMessage 削除確認 */
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_DELETE = 3
+        /** ダイアログID : DonNotification クリックメニュー */
+        private const val DIALOG_REQUEST_DON_NOTIFICATION_MENU = 4
 
         /** ダイアログID : Action Favorite 確認 */
         internal const val DIALOG_REQUEST_ACTION_FAVORITE = 10
