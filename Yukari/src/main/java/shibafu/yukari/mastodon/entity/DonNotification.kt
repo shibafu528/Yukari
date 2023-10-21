@@ -2,12 +2,14 @@ package shibafu.yukari.mastodon.entity
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status as IStatus
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
+import shibafu.yukari.util.writeBooleanCompat
 import java.time.ZonedDateTime
 import java.util.Date
 
@@ -53,13 +55,19 @@ class DonNotification(val notification: Notification,
     override fun describeContents(): Int = 0
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
-        TODO("Not yet implemented")
+        dest.writeString(Gson().toJson(notification))
+        dest.writeSerializable(representUser)
+        dest.writeParcelable(metadata, 0)
     }
 
     companion object {
         @JvmField val CREATOR = object : Parcelable.Creator<DonNotification> {
             override fun createFromParcel(source: Parcel?): DonNotification {
-                TODO("Not yet implemented")
+                source!!
+                val notification = Gson().fromJson(source.readString(), Notification::class.java)
+                val representUser = source.readSerializable() as AuthUserRecord
+                val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)!!
+                return DonNotification(notification, representUser, metadata)
             }
 
             override fun newArray(size: Int): Array<DonNotification?> {
