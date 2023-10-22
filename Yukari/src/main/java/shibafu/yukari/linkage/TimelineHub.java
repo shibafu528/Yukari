@@ -7,6 +7,7 @@ import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.entity.NotifyKind;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.entity.User;
+import shibafu.yukari.mastodon.entity.DonNotification;
 import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 
@@ -31,6 +32,7 @@ public interface TimelineHub {
     void onRestRequestFailure(@NonNull String timelineId, long taskKey, @NonNull RestQueryException exception);
     void onRestRequestCancelled(@NonNull String timelineId, long taskKey);
     void onNotify(@NotifyKind int kind, @NonNull User eventBy, @NonNull Status status);
+    void onNotification(@NonNull String timelineId, @NonNull DonNotification notification);
     void onFavorite(@NonNull User from, @NonNull Status status);
     void onUnfavorite(@NonNull User from, @NonNull Status status);
     void onDelete(@NonNull String providerHost, long id);

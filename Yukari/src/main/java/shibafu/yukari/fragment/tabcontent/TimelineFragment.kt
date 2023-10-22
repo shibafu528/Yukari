@@ -757,6 +757,18 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     handler.post { insertElement(event.notify, false) }
                 }
             }
+            is TimelineEvent.Notification -> {
+                val notification = event.notification
+                val queryVariables = mapOf<String, Any?>(
+                    "passive" to true,
+                    "timelineId" to event.timelineId
+                )
+
+                if (!query.evaluate(notification, users, queryVariables)) return
+
+                if (USE_INSERT_LOG) putDebugLog("[$rawQuery] onNotification : Insert  ... $notification")
+                handler.post { insertElement(notification, false) }
+            }
             is TimelineEvent.Favorite -> {
                 handler.post {
                     setFavoriteState(event.from, event.status, true)

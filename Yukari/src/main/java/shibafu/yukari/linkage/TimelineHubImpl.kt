@@ -23,6 +23,7 @@ import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
+import shibafu.yukari.mastodon.entity.DonNotification
 import shibafu.yukari.plugin.Pluggaloid
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
@@ -32,7 +33,7 @@ import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
 import twitter4j.Twitter
 import twitter4j.TwitterException
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
@@ -368,6 +369,22 @@ class TimelineHubImpl(context: Context,
     }
 
     /**
+     * 通知イベントの発生
+     * @param timelineId 配信先識別子
+     * @param notification 受信した通知イベント
+     */
+    override fun onNotification(timelineId: String, notification: DonNotification) {
+        pushEventQueue(TimelineEvent.Notification(timelineId, notification))
+
+        // TODO: Mastodon依存にならないよう汎用化する
+        when (notification.notification.type) {
+            "mention" -> onStatus(timelineId, notification.status!!, true)
+            "reblog" -> onNotify(NotifyHistory.KIND_RETWEETED, notification.user, notification.status!!)
+            "favourite" -> onFavorite(notification.user, notification.status!!)
+        }
+    }
+
+    /**
      * お気に入り登録イベントの発生
      * @param from お気に入り登録を実行したユーザ
      * @param status 対象の [Status]
@@ -517,6 +534,12 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property notify 通知イベントログ
      */
     class Notify(val notify: NotifyHistory) : TimelineEvent("")
+
+    /**
+     * 通知イベントの発生
+     * @property notification 受信した通知
+     */
+    class Notification(timelineId: String, val notification: DonNotification) : TimelineEvent(timelineId)
 
     /**
      * お気に入り登録イベントの発生
