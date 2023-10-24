@@ -327,14 +327,19 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                     onGeneralItemClick(position, clickedElement.status!!, timelineClickAction())
                                 }
                                 else -> {
-                                    val bundle = Bundle()
-                                    bundle.putParcelable(EXTRA_STATUS, clickedElement)
-                                    val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_DON_NOTIFICATION_MENU,
-                                        "メニュー", null, null, null,
-                                        listOf("@${clickedElement.user.screenName}", "詳細を開く"),
-                                        bundle)
-                                    dialog.setTargetFragment(this, 0)
-                                    dialog.show(parentFragmentManager, "don_notification_menu")
+                                    if (clickedElement.notification.status != null) {
+                                        val bundle = Bundle()
+                                        bundle.putParcelable(EXTRA_STATUS, clickedElement)
+                                        val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_DON_NOTIFICATION_MENU,
+                                            "メニュー", null, null, null,
+                                            listOf("@${clickedElement.user.screenName}", "詳細を開く"),
+                                            bundle)
+                                        dialog.setTargetFragment(this, 0)
+                                        dialog.show(parentFragmentManager, "don_notification_menu")
+                                    } else {
+                                        val intent = ProfileActivity.newIntent(requireActivity().applicationContext, clickedElement.representUser, Uri.parse(clickedElement.user.url))
+                                        startActivity(intent)
+                                    }
                                     true
                                 }
                             }
