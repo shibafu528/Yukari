@@ -1,17 +1,14 @@
 package shibafu.yukari.media2.impl;
 
 import androidx.annotation.NonNull;
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
-import shibafu.yukari.media2.MemoizeMedia;
 
-import java.io.BufferedReader;
+import org.jsoup.Jsoup;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import shibafu.yukari.media2.MemoizeMedia;
 
 public class NicoVideo extends MemoizeMedia {
     private static final Pattern URL_PATTERN = Pattern.compile("https?://(?:(?:www|sp)\\.nicovideo\\.jp/watch|nico\\.ms)/([sn][mo][1-9]\\d*)");
@@ -34,61 +31,15 @@ public class NicoVideo extends MemoizeMedia {
         if (!matcher.find()) {
             throw new IllegalArgumentException("Invalid URL : " + getBrowseUrl());
         }
-        URL url = new URL("https://api.ce.nicovideo.jp/nicoapi/v1/video.info?__format=json&v=" + matcher.group(1));
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000);
-        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        StringBuilder sb = new StringBuilder();
-        try {
-            String s;
-            while ((s = br.readLine()) != null) {
-                sb.append(s);
-            }
-        } finally {
-            br.close();
-            conn.disconnect();
-        }
-
-        if (conn.getResponseCode() == HttpURLConnection.HTTP_OK && conn.getContentType().contains("application/json")) {
-            NicoVideoResponseRoot response = new Gson().fromJson(sb.toString(), NicoVideoResponseRoot.class);
-            NicoVideoVideoResponse innerObject;
-            if (response.niconicoResponse != null) {
-                innerObject = response.niconicoResponse;
-            } else if (response.nicovideoVideoResponse != null) {
-                innerObject = response.nicovideoVideoResponse;
-            } else {
-                throw new IOException("Invalid Response (missing field) : " + getBrowseUrl());
-            }
-
-            if ("ok".equals(innerObject.status)) {
-                return innerObject.video.thumbnailUrl;
-            }
-        }
-        throw new IOException("Invalid Response : " + getBrowseUrl());
+        return Jsoup.connect("https://www.nicovideo.jp/watch/" + matcher.group(1))
+                .timeout(10000)
+                .get()
+                .select("meta[property=og:image]")
+                .attr("content");
     }
 
     @Override
     public boolean canPreview() {
         return false;
-    }
-
-    private static class NicoVideoResponseRoot {
-        @SerializedName("nicovideo_video_response")
-        @Deprecated
-        public NicoVideoVideoResponse nicovideoVideoResponse;
-        @SerializedName("niconico_response")
-        public NicoVideoVideoResponse niconicoResponse;
-    }
-
-    private static class NicoVideoVideoResponse {
-        @SerializedName("video")
-        public NicoVideoVideoInfo video;
-        @SerializedName("@status")
-        public String status;
-    }
-
-    private static class NicoVideoVideoInfo {
-        @SerializedName("thumbnail_url")
-        public String thumbnailUrl;
     }
 }
