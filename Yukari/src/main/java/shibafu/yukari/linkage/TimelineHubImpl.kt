@@ -363,9 +363,6 @@ class TimelineHubImpl(context: Context,
             NotifyHistory.KIND_FAVED -> notifier.showNotification(R.integer.notification_faved, status, eventBy)
             NotifyHistory.KIND_RETWEETED -> notifier.showNotification(R.integer.notification_retweeted, status, eventBy)
         }
-
-        val notify = NotifyHistory(System.currentTimeMillis(), kind, eventBy, status)
-        pushEventQueue(TimelineEvent.Notify(notify))
     }
 
     /**
@@ -528,12 +525,6 @@ sealed class TimelineEvent(val timelineId: String) {
      * @property taskKey [StatusLoader.requestRestQuery] の戻り値
      */
     class RestRequestCancelled(timelineId: String, val taskKey: Long) : TimelineEvent(timelineId)
-
-    /**
-     * 通知イベントログの発生
-     * @property notify 通知イベントログ
-     */
-    class Notify(val notify: NotifyHistory) : TimelineEvent("")
 
     /**
      * 通知イベントの発生

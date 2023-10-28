@@ -15,7 +15,6 @@ import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
-import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.mastodon.entity.DonNotification;
@@ -26,7 +25,6 @@ import shibafu.yukari.twitter.entity.TwitterStatus;
 import shibafu.yukari.view.DonNotificationView;
 import shibafu.yukari.view.DonStatusView;
 import shibafu.yukari.view.ExceptionStatusView;
-import shibafu.yukari.view.HistoryView;
 import shibafu.yukari.view.MessageView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -51,7 +49,6 @@ public class TweetAdapter extends BaseAdapter {
     private static final int VT_LOAD_MARKER = 0;
     private static final int VT_TWEET = 1;
     private static final int VT_MESSAGE = 2;
-    private static final int VT_HISTORY = 3;
     private static final int VT_DON_STATUS = 4;
     private static final int VT_DON_NOTIFICATION = 5;
     private static final int VT_EXCEPTION = 6;
@@ -124,8 +121,6 @@ public class TweetAdapter extends BaseAdapter {
             return VT_LOAD_MARKER;
         } else if (item instanceof TwitterMessage) {
             return VT_MESSAGE;
-        } else if (item instanceof NotifyHistory) {
-            return VT_HISTORY;
         } else if (item instanceof TwitterStatus || item instanceof Bookmark) {
             return VT_TWEET;
         } else if (item instanceof DonStatus) {
@@ -159,9 +154,6 @@ public class TweetAdapter extends BaseAdapter {
                             break;
                         case VT_MESSAGE:
                             convertView = statusView = new MessageView(context, singleLine);
-                            break;
-                        case VT_HISTORY:
-                            convertView = statusView = new HistoryView(context, singleLine);
                             break;
                         case VT_DON_STATUS:
                             convertView = statusView = new DonStatusView(context, singleLine);

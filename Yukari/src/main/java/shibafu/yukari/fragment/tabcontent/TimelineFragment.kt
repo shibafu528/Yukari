@@ -34,7 +34,6 @@ import shibafu.yukari.database.Bookmark
 import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Mention
-import shibafu.yukari.entity.NotifyHistory
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.filter.FilterQuery
@@ -310,17 +309,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
                             dialog.show(parentFragmentManager, "twitter_message_menu")
                             true
                         }
-                        is NotifyHistory -> {
-                            val bundle = Bundle()
-                            bundle.putSerializable(EXTRA_STATUS, clickedElement)
-                            val dialog = SimpleListDialogFragment.newInstance(DIALOG_REQUEST_HISTORY_MENU,
-                                    "メニュー", null, null, null,
-                                    listOf("@${clickedElement.user.screenName}", "詳細を開く"),
-                                    bundle)
-                            dialog.setTargetFragment(this, 0)
-                            dialog.show(parentFragmentManager, "history_menu")
-                            true
-                        }
                         is DonNotification -> {
                             when (clickedElement.notification.type) {
                                 "mention", "status" -> {
@@ -545,26 +533,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
     override fun onDialogChose(requestCode: Int, which: Int, value: String?, extras: Bundle?) {
         when (requestCode) {
-            DIALOG_REQUEST_HISTORY_MENU -> {
-                blockingDoubleClick = false
-                if (extras == null) return
-                val status = extras.getSerializable(EXTRA_STATUS) as NotifyHistory
-
-                when (which) {
-                    // プロフィール
-                    0 -> {
-                        val intent = ProfileActivity.newIntent(requireActivity().applicationContext, status.representUser, Uri.parse(status.user.url))
-                        startActivity(intent)
-                    }
-                    // 詳細を開く
-                    1 -> {
-                        val intent = Intent(requireActivity().applicationContext, StatusActivity::class.java)
-                        intent.putExtra(StatusActivity.EXTRA_USER, status.representUser)
-                        intent.putExtra(StatusActivity.EXTRA_STATUS, status.status)
-                        startActivity(intent)
-                    }
-                }
-            }
             DIALOG_REQUEST_TWITTER_MESSAGE_MENU -> {
                 blockingDoubleClick = false
                 if (extras == null || value == null) return
@@ -1081,8 +1049,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
         /** Extra/Bundle Key : Status */
         private const val EXTRA_STATUS = "status"
 
-        /** ダイアログID : NotifyHistory クリックメニュー */
-        private const val DIALOG_REQUEST_HISTORY_MENU = 1
         /** ダイアログID : TwitterMessage クリックメニュー */
         private const val DIALOG_REQUEST_TWITTER_MESSAGE_MENU = 2
         /** ダイアログID : TwitterMessage 削除確認 */
