@@ -18,7 +18,7 @@ public class TweetListFragmentFactory {
             case TabType.TABTYPE_TRACK:
             case TabType.TABTYPE_DM:
             case TabType.TABTYPE_FILTER:
-            case TabType.TABTYPE_HISTORY:
+            case TabType.TABTYPE_NOTIFICATION:
             case TabType.TABTYPE_TRACE:
                 return new TimelineFragment();
             default:
@@ -32,9 +32,6 @@ public class TweetListFragmentFactory {
         switch (tabInfo.getType()) {
             case TabType.TABTYPE_FILTER:
                 b.putString(TimelineFragment.EXTRA_FILTER_QUERY, tabInfo.getFilterQuery());
-                break;
-            case TabType.TABTYPE_HISTORY:
-                b.putString(TimelineFragment.EXTRA_FILTER_QUERY, "where (nil)");
                 break;
         }
         b.putLong(TimelineFragment.EXTRA_ID, tabInfo.getId());
@@ -80,6 +77,12 @@ public class TweetListFragmentFactory {
                     query.append("from list:\"")
                             .append(tabInfo.getBindAccount().ScreenName).append("/")
                             .append(tabInfo.getBindListId()).append("\"");
+                }
+                break;
+            case TabType.TABTYPE_NOTIFICATION:
+                query.append("from notification");
+                if (tabInfo.getBindAccount() != null) {
+                    query.append(":\"").append(tabInfo.getBindAccount().ScreenName).append("\"");
                 }
                 break;
             default:

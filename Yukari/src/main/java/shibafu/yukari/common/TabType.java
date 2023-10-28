@@ -7,7 +7,7 @@ public class TabType {
     public static final int TABTYPE_HOME = 0;
     public static final int TABTYPE_MENTION = 1;
     public static final int TABTYPE_DM = 2;
-    public static final int TABTYPE_HISTORY = 3;
+    public static final int TABTYPE_NOTIFICATION = 3;
     public static final int TABTYPE_LIST = 4;
     public static final int TABTYPE_SEARCH = 5;
     public static final int TABTYPE_TRACK = 6;

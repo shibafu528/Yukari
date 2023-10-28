@@ -262,7 +262,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
                 case TabType.TABTYPE_DM:
-                case TabType.TABTYPE_HISTORY:
+                case TabType.TABTYPE_NOTIFICATION:
                     for (TabInfo info : tabs) {
                         if (info.getType() == type && info.getBindAccount() == userRecord) {
                             return;
@@ -400,7 +400,8 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     "DM",
                     "DM (Single Account)",
                     "List",
-                    "History",
+                    "Notifications",
+                    "Notifications (Single Account)",
                     "Filter",
                     "Mastodon ローカルTL",
                     "Mastodon 連合TL"
@@ -438,17 +439,21 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                                 requireBind = true;
                                 break;
                             case 7:
-                                type = TabType.TABTYPE_HISTORY;
+                                type = TabType.TABTYPE_NOTIFICATION;
                                 break;
                             case 8:
-                                type = TabType.TABTYPE_FILTER;
+                                type = TabType.TABTYPE_NOTIFICATION;
+                                requireBind = true;
                                 break;
                             case 9:
+                                type = TabType.TABTYPE_FILTER;
+                                break;
+                            case 10:
                                 type = TabType.TABTYPE_FILTER;
                                 requireBind = true;
                                 template = "from don_local:\"@@\"";
                                 break;
-                            case 10:
+                            case 11:
                                 type = TabType.TABTYPE_FILTER;
                                 requireBind = true;
                                 template = "from don_federated:\"@@\"";

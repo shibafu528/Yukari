@@ -269,7 +269,7 @@ public class CentralDatabase {
                 db.insert(TABLE_TABS, null, mentionTab.getContentValues());
                 TabInfo dmTab = new TabInfo(TabType.TABTYPE_DM, 2, null);
                 db.insert(TABLE_TABS, null, dmTab.getContentValues());
-                TabInfo historyTab = new TabInfo(TabType.TABTYPE_HISTORY, 2, null);
+                TabInfo historyTab = new TabInfo(TabType.TABTYPE_NOTIFICATION, 2, null);
                 db.insert(TABLE_TABS, null, historyTab.getContentValues());
             }
             db.execSQL(

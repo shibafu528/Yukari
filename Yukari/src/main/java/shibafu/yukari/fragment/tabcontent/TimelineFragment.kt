@@ -757,11 +757,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     }
                 }
             }
-            is TimelineEvent.Notify -> {
-                if (mode == TabType.TABTYPE_HISTORY) {
-                    handler.post { insertElement(event.notify, false) }
-                }
-            }
             is TimelineEvent.Notification -> {
                 val notification = event.notification
                 val queryVariables = mapOf<String, Any?>(
