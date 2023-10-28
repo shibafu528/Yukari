@@ -52,6 +52,19 @@ class DonNotification(val notification: Notification,
 
     val status: DonStatus? = notification.status?.let { DonStatus(it, representUser) }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DonNotification) return false
+
+        return this.id == other.id && this.representUser.InternalId == other.representUser.InternalId
+    }
+
+    override fun hashCode(): Int {
+        var result = representUser.InternalId.hashCode()
+        result = 31 * result + id.hashCode()
+        return result
+    }
+
     override fun describeContents(): Int = 0
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
