@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 
+import okhttp3.OkHttpClient;
+
 /**
  * 単一の画像や動画のURLと取得方法の実装を表す。
  */
@@ -82,6 +84,10 @@ public abstract class Media implements Serializable {
     @Override
     public int hashCode() {
         return browseUrl.hashCode();
+    }
+
+    protected OkHttpClient getHttpClient() {
+        return HttpClient.INSTANCE.get();
     }
 
     protected static ResolveInfo createResolveInfo(InputStream stream, int contentLength, Closeable... closeables) {
