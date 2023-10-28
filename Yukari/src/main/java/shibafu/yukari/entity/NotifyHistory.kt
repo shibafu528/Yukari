@@ -1,44 +1,10 @@
 package shibafu.yukari.entity
 
-import shibafu.yukari.database.Provider
-import shibafu.yukari.database.AuthUserRecord
-import java.util.*
-
 /**
  * 通知履歴
  */
-class NotifyHistory(timeAtMillis: Long, @NotifyKind val kind: Int, eventBy: User, val status: Status) : Status {
-    override val id: Long = timeAtMillis
-    override val user: User = eventBy
-    override val text: String = ""
-    override val recipientScreenName: String = ""
-    override val createdAt: Date = Date(timeAtMillis)
-    override val source: String = ""
-    override var favoritesCount: Int = 0
-    override var repostsCount: Int = 0
-    override val metadata: StatusPreforms = StatusPreforms()
-    override val providerApiType: Int = Provider.API_SYSTEM
-    override val providerHost: String = HOST
-    override var representUser: AuthUserRecord
-        get() = status.representUser
-        set(value) {
-            status.representUser = value
-        }
-    override var representOverrode: Boolean
-        get() = status.representOverrode
-        set(value) {
-            status.representOverrode = value
-        }
-    override var receivedUsers: MutableList<AuthUserRecord>
-        get() = status.receivedUsers
-        set(value) {
-            status.receivedUsers = value
-        }
-
-    companion object {
-        const val KIND_FAVED = 0
-        const val KIND_RETWEETED = 1
-
-        const val HOST = "notify-history.yukari.internal"
-    }
+@Deprecated("機能廃止済。定数のみ TimelineHubImpl#onNotify のために残している。")
+object NotifyHistory {
+    const val KIND_FAVED = 0
+    const val KIND_RETWEETED = 1
 }

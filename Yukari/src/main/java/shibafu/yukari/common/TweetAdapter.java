@@ -15,16 +15,16 @@ import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
-import shibafu.yukari.entity.NotifyHistory;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.linkage.StatusLoader;
+import shibafu.yukari.mastodon.entity.DonNotification;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterMessage;
 import shibafu.yukari.twitter.entity.TwitterStatus;
+import shibafu.yukari.view.DonNotificationView;
 import shibafu.yukari.view.DonStatusView;
 import shibafu.yukari.view.ExceptionStatusView;
-import shibafu.yukari.view.HistoryView;
 import shibafu.yukari.view.MessageView;
 import shibafu.yukari.view.StatusView;
 import shibafu.yukari.view.TweetView;
@@ -49,10 +49,10 @@ public class TweetAdapter extends BaseAdapter {
     private static final int VT_LOAD_MARKER = 0;
     private static final int VT_TWEET = 1;
     private static final int VT_MESSAGE = 2;
-    private static final int VT_HISTORY = 3;
     private static final int VT_DON_STATUS = 4;
-    private static final int VT_EXCEPTION = 5;
-    private static final int VT_COUNT = 6;
+    private static final int VT_DON_NOTIFICATION = 5;
+    private static final int VT_EXCEPTION = 6;
+    private static final int VT_COUNT = 7;
 
     public TweetAdapter(Context context,
                         List<AuthUserRecord> userRecords,
@@ -95,7 +95,18 @@ public class TweetAdapter extends BaseAdapter {
 
     @Override
     public Status getItem(int position) {
-        return statuses.get(position);
+        Status status = statuses.get(position);
+        if (status instanceof DonNotification) {
+            DonNotification dn = (DonNotification) status;
+            // メンション通知は中身のStatusを直接List itemとして扱う
+            if ("mention".equals(dn.getNotification().getType())) {
+                return dn.getStatus();
+            } else {
+                return dn;
+            }
+        } else {
+            return status;
+        }
     }
 
     @Override
@@ -110,12 +121,12 @@ public class TweetAdapter extends BaseAdapter {
             return VT_LOAD_MARKER;
         } else if (item instanceof TwitterMessage) {
             return VT_MESSAGE;
-        } else if (item instanceof NotifyHistory) {
-            return VT_HISTORY;
         } else if (item instanceof TwitterStatus || item instanceof Bookmark) {
             return VT_TWEET;
         } else if (item instanceof DonStatus) {
             return VT_DON_STATUS;
+        } else if (item instanceof DonNotification) {
+            return VT_DON_NOTIFICATION;
         } else if (item instanceof ExceptionStatus) {
             return VT_EXCEPTION;
         }
@@ -144,11 +155,11 @@ public class TweetAdapter extends BaseAdapter {
                         case VT_MESSAGE:
                             convertView = statusView = new MessageView(context, singleLine);
                             break;
-                        case VT_HISTORY:
-                            convertView = statusView = new HistoryView(context, singleLine);
-                            break;
                         case VT_DON_STATUS:
                             convertView = statusView = new DonStatusView(context, singleLine);
+                            break;
+                        case VT_DON_NOTIFICATION:
+                            convertView = statusView = new DonNotificationView(context, singleLine);
                             break;
                         case VT_EXCEPTION:
                             convertView = statusView = new ExceptionStatusView(context, singleLine);

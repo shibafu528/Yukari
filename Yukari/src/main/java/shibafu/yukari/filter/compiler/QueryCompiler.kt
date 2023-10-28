@@ -213,6 +213,7 @@ class QueryCompiler private constructor() {
                         "message", "messages", "dm", "dms" -> createFiltersWithAuthArguments("message")
                         "search" -> createTwitterSearchFilters("search")
                         "favorite", "favorites" -> createFiltersWithListArguments("favorite", 1, "(受信ユーザ/)対象ユーザ")
+                        "notification" -> createFiltersWithAuthArguments("notification")
                         "don_local" -> createFiltersWithAuthArguments("don_local")
                         "don_anon_local" -> createFiltersWithListArguments("don_anon_local", 1, "インスタンス名")
                         "don_federated" -> createFiltersWithAuthArguments("don_federated")

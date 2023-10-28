@@ -164,8 +164,8 @@ public class TabInfo implements DBRecord, Serializable {
                 return "Favorites";
             case TabType.TABTYPE_FILTER:
                 return "F: " + getFilterQuery();
-            case TabType.TABTYPE_HISTORY:
-                return "History";
+            case TabType.TABTYPE_NOTIFICATION:
+                return "Notifications" + (getBindAccount() != null ? ": @" + getBindAccount().ScreenName : "");
             case TabType.TABTYPE_LIST:
                 return "List: " + getListName();
             case TabType.TABTYPE_USER:
