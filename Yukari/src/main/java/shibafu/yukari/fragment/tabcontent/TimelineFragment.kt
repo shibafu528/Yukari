@@ -110,8 +110,8 @@ open class TimelineFragment : ListYukariBaseFragment(),
     private var enableDoubleClickBlocker = false
 
     // 未読管理
-    private val unreadSet = LongHashSet()
-    private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses, unreadSet)
+    var oldestUnreadPosition: Int = -1
+    private val unreadNotifierBehavior = UnreadNotifierBehavior(this, statuses)
 
     // スクロールロック
     private var lockedTarget: Status? = null
@@ -381,7 +381,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
     override fun scrollToTop() {
         try {
             listView?.setSelection(0)
-            unreadNotifierBehavior.clearUnreadNotifier()
+            clearUnreadNotifier()
         } catch (e: IllegalStateException) {
             e.printStackTrace()
             val activity = activity
@@ -406,17 +406,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
     override fun scrollToOldestUnread() {
         try {
-            if (unreadSet.isEmpty) {
-                listView.setSelection(0)
-            } else {
-                val lastUnreadId = unreadSet.min()
-                for (position in 0 until statuses.size) {
-                    if (statuses[position].id == lastUnreadId) {
-                        listView.setSelection(position)
-                        break
-                    }
-                }
-            }
+            listView.setSelection(oldestUnreadPosition.coerceAtLeast(0))
         } catch (e: IllegalStateException) {
             e.printStackTrace()
             val activity = activity
@@ -518,7 +508,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
 
         swipeRefreshLayout?.isRefreshing = true
-        unreadNotifierBehavior.clearUnreadNotifier()
+        clearUnreadNotifier()
         val statusLoader = twitterService?.statusLoader ?: return
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
@@ -844,7 +834,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
                     while (iterator.hasNext()) {
                         val s = iterator.next()
                         if (s !is LoadMarker) {
-                            unreadSet.remove(s.id)
                             iterator.remove()
                             notifyDataSetChanged()
                         }
@@ -876,7 +865,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 if (statuses[i] == locked || statuses[i].createdAt.time < locked.createdAt.time) {
                     listView.setSelectionFromTop(i, y)
                     if (position < i && status !is LoadMarker) {
-                        unreadSet.add(status.id)
+                        oldestUnreadPosition++
                     }
 
                     scrollUnlockHandler.removeCallbacksAndMessages(null)
@@ -900,7 +889,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 }
 
                 if (status !is LoadMarker) {
-                    unreadSet.add(status.id)
+                    oldestUnreadPosition++
                 }
                 listView.setSelectionFromTop(lockedPosition, y)
 
@@ -939,8 +928,8 @@ open class TimelineFragment : ListYukariBaseFragment(),
             if (status.providerHost == providerHost && status.id == id) {
                 iterator.remove()
                 notifyDataSetChanged()
-                if (unreadSet.contains(id)) {
-                    unreadSet.remove(id)
+                if (index <= oldestUnreadPosition) {
+                    oldestUnreadPosition--
                     unreadNotifierBehavior.updateUnreadNotifier()
                 }
 
@@ -1026,6 +1015,11 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
     private fun notifyDataSetChanged() {
         statusAdapter?.notifyDataSetChanged()
+    }
+
+    private fun clearUnreadNotifier() {
+        oldestUnreadPosition = -1
+        unreadNotifierBehavior.updateUnreadNotifier()
     }
 
     companion object {

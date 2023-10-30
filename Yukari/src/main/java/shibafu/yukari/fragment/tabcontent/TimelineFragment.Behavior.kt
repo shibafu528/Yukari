@@ -21,8 +21,7 @@ import kotlin.math.roundToInt
  * 未読ビューの振る舞い制御
  */
 internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
-                                      private val statuses: MutableList<Status>,
-                                      private val unreadSet: LongHashSet) : AbsListView.OnScrollListener {
+                                      private val statuses: MutableList<Status>) : AbsListView.OnScrollListener {
     private var lastShowedFirstItem: Status? = null
     private var lastShowedFirstItemY = 0
     private var unreadNotifierView: View? = null
@@ -75,32 +74,22 @@ internal class UnreadNotifierBehavior(private val parent: TimelineFragment,
     fun updateUnreadNotifier() {
         val unreadNotifier = unreadNotifierView ?: return
 
-        if (unreadSet.size() < 1) {
+        if (parent.oldestUnreadPosition < 0) {
             unreadNotifier.visibility = View.INVISIBLE
             return
         }
-        tvUnreadCount?.text = "新着 ${unreadSet.size()}件"
+        tvUnreadCount?.text = "新着 ${parent.oldestUnreadPosition + 1}件"
 
         unreadNotifier.visibility = View.VISIBLE
-    }
-
-    fun clearUnreadNotifier() {
-        unreadSet.clear()
-        updateUnreadNotifier()
     }
 
     override fun onScrollStateChanged(view: AbsListView?, scrollState: Int) {}
 
     override fun onScroll(view: AbsListView?, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {
-        var i = firstVisibleItem
-        while (i < i + visibleItemCount && i < statuses.size) {
-            val element = statuses[firstVisibleItem]
-            if (unreadSet.contains(element.id)) {
-                unreadSet.remove(element.id)
-            }
-            ++i
+        if (firstVisibleItem <= parent.oldestUnreadPosition) {
+            parent.oldestUnreadPosition = firstVisibleItem - 1
+            updateUnreadNotifier()
         }
-        updateUnreadNotifier()
     }
 }
 
