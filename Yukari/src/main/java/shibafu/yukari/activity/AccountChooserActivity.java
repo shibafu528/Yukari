@@ -26,25 +26,25 @@ import java.util.List;
  */
 public class AccountChooserActivity extends ListYukariBase {
 
-    //初期選択のユーザを指定する
-    public static final String EXTRA_SELECTED_USERID = "selected_id";
-    //初期選択のユーザを複数指定する (EXTRA_SELECTED_USERIDより優先される)
-    public static final String EXTRA_SELECTED_USERS  = "selected_users";
-    //複数選択を許可するか設定する
+    // (In) (boolean) 複数選択を許可するか設定する (true: 複数選択モード, false: 単一選択モード)
     public static final String EXTRA_MULTIPLE_CHOOSE = "multiple_choose";
-    //CKCSオーバライド済アカウントのみにフィルタする
+    // (In) (boolean) CKCSオーバーライド済アカウントのみにフィルタする
     public static final String EXTRA_FILTER_CONSUMER_OVERRODE = "consumer_overrode";
-    //API Typeでフィルタする
+    // (In) (int) API Typeでフィルタする
     public static final String EXTRA_FILTER_PROVIDER_API_TYPE = "provider_api_type";
-    //複数選択モードで名前部分をタップした時に1アカウント選択で確定させる
+    // (In) (boolean) 複数選択モードで名前部分をタップした時に1アカウント選択で確定させる
     public static final String EXTRA_MULTIPLE_CHOOSE_QUICK_SELECT = "multiple_choose_quick_choose";
 
+    // (Out) (long) 選択されたアカウントのNumericIDを取得する (古いコードとの互換性のため、InternalIDではないことに注意)
+    public static final String EXTRA_SELECTED_USERID = "selected_id";
+    // (Out) (String) 選択されたアカウントのScreenNameを取得する
     public static final String EXTRA_SELECTED_USERSN = "selected_sn";
-    public static final String EXTRA_SELECTED_USERS_SN = "selected_sns";
-
+    // (Out) (AuthUserRecord) 選択されたアカウントを取得する (EXTRA_MULTIPLE_CHOOSE == false の時のみ読み取り可能)
     public static final String EXTRA_SELECTED_RECORD = "selected_record";
+    // (In/Out) (ArrayList<AuthUserRecord>) In:複数選択モードの初期選択アカウントを指定する / Out:選択されたアカウントのリストを取得する (EXTRA_MULTIPLE_CHOOSE == true の時のみ読み取り可能)
     public static final String EXTRA_SELECTED_RECORDS = "selected_records";
 
+    // (In/Out) (String) 結果のIntentにそのまま渡されるメタデータを設定する
     public static final String EXTRA_METADATA = "meta";
 
     private boolean isMultipleChoose = false;
@@ -75,21 +75,11 @@ public class AccountChooserActivity extends ListYukariBase {
         filterProviderApiType = args.getIntExtra(EXTRA_FILTER_PROVIDER_API_TYPE, 0);
         setFinishOnTouchOutside(!isMultipleChoose);
 
-        long[] defaultSelected = args.getLongArrayExtra(EXTRA_SELECTED_USERS);
         ArrayList<AuthUserRecord> selectedUsers = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_SELECTED_RECORDS);
-        if (defaultSelected == null) {
-            if (selectedUsers != null) for (AuthUserRecord userRecord : selectedUsers) {
+        if (selectedUsers != null) {
+            for (AuthUserRecord userRecord : selectedUsers) {
                 defaultSelectedUserIds.add(userRecord.NumericId);
             }
-            else {
-                long defaultSelectedId = args.getLongExtra(EXTRA_SELECTED_USERID, -1);
-                if (defaultSelectedId > -1) {
-                    defaultSelectedUserIds.add(defaultSelectedId);
-                }
-            }
-        }
-        else for (long id : defaultSelected) {
-            defaultSelectedUserIds.add(id);
         }
 
         if (isMultipleChoose) {
