@@ -78,7 +78,7 @@ public class AccountChooserActivity extends ListYukariBase {
         ArrayList<AuthUserRecord> selectedUsers = (ArrayList<AuthUserRecord>) args.getSerializableExtra(EXTRA_SELECTED_RECORDS);
         if (selectedUsers != null) {
             for (AuthUserRecord userRecord : selectedUsers) {
-                defaultSelectedUserIds.add(userRecord.NumericId);
+                defaultSelectedUserIds.add(userRecord.InternalId);
             }
         }
 
@@ -119,7 +119,7 @@ public class AccountChooserActivity extends ListYukariBase {
         dataList.clear();
         boolean isSelected;
         for (AuthUserRecord userRecord : users) {
-            isSelected = defaultSelectedUserIds.contains(userRecord.NumericId);
+            isSelected = defaultSelectedUserIds.contains(userRecord.InternalId);
             if (!isFilterConsumerOverrode || !userRecord.isDefaultConsumer()) {
                 if (!isFilterProviderApiType || userRecord.Provider.getApiType() == filterProviderApiType) {
                     dataList.add(new Data(userRecord, isSelected));
@@ -149,7 +149,7 @@ public class AccountChooserActivity extends ListYukariBase {
             cb.setChecked(!cb.isChecked());
         } else {
             Intent result = new Intent();
-            result.putExtra(EXTRA_SELECTED_USERID, user.id);
+            result.putExtra(EXTRA_SELECTED_USERID, user.record.NumericId);
             result.putExtra(EXTRA_SELECTED_USERSN, user.sn);
             result.putExtra(EXTRA_SELECTED_RECORD, user.record);
             result.putExtra(EXTRA_METADATA, getIntent().getStringExtra(EXTRA_METADATA));
@@ -183,17 +183,15 @@ public class AccountChooserActivity extends ListYukariBase {
 
     }
 
-    private class Data {
-        long id;
-        String name;
-        String sn;
-        String imageURL;
+    private static class Data {
+        final AuthUserRecord record;
+        final String name;
+        final String sn;
+        final String imageURL;
         boolean checked;
-        AuthUserRecord record;
 
         private Data(AuthUserRecord record, boolean checked) {
             this.record = record;
-            this.id = record.NumericId;
             this.name = record.Name;
             this.sn = record.ScreenName;
             this.imageURL = record.ProfileImageUrl;
