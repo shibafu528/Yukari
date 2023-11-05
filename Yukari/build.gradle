@@ -165,7 +165,7 @@ android {
         variant.resValue "string", "applicationId", variant.applicationId
     }
     kotlinOptions {
-        apiVersion = '1.6'
+        apiVersion = '1.9'
     }
     buildFeatures {
         viewBinding true
