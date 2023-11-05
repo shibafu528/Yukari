@@ -58,7 +58,6 @@ import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.filter.compiler.TokenizeException;
 import shibafu.yukari.filter.source.DynamicChannelController;
 import shibafu.yukari.filter.source.FilterSource;
-import shibafu.yukari.filter.source.Search;
 import shibafu.yukari.fragment.MenuDialogFragment;
 import shibafu.yukari.fragment.QuickPostFragment;
 import shibafu.yukari.fragment.SearchDialogFragment;
@@ -68,8 +67,6 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.twitter.TwitterStream;
-import shibafu.yukari.twitter.streaming.FilterStream;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -216,15 +213,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 if (hasMastodonAccount) {
                     MenuItem searchUsers = popupMenu.getMenu().findItem(R.id.action_search_users);
                     searchUsers.setTitle("Twitter " + searchUsers.getTitle());
-                }
-            }
-            if (currentPage instanceof TimelineFragment) {
-                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
-                for (FilterSource source : query.getSources()) {
-                    if (source instanceof Search) {
-                        popupMenu.getMenu().findItem(R.id.action_save_search).setVisible(true);
-                        break;
-                    }
                 }
             }
             popupMenu.setOnMenuItemClickListener(menuItem -> {
@@ -829,18 +817,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
         if (quickPostFragment != null) {
-            if (currentPage instanceof TimelineFragment) {
-                StringBuilder defaultText = new StringBuilder();
-                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
-                for (FilterSource source : query.getSources()) {
-                    if (source instanceof Search) {
-                        defaultText.append(" ").append(((Search) source).getQuery());
-                    }
-                }
-                quickPostFragment.setDefaultText(defaultText.toString());
-            } else {
-                quickPostFragment.setDefaultText("");
-            }
+            quickPostFragment.setDefaultText("");
         }
     }
 
@@ -957,22 +934,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         @Override
         public Fragment getItem(int i) {
             TabInfo tabInfo = pageList.get(i);
-
-            Fragment fragment = TweetListFragmentFactory.newInstanceWithFilter(tabInfo);
-            switch (tabInfo.getType()) {
-                case TabType.TABTYPE_TRACK:
-                    //現状ここに行き着くことってそんなに無い気がする
-                    if (tabInfo.getBindAccount().Provider.getApiType() == Provider.API_TWITTER) {
-                        TwitterStream stream = (TwitterStream) getTwitterService().getProviderStream(tabInfo.getBindAccount());
-                        if (stream != null) {
-                            stream.startFilterStream(new FilterStream.ParsedQuery(tabInfo.getSearchKeyword()).getValidQuery(),
-                                    tabInfo.getBindAccount());
-                        }
-                    }
-                    break;
-            }
-
-            return fragment;
+            return TweetListFragmentFactory.newInstanceWithFilter(tabInfo);
         }
 
         @Override

@@ -204,7 +204,6 @@ dependencies {
 
     // Twitter4J
     implementation "org.twitter4j:twitter4j-core:${twitter4jVersion}"
-    implementation "org.twitter4j:twitter4j-stream:${twitter4jVersion}"
 
     // Mastodon
     implementation "com.github.shibafu528.mastodon4j:mastodon4j:${mastodon4jVersion}"
