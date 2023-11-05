@@ -66,6 +66,7 @@ import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
+import shibafu.yukari.mastodon.source.HashTag;
 import shibafu.yukari.service.TwitterService;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -817,7 +818,18 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
         if (quickPostFragment != null) {
-            quickPostFragment.setDefaultText("");
+            if (currentPage instanceof TimelineFragment) {
+                StringBuilder defaultText = new StringBuilder();
+                FilterQuery query = ((TimelineFragment) currentPage).getQuery();
+                for (FilterSource source : query.getSources()) {
+                    if (source instanceof HashTag) {
+                        defaultText.append(" #").append(((HashTag) source).getNormalizedTag());
+                    }
+                }
+                quickPostFragment.setDefaultText(defaultText.toString());
+            } else {
+                quickPostFragment.setDefaultText("");
+            }
         }
     }
 

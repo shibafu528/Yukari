@@ -21,7 +21,7 @@ import shibafu.yukari.database.AuthUserRecord
  */
 @Source(apiType = Provider.API_MASTODON, slug = "don_hashtag")
 data class HashTag(override val sourceAccount: AuthUserRecord, val tag: String) : FilterSource {
-    private val normalizedTag: String = tag.trim().trimStart('#')
+    val normalizedTag: String = tag.trim().trimStart('#')
 
     override fun getRestQuery() = MastodonRestQuery { client, range ->
         Public(client).getFederatedTag(normalizedTag, range).execute()
