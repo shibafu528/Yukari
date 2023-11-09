@@ -44,6 +44,7 @@ import shibafu.yukari.fragment.base.ListYukariBaseFragment
 import shibafu.yukari.linkage.RestQuery
 import shibafu.yukari.linkage.TimelineEvent
 import shibafu.yukari.linkage.TimelineObserver
+import shibafu.yukari.mastodon.entity.DonCompoundStatus
 import shibafu.yukari.mastodon.entity.DonNotification
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
@@ -282,7 +283,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                             }
                             false // ダブルクリックブロックの対象外
                         }
-                        is TwitterStatus, is DonStatus, is Bookmark -> {
+                        is TwitterStatus, is DonStatus, is DonCompoundStatus, is Bookmark -> {
                             onGeneralItemClick(position, clickedElement, timelineClickAction())
                         }
                         is TwitterMessage -> {
@@ -353,7 +354,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
             val result =
                     when (val clickedElement = statuses[position]) {
-                        is TwitterStatus, is DonStatus, is Bookmark -> {
+                        is TwitterStatus, is DonStatus, is DonCompoundStatus, is Bookmark -> {
                             onGeneralItemClick(position, clickedElement, timelineClickAction())
                         }
                         is DonNotification -> {

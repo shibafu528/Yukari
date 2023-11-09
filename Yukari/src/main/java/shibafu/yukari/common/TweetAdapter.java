@@ -17,6 +17,7 @@ import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
 import shibafu.yukari.entity.Status;
 import shibafu.yukari.linkage.StatusLoader;
+import shibafu.yukari.mastodon.entity.DonCompoundStatus;
 import shibafu.yukari.mastodon.entity.DonNotification;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.database.AuthUserRecord;
@@ -123,7 +124,7 @@ public class TweetAdapter extends BaseAdapter {
             return VT_MESSAGE;
         } else if (item instanceof TwitterStatus || item instanceof Bookmark) {
             return VT_TWEET;
-        } else if (item instanceof DonStatus) {
+        } else if (item instanceof DonStatus || item instanceof DonCompoundStatus) {
             return VT_DON_STATUS;
         } else if (item instanceof DonNotification) {
             return VT_DON_NOTIFICATION;

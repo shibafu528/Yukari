@@ -25,6 +25,7 @@ import shibafu.yukari.fragment.status.StatusActionFragment;
 import shibafu.yukari.fragment.status.StatusLinkFragment;
 import shibafu.yukari.fragment.status.StatusMainFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
+import shibafu.yukari.mastodon.entity.DonCompoundStatus;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.entity.TwitterStatus;
@@ -118,7 +119,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         FrameLayout statusViewFrame = (FrameLayout) findViewById(R.id.status_tweet);
         if (status instanceof TwitterStatus || status instanceof Bookmark) {
             tweetView = new TweetView(this);
-        } else if (status instanceof DonStatus) {
+        } else if (status instanceof DonStatus || status instanceof DonCompoundStatus) {
             tweetView = new DonStatusView(this);
         } else {
             throw new IllegalArgumentException(EXTRA_STATUS);

@@ -86,13 +86,15 @@ class DonStatus(val status: Status,
     /**
      * この [DonStatus] オブジェクトを作成した時点の受信アカウント。
      */
-    private val firstReceiverUser = representUser
+    val firstReceiverUser = representUser
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is DonStatus) return false
-
-        return this.status.uri == other.status.uri
+        return when (other) {
+            is DonStatus -> this.status.uri == other.status.uri
+            is DonCompoundStatus -> other == this
+            else -> false
+        }
     }
 
     override fun hashCode(): Int {
@@ -134,25 +136,12 @@ class DonStatus(val status: Status,
         return userRecord.Provider.apiType == Provider.API_MASTODON
     }
 
-    override fun merge(status: IStatus): IStatus {
-        if (this === status) {
-            return this
-        }
-
-        super.merge(status)
-
-        // ローカルトゥートを優先
-        if (status is DonStatus) {
-            if (!this.isLocal && status.isLocal) {
-                status.perProviderId.putAll(perProviderId)
-                return status
-            } else {
-                perProviderId.putAll(status.perProviderId)
-                return this
-            }
-        } else {
-            return this
-        }
+    override fun merge(status: IStatus): IStatus = if (this === status) {
+        this
+    } else if (status is DonStatus) {
+        DonCompoundStatus(this, status)
+    } else {
+        super.merge(status) // always fail
     }
 
     override fun getInReplyTo(): InReplyToId {

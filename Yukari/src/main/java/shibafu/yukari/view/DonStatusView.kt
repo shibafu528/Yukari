@@ -13,6 +13,7 @@ import com.sys1yagi.mastodon4j.api.entity.Status
 import shibafu.yukari.R
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.mastodon.entity.DonCompoundStatus
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.util.AttrUtil
 import java.util.regex.Pattern
@@ -22,6 +23,13 @@ class DonStatusView : StatusView {
     private val visibilityPrivateResId = AttrUtil.resolveAttribute(context.theme, R.attr.statusVisibilityPrivateDrawable)
     private val visibilityDirectResId = AttrUtil.resolveAttribute(context.theme, R.attr.statusVisibilityDirectDrawable)
 
+    private val donStatus: DonStatus
+        get() = when (val s = status) {
+            is DonStatus -> s
+            is DonCompoundStatus -> s.representStatus
+            else -> throw RuntimeException("Unsupported type: ${s?.javaClass?.name}")
+        }
+
     constructor(context: Context?, singleLine: Boolean) : super(context, singleLine)
     @JvmOverloads
     constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : super(context, attrs, defStyleAttr)
@@ -30,7 +38,7 @@ class DonStatusView : StatusView {
     override fun updateIndicator() {
         super.updateIndicator()
 
-        val status = status as DonStatus
+        val status = donStatus
         val originStatus = status.originStatus as DonStatus
 
         // 可視性アイコンの表示
@@ -55,7 +63,7 @@ class DonStatusView : StatusView {
     override fun updateDecoration() {
         super.updateDecoration()
 
-        val status = status as DonStatus
+        val status = donStatus
         val originStatus = status.originStatus as DonStatus
 
         if (mode == Mode.DEFAULT) {
@@ -68,7 +76,7 @@ class DonStatusView : StatusView {
     }
 
     override fun decorateText(text: String): String {
-        val status = status as DonStatus
+        val status = donStatus
         var decoratedText = text
 
         // Content Warningの適用
@@ -83,7 +91,7 @@ class DonStatusView : StatusView {
     }
 
     override fun decorateTextSpan(text: String): Spannable {
-        val status = status?.originStatus as DonStatus
+        val status = donStatus.originStatus as DonStatus
         val spannable = SpannableString(text)
 
         // カスタム絵文字の出現部分を列挙
