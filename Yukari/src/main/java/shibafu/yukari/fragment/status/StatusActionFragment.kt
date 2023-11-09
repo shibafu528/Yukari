@@ -98,7 +98,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                 dialog.show(parentFragmentManager, "delete")
             } visibleWhen {
                 val status = status
-                status.user.id == userRecord?.NumericId || status is Bookmark
+                status.user.identicalUrl == userRecord?.IdenticalUrl || status is Bookmark
             },
 
             Action("通報する") {

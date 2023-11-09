@@ -8,7 +8,6 @@ import shibafu.yukari.entity.InReplyToId
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
-import shibafu.yukari.mastodon.MastodonUtil
 import shibafu.yukari.media2.Media
 import java.util.Date
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility as StatusVisibility
@@ -21,7 +20,7 @@ class DonCompoundStatus(
     statuses: List<DonStatus>,
     private var _representUser: AuthUserRecord? = null,
     private var _representOverrode: Boolean? = null
-) : Status, Parcelable {
+) : Status, Parcelable, LocalStatusId {
     constructor(first: DonStatus, second: DonStatus) : this(upsertStatusBy(listOf(first), second))
 
     private val statuses = statuses.sortedWith(COMPARATOR)
@@ -164,6 +163,15 @@ class DonCompoundStatus(
     }
 
     override fun getInReplyTo(): InReplyToId = _inReplyTo
+
+    override fun localStatusIdOrNull(userRecord: AuthUserRecord): Long? {
+        statuses.forEach { status ->
+            if (status.providerHost == userRecord.Provider.host) {
+                return status.id
+            }
+        }
+        return null
+    }
 
     override fun describeContents(): Int = 0
 

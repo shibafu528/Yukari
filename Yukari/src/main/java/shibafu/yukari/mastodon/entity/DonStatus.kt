@@ -27,7 +27,7 @@ import shibafu.yukari.entity.Status as IStatus
 
 class DonStatus(val status: Status,
                 override var representUser: AuthUserRecord,
-                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable, PluginApplicable {
+                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable, PluginApplicable, LocalStatusId {
     override val id: Long
         get() = status.id
 
@@ -150,6 +150,19 @@ class DonStatus(val status: Status,
             inReplyTo[Provider.API_MASTODON, key] = value.toString()
         }
         return inReplyTo
+    }
+
+    override fun localStatusIdOrNull(userRecord: AuthUserRecord): Long? {
+        checkProviderHostMismatching()
+        if (providerHost == userRecord.Provider.host) {
+            return id
+        }
+
+        val perProviderId = perProviderId.getIfAbsent(userRecord.Provider.host, -1L)
+        if (perProviderId == -1L) {
+            return null
+        }
+        return perProviderId
     }
 
     fun checkProviderHostMismatching() {

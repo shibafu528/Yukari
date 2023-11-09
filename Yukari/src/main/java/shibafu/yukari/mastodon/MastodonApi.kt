@@ -28,6 +28,7 @@ import shibafu.yukari.linkage.ProviderApiException
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.mastodon.entity.LocalStatusId
 import java.io.File
 import java.io.IOException
 
@@ -70,7 +71,7 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            val localId = resolveLocalId(userRecord, status).also { if (it < 0) throw ProviderApiException("IDが分かりません : ${status.url}") }
             val favoritedStatus = statuses.postFavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(context, "ふぁぼりました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
@@ -92,7 +93,7 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            val localId = resolveLocalId(userRecord, status).also { if (it < 0) throw ProviderApiException("IDが分かりません : ${status.url}") }
             val unfavoritedStatus = statuses.postUnfavourite(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(context, "あんふぁぼしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
@@ -159,7 +160,7 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            val localId = resolveLocalId(userRecord, status).also { if (it < 0) throw ProviderApiException("IDが分かりません : ${status.url}") }
             statuses.postReblog(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(context, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
@@ -178,7 +179,7 @@ class MastodonApi : ProviderApi {
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            val localId = resolveLocalId(userRecord, status).also { if (it < 0) throw ProviderApiException("IDが分かりません : ${status.url}") }
             statuses.deleteStatus(localId)
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(context, "トゥートを削除しました", Toast.LENGTH_SHORT).show()
@@ -240,20 +241,14 @@ class MastodonApi : ProviderApi {
      * @throws Mastodon4jRequestException サーバへのリクエストを試行し、失敗した場合にスロー
      */
     @Throws(Mastodon4jRequestException::class)
-    private fun resolveLocalId(userRecord: AuthUserRecord, status: DonStatus): Long? {
-        status.checkProviderHostMismatching()
-        if (status.providerHost == userRecord.Provider.host) {
-            return status.id
-        }
-
-        val perProviderId = status.perProviderId.getIfAbsent(userRecord.Provider.host, -1L)
-        if (perProviderId != -1L) {
-            return perProviderId
+    private fun resolveLocalId(userRecord: AuthUserRecord, status: Status): Long {
+        if (status is LocalStatusId) {
+            status.localStatusIdOrNull(userRecord)?.let { return it }
         }
 
         val client = getApiClient(userRecord) as? MastodonClient ?: return -1
         val public = Public(client)
-        val searchResult = public.getSearch(status.url, true).execute()
+        val searchResult = public.getSearch(status.url!!, true).execute() // FIXME: urlはnon-nullableでは?
         val localStatus = searchResult.statuses.firstOrNull() ?: return -1
         return localStatus.id
     }
