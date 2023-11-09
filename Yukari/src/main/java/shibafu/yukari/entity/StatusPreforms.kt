@@ -9,7 +9,7 @@ import java.io.Serializable
 /**
  * 主に前処理の段階で決定しておく、ステータスのメタ情報など
  */
-class StatusPreforms : Serializable, Parcelable {
+class StatusPreforms : Serializable, Parcelable, Cloneable {
     /**
      * 表示すべきでないメディアを含んでいるかどうか
      */
@@ -37,6 +37,12 @@ class StatusPreforms : Serializable, Parcelable {
      */
     val isTooManyRepeatText: Boolean
         get() = repeatedSequence != null
+
+    public override fun clone(): StatusPreforms {
+        val sp = super.clone() as StatusPreforms
+        sp.favoritedUsers = LongBooleanHashMap(favoritedUsers)
+        return sp
+    }
 
     //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
