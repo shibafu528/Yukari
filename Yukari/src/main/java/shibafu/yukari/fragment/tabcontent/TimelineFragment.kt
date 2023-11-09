@@ -22,7 +22,6 @@ import android.widget.AdapterView
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
-import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
 import shibafu.yukari.activity.*
 import shibafu.yukari.common.TabType
@@ -55,7 +54,6 @@ import shibafu.yukari.util.AttrUtil
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.putWarnLog
-import shibafu.yukari.view.TimelineErrorView
 import twitter4j.DirectMessage
 import twitter4j.TwitterException
 
@@ -770,13 +768,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
         // 自身の所有するStatusの場合、書き換えてはいけない
         if (!status.isOwnedStatus()) {
             // 優先アカウント設定が存在するか？
-            val userExtras = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }
-            if (userExtras != null && userExtras.priorityAccount != null) {
-                status.representUser = userExtras.priorityAccount
-                status.representOverrode = true
-                if (!status.receivedUsers.contains(userExtras.priorityAccount)) {
-                    status.receivedUsers.add(userExtras.priorityAccount)
-                }
+            val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
+            if (priorityAccount != null) {
+                status.setRepresentUserAndLock(priorityAccount)
             }
         }
 

@@ -142,13 +142,20 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
         userRecords.forEach { userRecord ->
             if (providerApiType == userRecord.Provider.apiType && originStatus.user.url == userRecord.Url) {
-                representUser = userRecord
-                representOverrode = true
-                if (!receivedUsers.contains(userRecord)) {
-                    receivedUsers.add(userRecord)
-                }
+                setRepresentUserAndLock(userRecord)
                 return
             }
+        }
+    }
+
+    /**
+     * 指定したアカウントで代表受信アカウントを上書きし、ロックする
+     */
+    fun setRepresentUserAndLock(user: AuthUserRecord) {
+        representUser = user
+        representOverrode = true
+        if (!receivedUsers.contains(user)) {
+            receivedUsers.add(user)
         }
     }
 
