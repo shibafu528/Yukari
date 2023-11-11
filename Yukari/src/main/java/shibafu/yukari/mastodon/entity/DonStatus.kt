@@ -27,7 +27,7 @@ import shibafu.yukari.entity.Status as IStatus
 
 class DonStatus(val status: Status,
                 override var representUser: AuthUserRecord,
-                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable, PluginApplicable {
+                override val metadata: StatusPreforms = StatusPreforms()) : IStatus, MergeableStatus, Parcelable, PluginApplicable {
     override val id: Long
         get() = status.id
 
@@ -163,6 +163,11 @@ class DonStatus(val status: Status,
         return inReplyTo
     }
 
+    override fun compareMergePriorityTo(other: IStatus): Int {
+        if (other !is DonStatus) throw IllegalArgumentException()
+        return BY_LOCAL_STATUS.compare(this, other)
+    }
+
     fun checkProviderHostMismatching() {
         val localId = perProviderId[providerHost]
         if (id != localId) {
@@ -253,7 +258,6 @@ class DonStatus(val status: Status,
         metadata.isCensoredThumbs = status.isSensitive
     }
 
-    //<editor-fold desc="Parcelable">
     override fun describeContents(): Int = 0
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -304,8 +308,9 @@ class DonStatus(val status: Status,
                 return arrayOfNulls(size)
             }
         }
+
+        private val BY_LOCAL_STATUS = Comparator.comparing<DonStatus, _> { !it.isLocal }
     }
-    //</editor-fold>
 
     class ProviderHostMismatchedException(expected: String, actual: String) : RuntimeException("[BUG] provider host mismatched!! expected = $expected, actual = $actual")
 }

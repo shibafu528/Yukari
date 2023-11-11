@@ -14,7 +14,7 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.LinkedHashSet
 
-class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status, PluginApplicable {
+class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status, MergeableStatus, PluginApplicable {
 
     override val id: Long = status.id
 
@@ -109,6 +109,10 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override fun canFavorite(userRecord: AuthUserRecord): Boolean {
         return userRecord.Provider.apiType == Provider.API_TWITTER
+    }
+
+    override fun compareMergePriorityTo(other: Status): Int {
+        return 0
     }
 
     private val twitter4j.Status.originStatus: twitter4j.Status
