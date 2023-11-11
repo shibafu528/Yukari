@@ -33,7 +33,9 @@ import shibafu.yukari.database.Bookmark
 import shibafu.yukari.entity.ExceptionStatus
 import shibafu.yukari.entity.LoadMarker
 import shibafu.yukari.entity.Mention
+import shibafu.yukari.entity.MergeableStatus
 import shibafu.yukari.entity.Status
+import shibafu.yukari.entity.TimelineStatus
 import shibafu.yukari.entity.User
 import shibafu.yukari.filter.FilterQuery
 import shibafu.yukari.filter.compiler.FilterCompilerException
@@ -681,15 +683,16 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
                 if (status !is LoadMarker && !query.evaluate(status, users, queryVariables)) return
 
+                val timelineStatus = if (status is MergeableStatus) TimelineStatus(status) else status.clone()
                 if (event.muted) {
                     if (USE_INSERT_LOG) putDebugLog("TimelineFragment", "[$rawQuery] onStatus : Muted ... $status")
 
-                    mutedStatuses += status.clone()
+                    mutedStatuses += timelineStatus
                 } else {
                     if (USE_INSERT_LOG) putDebugLog("[$rawQuery] onStatus : Insert  ... $status")
 
                     val useScrollLock = defaultSharedPreferences.getBoolean("pref_lock_scroll_after_reload", false)
-                    handler.post { insertElement(status.clone(), !event.passive && useScrollLock && status !is LoadMarker) }
+                    handler.post { insertElement(timelineStatus, !event.passive && useScrollLock && status !is LoadMarker) }
                 }
             }
             is TimelineEvent.RestRequestSuccess -> {
@@ -764,16 +767,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
      * @return 挿入位置、負数の場合は実際にリストに挿入する必要はないが別の処理が必要。(PRE_INSERT_から始まる定数を参照)
      */
     private fun preInsertElement(status: Status): Int {
-        // 代表操作アカウントの書き換えが必要か確認する
-        // 自身の所有するStatusの場合、書き換えてはいけない
-        if (!status.isOwnedStatus()) {
-            // 優先アカウント設定が存在するか？
-            val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
-            if (priorityAccount != null) {
-                status.setRepresentUserAndLock(priorityAccount)
-            }
-        }
-
         if (status is LoadMarker) {
             for (i in 0 until statuses.size) {
                 if (statuses[i] is LoadMarker) {
@@ -788,11 +781,26 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 }
             }
         } else {
+            // 代表操作アカウントの書き換えが必要か確認する
+            // 自身の所有するStatusの場合、書き換えてはいけない
+            if (status is TimelineStatus<*> && !status.isOwnedStatus()) {
+                // 優先アカウント設定が存在するか？
+                val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
+                if (priorityAccount != null) {
+                    status.setRepresentUserAndLock(priorityAccount)
+                }
+            }
+
             for (i in 0 until statuses.size) {
                 if (status == statuses[i]) {
                     if (status.providerApiType == statuses[i].providerApiType) {
-                        statuses[i] = statuses[i].merge(status)
-                        return PRE_INSERT_MERGED
+                        val ts = statuses[i] as? TimelineStatus<*>
+                        if (ts != null) {
+                            statuses[i] = ts.merge(status)
+                            return PRE_INSERT_MERGED
+                        } else if (status.representUser.InternalId < statuses[i].representUser.InternalId) {
+                            return i
+                        }
                     } else if (status.providerApiType < statuses[i].providerApiType) {
                         return i
                     }
@@ -986,21 +994,24 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
         val eventUser = eventStatus.representUser
 
-        statuses.forEach { status ->
-            if (status == eventStatus) {
-                status.metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
-                if (!status.receivedUsers.contains(eventUser)) {
-                    status.receivedUsers.add(eventUser)
+        for (i in 0 until statuses.size) {
+            val status = statuses[i]
+            if (status is TimelineStatus<*> && status == eventStatus) {
+                statuses[i] = status.merge(eventStatus).apply {
+                    // TODO: これいるか分からない むしろ不要にしたほうがいいかも
+                    metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
                 }
                 notifyDataSetChanged()
                 return
             }
         }
-        mutedStatuses.forEach { status ->
-            if (status == eventStatus) {
-                status.metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
-                if (!status.receivedUsers.contains(eventUser)) {
-                    status.receivedUsers.add(eventUser)
+
+        for (i in 0 until mutedStatuses.size) {
+            val status = mutedStatuses[i]
+            if (status is TimelineStatus<*> && status == eventStatus) {
+                mutedStatuses[i] = status.merge(eventStatus).apply {
+                    // TODO: これいるか分からない むしろ不要にしたほうがいいかも
+                    metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
                 }
                 return
             }

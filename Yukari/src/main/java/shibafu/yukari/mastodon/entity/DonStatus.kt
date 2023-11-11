@@ -17,8 +17,6 @@ import shibafu.yukari.media2.impl.DonVideo
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.*
 import shibafu.yukari.util.MorseCodec
-import shibafu.yukari.util.readBooleanCompat
-import shibafu.yukari.util.writeBooleanCompat
 import java.io.StringReader
 import java.time.ZonedDateTime
 import java.util.*
@@ -26,7 +24,7 @@ import kotlin.collections.LinkedHashSet
 import shibafu.yukari.entity.Status as IStatus
 
 class DonStatus(val status: Status,
-                override var representUser: AuthUserRecord,
+                override val receiverUser: AuthUserRecord,
                 override val metadata: StatusPreforms = StatusPreforms()) : IStatus, MergeableStatus, Parcelable, PluginApplicable {
     override val id: Long
         get() = status.id
@@ -48,7 +46,7 @@ class DonStatus(val status: Status,
     override val isRepost: Boolean
         get() = status.reblog != null
 
-    override val originStatus: shibafu.yukari.entity.Status = if (isRepost) DonStatus(status.reblog!!, representUser) else this
+    override val originStatus: shibafu.yukari.entity.Status = if (isRepost) DonStatus(status.reblog!!, receiverUser) else this
 
     override val inReplyToId: Long = status.inReplyToId ?: -1
 
@@ -60,17 +58,17 @@ class DonStatus(val status: Status,
 
     override val tags: List<String> = status.tags.map { it.name }
 
-    override var favoritesCount: Int = status.favouritesCount
+    override val favoritesCount: Int = status.favouritesCount
 
-    override var repostsCount: Int = status.reblogsCount
+    override val repostsCount: Int = status.reblogsCount
 
     override val providerApiType: Int = Provider.API_MASTODON
 
-    override val providerHost: String = representUser.Provider.host
+    override val providerHost: String = receiverUser.Provider.host
 
-    override var representOverrode: Boolean = false
+    override var preferredOwnerUser: AuthUserRecord? = null
 
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override var prioritizedUser: AuthUserRecord? = null
 
     override val isApplicablePlugin: Boolean
         get() = when (status.visibility) {
@@ -78,15 +76,10 @@ class DonStatus(val status: Status,
             else -> false
         }
 
-    val isLocal: Boolean = user.host == representUser.Provider.host
+    val isLocal: Boolean = user.host == receiverUser.Provider.host
 
-    var perProviderId: ObjectLongHashMap<String> = ObjectLongHashMap.newWithKeysValues(representUser.Provider.host, status.id)
+    var perProviderId: ObjectLongHashMap<String> = ObjectLongHashMap.newWithKeysValues(receiverUser.Provider.host, status.id)
         private set
-
-    /**
-     * この [DonStatus] オブジェクトを作成した時点の受信アカウント。
-     */
-    private val firstReceiverUser = representUser
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -132,27 +125,6 @@ class DonStatus(val status: Status,
 
     override fun canFavorite(userRecord: AuthUserRecord): Boolean {
         return userRecord.Provider.apiType == Provider.API_MASTODON
-    }
-
-    override fun merge(status: IStatus): IStatus {
-        if (this === status) {
-            return this
-        }
-
-        super.merge(status)
-
-        // ローカルトゥートを優先
-        if (status is DonStatus) {
-            if (!this.isLocal && status.isLocal) {
-                status.perProviderId.putAll(perProviderId)
-                return status
-            } else {
-                perProviderId.putAll(status.perProviderId)
-                return this
-            }
-        } else {
-            return this
-        }
     }
 
     override fun getInReplyTo(): InReplyToId {
@@ -262,13 +234,10 @@ class DonStatus(val status: Status,
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(Gson().toJson(status))
-        dest.writeSerializable(firstReceiverUser)
-        dest.writeSerializable(representUser)
+        dest.writeSerializable(receiverUser)
+        dest.writeSerializable(preferredOwnerUser)
+        dest.writeSerializable(prioritizedUser)
         dest.writeParcelable(metadata, 0)
-        dest.writeInt(favoritesCount)
-        dest.writeInt(repostsCount)
-        dest.writeBooleanCompat(representOverrode)
-        dest.writeList(receivedUsers.toList())
 
         dest.writeInt(perProviderId.size())
         perProviderId.forEachKeyValue { key, value ->
@@ -282,15 +251,13 @@ class DonStatus(val status: Status,
             override fun createFromParcel(source: Parcel?): DonStatus {
                 source!!
                 val status = Gson().fromJson(source.readString(), Status::class.java)
-                val firstReceiverUser = source.readSerializable() as AuthUserRecord
-                val representUser = source.readSerializable() as AuthUserRecord
+                val receiverUser = source.readSerializable() as AuthUserRecord
+                val preferredOwnerUser = source.readSerializable() as? AuthUserRecord
+                val prioritizedUser = source.readSerializable() as? AuthUserRecord
                 val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)!!
-                val donStatus = DonStatus(status, firstReceiverUser, metadata)
-                donStatus.representUser = representUser
-                donStatus.favoritesCount = source.readInt()
-                donStatus.repostsCount = source.readInt()
-                donStatus.representOverrode = source.readBooleanCompat()
-                donStatus.receivedUsers = source.readArrayList(this.javaClass.classLoader) as MutableList<AuthUserRecord>
+                val donStatus = DonStatus(status, receiverUser, metadata)
+                donStatus.preferredOwnerUser = preferredOwnerUser
+                donStatus.prioritizedUser = prioritizedUser
 
                 val perProviderIdSize = source.readInt()
                 val perProviderId = ObjectLongHashMap<String>(perProviderIdSize)

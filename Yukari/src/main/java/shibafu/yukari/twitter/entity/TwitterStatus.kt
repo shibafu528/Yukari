@@ -14,7 +14,7 @@ import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.LinkedHashSet
 
-class TwitterStatus(val status: twitter4j.Status, override var representUser: AuthUserRecord) : Status, MergeableStatus, PluginApplicable {
+class TwitterStatus(val status: twitter4j.Status, override var receiverUser: AuthUserRecord) : Status, MergeableStatus, PluginApplicable {
 
     override val id: Long = status.id
 
@@ -22,7 +22,8 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val text: String
 
-    override val recipientScreenName: String = representUser.ScreenName
+    override val recipientScreenName: String
+        get() = representUser.ScreenName
 
     override val createdAt: Date = status.createdAt
 
@@ -37,7 +38,7 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val isRepost: Boolean = status.isRetweet
 
-    override val originStatus: Status = if (isRepost) TwitterStatus(status.retweetedStatus, representUser) else this
+    override val originStatus: Status = if (isRepost) TwitterStatus(status.retweetedStatus, receiverUser) else this
 
     override val url: String = "https://twitter.com/${user.screenName}/status/$id"
 
@@ -51,9 +52,9 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val tags: List<String> = status.hashtagEntities.map { it.text }
 
-    override var favoritesCount: Int = status.originStatus.favoriteCount
+    override val favoritesCount: Int = status.originStatus.favoriteCount
 
-    override var repostsCount: Int = status.originStatus.retweetCount
+    override val repostsCount: Int = status.originStatus.retweetCount
 
     override val metadata: StatusPreforms = StatusPreforms()
 
@@ -61,9 +62,9 @@ class TwitterStatus(val status: twitter4j.Status, override var representUser: Au
 
     override val providerHost: String = Provider.TWITTER.host
 
-    override var representOverrode: Boolean = false
+    override var preferredOwnerUser: AuthUserRecord? = null
 
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override var prioritizedUser: AuthUserRecord? = null
 
     override val isApplicablePlugin: Boolean
         get() = !user.isProtected

@@ -12,11 +12,9 @@ import java.util.Date
  */
 class TimelineStatus<T>(
     statuses: List<T>,
-    private var _representUser: AuthUserRecord? = null,
-    private var _representOverrode: Boolean? = null
+    prioritizedUser: AuthUserRecord? = null
 ) : Status, Parcelable where T : Status, T : MergeableStatus {
     constructor(status: T) : this(listOf(status))
-    constructor(first: T, second: T) : this(upsertStatusBy(listOf(first), second))
 
     private val statuses = statuses.sortedWith { lhs, rhs ->
         StatusComparator.BY_OWNED_STATUS.compare(lhs, rhs).let { if (it != 0) return@sortedWith it }
@@ -55,20 +53,10 @@ class TimelineStatus<T>(
         get() = representStatus.links
     override val tags: List<String>
         get() = representStatus.tags
-
-    private var _favoritesCount: Int? = null
-    override var favoritesCount: Int
-        get() = _favoritesCount ?: representStatus.favoritesCount
-        set(value) {
-            _favoritesCount = value
-        }
-
-    private var _repostsCount: Int? = null
-    override var repostsCount: Int
-        get() = _repostsCount ?: representStatus.repostsCount
-        set(value) {
-            _repostsCount = value
-        }
+    override val favoritesCount: Int
+        get() = representStatus.favoritesCount
+    override val repostsCount: Int
+        get() = representStatus.repostsCount
 
     override val metadata = representStatus.metadata.clone().also { sp ->
         statuses.drop(1).forEach { status ->
@@ -80,21 +68,14 @@ class TimelineStatus<T>(
         get() = representStatus.providerApiType
     override val providerHost: String
         get() = representStatus.providerHost
+    override val receiverUser: AuthUserRecord
+        get() = representStatus.receiverUser
 
-    override var representUser: AuthUserRecord
-        get() = _representUser ?: representStatus.representUser
-        set(value) {
-            _representUser = value
-        }
-    override var representOverrode: Boolean
-        get() = _representOverrode ?: representStatus.representOverrode
-        set(value) {
-            _representOverrode = value
-        }
+    override var preferredOwnerUser: AuthUserRecord?
+        get() = representStatus.preferredOwnerUser
+        set(_) = throw UnsupportedOperationException()
 
-    override var receivedUsers: MutableList<AuthUserRecord>
-        get() = statuses.flatMap { it.receivedUsers }.let { list -> _representUser?.let { user -> list + user } ?: list }.distinct().toMutableList()
-        set(_) {} // Status#clone, Status#merge でしか使われていない。外部からの上書きを許す理由がないので無視。
+    override var prioritizedUser: AuthUserRecord? = prioritizedUser ?: representStatus.prioritizedUser
 
     private val _inReplyTo: InReplyToId by lazy {
         val inReplyTo = representStatus.getInReplyTo()
@@ -135,21 +116,25 @@ class TimelineStatus<T>(
         return representStatus.canFavorite(userRecord)
     }
 
-    override fun merge(status: Status): Status {
-        // immutableなマージ処理を行いたいので super.merge() は呼び出さない。
-
+    fun merge(status: Status): Status {
         if (this === status) {
             return this
         }
 
-        if (status !is MergeableStatus) {
-            throw IllegalArgumentException("マージするにはMergeableStatusを実装している必要があります")
-        }
-        if (representStatus.javaClass != status.javaClass) {
-            throw IllegalArgumentException("同じ型同士のStatusでないとマージできません (receiver = ${representStatus.javaClass}, given = ${status.javaClass})")
+        val givenStatuses = when (status) {
+            is TimelineStatus<*> -> status.statuses
+            is MergeableStatus -> listOf(status)
+            else -> throw IllegalArgumentException("マージするにはTimelineStatusであるか、MergeableStatusを実装している必要があります")
         }
 
-        return TimelineStatus(upsertStatusBy(statuses, status), _representUser, _representOverrode)
+        givenStatuses.forEach { s ->
+            if (representStatus.javaClass != s.javaClass) {
+                throw IllegalArgumentException("同じ型同士のStatusでないとマージできません (receiver = ${representStatus.javaClass}, given = ${status.javaClass})")
+            }
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return TimelineStatus(upsertStatusBy(statuses, givenStatuses) as List<T>, prioritizedUser)
     }
 
     override fun getInReplyTo(): InReplyToId = _inReplyTo
@@ -167,14 +152,7 @@ class TimelineStatus<T>(
                 dest.writeSerializable(status)
             }
         }
-        dest.writeSerializable(_representUser)
-        dest.writeInt(
-            when (_representOverrode) {
-                null -> -1
-                false -> 0
-                true -> 1
-            }
-        )
+        dest.writeSerializable(prioritizedUser)
     }
 
     companion object {
@@ -193,14 +171,9 @@ class TimelineStatus<T>(
                         throw RuntimeException("Status, MergeableStatusを実装していないオブジェクト")
                     }
                 }
-                val representUser = source.readSerializable() as? AuthUserRecord
-                val representOverrode = when (source.readInt()) {
-                    -1 -> null
-                    0 -> false
-                    else -> true
-                }
+                val prioritizedUser = source.readSerializable() as? AuthUserRecord
 
-                return TimelineStatus(statuses, representUser, representOverrode)
+                return TimelineStatus(statuses, prioritizedUser)
             }
 
             override fun newArray(size: Int): Array<TimelineStatus<*>?> {
@@ -208,22 +181,26 @@ class TimelineStatus<T>(
             }
         }
 
-        private fun <T : Status> upsertStatusBy(statuses: List<T>, newStatus: T): List<T> {
-            var replaced = false
-            val newStatuses = mutableListOf<T>()
-            statuses.forEach { s ->
-                // TODO: 確実に最初の受信者だと分かるもののほうがよいかも DonStatusのfirstReceiverみたいな
-                if (s.url == newStatus.url && s.representUser == newStatus.representUser) {
-                    replaced = true
-                    newStatuses += newStatus
-                } else {
-                    newStatuses += s
+        private fun <T : Status> upsertStatusBy(statuses: List<T>, newStatuses: List<T>): List<T> {
+            val lefts = newStatuses.toMutableList()
+            val result = mutableListOf<T>()
+
+            statuses.forEach { exist ->
+                val iterator = lefts.listIterator()
+                while (iterator.hasNext()) {
+                    val given = iterator.next()
+                    if (exist.url == given.url && exist.representUser == given.representUser) {
+                        result += given
+                        iterator.remove()
+                        return@forEach
+                    }
                 }
+
+                result += exist
             }
-            if (!replaced) {
-                newStatuses += newStatus
-            }
-            return newStatuses
+            result.addAll(lefts)
+
+            return result
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.*
 /**
  * ステータスのモック
  */
-open class MockStatus(override val id: Long, override var representUser: AuthUserRecord) : Status {
+open class MockStatus(override val id: Long, override val receiverUser: AuthUserRecord) : Status {
     override val user: User = object : User {
         override val id: Long = this@MockStatus.id
         override val name: String = "Error"
@@ -22,13 +22,13 @@ open class MockStatus(override val id: Long, override var representUser: AuthUse
     override val recipientScreenName: String = ""
     override val createdAt: Date = Date()
     override val source: String = "System"
-    override var favoritesCount: Int = 0
-    override var repostsCount: Int = 0
+    override val favoritesCount: Int = 0
+    override val repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
     override val providerApiType: Int = Provider.API_SYSTEM
     override val providerHost: String = HOST
-    override var representOverrode: Boolean = false
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override var preferredOwnerUser: AuthUserRecord? = null
+    override var prioritizedUser: AuthUserRecord? = null
 
     companion object {
         const val HOST = "mock.yukari.internal"

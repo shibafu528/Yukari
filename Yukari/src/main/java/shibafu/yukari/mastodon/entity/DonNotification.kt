@@ -9,7 +9,6 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status as IStatus
 import shibafu.yukari.entity.StatusPreforms
 import shibafu.yukari.entity.User
-import shibafu.yukari.util.writeBooleanCompat
 import java.time.ZonedDateTime
 import java.util.Date
 
@@ -19,7 +18,7 @@ import java.util.Date
  * [API Document](https://docs.joinmastodon.org/entities/Notification/)
  */
 class DonNotification(val notification: Notification,
-                      override var representUser: AuthUserRecord,
+                      override val receiverUser: AuthUserRecord,
                       override val metadata: StatusPreforms = StatusPreforms()) : IStatus, Parcelable {
     override val id: Long
         get() = notification.id
@@ -30,25 +29,25 @@ class DonNotification(val notification: Notification,
         get() = ""
 
     override val recipientScreenName: String
-        get() = representUser.ScreenName
+        get() = receiverUser.ScreenName
 
     override val createdAt: Date = Date.from(ZonedDateTime.parse(notification.createdAt).toInstant())
 
     override val source: String
         get() = ""
 
-    override var favoritesCount: Int = 0
+    override val favoritesCount: Int = 0
 
-    override var repostsCount: Int = 0
+    override val repostsCount: Int = 0
 
     override val providerApiType: Int = Provider.API_MASTODON
 
     override val providerHost: String
         get() = representUser.Provider.host
 
-    override var representOverrode: Boolean = false
+    override var preferredOwnerUser: AuthUserRecord? = null
 
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override var prioritizedUser: AuthUserRecord? = null
 
     val status: DonStatus? = notification.status?.let { DonStatus(it, representUser) }
 
@@ -69,8 +68,10 @@ class DonNotification(val notification: Notification,
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(Gson().toJson(notification))
-        dest.writeSerializable(representUser)
+        dest.writeSerializable(receiverUser)
         dest.writeParcelable(metadata, 0)
+        dest.writeSerializable(preferredOwnerUser)
+        dest.writeSerializable(prioritizedUser)
     }
 
     companion object {
@@ -78,9 +79,14 @@ class DonNotification(val notification: Notification,
             override fun createFromParcel(source: Parcel?): DonNotification {
                 source!!
                 val notification = Gson().fromJson(source.readString(), Notification::class.java)
-                val representUser = source.readSerializable() as AuthUserRecord
+                val receiverUser = source.readSerializable() as AuthUserRecord
                 val metadata = source.readParcelable<StatusPreforms>(this.javaClass.classLoader)!!
-                return DonNotification(notification, representUser, metadata)
+                val preferredOwnerUser = source.readSerializable() as? AuthUserRecord
+                val prioritizedUser = source.readSerializable() as? AuthUserRecord
+                return DonNotification(notification, receiverUser, metadata).also {
+                    it.preferredOwnerUser = preferredOwnerUser
+                    it.prioritizedUser = prioritizedUser
+                }
             }
 
             override fun newArray(size: Int): Array<DonNotification?> {

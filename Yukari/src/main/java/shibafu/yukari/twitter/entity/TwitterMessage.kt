@@ -1,6 +1,5 @@
 package shibafu.yukari.twitter.entity
 
-import org.eclipse.collections.impl.factory.primitive.LongLists
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Mention
 import shibafu.yukari.entity.Status
@@ -17,7 +16,7 @@ import java.util.*
 class TwitterMessage(val message: DirectMessage,
                      val sender: twitter4j.User,
                      val recipient: twitter4j.User,
-                     override var representUser: AuthUserRecord) : Status {
+                     override var receiverUser: AuthUserRecord) : Status {
     override val id: Long
         get() = message.id
 
@@ -45,9 +44,9 @@ class TwitterMessage(val message: DirectMessage,
 
     override val tags: List<String> = message.hashtagEntities.map { it.text }
 
-    override var favoritesCount: Int = 0
+    override val favoritesCount: Int = 0
 
-    override var repostsCount: Int = 0
+    override val repostsCount: Int = 0
 
     override val metadata: StatusPreforms = StatusPreforms()
 
@@ -55,9 +54,9 @@ class TwitterMessage(val message: DirectMessage,
 
     override val providerHost: String = Provider.TWITTER.host
 
-    override var representOverrode: Boolean = false
+    override var preferredOwnerUser: AuthUserRecord? = null
 
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
+    override var prioritizedUser: AuthUserRecord? = null
 
     init {
         val media = LinkedHashSet<Media>()

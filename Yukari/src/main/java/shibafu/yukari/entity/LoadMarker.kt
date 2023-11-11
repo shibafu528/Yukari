@@ -8,7 +8,7 @@ import java.util.*
  * @param id 読み込みを開始する位置のID (maxId)
  * @param providerApiType 対応する [shibafu.yukari.database.Provider.apiType] の値
  * @param anchorStatusId 先行するステータスのID
- * @param representUser 対応するアカウント
+ * @param receiverUser 対応するアカウント
  * @param loadMarkerTag 対応するクエリを表すタグ
  * @param createdAt タイムスタンプ
  * @param stringCursor ページング追加情報
@@ -17,7 +17,7 @@ import java.util.*
 class LoadMarker(override val id: Long,
                  override val providerApiType: Int,
                  val anchorStatusId: Long,
-                 override var representUser: AuthUserRecord,
+                 override val receiverUser: AuthUserRecord,
                  val loadMarkerTag: String,
                  override val createdAt: Date,
                  val stringCursor: String = "",
@@ -26,7 +26,7 @@ class LoadMarker(override val id: Long,
     var taskKey = -1L
 
     override val user: User = object : User {
-        override val id: Long = representUser.NumericId
+        override val id: Long = receiverUser.NumericId
         override val name: String = ""
         override val screenName: String = "**Load Marker**"
         override val isProtected: Boolean = false
@@ -36,16 +36,16 @@ class LoadMarker(override val id: Long,
     }
 
     override val text: String
-        get() = "Anchor ID = $anchorStatusId, API = $providerApiType, UID = ${representUser.NumericId}, Tag = $loadMarkerTag, TaskKey = $taskKey"
+        get() = "Anchor ID = $anchorStatusId, API = $providerApiType, UID = ${receiverUser.NumericId}, Tag = $loadMarkerTag, TaskKey = $taskKey"
 
     override val recipientScreenName: String = "**Load Marker**"
     override val source: String = ""
-    override var favoritesCount: Int = 0
-    override var repostsCount: Int = 0
+    override val favoritesCount: Int = 0
+    override val repostsCount: Int = 0
     override val metadata: StatusPreforms = StatusPreforms()
-    override var representOverrode: Boolean = false
-    override var receivedUsers: MutableList<AuthUserRecord> = arrayListOf(representUser)
     override val providerHost: String = HOST
+    override var preferredOwnerUser: AuthUserRecord? = null
+    override var prioritizedUser: AuthUserRecord? = null
 
     companion object {
         const val HOST = "load-marker.yukari.internal"
