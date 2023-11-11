@@ -4,7 +4,6 @@ import android.os.Parcel
 import android.os.Parcelable
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
-import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.media2.Media
 import java.util.Date
 
@@ -18,7 +17,13 @@ class TimelineStatus<T>(
 ) : Status, Parcelable where T : Status, T : MergeableStatus {
     constructor(first: T, second: T) : this(upsertStatusBy(listOf(first), second))
 
-    private val statuses = statuses.sortedWith(MergeableStatus::compareMergePriorityTo)
+    private val statuses = statuses.sortedWith { lhs, rhs ->
+        StatusComparator.BY_OWNED_STATUS.compare(lhs, rhs).let { if (it != 0) return@sortedWith it }
+        StatusComparator.BY_MENTIONED.compare(lhs, rhs).let { if (it != 0) return@sortedWith it }
+        StatusComparator.BY_PRIMARY_ACCOUNT_RECEIVED.compare(lhs, rhs).let { if (it != 0) return@sortedWith it }
+        lhs.compareMergePriorityTo(rhs).let { if (it != 0) return@sortedWith it }
+        StatusComparator.BY_RECEIVER_ID.compare(lhs, rhs)
+    }
     val representStatus = this.statuses.first()
 
     override val id: Long
@@ -201,24 +206,6 @@ class TimelineStatus<T>(
                 return arrayOfNulls(size)
             }
         }
-
-        private val BY_OWNED_STATUS = Comparator.comparing<DonStatus, _> { !it.isOwnedStatus() }
-        private val BY_REPRESENT_OVERRODE = Comparator.comparing<DonStatus, _> { !it.representOverrode }
-        private val BY_MENTIONED = Comparator.comparing<DonStatus, _> { status ->
-            status.mentions.find { it.isMentionedTo(status.representUser) } == null
-        }
-        private val BY_PRIMARY_ACCOUNT_RECEIVED = Comparator.comparing<DonStatus, _> { !it.representUser.isPrimary }
-        private val BY_LOCAL_STATUS = Comparator.comparing<DonStatus, _> { !it.isLocal }
-        private val BY_RECEIVER_ID = Comparator.comparingLong<DonStatus> { status ->
-            status.representUser.InternalId
-        }
-
-        private val COMPARATOR = BY_OWNED_STATUS
-            .then(BY_REPRESENT_OVERRODE)
-            .then(BY_MENTIONED)
-            .then(BY_PRIMARY_ACCOUNT_RECEIVED)
-            .then(BY_LOCAL_STATUS)
-            .then(BY_RECEIVER_ID)
 
         private fun <T : Status> upsertStatusBy(statuses: List<T>, newStatus: T): List<T> {
             var replaced = false
