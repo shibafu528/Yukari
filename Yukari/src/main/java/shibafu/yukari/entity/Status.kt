@@ -36,7 +36,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     /**
      * 代表受信アカウントのスクリーンネーム
      */
-    val recipientScreenName: String
+    val recipientScreenName: String // TODO: たぶんいらない
 
     /**
      * メッセージのタイムスタンプ

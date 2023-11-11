@@ -11,6 +11,8 @@ import com.google.gson.Gson
  */
 class InReplyToId(val url: String) : Parcelable {
     private val perProviderId = HashMap<String, String>()
+    val entries: Set<Map.Entry<String, String>>
+        get() = perProviderId.entries
 
     constructor(parcel: Parcel) : this(parcel.readString().orEmpty()) {
         val perProviderIdSize = parcel.readInt()
