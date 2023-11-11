@@ -15,6 +15,7 @@ class TimelineStatus<T>(
     private var _representUser: AuthUserRecord? = null,
     private var _representOverrode: Boolean? = null
 ) : Status, Parcelable where T : Status, T : MergeableStatus {
+    constructor(status: T) : this(listOf(status))
     constructor(first: T, second: T) : this(upsertStatusBy(listOf(first), second))
 
     private val statuses = statuses.sortedWith { lhs, rhs ->
