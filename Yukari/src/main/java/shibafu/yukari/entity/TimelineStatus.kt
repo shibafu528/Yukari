@@ -77,6 +77,15 @@ class TimelineStatus<T>(
 
     override var prioritizedUser: AuthUserRecord? = prioritizedUser ?: representStatus.prioritizedUser
 
+    override val receivedUsers: List<AuthUserRecord>
+        get() = sequence {
+            preferredOwnerUser?.let { yield(it) }
+            prioritizedUser?.let { yield(it) }
+            statuses.forEach { status ->
+                yield(status.receiverUser)
+            }
+        }.distinct().toList()
+
     private val _inReplyTo: InReplyToId by lazy {
         val inReplyTo = representStatus.getInReplyTo()
         statuses.drop(1).forEach { status ->
