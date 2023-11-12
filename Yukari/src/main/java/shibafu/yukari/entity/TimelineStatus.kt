@@ -201,7 +201,7 @@ class TimelineStatus<T>(
                 val iterator = lefts.listIterator()
                 while (iterator.hasNext()) {
                     val given = iterator.next()
-                    if (exist.url == given.url && exist.representUser == given.representUser) {
+                    if (exist.url == given.url && exist.receiverUser == given.receiverUser) {
                         result += given
                         iterator.remove()
                         return@forEach
