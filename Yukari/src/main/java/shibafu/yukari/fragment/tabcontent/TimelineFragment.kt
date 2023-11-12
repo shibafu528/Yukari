@@ -255,7 +255,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             }.orEmpty()
 
             val result =
-                    when (val clickedElement = statuses[position]) {
+                    when (val clickedElement = statuses[position].let { if (it is TimelineStatus<*>) it.representStatus else it }) {
                         is LoadMarker -> {
                             if (clickedElement.taskKey < 0) {
                                 query.sources.firstOrNull { it.hashCode().toString() == clickedElement.loadMarkerTag }?.let {
@@ -354,7 +354,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             }.orEmpty()
 
             val result =
-                    when (val clickedElement = statuses[position]) {
+                    when (val clickedElement = statuses[position].let { if (it is TimelineStatus<*>) it.representStatus else it }) {
                         is TwitterStatus, is DonStatus, is Bookmark -> {
                             onGeneralItemClick(position, clickedElement, timelineClickAction())
                         }

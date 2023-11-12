@@ -16,6 +16,7 @@ import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
 import shibafu.yukari.entity.LoadMarker;
 import shibafu.yukari.entity.Status;
+import shibafu.yukari.entity.TimelineStatus;
 import shibafu.yukari.linkage.StatusLoader;
 import shibafu.yukari.mastodon.entity.DonNotification;
 import shibafu.yukari.mastodon.entity.DonStatus;
@@ -96,6 +97,9 @@ public class TweetAdapter extends BaseAdapter {
     @Override
     public Status getItem(int position) {
         Status status = statuses.get(position);
+        if (status instanceof TimelineStatus<?>) {
+            status = ((TimelineStatus<?>) status).getRepresentStatus();
+        }
         if (status instanceof DonNotification) {
             DonNotification dn = (DonNotification) status;
             // メンション通知は中身のStatusを直接List itemとして扱う
