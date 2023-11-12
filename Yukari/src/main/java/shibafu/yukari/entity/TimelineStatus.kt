@@ -91,7 +91,10 @@ class TimelineStatus<T>(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        return representStatus.javaClass == other?.javaClass && representStatus == other
+        return when (other) {
+            is TimelineStatus<*> -> representStatus.javaClass == other.representStatus.javaClass && representStatus == other.representStatus
+            else -> representStatus.javaClass == other?.javaClass && representStatus == other
+        }
     }
 
     override fun hashCode(): Int {
