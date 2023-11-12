@@ -787,7 +787,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                 // 優先アカウント設定が存在するか？
                 val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
                 if (priorityAccount != null) {
-                    status.setRepresentUserAndLock(priorityAccount)
+                    status.prioritizedUser = priorityAccount
                 }
             }
 

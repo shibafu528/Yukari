@@ -179,13 +179,6 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     }
 
     /**
-     * 指定したアカウントで代表受信アカウントを上書きし、ロックする
-     */
-    fun setRepresentUserAndLock(user: AuthUserRecord) {
-        prioritizedUser = user
-    }
-
-    /**
      * このステータスがいずれかの受信アカウントにメンションを向けているか判断
      */
     fun isMentionedToMe(): Boolean {
