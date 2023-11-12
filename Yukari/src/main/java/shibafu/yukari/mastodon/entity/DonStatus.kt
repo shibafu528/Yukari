@@ -140,6 +140,18 @@ class DonStatus(val status: Status,
         return BY_LOCAL_STATUS.compare(this, other)
     }
 
+    override fun unmerge(followers: List<IStatus>): IStatus {
+        followers.forEach { status ->
+            if (status !is DonStatus) return@forEach
+            status.perProviderId.forEachKeyValue { key, value ->
+                if (!perProviderId.containsKey(key)) {
+                    perProviderId.put(key, value)
+                }
+            }
+        }
+        return this
+    }
+
     fun checkProviderHostMismatching() {
         val localId = perProviderId[providerHost]
         if (id != localId) {

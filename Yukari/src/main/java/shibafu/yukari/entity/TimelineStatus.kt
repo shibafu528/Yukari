@@ -23,6 +23,12 @@ class TimelineStatus<T>(
         lhs.compareMergePriorityTo(rhs).let { if (it != 0) return@sortedWith it }
         StatusComparator.BY_RECEIVER_ID.compare(lhs, rhs)
     }
+
+    /**
+     * 現在の代表ステータス。
+     *
+     * 表示用のプロパティなので、タイムラインの外にオブジェクトを持ち出す場合には [takeStatus] を呼び出す必要がある。
+     */
     val representStatus = this.statuses.first()
 
     override val id: Long
@@ -128,6 +134,9 @@ class TimelineStatus<T>(
         return representStatus.canFavorite(userRecord)
     }
 
+    /**
+     * 引数で与えた [Status] を取り込んだ、新しい [TimelineStatus] を作成する。既に取り込まれているステータスが指定された場合は、与えられたステータスで置き換える。
+     */
     fun merge(status: Status): Status {
         if (this === status) {
             return this
@@ -147,6 +156,15 @@ class TimelineStatus<T>(
 
         @Suppress("UNCHECKED_CAST")
         return TimelineStatus(upsertStatusBy(statuses, givenStatuses) as List<T>, prioritizedUser)
+    }
+
+    /**
+     * [representStatus] を単独で操作可能な状態にしてから取り出す。タイムライン外に持ち出す場合にはこのメソッドを呼び出す必要がある。
+     *
+     * このメソッドを呼び出しても、レシーバー内のコレクションからステータスは削除されない。
+     */
+    fun takeStatus(): Status {
+        return representStatus.unmerge(statuses.drop(1))
     }
 
     override fun getInReplyTo(): InReplyToId = _inReplyTo

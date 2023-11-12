@@ -116,6 +116,10 @@ class TwitterStatus(val status: twitter4j.Status, override var receiverUser: Aut
         return 0
     }
 
+    override fun unmerge(followers: List<Status>): Status {
+        return this
+    }
+
     private val twitter4j.Status.originStatus: twitter4j.Status
         get() = if (this.isRetweet) this.retweetedStatus else this
 
