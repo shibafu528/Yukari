@@ -156,10 +156,11 @@ class MastodonApi : ProviderApi {
     }
 
     override fun repostStatus(userRecord: AuthUserRecord, status: Status): Boolean {
+        val originStatus = status.originStatus
         val client = getApiClient(userRecord) as? MastodonClient ?: throw IllegalStateException("Mastodonとの通信の準備に失敗しました")
         try {
             val statuses = Statuses(client)
-            val localId = resolveLocalId(userRecord, status as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${status.url}")
+            val localId = resolveLocalId(userRecord, originStatus as DonStatus) ?: throw ProviderApiException("IDが分かりません : ${originStatus.url}")
             statuses.postReblog(localId).execute()
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(context, "ブーストしました (@" + userRecord.ScreenName + ")", Toast.LENGTH_SHORT).show()
