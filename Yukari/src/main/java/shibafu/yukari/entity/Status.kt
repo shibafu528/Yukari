@@ -4,7 +4,6 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.database.AuthUserRecord
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  * タイムラインに表示できたりするやつ
@@ -36,7 +35,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     /**
      * 代表受信アカウントのスクリーンネーム
      */
-    val recipientScreenName: String
+    val recipientScreenName: String // TODO: たぶんいらない
 
     /**
      * メッセージのタイムスタンプ
@@ -93,12 +92,12 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     /**
      * お気に入り登録数
      */
-    var favoritesCount: Int
+    val favoritesCount: Int
 
     /**
      * 引用数
      */
-    var repostsCount: Int
+    val repostsCount: Int
 
     /**
      * メタデータ
@@ -116,19 +115,50 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     val providerHost: String
 
     /**
-     * 代表受信アカウント
+     * このステータスを受信したアカウント
+     *
+     * 通信先 [shibafu.yukari.database.Provider] が異なる同一内容のステータスがある状況では、共通情報・サーバーローカル情報の取り違いを避けるための判定にも使われる。
+     * そのため、直接の通信先と関係の無いアカウントを返してはいけない。
      */
-    var representUser: AuthUserRecord
+    val receiverUser: AuthUserRecord
 
     /**
-     * 代表受信アカウントが高優先度なアカウントでロックされているかどうか
+     * このステータスを所有している受信アカウント
+     *
+     * 通常、ステータスを受信して [shibafu.yukari.linkage.TimelineHub] で配送される時に設定される。
+     * このプロパティは [prioritizedUser] より優先して扱う必要がある。
      */
-    var representOverrode: Boolean
+    var preferredOwnerUser: AuthUserRecord?
+
+    /**
+     * 操作用に優先設定されている受信アカウント
+     *
+     * [shibafu.yukari.database.UserExtras.priorityAccount] に基づいて設定される。
+     */
+    var prioritizedUser: AuthUserRecord?
+
+    /**
+     * 代表受信アカウント
+     *
+     * [preferredOwnerUser] および [prioritizedUser] を考慮して、操作用のアカウントを返す。
+     * ステータスのサーバーローカル情報とは関係のないアカウントが返される可能性もあるため、APIリクエストの際には改めてIDの問い合わせが必要となる場合もある。
+     */
+    val representUser: AuthUserRecord
+        get() {
+            preferredOwnerUser?.let { return it }
+            prioritizedUser?.let { return it }
+            return receiverUser
+        }
 
     /**
      * 同一のステータスを受信した全てのアカウント
      */
-    var receivedUsers: MutableList<AuthUserRecord>
+    val receivedUsers: List<AuthUserRecord>
+        get() = sequence {
+            preferredOwnerUser?.let { yield(it) }
+            prioritizedUser?.let { yield(it) }
+            yield(receiverUser)
+        }.distinct().toList()
 
     /**
      * 自分にとってどのような関係性のあるメッセージか判断
@@ -142,11 +172,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     fun setRepresentIfOwned(userRecords: List<AuthUserRecord>) {
         userRecords.forEach { userRecord ->
             if (providerApiType == userRecord.Provider.apiType && originStatus.user.url == userRecord.Url) {
-                representUser = userRecord
-                representOverrode = true
-                if (!receivedUsers.contains(userRecord)) {
-                    receivedUsers.add(userRecord)
-                }
+                preferredOwnerUser = userRecord
                 return
             }
         }
@@ -182,72 +208,6 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
      * 指定したアカウントで、このステータスをお気に入りできるか？
      */
     fun canFavorite(userRecord: AuthUserRecord): Boolean = false
-
-    /**
-     * 同じ内容を指す、より新しい別インスタンスの情報と比較してなるべく最新かつ情報の完全性が高いインスタンスを返す
-     */
-    fun merge(status: Status): Status {
-        if (this === status) {
-            return this
-        }
-
-        if (this != status || this.providerApiType != status.providerApiType) {
-            throw IllegalArgumentException("マージは両インスタンスがEqualsかつAPI Typeが揃っていないと実行できません。this[URL=$url, API=$providerApiType] : args[URL=${status.url}, API=${status.providerApiType}]")
-        }
-
-        favoritesCount = status.favoritesCount
-        repostsCount = status.repostsCount
-
-        status.receivedUsers.forEach { userRecord ->
-            if (!receivedUsers.contains(userRecord)) {
-                receivedUsers.add(userRecord)
-            }
-            if (status.metadata.favoritedUsers.get(userRecord.InternalId)) {
-                metadata.favoritedUsers.put(userRecord.InternalId, true)
-            }
-        }
-        status.receivedUsers = receivedUsers
-        status.metadata.favoritedUsers = metadata.favoritedUsers
-
-        // 代表アカウントの再決定
-        /*
-         * 代表アカウントは次の優先順位で決定する。
-         *
-         * 1. Statusの所有者 (originStatus.user本人)
-         * 2. 優先設定されたアカウント
-         * 3. Mentionsで指名されたアカウント (Mentions内に所有するアカウントが複数ある場合、Mentions内でindexが一番若いアカウント)
-         * 4. プライマリアカウント
-         * 5. その他のアカウント
-         *
-         * このうち、1〜2については「高優先度判定」としてここでは取り扱わない。
-         * (外部で決定し、その際にrepresentOverrodeフラグを設定することでマージ時の代表再決定をスキップする)
-         *
-         * 3〜5については、マージ対象となる2つのStatus双方のreceivedUsersを先にマージし、そこに含まれるアカウント間で決定する。
-         */
-        if (!representOverrode && status.representOverrode) {
-            representOverrode = true
-            representUser = status.representUser
-        } else if (representOverrode && !status.representOverrode) {
-            status.representOverrode = true
-            status.representUser = representUser
-        } else if (!representOverrode && !status.representOverrode) {
-            // メンションを受けているアカウントがあれば、そのアカウントで上書き
-            val mentioned = mentions.mapNotNull { mention -> receivedUsers.firstOrNull(mention::isMentionedTo) }.firstOrNull()
-            if (mentioned != null) {
-                representUser = mentioned
-                status.representUser = mentioned
-            } else {
-                // 受信アカウントの中にプライマリアカウントがいれば、そのアカウントで上書き
-                val primary = receivedUsers.firstOrNull { it.isPrimary }
-                if (primary != null) {
-                    representUser = primary
-                    status.representUser = primary
-                }
-            }
-        }
-
-        return this
-    }
 
     /**
      * ShareTwitterOnTumblr形式に変換する
@@ -288,9 +248,7 @@ interface Status : Comparable<Status>, Serializable, Cloneable {
     }
 
     public override fun clone(): Status {
-        val s = super.clone() as Status
-        s.receivedUsers = ArrayList(receivedUsers)
-        return s
+        return super.clone() as Status
     }
 
     fun getTextWithoutMentions(): String {

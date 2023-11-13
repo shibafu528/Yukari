@@ -38,12 +38,6 @@ class Bookmark private constructor(val twitterStatus: TwitterStatus, private val
         return twitterStatus.hashCode()
     }
 
-    // あえてoverrideしておかないとdelegateされてバグる
-    @Suppress("RedundantOverride")
-    override fun merge(status: Status): Status {
-        return super.merge(status)
-    }
-
     override fun getContentValues(): ContentValues {
         val values = ContentValues()
         values.put(CentralDatabase.COL_BOOKMARKS_ID, twitterStatus.id)
