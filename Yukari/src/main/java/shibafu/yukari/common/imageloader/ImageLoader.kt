@@ -11,6 +11,7 @@ import android.widget.ImageView
 import androidx.annotation.NonUiContext
 import androidx.core.os.HandlerCompat
 import androidx.preference.PreferenceManager
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import shibafu.yukari.R
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.BitmapCache.CacheKey
@@ -288,9 +289,9 @@ class ImageLoaderTask(
         private val numberOfCores = Runtime.getRuntime().availableProcessors()
 
         /** 通常使用するExecutor */
-        val imageExecutor: ExecutorService = Executors.newFixedThreadPool(numberOfCores)
+        val imageExecutor: ExecutorService = Executors.newFixedThreadPool(numberOfCores, ThreadFactoryBuilder().setNameFormat("ImageLoader-i%d").build())
         /** プロフィール画像取得タスク専用のExecutor */
-        val profileIconExecutor: ExecutorService = Executors.newFixedThreadPool(4)
+        val profileIconExecutor: ExecutorService = Executors.newFixedThreadPool(4, ThreadFactoryBuilder().setNameFormat("ImageLoader-p%d").build())
 
         private val mainThreadHandler = HandlerCompat.createAsync(Looper.getMainLooper())
     }

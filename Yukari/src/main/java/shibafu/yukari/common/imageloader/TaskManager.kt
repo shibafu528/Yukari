@@ -1,6 +1,7 @@
 package shibafu.yukari.common.imageloader
 
 import android.graphics.Bitmap
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.BitmapCache.CacheKey
 import java.util.concurrent.ConcurrentHashMap
@@ -9,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 object TaskManager {
     private val tasks = ConcurrentHashMap<TaskKey, TaskState>()
-    private val evictExecutor = Executors.newSingleThreadScheduledExecutor()
+    private val evictExecutor = Executors.newSingleThreadScheduledExecutor(ThreadFactoryBuilder().setNameFormat("ImageLoader-e%d").build())
 
     fun subscribe(task: ImageLoaderTask) {
         tasks.getOrPut(task.key) { TaskState(task) }.subscribe(task)
