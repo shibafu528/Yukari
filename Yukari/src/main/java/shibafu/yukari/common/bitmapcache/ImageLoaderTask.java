@@ -52,7 +52,7 @@ public final class ImageLoaderTask {
 
                     @Override
                     public void onFailure(@NonNull Throwable e) {}
-                }, null, null);
+                });
     }
 
     public interface DrawableLoaderCallback {
