@@ -3,11 +3,14 @@ package shibafu.yukari.linkage
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.SystemClock
 import android.preference.PreferenceManager
 import android.util.Log
 import androidx.collection.LongSparseArray
-import shibafu.yukari.common.async.ParallelAsyncTask
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import shibafu.yukari.database.AuthUserRecord
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 /**
  * 非同期RESTリクエストの受付とAPI呼出の一元管理
@@ -17,8 +20,10 @@ class StatusLoader(private val context: Context,
                    private val apiClientFactory: (AuthUserRecord) -> Any?) {
     private val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    private val executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors(), ThreadFactoryBuilder().setNameFormat("StatusLoader-%d").build())
+
     /** 実行中の非同期RESTリクエスト */
-    private val workingRequests: LongSparseArray<ParallelAsyncTask<Void?, Void?, Void?>> = LongSparseArray()
+    private val workingRequests: LongSparseArray<Future<Unit>> = LongSparseArray()
 
     /**
      * 非同期RESTリクエストを開始します。
@@ -33,21 +38,18 @@ class StatusLoader(private val context: Context,
                          userRecord: AuthUserRecord,
                          query: RestQuery,
                          params: RestQuery.Params): Long {
-        val taskKey = System.currentTimeMillis()
-        val task = object : ParallelAsyncTask<Void?, Void?, Void?>() {
-            private var exception: RestQueryException? = null
-
-            override fun doInBackground(vararg p: Void?): Void? {
+        val taskKey = SystemClock.elapsedRealtime()
+        val future = executor.submit<Unit> {
+            try {
                 Log.d("StatusLoader", String.format("Begin AsyncREST: @%s - %s -> %s", userRecord.ScreenName, timelineId, query.javaClass.name))
 
-                val api = apiClientFactory(userRecord) ?: return null
-
                 try {
+                    val api = apiClientFactory(userRecord) ?: return@submit
                     params.limitCount = REQUEST_COUNT_NORMAL
 
                     val responseList = query.getRestResponses(userRecord, api, params)
 
-                    if (isCancelled) return null
+                    if (Thread.interrupted()) throw InterruptedException()
 
                     // StreamManagerに流す
                     for (status in responseList) {
@@ -57,28 +59,17 @@ class StatusLoader(private val context: Context,
                     Log.d("StatusLoader", String.format("Received REST: @%s - %s - %d statuses", userRecord.ScreenName, timelineId, responseList.size))
                 } catch (e: RestQueryException) {
                     e.printStackTrace()
-                    exception = e
+                    timelineHub.onRestRequestFailure(timelineId, taskKey, e)
                 } finally {
                     timelineHub.onRestRequestSuccess(timelineId, taskKey)
                 }
-
-                return null
-            }
-
-            override fun onPostExecute(result: Void?) {
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            } finally {
                 workingRequests.remove(taskKey)
-                this.exception?.let {
-                    timelineHub.onRestRequestFailure(timelineId, taskKey, it)
-                }
-            }
-
-            override fun onCancelled() {
-                workingRequests.remove(taskKey)
-                timelineHub.onRestRequestCancelled(timelineId, taskKey)
             }
         }
-        task.executeParallel()
-        workingRequests.put(taskKey, task)
+        workingRequests.put(taskKey, future)
         Log.d("StatusManager", String.format("Requested REST: @%s - %s", userRecord.ScreenName, timelineId))
 
         return taskKey
