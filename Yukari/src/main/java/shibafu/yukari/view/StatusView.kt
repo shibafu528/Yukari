@@ -29,6 +29,7 @@ import shibafu.yukari.activity.PreviewActivity2
 import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.common.imageloader.ImageLoader
 import shibafu.yukari.database.UserExtras
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.TimelineHubImpl
@@ -215,9 +216,7 @@ abstract class StatusView : RelativeLayout {
         val status = status ?: return
         val user = status.originStatus.user
 
-        if (ivIcon.tag == null || ivIcon.tag != user.biggerProfileImageUrl) {
-            ImageLoaderTask.loadProfileIcon(context, ivIcon, user.biggerProfileImageUrl)
-        }
+        ImageLoader.loadProfileIcon(context, user, true).toImageView(ivIcon)
 
         val onTouchProfileImageIconListener = onTouchProfileImageIconListener
         if (onTouchProfileImageIconListener != null) {
@@ -275,9 +274,7 @@ abstract class StatusView : RelativeLayout {
                 setBackgroundResource(bgRetweetResId)
 
                 ivRetweeterIcon.visibility = View.VISIBLE
-                ImageLoaderTask.loadProfileIcon(context,
-                        ivRetweeterIcon,
-                        status.user.biggerProfileImageUrl)
+                ImageLoader.loadProfileIcon(context, status.user, true).toImageView(ivRetweeterIcon)
             } else {
                 ivRetweeterIcon.visibility = View.INVISIBLE
                 ivRetweeterIcon.setImageDrawable(ColorDrawable(Color.TRANSPARENT))
