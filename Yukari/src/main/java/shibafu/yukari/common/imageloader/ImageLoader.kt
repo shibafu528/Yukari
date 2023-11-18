@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Looper
+import android.util.Log
 import android.widget.ImageView
 import androidx.annotation.NonUiContext
 import androidx.core.os.HandlerCompat
@@ -13,6 +14,7 @@ import androidx.preference.PreferenceManager
 import shibafu.yukari.R
 import shibafu.yukari.common.bitmapcache.BitmapCache
 import shibafu.yukari.common.bitmapcache.BitmapCache.CacheKey
+import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.User
 import shibafu.yukari.media2.Media
 import shibafu.yukari.util.BitmapUtil
@@ -33,6 +35,9 @@ object ImageLoader {
         preferBiggerImage -> load(context, user.biggerProfileImageUrl)
         else -> load(context, user.profileImageUrl)
     }.setCacheKey(user.url!!).setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
+
+    fun loadProfileIcon(@NonUiContext context: Context, user: AuthUserRecord) =
+        load(context, user.ProfileImageUrl).setCacheKey(user.Url).setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
 }
 
 enum class ResolveMode {
@@ -117,12 +122,7 @@ class ImageLoaderTaskBuilder {
         }
 
         onQueue?.invoke()
-        val task = ImageLoaderTask(context, url, media, resolveMode, cacheGroup, cacheKey, mosaic, onDownloadStart, onFinish)
-        if (cacheGroup == BitmapCache.PROFILE_ICON_CACHE) {
-            ImageLoaderTask.profileIconExecutor.execute(task) // TODO: submitならFutureが返る そっちを使うべきか?
-        } else {
-            ImageLoaderTask.imageExecutor.execute(task)
-        }
+        TaskManager.subscribe(ImageLoaderTask(context, url, media, resolveMode, cacheGroup, cacheKey, mosaic, onDownloadStart, onFinish))
     }
 
     fun asBitmap(onFinish: ImageLoaderResultCallback<Bitmap>, onQueue: (() -> Unit)?, onDownloadStart: (() -> Unit)?) {
@@ -189,9 +189,27 @@ class ImageLoaderTask(
     @CacheKey private val cacheGroup: String,
     private val cacheKey: String,
     private val mosaic: Boolean,
-    private val onDownloadStart: (() -> Unit)?,
-    private val onFinish: (result: Result<Bitmap>) -> Unit,
+    internal val onDownloadStart: (() -> Unit)?,
+    internal val onFinish: (result: Result<Bitmap>) -> Unit,
 ) : Runnable {
+    constructor(
+        copyFrom: ImageLoaderTask,
+        onDownloadStart: (() -> Unit)?,
+        onFinish: (result: Result<Bitmap>) -> Unit
+    ) : this(
+        copyFrom.context,
+        copyFrom.url,
+        copyFrom.media,
+        copyFrom.resolveMode,
+        copyFrom.cacheGroup,
+        copyFrom.cacheKey,
+        copyFrom.mosaic,
+        onDownloadStart,
+        onFinish
+    )
+
+    val key = TaskKey(cacheGroup, cacheKey, mosaic)
+
     override fun run() {
         try {
             val image = load()
@@ -220,6 +238,8 @@ class ImageLoaderTask(
 
     private fun fetch(): Bitmap? {
         onDownloadStart?.let { callback -> mainThreadHandler.post(callback) }
+
+        Log.d("ImageLoaderTask", "[download] ${key.hashCode()} $cacheGroup m=$mosaic : $cacheKey")
 
         var resolveInfo: Media.ResolveInfo? = null
         val inputStream = if (media == null) {
@@ -254,6 +274,8 @@ class ImageLoaderTask(
             if (image != null) {
                 BitmapCache.putImage(cacheKey, image, context, cacheGroup, !mosaic, true)
             }
+
+            Log.d("ImageLoaderTask", "[finish  ] ${key.hashCode()} $cacheGroup m=$mosaic : $cacheKey")
 
             return image
         } finally {
