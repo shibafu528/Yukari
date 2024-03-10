@@ -62,7 +62,12 @@ public class CacheCleanerService extends JobIntentService {
             expirations.addAll(findExpirationCaches(new File(cacheRoot, categories[i]), limits[i] * 1024 * 1024));
         }
         File[] tmpFiles = getExternalCacheDir().listFiles((dir, filename) -> filename.endsWith(".tmp"));
-        expirations.addAll(Arrays.asList(tmpFiles));
+        long currentTimeMillis = System.currentTimeMillis();
+        for (File tmpFile : tmpFiles) {
+            if (tmpFile.lastModified() < currentTimeMillis - 86400000) {
+                expirations.add(tmpFile);
+            }
+        }
 
         for (File f : expirations) {
             Log.d("CacheCleanerService", "Deleting: " + f.getAbsolutePath());
