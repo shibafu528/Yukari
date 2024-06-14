@@ -62,7 +62,7 @@ ext {
 
     y4aVersionMajor = 3
     y4aVersionMinor = 1
-    y4aVersionPatch = 6
+    y4aVersionPatch = 7
     y4aVersionSuffix = ''
     y4aCodeName = 'mirage'
 
