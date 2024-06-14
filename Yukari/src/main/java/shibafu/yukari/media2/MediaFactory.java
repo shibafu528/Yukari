@@ -56,7 +56,7 @@ public class MediaFactory {
                 }
             } else if (browseUrl.contains("nico.ms/im") || browseUrl.contains("seiga.nicovideo.jp/seiga/im") || browseUrl.contains("sp.seiga.nicovideo.jp/seiga/#!/im")) {
                 media = new NicoSeiga(browseUrl);
-            } else if ((browseUrl.contains("www.nicovideo.jp/watch") || browseUrl.contains("nico.ms/") || browseUrl.contains("sp.nicovideo.jp/watch"))
+            } else if ((browseUrl.contains("www.nicovideo.jp/watch/") || browseUrl.contains("nico.ms/") || browseUrl.contains("sp.nicovideo.jp/watch/"))
                     && (browseUrl.contains("/sm") || browseUrl.contains("/nm"))) {
                 media = new NicoVideo(browseUrl);
             } else if (browseUrl.contains("nijie.info/view.php")) {
