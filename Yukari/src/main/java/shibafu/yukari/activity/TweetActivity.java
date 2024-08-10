@@ -415,21 +415,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 defaultText = args.getStringExtra(Intent.EXTRA_TITLE) + " " + defaultText;
             } else if (args.hasExtra(Intent.EXTRA_SUBJECT)) {
                 String subject = args.getStringExtra(Intent.EXTRA_SUBJECT);
-                if (subject != null) {
-                    boolean insertSubject = true;
 
-                    // 「スクショ共有の本文を削除」オプションの判定
-                    if (sp.getBoolean("pref_remove_screenshot_subject", false) && subject.startsWith("Screenshot (")) {
-                        insertSubject = false;
-                    }
-                    // EXTRA_TEXTと内容が完全に被るなら要らない
-                    if (defaultText != null && defaultText.contains(subject)) {
-                        insertSubject = false;
-                    }
+                // 「スクショ共有の本文を削除」オプションの判定
+                // dataString = null, EXTRA_SUBJECT = "Screenshot (...)" の時と、
+                // dataString = "content://media/...", EXTRA_SUBJECT = "Screenshot (...)" の時がある
+                // EXTRA_SUBJECTで対象かどうかを判定し、両方を破棄する (どっちの情報も共有時には重要でないので)
+                if (subject != null && sp.getBoolean("pref_remove_screenshot_subject", false) && subject.startsWith("Screenshot (")) {
+                    defaultText = null;
+                    subject = null;
+                }
 
-                    if (insertSubject) {
-                        defaultText = subject + " " + defaultText;
-                    }
+                // EXTRA_TEXTに全く同じ内容が入っていない時だけ、EXTRA_SUBJECTを挿入する
+                // see: https://github.com/shibafu528/Yukari/issues/202
+                if (subject != null && (defaultText == null || !defaultText.contains(subject))) {
+                    defaultText = subject + " " + defaultText;
                 }
             }
         } else {
