@@ -1560,8 +1560,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void attachPicture(Uri uri) {
-        // file:// か content://media/ 以外はきちんと扱えるか信用ならないのでコピーを取り、そちらを使うようにする
-        if (!"file".equals(uri.getScheme()) && !("content".equals(uri.getScheme()) && "media".equals(uri.getHost()))) {
+        // 得られたURIは一時的にしかアクセスできないことが多いので、コピーを取って投稿完了 or 下書き削除までの間保持する
+        {
             InputStream input = null;
             OutputStream output = null;
             try {
