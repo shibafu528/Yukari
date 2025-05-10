@@ -63,6 +63,14 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                         null))
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
+            Action("本文をコピー") {
+                val cm = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("", status.originStatus.text))
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    showToast("本文をコピーしました")
+                }
+            } visibleWhen { status.originStatus.text.isNotEmpty() },
+
             Action("パーマリンクをコピー") {
                 val cm = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 cm.setPrimaryClip(ClipData.newPlainText("", status.originStatus.url))
