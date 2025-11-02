@@ -7,7 +7,6 @@ Mastodon client for Android
 * Mastodonの閲覧、投稿、ストリーミングAPIを使用したリアルタイムな受信
 * マルチアカウントの集約運用を考慮した統合型タイムライン
 * カスタマイズ可能なトゥート抽出機能
-* [mruby](https://github.com/mruby/mruby)と[Pluggaloid](https://github.com/toshia/pluggaloid)を使用した、Rubyで書けるプラグインシステム
 * ＼ﾕｯｶﾘｰﾝ／
 
 ## 目的・目標
