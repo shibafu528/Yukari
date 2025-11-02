@@ -7,9 +7,6 @@ import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.widget.Toast;
-import info.shibafu528.yukari.exvoice.MRubyException;
-import info.shibafu528.yukari.exvoice.ProcWrapper;
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import org.jetbrains.annotations.NotNull;
 import shibafu.yukari.activity.CommandsPrefActivity;
 import shibafu.yukari.activity.ConfigActivity;
@@ -187,45 +184,6 @@ public class TweetPreprocessor {
     public static String preprocess(@NotNull TweetPreprocessorDepends depends, @Nullable String input) {
         if (input != null && input.startsWith("::")) {
             String command = input.split(" ")[0];
-            // プラグインからマッチング
-            if (depends.getActivity().isTwitterServiceBound()) {
-                TwitterService service = depends.getActivity().getTwitterService();
-                if (service != null && service.getPluggaloid() != null) {
-                    // プラグインからコマンドを取得
-                    try {
-                        Object[] result = Plugin.filtering(service.getPluggaloid().getmRuby(), "post_command", new LinkedHashMap());
-                        if (result != null && result[0] instanceof Map) {
-                            Map commands = (Map) result[0];
-
-                            // マッチするコマンドがあればProcを実行
-                            Object proc = commands.get(command.replaceFirst("^::", ""));
-                            try {
-                                if (proc != null && proc instanceof ProcWrapper) {
-                                    return (String) ((ProcWrapper) proc).exec(input.replace(command, "").trim());
-                                }
-                            } catch (MRubyException e) {
-                                e.printStackTrace();
-                                Toast.makeText(depends.getActivity().getApplicationContext(),
-                                        String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()),
-                                        Toast.LENGTH_LONG).show();
-                                return input;
-                            } finally {
-                                for (Object procWrapper : commands.values()) {
-                                    if (procWrapper instanceof ProcWrapper) {
-                                        ((ProcWrapper) procWrapper).dispose();
-                                    }
-                                }
-                            }
-                        }
-                    } catch (MRubyException e) {
-                        e.printStackTrace();
-                        Toast.makeText(depends.getActivity().getApplicationContext(),
-                                String.format("プラグインの呼び出し中にMRuby上で例外が発生しました\n%s", e.getMessage()),
-                                Toast.LENGTH_LONG).show();
-                        return input;
-                    }
-                }
-            }
             // ビルトインプリプロセッサからマッチング
             TweetPreprocessorAction action = COMMANDS.get(command);
             if (action != null) {

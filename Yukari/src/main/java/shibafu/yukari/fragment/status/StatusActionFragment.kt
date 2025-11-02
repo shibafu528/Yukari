@@ -17,10 +17,6 @@ import androidx.fragment.app.DialogFragment
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
-import info.shibafu528.yukari.exvoice.MRubyException
-import info.shibafu528.yukari.exvoice.ProcWrapper
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import shibafu.yukari.R
 import shibafu.yukari.activity.MastodonReportActivity
 import shibafu.yukari.activity.MuteActivity
@@ -172,15 +168,6 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
     }
 
     override fun onStop() {
-        // Pluggaloidアクションのアンロード
-        itemList.forEach {
-            if (it is PluggaloidPluginAction) {
-                it.dispose()
-            }
-        }
-        itemList = itemList.filterNot { it is PluggaloidPluginAction }
-        isLoadedPluggaloid = false
-
         super.onStop()
     }
 
@@ -219,39 +206,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
-    override fun onServiceConnected() {
-        // Pluggaloidアクションのロード
-        if (!isLoadedPluggaloid) {
-            val status = status.originStatus
-            val mRuby = twitterService?.pluggaloid?.getmRuby()
-            val pluggaloidActions: List<PluggaloidPluginAction> =
-                    if (status is PluginApplicable && status.isApplicablePlugin && mRuby != null) {
-                        val plugins = try {
-                            Plugin.filtering(mRuby, "twicca_action_show_tweet", HashMap<Any?, Any?>()).firstOrNull()
-                        } catch (e: MRubyException) {
-                            e.printStackTrace()
-                            showToast("プラグインの呼び出し中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
-                            null
-                        }
-                        if (plugins != null && plugins is Map<*, *>) {
-                            plugins.entries.mapNotNull {
-                                if (it.key is String && it.value is Map<*, *>) {
-                                    PluggaloidPluginAction(it.value as Map<*, *>)
-                                } else {
-                                    null
-                                }
-                            }
-                        } else {
-                            emptyList()
-                        }
-                    } else {
-                        emptyList()
-                    }
-            itemList += pluggaloidActions
-            listAdapter = ArrayAdapter<StatusAction>(requireActivity(), android.R.layout.simple_list_item_1, itemList)
-            isLoadedPluggaloid = true
-        }
-    }
+    override fun onServiceConnected() {}
 
     override fun onServiceDisconnected() {}
 
@@ -318,49 +273,6 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             } catch (e: ActivityNotFoundException) {
                 showToast("プラグインの起動に失敗しました\nアプリが削除されましたか？")
             }
-        }
-    }
-
-    /**
-     * Pluggaloid Pluginとの相互運用コマンドクラス
-     */
-    private inner class PluggaloidPluginAction(args: Map<*, *>) : StatusAction() {
-        val slug: String = args["slug"]?.toString() ?: "missing_slug"
-        val exec: ProcWrapper? = args["exec"] as? ProcWrapper
-        override val label: String = args["label"]?.toString() ?: slug
-
-        override fun onClick() {
-            if (exec != null) {
-                val status = this@StatusActionFragment.status
-
-                val extra = mapOf<String, String>(
-                        "url" to status.url.orEmpty(),
-                        "id" to status.id.toString(),
-                        "created_at" to status.createdAt.time.toString(),
-                        "user_screen_name" to status.user.screenName,
-                        "user_name" to status.user.name,
-                        "user_id" to status.user.id.toString(),
-                        "user_profile_image_url" to status.user.profileImageUrl,
-                        "user_profile_image_url_mini" to status.user.profileImageUrl,
-                        "user_profile_image_url_normal" to status.user.profileImageUrl,
-                        "user_profile_image_url_bigger" to status.user.biggerProfileImageUrl,
-                        "in_reply_to_status_id" to status.inReplyToId.toString(),
-                        "source" to status.source,
-                        "text" to status.text
-                )
-                try {
-                    exec.exec(extra)
-                } catch (e: MRubyException) {
-                    e.printStackTrace()
-                    showToast("Procの実行中にMRuby上で例外が発生しました\n${e.message}", Toast.LENGTH_LONG)
-                }
-            } else {
-                showToast("Procの実行に失敗しました\ntwicca_action :$slug の宣言で適切なブロックを渡していますか？")
-            }
-        }
-
-        fun dispose() {
-            exec?.dispose()
         }
     }
 

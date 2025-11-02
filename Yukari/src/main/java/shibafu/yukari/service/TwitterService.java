@@ -41,7 +41,6 @@ import shibafu.yukari.linkage.TimelineHub;
 import shibafu.yukari.linkage.TimelineHubProvider;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.MastodonStream;
-import shibafu.yukari.plugin.Pluggaloid;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.MissingTwitterInstanceException;
 import shibafu.yukari.twitter.TwitterProvider;
@@ -70,9 +69,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
             return TwitterService.this;
         }
     }
-
-    //Pluggaloid
-    private Pluggaloid pluggaloid;
 
     //ネットワーク管理
     private final LongSparseArray<ArrayMap<String, Boolean>> connectivityFlags = new LongSparseArray<>();
@@ -174,12 +170,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_CONNECTED));
         registerReceiver(streamConnectivityListener, new IntentFilter(ACTION_STREAM_DISCONNECTED));
 
-        // MRuby
-        if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("pref_enable_exvoice", false)) {
-            pluggaloid = new Pluggaloid(getApplicationContext());
-            getTimelineHub().attachPluggaloid(pluggaloid);
-        }
-
         // イベント購読
         LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
         broadcastManager.registerReceiver(userReloadListener, new IntentFilter(AccountManager.ACTION_RELOADED_USERS));
@@ -202,11 +192,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
         broadcastManager.unregisterReceiver(userReloadListener);
 
         unregisterReceiver(streamConnectivityListener);
-
-        if (pluggaloid != null) {
-            getTimelineHub().detachPluggaloid(pluggaloid);
-            pluggaloid.close();
-        }
 
         // TODO: 消したい。たぶんいらない気がする。
         getStatusLoader().cancelAll();
@@ -282,11 +267,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     @Deprecated
     private UserExtrasManager getUserExtrasManager() {
         return App.getInstance(this).getUserExtrasManager();
-    }
-
-    @Nullable
-    public Pluggaloid getPluggaloid() {
-        return pluggaloid;
     }
 
     //<editor-fold desc="AccountManager delegates">

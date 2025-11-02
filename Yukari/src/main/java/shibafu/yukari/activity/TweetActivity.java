@@ -61,9 +61,6 @@ import com.google.gson.reflect.TypeToken;
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility;
 import com.twitter.Extractor;
 import info.shibafu528.gallerymultipicker.MultiPickerActivity;
-import info.shibafu528.yukari.exvoice.MRubyException;
-import info.shibafu528.yukari.exvoice.ProcWrapper;
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
@@ -88,8 +85,6 @@ import shibafu.yukari.linkage.ProviderApiException;
 import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
-import shibafu.yukari.plugin.Pluggaloid;
-import shibafu.yukari.plugin.PluggaloidLogger;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
@@ -1486,22 +1481,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                     .putString("pref_saved_tags", json)
                     .commit();
         }
-        // Pluggaloidプラグインの解放
-        if (isLoadedPluggaloid) {
-            int count = llTweetExtra.getChildCount();
-            for (int i = 0; i < count; i++) {
-                View child = llTweetExtra.getChildAt(i);
-                if (child != null) {
-                    Object tag = child.getTag();
-                    if (tag instanceof ProcWrapper) {
-                        ((ProcWrapper) tag).dispose();
-                        llTweetExtra.removeViewAt(i--);
-                        --count;
-                    }
-                }
-            }
-            isLoadedPluggaloid = false;
-        }
         super.onStop();
     }
 
@@ -1787,82 +1766,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             waitingSetDefaultVisibility = false;
         }
         updatePostValidator();
-
-        //Pluggaloidプラグインのバインド
-        Pluggaloid pluggaloid = getTwitterService().getPluggaloid();
-        if (pluggaloid != null && !isLoadedPluggaloid) {
-            PluggaloidLogger logger = pluggaloid.getLogger();
-            Object[] result = Plugin.filtering(pluggaloid.getmRuby(), "twicca_action_edit_tweet", new HashMap());
-            if (result != null && result[0] instanceof Map) {
-                ((Map) result[0]).values().stream().filter(o -> o instanceof Map).forEach(o -> {
-                    Map entry = (Map) o;
-                    final String slug = Optional.ofNullable((String) entry.get("slug")).orElse("missing_slug");
-                    final String label = Optional.ofNullable((String) entry.get("label")).orElse(slug);
-                    final ProcWrapper exec = (ProcWrapper) entry.get("exec");
-                    final LinearLayout.LayoutParams lpPluginButton = new LinearLayout.LayoutParams(
-                            getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_width),
-                            getResources().getDimensionPixelSize(R.dimen.tweet_plugin_button_height));
-                    {
-                        ImageButton imageButton = new AppCompatImageButton(this);
-                        imageButton.setImageResource(R.drawable.ic_launcher_tweet);
-                        imageButton.setTag(exec);
-                        imageButton.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        imageButton.setOnClickListener(v -> {
-                            Map<String, String> extra = new LinkedHashMap<>();
-
-                            String text = etInput.getText().toString();
-                            extra.put("text", text);
-
-                            TwiccaParameterHelper paramHelper = new TwiccaParameterHelper(text);
-                            extra.put("prefix", paramHelper.prefix);
-                            extra.put("suffix", paramHelper.suffix);
-                            extra.put("user_input", paramHelper.userInput);
-
-                            if (status != null) {
-                                extra.put("in_reply_to_status_id", String.valueOf(status.getId()));
-                            }
-                            extra.put("cursor", String.valueOf(etInput.getSelectionStart()));
-
-                            if (exec != null) {
-                                try {
-                                    Object r = exec.exec(extra);
-                                    if (r instanceof Map) {
-                                        Map rm = (Map) r;
-                                        String resultCode = (String) rm.get("result_code");
-                                        Map intent = (Map) rm.get("intent");
-                                        if ("ok".equals(resultCode) && intent != null) {
-                                            String t = (String) intent.get("text");
-                                            Integer cursor = (Integer) intent.get("cursor");
-                                            if (t != null) {
-                                                etInput.setText(t);
-                                            }
-                                            if (cursor != null) {
-                                                etInput.setSelection(cursor);
-                                            }
-                                        }
-                                    }
-                                } catch (MRubyException e) {
-                                    e.printStackTrace();
-                                    Toast.makeText(getApplicationContext(), "Procの実行中にMRuby上で例外が発生しました (詳細は標準出力ビューア)", Toast.LENGTH_LONG).show();
-                                    logger.log(String.format("Procの実行中にMRuby上で例外が発生しました\n%s", e.getMessage()));
-                                }
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Procの実行に失敗しました (詳細は標準出力ビューア)", Toast.LENGTH_LONG).show();
-                                logger.log(String.format("Procの実行に失敗しました。twicca_action :%s の宣言で適切なブロックを渡していますか？", slug));
-                            }
-                        });
-                        imageButton.setOnLongClickListener(v -> {
-                            Toast toast = Toast.makeText(TweetActivity.this, label, Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, -128);
-                            toast.show();
-                            return true;
-                        });
-                        llTweetExtra.addView(imageButton, lpPluginButton);
-                    }
-                });
-                isLoadedPluggaloid = true;
-            }
-        }
     }
 
     @Override

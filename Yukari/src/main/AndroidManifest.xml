@@ -265,10 +265,6 @@
                   android:label="@string/title_activity_query_editor"/>
 
         <activity
-            android:name=".activity.PluggaloidOutputActivity"
-            android:label="@string/title_activity_pluggaloid_output"/>
-
-        <activity
                 android:name=".activity.BackupActivity"
                 android:label="@string/title_activity_backup"/>
 

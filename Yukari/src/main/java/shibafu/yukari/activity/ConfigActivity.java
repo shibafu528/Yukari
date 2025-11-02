@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import com.takisoft.preferencex.PreferenceFragmentCompat;
 
-import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.AccountManager;
@@ -106,10 +105,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                     case "expert":
                         getActivity().setTitle("詳細設定");
                         addPreferencesFromResource(R.xml.pref_expert);
-                        break;
-                    case "plugin":
-                        getActivity().setTitle("プラグインエンジン (実験中)");
-                        addPreferencesFromResource(R.xml.pref_plugin);
                         break;
                     default:
                         throw new IllegalArgumentException("Illegal category extra: " + category);
@@ -236,14 +231,6 @@ public class ConfigActivity extends ActionBarYukariBase {
                             return true;
                         });
                         break;
-
-                    case "plugin": {
-                        String summaryText = "libexvoice.so (" + BuildInfo.getABI() + ") Build: " + BuildInfo.getBuildDateTime() +
-                                "\n  with " + BuildInfo.getMRubyDescription() + ",\n    " + BuildInfo.getMRubyCopyright();
-                        // exvoice version
-                        findPreference("pref_exvoice_version").setSummary(summaryText);
-                        break;
-                    }
                 }
             }
         }

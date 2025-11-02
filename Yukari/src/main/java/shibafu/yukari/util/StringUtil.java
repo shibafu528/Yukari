@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import androidx.annotation.Nullable;
-import info.shibafu528.yukari.exvoice.BuildInfo;
 import shibafu.yukari.R;
 
 import java.security.MessageDigest;
@@ -116,11 +115,6 @@ public class StringUtil {
             e.printStackTrace();
             sb.append(" unknown ver/");
         }
-        sb.append("exvoice ");
-        sb.append(BuildInfo.getABI());
-        sb.append("(");
-        sb.append(BuildInfo.getBuildDateTime());
-        sb.append(")/");
         sb.append(Build.MANUFACTURER);
         sb.append("/");
         sb.append(Build.MODEL);

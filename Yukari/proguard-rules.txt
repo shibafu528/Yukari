@@ -44,9 +44,6 @@
 # Yukari
 -keep class shibafu.yukari.** { *; }
 
-# Yukari exvoice
--keep class info.shibafu528.yukari.exvoice.** { *; }
-
 # Kotlin Coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}

@@ -7,7 +7,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 
-import info.shibafu528.yukari.exvoice.MRuby;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.databinding.ActivityQueryBinding;
 import shibafu.yukari.entity.MockStatus;
@@ -49,35 +48,20 @@ public class QueryEditorActivity extends ActionBarYukariBase {
             public void afterTextChanged(Editable s) {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
-                    if (s.toString().startsWith("#mrb\n")) {
-                        try {
-                            final StringBuilder sb = new StringBuilder();
-
-                            MRuby mrb = new MRuby(getApplicationContext());
-                            mrb.setPrintCallback(sb::append);
-                            mrb.loadString(s.toString());
-                            mrb.close();
-
-                            binding.tvStatus.setText("output => \n" + sb.toString());
-                        } catch (Exception e) {
-                            binding.tvStatus.setText(e.toString());
+                    try {
+                        List<AuthUserRecord> userRecords = null;
+                        if (isTwitterServiceBound() && getTwitterService() != null) {
+                            userRecords = getTwitterService().getUsers();
                         }
-                    } else {
-                        try {
-                            List<AuthUserRecord> userRecords = null;
-                            if (isTwitterServiceBound() && getTwitterService() != null) {
-                                userRecords = getTwitterService().getUsers();
-                            }
-                            if (userRecords == null) {
-                                userRecords = new ArrayList<>();
-                            }
-
-                            FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
-                            boolean result = q.evaluate(new MockStatus(0, userRecords.get(0)), new ArrayList<>(), new HashMap<>());
-                            binding.tvStatus.setText("OK. => " + result);
-                        } catch (FilterCompilerException | TokenizeException e) {
-                            binding.tvStatus.setText(e.toString());
+                        if (userRecords == null) {
+                            userRecords = new ArrayList<>();
                         }
+
+                        FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
+                        boolean result = q.evaluate(new MockStatus(0, userRecords.get(0)), new ArrayList<>(), new HashMap<>());
+                        binding.tvStatus.setText("OK. => " + result);
+                    } catch (FilterCompilerException | TokenizeException e) {
+                        binding.tvStatus.setText(e.toString());
                     }
                 }, 1500);
             }

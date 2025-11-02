@@ -6,7 +6,6 @@ import android.net.Uri
 import android.preference.PreferenceManager
 import androidx.collection.LongSparseArray
 import androidx.collection.LruCache
-import info.shibafu528.yukari.exvoice.pluggaloid.Plugin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -24,11 +23,9 @@ import shibafu.yukari.entity.NotifyKind
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.User
 import shibafu.yukari.mastodon.entity.DonNotification
-import shibafu.yukari.plugin.Pluggaloid
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterMessage
 import shibafu.yukari.twitter.entity.TwitterStatus
-import shibafu.yukari.util.StatusConverter
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.putDebugLog
 import twitter4j.Twitter
@@ -60,8 +57,6 @@ class TimelineHubImpl(context: Context,
 
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
     private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
-
-    private var pluggaloid: Pluggaloid? = null
 
     /**
      * オートミュート設定のインポート
@@ -126,18 +121,6 @@ class TimelineHubImpl(context: Context,
                     eventQueues[observer.timelineId] = LinkedBlockingQueue<TimelineEvent>()
                 }
             }
-        }
-    }
-
-    override fun attachPluggaloid(pluggaloid: Pluggaloid) {
-        if (this.pluggaloid == null) {
-            this.pluggaloid = pluggaloid
-        }
-    }
-
-    override fun detachPluggaloid(pluggaloid: Pluggaloid) {
-        if (this.pluggaloid == pluggaloid) {
-            this.pluggaloid = null
         }
     }
 
@@ -256,19 +239,6 @@ class TimelineHubImpl(context: Context,
             if (status.status.quotedStatus != null) {
                 val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
                 putStatusCache(quotedStatus)
-            }
-
-            // mruby連携
-            if (sp.getBoolean("pref_exvoice_experimental_on_appear", false)) {
-                val mRuby = pluggaloid?.getmRuby()
-                if (mRuby != null) {
-                    val message = StatusConverter.toMessage(mRuby, status.status)
-                    try {
-                        Plugin.call(mRuby, "appear", arrayOf(message))
-                    } finally {
-                        message.dispose()
-                    }
-                }
             }
         }
 

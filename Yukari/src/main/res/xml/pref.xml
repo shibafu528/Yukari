@@ -93,16 +93,6 @@
         </intent>
     </Preference>
 
-    <Preference android:title="プラグインエンジン (実験中)">
-        <intent
-            android:targetPackage="@string/applicationId"
-            android:targetClass="shibafu.yukari.activity.ConfigActivity">
-            <extra
-                android:name="category"
-                android:value="plugin"/>
-        </intent>
-    </Preference>
-
     <PreferenceCategory android:title="アプリについて">
         <Preference android:key="pref_about_version" android:title="@string/app_long_name">
             <intent
