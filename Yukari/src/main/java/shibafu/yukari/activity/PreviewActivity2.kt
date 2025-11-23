@@ -26,9 +26,13 @@ import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import permissions.dispatcher.*
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
+import shibafu.yukari.common.okhttp.UserAgentInterceptor
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.Status
 import shibafu.yukari.media2.Media
@@ -38,6 +42,7 @@ import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.getTwitterServiceAwait
+import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.showToast
 import shibafu.yukari.view.StatusView
 import shibafu.yukari.view.TweetView
@@ -366,12 +371,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         private fun loadImage(state: ImageViewState?) = launch {
             val context = requireContext()
             val url = uri.toString()
-
             val media = MediaFactory.newInstance(url)
-            if (media == null) {
-                showToast("画像の読み込みに失敗しました", Toast.LENGTH_LONG)
-                return@launch
-            }
 
             val file: File? = async(Dispatchers.IO) {
                 // キャッシュディレクトリを取得
@@ -383,16 +383,16 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
 
                 // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
                 // 1日以上経過している場合はダウンロードを行う
-                // キャッシュディレクトリにファイルが無い場合、もしくはキャッシュが保存されてから
-                // 1日以上経過している場合はダウンロードを行う
                 if (!cacheFile.exists() || cacheFile.lastModified() < System.currentTimeMillis() - DateUtils.DAY_IN_MILLIS) {
                     val input: InputStream
                     val beginTime: Long
                     var contentLength: Int = -1
+                    var response: Response? = null
                     var resolveInfo: Media.ResolveInfo? = null
 
                     // Open
-                    if (url.startsWith("content://") || url.startsWith("file://")) {
+                    if (url.startsWith("content://") || url.startsWith("file://")) { // ローカルファイル
+                        putDebugLog("[PreviewActivity2] load from ContentProvider or local filesystem")
                         try {
                             input = context.contentResolver.openInputStream(Uri.parse(url)) ?: return@async null
                             beginTime = System.currentTimeMillis()
@@ -400,7 +400,8 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                             e.printStackTrace()
                             return@async null
                         }
-                    } else if (isDMImage(url)) {
+                    } else if (isDMImage(url)) { // DM添付画像 (Twitter)
+                        putDebugLog("[PreviewActivity2] load from Twitter DM")
                         val service = getTwitterServiceAwait() ?: return@async null
                         input = try {
                             val twitter: Twitter = service.getTwitterOrThrow(user)
@@ -410,7 +411,8 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                             return@async null
                         }
                         beginTime = System.currentTimeMillis()
-                    } else {
+                    } else if (media != null) { // MediaFactoryで解決できたリモートの画像
+                        putDebugLog("[PreviewActivity2] load from remote via media2.Media")
                         try {
                             resolveInfo = media.resolveMedia()
                             contentLength = resolveInfo.contentLength
@@ -420,6 +422,28 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                             e.printStackTrace()
                             return@async null
                         }
+                    } else if (url.startsWith("https://") || url.startsWith("http://")) { // MediaFactoryで解決できなかったリモートの画像
+                        putDebugLog("[PreviewActivity2] load from remote via okhttp")
+                        val http = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(context)).build()
+                        try {
+                            response = http.newCall(Request.Builder().url(url).build()).execute()
+                            if (!response.isSuccessful || !response.header("Content-Type").orEmpty().startsWith("image/")) {
+                                response.close()
+                                return@async null
+                            }
+                            val body = response.body() ?: run {
+                                response.close()
+                                return@async null
+                            }
+                            contentLength = if (body.contentLength() <= Int.MAX_VALUE) { body.contentLength().toInt() } else { -1 }
+                            input = body.byteStream()
+                            beginTime = System.currentTimeMillis()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                            return@async null
+                        }
+                    } else {
+                        return@async null
                     }
 
                     // Download
@@ -448,6 +472,9 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                     } finally {
                         try {
                             input.close()
+                        } catch (ignore: IOException) {}
+                        try {
+                            response?.close()
                         } catch (ignore: IOException) {}
                         resolveInfo?.dispose()
                     }
