@@ -62,7 +62,7 @@ android {
 
     defaultConfig {
         applicationId "shibafu.yukari"
-        minSdkVersion 23
+        minSdkVersion 28
         targetSdkVersion 33
         versionCode y4aVersionCode
         versionName y4aVersionName
