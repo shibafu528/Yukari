@@ -4,6 +4,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.core.content.pm.ShortcutInfoCompat;
+import androidx.core.content.pm.ShortcutManagerCompat;
+import androidx.core.graphics.drawable.IconCompat;
+
 import shibafu.yukari.R;
 
 /**
@@ -15,15 +19,17 @@ public class TweetShortcutActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Intent shortcutIntent = new Intent(this, TweetActivity.class);
+        shortcutIntent.setAction(Intent.ACTION_VIEW);
         shortcutIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
 
-        Intent intent = new Intent();
-        intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
-        intent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE,
-                Intent.ShortcutIconResource.fromContext(this, R.drawable.ic_launcher_tweet));
-        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, getString(R.string.title_activity_tweet));
+        ShortcutInfoCompat si = new ShortcutInfoCompat.Builder(this, "tweet")
+                .setShortLabel(getString(R.string.title_activity_tweet))
+                .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher_tweet))
+                .setIntent(shortcutIntent)
+                .build();
+        Intent shortcutResultIntent = ShortcutManagerCompat.createShortcutResultIntent(this, si);
 
-        setResult(RESULT_OK, intent);
+        setResult(RESULT_OK, shortcutResultIntent);
         finish();
     }
 }
