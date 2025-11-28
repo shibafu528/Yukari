@@ -44,20 +44,12 @@ public class StatusNotifier {
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
 
-    private static final String USER_SE_REPLY = "se_reply.wav";
-    private static final String USER_SE_RETWEET = "se_retweet.wav";
-    private static final String USER_SE_FAVORITE = "se_favorite.wav";
-
     private Context context;
     private Handler handler;
     private SharedPreferences sharedPreferences;
     private NotificationManager notificationManager;
     private AudioManager audioManager;
     private Vibrator vibrator;
-
-    private boolean useUserFileOnReply = false;
-    private boolean useUserFileOnRetweet = false;
-    private boolean useUserFileOnFavorite = false;
 
     public StatusNotifier(Context context) {
         this.context = context.getApplicationContext();
@@ -68,53 +60,20 @@ public class StatusNotifier {
         this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         this.audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-
-        if (new File(context.getExternalFilesDir(null), USER_SE_REPLY).exists()) {
-            Log.d(LOG_TAG, "User reply notify sound detected.");
-            useUserFileOnReply = true;
-        }
-        if (new File(context.getExternalFilesDir(null), USER_SE_RETWEET).exists()) {
-            Log.d(LOG_TAG, "User retweet notify sound detected.");
-            useUserFileOnRetweet = true;
-        }
-        if (new File(context.getExternalFilesDir(null), USER_SE_FAVORITE).exists()) {
-            Log.d(LOG_TAG, "User favorite notify sound detected.");
-            useUserFileOnFavorite = true;
-        }
     }
 
     private Uri getNotificationUrl(int category) {
         switch (category) {
             case R.integer.notification_replied:
-                if (useUserFileOnReply) {
-                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else {
-                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_mention_sound_uri", null));
-                }
+                return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_mention_sound_uri", null));
             case R.integer.notification_message:
-                if (useUserFileOnReply) {
-                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else {
-                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_dm_sound_uri", null));
-                }
+                return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_dm_sound_uri", null));
             case R.integer.notification_respond:
-                if (useUserFileOnReply) {
-                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else {
-                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_respond_sound_uri", null));
-                }
+                return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_respond_sound_uri", null));
             case R.integer.notification_retweeted:
-                if (useUserFileOnRetweet) {
-                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_RETWEET));
-                } else {
-                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_rt_sound_uri", null));
-                }
+                return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_rt_sound_uri", null));
             case R.integer.notification_faved:
-                if (useUserFileOnFavorite) {
-                    return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_FAVORITE));
-                } else {
-                    return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_fav_sound_uri", null));
-                }
+                return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_fav_sound_uri", null));
             default:
                 return null;
         }
