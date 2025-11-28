@@ -115,40 +115,6 @@ public class AboutActivity extends ActionBarYukariBase {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return false;
-        }
-
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                touching = true;
-                break;
-            case MotionEvent.ACTION_UP:
-                if (touching) {
-                    touchCounter++;
-                    touching = false;
-
-                    if (touchCounter % 32 == 0) {
-                        if (sp.getBoolean("j_yukari_voice", false)) {
-                            // to disable
-                            sp.edit().putBoolean("j_yukari_voice", false).apply();
-                            // play sound
-                            mpDefault.start();
-                        } else {
-                            // to enable
-                            sp.edit().putBoolean("j_yukari_voice", true).apply();
-                            // play sound
-                            mpYukari.start();
-                        }
-                    }
-                }
-                break;
-        }
-        return true;
-    }
-
-    @Override
     public void onServiceConnected() {
 
     }

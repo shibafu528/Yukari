@@ -32,8 +32,6 @@ import shibafu.yukari.util.CompatUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by shibafu on 2015/07/27.
@@ -45,9 +43,6 @@ public class StatusNotifier {
     private final static long[] VIB_REPLY = {450, 130, 140, 150};
     private final static long[] VIB_RETWEET = {150, 130, 300, 150};
     private final static long[] VIB_FAVED = {140, 100};
-
-    //通知SE リソースUri
-    private static final Map<String, SoundEffects> SE_URIS = new HashMap<>();
 
     private static final String USER_SE_REPLY = "se_reply.wav";
     private static final String USER_SE_RETWEET = "se_retweet.wav";
@@ -63,49 +58,6 @@ public class StatusNotifier {
     private boolean useUserFileOnReply = false;
     private boolean useUserFileOnRetweet = false;
     private boolean useUserFileOnFavorite = false;
-    
-    static {
-        SE_URIS.put("yukari_fav", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_fav");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
-        }});
-        SE_URIS.put("yukari_like", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_like");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
-        }});
-        SE_URIS.put("yukari_love", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/y_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/y_love");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/y_rt");
-        }});
-        SE_URIS.put("akari_fav", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_fav");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
-        }});
-        SE_URIS.put("akari_like", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_like");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
-        }});
-        SE_URIS.put("akari_love", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/akari_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/akari_love");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/akari_retweet");
-        }});
-        SE_URIS.put("kiri_like", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/kiri_like");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/kiri_retweet");
-        }});
-        SE_URIS.put("kiri_love", new SoundEffects() {{
-            reply = Uri.parse("android.resource://shibafu.yukari/raw/kiri_reply");
-            favorite = Uri.parse("android.resource://shibafu.yukari/raw/kiri_suki");
-            retweet = Uri.parse("android.resource://shibafu.yukari/raw/kiri_retweet");
-        }});
-    }
 
     public StatusNotifier(Context context) {
         this.context = context.getApplicationContext();
@@ -132,45 +84,34 @@ public class StatusNotifier {
     }
 
     private Uri getNotificationUrl(int category) {
-        boolean useYukariVoice = sharedPreferences.getBoolean("j_yukari_voice", false);
         switch (category) {
             case R.integer.notification_replied:
                 if (useUserFileOnReply) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else if (useYukariVoice) {
-                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
                 } else {
                     return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_mention_sound_uri", null));
                 }
             case R.integer.notification_message:
                 if (useUserFileOnReply) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else if (useYukariVoice) {
-                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
                 } else {
                     return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_dm_sound_uri", null));
                 }
             case R.integer.notification_respond:
                 if (useUserFileOnReply) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_REPLY));
-                } else if (useYukariVoice) {
-                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).reply;
                 } else {
                     return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_respond_sound_uri", null));
                 }
             case R.integer.notification_retweeted:
                 if (useUserFileOnRetweet) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_RETWEET));
-                } else if (useYukariVoice) {
-                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).retweet;
                 } else {
                     return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_rt_sound_uri", null));
                 }
             case R.integer.notification_faved:
                 if (useUserFileOnFavorite) {
                     return Uri.fromFile(new File(context.getExternalFilesDir(null), USER_SE_FAVORITE));
-                } else if (useYukariVoice) {
-                    return SE_URIS.get(sharedPreferences.getString("pref_sound_theme", "yukari_fav")).favorite;
                 } else {
                     return NotificationPreferenceSoundUri.parse(sharedPreferences.getString("pref_notif_fav_sound_uri", null));
                 }
@@ -261,12 +202,6 @@ public class StatusNotifier {
                 builder.setContentIntent(CompatUtil.getEmptyPendingIntent(context));
                 builder.setTicker(tickerHeader + actionBy.getScreenName());
                 builder.setColor(color);
-                if (notificationType.isUseSound()) {
-                    builder.setSound(sound, AudioManager.STREAM_NOTIFICATION);
-                }
-                if (notificationType.isUseVibration()) {
-                    builder.setVibrate(pattern);
-                }
                 builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                 builder.setAutoCancel(true);
                 switch (category) {
@@ -383,11 +318,5 @@ public class StatusNotifier {
                         .show());
             }
         }
-    }
-
-    private static class SoundEffects {
-        public Uri reply;
-        public Uri favorite;
-        public Uri retweet;
     }
 }

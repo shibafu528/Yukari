@@ -3,7 +3,6 @@ package shibafu.yukari.activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.media.MediaScannerConnection;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -68,10 +67,7 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
         public void onCreatePreferencesFix(@Nullable Bundle savedInstanceState, String rootKey) {
             addPreferencesFromResource(R.xml.commands);
 
-            findPreference("pref_sound_theme").setEnabled(Build.VERSION.SDK_INT < Build.VERSION_CODES.O);
-
             Preference prefSoundThemeExport = findPreference("pref_sound_theme_export");
-            prefSoundThemeExport.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
             prefSoundThemeExport.setOnPreferenceClickListener(preference -> {
                 exportResources();
                 return true;

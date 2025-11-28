@@ -211,30 +211,6 @@
         <item>2</item>
     </string-array>
 
-    <string-array name="pref_sound_theme_entries">
-        <item>デフォルト</item>
-        <item>Yukari (ふぁぼ)</item>
-        <item>Yukari (いいね)</item>
-        <item>Yukari (すき)</item>
-        <item>Akari (ふぁぼ)</item>
-        <item>Akari (これすき)</item>
-        <item>Akari (すき)</item>
-        <item>Kiri (いいね)</item>
-        <item>Kiri (すき)</item>
-    </string-array>
-
-    <string-array name="pref_sound_theme_values">
-        <item>default</item>
-        <item>yukari_fav</item>
-        <item>yukari_like</item>
-        <item>yukari_love</item>
-        <item>akari_fav</item>
-        <item>akari_like</item>
-        <item>akari_love</item>
-        <item>kiri_like</item>
-        <item>kiri_love</item>
-    </string-array>
-
     <string-array name="backup_location">
         <item>ローカルストレージ</item>
         <!--<item>Google Drive</item>-->
