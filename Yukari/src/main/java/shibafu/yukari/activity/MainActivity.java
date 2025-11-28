@@ -125,12 +125,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         findViews();
 
-        if (new File(getExternalFilesDir(null), "wallpaper").exists()) {
-            Drawable wallpaper = Drawable.createFromPath(new File(getExternalFilesDir(null), "wallpaper").getAbsolutePath());
-            wallpaper.setAlpha(72);
-            binding.pager.setBackground(wallpaper);
-        }
-
         //スリープ防止設定
         setKeepScreenOn(sharedPreferences.getBoolean("pref_boot_screenon", false));
 
