@@ -57,6 +57,7 @@ ext {
 }
 
 android {
+    namespace 'shibafu.yukari'
     compileSdkVersion 33
     buildToolsVersion '33.0.0'
 

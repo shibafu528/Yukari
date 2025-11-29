@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace 'combu.combudashi'
     compileSdkVersion 31
     buildToolsVersion '30.0.3'
 
