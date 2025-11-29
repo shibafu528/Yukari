@@ -10,7 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import shibafu.yukari.R;
-import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.common.imageloader.ImageLoader;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.UserExtras;
 import shibafu.yukari.entity.ExceptionStatus;
@@ -200,7 +200,7 @@ public class TweetAdapter extends BaseAdapter {
 
                 if (preferences.getBoolean("pref_show_load_more_user", false)) {
                     ivIcon.setVisibility(View.VISIBLE);
-                    ImageLoaderTask.loadProfileIcon(context, ivIcon, loadMarker.getRepresentUser().ProfileImageUrl);
+                    ImageLoader.INSTANCE.loadProfileIcon(context, loadMarker.getRepresentUser()).toImageView(ivIcon);
                 } else {
                     ivIcon.setVisibility(View.GONE);
                 }
