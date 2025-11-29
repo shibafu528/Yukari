@@ -22,11 +22,11 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.AccountChooserActivity
 import shibafu.yukari.common.FontAsset
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.core.App
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.service.PostService
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.util.showToast
-import twitter4j.util.CharacterUtil
 
 class QuickPostFragment : Fragment() {
     /**
@@ -154,24 +154,32 @@ class QuickPostFragment : Fragment() {
             } else {
                 etTweet.append(defaultText)
             }
-        } else if (CharacterUtil.count(etTweet.text.toString()) <= 140) {
-            //ドラフト生成
-            val draft = StatusDraft(
-                    writers = arrayListOf(selectedAccount),
-                    text = etTweet.text.toString()
-            )
+        } else {
+            val providerApi = App.getInstance(requireContext()).getProviderApi(selectedAccount)
+            val validator = providerApi!!.getPostValidator(selectedAccount)
 
-            //サービス起動
-            val context = requireContext()
-            ContextCompat.startForegroundService(context, PostService.newIntent(context.applicationContext, draft))
+            val text = etTweet.text.toString()
+            if (validator.getMeasuredLength(text, emptyMap()) <= validator.getMaxLength(emptyMap())) {
+                //ドラフト生成
+                val draft = StatusDraft(
+                        writers = arrayListOf(selectedAccount),
+                        text = etTweet.text.toString()
+                )
 
-            //投稿欄を掃除する
-            etTweet.setText("")
-            if (!defaultText.isNullOrEmpty()) {
-                etTweet.append(defaultText)
+                //サービス起動
+                val context = requireContext()
+                ContextCompat.startForegroundService(context, PostService.newIntent(context.applicationContext, draft))
+
+                //投稿欄を掃除する
+                etTweet.setText("")
+                if (!defaultText.isNullOrEmpty()) {
+                    etTweet.append(defaultText)
+                }
+                etTweet.requestFocus()
+                imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED)
+            } else {
+                showToast("文字数オーバーで投稿できません")
             }
-            etTweet.requestFocus()
-            imm.showSoftInput(etTweet, InputMethodManager.SHOW_FORCED)
         }
     }
 
