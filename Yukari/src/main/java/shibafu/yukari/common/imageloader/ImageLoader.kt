@@ -64,6 +64,8 @@ class ImageLoaderTaskBuilder {
     @CacheKey private var cacheGroup: String = BitmapCache.IMAGE_CACHE
     private var cacheKey: String
     private var mosaic: Boolean = false
+    private var onQueue: (() -> Unit)? = null
+    private var onDownloadStart: (() -> Unit)? = null
 
     constructor(@NonUiContext context: Context, url: String) {
         this.context = context.applicationContext
@@ -101,12 +103,18 @@ class ImageLoaderTaskBuilder {
      */
     fun setMosaic(mosaic: Boolean) = also { it.mosaic = mosaic }
 
+    // optional lifecycle callback
+
+    fun onQueue(onQueue: () -> Unit) = also { it.onQueue = onQueue }
+
+    fun onDownloadStart(onDownloadStart: (() -> Unit)) = also { it.onDownloadStart = onDownloadStart }
+
     // sink
 
     /**
      * 読み込みを開始し、結果を [Bitmap] として受け取る
      */
-    fun asBitmap(onFinish: (result: Result<Bitmap>) -> Unit, onQueue: (() -> Unit)? = null, onDownloadStart: (() -> Unit)? = null) {
+    fun asBitmap(onFinish: (result: Result<Bitmap>) -> Unit) {
         // TODO: nullableにするかどうか迷いがある。受け入れる理由はないが、Javaから呼ばれるので...
         if (url == null) {
             onFinish(Result.failure(IllegalArgumentException("resource is null")))
@@ -126,25 +134,27 @@ class ImageLoaderTaskBuilder {
         TaskManager.subscribe(ImageLoaderTask(context, url, media, resolveMode, cacheGroup, cacheKey, mosaic, onDownloadStart, onFinish))
     }
 
-    fun asBitmap(onFinish: ImageLoaderResultCallback<Bitmap>, onQueue: (() -> Unit)?, onDownloadStart: (() -> Unit)?) {
-        asBitmap({ result -> result.onSuccess(onFinish::onSuccess).onFailure(onFinish::onFailure) }, onQueue, onDownloadStart)
+    fun asBitmap(onFinish: ImageLoaderResultCallback<Bitmap>) {
+        asBitmap { result -> result.onSuccess(onFinish::onSuccess).onFailure(onFinish::onFailure) }
     }
 
     /**
      * 読み込みを開始し、結果を [Drawable] として受け取る
      */
-    fun asDrawable(onFinish: (result: Result<Drawable>) -> Unit, onQueue: (() -> Unit)? = null, onDownloadStart: (() -> Unit)? = null) {
-        asBitmap({ onFinish(it.map(::bitmapToDrawable)) }, onQueue, onDownloadStart)
+    fun asDrawable(onFinish: (result: Result<Drawable>) -> Unit) {
+        asBitmap { onFinish(it.map(::bitmapToDrawable)) }
     }
 
-    fun asDrawable(onFinish: ImageLoaderResultCallback<Drawable>, onQueue: (() -> Unit)?, onDownloadStart: (() -> Unit)?) {
-        asBitmap({ result -> result.onSuccess(::bitmapToDrawable).onFailure(onFinish::onFailure) }, onQueue, onDownloadStart)
+    fun asDrawable(onFinish: ImageLoaderResultCallback<Drawable>) {
+        asBitmap { result -> result.onSuccess(::bitmapToDrawable).onFailure(onFinish::onFailure) }
     }
 
     private fun bitmapToDrawable(bitmap: Bitmap) = BitmapDrawable(context.resources, bitmap)
 
     /**
      * 読み込みを開始し、結果を引数で指定した [ImageView] にセットする
+     *
+     * このメソッドを使う場合、[onQueue] および [onDownloadStart] で設定したコールバックは無視される。
      */
     fun toImageView(imageView: ImageView) {
         imageView.tag = cacheKey
@@ -154,31 +164,29 @@ class ImageLoaderTaskBuilder {
     private fun toImageView(imageViewRef: WeakReference<ImageView>) {
         val sp = PreferenceManager.getDefaultSharedPreferences(context)
 
-        asBitmap(
-            onQueue = {
-                val iv = imageViewRef.get() ?: return@asBitmap
-                if (cacheKey == iv.tag) {
-                    iv.setImageResource(R.drawable.yukatterload)
-                }
-            },
-            onDownloadStart = {
-                val iv = imageViewRef.get() ?: return@asBitmap
-                if (cacheKey == iv.tag && sp.getBoolean("pref_indicate_loading_from_remote", false)) {
-                    iv.setImageResource(R.drawable.loading_from_remote)
-                }
-            },
-            onFinish = { result ->
-                val iv = imageViewRef.get() ?: return@asBitmap
-                result.onSuccess { bitmap ->
-                    if (cacheKey == iv.tag) {
-                        iv.setImageBitmap(bitmap)
-                    }
-                }.onFailure {
-                    it.printStackTrace()
-                    iv.setImageResource(R.drawable.ic_states_warning)
-                }
+        onQueue {
+            val iv = imageViewRef.get() ?: return@onQueue
+            if (cacheKey == iv.tag) {
+                iv.setImageResource(R.drawable.yukatterload)
             }
-        )
+        }
+        onDownloadStart {
+            val iv = imageViewRef.get() ?: return@onDownloadStart
+            if (cacheKey == iv.tag && sp.getBoolean("pref_indicate_loading_from_remote", false)) {
+                iv.setImageResource(R.drawable.loading_from_remote)
+            }
+        }
+        asBitmap { result ->
+            val iv = imageViewRef.get() ?: return@asBitmap
+            result.onSuccess { bitmap ->
+                if (cacheKey == iv.tag) {
+                    iv.setImageBitmap(bitmap)
+                }
+            }.onFailure {
+                it.printStackTrace()
+                iv.setImageResource(R.drawable.ic_states_warning)
+            }
+        }
     }
 }
 
