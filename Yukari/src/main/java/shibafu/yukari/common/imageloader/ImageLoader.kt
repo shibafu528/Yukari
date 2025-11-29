@@ -35,10 +35,10 @@ object ImageLoader {
     fun loadProfileIcon(@NonUiContext context: Context, user: User, preferBiggerImage: Boolean) = when {
         preferBiggerImage -> load(context, user.biggerProfileImageUrl)
         else -> load(context, user.profileImageUrl)
-    }.setCacheKey(user.url!!).setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
+    }.setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
 
     fun loadProfileIcon(@NonUiContext context: Context, user: AuthUserRecord) =
-        load(context, user.ProfileImageUrl).setCacheKey(user.Url).setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
+        load(context, user.ProfileImageUrl).setCacheGroup(BitmapCache.PROFILE_ICON_CACHE)
 }
 
 enum class ResolveMode {
