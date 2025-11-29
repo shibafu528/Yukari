@@ -2,6 +2,7 @@ package info.shibafu528.yukari.api.mastodon.ws
 
 import com.sys1yagi.mastodon4j.api.entity.Notification
 import com.sys1yagi.mastodon4j.api.entity.Status
+import okhttp3.Response
 import org.junit.Test
 import kotlin.test.*
 
@@ -16,7 +17,13 @@ class SubscriptionTest {
         override fun onDelete(id: Long) {
         }
 
+        override fun onOpen() {
+        }
+
         override fun onClosed() {
+        }
+
+        override fun onFailure(t: Throwable, response: Response?) {
         }
     }
 
