@@ -17,6 +17,8 @@ import okhttp3.OkHttpClient;
  * 単一の画像や動画のURLと取得方法の実装を表す。
  */
 public abstract class Media implements Serializable {
+    private static OkHttpClient httpClient;
+
     @NonNull
     private String browseUrl;
 
@@ -87,11 +89,15 @@ public abstract class Media implements Serializable {
     }
 
     protected OkHttpClient getHttpClient() {
-        return HttpClient.INSTANCE.get();
+        return httpClient;
     }
 
     protected static ResolveInfo createResolveInfo(InputStream stream, int contentLength, Closeable... closeables) {
         return new ResolveInfo(stream, contentLength, closeables);
+    }
+
+    public static void setHttpClient(OkHttpClient client) {
+        httpClient = client;
     }
 
     /**

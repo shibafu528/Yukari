@@ -11,9 +11,8 @@ import info.shibafu528.yukari.api.mastodon.ws.StreamListener
 import info.shibafu528.yukari.api.mastodon.ws.Subscription
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import okhttp3.Response
-import shibafu.yukari.common.okhttp.UserAgentInterceptor
+import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.Provider
@@ -41,7 +40,7 @@ class MastodonStream : ProviderStream {
         this.service = service
 
         val enforceLegacy = service.defaultSharedPreferences.getBoolean("pref_mastodon_enforce_legacy_stream_client", false)
-        this.streamClientManager = StreamClientManager(OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(service.applicationContext)), enforceLegacy)
+        this.streamClientManager = StreamClientManager(App.getInstance(service.applicationContext).okhttpClient.newBuilder(), enforceLegacy)
 
         service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_MASTODON) {

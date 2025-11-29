@@ -26,13 +26,12 @@ import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.ImageViewState
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import permissions.dispatcher.*
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
-import shibafu.yukari.common.okhttp.UserAgentInterceptor
+import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.Status
 import shibafu.yukari.media2.Media
@@ -369,7 +368,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         }
 
         private fun loadImage(state: ImageViewState?) = launch {
-            val context = requireContext()
+            val context = App.getInstance(requireContext())
             val url = uri.toString()
             val media = MediaFactory.newInstance(url)
 
@@ -424,7 +423,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                         }
                     } else if (url.startsWith("https://") || url.startsWith("http://")) { // MediaFactoryで解決できなかったリモートの画像
                         putDebugLog("[PreviewActivity2] load from remote via okhttp")
-                        val http = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(context)).build()
+                        val http = context.okhttpClient
                         try {
                             response = http.newCall(Request.Builder().url(url).build()).execute()
                             if (!response.isSuccessful || !response.header("Content-Type").orEmpty().startsWith("image/")) {

@@ -14,7 +14,6 @@ import com.sys1yagi.mastodon4j.api.method.Media
 import com.sys1yagi.mastodon4j.api.method.Public
 import com.sys1yagi.mastodon4j.api.method.Statuses
 import okhttp3.*
-import shibafu.yukari.common.okhttp.UserAgentInterceptor
 import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
@@ -49,7 +48,7 @@ class MastodonApi : ProviderApi {
     }
 
     fun getApiClient(instanceName: String, accessToken: String?): MastodonClient {
-        val okHttpBuilder = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(context))
+        val okHttpBuilder = App.getInstance(context).okhttpClient.newBuilder()
         var builder = MastodonClient.Builder(instanceName, okHttpBuilder, Gson())
         if (accessToken != null && accessToken.isNotEmpty()) {
             builder = builder.accessToken(accessToken).useStreamingApi()

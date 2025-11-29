@@ -20,16 +20,19 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
+import okhttp3.OkHttpClient
 import shibafu.yukari.R
 import shibafu.yukari.common.HashCache
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.Suppressor
 import shibafu.yukari.common.bitmapcache.BitmapCache
+import shibafu.yukari.common.okhttp.UserAgentInterceptor
 import shibafu.yukari.database.*
 import shibafu.yukari.linkage.*
 import shibafu.yukari.mastodon.DefaultVisibilityCache
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
+import shibafu.yukari.media2.Media
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
 import shibafu.yukari.util.CompatUtil
@@ -57,6 +60,8 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
             api.getApiClient(userRecord)
         }
     }
+
+    lateinit var okhttpClient: OkHttpClient
 
     private val providerApis = arrayOf(TwitterApi(), MastodonApi())
 
@@ -96,6 +101,9 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         super.onCreate()
 
         installSecurityProvider()
+
+        // OkHttpの初期化
+        initOkHttpClient()
 
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -159,6 +167,11 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterPr
         } catch (ignore: GooglePlayServicesRepairableException) {
         } catch (ignore: GooglePlayServicesNotAvailableException) {
         }
+    }
+
+    private fun initOkHttpClient() {
+        okhttpClient = OkHttpClient.Builder().addInterceptor(UserAgentInterceptor(this)).build()
+        Media.setHttpClient(okhttpClient)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
