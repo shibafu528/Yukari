@@ -21,7 +21,9 @@ object TaskManager {
     }
 }
 
-data class TaskKey(@CacheKey val cacheGroup: String, val cacheKey: String, val mosaic: Boolean)
+data class TaskKey(@CacheKey val cacheGroup: String, val cacheKey: String, val mosaic: Boolean) {
+    fun debugIdentifier(): String = String.format("%08x", hashCode())
+}
 
 class TaskState(task: ImageLoaderTask) {
     private var isDownloadStarted = false

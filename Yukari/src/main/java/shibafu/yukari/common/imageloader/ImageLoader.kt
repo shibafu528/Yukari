@@ -248,7 +248,7 @@ class ImageLoaderTask(
     private fun fetch(): Bitmap? {
         onDownloadStart?.let { callback -> mainThreadHandler.post(callback) }
 
-        Log.d("ImageLoaderTask", "[download] ${key.hashCode()} $cacheGroup m=$mosaic : $cacheKey")
+        Log.d("ImageLoaderTask", "[download] ${key.debugIdentifier()} $cacheGroup m=$mosaic : $cacheKey")
 
         var resolveInfo: Media.ResolveInfo? = null
         val inputStream = if (media == null) {
@@ -284,7 +284,7 @@ class ImageLoaderTask(
                 BitmapCache.putImage(cacheKey, image, context, cacheGroup, !mosaic, true)
             }
 
-            Log.d("ImageLoaderTask", "[finish  ] ${key.hashCode()} $cacheGroup m=$mosaic : $cacheKey")
+            Log.d("ImageLoaderTask", "[finish  ] ${key.debugIdentifier()} $cacheGroup m=$mosaic : $cacheKey")
 
             return image
         } finally {
