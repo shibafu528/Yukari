@@ -1,29 +1,50 @@
 package shibafu.yukari.activity;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.ListFragment;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Pair;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
+import shibafu.yukari.fragment.SimpleAlertDialogFragment;
 import shibafu.yukari.util.ThemeUtil;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * Created by shibafu on 14/06/22.
@@ -53,30 +74,104 @@ public class FontSelectorActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static class InnerFragment extends ListFragment {
+    public static class InnerFragment extends ListFragment implements AdapterView.OnItemLongClickListener, SimpleAlertDialogFragment.OnDialogChoseListener {
+        private final static int DIALOG_DELETE = 1;
+        private final static String EXTRA_DELETE_FILENAME = "filename";
+        private final static String EXTRA_DELETE_RESET_SELECTION = "reset_selection";
 
         private FontsAdapter adapter;
         private List<Pair<String, Typeface>> fonts = new ArrayList<>();
         private int selectedIndex = 0;
         private SharedPreferences preferences;
 
+        private final ActivityResultLauncher<String[]> fontFilePicker = registerForActivityResult(new ActivityResultContracts.OpenDocument(), result -> {
+            if (result == null) {
+                return;
+            }
+
+            ContentResolver cr = requireContext().getContentResolver();
+            File fontDir = ensureFontDir();
+
+            DocumentFile inputFile = DocumentFile.fromSingleUri(requireContext(), result);
+            try (InputStream input = cr.openInputStream(result)) {
+                if (inputFile == null || input == null) {
+                    Toast.makeText(requireContext(), "ファイルを開けませんでした", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String outputFileName = inputFile.getName();
+                if (outputFileName == null) {
+                    outputFileName = UUID.randomUUID().toString();
+                }
+                if (!(outputFileName.endsWith(".ttf") || outputFileName.endsWith(".otf"))) {
+                    String type = inputFile.getType();
+                    if (type != null) {
+                        switch (type) {
+                            case "font/ttf":
+                                outputFileName += ".ttf";
+                                break;
+                            case "font/otf":
+                                outputFileName += ".otf";
+                                break;
+                        }
+                    }
+                }
+                if (!(outputFileName.endsWith(".ttf") || outputFileName.endsWith(".otf"))) {
+                    outputFileName += ".ttf";
+                }
+
+                File outputFile = new File(fontDir, outputFileName);
+                try (OutputStream output = new FileOutputStream(outputFile)) {
+                    byte[] buffer = new byte[4096];
+                    int read;
+                    while ((read = input.read(buffer, 0, buffer.length)) != -1) {
+                        output.write(buffer, 0, read);
+                    }
+                }
+
+                reloadFonts();
+                adapter.notifyDataSetChanged();
+
+                Toast.makeText(requireContext(), "インポートしました", Toast.LENGTH_SHORT).show();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), "ファイルを開けませんでした", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(requireContext(), "インポート中にエラーが発生しました", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
+
         @Override
         public void onViewCreated(View view, Bundle savedInstanceState) {
             super.onViewCreated(view, savedInstanceState);
 
             preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            reloadFonts();
+            adapter = new FontsAdapter(getActivity(), fonts);
+            setListAdapter(adapter);
+
+            getListView().setOnItemLongClickListener(this);
+        }
+
+        private void reloadFonts() {
             String currentFile = preferences.getString("pref_font_file", FontAsset.BUNDLE_FONT_ID);
 
+            selectedIndex = 0;
+            fonts.clear();
             fonts.add(new Pair<>(FontAsset.BUNDLE_FONT_ID, FontAsset.getBundleFont(getContext().getAssets())));
             fonts.add(new Pair<>(FontAsset.SYSTEM_FONT_ID, Typeface.DEFAULT));
             if (FontAsset.SYSTEM_FONT_ID.equals(currentFile)) {
                 selectedIndex = 1;
             }
 
-            File fontDir = new File(getActivity().getExternalFilesDir(null), "font");
-            if (!fontDir.exists()) {
-                fontDir.mkdirs();
-            }
+            File fontDir = ensureFontDir();
             File[] files = fontDir.listFiles((dir, filename) -> filename.endsWith(".ttf") || filename.endsWith(".otf"));
             if (files != null) {
                 for (int i = 0; i < files.length; i++) {
@@ -94,9 +189,15 @@ public class FontSelectorActivity extends AppCompatActivity {
                     }
                 }
             }
+        }
 
-            adapter = new FontsAdapter(getActivity(), fonts);
-            setListAdapter(adapter);
+        @NonNull
+        private File ensureFontDir() {
+            File fontDir = new File(requireContext().getExternalFilesDir(null), "font");
+            if (!fontDir.exists()) {
+                fontDir.mkdirs();
+            }
+            return fontDir;
         }
 
         @Override
@@ -106,6 +207,64 @@ public class FontSelectorActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             preferences.edit().putString("pref_font_file", fonts.get(position).first).commit();
             FontAsset.reloadInstance(getActivity());
+        }
+
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            String name = fonts.get(position).first;
+            if (FontAsset.BUNDLE_FONT_ID.equals(name) || FontAsset.SYSTEM_FONT_ID.equals(name)) {
+                return false;
+            }
+
+            Bundle extras = new Bundle();
+            extras.putString(EXTRA_DELETE_FILENAME, name);
+            extras.putBoolean(EXTRA_DELETE_RESET_SELECTION, selectedIndex == position);
+            SimpleAlertDialogFragment dialogFragment = new SimpleAlertDialogFragment.Builder(DIALOG_DELETE)
+                    .setTitle("確認")
+                    .setMessage(String.format(Locale.US, "フォント %s を削除してもよろしいですか？", name))
+                    .setPositive("OK")
+                    .setNegative("キャンセル")
+                    .setExtras(extras)
+                    .build();
+            dialogFragment.setTargetFragment(this, DIALOG_DELETE);
+            dialogFragment.show(requireFragmentManager(), "dialog");
+            return true;
+        }
+
+        @Override
+        public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+            MenuItem addMenu = menu.add(Menu.NONE, R.id.action_add, Menu.NONE, "インポート").setIcon(R.drawable.ic_action_add);
+            addMenu.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+            if (item.getItemId() == R.id.action_add) {
+                fontFilePicker.launch(new String[]{"font/ttf", "font/otf"});
+                return true;
+            }
+
+            return super.onOptionsItemSelected(item);
+        }
+
+        @Override
+        public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
+            if (requestCode == DIALOG_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
+                String name = extras.getString(EXTRA_DELETE_FILENAME);
+                boolean resetSelection = extras.getBoolean(EXTRA_DELETE_RESET_SELECTION);
+
+                File fontDir = ensureFontDir();
+                File file = new File(fontDir, name);
+                file.delete();
+
+                if (resetSelection) {
+                    preferences.edit().putString("pref_font_file", FontAsset.BUNDLE_FONT_ID).apply();
+                    FontAsset.reloadInstance(getActivity());
+                }
+
+                reloadFonts();
+                adapter.notifyDataSetChanged();
+            }
         }
 
         private class FontsAdapter extends ArrayAdapter<Pair<String, Typeface>> {
