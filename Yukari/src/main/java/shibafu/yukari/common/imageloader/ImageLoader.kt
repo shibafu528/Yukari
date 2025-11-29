@@ -146,7 +146,11 @@ class ImageLoaderTaskBuilder {
     }
 
     fun asDrawable(onFinish: ImageLoaderResultCallback<Drawable>) {
-        asBitmap { result -> result.onSuccess(::bitmapToDrawable).onFailure(onFinish::onFailure) }
+        asBitmap { result ->
+            result.map(::bitmapToDrawable)
+                .onSuccess(onFinish::onSuccess)
+                .onFailure(onFinish::onFailure)
+        }
     }
 
     private fun bitmapToDrawable(bitmap: Bitmap) = BitmapDrawable(context.resources, bitmap)
