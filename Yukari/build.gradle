@@ -197,7 +197,7 @@ dependencies {
     kapt project(':yukari-processor')
 
     // Deploygate SDK
-    alphaImplementation 'com.deploygate:sdk:4.1.0'
+    alphaImplementation 'com.deploygate:sdk:4.10.0'
 
     // いろいろ
     implementation project(':gl-helpers')
