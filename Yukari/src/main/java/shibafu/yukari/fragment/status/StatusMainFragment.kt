@@ -115,12 +115,12 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             val status = status
             val userRecord = userRecord ?: return@setOnClickListener
 
-            if (status.metadata.favoritedUsers.get(userRecord.InternalId)) {
+            if (status.metadata.favoritedUsers.contains(userRecord.InternalId)) {
                 // お気に入り登録済
                 destroyFavorite()
             } else {
                 // お気に入り未登録
-                val canRecursiveFavorite = status is TwitterStatus && !status.quoteEntities.isEmpty
+                val canRecursiveFavorite = status is TwitterStatus && !status.quoteEntities.isEmpty()
                 if (defaultSharedPreferences.getBoolean("pref_fav_with_quotes", false) && canRecursiveFavorite) {
                     val popupMenu = PopupMenu(requireContext(), ibFavorite)
                     popupMenu.menu.add(Menu.NONE, 0, Menu.NONE, "お気に入り登録")

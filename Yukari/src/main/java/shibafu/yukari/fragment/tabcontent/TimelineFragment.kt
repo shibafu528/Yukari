@@ -999,7 +999,11 @@ open class TimelineFragment : ListYukariBaseFragment(),
             if (status is TimelineStatus<*> && status == eventStatus) {
                 statuses[i] = status.merge(eventStatus).apply {
                     // TODO: これいるか分からない むしろ不要にしたほうがいいかも
-                    metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
+                    if (isFavorited) {
+                        metadata.favoritedUsers.add(eventUser.InternalId)
+                    } else {
+                        metadata.favoritedUsers.remove(eventUser.InternalId)
+                    }
                 }
                 notifyDataSetChanged()
                 return
@@ -1011,7 +1015,11 @@ open class TimelineFragment : ListYukariBaseFragment(),
             if (status is TimelineStatus<*> && status == eventStatus) {
                 mutedStatuses[i] = status.merge(eventStatus).apply {
                     // TODO: これいるか分からない むしろ不要にしたほうがいいかも
-                    metadata.favoritedUsers.put(eventUser.InternalId, isFavorited)
+                    if (isFavorited) {
+                        metadata.favoritedUsers.add(eventUser.InternalId)
+                    } else {
+                        metadata.favoritedUsers.remove(eventUser.InternalId)
+                    }
                 }
                 return
             }

@@ -3,9 +3,10 @@ package shibafu.yukari.mastodon.entity
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Xml
+import androidx.collection.MutableObjectLongMap
+import androidx.collection.mutableObjectLongMapOf
 import com.google.gson.Gson
 import com.sys1yagi.mastodon4j.api.entity.Status
-import org.eclipse.collections.impl.map.mutable.primitive.ObjectLongHashMap
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import shibafu.yukari.database.Provider
@@ -78,7 +79,7 @@ class DonStatus(val status: Status,
 
     val isLocal: Boolean = user.host == receiverUser.Provider.host
 
-    var perProviderId: ObjectLongHashMap<String> = ObjectLongHashMap.newWithKeysValues(receiverUser.Provider.host, status.id)
+    var perProviderId: MutableObjectLongMap<String> = mutableObjectLongMapOf(receiverUser.Provider.host, status.id)
         private set
 
     override fun equals(other: Any?): Boolean {
@@ -94,7 +95,8 @@ class DonStatus(val status: Status,
 
     override fun clone(): IStatus {
         val s = super.clone() as DonStatus
-        s.perProviderId = ObjectLongHashMap(perProviderId)
+        s.perProviderId = MutableObjectLongMap(perProviderId.size)
+        s.perProviderId += perProviderId
         return s
     }
 
@@ -129,7 +131,7 @@ class DonStatus(val status: Status,
 
     override fun getInReplyTo(): InReplyToId {
         val inReplyTo = super.getInReplyTo()
-        perProviderId.forEachKeyValue { key, value ->
+        perProviderId.forEach { key, value ->
             inReplyTo[Provider.API_MASTODON, key] = value.toString()
         }
         return inReplyTo
@@ -143,7 +145,7 @@ class DonStatus(val status: Status,
     override fun unmerge(followers: List<IStatus>): IStatus {
         followers.forEach { status ->
             if (status !is DonStatus) return@forEach
-            status.perProviderId.forEachKeyValue { key, value ->
+            status.perProviderId.forEach { key, value ->
                 if (!perProviderId.containsKey(key)) {
                     perProviderId.put(key, value)
                 }
@@ -155,8 +157,11 @@ class DonStatus(val status: Status,
     fun checkProviderHostMismatching() {
         val localId = perProviderId[providerHost]
         if (id != localId) {
-            val expected = perProviderId.keyValuesView().first { pair -> pair.two == status.id }
-            throw ProviderHostMismatchedException(expected.one, providerHost)
+            perProviderId.forEach { key, value ->
+                if (value == status.id) {
+                    throw ProviderHostMismatchedException(key, providerHost)
+                }
+            }
         }
     }
 
@@ -251,8 +256,8 @@ class DonStatus(val status: Status,
         dest.writeSerializable(prioritizedUser)
         dest.writeParcelable(metadata, 0)
 
-        dest.writeInt(perProviderId.size())
-        perProviderId.forEachKeyValue { key, value ->
+        dest.writeInt(perProviderId.size)
+        perProviderId.forEach { key, value ->
             dest.writeString(key)
             dest.writeLong(value)
         }
@@ -272,11 +277,11 @@ class DonStatus(val status: Status,
                 donStatus.prioritizedUser = prioritizedUser
 
                 val perProviderIdSize = source.readInt()
-                val perProviderId = ObjectLongHashMap<String>(perProviderIdSize)
-                for (i in 0 until perProviderIdSize) {
-                    val key = source.readString()
+                val perProviderId = MutableObjectLongMap<String>(perProviderIdSize)
+                repeat(perProviderIdSize) {
+                    val key = source.readString()!!
                     val value = source.readLong()
-                    perProviderId.put(key, value)
+                    perProviderId[key] = value
                 }
                 donStatus.perProviderId = perProviderId
 

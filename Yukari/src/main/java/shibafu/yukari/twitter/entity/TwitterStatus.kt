@@ -1,7 +1,8 @@
 package shibafu.yukari.twitter.entity
 
-import org.eclipse.collections.api.list.primitive.LongList
-import org.eclipse.collections.impl.factory.primitive.LongLists
+import androidx.collection.LongList
+import androidx.collection.MutableLongList
+import androidx.collection.MutableLongSet
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.*
@@ -149,7 +150,7 @@ class TwitterStatus(val status: twitter4j.Status, override var receiverUser: Aut
 
             val media = LinkedHashSet<Media>()
             val links = LinkedHashSet<String>()
-            val quotes = LongLists.mutable.empty()
+            val quotes = MutableLongList()
             status.urlEntities.forEach { entity ->
                 val m = MediaFactory.newInstance(entity.expandedURL)
                 if (m != null) {
@@ -207,7 +208,16 @@ class TwitterStatus(val status: twitter4j.Status, override var receiverUser: Aut
 
             this.media = media.toList()
             this.links = links.toList()
-            this.quoteEntities = quotes.distinct()
+            this.quoteEntities = quotes.let { quotes ->
+                val exists = MutableLongSet(quotes.size)
+                MutableLongList(quotes.size).also { result ->
+                    quotes.forEach { id ->
+                        if (exists.add(id)) {
+                            result.add(id)
+                        }
+                    }
+                }
+            }
         }
     }
 

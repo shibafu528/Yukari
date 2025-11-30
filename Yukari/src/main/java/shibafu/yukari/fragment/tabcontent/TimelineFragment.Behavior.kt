@@ -3,13 +3,11 @@ package shibafu.yukari.fragment.tabcontent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.Message
 import android.preference.PreferenceManager
 import android.view.View
 import android.widget.AbsListView
 import android.widget.TextView
 import androidx.core.view.updatePaddingRelative
-import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet
 import shibafu.yukari.R
 import shibafu.yukari.entity.Status
 import shibafu.yukari.linkage.TimelineEvent

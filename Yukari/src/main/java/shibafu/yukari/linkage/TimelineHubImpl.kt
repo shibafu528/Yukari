@@ -56,7 +56,7 @@ class TimelineHubImpl(context: Context,
     private val eventQueues: MutableMap<String, Queue<TimelineEvent>> = hashMapOf()
 
     private var autoMuteConfigs: List<AutoMuteConfig> = emptyList()
-    private var autoMutePatternCache: LongSparseArray<Pattern> = LongSparseArray()
+    private var autoMutePatternCache: LongSparseArray<Pattern?> = LongSparseArray()
 
     /**
      * オートミュート設定のインポート

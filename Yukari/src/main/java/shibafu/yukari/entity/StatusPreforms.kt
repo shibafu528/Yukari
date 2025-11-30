@@ -2,8 +2,7 @@ package shibafu.yukari.entity
 
 import android.os.Parcel
 import android.os.Parcelable
-import org.eclipse.collections.api.map.primitive.MutableLongBooleanMap
-import org.eclipse.collections.impl.map.mutable.primitive.LongBooleanHashMap
+import androidx.collection.MutableLongSet
 import java.io.Serializable
 
 /**
@@ -25,7 +24,7 @@ class StatusPreforms : Serializable, Parcelable, Cloneable {
      *
      * ここに入れていいのは [shibafu.yukari.database.AuthUserRecord.InternalId] のみ。
      */
-    var favoritedUsers: MutableLongBooleanMap = LongBooleanHashMap() // TODO: 表示側は？
+    var favoritedUsers = MutableLongSet() // TODO: 表示側は？
 
     /**
      * 繰り返し文の要約
@@ -40,7 +39,8 @@ class StatusPreforms : Serializable, Parcelable, Cloneable {
 
     public override fun clone(): StatusPreforms {
         val sp = super.clone() as StatusPreforms
-        sp.favoritedUsers = LongBooleanHashMap(favoritedUsers)
+        sp.favoritedUsers = MutableLongSet(favoritedUsers.size)
+        sp.favoritedUsers += favoritedUsers
         return sp
     }
 
@@ -54,7 +54,8 @@ class StatusPreforms : Serializable, Parcelable, Cloneable {
             dest.writeByte(0)
         }
         dest.writeSerializable(repostRespondTo)
-        dest.writeSerializable(favoritedUsers as Serializable)
+        dest.writeInt(favoritedUsers.size)
+        favoritedUsers.forEach { dest.writeLong(it) }
         dest.writeString(repeatedSequence)
     }
 
@@ -65,7 +66,8 @@ class StatusPreforms : Serializable, Parcelable, Cloneable {
                 val sp = StatusPreforms()
                 sp.isCensoredThumbs = source.readByte() == 1.toByte()
                 sp.repostRespondTo = source.readSerializable() as Status?
-                sp.favoritedUsers = source.readSerializable() as MutableLongBooleanMap
+                sp.favoritedUsers = MutableLongSet()
+                repeat(source.readInt()) { sp.favoritedUsers += source.readLong() }
                 sp.repeatedSequence = source.readString()
                 return sp
             }

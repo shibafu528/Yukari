@@ -246,7 +246,7 @@ class MastodonApi : ProviderApi {
             return status.id
         }
 
-        val perProviderId = status.perProviderId.getIfAbsent(userRecord.Provider.host, -1L)
+        val perProviderId = status.perProviderId.getOrDefault(userRecord.Provider.host, -1L)
         if (perProviderId != -1L) {
             return perProviderId
         }

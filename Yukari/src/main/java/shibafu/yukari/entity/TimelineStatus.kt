@@ -66,7 +66,7 @@ class TimelineStatus<T>(
 
     override val metadata = representStatus.metadata.clone().also { sp ->
         statuses.drop(1).forEach { status ->
-            sp.favoritedUsers.putAll(status.metadata.favoritedUsers)
+            sp.favoritedUsers.addAll(status.metadata.favoritedUsers)
         }
     }
 
