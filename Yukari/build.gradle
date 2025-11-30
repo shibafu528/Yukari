@@ -56,10 +56,15 @@ ext {
     y4aVersionName = "${y4aVersionString} (${y4aCodeName} ${y4aBuildDate} ${y4aRevision})"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
 android {
     namespace 'shibafu.yukari'
     compileSdkVersion 33
-    buildToolsVersion '33.0.0'
 
     defaultConfig {
         applicationId "shibafu.yukari"
@@ -73,8 +78,6 @@ android {
 
     compileOptions {
         coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 
     // Android Gradle Plugin v0.7.0でビルドが通らない問題の回避

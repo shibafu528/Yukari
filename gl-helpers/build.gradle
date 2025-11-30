@@ -3,7 +3,6 @@ apply plugin: 'com.android.library'
 android {
     namespace 'combu.combudashi'
     compileSdkVersion 31
-    buildToolsVersion '30.0.3'
 
     defaultConfig {
         minSdkVersion 14
@@ -16,8 +15,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_6
-        targetCompatibility JavaVersion.VERSION_1_6
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
