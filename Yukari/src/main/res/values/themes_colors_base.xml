@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="ColorsTheme.Base" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="ColorsTheme.Base" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
         <item name="tweetTextColor">#000</item>
         <item name="tweetPressColor">?attr/colorPrimaryLight</item>
         <item name="tweetFocusColor">?attr/colorPrimaryLight</item>
@@ -51,7 +51,7 @@
         <item name="mastodonVerifiedColor">@color/mastodon_verified_light</item>
     </style>
 
-    <style name="ColorsTheme.Base.Dialog" parent="Theme.AppCompat.Light.Dialog">
+    <style name="ColorsTheme.Base.Dialog" parent="Theme.MaterialComponents.Light.Dialog.Bridge">
         <item name="android:windowBackground">@drawable/dialog_full_material_light</item>
 
         <item name="tweetTextColor">#000</item>
@@ -99,7 +99,7 @@
         <item name="mastodonVerifiedColor">@color/mastodon_verified_light</item>
     </style>
 
-    <style name="ColorsTheme.Base.Dark" parent="Theme.AppCompat">
+    <style name="ColorsTheme.Base.Dark" parent="Theme.MaterialComponents.Bridge">
         <item name="tweetTextColor">#fff</item>
         <item name="tweetPressColor">?attr/colorPrimary</item>
         <item name="tweetFocusColor">?attr/colorPrimary</item>
@@ -150,7 +150,7 @@
         <item name="mastodonVerifiedColor">@color/mastodon_verified_dark</item>
     </style>
 
-    <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.AppCompat.Dialog">
+    <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.MaterialComponents.Dialog.Bridge">
         <item name="android:windowBackground">@drawable/dialog_full_material_dark</item>
 
         <item name="tweetTextColor">#fff</item>
