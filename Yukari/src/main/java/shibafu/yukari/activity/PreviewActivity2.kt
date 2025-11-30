@@ -102,12 +102,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
             showToast("null uri")
             finish()
             return
-        } else if ("vine.co" == data.host || data.toString().contains("pbs.twimg.com/tweet_video/") || "video.twimg.com" == data.host) {
-            val intent = Intent(Intent.ACTION_VIEW, data, this, MoviePreviewActivity::class.java)
-            intent.putExtras(getIntent())
-            startActivity(intent)
-            finish()
-            return
         }
 
         initializeField()

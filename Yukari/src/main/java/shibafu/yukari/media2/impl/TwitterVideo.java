@@ -35,7 +35,7 @@ public class TwitterVideo extends MemoizeMedia {
 
     @Override
     public boolean canPreview() {
-        return true;
+        return false;
     }
 
     @Override

@@ -13,6 +13,8 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.browser.customtabs.CustomTabColorSchemeParams
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.res.ResourcesCompat
 import shibafu.yukari.R
 import shibafu.yukari.activity.*
@@ -33,6 +35,8 @@ import shibafu.yukari.twitter.entity.TwitterUser
 import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
 import java.util.regex.Pattern
+import androidx.core.net.toUri
+import shibafu.yukari.util.AttrUtil
 
 class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
     private val status: Status
@@ -214,9 +218,14 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                 val intent = PreviewActivity2.newIntent(requireContext(), Uri.parse(media.browseUrl), status, collection = collection.map { Uri.parse(it.browseUrl) })
                 startActivity(intent)
             } else {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media.browseUrl))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                startActivity(intent)
+                val colorPrimary = ResourcesCompat.getColor(
+                    requireContext().resources,
+                    AttrUtil.resolveAttribute(requireContext().theme, R.attr.colorPrimary), null
+                )
+                val intent = CustomTabsIntent.Builder()
+                    .setDefaultColorSchemeParams(CustomTabColorSchemeParams.Builder().setToolbarColor(colorPrimary).build())
+                    .build()
+                intent.launchUrl(requireContext(), media.browseUrl.toUri())
             }
         }
 
