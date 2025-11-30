@@ -176,7 +176,6 @@ dependencies {
 
     // UI追加
     implementation 'com.larswerkman:HoloColorPicker:1.4'
-    implementation 'com.code-troopers.betterpickers:library:3.1.0'
     implementation 'com.github.shibafu528:GalleryMultiPicker:3.0.1'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
 

@@ -37,6 +37,7 @@
         <item name="colorPrimaryDark">@color/key_color_2</item>
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
@@ -49,6 +50,25 @@
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_dark_18dp</item>
 
         <item name="mastodonVerifiedColor">@color/mastodon_verified_light</item>
+
+        <!--
+            下記のエラー対策
+            layout/material_timepicker_dialog: Error inflating class <unknown>
+            Failed to resolve attribute at index 36: TypedValue{t=0x2/d=0x7f04035d a=12}, theme={InheritanceMap=[id=0x7f1304d6shibafu.yukari.alpha:style/ColorsTheme.MaterialTimePickerTheme, ...
+
+            Theme.MaterialComponents.Light.Bridge に存在して Theme.MaterialComponents.Light.DarkActionBar.Bridge に存在しないitemをコピペすると動く
+        -->
+        <item name="minTouchTargetSize">@dimen/mtrl_min_touch_target_size</item>
+        <!--
+            下記のエラー対策
+            layout/material_timepicker_dialog: Error inflating class com.google.android.material.timepicker.TimePickerView
+            layout/material_timepicker: Binary XML file line #35: You must supply a layout_height attribute.
+
+            attr/materialTimePickerTheme に ThemeOverlay.MaterialComponents.TimePicker を継承したstyleを明示的に設定すると動く
+            https://github.com/material-components/material-components-android/issues/1955#issuecomment-752143062
+        -->
+        <item name="materialCalendarTheme">@style/ColorsTheme.MaterialCalendarTheme</item>
+        <item name="materialTimePickerTheme">@style/ColorsTheme.MaterialTimePickerTheme</item>
     </style>
 
     <style name="ColorsTheme.Base.Dialog" parent="Theme.MaterialComponents.Light.Dialog.Bridge">
@@ -136,6 +156,7 @@
         <item name="colorPrimaryDark">@color/key_color_2</item>
         <item name="colorPrimaryLight">@color/key_color_light</item>
         <item name="colorAccent">@color/key_color_accent</item>
+        <item name="colorOnPrimary">@color/white</item>
 
         <item name="pressDrawable">@drawable/press_key_light_color</item>
         <item name="focusDrawable">@drawable/focus_key_light_color</item>
@@ -148,6 +169,9 @@
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
 
         <item name="mastodonVerifiedColor">@color/mastodon_verified_dark</item>
+
+        <item name="materialCalendarTheme">@style/ColorsTheme.MaterialCalendarTheme</item>
+        <item name="materialTimePickerTheme">@style/ColorsTheme.MaterialTimePickerTheme</item>
     </style>
 
     <style name="ColorsTheme.Base.Dark.Dialog" parent="Theme.MaterialComponents.Dialog.Bridge">
@@ -196,6 +220,12 @@
         <item name="statusVisibilityDirectDrawable">@drawable/ic_visibility_direct_light_18dp</item>
 
         <item name="mastodonVerifiedColor">@color/mastodon_verified_dark</item>
+    </style>
+
+    <!-- https://github.com/material-components/material-components-android/issues/1955#issuecomment-752143062 -->
+    <style name="ColorsTheme.MaterialCalendarTheme" parent="ThemeOverlay.MaterialComponents.MaterialCalendar">
+    </style>
+    <style name="ColorsTheme.MaterialTimePickerTheme" parent="ThemeOverlay.MaterialComponents.TimePicker">
     </style>
 
 </resources>

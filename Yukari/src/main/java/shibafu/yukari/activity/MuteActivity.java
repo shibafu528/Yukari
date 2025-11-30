@@ -22,8 +22,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.codetroopers.betterpickers.calendardatepicker.CalendarDatePickerDialogFragment;
-import com.codetroopers.betterpickers.radialtimepicker.RadialTimePickerDialogFragment;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.database.MuteConfig;
@@ -356,18 +358,16 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            CalendarDatePickerDialogFragment dialog = new CalendarDatePickerDialogFragment()
-                    .setOnDateSetListener((calendarDatePickerDialog, i, i2, i3) -> {
-                        Calendar c1 = Calendar.getInstance();
-                        c1.setTimeInMillis(expirationTimeMillis);
-                        c1.set(i, i2, i3);
-                        expirationTimeMillis = c1.getTimeInMillis();
-                        updateExpire();
-                    })
-                    .setDoneText("OK")
-                    .setCancelText("キャンセル")
-                    .setPreselectedDate(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
-            dialog.show(getFragmentManager(), null);
+            MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                    .setSelection(c.getTimeInMillis())
+                    .build();
+            picker.addOnPositiveButtonClickListener(selection -> {
+                Calendar c1 = Calendar.getInstance();
+                c1.setTimeInMillis(selection);
+                expirationTimeMillis = c1.getTimeInMillis();
+                updateExpire();
+            });
+            picker.show(getFragmentManager(), "datepicker");
         }
 
         void onClickTime(View v) {
@@ -376,22 +376,21 @@ public class MuteActivity extends ActionBarYukariBase{
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(expirationTimeMillis);
 
-            RadialTimePickerDialogFragment dialog = new RadialTimePickerDialogFragment()
-                    .setOnTimeSetListener((dialog1, hourOfDay, minute) -> {
-                        Calendar c1 = Calendar.getInstance();
-                        c1.setTimeInMillis(expirationTimeMillis);
-                        c1.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                        c1.set(Calendar.MINUTE, minute);
-                        expirationTimeMillis = c1.getTimeInMillis();
-                        updateExpire();
-                    })
-                    .setDoneText("OK")
-                    .setCancelText("キャンセル")
-                    .setStartTime(c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE));
-            if (DateFormat.is24HourFormat(getActivity())) {
-                dialog.setForced24hFormat();
-            }
-            dialog.show(getFragmentManager(), null);
+            MaterialTimePicker picker = new MaterialTimePicker.Builder()
+                    .setTimeFormat(DateFormat.is24HourFormat(getActivity()) ? TimeFormat.CLOCK_24H : TimeFormat.CLOCK_12H)
+                    .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
+                    .setHour(c.get(Calendar.HOUR_OF_DAY))
+                    .setMinute(c.get(Calendar.MINUTE))
+                    .build();
+            picker.addOnPositiveButtonClickListener(selection -> {
+                Calendar c1 = Calendar.getInstance();
+                c1.setTimeInMillis(expirationTimeMillis);
+                c1.set(Calendar.HOUR_OF_DAY, picker.getHour());
+                c1.set(Calendar.MINUTE, picker.getMinute());
+                expirationTimeMillis = c1.getTimeInMillis();
+                updateExpire();
+            });
+            picker.show(getFragmentManager(), "timepicker");
         }
     }
 
