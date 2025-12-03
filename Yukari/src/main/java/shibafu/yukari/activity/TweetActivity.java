@@ -25,6 +25,10 @@ import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -60,7 +64,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sys1yagi.mastodon4j.api.entity.Status.Visibility;
 import com.twitter.Extractor;
-import info.shibafu528.gallerymultipicker.MultiPickerActivity;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.OnShowRationale;
@@ -93,7 +96,6 @@ import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
 import shibafu.yukari.util.BitmapUtil;
 import shibafu.yukari.util.StringUtil;
-import shibafu.yukari.util.ThemeUtil;
 import shibafu.yukari.util.TweetPreprocessor;
 
 import java.io.File;
@@ -111,7 +113,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -142,7 +143,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     public static final String EXTRA_VISIBILITY = "visibility";
     public static final String EXTRA_SPOILER_TEXT = "spoiler_text";
 
-    private static final int REQUEST_GALLERY = 0x01;
     private static final int REQUEST_CAMERA = 0x02;
     private static final int REQUEST_VOICE = 0x03;
     private static final int REQUEST_NOWPLAYING = 0x21;
@@ -161,9 +161,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     private static final int REQUEST_DIALOG_DRAFT_MENU = 0x08;
 
     // PermissionsDispatcherが若いリクエスト番号を使うので、自前実装は大きめの番号から。
-    private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA = 0x1000;
-    private static final int PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM = 0x1001;
-    private static final int PERMISSION_REQUEST_OPEN_GALLERY = 0x1002;
     private static final int PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE = 0x1003;
 
     private static final int TITLE_AREA_MAX_LINES = 3;
@@ -252,6 +249,30 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     // デフォルト公開範囲設定待ちフラグ
     private boolean waitingSetDefaultVisibility;
+
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickMultipleVisualMedia = registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(maxMediaPerUpload), result -> {
+        int acceptableCount = maxMediaPerUpload - attachPictures.size();
+        for (Uri uri : result) {
+            if (acceptableCount <= 0) {
+                Toast.makeText(this, "添付枚数の上限を超えた分は添付されません", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            attachPicture(uri);
+            acceptableCount--;
+        }
+    });
+
+    private final ActivityResultLauncher<String> pickPicturesViaGetContent = registerForActivityResult(new ActivityResultContracts.GetMultipleContents(), result -> {
+        int acceptableCount = maxMediaPerUpload - attachPictures.size();
+        for (Uri uri : result) {
+            if (acceptableCount <= 0) {
+                Toast.makeText(this, "添付枚数の上限を超えた分は添付されません", Toast.LENGTH_SHORT).show();
+                break;
+            }
+            attachPicture(uri);
+            acceptableCount--;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -531,18 +552,10 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         ArrayList<String> mediaUri = args.getStringArrayListExtra(EXTRA_MEDIA);
         if (args.getAction() != null && args.getType() != null &&
                 args.getAction().equals(Intent.ACTION_SEND) && args.getType().startsWith("image/")) {
-            if (hasReadImagesPermission()) {
-                attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
-            } else {
-                requestReadImagesPermission(PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM);
-            }
+            attachPicture(args.getParcelableExtra(Intent.EXTRA_STREAM));
         } else if (mediaUri != null) {
-            if (hasReadImagesPermission()) {
-                for (String s : mediaUri) {
-                    attachPicture(Uri.parse(s));
-                }
-            } else {
-                requestReadImagesPermission(PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA);
+            for (String s : mediaUri) {
+                attachPicture(Uri.parse(s));
             }
         }
 
@@ -699,7 +712,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         // ギャラリーボタン
         ibAttach = (ImageButton) findViewById(R.id.ibTweetAttachPic);
         ibAttach.setOnClickListener(v -> {
-            openGalleryWithPermissionCheck();
+            openGallery();
         });
         ibAttach.setOnLongClickListener(view -> {
             pickLatestGalleryPictureWithPermissionCheck();
@@ -982,30 +995,20 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         return super.onKeyUp(keyCode, event);
     }
 
-    private void openGalleryWithPermissionCheck() {
-        if (hasReadImagesPermission()) {
-            openGallery();
-        } else if (shouldShowRequestReadImagesPermissionRationale()) {
-            showRationaleForReadExternalStorage(new PermissionRequestForReadImages(this, PERMISSION_REQUEST_OPEN_GALLERY));
-        } else {
-            requestReadImagesPermission(PERMISSION_REQUEST_OPEN_GALLERY);
-        }
-    }
-
     private void openGallery() {
         //添付上限判定
         if (maxMediaPerUpload > 1 && attachPictures.size() >= maxMediaPerUpload) {
             Toast.makeText(TweetActivity.this, "これ以上画像を添付できません。", Toast.LENGTH_SHORT).show();
             return;
         }
-        Intent intent = new Intent(TweetActivity.this, MultiPickerActivity.class);
-        intent.putExtra(MultiPickerActivity.EXTRA_PICK_LIMIT, maxMediaPerUpload - attachPictures.size());
-        intent.putExtra(MultiPickerActivity.EXTRA_THEME, ThemeUtil.getActivityThemeId(getApplicationContext()));
-        intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_ENTER_ANIMATION, R.anim.activity_tweet_close_enter);
-        intent.putExtra(MultiPickerActivity.EXTRA_CLOSE_EXIT_ANIMATION, R.anim.activity_tweet_close_exit);
-        intent.putExtra(MultiPickerActivity.EXTRA_CAMERA_DEST_DIR, getPackageName());
-        startActivityForResult(intent, REQUEST_GALLERY);
-        overridePendingTransition(R.anim.activity_tweet_open_enter, R.anim.activity_tweet_open_exit);
+
+        if (sp.getBoolean("pref_attachment_prefer_use_get_content", false)) {
+            pickPicturesViaGetContent.launch("image/*");
+        } else {
+            pickMultipleVisualMedia.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                    .build());
+        }
     }
 
     private void pickLatestGalleryPictureWithPermissionCheck() {
@@ -1346,11 +1349,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case REQUEST_GALLERY:
-                    for (Parcelable uri : data.getParcelableArrayExtra(MultiPickerActivity.EXTRA_URIS)) {
-                        attachPicture((Uri) uri);
-                    }
-                    break;
                 case REQUEST_CAMERA: {
                     if (data != null && data.getData() != null) {
                         //getDataでUriが返ってくる端末用
@@ -1418,32 +1416,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         TweetActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
 
         switch (requestCode) {
-            case PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_MEDIA:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<String> mediaUri = getIntent().getStringArrayListExtra(EXTRA_MEDIA);
-                    for (String s : mediaUri) {
-                        attachPicture(Uri.parse(s));
-                    }
-                    initialDraft = getTweetDraft().copyForJava();
-                } else {
-                    Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case PERMISSION_REQUEST_INIT_ATTACH_FROM_EXTRA_STREAM:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    attachPicture(getIntent().getParcelableExtra(Intent.EXTRA_STREAM));
-                    initialDraft = getTweetDraft().copyForJava();
-                } else {
-                    Toast.makeText(this, "添付画像の読み込みに失敗しました", Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case PERMISSION_REQUEST_OPEN_GALLERY:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openGallery();
-                } else {
-                    onDeniedReadExternalStorage();
-                }
-                break;
             case PERMISSION_REQUEST_PICK_LATEST_GALLERY_PICTURE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     pickLatestGalleryPicture();
@@ -1560,9 +1532,13 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 }
 
                 uri = Uri.fromFile(outputFile);
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "画像添付エラー: アクセス権がありません", Toast.LENGTH_SHORT).show();
+                return;
             } catch (IOException e) {
                 e.printStackTrace();
-                Toast.makeText(getApplicationContext(), "画像添付エラー", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "画像添付エラー: ファイルの読み込みに失敗しました", Toast.LENGTH_SHORT).show();
                 return;
             } finally {
                 if (input != null) {

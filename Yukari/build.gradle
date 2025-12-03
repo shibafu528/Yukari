@@ -65,6 +65,7 @@ java {
 android {
     namespace 'shibafu.yukari'
     compileSdkVersion 33
+    compileSdkExtension 4
 
     defaultConfig {
         applicationId "shibafu.yukari"
@@ -162,7 +163,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.exifinterface:exifinterface:1.3.3'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
-    implementation 'androidx.activity:activity-ktx:1.4.0'
+    implementation 'androidx.activity:activity-ktx:1.7.2'
     implementation 'androidx.fragment:fragment-ktx:1.4.1'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation 'androidx.browser:browser:1.5.0'
@@ -179,7 +180,6 @@ dependencies {
 
     // UI追加
     implementation 'com.larswerkman:HoloColorPicker:1.4'
-    implementation 'com.github.shibafu528:GalleryMultiPicker:3.0.1'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
 
     // Twitter4J

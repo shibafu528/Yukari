@@ -242,12 +242,6 @@
             android:label="@string/title_activity_maintenance" />
 
         <activity
-            android:name="info.shibafu528.gallerymultipicker.MultiPickerActivity"
-            android:label="@string/title_activity_picture_chooser"
-            android:uiOptions="splitActionBarWhenNarrow">
-        </activity>
-
-        <activity
             android:name=".activity.IntentChooserActivity"
             android:theme="@style/ColorsTheme.Dark.Dialog"/>
 
@@ -283,6 +277,16 @@
         <activity
             android:name=".activity.NotificationPreferenceActivity"
             android:label="通知設定" />
+
+        <service android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data android:name="photopicker_activity:0:required" android:value="" />
+        </service>
    </application>
 
 </manifest>
