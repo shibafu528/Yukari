@@ -168,6 +168,7 @@ dependencies {
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
     implementation 'androidx.browser:browser:1.5.0'
     implementation 'androidx.collection:collection:1.5.0'
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.2'
 
     def lifecycle_version = '2.5.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
