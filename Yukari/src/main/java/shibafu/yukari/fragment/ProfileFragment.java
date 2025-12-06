@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -55,7 +54,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.span.HashTagSpan;
 import shibafu.yukari.common.span.UserProfileSpan;
-import shibafu.yukari.database.AccountManager;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
@@ -532,7 +531,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     }
 
     private int getTargetUserColor() {
-        UserExtrasManager userExtrasManager = getUserExtrasManager();
+        UserExtrasManager userExtrasManager = App.getInstance(requireContext()).getUserExtrasManager();
         if (userExtrasManager != null) {
             String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
             for (UserExtras userExtra : userExtrasManager.getUserExtras()) {
@@ -707,7 +706,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 if (resultCode == Activity.RESULT_OK) {
                     AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
-                        getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), userRecord);
+                        App.getInstance(requireContext()).getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
                         updateMenuItems();
 
@@ -740,7 +739,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
     @Override
     public void onColorPicked(int color, String tag) {
-        UserExtrasManager userExtrasManager = getUserExtrasManager();
+        UserExtrasManager userExtrasManager = App.getInstance(requireContext()).getUserExtrasManager();
         if (userExtrasManager != null) {
             userExtrasManager.setColor(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), color);
             showProfile(loadHolder);
@@ -763,7 +762,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
         } else {
             if (loadHolder != null && loadHolder.targetUser != null) {
                 Runnable task = () -> {
-                    List<UserExtras> userExtras = getUserExtrasManager().getUserExtras();
+                    List<UserExtras> userExtras = App.getInstance(requireContext()).getUserExtrasManager().getUserExtras();
                     String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
                     Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
                     AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
@@ -892,7 +891,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_unset_priority: {
-                getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
+                App.getInstance(requireContext()).getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
                 Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
 
                 user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
