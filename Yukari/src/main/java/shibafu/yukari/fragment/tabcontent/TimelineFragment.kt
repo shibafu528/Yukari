@@ -473,17 +473,15 @@ open class TimelineFragment : ListYukariBaseFragment(),
             query = FilterQuery.VOID_QUERY
         }
         // コンパイル完了をMainActivityに通知
-        activity.let { activity ->
-            if (activity is MainActivity) {
-                activity.onQueryCompiled(this, query)
-            }
-        }
+        val mainActivity = activity as? MainActivity
+        mainActivity?.onQueryCompiled(this, query)
 
         // イベント購読開始
         twitterService?.timelineHub?.addObserver(this)
 
         // 初期読み込み
-        if (statuses.isEmpty()) {
+        val tabId = arguments!!.getLong(EXTRA_ID)
+        if (statuses.isEmpty() || mainActivity?.needOnStartLoad(tabId) == true) {
             val statusLoader = twitterService?.statusLoader ?: return
             query.sources.forEach { source ->
                 val userRecord = source.sourceAccount ?: return@forEach
@@ -496,6 +494,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             } else {
                 swipeRefreshLayout?.isRefreshing = true
             }
+            mainActivity?.setExecutedOnStartLoadFromTab(tabId)
         }
     }
 

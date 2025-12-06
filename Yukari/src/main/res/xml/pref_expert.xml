@@ -89,5 +89,9 @@
             android:key="pref_attachment_prefer_use_get_content"
             android:title="レガシーな添付ファイル選択画面"
             android:summary="古いAPIを使用して添付ファイル選択画面を呼び出します\nクラウドストレージアプリ等から添付したい場合、このオプションが必要になる場合があります" />
+        <CheckBoxPreference
+            android:key="pref_dismiss_reload_on_restart"
+            android:title="メイン画面再表示時のリロード抑止"
+            android:summary="メイン画面を再表示した時、TLの新着読み込みを自動で行わないようにします" />
     </PreferenceCategory>
 </PreferenceScreen>

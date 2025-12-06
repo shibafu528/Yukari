@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
+import androidx.collection.MutableLongSet;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -100,6 +101,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     private Map<String, List<Status>> pageStatuses = new ArrayMap<>();
 
     private LongSparseArray<WeakReference<Fragment>> tabRegistry = new LongSparseArray<>();
+
+    // タブごとの初期ロード実行済フラグ
+    private MutableLongSet executedOnStartLoadByTabId = new MutableLongSet();
 
     //QuickPost関連
     private boolean enableQuickPost = true;
@@ -381,6 +385,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                     binding.pager.setCurrentItem(tabInfo.getOrder());
                 }
             }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!sharedPreferences.getBoolean("pref_dismiss_reload_on_restart", false)) {
+            executedOnStartLoadByTabId.clear();
         }
     }
 
@@ -891,6 +903,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         } else {
             binding.ibStream.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public boolean needOnStartLoad(long tabId) {
+        return !executedOnStartLoadByTabId.contains(tabId);
+    }
+
+    public void setExecutedOnStartLoadFromTab(long tabId) {
+        executedOnStartLoadByTabId.add(tabId);
     }
 
     @Override
