@@ -347,5 +347,14 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     public ProviderStream[] getProviderStreams() {
         return App.getInstance(this).getProviderStreams();
     }
+
+    /**
+     * @deprecated Use {@link App#startStreamChannels()} instead.
+     */
+    @Override
+    @Deprecated
+    public void startStreamChannels() {
+        App.getInstance(this).startStreamChannels();
+    }
     //</editor-fold>
 }

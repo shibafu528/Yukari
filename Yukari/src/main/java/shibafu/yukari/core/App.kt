@@ -215,17 +215,13 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
         throw UnsupportedOperationException("API Type $apiType not implemented.")
     }
 
-    override fun getProviderStream(userRecord: AuthUserRecord): ProviderStream?  {
-        return streamManager.getProviderStream(userRecord)
-    }
+    override fun getProviderStream(userRecord: AuthUserRecord): ProviderStream? = streamManager.getProviderStream(userRecord)
 
-    override fun getProviderStream(apiType: Int): ProviderStream  {
-        return streamManager.getProviderStream(apiType)
-    }
+    override fun getProviderStream(apiType: Int): ProviderStream = streamManager.getProviderStream(apiType)
 
-    override fun getProviderStreams(): Array<out ProviderStream?> {
-        return streamManager.providerStreams
-    }
+    override fun getProviderStreams(): Array<out ProviderStream?> = streamManager.providerStreams
+
+    override fun startStreamChannels() = streamManager.startStreamChannels()
 
     private fun installSecurityProvider() {
         try {

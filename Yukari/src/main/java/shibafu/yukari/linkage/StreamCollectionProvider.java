@@ -37,13 +37,7 @@ public interface StreamCollectionProvider {
     /**
      * ユーザによって有効化されているストリーミングチャンネルを全て起動します。
      */
-    default void startStreamChannels() {
-        for (ProviderStream stream : getProviderStreams()) {
-            if (stream != null) {
-                stream.onStart();
-            }
-        }
-    }
+    void startStreamChannels();
 
     /**
      * 現在接続されているストリーミングチャンネルを一度切断し、接続しなおします。
@@ -57,6 +51,14 @@ public interface StreamCollectionProvider {
                         channel.start();
                     }
                 }
+            }
+        }
+    }
+
+    static void startStreamChannels(StreamCollectionProvider provider) {
+        for (ProviderStream stream : provider.getProviderStreams()) {
+            if (stream != null) {
+                stream.onStart();
             }
         }
     }

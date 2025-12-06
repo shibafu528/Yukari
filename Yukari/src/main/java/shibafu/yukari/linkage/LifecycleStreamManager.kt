@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.collection.ArrayMap
 import androidx.collection.LongSparseArray
@@ -24,6 +25,7 @@ import shibafu.yukari.twitter.TwitterStream
 class LifecycleStreamManager(private val context: Context) : StreamCollectionProvider, DefaultLifecycleObserver {
     private val mutex = Any()
     private val providerStreams = arrayOf(TwitterStream(), MastodonStream())
+    private var inForeground = false
     private var isStarted = false
 
     private val connectivityFlags = LongSparseArray<ArrayMap<String, Boolean>>()
@@ -71,14 +73,18 @@ class LifecycleStreamManager(private val context: Context) : StreamCollectionPro
 
     override fun onStart(owner: LifecycleOwner) {
         synchronized(mutex) {
-            isStarted = true
+            Log.d(LOG_TAG, "onStart (isStarted: $isStarted)")
+
+            inForeground = true
             providerStreams.forEach { stream -> stream.onCreate(context) }
         }
     }
 
     override fun onStop(owner: LifecycleOwner) {
         synchronized(mutex) {
-            isStarted = false
+            Log.d(LOG_TAG, "onStop")
+
+            inForeground = false
             providerStreams.forEach { stream -> stream.onDestroy() }
         }
     }
@@ -102,17 +108,45 @@ class LifecycleStreamManager(private val context: Context) : StreamCollectionPro
         return providerStreams
     }
 
+    override fun startStreamChannels() {
+        synchronized(mutex) {
+            Log.d(LOG_TAG, "startStreamChannels")
+
+            isStarted = true
+            StreamCollectionProvider.startStreamChannels(this)
+        }
+    }
+
     fun onAddUser(userRecord: AuthUserRecord) {
         synchronized(mutex) {
-            if (!isStarted) return
+            Log.d(LOG_TAG, "onAddUser (isStarted: $isStarted)")
+
+            // バックグラウンド時は、次回のonStart()で処理されるので何もしなくて良い
+            if (!inForeground) {
+                return
+            }
+
             getProviderStream(userRecord)?.addUser(userRecord)
+            if (isStarted) {
+                startStreamChannels()
+            }
         }
     }
 
     fun onRemoveUser(userRecord: AuthUserRecord) {
         synchronized(mutex) {
-            if (!isStarted) return
+            Log.d(LOG_TAG, "onRemoveUser")
+
+            // バックグラウンド時は、次回のonStart()で処理されるので何もしなくて良い
+            if (!inForeground) {
+                return
+            }
+
             getProviderStream(userRecord)?.removeUser(userRecord)
         }
+    }
+
+    companion object {
+        private const val LOG_TAG = "LifecycleStreamManager"
     }
 }
