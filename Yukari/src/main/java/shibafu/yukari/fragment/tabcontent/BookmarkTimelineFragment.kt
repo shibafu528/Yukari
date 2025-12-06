@@ -20,7 +20,7 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
 
     override fun onResume() {
         super.onResume()
-        if (isTwitterServiceBound && statuses.isNotEmpty()) {
+        if (statuses.isNotEmpty()) {
             loadBookmark()
         }
     }

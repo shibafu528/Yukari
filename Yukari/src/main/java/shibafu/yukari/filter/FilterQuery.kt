@@ -10,7 +10,6 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.linkage.StreamCollectionProvider
 

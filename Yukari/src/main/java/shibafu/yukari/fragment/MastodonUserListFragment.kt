@@ -13,7 +13,6 @@ import shibafu.yukari.core.App
 import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.database.AuthUserRecord
-import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import java.io.IOException
 

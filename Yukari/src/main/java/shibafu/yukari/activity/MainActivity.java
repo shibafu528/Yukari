@@ -70,7 +70,6 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.mastodon.source.HashTag;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -258,10 +257,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
 
                 if (tabFragment instanceof TimelineFragment) {
-                    TwitterService service = getTwitterService();
                     FilterQuery query = ((TimelineFragment) tabFragment).getQuery();
-                    if (service != null && query.isConnectedAnyDynamicChannel(service)) {
-                        query.disconnectAllDynamicChannel(service);
+                    if (query.isConnectedAnyDynamicChannel(this)) {
+                        query.disconnectAllDynamicChannel(this);
                     }
                 }
 
@@ -281,18 +279,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         binding.ibStream.setOnClickListener(view -> {
             if (currentPage instanceof TimelineFragment) {
-                TwitterService service = getTwitterService();
-                if (service == null) {
-                    return;
-                }
-
                 FilterQuery query = ((TimelineFragment) currentPage).getQuery();
-                boolean isStreaming = query.isConnectedAnyDynamicChannel(service);
+                boolean isStreaming = query.isConnectedAnyDynamicChannel(this);
                 if (isStreaming) {
-                    query.disconnectAllDynamicChannel(service);
+                    query.disconnectAllDynamicChannel(this);
                     binding.ibStream.setImageResource(R.drawable.ic_pause_d);
                 } else {
-                    query.connectAllDynamicChannel(service);
+                    query.connectAllDynamicChannel(this);
                     binding.ibStream.setImageResource(R.drawable.ic_play_d);
                 }
             }

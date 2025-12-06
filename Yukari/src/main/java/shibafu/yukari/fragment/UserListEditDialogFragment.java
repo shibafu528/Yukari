@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.Toast;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.databinding.DialogListeditBinding;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -110,14 +109,7 @@ public class UserListEditDialogFragment extends DialogFragment {
                     return;
                 }
 
-                TwitterServiceDelegate delegate = null;
-                if (getTargetFragment() instanceof TwitterServiceDelegate) {
-                    delegate = (TwitterServiceDelegate) getTargetFragment();
-                } else if (getActivity() instanceof TwitterServiceDelegate) {
-                    delegate = (TwitterServiceDelegate) getActivity();
-                }
-
-                new ThrowableTwitterAsyncTask<Params, Void>(delegate) {
+                new ThrowableTwitterAsyncTask<Params, Void>(requireContext()) {
 
                     private PostProgressDialogFragment dialogFragment;
 

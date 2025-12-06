@@ -9,7 +9,6 @@ import shibafu.yukari.core.App
 import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterUser
-import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import twitter4j.Twitter
 import twitter4j.TwitterException

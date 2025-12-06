@@ -30,8 +30,6 @@ import shibafu.yukari.core.App;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.fragment.ColorPickerDialogFragment;
 import shibafu.yukari.mastodon.MastodonUtil;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -88,15 +86,8 @@ public class AccountManageActivity extends ActionBarYukariBase {
     public void onServiceDisconnected() {}
 
     public static class AccountListFragment extends ListFragment implements ColorPickerDialogFragment.ColorPickerCallback{
-        private TwitterServiceDelegate delegate;
         private Adapter adapter;
         private List<AuthUserRecord> dataList = new ArrayList<>();
-
-        @Override
-        public void onAttach(Context context) {
-            super.onAttach(context);
-            delegate = (TwitterServiceDelegate) context;
-        }
 
         public void createList() {
             dataList.clear();
@@ -128,7 +119,7 @@ public class AccountManageActivity extends ActionBarYukariBase {
                             case 2:
                                 switch (dataList.get(position).Provider.getApiType()) {
                                     case Provider.API_TWITTER:
-                                        new ThrowableTwitterAsyncTask<AuthUserRecord, twitter4j.User>(delegate) {
+                                        new ThrowableTwitterAsyncTask<AuthUserRecord, twitter4j.User>(requireContext()) {
 
                                             @Override
                                             protected ThrowableResult<User> doInBackground(AuthUserRecord... authUserRecords) {

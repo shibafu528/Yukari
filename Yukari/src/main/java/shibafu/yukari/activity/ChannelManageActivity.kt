@@ -20,8 +20,6 @@ import shibafu.yukari.core.App
 import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.StreamChannel
-import shibafu.yukari.service.TwitterServiceConnection
-import shibafu.yukari.service.TwitterServiceDelegate
 
 class ChannelManageActivity : ActionBarYukariBase() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,26 +48,11 @@ class ChannelManageActivity : ActionBarYukariBase() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onServiceConnected() {
-        val fragment = supportFragmentManager.findFragmentByTag("list") as? ChannelListFragment
-        fragment?.onServiceConnected()
-    }
-
-    override fun onServiceDisconnected() {}
-
-    class ChannelListFragment : ListFragment(), TwitterServiceConnection.ServiceConnectionCallback {
-        private lateinit var serviceDelegate: TwitterServiceDelegate
-
-        override fun onAttach(context: Context) {
-            super.onAttach(context)
-            serviceDelegate = context as TwitterServiceDelegate
-        }
-
-        override fun onServiceConnected() {
+    class ChannelListFragment : ListFragment() {
+        override fun onStart() {
+            super.onStart()
             createList()
         }
-
-        override fun onServiceDisconnected() {}
 
         override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
             val channel = listAdapter!!.getItem(position) as StreamChannel

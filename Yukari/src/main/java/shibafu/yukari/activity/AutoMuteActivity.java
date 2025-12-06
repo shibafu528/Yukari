@@ -26,7 +26,6 @@ import shibafu.yukari.core.App;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.databinding.DialogAutoMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.service.TwitterService;
 
 import java.util.List;
 

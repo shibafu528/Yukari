@@ -33,7 +33,6 @@ import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.MuteMatch;
 import shibafu.yukari.databinding.DialogMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.util.StringUtil;
 
 import java.text.SimpleDateFormat;

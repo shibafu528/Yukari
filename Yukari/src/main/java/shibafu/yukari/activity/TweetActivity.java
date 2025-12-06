@@ -90,7 +90,6 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache;
 import shibafu.yukari.mastodon.entity.DonStatus;
 import shibafu.yukari.plugin.MorseInputActivity;
 import shibafu.yukari.service.PostService;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TweetValidator;
 import shibafu.yukari.twitter.TwitterUtil;
@@ -1280,10 +1279,6 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     private void updatePostValidator() {
-        if (!isTwitterServiceBound() || getTwitterService() == null) {
-            return;
-        }
-
         validators.clear();
         App app = App.getInstance(getApplicationContext());
         for (AuthUserRecord writer : writers) {

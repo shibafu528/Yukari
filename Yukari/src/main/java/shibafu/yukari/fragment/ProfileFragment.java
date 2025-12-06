@@ -63,7 +63,6 @@ import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
-import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterUser;
@@ -308,14 +307,6 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             final ParallelAsyncTask<Void, Void, LoadHolder> task = new ParallelAsyncTask<Void, Void, LoadHolder>() {
                 @Override
                 protected LoadHolder doInBackground(Void... params) {
-                    while (!isTwitterServiceBound()) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
                     App app = App.getInstance(requireContext());
                     CentralDatabase db = app.getDatabase();
                     DBUser user;
@@ -377,13 +368,11 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             progressBar.setVisibility(View.INVISIBLE);
         }
 
-        if (isTwitterServiceBound()) {
-            List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
-            for (AuthUserRecord usr : users) {
-                if (usr.NumericId == holder.targetUser.getId()) {
-                    user = usr;
-                    break;
-                }
+        List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
+        for (AuthUserRecord usr : users) {
+            if (usr.NumericId == holder.targetUser.getId()) {
+                user = usr;
+                break;
             }
         }
 
@@ -568,15 +557,6 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                     sb.append("@");
                     sb.append(claim.getSourceAccount().ScreenName);
                     sb.append(": ");
-
-                    //サービスがバインドされていない場合は待機する
-                    while (!isTwitterServiceBound()) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
 
                     Suppressor suppressor = App.getInstance(requireContext()).getSuppressor();
 
@@ -763,23 +743,16 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             menu.findItem(R.id.action_unset_priority).setVisible(false);
         } else {
             if (loadHolder != null && loadHolder.targetUser != null) {
-                Runnable task = () -> {
-                    List<UserExtras> userExtras = App.getInstance(requireContext()).getUserExtrasManager().getUserExtras();
-                    String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
-                    Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
-                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
-                    if (priorityAccount != null) {
-                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
-                        menu.findItem(R.id.action_unset_priority).setVisible(true);
-                    } else {
-                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
-                        menu.findItem(R.id.action_unset_priority).setVisible(false);
-                    }
-                };
-                if (isTwitterServiceBound()) {
-                    task.run();
+                List<UserExtras> userExtras = App.getInstance(requireContext()).getUserExtrasManager().getUserExtras();
+                String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
+                Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
+                AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
+                if (priorityAccount != null) {
+                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
+                    menu.findItem(R.id.action_unset_priority).setVisible(true);
                 } else {
-                    serviceTasks.add(task);
+                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
+                    menu.findItem(R.id.action_unset_priority).setVisible(false);
                 }
             }
 

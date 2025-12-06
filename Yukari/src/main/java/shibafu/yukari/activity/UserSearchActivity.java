@@ -38,7 +38,6 @@ import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.databinding.RowUserBinding;
 import shibafu.yukari.fragment.TwitterUserListFragment;
-import shibafu.yukari.service.TwitterService;
 
 /**
  * Created by shibafu on 14/06/01.
@@ -81,14 +80,6 @@ public class UserSearchActivity extends ActionBarYukariBase {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                while (!isTwitterServiceBound()) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        return true;
-                    }
-                }
-
                 AuthUserRecord user = getPreferredUser();
                 if (user == null) {
                     Toast.makeText(UserSearchActivity.this, "使用可能なTwitterアカウントが無いため、ユーザー検索を利用できません。", Toast.LENGTH_SHORT).show();
@@ -228,7 +219,7 @@ public class UserSearchActivity extends ActionBarYukariBase {
                 cursor.addRow(new Object[] {-1, constraint});
                 return cursor;
             }
-            else if (isTwitterServiceBound() && !TextUtils.isEmpty(constraint)) {
+            else if (!TextUtils.isEmpty(constraint)) {
                 String st = "%" + constraint + "%";
                 return App.getInstance(getApplicationContext()).getDatabase().getUsersCursor(
                         CentralDatabase.COL_USER_NAME + " LIKE ? OR " + CentralDatabase.COL_USER_SCREEN_NAME + " LIKE ?",

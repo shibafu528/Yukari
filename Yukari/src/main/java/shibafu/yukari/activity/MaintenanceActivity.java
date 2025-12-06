@@ -115,7 +115,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     fragment.dismiss();
-                    onServiceConnected();
+                    reload();
                 }
             }.executeParallel();
         }
@@ -123,19 +123,21 @@ public class MaintenanceActivity extends ActionBarYukariBase {
         @Override
         public void onResume() {
             super.onResume();
-            if (isTwitterServiceBound()) {
-                onServiceConnected();
-            }
+            reload();
         }
 
         @Override
         public void onServiceConnected() {
-            binding.tvYdbUserEnt.setText(String.format("%d entries", App.getInstance(requireContext()).getDatabase().getUsersCursor().getCount()));
-            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+            reload();
         }
 
         @Override
         public void onServiceDisconnected() {}
+
+        private void reload() {
+            binding.tvYdbUserEnt.setText(String.format("%d entries", App.getInstance(requireContext()).getDatabase().getUsersCursor().getCount()));
+            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+        }
     }
 
     public static class SimpleProgressDialogFragment extends DialogFragment {

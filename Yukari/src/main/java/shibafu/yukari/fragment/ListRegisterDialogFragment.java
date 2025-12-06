@@ -26,7 +26,6 @@ import shibafu.yukari.core.App;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.databinding.DialogListBinding;
 import shibafu.yukari.databinding.RowCheckBinding;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.PagableResponseList;
@@ -53,7 +52,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
 
     private User targetUser;
 
-    private TwitterServiceDelegate delegate;
     private AuthUserRecord currentUser;
 
     private ResponseList<UserList> userLists;
@@ -74,13 +72,6 @@ public class ListRegisterDialogFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (getTargetFragment() != null && getTargetFragment() instanceof TwitterServiceDelegate) {
-            delegate = (TwitterServiceDelegate) getTargetFragment();
-        } else if (context instanceof TwitterServiceDelegate) {
-            delegate = (TwitterServiceDelegate) context;
-        } else {
-            throw new RuntimeException("TwitterServiceDelegate cannot find.");
-        }
         currentUser = App.getInstance(requireContext()).getAccountManager().findPreferredUser(Provider.API_TWITTER);
 
         Bundle args = getArguments();

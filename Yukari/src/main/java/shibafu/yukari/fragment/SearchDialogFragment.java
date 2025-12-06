@@ -41,8 +41,6 @@ import shibafu.yukari.core.App;
 import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.SearchHistory;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
@@ -58,7 +56,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchDialogFragment extends DialogFragment implements TwitterServiceDelegate {
+public class SearchDialogFragment extends DialogFragment {
 
     public interface SearchDialogCallback {
         void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking);
@@ -69,33 +67,6 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     private EditText searchQuery;
     private SectionsPagerAdapter adapter;
     private ViewPager viewPager;
-    private TwitterServiceDelegate serviceDelegate;
-
-    @Override
-    public TwitterService getTwitterService() {
-        return serviceDelegate.getTwitterService();
-    }
-
-    @Override
-    public boolean isTwitterServiceBound() {
-        return serviceDelegate.isTwitterServiceBound();
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        serviceDelegate = (TwitterServiceDelegate) context;
-        if (serviceDelegate != null) {
-            Log.d("SearchDialog", "Attached Service Delegate");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        serviceDelegate = null;
-        Log.d("SearchDialog", "Detached Service Delegate");
-    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {

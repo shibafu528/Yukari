@@ -1,36 +1,32 @@
 package shibafu.yukari.fragment.base;
 
-import androidx.fragment.app.Fragment;
+import android.os.Handler;
+import android.os.Looper;
 
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceConnection;
-import shibafu.yukari.service.TwitterServiceDelegate;
+import androidx.fragment.app.Fragment;
 
 /**
  * Created by shibafu on 14/07/12.
  */
-public abstract class YukariBaseFragment extends Fragment implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
-    private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
-
+public abstract class YukariBaseFragment extends Fragment {
+    @SuppressWarnings("deprecation")
     @Override
     public void onStart() {
         super.onStart();
-        servicesConnection.connect(getActivity());
+        // onServiceConnected()がかつてサービスバインドで呼ばれていて、onStart()より若干遅れて実行されていたことの再現
+        new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onStop() {
         super.onStop();
-        servicesConnection.disconnect(getActivity());
+        onServiceDisconnected();
     }
 
-    @Override
-    public boolean isTwitterServiceBound() {
-        return servicesConnection.isServiceBound();
-    }
+    @Deprecated
+    public void onServiceConnected() {}
 
-    @Override
-    public TwitterService getTwitterService() {
-        return servicesConnection.getTwitterService();
-    }
+    @Deprecated
+    public void onServiceDisconnected() {}
 }
