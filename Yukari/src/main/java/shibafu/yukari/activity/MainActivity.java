@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
+import androidx.collection.MutableLongSet;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -101,6 +102,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     private LongSparseArray<WeakReference<Fragment>> tabRegistry = new LongSparseArray<>();
 
+    // タブごとの初期ロード実行済フラグ
+    private MutableLongSet executedOnStartLoadByTabId = new MutableLongSet();
+
     //QuickPost関連
     private boolean enableQuickPost = true;
 
@@ -130,11 +134,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         //表示域拡張設定
         setImmersive(sharedPreferences.getBoolean("pref_boot_immersive", false));
-
-        //サービスの常駐
-        if (sharedPreferences.getBoolean("pref_enable_service", false)) {
-            ContextCompat.startForegroundService(this, new Intent(getApplicationContext(), TwitterService.class));
-        }
     }
 
     private void findViews() {
@@ -385,6 +384,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        if (!sharedPreferences.getBoolean("pref_dismiss_reload_on_restart", false)) {
+            executedOnStartLoadByTabId.clear();
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         //スリープ有効の設定
@@ -442,7 +449,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.isLongPress()) {
-                stopService(new Intent(getApplicationContext(), TwitterService.class));
                 finish();
             }
             else if (event.getAction() == KeyEvent.ACTION_UP && !event.isLongPress()) {
@@ -571,7 +577,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             builder.setTitle("終了しますか？");
             builder.setPositiveButton("はい", (dialog, which) -> {
                 dialog.dismiss();
-                stopService(new Intent(getApplicationContext(), TwitterService.class));
                 finish();
             });
             builder.setNegativeButton("いいえ", (dialog, which) -> {
@@ -579,7 +584,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             });
             builder.show();
         } else {
-            stopService(new Intent(getApplicationContext(), TwitterService.class));
             finish();
         }
     }
@@ -891,6 +895,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         } else {
             binding.ibStream.setVisibility(View.INVISIBLE);
         }
+    }
+
+    public boolean needOnStartLoad(long tabId) {
+        return !executedOnStartLoadByTabId.contains(tabId);
+    }
+
+    public void setExecutedOnStartLoadFromTab(long tabId) {
+        executedOnStartLoadByTabId.add(tabId);
     }
 
     @Override

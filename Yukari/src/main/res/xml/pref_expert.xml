@@ -63,10 +63,6 @@
             android:title="TLダブルクリックの防止"
             android:summary="投稿行クリック〜詳細表示までのラグ発生中にダブルクリックを起こさないようにしてみます\n運が悪いと一旦バックグラウンドに行かないとTLクリックできなくなるかも"/>
         <CheckBoxPreference
-            android:key="pref_enable_service"
-            android:title="Serviceの常駐"
-            android:summary="Serviceを常駐モードで起動します\n環境によっては動作が安定します"/>
-        <CheckBoxPreference
             android:key="pref_remove_name_newline"
             android:title="ユーザー名から改行文字を取り除く"
             android:summary="TLにユーザー名を表示する際、改行文字を取り除くようにします"/>
@@ -89,5 +85,9 @@
             android:key="pref_attachment_prefer_use_get_content"
             android:title="レガシーな添付ファイル選択画面"
             android:summary="古いAPIを使用して添付ファイル選択画面を呼び出します\nクラウドストレージアプリ等から添付したい場合、このオプションが必要になる場合があります" />
+        <CheckBoxPreference
+            android:key="pref_dismiss_reload_on_restart"
+            android:title="メイン画面再表示時のリロード抑止"
+            android:summary="メイン画面を再表示した時、TLの新着読み込みを自動で行わないようにします" />
     </PreferenceCategory>
 </PreferenceScreen>
