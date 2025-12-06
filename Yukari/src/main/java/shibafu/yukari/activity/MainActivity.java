@@ -134,11 +134,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         //表示域拡張設定
         setImmersive(sharedPreferences.getBoolean("pref_boot_immersive", false));
-
-        //サービスの常駐
-        if (sharedPreferences.getBoolean("pref_enable_service", false)) {
-            ContextCompat.startForegroundService(this, new Intent(getApplicationContext(), TwitterService.class));
-        }
     }
 
     private void findViews() {
@@ -454,7 +449,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
             if (event.getAction() == KeyEvent.ACTION_DOWN && event.isLongPress()) {
-                stopService(new Intent(getApplicationContext(), TwitterService.class));
                 finish();
             }
             else if (event.getAction() == KeyEvent.ACTION_UP && !event.isLongPress()) {
@@ -583,7 +577,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             builder.setTitle("終了しますか？");
             builder.setPositiveButton("はい", (dialog, which) -> {
                 dialog.dismiss();
-                stopService(new Intent(getApplicationContext(), TwitterService.class));
                 finish();
             });
             builder.setNegativeButton("いいえ", (dialog, which) -> {
@@ -591,7 +584,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             });
             builder.show();
         } else {
-            stopService(new Intent(getApplicationContext(), TwitterService.class));
             finish();
         }
     }

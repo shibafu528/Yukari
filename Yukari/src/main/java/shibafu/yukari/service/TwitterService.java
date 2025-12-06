@@ -70,23 +70,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), getString(R.string.notification_channel_id_core_service))
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
-                .setSmallIcon(android.R.drawable.stat_notify_sync_noanim)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText("Yukariを実行中です")
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setShowWhen(false)
-                .setOngoing(true)
-                .setLocalOnly(true)
-                .setColor(ResourcesCompat.getColor(getResources(), R.color.key_color, null))
-                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
-        startForeground(R.string.app_name, builder.build());
-        return START_STICKY;
-    }
-
-    @Override
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
@@ -97,9 +80,6 @@ public class TwitterService extends Service implements ApiCollectionProvider, St
     public void onDestroy() {
         super.onDestroy();
         Log.d(LOG_TAG, "onDestroy");
-
-        stopForeground(true);
-
         Log.d(LOG_TAG, "onDestroy completed.");
     }
 
