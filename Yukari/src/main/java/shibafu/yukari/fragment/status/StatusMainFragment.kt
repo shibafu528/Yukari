@@ -21,6 +21,7 @@ import shibafu.yukari.activity.TweetActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.core.App
 import shibafu.yukari.database.Provider
 import shibafu.yukari.entity.Status
 import shibafu.yukari.entity.StatusDraft
@@ -157,7 +158,7 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
 
         ibRetweet.setOnClickListener {
             if (defaultSharedPreferences.getBoolean("pref_dialog_rt", true)) {
-                val message = if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
+                val message = if (status.getStatusRelation(App.getInstance(requireContext()).accountManager.users) == Status.RELATION_OWNED && defaultSharedPreferences.getBoolean("pref_too_late_delete_message", false)) {
                     "過去の栄光にすがりますか？"
                 } else {
                     "ブーストしますか？"
@@ -441,12 +442,10 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
             ibRetweet.isEnabled = status.canRepost(userRecord)
             ibFavorite.isEnabled = status.canFavorite(userRecord)
 
-            if (isTwitterServiceBound) {
-                // 自分の所有ステータスの場合、ナルシストオプションが有効になってないなら強制ふぁぼ禁止にする
-                // ...セルフふぁぼができないと思いこんでいたという経緯が残ってないと意味わからんな
-                if (status.getStatusRelation(twitterService.users) == Status.RELATION_OWNED && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
-                    ibFavorite.isEnabled = false
-                }
+            // 自分の所有ステータスの場合、ナルシストオプションが有効になってないなら強制ふぁぼ禁止にする
+            // ...セルフふぁぼができないと思いこんでいたという経緯が残ってないと意味わからんな
+            if (status.getStatusRelation(App.getInstance(requireContext()).accountManager.users) == Status.RELATION_OWNED && !defaultSharedPreferences.getBoolean("pref_narcist", false)) {
+                ibFavorite.isEnabled = false
             }
 
             ibFavRt.isEnabled = ibRetweet.isEnabled && ibFavorite.isEnabled

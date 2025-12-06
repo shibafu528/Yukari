@@ -231,7 +231,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         onScrollListeners.remove(unreadNotifierBehavior)
         unreadNotifierBehavior.onDetach()
         if (isTwitterServiceBound) {
-            twitterService?.timelineHub?.removeObserver(this)
+            App.getInstance(requireContext()).timelineHub.removeObserver(this)
         }
         listAdapter = null
         statusAdapter = null
@@ -268,7 +268,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                             loadMarkerDate = clickedElement.createdAt,
                                             stringCursor = clickedElement.stringCursor,
                                             longCursor = clickedElement.longCursor)
-                                    val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
+                                    val taskKey = App.getInstance(requireContext()).statusLoader.requestRestQuery(timelineId,
                                             userRecord, restQuery, params)
                                     clickedElement.taskKey = taskKey
                                     loadingTaskKeys += taskKey
@@ -448,17 +448,19 @@ open class TimelineFragment : ListYukariBaseFragment(),
     }
 
     override fun onServiceConnected() {
+        val app = App.getInstance(requireContext())
+
         // ユーザ情報のバインド
         if (users.isEmpty()) {
-            users += twitterService.users
+            users += app.accountManager.users
         }
 
         // TL初期容量の決定
         statusCapacity = users.size * CAPACITY_INITIAL_FACTOR
 
         if (statusAdapter != null) {
-            statusAdapter?.setUserExtras(App.getInstance(requireContext()).userExtrasManager.userExtras)
-            statusAdapter?.setStatusLoader(twitterService.statusLoader)
+            statusAdapter?.setUserExtras(app.userExtrasManager.userExtras)
+            statusAdapter?.setStatusLoader(app.statusLoader)
         }
 
         // クエリコンパイル
@@ -478,12 +480,12 @@ open class TimelineFragment : ListYukariBaseFragment(),
         mainActivity?.onQueryCompiled(this, query)
 
         // イベント購読開始
-        twitterService?.timelineHub?.addObserver(this)
+        app.timelineHub.addObserver(this)
 
         // 初期読み込み
         val tabId = arguments!!.getLong(EXTRA_ID)
         if (statuses.isEmpty() || mainActivity?.needOnStartLoad(tabId) == true) {
-            val statusLoader = twitterService?.statusLoader ?: return
+            val statusLoader = app.statusLoader
             query.sources.forEach { source ->
                 val userRecord = source.sourceAccount ?: return@forEach
                 val restQuery = source.getRestQuery() ?: return@forEach
@@ -509,7 +511,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
         swipeRefreshLayout?.isRefreshing = true
         clearUnreadNotifier()
-        val statusLoader = twitterService?.statusLoader ?: return
+        val statusLoader = App.getInstance(requireContext()).statusLoader
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
             val restQuery = source.getRestQuery() ?: return@forEach
@@ -623,7 +625,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
                         override fun doInBackground(vararg params: DirectMessage): ThrowableAsyncTask.ThrowableResult<Boolean> {
                             var user: AuthUserRecord? = null
-                            for (userRecord in twitterService.users) {
+                            for (userRecord in App.getInstance(requireContext()).accountManager.users) {
                                 if (params[0].recipientId == userRecord.NumericId || params[0].senderId == userRecord.NumericId) {
                                     user = userRecord
                                 }
@@ -632,7 +634,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 return ThrowableAsyncTask.ThrowableResult(IllegalArgumentException("操作対象のユーザが見つかりません."))
                             }
                             try {
-                                val t = twitterService.getTwitterOrThrow(user)
+                                val t = TwitterUtil.getTwitterOrThrow(requireContext(), user)
                                 t.destroyDirectMessage(status.id)
                             } catch (e: TwitterException) {
                                 e.printStackTrace()

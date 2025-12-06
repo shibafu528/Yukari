@@ -22,11 +22,13 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.AccountChooserActivity;
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.databinding.DialogListBinding;
 import shibafu.yukari.databinding.RowCheckBinding;
 import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.PagableResponseList;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
@@ -79,7 +81,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         } else {
             throw new RuntimeException("TwitterServiceDelegate cannot find.");
         }
-        currentUser = delegate.getTwitterService().findPreferredUser(Provider.API_TWITTER);
+        currentUser = App.getInstance(requireContext()).getAccountManager().findPreferredUser(Provider.API_TWITTER);
 
         Bundle args = getArguments();
         targetUser = (User) args.getSerializable(ARG_TARGET_USER);
@@ -245,7 +247,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Pair<ResponseList<UserList>, List<Long>>> doInBackground(AuthUserRecord... params) {
             try {
-                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0]);
+                Twitter twitter = TwitterUtil.getTwitterOrThrow(requireContext(), params[0]);
                 ResponseList<UserList> lists = twitter.getUserLists(params[0].NumericId);
                 for (Iterator<UserList> iterator = lists.iterator(); iterator.hasNext(); ) {
                     UserList list = iterator.next();
@@ -365,7 +367,7 @@ public class ListRegisterDialogFragment extends DialogFragment {
         @Override
         protected ThrowableResult<Params> doInBackground(Params... params) {
             try {
-                Twitter twitter = delegate.getTwitterService().getTwitterOrThrow(params[0].userRecord);
+                Twitter twitter = TwitterUtil.getTwitterOrThrow(requireContext(), params[0].userRecord);
                 switch (params[0].mode) {
                     case ADD:
                         twitter.createUserListMember(params[0].list.getId(), targetUser.getId());

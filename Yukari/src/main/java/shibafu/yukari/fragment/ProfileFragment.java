@@ -316,6 +316,8 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                         }
                     }
 
+                    App app = App.getInstance(requireContext());
+                    CentralDatabase db = app.getDatabase();
                     DBUser user;
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -323,13 +325,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                             name = name.substring(1);
                         }
 
-                        user = getTwitterService().getDatabase().getUser(name);
+                        user = db.getUser(name);
                     } else {
-                        user = getTwitterService().getDatabase().getUser(targetId);
+                        user = db.getUser(targetId);
                     }
 
                     if (ProfileFragment.this.user == null) {
-                        ProfileFragment.this.user = getTwitterService().getPrimaryUser();
+                        ProfileFragment.this.user = app.getAccountManager().getPrimaryUser();
                     }
                     if (user != null) {
                         return new LoadHolder(user, null);
@@ -376,7 +378,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
         }
 
         if (isTwitterServiceBound()) {
-            List<AuthUserRecord> users = getTwitterService().getUsers();
+            List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
             for (AuthUserRecord usr : users) {
                 if (usr.NumericId == holder.targetUser.getId()) {
                     user = usr;
@@ -576,9 +578,9 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                         }
                     }
 
-                    Suppressor suppressor = getTwitterService().getSuppressor();
+                    Suppressor suppressor = App.getInstance(requireContext()).getSuppressor();
 
-                    Twitter twitter = getTwitterService().getTwitter(claim.getSourceAccount());
+                    Twitter twitter = TwitterUtil.getTwitter(requireContext(), claim.getSourceAccount());
                     if (twitter == null) {
                         sb.append("サービス通信エラー");
                         continue;
@@ -722,7 +724,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     @Override
     public void onServiceConnected() {
         if (user == null) {
-            user = getTwitterService().getPrimaryUser();
+            user = App.getInstance(requireContext()).getAccountManager().getPrimaryUser();
         }
         if (!serviceTasks.isEmpty()) {
             Runnable task;
@@ -891,12 +893,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_unset_priority: {
-                App.getInstance(requireContext()).getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
+                App app = App.getInstance(requireContext());
+                app.getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
                 Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
 
                 user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
                 if (user == null) {
-                    user = getTwitterService().getPrimaryUser();
+                    user = app.getAccountManager().getPrimaryUser();
                 }
 
                 updateMenuItems();
@@ -1045,21 +1048,9 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         @Override
         protected TwitterException doInBackground(Void... voids) {
-            if (!isTwitterServiceBound()) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (!isTwitterServiceBound()) {
-                    return null;
-                }
-            }
-
             try {
-                TwitterService service = getTwitterService();
                 User user = null;
-                Twitter twitter = service.getTwitter(getCurrentUserOrPrimary());
+                Twitter twitter = TwitterUtil.getTwitter(requireContext(), getCurrentUserOrPrimary());
                 if (twitter != null) {
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -1073,7 +1064,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 }
 
                 if (user != null) {
-                    CentralDatabase database = service.getDatabase();
+                    CentralDatabase database = App.getInstance(requireContext()).getDatabase();
                     if (database != null) {
                         database.updateRecord(new DBUser(user));
                     }
@@ -1120,7 +1111,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             if (user != null) {
                 return user;
             }
-            return getTwitterService().getPrimaryUser();
+            return App.getInstance(requireContext()).getAccountManager().getPrimaryUser();
         }
     }
 
@@ -1128,27 +1119,11 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         @Override
         protected Void doInBackground(Void... voids) {
-            if (!isTwitterServiceBound()) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if (!isTwitterServiceBound()) {
-                    return null;
-                }
-            }
-
             LinkedHashMap<AuthUserRecord, Relationship> relationships = new LinkedHashMap<>();
-            List<AuthUserRecord> users =
-                    getTwitterService() != null ?
-                            getTwitterService().getUsers() != null ?
-                                    getTwitterService().getUsers()
-                                    : new ArrayList<>()
-                            : new ArrayList<>();
+            List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
             for (AuthUserRecord userRecord : users) {
                 try {
-                    Twitter twitter = getTwitterService().getTwitter(userRecord);
+                    Twitter twitter = TwitterUtil.getTwitter(requireContext(), userRecord);
                     if (twitter != null) {
                         relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
                     }

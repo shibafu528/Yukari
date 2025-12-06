@@ -3,7 +3,13 @@ package shibafu.yukari.twitter;
 import android.content.Context;
 import android.net.Uri;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import shibafu.yukari.R;
+import shibafu.yukari.core.App;
+import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.database.Provider;
+import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
@@ -85,5 +91,30 @@ public class TwitterUtil {
      */
     public static String getUrlFromUserId(long id) {
         return "https://twitter.com/intent/user?user_id=" + id;
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。結果はアカウントID毎にキャッシュされます。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    @Nullable
+    public static Twitter getTwitter(@NonNull Context context, @Nullable AuthUserRecord userRecord) {
+        return (Twitter) App.getInstance(context).getProviderApi(Provider.API_TWITTER).getApiClient(userRecord);
+    }
+
+    /**
+     * 指定のアカウントの認証情報を設定した {@link Twitter} インスタンスを取得します。
+     * {@link #getTwitter(Context, AuthUserRecord)} との違いは、こちらはインスタンスの取得に失敗した際、例外をスローすることです。
+     * @param userRecord 認証情報。ここに null を指定すると、AccessTokenの設定されていないインスタンスを取得できます。
+     * @return キーとトークンの設定された {@link Twitter} インスタンス。引数 userRecord が null の場合、AccessTokenは未設定。
+     */
+    @NonNull
+    public static Twitter getTwitterOrThrow(@NonNull Context context, @Nullable AuthUserRecord userRecord) throws MissingTwitterInstanceException {
+        Twitter twitter = getTwitter(context, userRecord);
+        if (twitter == null) {
+            throw new MissingTwitterInstanceException("Twitter インスタンスの取得エラー");
+        }
+        return twitter;
     }
 }

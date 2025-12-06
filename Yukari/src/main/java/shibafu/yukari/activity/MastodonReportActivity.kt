@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.databinding.FragmentReportCategoryBinding
@@ -38,9 +39,7 @@ import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
-import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.util.AttrUtil
-import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 
 class MastodonReportActivity : ActionBarYukariBase() {
@@ -82,8 +81,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
 
             model.loadingRules.value = true
             try {
-                val service = getTwitterServiceAwait() ?: return@launch
-                val client = service.getProviderApi(userRecord)!!.getApiClient(userRecord) as MastodonClient
+                val client = App.getInstance(applicationContext).getProviderApi(userRecord)!!.getApiClient(userRecord) as MastodonClient
 
                 val rules = withContext(Dispatchers.IO) {
                     val response = client.get("instance")
@@ -397,8 +395,7 @@ class MastodonReportActivity : ActionBarYukariBase() {
                     try {
                         progressDialog.show(parentFragmentManager, "progress")
 
-                        val twitterService = (requireActivity() as TwitterServiceDelegate).getTwitterServiceAwait() ?: return@launchWhenStarted
-                        val api = twitterService.getProviderApi(currentUser) as MastodonApi
+                        val api = App.getInstance(requireContext()).getProviderApi(currentUser) as MastodonApi
                         withContext(Dispatchers.IO) {
                             api.reportStatus(currentUser, status, comment, forward, category = category, ruleIds = ruleIds)
                         }

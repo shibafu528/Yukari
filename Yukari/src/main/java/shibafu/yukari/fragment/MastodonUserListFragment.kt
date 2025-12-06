@@ -9,6 +9,7 @@ import com.sys1yagi.mastodon4j.api.exception.Mastodon4jRequestException
 import com.sys1yagi.mastodon4j.api.method.Accounts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import shibafu.yukari.core.App
 import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.mastodon.entity.DonUser
 import shibafu.yukari.database.AuthUserRecord
@@ -31,9 +32,7 @@ class MastodonUserListFragment : AbstractUserListFragment<DonUser, MastodonUserL
 
     override suspend fun takeNextPageAsync(cursor: PageCursor?) = async(Dispatchers.IO) {
         try {
-            val service = getTwitterServiceAwait() ?: return@async null
-
-            val api = service.getProviderApi(currentUser) ?: return@async null
+            val api = App.getInstance(requireContext()).getProviderApi(currentUser) ?: return@async null
             val client = api.getApiClient(currentUser) as? MastodonClient ?: return@async null
 
             val accounts = Accounts(client)

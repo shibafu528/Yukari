@@ -23,6 +23,7 @@ import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.util.ThemeUtil;
 
@@ -103,7 +104,7 @@ public class SNPickerActivity extends ActionBarYukariBase implements LoaderManag
     public Loader<List<SuggestedName>> onCreateLoader(int id, Bundle args) {
         return new ScreenNameAsyncLoader(getApplicationContext(),
                 editText.getText().toString(),
-                getTwitterService().getDatabase());
+                App.getInstance(getApplicationContext()).getDatabase());
     }
 
     @Override
