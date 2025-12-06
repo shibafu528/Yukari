@@ -77,7 +77,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.TwitterService" />
         <service android:name=".service.AsyncCommandService"/>
         <service
             android:name=".service.CacheCleanerService"
